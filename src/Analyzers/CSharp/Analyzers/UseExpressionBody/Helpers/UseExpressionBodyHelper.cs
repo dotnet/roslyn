@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
     internal abstract class UseExpressionBodyHelper
     {
-        public abstract Option2<CodeStyleOption2<ExpressionBodyPreference>> Option { get; }
+        public abstract SingleValuedOption2<CodeStyleOption2<ExpressionBodyPreference>> Option { get; }
         public abstract LocalizableString UseExpressionBodyTitle { get; }
         public abstract LocalizableString UseBlockBodyTitle { get; }
         public abstract string DiagnosticId { get; }

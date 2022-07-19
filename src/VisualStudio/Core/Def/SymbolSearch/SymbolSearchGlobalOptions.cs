@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         private const string LocalRegistryPath = @"Roslyn\Features\SymbolSearch\";
         private const string FeatureName = "SymbolSearchOptions";
 
-        public static readonly Option2<bool> Enabled = new(
+        public static readonly SingleValuedOption2<bool> Enabled = new(
             FeatureName, "Enabled", defaultValue: true,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Enabled"));
     }

@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
     {
         private class BooleanCodeStyleSetting : BooleanCodeStyleSettingBase
         {
-            private readonly Option2<CodeStyleOption2<bool>> _option;
+            private readonly SingleValuedOption2<CodeStyleOption2<bool>> _option;
             private readonly AnalyzerConfigOptions _editorConfigOptions;
             private readonly OptionSet _visualStudioOptions;
 
-            public BooleanCodeStyleSetting(Option2<CodeStyleOption2<bool>> option,
+            public BooleanCodeStyleSetting(SingleValuedOption2<CodeStyleOption2<bool>> option,
                                            string description,
                                            string? trueValueDescription,
                                            string? falseValueDescription,

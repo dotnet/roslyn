@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class DiagnosticModeExtensions
     {
-        public static DiagnosticMode GetDiagnosticMode(this IGlobalOptionService globalOptions, Option2<DiagnosticMode> option)
+        public static DiagnosticMode GetDiagnosticMode(this IGlobalOptionService globalOptions, SingleValuedOption2<DiagnosticMode> option)
         {
             var diagnosticModeOption = globalOptions.GetOption(option);
 
@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return diagnosticModeOption;
         }
 
-        public static bool IsPullDiagnostics(this IGlobalOptionService globalOptions, Option2<DiagnosticMode> option)
+        public static bool IsPullDiagnostics(this IGlobalOptionService globalOptions, SingleValuedOption2<DiagnosticMode> option)
             => GetDiagnosticMode(globalOptions, option) == DiagnosticMode.Pull;
 
-        public static bool IsPushDiagnostics(this IGlobalOptionService globalOptions, Option2<DiagnosticMode> option)
+        public static bool IsPushDiagnostics(this IGlobalOptionService globalOptions, SingleValuedOption2<DiagnosticMode> option)
             => GetDiagnosticMode(globalOptions, option) == DiagnosticMode.Push;
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// diagnostics in their scenario (or an empty array if not in their scenario).
         /// </summary>
         public static ImmutableArray<DiagnosticData> GetPullDiagnostics(
-            this DiagnosticsUpdatedArgs args, IGlobalOptionService globalOptions, Option2<DiagnosticMode> diagnosticMode)
+            this DiagnosticsUpdatedArgs args, IGlobalOptionService globalOptions, SingleValuedOption2<DiagnosticMode> diagnosticMode)
         {
             // If push diagnostics are on, they get nothing since they're asking for pull diagnostics.
             if (globalOptions.IsPushDiagnostics(diagnosticMode))
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// diagnostics in their scenario (or an empty array if not in their scenario).
         /// </summary>
         public static ImmutableArray<DiagnosticData> GetPushDiagnostics(
-            this DiagnosticsUpdatedArgs args, IGlobalOptionService globalOptions, Option2<DiagnosticMode> diagnosticMode)
+            this DiagnosticsUpdatedArgs args, IGlobalOptionService globalOptions, SingleValuedOption2<DiagnosticMode> diagnosticMode)
         {
             // If pull diagnostics are on, they get nothing since they're asking for push diagnostics.
             if (globalOptions.IsPullDiagnostics(diagnosticMode))

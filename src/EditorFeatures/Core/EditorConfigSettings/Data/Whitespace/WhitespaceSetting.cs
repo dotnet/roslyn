@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             return new PerLanguageWhitespaceSetting<TOption>(option, description, editorConfigOptions, visualStudioOptions, updater, location);
         }
 
-        public static WhitespaceSetting<TOption> Create<TOption>(Option2<TOption> option,
+        public static WhitespaceSetting<TOption> Create<TOption>(SingleValuedOption2<TOption> option,
                                                                  string description,
                                                                  AnalyzerConfigOptions editorConfigOptions,
                                                                  OptionSet visualStudioOptions,

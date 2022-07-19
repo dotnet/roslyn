@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             Resources.Add(typeof(ComboBox), comboBoxStyle);
         }
 
-        private protected void BindToOption(CheckBox checkbox, Option2<bool> optionKey)
+        private protected void BindToOption(CheckBox checkbox, SingleValuedOption2<bool> optionKey)
         {
             var binding = new Binding()
             {
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        private protected void BindToOption(CheckBox checkbox, Option2<bool?> nullableOptionKey, Func<bool> onNullValue)
+        private protected void BindToOption(CheckBox checkbox, SingleValuedOption2<bool?> nullableOptionKey, Func<bool> onNullValue)
         {
             var binding = new Binding()
             {
@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        private protected void BindToOption(TextBox textBox, Option2<int> optionKey)
+        private protected void BindToOption(TextBox textBox, SingleValuedOption2<int> optionKey)
         {
             var binding = new Binding()
             {
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        private protected void BindToOption<T>(ComboBox comboBox, Option2<T> optionKey, ContentControl label = null)
+        private protected void BindToOption<T>(ComboBox comboBox, SingleValuedOption2<T> optionKey, ContentControl label = null)
         {
             var binding = new Binding()
             {

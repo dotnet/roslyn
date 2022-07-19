@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml
     {
         private const string FeatureName = "XamlOptions";
 
-        public static readonly Option2<bool> EnableLspIntelliSenseFeatureFlag = new(FeatureName, nameof(EnableLspIntelliSenseFeatureFlag), defaultValue: false,
+        public static readonly SingleValuedOption2<bool> EnableLspIntelliSenseFeatureFlag = new(FeatureName, nameof(EnableLspIntelliSenseFeatureFlag), defaultValue: false,
             new FeatureFlagStorageLocation("Xaml.EnableLspIntelliSense"));
     }
 }

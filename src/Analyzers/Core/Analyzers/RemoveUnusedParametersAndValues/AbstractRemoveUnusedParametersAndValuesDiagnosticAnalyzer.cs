@@ -90,10 +90,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         private static readonly PropertiesMap s_propertiesMap = CreatePropertiesMap();
 
         protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer(
-            Option2<CodeStyleOption2<UnusedValuePreference>> unusedValueExpressionStatementOption,
-            Option2<CodeStyleOption2<UnusedValuePreference>> unusedValueAssignmentOption,
+            SingleValuedOption2<CodeStyleOption2<UnusedValuePreference>> unusedValueExpressionStatementOption,
+            SingleValuedOption2<CodeStyleOption2<UnusedValuePreference>> unusedValueAssignmentOption,
             string language)
-            : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
+            : base(ImmutableDictionary<DiagnosticDescriptor, ISingleValuedOption>.Empty
                         .Add(s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption)
                         .Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption),
                    ImmutableDictionary<DiagnosticDescriptor, IPerLanguageValuedOption>.Empty

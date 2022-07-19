@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         /// <summary>
         /// Constructor for an unnecessary code style analyzer with a single diagnostic descriptor and
-        /// unique <see cref="ILanguageSpecificOption"/> code style option for the given language.
+        /// unique <see cref="ISingleValuedOption"/> code style option for the given language.
         /// </summary>
         /// <param name="diagnosticId">Diagnostic ID reported by this analyzer</param>
         /// <param name="enforceOnBuild">Build enforcement recommendation for this analyzer</param>
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(
             string diagnosticId,
             EnforceOnBuild enforceOnBuild,
-            ILanguageSpecificOption? option,
+            ISingleValuedOption? option,
             PerLanguageValuedOption2<bool>? fadingOption,
             string language,
             LocalizableString title,

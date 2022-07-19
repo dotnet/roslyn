@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             public T GetOption<T>(Option<T> option)
                 => throw new NotImplementedException();
 
-            public T GetOption<T>(Option2<T> option) => throw new NotImplementedException();
+            public T GetOption<T>(SingleValuedOption2<T> option) => throw new NotImplementedException();
             public T GetOption<T>(PerLanguageOption<T> option, string? languageName) => throw new NotImplementedException();
             public object? GetOption(OptionKey optionKey) => throw new NotImplementedException();
             public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey> optionKeys) => throw new NotImplementedException();

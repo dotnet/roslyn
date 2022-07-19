@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// An empty enumerable can be returned to indicate that this tagger should 
         /// run unconditionally.
         /// </summary>
-        protected virtual IEnumerable<Option2<bool>> Options => SpecializedCollections.EmptyEnumerable<Option2<bool>>();
+        protected virtual IEnumerable<SingleValuedOption2<bool>> Options => SpecializedCollections.EmptyEnumerable<SingleValuedOption2<bool>>();
         protected virtual IEnumerable<PerLanguageValuedOption2<bool>> PerLanguageOptions => SpecializedCollections.EmptyEnumerable<PerLanguageValuedOption2<bool>>();
 
         protected virtual bool ComputeInitialTagsSynchronously(ITextBuffer subjectBuffer) => false;

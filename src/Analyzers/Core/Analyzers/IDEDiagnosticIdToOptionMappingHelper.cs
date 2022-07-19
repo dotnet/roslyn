@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AddOptionMapping(s_diagnosticIdToOptionMap, diagnosticId, options);
         }
 
-        public static void AddOptionMapping(string diagnosticId, ImmutableHashSet<ILanguageSpecificOption> languageSpecificOptions, string language)
+        public static void AddOptionMapping(string diagnosticId, ImmutableHashSet<ISingleValuedOption> languageSpecificOptions, string language)
         {
             diagnosticId = diagnosticId ?? throw new ArgumentNullException(nameof(diagnosticId));
             languageSpecificOptions = languageSpecificOptions ?? throw new ArgumentNullException(nameof(languageSpecificOptions));

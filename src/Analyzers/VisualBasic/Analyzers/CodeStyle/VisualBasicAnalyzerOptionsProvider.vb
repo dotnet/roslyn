@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Diagnostics
             End Get
         End Property
 
-        Private Function GetOption(Of TValue)([option] As Option2(Of CodeStyleOption2(Of TValue)), defaultValue As CodeStyleOption2(Of TValue)) As CodeStyleOption2(Of TValue)
+        Private Function GetOption(Of TValue)([option] As SingleValuedOption2(Of CodeStyleOption2(Of TValue)), defaultValue As CodeStyleOption2(Of TValue)) As CodeStyleOption2(Of TValue)
             Return _options.GetEditorConfigOption([option], defaultValue)
         End Function
 

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBodyHelper
         where TDeclaration : SyntaxNode
     {
-        public override Option2<CodeStyleOption2<ExpressionBodyPreference>> Option { get; }
+        public override SingleValuedOption2<CodeStyleOption2<ExpressionBodyPreference>> Option { get; }
         public override LocalizableString UseExpressionBodyTitle { get; }
         public override LocalizableString UseBlockBodyTitle { get; }
         public override string DiagnosticId { get; }
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             EnforceOnBuild enforceOnBuild,
             LocalizableString useExpressionBodyTitle,
             LocalizableString useBlockBodyTitle,
-            Option2<CodeStyleOption2<ExpressionBodyPreference>> option,
+            SingleValuedOption2<CodeStyleOption2<ExpressionBodyPreference>> option,
             ImmutableArray<SyntaxKind> syntaxKinds)
         {
             DiagnosticId = diagnosticId;

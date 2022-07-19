@@ -35,7 +35,7 @@ internal static class IdeAnalyzerOptionsStorage
         };
     }
 
-    public static readonly Option2<bool> CrashOnAnalyzerException = new(
+    public static readonly SingleValuedOption2<bool> CrashOnAnalyzerException = new(
         "InternalDiagnosticsOptions", "CrashOnAnalyzerException", IdeAnalyzerOptions.CommonDefault.CrashOnAnalyzerException,
         storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Diagnostics\CrashOnAnalyzerException"));
 

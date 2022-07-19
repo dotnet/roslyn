@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     {
         private const string FeatureName = "InlineHintsOptions";
 
-        public static readonly Option2<bool> DisplayAllHintsWhilePressingAltF1 = new(
+        public static readonly SingleValuedOption2<bool> DisplayAllHintsWhilePressingAltF1 = new(
             FeatureName, "DisplayAllHintsWhilePressingAltF1", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.Specific.DisplayAllHintsWhilePressingAltF1"));
 

@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         private class EnumCodeStyleSetting<T> : EnumCodeStyleSettingBase<T>
             where T : Enum
         {
-            private readonly Option2<CodeStyleOption2<T>> _option;
+            private readonly SingleValuedOption2<CodeStyleOption2<T>> _option;
             private readonly AnalyzerConfigOptions _editorConfigOptions;
             private readonly OptionSet _visualStudioOptions;
 
-            public EnumCodeStyleSetting(Option2<CodeStyleOption2<T>> option,
+            public EnumCodeStyleSetting(SingleValuedOption2<CodeStyleOption2<T>> option,
                                         string description,
                                         T[] enumValues,
                                         string[] valueDescriptions,

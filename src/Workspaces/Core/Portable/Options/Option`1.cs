@@ -7,8 +7,8 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    /// <inheritdoc cref="Option2{T}"/>
-    public class Option<T> : ILanguageSpecificOption<T>
+    /// <inheritdoc cref="SingleValuedOption2{T}"/>
+    public class Option<T> : ISingleValuedOption<T>
     {
         private readonly OptionDefinition _optionDefinition;
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// <inheritdoc cref="OptionDefinition.Type"/>
         public Type Type => _optionDefinition.Type;
 
-        /// <inheritdoc cref="Option2{T}.StorageLocations"/>
+        /// <inheritdoc cref="SingleValuedOption2{T}.StorageLocations"/>
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
         [Obsolete("Use a constructor that specifies an explicit default value.")]

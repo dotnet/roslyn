@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageValuedOption2<bool> RefactoringVerification = new(
             FeatureName, "RefactoringVerification", defaultValue: false);
 
-        public static readonly Option2<bool> NavigateAsynchronously = new(
+        public static readonly SingleValuedOption2<bool> NavigateAsynchronously = new(
             FeatureName, "NavigateAsynchronously", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.NavigateAsynchronously"));
 
@@ -77,11 +77,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureName, "AddImportsOnPaste", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2"));
 
-        public static readonly Option2<bool?> OfferRemoveUnusedReferences = new(
+        public static readonly SingleValuedOption2<bool?> OfferRemoveUnusedReferences = new(
             FeatureName, "OfferRemoveUnusedReferences", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.OfferRemoveUnusedReferences"));
 
-        public static readonly Option2<bool> OfferRemoveUnusedReferencesFeatureFlag = new(
+        public static readonly SingleValuedOption2<bool> OfferRemoveUnusedReferencesFeatureFlag = new(
             FeatureName, "OfferRemoveUnusedReferencesFeatureFlag", defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.RemoveUnusedReferences"));
 
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureName, "ShowInheritanceMargin", defaultValue: true,
             new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin"));
 
-        public static readonly Option2<bool> InheritanceMarginCombinedWithIndicatorMargin = new(
+        public static readonly SingleValuedOption2<bool> InheritanceMarginCombinedWithIndicatorMargin = new(
             FeatureName, "InheritanceMarginCombinedWithIndicatorMargin", defaultValue: false,
             new RoamingProfileStorageLocation("TextEditor.InheritanceMarginCombinedWithIndicatorMargin"));
 
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureName, "InheritanceMarginIncludeGlobalImports", defaultValue: true,
             new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InheritanceMarginIncludeGlobalImports"));
 
-        public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new(
+        public static readonly SingleValuedOption2<bool> AutomaticallyCompleteStatementOnSemicolon = new(
             FeatureName, "AutomaticallyCompleteStatementOnSemicolon", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.AutomaticallyCompleteStatementOnSemicolon"));
 
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         /// Not used by Roslyn but exposed in C# and VB option UI. Used by TestWindow and Project System.
         /// TODO: remove https://github.com/dotnet/roslyn/issues/57253
         /// </summary>
-        public static readonly Option2<bool> SkipAnalyzersForImplicitlyTriggeredBuilds = new(
+        public static readonly SingleValuedOption2<bool> SkipAnalyzersForImplicitlyTriggeredBuilds = new(
             FeatureName, "SkipAnalyzersForImplicitlyTriggeredBuilds", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.SkipAnalyzersForImplicitlyTriggeredBuilds"));
     }

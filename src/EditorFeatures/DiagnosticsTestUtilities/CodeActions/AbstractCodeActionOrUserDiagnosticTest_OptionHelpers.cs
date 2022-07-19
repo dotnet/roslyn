@@ -10,16 +10,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
     public abstract partial class AbstractCodeActionOrUserDiagnosticTest
     {
-        internal static (OptionKey2, object?) SingleOption<T>(Option2<T> option, T enabled)
+        internal static (OptionKey2, object?) SingleOption<T>(SingleValuedOption2<T> option, T enabled)
             => (new OptionKey2(option), enabled);
 
         internal (OptionKey2, object?) SingleOption<T>(PerLanguageValuedOption2<T> option, T value)
             => (new OptionKey2(option, this.GetLanguage()), value);
 
-        internal static (OptionKey2, object) SingleOption<T>(Option2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
+        internal static (OptionKey2, object) SingleOption<T>(SingleValuedOption2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
             => (new OptionKey2(option), new CodeStyleOption2<T>(enabled, notification));
 
-        internal static (OptionKey2, object) SingleOption<T>(Option2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
+        internal static (OptionKey2, object) SingleOption<T>(SingleValuedOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
             => (new OptionKey2(option), codeStyle);
 
         internal (OptionKey2, object) SingleOption<T>(PerLanguageValuedOption2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
@@ -31,16 +31,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal static (OptionKey2, object) SingleOption<T>(PerLanguageValuedOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle, string language)
             => (new OptionKey2(option, language), codeStyle);
 
-        internal OptionsCollection Option<T>(Option2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
+        internal OptionsCollection Option<T>(SingleValuedOption2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
             => new OptionsCollection(GetLanguage()) { { option, enabled, notification } };
 
-        internal OptionsCollection Option<T>(Option2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
+        internal OptionsCollection Option<T>(SingleValuedOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
             => new OptionsCollection(GetLanguage()) { { option, codeStyle } };
 
         internal OptionsCollection Option<T>(PerLanguageValuedOption2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
             => new OptionsCollection(GetLanguage()) { { option, enabled, notification } };
 
-        internal OptionsCollection Option<T>(Option2<T> option, T value)
+        internal OptionsCollection Option<T>(SingleValuedOption2<T> option, T value)
             => new OptionsCollection(GetLanguage()) { { option, value } };
 
         internal OptionsCollection Option<T>(PerLanguageValuedOption2<T> option, T value)

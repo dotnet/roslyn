@@ -196,7 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             if (languageName == null)
             {
-                BindToOption(checkBox, (Option2<bool>)option);
+                BindToOption(checkBox, (SingleValuedOption2<bool>)option);
                 return;
             }
 
@@ -207,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             if (languageName == null)
             {
-                BindToOption(textBox, (Option2<int>)option);
+                BindToOption(textBox, (SingleValuedOption2<int>)option);
                 return;
             }
 

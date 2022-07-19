@@ -35,11 +35,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 
         public const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
 
-        private static readonly Option2<bool> s_showDebugInfoOption = new(
+        private static readonly SingleValuedOption2<bool> s_showDebugInfoOption = new(
             "InternalFeatureOnOffOptions", "ShowDebugInfo", defaultValue: false,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "ShowDebugInfo"));
 
-        private static readonly Option2<bool> s_removeRecommendationLimitOption = new(
+        private static readonly SingleValuedOption2<bool> s_removeRecommendationLimitOption = new(
             "InternalFeatureOnOffOptions", "RemoveRecommendationLimit", defaultValue: false,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "RemoveRecommendationLimit"));
     }

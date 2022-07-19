@@ -55,7 +55,7 @@ public class GlobalOptionsTests
             AccessedOptionKeys.Add(key);
         }
 
-        public T GetOption<T>(Option2<T> option)
+        public T GetOption<T>(SingleValuedOption2<T> option)
         {
             OnOptionAccessed(new OptionKey(option));
             return (T)GetNonEqualValue(typeof(T), option.DefaultValue);

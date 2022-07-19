@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
 
         public EnumCodeStyleOptionViewModel(
-            Option2<CodeStyleOption2<T>> option,
+            SingleValuedOption2<CodeStyleOption2<T>> option,
             string description,
             T[] enumValues,
             string[] previews,

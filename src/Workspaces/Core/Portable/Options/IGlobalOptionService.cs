@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Gets the current value of the specific option.
         /// </summary>
-        T GetOption<T>(Option2<T> option);
+        T GetOption<T>(SingleValuedOption2<T> option);
 
         /// <summary>
         /// Gets the current value of the specific option.

@@ -1719,7 +1719,7 @@ class C
 
         private class Analyzer : IIncrementalAnalyzer
         {
-            public static readonly Option2<bool> TestOption = new Option2<bool>("TestOptions", "TestOption", defaultValue: true);
+            public static readonly SingleValuedOption2<bool> TestOption = new SingleValuedOption2<bool>("TestOptions", "TestOption", defaultValue: true);
 
             public readonly ManualResetEventSlim BlockEvent;
             public readonly ManualResetEventSlim RunningEvent;

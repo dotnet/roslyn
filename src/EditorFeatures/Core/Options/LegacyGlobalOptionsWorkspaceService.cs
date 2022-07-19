@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly IGlobalOptionService _globalOptions;
         private readonly CodeActionOptionsStorage.Provider _provider;
 
-        private static readonly Option2<bool> s_generateOverridesOption = new(
+        private static readonly SingleValuedOption2<bool> s_generateOverridesOption = new(
             "GenerateOverridesOptions", "SelectAll", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation($"TextEditor.Specific.GenerateOverridesOptions.SelectAll"));
 

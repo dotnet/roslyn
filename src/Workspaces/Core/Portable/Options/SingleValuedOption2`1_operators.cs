@@ -6,10 +6,10 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    internal partial class Option2<T>
+    internal partial class SingleValuedOption2<T>
     {
         [return: NotNullIfNotNull("option")]
-        public static explicit operator Option<T>?(Option2<T>? option)
+        public static explicit operator Option<T>?(SingleValuedOption2<T>? option)
         {
             if (option is null)
             {

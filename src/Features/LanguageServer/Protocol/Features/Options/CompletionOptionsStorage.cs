@@ -35,15 +35,15 @@ internal static class CompletionOptionsStorage
 
     // feature flags
 
-    public static readonly Option2<bool> TypeImportCompletionFeatureFlag = new(nameof(CompletionOptions), nameof(TypeImportCompletionFeatureFlag),
+    public static readonly SingleValuedOption2<bool> TypeImportCompletionFeatureFlag = new(nameof(CompletionOptions), nameof(TypeImportCompletionFeatureFlag),
         CompletionOptions.Default.TypeImportCompletion,
         new FeatureFlagStorageLocation("Roslyn.TypeImportCompletion"));
 
-    public static readonly Option2<bool> UnnamedSymbolCompletionDisabledFeatureFlag = new(nameof(CompletionOptions), nameof(UnnamedSymbolCompletionDisabledFeatureFlag),
+    public static readonly SingleValuedOption2<bool> UnnamedSymbolCompletionDisabledFeatureFlag = new(nameof(CompletionOptions), nameof(UnnamedSymbolCompletionDisabledFeatureFlag),
         CompletionOptions.Default.UnnamedSymbolCompletionDisabled,
         new FeatureFlagStorageLocation("Roslyn.UnnamedSymbolCompletionDisabled"));
 
-    public static readonly Option2<bool> ShowNewSnippetExperienceFeatureFlag = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperienceFeatureFlag),
+    public static readonly SingleValuedOption2<bool> ShowNewSnippetExperienceFeatureFlag = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperienceFeatureFlag),
         CompletionOptions.Default.SnippetCompletion,
         new FeatureFlagStorageLocation("Roslyn.SnippetCompletion"));
 
@@ -83,12 +83,12 @@ internal static class CompletionOptionsStorage
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerInArgumentLists"));
 
     // Test-only option
-    public static readonly Option2<bool> ForceExpandedCompletionIndexCreation
+    public static readonly SingleValuedOption2<bool> ForceExpandedCompletionIndexCreation
         = new(nameof(CompletionOptions), nameof(ForceExpandedCompletionIndexCreation), defaultValue: false);
 
     // Set to true to update import completion cache in background if the provider isn't supposed to be triggered in the context.
     // (cache will alsways be refreshed when provider is triggered)
-    public static readonly Option2<bool> UpdateImportCompletionCacheInBackground
+    public static readonly SingleValuedOption2<bool> UpdateImportCompletionCacheInBackground
         = new(nameof(CompletionOptions), nameof(UpdateImportCompletionCacheInBackground), defaultValue: false);
 
     // Embedded languages:

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Options
 {
     internal static class OptionsExtensions
     {
-        public static Option<CodeStyleOption<T>> ToPublicOption<T>(this Option2<CodeStyleOption2<T>> option)
+        public static Option<CodeStyleOption<T>> ToPublicOption<T>(this SingleValuedOption2<CodeStyleOption2<T>> option)
         {
             RoslynDebug.Assert(option != null);
 

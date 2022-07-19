@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Components\";
         private const string FeatureName = "EditorComponentOnOffOptions";
 
-        public static readonly Option2<bool> Adornment = new(FeatureName, "Adornment", defaultValue: true,
+        public static readonly SingleValuedOption2<bool> Adornment = new(FeatureName, "Adornment", defaultValue: true,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Adornment"));
 
-        public static readonly Option2<bool> Tagger = new(FeatureName, "Tagger", defaultValue: true,
+        public static readonly SingleValuedOption2<bool> Tagger = new(FeatureName, "Tagger", defaultValue: true,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Tagger"));
 
-        public static readonly Option2<bool> CodeRefactorings = new(FeatureName, "CodeRefactorings", defaultValue: true,
+        public static readonly SingleValuedOption2<bool> CodeRefactorings = new(FeatureName, "CodeRefactorings", defaultValue: true,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Code Refactorings"));
     }
 }

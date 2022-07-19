@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     _ => "unset"
                 }));
 
-        internal static Option2<bool> InsertFinalNewLine =
+        internal static SingleValuedOption2<bool> InsertFinalNewLine =
             new(FeatureName, FormattingOptionGroups.NewLine, nameof(InsertFinalNewLine), DocumentFormattingOptions.Default.InsertFinalNewLine,
             storageLocation: EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
 

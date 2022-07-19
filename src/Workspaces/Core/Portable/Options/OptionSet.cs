@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
-        internal T GetOption<T>(Option2<T> option)
+        internal T GetOption<T>(SingleValuedOption2<T> option)
             => OptionsHelpers.GetOption(option, _getOptionCore);
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Creates a new <see cref="OptionSet" /> that contains the changed value.
         /// </summary>
-        internal OptionSet WithChangedOption<T>(Option2<T> option, T value)
+        internal OptionSet WithChangedOption<T>(SingleValuedOption2<T> option, T value)
             => WithChangedOption(new OptionKey(option), value);
 
         /// <summary>

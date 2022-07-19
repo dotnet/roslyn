@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private const string LocalRegistryPath = @"Roslyn\Internal\Diagnostics\";
 
-        public static readonly Option2<bool> EnableFileLoggingForDiagnostics = new("InternalDiagnosticsOptions", "EnableFileLoggingForDiagnostics", defaultValue: false,
+        public static readonly SingleValuedOption2<bool> EnableFileLoggingForDiagnostics = new("InternalDiagnosticsOptions", "EnableFileLoggingForDiagnostics", defaultValue: false,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "EnableFileLoggingForDiagnostics"));
     }
 }

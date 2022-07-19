@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             FeatureName, "ShowRemarksInQuickInfo", QuickInfoOptions.Default.ShowRemarksInQuickInfo,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowRemarks"));
 
-        public static readonly Option2<bool> IncludeNavigationHintsInQuickInfo = new(
+        public static readonly SingleValuedOption2<bool> IncludeNavigationHintsInQuickInfo = new(
             FeatureName, "IncludeNavigationHintsInQuickInfo", QuickInfoOptions.Default.IncludeNavigationHintsInQuickInfo,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.Specific.IncludeNavigationHintsInQuickInfo"));
     }

@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return option;
         }
 
-        private static Option2<T> CreateCommonOption<T>(OptionGroup group, string name, T defaultValue, OptionStorageLocation2 storageLocation)
+        private static SingleValuedOption2<T> CreateCommonOption<T>(OptionGroup group, string name, T defaultValue, OptionStorageLocation2 storageLocation)
         {
-            var option = new Option2<T>(
+            var option = new SingleValuedOption2<T>(
                 "CodeStyleOptions",
                 group, name, defaultValue,
                 ImmutableArray.Create(storageLocation));
@@ -56,11 +56,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return option;
         }
 
-        private static Option2<T> CreateCommonOption<T>(
+        private static SingleValuedOption2<T> CreateCommonOption<T>(
             OptionGroup group, string name, T defaultValue,
             OptionStorageLocation2 storageLocation1, OptionStorageLocation2 storageLocation2)
         {
-            var option = new Option2<T>(
+            var option = new SingleValuedOption2<T>(
                 "CodeStyleOptions",
                 group, name, defaultValue,
                 ImmutableArray.Create(storageLocation1, storageLocation2));
@@ -260,12 +260,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             "dotnet_style_readonly_field",
             "TextEditor.%LANGUAGE%.Specific.PreferReadonly");
 
-        internal static readonly Option2<string> FileHeaderTemplate = CreateCommonOption(
+        internal static readonly SingleValuedOption2<string> FileHeaderTemplate = CreateCommonOption(
             CodeStyleOptionGroups.Usings, nameof(FileHeaderTemplate),
             DocumentFormattingOptions.Default.FileHeaderTemplate,
             EditorConfigStorageLocation.ForStringOption("file_header_template", emptyStringRepresentation: "unset"));
 
-        internal static readonly Option2<string> RemoveUnnecessarySuppressionExclusions = CreateCommonOption(
+        internal static readonly SingleValuedOption2<string> RemoveUnnecessarySuppressionExclusions = CreateCommonOption(
             CodeStyleOptionGroups.Suppressions,
             nameof(RemoveUnnecessarySuppressionExclusions),
             IdeCodeStyleOptions.CommonOptions.Default.RemoveUnnecessarySuppressionExclusions,

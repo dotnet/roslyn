@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
         /// <summary>
         /// Non-persisted option used to switch to displaying everything while the user is holding ctrl-alt.
         /// </summary>
-        public static readonly Option2<bool> DisplayAllOverride =
+        public static readonly SingleValuedOption2<bool> DisplayAllOverride =
             new("InlineHintsOptions", "DisplayAllOverride", defaultValue: false);
     }
 }

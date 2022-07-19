@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return false;
         }
 
-        public static Option2<T> CreateOption<T>(
+        public static SingleValuedOption2<T> CreateOption<T>(
             OptionGroup group,
             string feature,
             string name,
@@ -120,12 +120,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             ImmutableArray<IOption2>.Builder optionsBuilder,
             OptionStorageLocation2 storageLocation)
         {
-            var option = new Option2<T>(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation));
+            var option = new SingleValuedOption2<T>(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation));
             optionsBuilder.Add(option);
             return option;
         }
 
-        public static Option2<T> CreateOption<T>(
+        public static SingleValuedOption2<T> CreateOption<T>(
             OptionGroup group,
             string feature,
             string name,
@@ -134,12 +134,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             OptionStorageLocation2 storageLocation1,
             OptionStorageLocation2 storageLocation2)
         {
-            var option = new Option2<T>(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation1, storageLocation2));
+            var option = new SingleValuedOption2<T>(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation1, storageLocation2));
             optionsBuilder.Add(option);
             return option;
         }
 
-        public static Option2<T> CreateOption<T>(
+        public static SingleValuedOption2<T> CreateOption<T>(
             OptionGroup group,
             string feature,
             string name,
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             ImmutableArray<IOption2>.Builder optionsBuilder,
             ImmutableArray<OptionStorageLocation2> storageLocations)
         {
-            var option = new Option2<T>(feature, group, name, defaultValue, storageLocations);
+            var option = new SingleValuedOption2<T>(feature, group, name, defaultValue, storageLocations);
             optionsBuilder.Add(option);
             return option;
         }
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 KeyValuePairUtil.Create("unused_local_variable", UnusedValuePreference.UnusedLocalVariable),
             });
 
-        public static Option2<CodeStyleOption2<UnusedValuePreference>> CreateUnusedExpressionAssignmentOption(
+        public static SingleValuedOption2<CodeStyleOption2<UnusedValuePreference>> CreateUnusedExpressionAssignmentOption(
             OptionGroup group,
             string feature,
             string name,

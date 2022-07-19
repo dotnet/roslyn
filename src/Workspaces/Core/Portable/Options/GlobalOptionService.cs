@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Options
             return optionKey.Option.DefaultValue;
         }
 
-        public T GetOption<T>(Option2<T> option)
+        public T GetOption<T>(SingleValuedOption2<T> option)
             => OptionsHelpers.GetOption(option, _getOption);
 
         public T GetOption<T>(PerLanguageValuedOption2<T> option, string? language)

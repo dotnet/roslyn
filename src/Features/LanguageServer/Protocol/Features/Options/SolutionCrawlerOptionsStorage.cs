@@ -20,7 +20,7 @@ internal static class SolutionCrawlerOptionsStorage
     /// <summary>
     /// Option to turn configure background analysis scope for the current solution.
     /// </summary>
-    public static readonly Option2<BackgroundAnalysisScope?> SolutionBackgroundAnalysisScopeOption = new(
+    public static readonly SingleValuedOption2<BackgroundAnalysisScope?> SolutionBackgroundAnalysisScopeOption = new(
         "SolutionCrawlerOptionsStorage", "SolutionBackgroundAnalysisScopeOption", defaultValue: null);
 
     /// <summary>
