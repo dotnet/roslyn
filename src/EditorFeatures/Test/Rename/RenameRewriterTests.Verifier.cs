@@ -5,15 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Design.Serialization;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ICSharpCode.Decompiler.IL;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CSharp.Rename;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -25,11 +20,9 @@ using Roslyn.Utilities;
 using Xunit;
 using RenameAnnotation = Microsoft.CodeAnalysis.Rename.ConflictEngine.RenameAnnotation;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.Rename
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 {
-    [UseExportProvider]
-    [Trait(Traits.Feature, Traits.Features.Rename)]
-    public class RenameRewriterTests
+    public partial class RenameRewriterTests
     {
         private const string ConflictTag = "Conflict";
         private const string RenameTag = "Rename";
@@ -94,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Rename
             {
                 var documentId = _testWorkspace.Documents.Single(doc => doc.FilePath == documentFilePath).Id;
                 var sourceText = await _currentSolution.GetRequiredDocument(documentId).GetTextAsync(cancellationToken).ConfigureAwait(false);
-                Assert.Equal(expectedDocumentContent, sourceText.ToString());
+                Assert.Equal(expectedDocumentContent.Trim(), sourceText.ToString().Trim());
             }
 
             private async Task<SyntaxNode?> RenameDocumentAsync(
@@ -197,5 +190,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Rename
             public void Dispose()
                 => _testWorkspace.Dispose();
         }
+
     }
 }
