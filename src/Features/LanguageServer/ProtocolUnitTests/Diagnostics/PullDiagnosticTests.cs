@@ -68,22 +68,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             Assert.NotNull(results.Single().Diagnostics.Single().CodeDescription!.Href);
         }
 
-        [Theory, CombinatorialData]
-        public async Task TestNoDocumentDiagnosticsForOpenFilesWithFSAOffIfInPushMode(bool useVSDiagnostics)
-        {
-            var markup =
-@"class A {";
-            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: false);
+//        [Theory, CombinatorialData]
+//        public async Task TestNoDocumentDiagnosticsForOpenFilesWithFSAOffIfInPushMode(bool useVSDiagnostics)
+//        {
+//            var markup =
+//@"class A {";
+//            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: false);
 
-            // Calling GetTextBuffer will effectively open the file.
-            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
+//            // Calling GetTextBuffer will effectively open the file.
+//            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
 
-            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+//            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
-            await OpenDocumentAsync(testLspServer, document);
+//            await OpenDocumentAsync(testLspServer, document);
 
-            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics));
-        }
+//            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics));
+//        }
 
         [Theory, CombinatorialData]
         public async Task TestNoDocumentDiagnosticsForOpenFilesIfDefaultAndFeatureFlagOff(bool useVSDiagnostics)
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var markup =
 @"class A {";
             using var testLspServer = await CreateTestLspServerAsync(markup,
-                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, DiagnosticMode.Default));
+                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, useVSDiagnostics));
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             await OpenDocumentAsync(testLspServer, document);
 
             // Ensure we get no diagnostics when feature flag is off.
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag), false);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(DiagnosticOptions.LspPullDiagnosticsFeatureFlag), false);
 
             await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics));
         }
@@ -110,14 +110,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var markup =
 @"class A {";
             using var testLspServer = await CreateTestLspServerAsync(markup,
-                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, DiagnosticMode.Default));
+                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, useVSDiagnostics));
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
             await OpenDocumentAsync(testLspServer, document);
 
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag), true);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(DiagnosticOptions.LspPullDiagnosticsFeatureFlag), true);
 
             var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
             Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
@@ -461,7 +461,7 @@ class B {";
 
             // Turn off pull diagnostics by default, but send a request to the razor LSP server which is always pull.
             using var testLspServer = await CreateTestLspServerAsync(markup,
-                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, DiagnosticMode.Pull, WellKnownLspServerKinds.RazorLspServer));
+                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, WellKnownLspServerKinds.RazorLspServer));
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -486,7 +486,7 @@ class B {";
 
             // Turn off pull diagnostics by default, but send a request to the razor LSP server which is always pull.
             using var testLspServer = await CreateTestLspServerAsync(markup,
-                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, DiagnosticMode.Pull, WellKnownLspServerKinds.LiveShareLspServer));
+                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, WellKnownLspServerKinds.LiveShareLspServer));
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -507,7 +507,7 @@ class B {";
         public async Task TestDocumentDiagnosticsIncludesSourceGeneratorDiagnostics(bool useVSDiagnostics)
         {
             var markup = "// Hello, World";
-            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: true);
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -571,7 +571,7 @@ class B {";
 @"class A {";
             var markup2 = "";
             using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-                new[] { markup1, markup2 }, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: true);
+                new[] { markup1, markup2 }, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
             var firstDocument = testLspServer.GetCurrentSolution().Projects.Single().Documents.First();
             await OpenDocumentAsync(testLspServer, firstDocument);
@@ -585,7 +585,7 @@ class B {";
         public async Task TestWorkspaceDiagnosticsIncludesSourceGeneratorDiagnosticsClosedFSAOn(bool useVSDiagnostics)
         {
             var markup = "// Hello, World";
-            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.FullSolution, useVSDiagnostics, pullDiagnostics: true);
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -605,7 +605,7 @@ class B {";
         public async Task TestWorkspaceDiagnosticsDoesNotIncludeSourceGeneratorDiagnosticsClosedFSAOffAndNoFilesOpen(bool useVSDiagnostics)
         {
             var markup = "// Hello, World";
-            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: true);
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
             var generator = new DiagnosticProducingGenerator(
                 context => Location.Create(
@@ -620,17 +620,17 @@ class B {";
             Assert.Empty(results);
         }
 
-        [Theory, CombinatorialData]
-        public async Task TestNoWorkspaceDiagnosticsForClosedFilesWithFSAOnAndInPushMode(bool useVSDiagnostics)
-        {
-            var markup1 =
-@"class A {";
-            var markup2 = "";
-            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-                new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics, pullDiagnostics: false);
+//        [Theory, CombinatorialData]
+//        public async Task TestNoWorkspaceDiagnosticsForClosedFilesWithFSAOnAndInPushMode(bool useVSDiagnostics)
+//        {
+//            var markup1 =
+//@"class A {";
+//            var markup2 = "";
+//            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+//                new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics, pullDiagnostics: false);
 
-            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics));
-        }
+//            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics));
+//        }
 
         [Theory, CombinatorialData]
         public async Task TestNoWorkspaceDiagnosticsForClosedFilesInProjectsWithIncorrectLanguage(bool useVSDiagnostics)
@@ -664,7 +664,7 @@ class B {";
             var markup2 = "";
             using var testLspServer = await CreateTestLspServerAsync(
                 markups: Array.Empty<string>(),
-                GetInitializationOptions(BackgroundAnalysisScope.FullSolution, useVSDiagnostics, DiagnosticMode.Pull, sourceGeneratedMarkups: new[] { markup1, markup2 }));
+                GetInitializationOptions(BackgroundAnalysisScope.FullSolution, useVSDiagnostics, sourceGeneratedMarkups: new[] { markup1, markup2 }));
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 

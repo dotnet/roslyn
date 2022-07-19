@@ -18,6 +18,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
 Imports Microsoft.VisualStudio.Text.Adornments
 Imports Microsoft.VisualStudio.Text.Tagging
 
+#If False Then
+
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
     <[UseExportProvider]>
     Public Class ErrorSquiggleProducerTests
@@ -158,3 +160,5 @@ End Class"
         End Function
     End Class
 End Namespace
+
+#end if
