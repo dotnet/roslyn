@@ -171,6 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                         sortedDocumentSymbols.Sort(static (x, y) => x.RangeSpan.Start - y.RangeSpan.Start);
                         break;
                     case SortOption.Type:
+                        // At the moment, we sort the symbols by the SymbolKind enum values.
                         sortedDocumentSymbols.Sort(static (x, y) =>
                         {
                             if (x.SymbolKind == y.SymbolKind)
