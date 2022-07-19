@@ -23,6 +23,8 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
+#if false
+
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     [UseExportProvider]
@@ -172,3 +174,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             };
     }
 }
+
+#endif

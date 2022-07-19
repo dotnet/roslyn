@@ -167,8 +167,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.True(taskSource.Task.IsCompleted);
 
             var args = taskSource.Task.Result;
-            Assert.True(args.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode).Length > 0);
+            Assert.True(args.GetPullDiagnostics(globalOptions).Length > 0);
         }
+
+#if false
 
         [WpfFact]
         public async Task TestPreviewDiagnosticTagger()
@@ -245,6 +247,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var rightSpans = rightTagger.GetTags(rightSnapshot.GetSnapshotSpanCollection()).ToList();
             Assert.Equal(0, rightSpans.Count);
         }
+
+#endif
 
         [Trait(Traits.Editor, Traits.Editors.Preview)]
         [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
