@@ -5,21 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Preview;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeActions;
 using System.Threading;
-using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions
