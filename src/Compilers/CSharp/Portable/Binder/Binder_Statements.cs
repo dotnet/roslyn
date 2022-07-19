@@ -1582,7 +1582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundAssignmentOperator(node, op1, op2, isRef, type, hasErrors);
 
-            static string getName(BoundExpression expr)
+            static object getName(BoundExpression expr)
             {
                 if (expr.ExpressionSymbol is { Name: var name })
                 {
@@ -1590,11 +1590,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (expr is BoundArrayAccess)
                 {
-                    return "array access";
+                    return MessageID.IDS_ArrayAccess.Localize();
                 }
                 if (expr is BoundPointerElementAccess)
                 {
-                    return "pointer element access";
+                    return MessageID.IDS_PointerElementAccess.Localize();
                 }
 
                 Debug.Assert(false);

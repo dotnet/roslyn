@@ -257,6 +257,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRequiredMembers = MessageBase + 12825,
         IDS_FeatureRefFields = MessageBase + 12826,
         IDS_FeatureFileTypes = MessageBase + 12827,
+        IDS_ArrayAccess = MessageBase + 12828,
+        IDS_PointerElementAccess = MessageBase + 12829,
     }
 
     // Message IDs may refer to strings that need to be localized.
