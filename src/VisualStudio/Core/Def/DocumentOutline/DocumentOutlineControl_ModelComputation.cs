@@ -197,7 +197,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
             else
             {
-                DocumentOutlineHelper.UnselectAll((IEnumerable<DocumentSymbolUIItem>)SymbolTree.ItemsSource);
+                // On Document Outline Control initialization, SymbolTree.ItemsSource is null
+                if (SymbolTree.ItemsSource is not null)
+                    DocumentOutlineHelper.UnselectAll((IEnumerable<DocumentSymbolUIItem>)SymbolTree.ItemsSource);
             }
 
             SymbolTree.ItemsSource = documentSymbolUIItems;

@@ -233,7 +233,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return VSConstants.S_OK;
             }
 
-            // We expect GetOutline to be called every time a new code window is created.
+            // GetOutline is called every time a new code window is created. Whenever we switch to a different window, it is guaranteed
+            // that ReleaseOutline will be called on the old window before GetOutline is called for the new window. 
             int IVsDocOutlineProvider.GetOutline(out IntPtr phwnd, out IOleCommandTarget? ppCmdTarget)
             {
                 var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBrokerShim>();
@@ -244,10 +245,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 threadingContext.ThrowIfNotOnUIThread();
 
+                // Assert that the previous Document Outline Control and host have been freed. 
+                Contract.ThrowIfFalse(_documentOutlineControl is null);
+                Contract.ThrowIfFalse(_documentOutlineViewHost is null);
+
                 _documentOutlineControl = new DocumentOutlineControl(
                         languageServiceBroker, threadingContext, asyncListener, editorAdaptersFactoryService, _codeWindow);
 
-                // Overwrite the existing host with a new Document Outline for this code window.
                 _documentOutlineViewHost = new ElementHost
                 {
                     Dock = DockStyle.Fill,
@@ -267,10 +271,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
                 threadingContext.ThrowIfNotOnUIThread();
 
-                _documentOutlineControl?.Dispose();
-                _documentOutlineControl = null;
+                // Assert that we are not attempting to double free the Document Outline Control and host.
+                Contract.ThrowIfNull(_documentOutlineViewHost);
+                Contract.ThrowIfNull(_documentOutlineControl);
 
-                _documentOutlineViewHost?.Dispose();
+                _documentOutlineViewHost.SuspendLayout();
+                _documentOutlineControl.Dispose();
+                _documentOutlineControl = null;
+                _documentOutlineViewHost.Child = null;
+                _documentOutlineViewHost.Parent = null;
+                _documentOutlineViewHost.Dispose();
                 _documentOutlineViewHost = null;
 
                 return VSConstants.S_OK;
