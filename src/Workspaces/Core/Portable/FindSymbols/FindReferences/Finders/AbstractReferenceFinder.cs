@@ -216,7 +216,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 token.GetLocation(),
                 isImplicit: false,
                 GetSymbolUsageInfo(token.Parent, state, cancellationToken),
-                GetAdditionalFindUsagesProperties(token.Parent, state), reason));
+                GetAdditionalFindUsagesProperties(token.Parent, state),
+                reason));
         }
 
         protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensAsync(
