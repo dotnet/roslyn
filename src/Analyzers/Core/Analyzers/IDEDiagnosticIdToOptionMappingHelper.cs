@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _ => s_diagnosticIdToLanguageSpecificOptionsMap.GetOrAdd(language, _ => new ConcurrentDictionary<string, ImmutableHashSet<IOption2>>())
                 };
 
-                var options = languageSpecificOptions.Cast<IOption2>().ToImmutableHashSet();
+                var options = group.Cast<IOption2>().ToImmutableHashSet();
                 AddOptionMapping(map, diagnosticId, options);
             }
         }
