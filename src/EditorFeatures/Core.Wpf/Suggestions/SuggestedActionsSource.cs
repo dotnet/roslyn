@@ -215,6 +215,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (unifiedSuggestedActionSet == null)
                     return null;
 
+                var originalSolution = unifiedSuggestedActionSet.OriginalSolution;
+
                 return new SuggestedActionSet(
                     unifiedSuggestedActionSet.CategoryName,
                     unifiedSuggestedActionSet.Actions.SelectAsArray(set => ConvertToSuggestedAction(set)),
@@ -227,21 +229,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     => unifiedSuggestedAction switch
                     {
                         UnifiedCodeFixSuggestedAction codeFixAction => new CodeFixSuggestedAction(
-                            ThreadingContext, owner, codeFixAction.Workspace, subjectBuffer,
+                            ThreadingContext, owner, codeFixAction.Workspace, originalSolution, subjectBuffer,
                             codeFixAction.CodeFix, codeFixAction.Provider, codeFixAction.OriginalCodeAction,
                             ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors, owner, subjectBuffer)),
                         UnifiedCodeRefactoringSuggestedAction codeRefactoringAction => new CodeRefactoringSuggestedAction(
-                            ThreadingContext, owner, codeRefactoringAction.Workspace, subjectBuffer,
+                            ThreadingContext, owner, codeRefactoringAction.Workspace, originalSolution, subjectBuffer,
                             codeRefactoringAction.CodeRefactoringProvider, codeRefactoringAction.OriginalCodeAction,
                             ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors, owner, subjectBuffer)),
                         UnifiedFixAllCodeFixSuggestedAction fixAllAction => new FixAllCodeFixSuggestedAction(
-                            ThreadingContext, owner, fixAllAction.Workspace, subjectBuffer,
+                            ThreadingContext, owner, fixAllAction.Workspace, originalSolution, subjectBuffer,
                             fixAllAction.FixAllState, fixAllAction.Diagnostic, fixAllAction.OriginalCodeAction),
                         UnifiedFixAllCodeRefactoringSuggestedAction fixAllCodeRefactoringAction => new FixAllCodeRefactoringSuggestedAction(
-                            ThreadingContext, owner, fixAllCodeRefactoringAction.Workspace, subjectBuffer,
+                            ThreadingContext, owner, fixAllCodeRefactoringAction.Workspace, originalSolution, subjectBuffer,
                             fixAllCodeRefactoringAction.FixAllState, fixAllCodeRefactoringAction.OriginalCodeAction),
                         UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(
-                            ThreadingContext, owner, nestedAction.Workspace, subjectBuffer,
+                            ThreadingContext, owner, nestedAction.Workspace, originalSolution, subjectBuffer,
                             nestedAction.Provider ?? this, nestedAction.OriginalCodeAction,
                             nestedAction.NestedActionSets.SelectAsArray((s, arg) => ConvertToSuggestedActionSet(s, arg.owner, arg.subjectBuffer), (owner, subjectBuffer))),
                         _ => throw ExceptionUtilities.Unreachable

@@ -42,14 +42,21 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
             => workspace.TryApplyChanges(ChangedSolution, new ProgressTracker());
 
-        internal sealed override Task<bool> TryApplyAsync(
-            Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        internal sealed override Task<bool> TryApplyAsync(Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+            => Task.FromResult(ApplyOrMergeChanges(workspace, originalSolution, ChangedSolution, progressTracker, cancellationToken));
+
+        internal static bool ApplyOrMergeChanges(
+            Workspace workspace,
+            Solution originalSolution,
+            Solution changedSolution,
+            IProgressTracker progressTracker,
+            CancellationToken cancellationToken)
         {
             var currentSolution = workspace.CurrentSolution;
 
             // if there was no intermediary edit, just apply the change fully.
-            if (ChangedSolution.WorkspaceVersion == currentSolution.WorkspaceVersion)
-                return Task.FromResult(workspace.TryApplyChanges(ChangedSolution, progressTracker));
+            if (changedSolution.WorkspaceVersion == currentSolution.WorkspaceVersion)
+                return workspace.TryApplyChanges(changedSolution, progressTracker);
 
             // Otherwise, we need to see what changes were actually made and see if we can apply them.  The general rules are:
             //
@@ -63,14 +70,14 @@ namespace Microsoft.CodeAnalysis.CodeActions
             //    of some sort of text-merging-library to handle this.  However, the user would then have to handle diff
             //    markers being inserted into their code that they then have to handle.
 
-            var solutionChanges = this.ChangedSolution.GetChanges(originalSolution);
+            var solutionChanges = changedSolution.GetChanges(originalSolution);
 
             if (solutionChanges.GetAddedProjects().Count() > 0 ||
                 solutionChanges.GetAddedAnalyzerReferences().Count() > 0 ||
                 solutionChanges.GetRemovedProjects().Count() > 0 ||
                 solutionChanges.GetRemovedAnalyzerReferences().Count() > 0)
             {
-                return SpecializedTasks.False;
+                return false;
             }
 
             // Take the actual current solution the workspace is pointing to and fork it with just the text changes the
@@ -93,20 +100,20 @@ namespace Microsoft.CodeAnalysis.CodeActions
                     changedProject.GetRemovedMetadataReferences().Count() > 0 ||
                     changedProject.GetRemovedProjectReferences().Count() > 0)
                 {
-                    return SpecializedTasks.False;
+                    return false;
                 }
 
-                if (!ProcessDocuments(changedProject, changedProject.GetChangedDocuments(), static (s, i) => s.GetRequiredDocument(i), static (s, i, t) => s.WithDocumentText(i, t)) ||
-                    !ProcessDocuments(changedProject, changedProject.GetChangedAdditionalDocuments(), static (s, i) => s.GetRequiredAdditionalDocument(i), static (s, i, t) => s.WithAdditionalDocumentText(i, t)) ||
-                    !ProcessDocuments(changedProject, changedProject.GetChangedAnalyzerConfigDocuments(), static (s, i) => s.GetRequiredAnalyzerConfigDocument(i), static (s, i, t) => s.WithAnalyzerConfigDocumentText(i, t)))
+                if (!TryForkTextChanges(changedProject, changedProject.GetChangedDocuments(), static (s, i) => s.GetRequiredDocument(i), static (s, i, t) => s.WithDocumentText(i, t)) ||
+                    !TryForkTextChanges(changedProject, changedProject.GetChangedAdditionalDocuments(), static (s, i) => s.GetRequiredAdditionalDocument(i), static (s, i, t) => s.WithAdditionalDocumentText(i, t)) ||
+                    !TryForkTextChanges(changedProject, changedProject.GetChangedAnalyzerConfigDocuments(), static (s, i) => s.GetRequiredAnalyzerConfigDocument(i), static (s, i, t) => s.WithAnalyzerConfigDocumentText(i, t)))
                 {
-                    return SpecializedTasks.False;
+                    return false;
                 }
             }
 
-            return Task.FromResult(workspace.TryApplyChanges(forkedSolution, progressTracker));
+            return workspace.TryApplyChanges(forkedSolution, progressTracker);
 
-            bool ProcessDocuments(
+            bool TryForkTextChanges(
                 ProjectChanges changedProject,
                 IEnumerable<DocumentId> changedDocuments,
                 Func<Solution, DocumentId, TextDocument> getDocument,
