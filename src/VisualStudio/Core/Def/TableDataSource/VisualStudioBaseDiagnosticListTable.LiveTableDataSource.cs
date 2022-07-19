@@ -170,9 +170,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
             {
-                var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
-                var diagnostics = diagnosticService.GetPushDiagnosticBuckets(
-                    workspace, projectId: null, documentId: null, diagnosticMode, cancellationToken: CancellationToken.None);
+                var diagnostics = diagnosticService.GetPullDiagnosticBuckets(
+                    workspace, projectId: null, documentId: null, cancellationToken: CancellationToken.None);
 
                 foreach (var bucket in diagnostics)
                 {
@@ -194,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return;
                     }
 
-                    var diagnostics = e.GetPushDiagnostics(GlobalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                    var diagnostics = e.GetPullDiagnostics(GlobalOptions);
                     if (diagnostics.Length == 0)
                     {
                         OnDataRemoved(e);
@@ -301,9 +300,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override ImmutableArray<DiagnosticTableItem> GetItems()
                 {
-                    var diagnosticMode = _globalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
                     var provider = _source._diagnosticService;
-                    var items = provider.GetPushDiagnosticsAsync(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, diagnosticMode, cancellationToken: CancellationToken.None)
+                    var items = provider.GetPullDiagnosticsAsync(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, cancellationToken: CancellationToken.None)
                         .AsTask()
                         .WaitAndGetResult_CanCallOnBackground(CancellationToken.None)
                                         .Where(ShouldInclude)
@@ -597,7 +595,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     id = analyzer.Analyzer.ToString();
                 }
 
-                var diagnostics = e.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnostics = e.GetPullDiagnostics(globalOptions);
                 return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object?)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, diagnostics)})";
             }
         }

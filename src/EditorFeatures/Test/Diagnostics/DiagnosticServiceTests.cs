@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             mutex.WaitOne();
 
             // confirm there are 2 data left
-            var data2 = await diagnosticService.GetPullDiagnosticsAsync(workspace, null, null, null, includeSuppressedDiagnostics: false, diagnosticMode, CancellationToken.None);
+            var data2 = await diagnosticService.GetPullDiagnosticsAsync(workspace, null, null, null, includeSuppressedDiagnostics: false, CancellationToken.None);
             Assert.Equal(2, data2.Count());
 
             void MarkCalled(object sender, DiagnosticsUpdatedArgs args)
