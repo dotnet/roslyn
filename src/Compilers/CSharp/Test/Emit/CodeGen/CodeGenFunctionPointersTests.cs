@@ -10914,7 +10914,7 @@ unsafe
         [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
         public void ReturnByRefFromRefReturningMethod_NotSafeToEscape()
         {
-            var comp = CreateCompilationWithSpan(@"
+            string source = @"
 using System;
 unsafe
 {
@@ -10927,8 +10927,9 @@ unsafe
     }
 
     static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
-}", options: TestOptions.UnsafeReleaseExe);
+}";
 
+            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular10, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyDiagnostics(
                 // (10,20): error CS8347: Cannot use a result of 'delegate*<ref Span<int>, ref Span<int>>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
                 //         return ref ptr(ref span);
@@ -10937,12 +10938,20 @@ unsafe
                 //         return ref ptr(ref span);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "span").WithArguments("span").WithLocation(10, 28)
             );
+
+            comp = CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics(
+                // (13,62): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref parameter
+                //     static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(13, 62));
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test with [UnscopedRef].
         }
 
         [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
         public void ReturnByRefFromRefReturningMethod_SafeToEscape()
         {
-            var comp = CreateCompilationWithSpan(@"
+            string source = @"
 using System;
 unsafe
 {
@@ -10956,10 +10965,10 @@ unsafe
         => ref ptr(ref s);
 
     static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
-}", options: TestOptions.UnsafeReleaseExe);
+}";
 
+            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular10, options: TestOptions.UnsafeReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Skipped);
-
             verifier.VerifyIL("Program.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref System.Span<int>, ref System.Span<int>>, ref System.Span<int>)", @"
 {
   // Code size       10 (0xa)
@@ -10973,6 +10982,14 @@ unsafe
   IL_0009:  ret
 }
 ");
+
+            comp = CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics(
+                // (14,62): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref parameter
+                //     static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(14, 62));
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test with [UnscopedRef].
         }
 
         [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]

@@ -527,8 +527,7 @@ class Program
 }
 ";
 
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
-
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (39,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
@@ -537,6 +536,23 @@ class Program
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(39, 12)
             );
+
+            comp = CreateCompilationWithMscorlibAndSpan(text);
+            comp.VerifyDiagnostics(
+                // (39,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(39, 34),
+                // (39,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
+                //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(39, 12),
+                // (32,66): error CS8166: Cannot return a parameter by reference 'ss' because it is not a ref parameter
+                //     static ref Span<string> M4(ref Span<string> ss) { return ref ss; }
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "ss").WithArguments("ss").WithLocation(32, 66),
+                // (35,69): error CS8166: Cannot return a parameter by reference 'ss' because it is not a ref parameter
+                //     static ref readonly Span<string> M5(ref Span<string> ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "ss").WithArguments("ss").WithLocation(35, 69));
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test with [UnscopedRef].
         }
 
         [Fact]
@@ -1452,8 +1468,7 @@ class Program
         [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
         public void PassingSpansToLocals_EscapeScope()
         {
-            CompileAndVerify(
-                CreateCompilationWithMscorlibAndSpan(@"
+            var source = @"
 using System;
 class C
 {
@@ -1475,10 +1490,23 @@ class C
     {
         return ref x;
     }
-}",
-                options: TestOptions.ReleaseExe), verify: Verification.Fails, expectedOutput: @"
+}";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 10
 10");
+
+            comp = CreateCompilationWithMscorlibAndSpan(source);
+            comp.VerifyDiagnostics(
+                // (16,20): error CS8157: Cannot return 'q' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref q;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "q").WithArguments("q").WithLocation(16, 20),
+                // (21,20): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //         return ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(21, 20));
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test with [UnscopedRef].
         }
 
         [Fact]

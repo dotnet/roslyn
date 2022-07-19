@@ -564,7 +564,7 @@ class C
         [Fact]
         public void RefReassignSpanLifetime()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            string source = @"
 using System;
 class C
 {
@@ -578,7 +578,9 @@ class C
         Span<int> s3 = stackalloc int[10];
         s = ref s3; // Illegal, narrower escape scope
     }
-}");
+}";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (8,9): error CS8374: Cannot ref-assign 's2' to 's' because 's2' has a narrower escape scope than 's'.
                 //         s = ref s2; // Illegal, narrower escape scope
@@ -589,6 +591,17 @@ class C
                 // (13,9): error CS8374: Cannot ref-assign 's3' to 's' because 's3' has a narrower escape scope than 's'.
                 //         s = ref s3; // Illegal, narrower escape scope
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s = ref s3").WithArguments("s", "s3").WithLocation(13, 9));
+
+            comp = CreateCompilationWithMscorlibAndSpan(source);
+            comp.VerifyDiagnostics(
+                // (10,14): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         s2 = stackalloc int[10]; // Illegal, narrower lifetime
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[10]").WithArguments("System.Span<int>").WithLocation(10, 14),
+                // (13,17): error CS8352: Cannot use variable 's3' in this context because it may expose referenced variables outside of their declaration scope
+                //         s = ref s3; // Illegal, narrower escape scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s3").WithArguments("s3").WithLocation(13, 17));
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test with [UnscopedRef].
         }
 
         [Fact]

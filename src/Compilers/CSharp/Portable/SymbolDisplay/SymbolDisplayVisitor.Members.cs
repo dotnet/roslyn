@@ -612,13 +612,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var param in symbol.Parameters)
                 {
                     // https://github.com/dotnet/roslyn/issues/61647: Use public API.
-                    Debug.Assert((param as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>().EffectiveScope switch
+#if DEBUG
+                    if ((param as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>() is var p)
                     {
-                        null => true,
-                        DeclarationScope.Unscoped => param.RefKind != RefKind.Out,
-                        DeclarationScope.RefScoped => param.RefKind == RefKind.Out,
-                        _ => false,
-                    });
+                        Debug.Assert((p.EffectiveScope, ParameterHelpers.IsRefScopedByDefault(p)) switch
+                        {
+                            (DeclarationScope.Unscoped, false) => true,
+                            (DeclarationScope.RefScoped, true) => true,
+                            _ => false,
+                        });
+                    }
+#endif
 
                     AddParameterRefKind(param.RefKind);
 
@@ -824,6 +828,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.CloseBracketToken);
             }
         }
+
+#nullable enable
 
         private static bool CanAddConstant(ITypeSymbol type, object value)
         {
@@ -1079,8 +1085,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
             {
                 // https://github.com/dotnet/roslyn/issues/61647: Use public API.
-                if ((symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>().EffectiveScope == DeclarationScope.RefScoped &&
-                    symbol.RefKind != RefKind.Out &&
+                if ((symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>() is { } parameter &&
+                    parameter.EffectiveScope == DeclarationScope.RefScoped &&
+                    !ParameterHelpers.IsRefScopedByDefault(parameter) &&
+                    !parameter.IsThis &&
                     format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
                 {
                     AddKeyword(SyntaxKind.ScopedKeyword);

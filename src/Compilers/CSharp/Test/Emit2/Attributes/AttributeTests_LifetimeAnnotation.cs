@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
             var comp = CreateCompilation(new[] { ScopedRefAttributeDefinition, source });
             var expected =
-@" void Program.F(ref System.Int32 i)
+@"void Program.F(ref System.Int32 i)
     [ScopedRef] ref System.Int32 i
 ";
             CompileAndVerify(comp, symbolValidator: module =>
@@ -229,7 +229,7 @@ namespace System.Runtime.CompilerServices
             Assert.Equal(DeclarationScope.RefScoped, parameter.DeclaredScope);
 
             method = comp.GetMember<MethodSymbol>("A.F4");
-            Assert.Equal("void A.F4(scoped ref R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
+            Assert.Equal("void A.F4(ref R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             parameter = method.Parameters[0];
             Assert.Equal(DeclarationScope.RefScoped, parameter.DeclaredScope);
         }
@@ -353,6 +353,35 @@ class Program
                 Assert.Null(GetScopedRefType(module));
                 AssertScopedRefAttributes(module, "");
             });
+        }
+
+        [Fact]
+        public void EmitAttribute_RefToRefStructParameters()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    public static void F0(R r) { }
+    public static void F1(ref R r) { }
+    public static void F2(in R r) { }
+    public static void F3(out R r) { r = default; }
+    public static void F4(scoped ref R r) { }
+    public static void F5(scoped in R r) { }
+    public static void F6(scoped out R r) { r = default; }
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"void Program.F5(in R r)
+    [ScopedRef] in R r
+";
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                Assert.Equal("System.Runtime.CompilerServices.ScopedRefAttribute", GetScopedRefType(module).ToTestDisplayString());
+                AssertScopedRefAttributes(module, expected);
+            });
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test additional cases with [UnscopedRef].
         }
 
         [Fact]
