@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // check empty since this could be called to clear up existing diagnostics
             service.DiagnosticsUpdated += (s, a) =>
             {
-                var diagnostics = a.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnostics = a.GetPullDiagnostics(globalOptions);
                 Assert.Empty(diagnostics);
             };
 
