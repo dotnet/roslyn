@@ -150,8 +150,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer));
 
             _textViewEventSource.Changed += OnEventSourceChanged;
-            _codeWindowEventsSink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
             _textViewEventSource.Connect();
+            _codeWindowEventsSink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
             StartComputeDataModelTask();
         }
 
@@ -207,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             => StartComputeDataModelTask();
 
         /// <summary>
-        /// On caret position change in a text view, highlight the corresponding symbol node in the window.
+        /// On caret position change, highlight the corresponding symbol node in the window and update the view.
         /// </summary>
         private void Caret_PositionChanged(object sender, CaretPositionChangedEventArgs e)
         {
@@ -225,15 +225,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             => StartFilterAndSortDataModelTask();
 
         private void SortByName(object sender, EventArgs e)
-            => UpdateSortOptionAndDataModel(SortOption.Name);
+            => SetSortOptionAndUpdateDataModel(SortOption.Name);
 
         private void SortByOrder(object sender, EventArgs e)
-            => UpdateSortOptionAndDataModel(SortOption.Location);
+            => SetSortOptionAndUpdateDataModel(SortOption.Location);
 
         private void SortByType(object sender, EventArgs e)
-            => UpdateSortOptionAndDataModel(SortOption.Type);
+            => SetSortOptionAndUpdateDataModel(SortOption.Type);
 
-        private void UpdateSortOptionAndDataModel(SortOption sortOption)
+        private void SetSortOptionAndUpdateDataModel(SortOption sortOption)
         {
             SortOption = sortOption;
             StartFilterAndSortDataModelTask();
@@ -265,15 +265,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 return;
 
             // When the user clicks on a symbol node in the window, we want to move the cursor to that line in the editor. If we
-            // don't unsubscribe from Caret_PositionChanged first, we will call StartDetermineHighlightedItemAndPresentItemsTask()
-            // once we move the cursor ourselves. This is not ideal because we would be doing extra work to highlight a node that's
-            // already highlighted.
+            // don't unsubscribe from Caret_PositionChanged first, we will call StartHighlightExpandAndPresentItemsTask() once
+            // we move the cursor ourselves. This is not ideal because we would be doing extra work to update the view with an
+            // identical document symbol tree.
             activeTextView.Caret.PositionChanged -= Caret_PositionChanged;
 
             // Prevents us from being permanently unsubscribed if an exception is thrown while updating the text view selection.
             try
             {
-                // Map the symbol's selection range starting SnapshotPoint to a SnapshotPoint in the current textview.
+                // Map the symbol's selection range start SnapshotPoint to a SnapshotPoint in the current textview.
                 var currentPoint = symbol.SelectionRangeSpan.Start.TranslateTo(activeTextView.TextSnapshot, PointTrackingMode.Negative);
 
                 // Set the active text view selection to this SnapshotPoint (by converting it to a SnapshotSpan).

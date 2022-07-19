@@ -35,12 +35,12 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private void StartComputeDataModelTask()
         {
-            // 'true' value is unused.  this just signals to the queue that we have work to do.
+            // 'true' value is unused. This just signals to the queue that we have work to do.
             _computeDataModelQueue.AddWork(true);
         }
 
         /// <summary>
-        /// Creates the data model.
+        /// Makes the LSP document symbol request and creates the data model.
         /// </summary>
         private async ValueTask<DocumentSymbolDataModel?> ComputeDataModelAsync(ImmutableSegmentedList<bool> _, CancellationToken cancellationToken)
         {
@@ -60,8 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (filePath is null)
                 return null;
 
-            // Ensure we switch to the threadpool before calling ComputeDataModelAsync. It ensures
-            // that fetching and processing the document symbol data model is not done on the UI thread.
+            // Ensure we switch to the threadpool before calling ComputeModelAsync. It ensures that fetching and processing the document
+            // symbol data model is not done on the UI thread.
             await TaskScheduler.Default;
 
             var model = await ComputeModelAsync().ConfigureAwait(false);
@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private void StartFilterAndSortDataModelTask()
         {
-            // 'true' value is unused.  this just signals to the queue that we have work to do.
+            // 'true' value is unused. This just signals to the queue that we have work to do.
             _filterAndSortDataModelQueue.AddWork(true);
         }
 
@@ -146,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         /// <summary>
         /// Starts a new task to highlight the symbol node corresponding to the current caret position in the editor, expand/collapse
-        /// nodes (if applicable), and updates the UI.
+        /// nodes, and update the UI.
         /// </summary>
         private void StartHighlightExpandAndPresentItemsTask(ExpansionOption expansionOption)
         {
@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (model is null)
                 return;
 
-            // Switch to the UI thread to get the current caret point and latest active text view then generate the UI model.
+            // Switch to the UI thread to get the current caret point and latest active text view then create the UI model.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var activeTextView = GetLastActiveIWpfTextView();
@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             var documentSymbolUIItems = DocumentOutlineHelper.GetDocumentSymbolUIItems(model.DocumentSymbolData, _threadingContext);
 
-            // Switch to the threadpool to determine which node to select (if it exists).
+            // Switch to the threadpool to determine which node to select (if applicable).
             await TaskScheduler.Default;
 
             var symbolToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(documentSymbolUIItems, model.OriginalSnapshot, caretPoint.Value);

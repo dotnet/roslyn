@@ -52,8 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// Given an array of Document Symbols in a document, returns an array containing the 
-        /// top-level Document Symbols and their nested children.
+        /// Given an array of Document Symbols in a document, returns a DocumentSymbolDataModel.
         /// </summary>
         /// 
         /// As of right now, the LSP document symbol response only has at most 2 levels of nesting, 
@@ -95,29 +94,28 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 .ThenBy(x => x.Range.Start.Character)
                 .ToImmutableArray();
 
+            using var _1 = ArrayBuilder<DocumentSymbolData>.GetInstance(out var finalResult);
             var currentStart = 0;
 
-            using var _1 = ArrayBuilder<DocumentSymbolData>.GetInstance(out var finalResult);
-
             while (currentStart < allSymbols.Length)
-                finalResult.Add(GroupSymbols(allSymbols, currentStart, originalSnapshot, out currentStart));
+                finalResult.Add(NestDescendantSymbols(allSymbols, currentStart, originalSnapshot, out currentStart));
 
             return new DocumentSymbolDataModel(finalResult.ToImmutable(), originalSnapshot);
 
-            static DocumentSymbolData GroupSymbols(ImmutableArray<LspDocumentSymbol> allSymbols, int start, ITextSnapshot originalSnapshot, out int end)
+            static DocumentSymbolData NestDescendantSymbols(ImmutableArray<LspDocumentSymbol> allSymbols, int start, ITextSnapshot originalSnapshot, out int newStart)
             {
                 var currentItem = allSymbols[start];
                 start++;
-                end = start;
+                newStart = start;
 
                 using var _2 = ArrayBuilder<DocumentSymbolData>.GetInstance(out var currentItemChildren);
-                while (end < allSymbols.Length)
+                while (newStart < allSymbols.Length)
                 {
-                    var nextItem = allSymbols[end];
+                    var nextItem = allSymbols[newStart];
                     if (!Contains(currentItem, nextItem))
                         break;
 
-                    currentItemChildren.Add(GroupSymbols(allSymbols, start: end, originalSnapshot, out end));
+                    currentItemChildren.Add(NestDescendantSymbols(allSymbols, start: newStart, originalSnapshot, out newStart));
                 }
 
                 return new DocumentSymbolData(currentItem, originalSnapshot, currentItemChildren.ToImmutable());
