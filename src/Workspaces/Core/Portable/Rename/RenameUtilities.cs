@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Rename
             HashSet<TextSpanRenameContext> textSpanRenameContexts)
         {
             var subSpanToReplacementTextBuilder = ImmutableSortedDictionary.CreateBuilder<TextSpan, (string replacementText, string matchText)>();
-            foreach (var context in textSpanRenameContexts.OrderByDescending(c => c.Priority))
+            foreach (var context in textSpanRenameContexts)
             {
                 var renameLocation = context.RenameLocation;
                 var location = renameLocation.Location;

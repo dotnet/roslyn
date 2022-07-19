@@ -27,13 +27,14 @@ using RenameAnnotation = Microsoft.CodeAnalysis.Rename.ConflictEngine.RenameAnno
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.Rename
 {
-    internal class RenameRewriterTests
+    [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Rename)]
+    public class RenameRewriterTests
     {
-        private const string ConflictTag = "ConflictLocation";
-        private const string RenameTag = "RenameLocation";
+        private const string ConflictTag = "Conflict";
+        private const string RenameTag = "Rename";
 
-        #region Verifier
-        private sealed class Verifier : IDisposable
+        protected sealed class Verifier : IDisposable
         {
             private readonly TestWorkspace _testWorkspace;
             private readonly RenamedSpansTracker _renamedSpansTracker = new();
@@ -43,16 +44,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Rename
 
             public Verifier(string workspaceXml)
             {
-                _testWorkspace = TestWorkspace.Create(workspaceXml, composition: EditorTestCompositions.Editor);
+                _testWorkspace = TestWorkspace.Create(workspaceXml);
                 _currentSolution = _testWorkspace.CurrentSolution;
             }
 
             public async Task RenameAndAnnotatedDocumentAsync(
-                string documentName,
+                string documentFilePath,
                 Dictionary<string, (string replacementText, SymbolRenameOptions renameOptions)> renameTagsToReplacementInfo,
                 CancellationToken cancellationToken)
             {
-                var testHostDocument = _testWorkspace.Documents.Single(doc => doc.Name == documentName);
+                var testHostDocument = _testWorkspace.Documents.Single(doc => doc.FilePath == documentFilePath);
                 var newRoot = await RenameDocumentAsync(_currentSolution, testHostDocument, renameTagsToReplacementInfo, cancellationToken).ConfigureAwait(false);
                 if (newRoot == null)
                 {
@@ -64,15 +65,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Rename
             }
 
             public async Task VerifyAsync(
-                string documentName,
+                string documentFilePath,
                 string tagName,
                 string replacementText,
                 CancellationToken cancellationToken)
             {
-                var testHostDocument = _testWorkspace.Documents.Single(doc => doc.Name == documentName);
+                var testHostDocument = _testWorkspace.Documents.Single(doc => doc.FilePath == documentFilePath);
                 var newDocument = _currentSolution.GetRequiredDocument(testHostDocument.Id);
                 var sourceText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var oldSpanToNewSpanArray = _renamedSpansTracker.GetDocumentToModifiedSpansMap()[testHostDocument.Id];
 
                 foreach (var (tag, spans) in testHostDocument.AnnotatedSpans)
                 {
@@ -80,7 +80,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Rename
                     {
                         foreach (var oldSpan in spans)
                         {
-                            var newSpan = oldSpanToNewSpanArray.Single(oldSpanAndNewSpan => oldSpanAndNewSpan.oldSpan.Equals(oldSpan)).newSpan;
+                            var newStartPosition = _renamedSpansTracker.GetAdjustedPosition(oldSpan.Start, testHostDocument.Id);
+                            var newSpan = new TextSpan(newStartPosition, replacementText.Length);
                             var contentAtNewSpan = sourceText.ToString(newSpan);
                             Assert.Equal(replacementText, contentAtNewSpan);
                         }
@@ -89,10 +90,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Rename
             }
 
             public async Task SimplifyAsync(
-                string documentName,
+                string documentFilePath,
                 CancellationToken cancellationToken)
             {
-                var documentId = _testWorkspace.Documents.Single(doc => doc.Name == documentName).Id;
+                var documentId = _testWorkspace.Documents.Single(doc => doc.FilePath == documentFilePath).Id;
                 var replacementTextValid = _documentToRenameSymbolContextsMap[documentId].All(context => context.ReplacementTextValid);
                 _currentSolution = await _renamedSpansTracker.SimplifyAsync(
                     _currentSolution,
@@ -104,10 +105,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Rename
             }
 
             public void VerifyDocument(
-                string documentName,
+                string documentFilePath,
                 string expectedDocumentContent)
             {
-                var actualDocumentContext = _testWorkspace.Documents.Single(doc => doc.Name == documentName).GetTextView().TextBuffer.ToString();
+                var actualDocumentContext = _testWorkspace.Documents.Single(doc => doc.FilePath == documentFilePath).GetTextView().TextBuffer.ToString();
                 Assert.Equal(expectedDocumentContent, actualDocumentContext);
             }
 
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Rename
                                 return null;
                             }
 
-                            if (!renameTagsToReplacementInfo.TryGetValue(RenameTag, out var replacementInfo))
+                            if (!renameTagsToReplacementInfo.TryGetValue(tag, out var replacementInfo))
                             {
                                 Assert.False(true, $"Can't find the replacementInfo for tag: {tag}.");
                                 return null;
@@ -217,8 +218,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Rename
             public void Dispose()
                 => _testWorkspace.Dispose();
         }
-        #endregion
-
-
     }
 }

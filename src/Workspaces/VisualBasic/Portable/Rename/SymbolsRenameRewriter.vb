@@ -713,7 +713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             ElseIf kind = SyntaxKind.XmlTextLiteralToken Then
                 newToken = RenameInStringLiteral(token, newToken, subSpanToReplacementText, AddressOf SyntaxFactory.XmlTextLiteralToken)
             ElseIf kind = SyntaxKind.XmlNameToken Then
-                Dim matchingContext = textSpanSymbolContexts.OrderByDescending(Function(c) c.Priority).FirstOrDefault(Function(c) CaseInsensitiveComparison.Equals(c.SymbolContext.OriginalText, newToken.ValueText))
+                Dim matchingContext = textSpanSymbolContexts.FirstOrDefault(Function(c) CaseInsensitiveComparison.Equals(c.SymbolContext.OriginalText, newToken.ValueText))
                 If matchingContext IsNot Nothing Then
                     Dim replacementText = matchingContext.SymbolContext.ReplacementText
                     Dim newIdentifierToken = SyntaxFactory.XmlNameToken(newToken.LeadingTrivia, replacementText, SyntaxFacts.GetKeywordKind(replacementText), newToken.TrailingTrivia)
