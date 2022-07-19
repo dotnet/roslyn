@@ -9,11 +9,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// </summary>
     internal enum SortOption
     {
-        // Sort by Document Symbol name.
+        // Sort by document symbol name.
         Name,
-        // Sort by Document Symbol location in a document (by comparing each symbol's range start position).
+        // Sort by document symbol location in a document (by comparing each symbol's range start position).
         Location,
-        // Sort by Document Symbol Microsoft.VisualStudio.LanguageServer.Protocol.SymbolKind.
+        // Sort by document symbol Microsoft.VisualStudio.LanguageServer.Protocol.SymbolKind.
         // At the moment, we order the symbols by the SymbolKind enum values.
         Type
     }

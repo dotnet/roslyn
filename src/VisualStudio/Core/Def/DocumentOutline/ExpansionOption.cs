@@ -14,10 +14,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         // Collapse all nodes.
         Collapse,
         // Do not update node expansion (when we are generating a new UI model, we will use the default expansion).
-        // This option is used when we generate a new Document Symbol data model.
+        // This option is used when we generate a UI model using a newly created Document Symbol data model.
         NoChange,
-        // Apply current expansion found in view to nodes (if the caret is moved around, we want to preserve existing
-        // expanded/collapsed node states as the tree has not been updated).
+        // Apply current tree view expansion to nodes (if the caret is moved around, we want to preserve existing
+        // expanded/collapsed node states as the underlying data model has not been updated).
         CurrentExpansion
     }
 }

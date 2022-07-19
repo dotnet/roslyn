@@ -185,7 +185,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             // Expand/collapse nodes based on the given Expansion Option.
             var expansion = expansionOption.First();
-            if (expansion is not ExpansionOption.NoChange)
+            if (expansion is not ExpansionOption.NoChange && SymbolTree.ItemsSource is not null)
                 DocumentOutlineHelper.SetIsExpanded(documentSymbolUIItems, (IEnumerable<DocumentSymbolUIItem>)SymbolTree.ItemsSource, expansion);
 
             // Hightlight the selected node if it exists, otherwise unselect all nodes (required so that the view does not select a node by default).

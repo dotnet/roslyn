@@ -18,18 +18,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     internal sealed class DocumentSymbolUIItem : INotifyPropertyChanged
     {
         private readonly IThreadingContext _threadingContext;
-
         public string Name { get; }
-
         public ImmutableArray<DocumentSymbolUIItem> Children { get; }
-
         public SnapshotSpan RangeSpan { get; }
         public SnapshotSpan SelectionRangeSpan { get; }
-
         public SymbolKind SymbolKind { get; }
         public ImageMoniker ImageMoniker { get; }
-
-        // These values should only be mutated/read from the UI thread.
+        // _isSelected and _isExpanded should only be mutated/read from the UI thread.
         private bool _isSelected;
         private bool _isExpanded;
 

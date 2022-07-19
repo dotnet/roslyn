@@ -5,7 +5,6 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using Microsoft.CodeAnalysis;
