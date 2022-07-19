@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F1"), "ref T S<T>.F1", RefKind.Ref, new string[0]);
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F2"), "ref readonly T S<T>.F2", RefKind.RefReadOnly, new string[0]);
 
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular11);
+            comp = CreateCompilation(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics();
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F1"), "ref T S<T>.F1", RefKind.Ref, new string[0]);
@@ -11762,6 +11762,9 @@ ref struct R
                 //     public ref int field;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(7, 12)
                 );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -11816,7 +11819,7 @@ ref struct R
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
             verifier.VerifyIL("C.Main",
@@ -11863,7 +11866,7 @@ ref struct R
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (3,31): error CS0165: Use of unassigned local variable 'x'
                 // var r = new R() { field = ref x };
@@ -11888,7 +11891,7 @@ ref struct R
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (3,31): error CS8173: The expression must be of type 'int' because it is being assigned by reference
                 // var r = new R() { field = ref x };
@@ -11912,7 +11915,7 @@ ref struct R
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (3,19): error CS1914: Static field or property 'R.field' cannot be assigned in an object initializer
                 // var r = new R() { field = ref x };
@@ -12006,6 +12009,37 @@ ref struct R
                 // (8,39): error CS8331: Cannot assign to method 'C.Value()' because it is a readonly variable
                 //         var r = new R() { field = ref Value() };
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "Value()").WithArguments("method", "C.Value()").WithLocation(8, 39)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_AssignInParameter()
+        {
+            var source = @"
+class C
+{
+    static void F(in int i)
+    {
+        _ = new R1 { _f = ref i };
+        _ = new R2 { _f = ref i }; // 1
+    }
+}
+
+ref struct R1
+{
+    public ref readonly int _f;
+}
+
+ref struct R2
+{
+    public ref int _f;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,31): error CS8331: Cannot assign to variable 'in int' because it is a readonly variable
+                //         _ = new R2 { _f = ref i }; // 1
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "i").WithArguments("variable", "in int").WithLocation(7, 31)
                 );
         }
 
@@ -12584,7 +12618,7 @@ ref struct R
         }
 
         [Fact]
-        public void RefInitializer_DynamicField()
+        public void RefInitializer_FieldOnDynamic()
         {
             var source = @"
 int x = 42;
@@ -12597,10 +12631,6 @@ struct S
 {
     public dynamic D;
 }
-ref struct R
-{
-    public ref int field;
-}
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -12609,10 +12639,27 @@ ref struct R
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "field").WithLocation(3, 23),
                 // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 // s.D.field = ref x; // 2
-                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "s.D.field").WithLocation(6, 1),
-                // (14,20): warning CS0649: Field 'R.field' is never assigned to, and will always have its default value 0
-                //     public ref int field;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("R.field", "0").WithLocation(14, 20)
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "s.D.field").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_DynamicField()
+        {
+            var source = @"
+int i = 42;
+var r = new R<dynamic> { F = ref i }; // 1
+
+ref struct R<T>
+{
+    public ref T F;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,34): error CS8173: The expression must be of type 'dynamic' because it is being assigned by reference
+                // var r = new R<dynamic> { F = ref i }; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "i").WithArguments("dynamic").WithLocation(3, 34)
                 );
         }
 
@@ -12906,7 +12953,7 @@ ref struct R
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
             verifier.VerifyIL("C.Main",
