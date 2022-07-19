@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F1"), "ref T S<T>.F1", RefKind.Ref, new string[0]);
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F2"), "ref readonly T S<T>.F2", RefKind.RefReadOnly, new string[0]);
 
-            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F1"), "ref T S<T>.F1", RefKind.Ref, new string[0]);
