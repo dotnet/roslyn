@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Test.Utilities.Rename;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Rename
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 {
     public class CSharpRenameRewriterTests : RenameRewriterTests
     {
@@ -119,6 +119,54 @@ public class Apple2
     {
         string Apple = ""Apple2, Lemon2 and banana2 are fruit"";
         string Lemon = $""Apple2, Lemon2 and {banana2} are fruit"";
+    }
+}", cancellationToken);
+        }
+
+        [Fact]
+        public async Task TestRenameComplexification()
+        {
+            var cancellationToken = CancellationToken.None;
+            using var verifier = new Verifier(@"
+                   <Workspace>
+                       <Project Language=""C#"" CommonReferences=""true"">
+                           <Document FilePath=""test1.cs"">
+<![CDATA[
+public class {|Rename1:Apple|}
+{
+    public void Lemon(int banana)
+    {
+        {|Conflict:{|Rename2:banana2|}|} = 10;
+    }
+    public static int banana2
+    {
+        get; private set;
+    }
+}]]>
+                           </Document>
+                    </Project>
+                </Workspace>
+");
+
+            var renameOption = new SymbolRenameOptions();
+            await verifier.RenameAndAnnotatedDocumentAsync(
+                documentFilePath: "test1.cs",
+                new()
+                {
+                    { "Rename1", ("Apple2", renameOption) },
+                    { "Rename2", ("banana", renameOption) },
+                }, cancellationToken);
+            await verifier.VerifyDocumentAsync("test1.cs",
+@"
+public class Apple2
+{
+    public void Lemon(int banana)
+    {
+        global::Apple2.banana = 10;
+    }
+    public static int banana
+    {
+        get; private set;
     }
 }", cancellationToken);
         }
