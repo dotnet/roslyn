@@ -200,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 return;
             }
 
-            BindToOption(checkBox, (PerLanguageOption2<bool>)option, languageName);
+            BindToOption(checkBox, (PerLanguageValuedOption2<bool>)option, languageName);
         }
 
         private void BindToTextBox(TextBox textBox, IOption option, string languageName = null)
@@ -211,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 return;
             }
 
-            BindToOption(textBox, (PerLanguageOption2<int>)option, languageName);
+            BindToOption(textBox, (PerLanguageValuedOption2<int>)option, languageName);
         }
     }
 }

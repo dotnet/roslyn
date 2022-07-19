@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             public event EventHandler<OptionChangedEventArgs>? OptionChanged;
 #pragma warning restore
 
-            public T GetOption<T>(PerLanguageOption2<T> option, string? languageName)
+            public T GetOption<T>(PerLanguageValuedOption2<T> option, string? languageName)
                 => default!;
 
             public T GetOption<T>(Option<T> option)

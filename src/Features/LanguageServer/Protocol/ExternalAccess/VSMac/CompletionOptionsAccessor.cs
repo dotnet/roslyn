@@ -9,13 +9,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.VSMac;
 
 internal static class CompletionOptionsAccessor
 {
-    public static PerLanguageOption2<bool?> ShowItemsFromUnimportedNamespaces
+    public static PerLanguageValuedOption2<bool?> ShowItemsFromUnimportedNamespaces
         => CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces;
 
-    public static PerLanguageOption2<bool> TriggerOnTypingLetters
+    public static PerLanguageValuedOption2<bool> TriggerOnTypingLetters
         => CompletionOptionsStorage.TriggerOnTypingLetters;
 
-    public static PerLanguageOption2<bool?> TriggerOnDeletion
+    public static PerLanguageValuedOption2<bool?> TriggerOnDeletion
         => CompletionOptionsStorage.TriggerOnDeletion;
 }
 

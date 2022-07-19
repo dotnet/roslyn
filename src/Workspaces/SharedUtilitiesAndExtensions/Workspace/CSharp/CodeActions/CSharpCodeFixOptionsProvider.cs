@@ -80,7 +80,7 @@ internal readonly struct CSharpCodeFixOptionsProvider
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
         => _options.GetEditorConfigOption(option, defaultValue);
 
-    private TValue GetOption<TValue>(PerLanguageOption2<TValue> option, TValue defaultValue)
+    private TValue GetOption<TValue>(PerLanguageValuedOption2<TValue> option, TValue defaultValue)
         => _options.GetEditorConfigOption(option, defaultValue);
 
     private CSharpIdeCodeStyleOptions FallbackCodeStyleOptions

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             isUnnecessary: true);
 
         protected AbstractUseCollectionInitializerDiagnosticAnalyzer()
-            : base(ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption>.Empty
+            : base(ImmutableDictionary<DiagnosticDescriptor, IPerLanguageValuedOption>.Empty
                     .Add(s_descriptor, CodeStyleOptions2.PreferCollectionInitializer)
                     .Add(s_unnecessaryCodeDescriptor, CodeStyleOptions2.PreferCollectionInitializer))
         {

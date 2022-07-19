@@ -61,7 +61,7 @@ public class GlobalOptionsTests
             return (T)GetNonEqualValue(typeof(T), option.DefaultValue);
         }
 
-        public T GetOption<T>(PerLanguageOption2<T> option, string? languageName)
+        public T GetOption<T>(PerLanguageValuedOption2<T> option, string? languageName)
         {
             OnOptionAccessed(new OptionKey(option, languageName));
             return (T)GetNonEqualValue(typeof(T), option.DefaultValue);

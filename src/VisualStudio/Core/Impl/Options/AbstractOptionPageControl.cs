@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        private protected void BindToOption(CheckBox checkbox, PerLanguageOption2<bool> optionKey, string languageName)
+        private protected void BindToOption(CheckBox checkbox, PerLanguageValuedOption2<bool> optionKey, string languageName)
         {
             var binding = new Binding()
             {
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        private protected void BindToOption(CheckBox checkbox, PerLanguageOption2<bool?> nullableOptionKey, string languageName, Func<bool> onNullValue)
+        private protected void BindToOption(CheckBox checkbox, PerLanguageValuedOption2<bool?> nullableOptionKey, string languageName, Func<bool> onNullValue)
         {
             var binding = new Binding()
             {
@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        private protected void BindToOption(TextBox textBox, PerLanguageOption2<int> optionKey, string languageName)
+        private protected void BindToOption(TextBox textBox, PerLanguageValuedOption2<int> optionKey, string languageName)
         {
             var binding = new Binding()
             {
@@ -172,7 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        private protected void BindToOption<T>(ComboBox comboBox, PerLanguageOption2<T> optionKey, string languageName, ContentControl label = null)
+        private protected void BindToOption<T>(ComboBox comboBox, PerLanguageValuedOption2<T> optionKey, string languageName, ContentControl label = null)
         {
             var binding = new Binding()
             {
@@ -191,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        private protected void BindToOption<T>(RadioButton radiobutton, PerLanguageOption2<T> optionKey, T optionValue, string languageName)
+        private protected void BindToOption<T>(RadioButton radiobutton, PerLanguageValuedOption2<T> optionKey, T optionValue, string languageName)
         {
             var binding = new Binding()
             {

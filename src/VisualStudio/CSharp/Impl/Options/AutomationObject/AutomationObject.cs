@@ -19,13 +19,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private int GetBooleanOption(Option2<bool> key)
             => GetOption(key) ? 1 : 0;
 
-        private int GetBooleanOption(PerLanguageOption2<bool> key)
+        private int GetBooleanOption(PerLanguageValuedOption2<bool> key)
             => GetOption(key) ? 1 : 0;
 
         private void SetBooleanOption(Option2<bool> key, int value)
             => SetOption(key, value != 0);
 
-        private void SetBooleanOption(PerLanguageOption2<bool> key, int value)
+        private void SetBooleanOption(PerLanguageValuedOption2<bool> key, int value)
             => SetOption(key, value != 0);
     }
 }

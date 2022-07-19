@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
                         .Add(s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption)
                         .Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption),
-                   ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption>.Empty
+                   ImmutableDictionary<DiagnosticDescriptor, IPerLanguageValuedOption>.Empty
                         .Add(s_unusedParameterRule, CodeStyleOptions2.UnusedParameters),
                    language)
         {

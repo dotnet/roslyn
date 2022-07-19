@@ -56,7 +56,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 globalOptions.SetGlobalOption(new OptionKey(option, language: null), option.DefaultValue);
             }
 
-            static void ResetPerLanguageOption<T>(IGlobalOptionService globalOptions, PerLanguageOption2<T> option)
+            static void ResetPerLanguageOption<T>(IGlobalOptionService globalOptions, PerLanguageValuedOption2<T> option)
             {
                 globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.CSharp), option.DefaultValue);
                 globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.VisualBasic), option.DefaultValue);

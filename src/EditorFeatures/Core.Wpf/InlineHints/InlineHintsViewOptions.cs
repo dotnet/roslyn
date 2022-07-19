@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             FeatureName, "DisplayAllHintsWhilePressingAltF1", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.Specific.DisplayAllHintsWhilePressingAltF1"));
 
-        public static readonly PerLanguageOption2<bool> ColorHints = new(
+        public static readonly PerLanguageValuedOption2<bool> ColorHints = new(
             FeatureName, "ColorHints", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ColorHints"));
     }

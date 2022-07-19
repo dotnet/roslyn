@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     {
         /// <summary>
         /// Constructor for a code style analyzer with a single diagnostic descriptor and
-        /// unique <see cref="IPerLanguageOption"/> code style option.
+        /// unique <see cref="IPerLanguageValuedOption"/> code style option.
         /// </summary>
         /// <param name="diagnosticId">Diagnostic ID reported by this analyzer</param>
         /// <param name="enforceOnBuild">Build enforcement recommendation for this analyzer</param>
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(
             string diagnosticId,
             EnforceOnBuild enforceOnBuild,
-            IPerLanguageOption? option,
+            IPerLanguageValuedOption? option,
             LocalizableString title,
             LocalizableString? messageFormat = null,
             bool isUnnecessary = false,
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         /// <summary>
         /// Constructor for a code style analyzer with a single diagnostic descriptor and
-        /// two or more <see cref="IPerLanguageOption"/> code style options.
+        /// two or more <see cref="IPerLanguageValuedOption "/> code style options.
         /// </summary>
         /// <param name="diagnosticId">Diagnostic ID reported by this analyzer</param>
         /// <param name="enforceOnBuild">Build enforcement recommendation for this analyzer</param>
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(
             string diagnosticId,
             EnforceOnBuild enforceOnBuild,
-            ImmutableHashSet<IPerLanguageOption> options,
+            ImmutableHashSet<IPerLanguageValuedOption> options,
             LocalizableString title,
             LocalizableString? messageFormat = null,
             bool isUnnecessary = false,
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// <summary>
         /// Constructor for a code style analyzer with a multiple diagnostic descriptors with per-language options that can be used to configure each descriptor.
         /// </summary>
-        protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption> supportedDiagnosticsWithOptions)
+        protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableDictionary<DiagnosticDescriptor, IPerLanguageValuedOption> supportedDiagnosticsWithOptions)
             : this(supportedDiagnosticsWithOptions.Keys.ToImmutableArray())
         {
             foreach (var (descriptor, option) in supportedDiagnosticsWithOptions)
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(
             ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption> supportedDiagnosticsWithLangaugeSpecificOptions,
-            ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption> supportedDiagnosticsWithPerLanguageOptions,
+            ImmutableDictionary<DiagnosticDescriptor, IPerLanguageValuedOption> supportedDiagnosticsWithPerLanguageOptions,
             string language)
             : this(supportedDiagnosticsWithLangaugeSpecificOptions.Keys.Concat(supportedDiagnosticsWithPerLanguageOptions.Keys).ToImmutableArray())
         {
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 AddDiagnosticIdToOptionMapping(descriptor.Id, option);
         }
 
-        private static void AddDiagnosticIdToOptionMapping(string diagnosticId, IPerLanguageOption? option)
+        private static void AddDiagnosticIdToOptionMapping(string diagnosticId, IPerLanguageValuedOption? option)
         {
             if (option != null)
             {
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             }
         }
 
-        private static void AddDiagnosticIdToOptionMapping(string diagnosticId, ImmutableHashSet<IPerLanguageOption> options)
+        private static void AddDiagnosticIdToOptionMapping(string diagnosticId, ImmutableHashSet<IPerLanguageValuedOption> options)
             => IDEDiagnosticIdToOptionMappingHelper.AddOptionMapping(diagnosticId, options);
 
         private static void AddDiagnosticIdToOptionMapping(string diagnosticId, ImmutableHashSet<ILanguageSpecificOption> options, string language)

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public abstract bool IsDefinedInEditorConfig { get; }
         public SettingLocation Location { get; protected set; }
 
-        public static PerLanguageWhitespaceSetting<TOption> Create<TOption>(PerLanguageOption2<TOption> option,
+        public static PerLanguageWhitespaceSetting<TOption> Create<TOption>(PerLanguageValuedOption2<TOption> option,
                                                                             string description,
                                                                             AnalyzerConfigOptions editorConfigOptions,
                                                                             OptionSet visualStudioOptions,

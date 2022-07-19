@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         /// <summary>
         /// Options that control if this service is enabled or not for a particular language.
         /// </summary>
-        private readonly ImmutableArray<PerLanguageOption2<bool>> _perLanguageOptions;
+        private readonly ImmutableArray<PerLanguageValuedOption2<bool>> _perLanguageOptions;
 
         protected CancellationToken DisposalToken => ThreadingContext.DisposalToken;
 
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             VisualStudioWorkspaceImpl workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
             Option2<bool> featureEnabledOption,
-            ImmutableArray<PerLanguageOption2<bool>> perLanguageOptions)
+            ImmutableArray<PerLanguageValuedOption2<bool>> perLanguageOptions)
             : base(threadingContext)
         {
             _globalOptions = globalOptions;

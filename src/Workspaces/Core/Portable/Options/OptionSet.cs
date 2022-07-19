@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
-        internal T GetOption<T>(PerLanguageOption2<T> option, string? language)
+        internal T GetOption<T>(PerLanguageValuedOption2<T> option, string? language)
             => OptionsHelpers.GetOption(option, language, _getOptionCore);
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Creates a new <see cref="OptionSet" /> that contains the changed value.
         /// </summary>
-        internal OptionSet WithChangedOption<T>(PerLanguageOption2<T> option, string? language, T value)
+        internal OptionSet WithChangedOption<T>(PerLanguageValuedOption2<T> option, string? language, T value)
             => WithChangedOption(new OptionKey(option, language), value);
 
         internal AnalyzerConfigOptions AsAnalyzerConfigOptions(IEditorConfigOptionMappingService optionMappingService, string? language)

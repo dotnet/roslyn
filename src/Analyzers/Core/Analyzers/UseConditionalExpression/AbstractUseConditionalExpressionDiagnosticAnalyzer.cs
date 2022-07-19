@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             string descriptorId,
             EnforceOnBuild enforceOnBuild,
             LocalizableResourceString message,
-            PerLanguageOption2<CodeStyleOption2<bool>> option)
+            PerLanguageValuedOption2<CodeStyleOption2<bool>> option)
             : base(descriptorId,
                    enforceOnBuild,
                    option,

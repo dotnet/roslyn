@@ -28,16 +28,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QualifyMemberAccess
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpQualifyMemberAccessDiagnosticAnalyzer(), new CSharpQualifyMemberAccessCodeFixProvider());
 
-        private Task TestAsyncWithOption(string code, string expected, PerLanguageOption2<CodeStyleOption2<bool>> option)
+        private Task TestAsyncWithOption(string code, string expected, PerLanguageValuedOption2<CodeStyleOption2<bool>> option)
             => TestAsyncWithOptionAndNotificationOption(code, expected, option, NotificationOption2.Error);
 
-        private Task TestAsyncWithOptionAndNotificationOption(string code, string expected, PerLanguageOption2<CodeStyleOption2<bool>> option, NotificationOption2 notification)
+        private Task TestAsyncWithOptionAndNotificationOption(string code, string expected, PerLanguageValuedOption2<CodeStyleOption2<bool>> option, NotificationOption2 notification)
             => TestInRegularAndScriptAsync(code, expected, options: Option(option, true, notification));
 
-        private Task TestMissingAsyncWithOption(string code, PerLanguageOption2<CodeStyleOption2<bool>> option)
+        private Task TestMissingAsyncWithOption(string code, PerLanguageValuedOption2<CodeStyleOption2<bool>> option)
             => TestMissingAsyncWithOptionAndNotificationOption(code, option, NotificationOption2.Error);
 
-        private Task TestMissingAsyncWithOptionAndNotificationOption(string code, PerLanguageOption2<CodeStyleOption2<bool>> option, NotificationOption2 notification)
+        private Task TestMissingAsyncWithOptionAndNotificationOption(string code, PerLanguageValuedOption2<CodeStyleOption2<bool>> option, NotificationOption2 notification)
             => TestMissingInRegularAndScriptAsync(code, new TestParameters(options: Option(option, true, notification)));
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]

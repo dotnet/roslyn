@@ -6,10 +6,10 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    internal partial class PerLanguageOption2<T>
+    internal partial class PerLanguageValuedOption2<T>
     {
         [return: NotNullIfNotNull("option")]
-        public static explicit operator PerLanguageOption<T>?(PerLanguageOption2<T>? option)
+        public static explicit operator PerLanguageOption<T>?(PerLanguageValuedOption2<T>? option)
         {
             if (option is null)
             {

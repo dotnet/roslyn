@@ -22,5 +22,5 @@ internal static class IndentationOptionsStorage
         };
     }
 
-    public static PerLanguageOption2<FormattingOptions2.IndentStyle> SmartIndent => FormattingOptions2.SmartIndent;
+    public static PerLanguageValuedOption2<FormattingOptions2.IndentStyle> SmartIndent => FormattingOptions2.SmartIndent;
 }

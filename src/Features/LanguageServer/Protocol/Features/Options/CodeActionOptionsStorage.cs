@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 {
     internal static class CodeActionOptionsStorage
     {
-        public static readonly PerLanguageOption2<int> WrappingColumn =
+        public static readonly PerLanguageValuedOption2<int> WrappingColumn =
             new("FormattingOptions", "WrappingColumn", CodeActionOptions.DefaultWrappingColumn);
 
         public static CodeActionOptions GetCodeActionOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return new DelegatingCodeActionOptionsProvider(languageService => ImmutableInterlocked.GetOrAdd(ref cache, languageService.Language, (_, options) => GetCodeActionOptions(options, languageService), globalOptions));
         }
 
-        public static readonly PerLanguageOption2<int> ConditionalExpressionWrappingLength = new(
+        public static readonly PerLanguageValuedOption2<int> ConditionalExpressionWrappingLength = new(
             "UseConditionalExpressionOptions",
             "ConditionalExpressionWrappingLength", CodeActionOptions.DefaultConditionalExpressionWrappingLength,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ConditionalExpressionWrappingLength"));

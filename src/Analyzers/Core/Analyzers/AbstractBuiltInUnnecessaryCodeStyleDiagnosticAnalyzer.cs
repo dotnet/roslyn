@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     {
         /// <summary>
         /// Constructor for an unnecessary code style analyzer with a single diagnostic descriptor and
-        /// unique <see cref="IPerLanguageOption"/> code style option.
+        /// unique <see cref="IPerLanguageValuedOption"/> code style option.
         /// </summary>
         /// <param name="diagnosticId">Diagnostic ID reported by this analyzer</param>
         /// <param name="enforceOnBuild">Build enforcement recommendation for this analyzer</param>
@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(
             string diagnosticId,
             EnforceOnBuild enforceOnBuild,
-            IPerLanguageOption? option,
-            PerLanguageOption2<bool>? fadingOption,
+            IPerLanguageValuedOption? option,
+            PerLanguageValuedOption2<bool>? fadingOption,
             LocalizableString title,
             LocalizableString? messageFormat = null,
             bool configurable = true)
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             string diagnosticId,
             EnforceOnBuild enforceOnBuild,
             ILanguageSpecificOption? option,
-            PerLanguageOption2<bool>? fadingOption,
+            PerLanguageValuedOption2<bool>? fadingOption,
             string language,
             LocalizableString title,
             LocalizableString? messageFormat = null,
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         /// <summary>
         /// Constructor for an unnecessary code style analyzer with a single diagnostic descriptor and
-        /// two or more <see cref="IPerLanguageOption"/> code style options.
+        /// two or more <see cref="IPerLanguageValuedOption"/> code style options.
         /// </summary>
         /// <param name="diagnosticId">Diagnostic ID reported by this analyzer</param>
         /// <param name="enforceOnBuild">Build enforcement recommendation for this analyzer</param>
@@ -107,8 +107,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(
             string diagnosticId,
             EnforceOnBuild enforceOnBuild,
-            ImmutableHashSet<IPerLanguageOption> options,
-            PerLanguageOption2<bool>? fadingOption,
+            ImmutableHashSet<IPerLanguageValuedOption> options,
+            PerLanguageValuedOption2<bool>? fadingOption,
             LocalizableString title,
             LocalizableString? messageFormat = null,
             bool configurable = true)
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             AddDiagnosticIdToFadingOptionMapping(diagnosticId, fadingOption);
         }
 
-        private static void AddDiagnosticIdToFadingOptionMapping(string diagnosticId, PerLanguageOption2<bool>? fadingOption)
+        private static void AddDiagnosticIdToFadingOptionMapping(string diagnosticId, PerLanguageValuedOption2<bool>? fadingOption)
         {
             if (fadingOption != null)
             {

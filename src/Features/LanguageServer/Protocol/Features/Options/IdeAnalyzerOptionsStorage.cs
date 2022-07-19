@@ -39,25 +39,25 @@ internal static class IdeAnalyzerOptionsStorage
         "InternalDiagnosticsOptions", "CrashOnAnalyzerException", IdeAnalyzerOptions.CommonDefault.CrashOnAnalyzerException,
         storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Diagnostics\CrashOnAnalyzerException"));
 
-    public static PerLanguageOption2<bool> ReportInvalidPlaceholdersInStringDotFormatCalls =
+    public static PerLanguageValuedOption2<bool> ReportInvalidPlaceholdersInStringDotFormatCalls =
         new("ValidateFormatStringOption",
             "ReportInvalidPlaceholdersInStringDotFormatCalls",
             IdeAnalyzerOptions.CommonDefault.ReportInvalidPlaceholdersInStringDotFormatCalls,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.WarnOnInvalidStringDotFormatCalls"));
 
-    public static PerLanguageOption2<bool> ReportInvalidRegexPatterns =
+    public static PerLanguageValuedOption2<bool> ReportInvalidRegexPatterns =
         new("RegularExpressionsOptions",
             "ReportInvalidRegexPatterns",
             IdeAnalyzerOptions.CommonDefault.ReportInvalidRegexPatterns,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns"));
 
-    public static PerLanguageOption2<bool> ReportInvalidJsonPatterns =
+    public static PerLanguageValuedOption2<bool> ReportInvalidJsonPatterns =
         new("JsonFeatureOptions",
             "ReportInvalidJsonPatterns",
             defaultValue: IdeAnalyzerOptions.CommonDefault.ReportInvalidJsonPatterns,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ReportInvalidJsonPatterns"));
 
-    public static PerLanguageOption2<bool> DetectAndOfferEditorFeaturesForProbableJsonStrings =
+    public static PerLanguageValuedOption2<bool> DetectAndOfferEditorFeaturesForProbableJsonStrings =
         new("JsonFeatureOptions",
             "DetectAndOfferEditorFeaturesForProbableJsonStrings",
             defaultValue: IdeAnalyzerOptions.CommonDefault.DetectAndOfferEditorFeaturesForProbableJsonStrings,

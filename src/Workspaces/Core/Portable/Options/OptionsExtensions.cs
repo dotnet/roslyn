@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Options
             return new Option<CodeStyleOption<T>>(optionDefinition, option.StorageLocations.As<OptionStorageLocation>());
         }
 
-        public static PerLanguageOption<CodeStyleOption<T>> ToPublicOption<T>(this PerLanguageOption2<CodeStyleOption2<T>> option)
+        public static PerLanguageOption<CodeStyleOption<T>> ToPublicOption<T>(this PerLanguageValuedOption2<CodeStyleOption2<T>> option)
         {
             RoslynDebug.Assert(option != null);
 

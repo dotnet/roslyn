@@ -17,19 +17,19 @@ internal static class AutoFormattingOptionsStorage
             FormatOnCloseBrace = globalOptions.GetOption(FormatOnCloseBrace, language)
         };
 
-    internal static readonly PerLanguageOption2<bool> FormatOnReturn = new(
+    internal static readonly PerLanguageValuedOption2<bool> FormatOnReturn = new(
         "FormattingOptions", OptionGroup.Default, "AutoFormattingOnReturn", AutoFormattingOptions.Default.FormatOnReturn,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Return"));
 
-    public static readonly PerLanguageOption2<bool> FormatOnTyping = new(
+    public static readonly PerLanguageValuedOption2<bool> FormatOnTyping = new(
         "FormattingOptions", OptionGroup.Default, "AutoFormattingOnTyping", AutoFormattingOptions.Default.FormatOnTyping,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing"));
 
-    public static readonly PerLanguageOption2<bool> FormatOnSemicolon = new(
+    public static readonly PerLanguageValuedOption2<bool> FormatOnSemicolon = new(
         "FormattingOptions", OptionGroup.Default, "AutoFormattingOnSemicolon", AutoFormattingOptions.Default.FormatOnSemicolon,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Semicolon"));
 
-    public static readonly PerLanguageOption2<bool> FormatOnCloseBrace = new(
+    public static readonly PerLanguageValuedOption2<bool> FormatOnCloseBrace = new(
         "BraceCompletionOptions", "AutoFormattingOnCloseBrace", defaultValue: AutoFormattingOptions.Default.FormatOnCloseBrace,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace"));
 }

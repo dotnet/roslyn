@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Options
         public T GetOption<T>(PerLanguageOption<T> option)
             => GetOption(option, _language);
 
-        internal T GetOption<T>(PerLanguageOption2<T> option)
+        internal T GetOption<T>(PerLanguageValuedOption2<T> option)
             => GetOption(option, _language);
 
         public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Creates a new <see cref="DocumentOptionSet" /> that contains the changed value.
         /// </summary>
-        internal DocumentOptionSet WithChangedOption<T>(PerLanguageOption2<T> option, T value)
+        internal DocumentOptionSet WithChangedOption<T>(PerLanguageValuedOption2<T> option, T value)
             => (DocumentOptionSet)WithChangedOption(option, _language, value);
 
         private protected override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IEditorConfigOptionMappingService optionService, string? language)

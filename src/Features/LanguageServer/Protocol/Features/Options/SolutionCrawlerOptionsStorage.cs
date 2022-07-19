@@ -13,7 +13,7 @@ internal static class SolutionCrawlerOptionsStorage
     /// <summary>
     /// Option to turn configure background analysis scope for the current user.
     /// </summary>
-    public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new(
+    public static readonly PerLanguageValuedOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new(
         "SolutionCrawlerOptionsStorage", "BackgroundAnalysisScopeOption", defaultValue: BackgroundAnalysisScope.Default,
         storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption"));
 
@@ -26,11 +26,11 @@ internal static class SolutionCrawlerOptionsStorage
     /// <summary>
     /// Option to configure compiler diagnostics scope for the current user.
     /// </summary>
-    public static readonly PerLanguageOption2<CompilerDiagnosticsScope> CompilerDiagnosticsScopeOption = new(
+    public static readonly PerLanguageValuedOption2<CompilerDiagnosticsScope> CompilerDiagnosticsScopeOption = new(
         "SolutionCrawlerOptionsStorage", "CompilerDiagnosticsScopeOption", defaultValue: CompilerDiagnosticsScope.OpenFiles,
         storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.CompilerDiagnosticsScopeOption"));
 
-    public static readonly PerLanguageOption2<bool> RemoveDocumentDiagnosticsOnDocumentClose = new(
+    public static readonly PerLanguageValuedOption2<bool> RemoveDocumentDiagnosticsOnDocumentClose = new(
         "ServiceFeatureOnOffOptions", "RemoveDocumentDiagnosticsOnDocumentClose", defaultValue: false,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RemoveDocumentDiagnosticsOnDocumentClose"));
 

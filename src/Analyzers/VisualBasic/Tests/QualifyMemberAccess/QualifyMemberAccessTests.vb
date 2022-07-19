@@ -18,19 +18,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QualifyMemberAcces
                     New VisualBasicQualifyMemberAccessCodeFixProvider())
         End Function
 
-        Private Function TestAsyncWithOption(code As String, expected As String, opt As PerLanguageOption2(Of CodeStyleOption2(Of Boolean))) As Task
+        Private Function TestAsyncWithOption(code As String, expected As String, opt As PerLanguageValuedOption2(Of CodeStyleOption2(Of Boolean))) As Task
             Return TestAsyncWithOptionAndNotification(code, expected, opt, NotificationOption2.Error)
         End Function
 
-        Private Function TestAsyncWithOptionAndNotification(code As String, expected As String, opt As PerLanguageOption2(Of CodeStyleOption2(Of Boolean)), notification As NotificationOption2) As Task
+        Private Function TestAsyncWithOptionAndNotification(code As String, expected As String, opt As PerLanguageValuedOption2(Of CodeStyleOption2(Of Boolean)), notification As NotificationOption2) As Task
             Return TestInRegularAndScriptAsync(code, expected, options:=[Option](opt, True, notification))
         End Function
 
-        Private Function TestMissingAsyncWithOption(code As String, opt As PerLanguageOption2(Of CodeStyleOption2(Of Boolean))) As Task
+        Private Function TestMissingAsyncWithOption(code As String, opt As PerLanguageValuedOption2(Of CodeStyleOption2(Of Boolean))) As Task
             Return TestMissingAsyncWithOptionAndNotification(code, opt, NotificationOption2.Error)
         End Function
 
-        Private Function TestMissingAsyncWithOptionAndNotification(code As String, opt As PerLanguageOption2(Of CodeStyleOption2(Of Boolean)), notification As NotificationOption2) As Task
+        Private Function TestMissingAsyncWithOptionAndNotification(code As String, opt As PerLanguageValuedOption2(Of CodeStyleOption2(Of Boolean)), notification As NotificationOption2) As Task
             Return TestMissingInRegularAndScriptAsync(code,
                 New TestParameters(options:=[Option](opt, True, notification)))
         End Function

@@ -15,20 +15,20 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         private const string FeatureName = "CompletionOptions";
 
-        public static readonly PerLanguageOption2<bool> HighlightMatchingPortionsOfCompletionListItems =
+        public static readonly PerLanguageValuedOption2<bool> HighlightMatchingPortionsOfCompletionListItems =
             new(FeatureName, nameof(HighlightMatchingPortionsOfCompletionListItems), defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightMatchingPortionsOfCompletionListItems"));
 
-        public static readonly PerLanguageOption2<bool> ShowCompletionItemFilters =
+        public static readonly PerLanguageValuedOption2<bool> ShowCompletionItemFilters =
             new(FeatureName, nameof(ShowCompletionItemFilters), defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowCompletionItemFilters"));
 
         // Use tri-value so the default state can be used to turn on the feature with experimentation service.
-        public static readonly PerLanguageOption2<bool?> EnableArgumentCompletionSnippets =
+        public static readonly PerLanguageValuedOption2<bool?> EnableArgumentCompletionSnippets =
             new(FeatureName, nameof(EnableArgumentCompletionSnippets), defaultValue: null,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.EnableArgumentCompletionSnippets"));
 
-        public static readonly PerLanguageOption2<bool> BlockForCompletionItems =
+        public static readonly PerLanguageValuedOption2<bool> BlockForCompletionItems =
             new(FeatureName, nameof(BlockForCompletionItems), defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BlockForCompletionItems"));
     }

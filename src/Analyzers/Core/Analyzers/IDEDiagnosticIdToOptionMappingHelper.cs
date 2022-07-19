@@ -21,21 +21,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private static readonly ConcurrentDictionary<string, ImmutableHashSet<IOption2>> s_diagnosticIdToOptionMap = new();
         private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, ImmutableHashSet<IOption2>>> s_diagnosticIdToLanguageSpecificOptionsMap = new();
-        private static readonly ConcurrentDictionary<string, PerLanguageOption2<bool>> s_diagnosticIdToFadingOptionMap = new();
+        private static readonly ConcurrentDictionary<string, PerLanguageValuedOption2<bool>> s_diagnosticIdToFadingOptionMap = new();
 
         public static bool TryGetMappedOptions(string diagnosticId, string language, [NotNullWhen(true)] out ImmutableHashSet<IOption2>? options)
             => s_diagnosticIdToOptionMap.TryGetValue(diagnosticId, out options) ||
                (s_diagnosticIdToLanguageSpecificOptionsMap.TryGetValue(language, out var map) &&
                 map.TryGetValue(diagnosticId, out options));
 
-        public static bool TryGetMappedFadingOption(string diagnosticId, [NotNullWhen(true)] out PerLanguageOption2<bool>? fadingOption)
+        public static bool TryGetMappedFadingOption(string diagnosticId, [NotNullWhen(true)] out PerLanguageValuedOption2<bool>? fadingOption)
             => s_diagnosticIdToFadingOptionMap.TryGetValue(diagnosticId, out fadingOption);
 
         public static bool IsKnownIDEDiagnosticId(string diagnosticId)
             => s_diagnosticIdToOptionMap.ContainsKey(diagnosticId) ||
                s_diagnosticIdToLanguageSpecificOptionsMap.Values.Any(map => map.ContainsKey(diagnosticId));
 
-        public static void AddOptionMapping(string diagnosticId, ImmutableHashSet<IPerLanguageOption> perLanguageOptions)
+        public static void AddOptionMapping(string diagnosticId, ImmutableHashSet<IPerLanguageValuedOption> perLanguageOptions)
         {
             diagnosticId = diagnosticId ?? throw new ArgumentNullException(nameof(diagnosticId));
             perLanguageOptions = perLanguageOptions ?? throw new ArgumentNullException(nameof(perLanguageOptions));
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             map.TryAdd(diagnosticId, options);
         }
 
-        public static void AddFadingOptionMapping(string diagnosticId, PerLanguageOption2<bool> fadingOption)
+        public static void AddFadingOptionMapping(string diagnosticId, PerLanguageValuedOption2<bool> fadingOption)
         {
             diagnosticId = diagnosticId ?? throw new ArgumentNullException(nameof(diagnosticId));
             fadingOption = fadingOption ?? throw new ArgumentNullException(nameof(fadingOption));

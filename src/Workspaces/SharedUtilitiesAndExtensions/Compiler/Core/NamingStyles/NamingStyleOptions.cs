@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// This option describes the naming rules that should be applied to specified categories of symbols, 
         /// and the level to which those rules should be enforced.
         /// </summary>
-        internal static PerLanguageOption2<NamingStylePreferences> NamingPreferences { get; } = new PerLanguageOption2<NamingStylePreferences>(
+        internal static PerLanguageValuedOption2<NamingStylePreferences> NamingPreferences { get; } = new PerLanguageValuedOption2<NamingStylePreferences>(
             FeatureName, nameof(NamingPreferences), defaultValue: NamingStylePreferences.Default,
             new NamingStylePreferenceEditorConfigStorageLocation(),
             new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences5"),

@@ -26,25 +26,25 @@ namespace Microsoft.CodeAnalysis.Options
             "GenerateOverridesOptions", "SelectAll", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation($"TextEditor.Specific.GenerateOverridesOptions.SelectAll"));
 
-        private static readonly PerLanguageOption2<bool> s_generateOperators = new(
+        private static readonly PerLanguageValuedOption2<bool> s_generateOperators = new(
             "GenerateEqualsAndGetHashCodeFromMembersOptions",
             "GenerateOperators", defaultValue: false,
             storageLocation: new RoamingProfileStorageLocation(
                 "TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators"));
 
-        private static readonly PerLanguageOption2<bool> s_implementIEquatable = new(
+        private static readonly PerLanguageValuedOption2<bool> s_implementIEquatable = new(
             "GenerateEqualsAndGetHashCodeFromMembersOptions",
             "ImplementIEquatable", defaultValue: false,
             storageLocation: new RoamingProfileStorageLocation(
                 "TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable"));
 
-        private static readonly PerLanguageOption2<bool> s_addNullChecks = new(
+        private static readonly PerLanguageValuedOption2<bool> s_addNullChecks = new(
             "GenerateConstructorFromMembersOptions",
             "AddNullChecks", defaultValue: false,
             storageLocation: new RoamingProfileStorageLocation(
                 $"TextEditor.%LANGUAGE%.Specific.GenerateConstructorFromMembersOptions.AddNullChecks"));
 
-        internal static readonly PerLanguageOption2<bool> AddNullChecksToConstructorsGeneratedFromMembers = new(
+        internal static readonly PerLanguageValuedOption2<bool> AddNullChecksToConstructorsGeneratedFromMembers = new(
             "GenerateConstructorFromMembersOptions",
             "AddNullChecks", defaultValue: false,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.GenerateConstructorFromMembersOptions.AddNullChecks"));

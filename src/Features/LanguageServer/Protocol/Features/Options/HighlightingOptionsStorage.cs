@@ -15,13 +15,13 @@ internal static class HighlightingOptionsStorage
             HighlightRelatedJsonComponentsUnderCursor = globalOptions.GetOption(HighlightRelatedJsonComponentsUnderCursor, language)
         };
 
-    public static PerLanguageOption2<bool> HighlightRelatedRegexComponentsUnderCursor =
+    public static PerLanguageValuedOption2<bool> HighlightRelatedRegexComponentsUnderCursor =
         new("RegularExpressionsOptions",
             "HighlightRelatedRegexComponentsUnderCursor",
             defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightRelatedRegexComponentsUnderCursor"));
 
-    public static PerLanguageOption2<bool> HighlightRelatedJsonComponentsUnderCursor =
+    public static PerLanguageValuedOption2<bool> HighlightRelatedJsonComponentsUnderCursor =
         new("JsonFeatureOptions",
             "HighlightRelatedJsonComponentsUnderCursor",
             defaultValue: HighlightingOptions.Default.HighlightRelatedJsonComponentsUnderCursor,

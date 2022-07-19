@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// run unconditionally.
         /// </summary>
         protected virtual IEnumerable<Option2<bool>> Options => SpecializedCollections.EmptyEnumerable<Option2<bool>>();
-        protected virtual IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.EmptyEnumerable<PerLanguageOption2<bool>>();
+        protected virtual IEnumerable<PerLanguageValuedOption2<bool>> PerLanguageOptions => SpecializedCollections.EmptyEnumerable<PerLanguageValuedOption2<bool>>();
 
         protected virtual bool ComputeInitialTagsSynchronously(ITextBuffer subjectBuffer) => false;
 

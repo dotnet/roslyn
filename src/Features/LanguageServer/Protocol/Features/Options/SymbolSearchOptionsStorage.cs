@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
         private const string FeatureName = "SymbolSearchOptions";
 
-        public static PerLanguageOption2<bool> SearchReferenceAssemblies =
+        public static PerLanguageValuedOption2<bool> SearchReferenceAssemblies =
             new(FeatureName, "SuggestForTypesInReferenceAssemblies", SymbolSearchOptions.Default.SearchReferenceAssemblies,
                 storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies"));
 
-        public static PerLanguageOption2<bool> SearchNuGetPackages =
+        public static PerLanguageValuedOption2<bool> SearchNuGetPackages =
             new(FeatureName, "SuggestForTypesInNuGetPackages", SymbolSearchOptions.Default.SearchNuGetPackages,
                 storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages"));
     }

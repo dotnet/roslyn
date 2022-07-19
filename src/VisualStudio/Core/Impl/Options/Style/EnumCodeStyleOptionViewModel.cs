@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private NotificationOptionViewModel _selectedNotificationPreference;
 
         public EnumCodeStyleOptionViewModel(
-            PerLanguageOption2<CodeStyleOption2<T>> option,
+            PerLanguageValuedOption2<CodeStyleOption2<T>> option,
             string language,
             string description,
             T[] enumValues,

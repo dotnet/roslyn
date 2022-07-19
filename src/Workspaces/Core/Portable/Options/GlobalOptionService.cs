@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Options
         public T GetOption<T>(Option2<T> option)
             => OptionsHelpers.GetOption(option, _getOption);
 
-        public T GetOption<T>(PerLanguageOption2<T> option, string? language)
+        public T GetOption<T>(PerLanguageValuedOption2<T> option, string? language)
             => OptionsHelpers.GetOption(option, language, _getOption);
 
         public object? GetOption(OptionKey optionKey)

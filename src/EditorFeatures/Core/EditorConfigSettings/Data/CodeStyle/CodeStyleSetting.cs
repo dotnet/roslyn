@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             return new BooleanCodeStyleSetting(option, description, trueValueDescription, falseValueDescription, editorConfigOptions, visualStudioOptions, updater, fileName);
         }
 
-        internal static CodeStyleSetting Create(PerLanguageOption2<CodeStyleOption2<bool>> option,
+        internal static CodeStyleSetting Create(PerLanguageValuedOption2<CodeStyleOption2<bool>> option,
                                                 string description,
                                                 AnalyzerConfigOptions editorConfigOptions,
                                                 OptionSet visualStudioOptions,
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             return new EnumCodeStyleSetting<T>(option, description, enumValues, valueDescriptions, editorConfigOptions, visualStudioOptions, updater, fileName);
         }
 
-        internal static CodeStyleSetting Create<T>(PerLanguageOption2<CodeStyleOption2<T>> option,
+        internal static CodeStyleSetting Create<T>(PerLanguageValuedOption2<CodeStyleOption2<T>> option,
                                                    string description,
                                                    T[] enumValues,
                                                    string[] valueDescriptions,

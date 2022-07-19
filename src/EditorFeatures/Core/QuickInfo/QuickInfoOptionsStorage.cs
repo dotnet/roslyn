@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
         private const string FeatureName = "QuickInfoOptions";
 
-        public static readonly PerLanguageOption2<bool> ShowRemarksInQuickInfo = new(
+        public static readonly PerLanguageValuedOption2<bool> ShowRemarksInQuickInfo = new(
             FeatureName, "ShowRemarksInQuickInfo", QuickInfoOptions.Default.ShowRemarksInQuickInfo,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowRemarks"));
 

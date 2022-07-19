@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         private static readonly CodeStyleOption2<ParenthesesPreference> RemoveIfUnnecessaryPreference =
             new CodeStyleOption2<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption2.Suggestion);
 
-        private static IEnumerable<PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>>> GetAllExceptOtherParenthesesOptions()
+        private static IEnumerable<PerLanguageValuedOption2<CodeStyleOption2<ParenthesesPreference>>> GetAllExceptOtherParenthesesOptions()
         {
             yield return CodeStyleOptions2.ArithmeticBinaryParentheses;
             yield return CodeStyleOptions2.RelationalBinaryParentheses;
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal OptionsCollection RequireOtherBinaryParenthesesForClarity
             => GetSingleRequireOption(CodeStyleOptions2.OtherBinaryParentheses);
 
-        private static IEnumerable<PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>>> GetAllParenthesesOptions()
+        private static IEnumerable<PerLanguageValuedOption2<CodeStyleOption2<ParenthesesPreference>>> GetAllParenthesesOptions()
             => GetAllExceptOtherParenthesesOptions().Concat(CodeStyleOptions2.OtherParentheses);
 
         internal OptionsCollection IgnoreAllParentheses
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        private OptionsCollection GetSingleRequireOption(PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> option)
+        private OptionsCollection GetSingleRequireOption(PerLanguageValuedOption2<CodeStyleOption2<ParenthesesPreference>> option)
         {
             var optionsCollection = new OptionsCollection(_language);
             foreach (var o in GetAllParenthesesOptions())
