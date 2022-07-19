@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Completion
                 _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);
             }
 
-            // Exposed for pre-populating MEF providers.
             public IReadOnlyList<Lazy<CompletionProvider, CompletionProviderMetadata>> GetLazyImportedProviders()
             {
                 if (_lazyImportedProviders == null)
@@ -54,10 +53,9 @@ namespace Microsoft.CodeAnalysis.Completion
                 return _lazyImportedProviders;
             }
 
-            // Exposed for pre-populating project-based providers.
             public static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
             {
-                if (project?.Solution.Workspace.Kind == WorkspaceKind.Interactive)
+                if (project is null || project.Solution.Workspace.Kind == WorkspaceKind.Interactive)
                 {
                     // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict completions in Interactive
                     return ImmutableArray<CompletionProvider>.Empty;
@@ -98,6 +96,9 @@ namespace Microsoft.CodeAnalysis.Completion
                 }
             }
 
+            /// <summary>
+            /// Don't call. For test only.
+            /// </summary>
             public ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles, Project? project)
             {
                 using var _ = ArrayBuilder<CompletionProvider>.GetInstance(out var providers);
@@ -108,23 +109,22 @@ namespace Microsoft.CodeAnalysis.Completion
 
             public CompletionProvider? GetProvider(CompletionItem item, Project? project)
             {
+                if (item.ProviderName == null)
+                    return null;
+
                 CompletionProvider? provider = null;
+                using var _ = PooledDelegates.GetPooledFunction(static (p, n) => p.Name == n, item.ProviderName, out Func<CompletionProvider, bool> isNameMatchingProviderPredicate);
 
-                if (item.ProviderName != null)
+                lock (_gate)
                 {
-                    lock (_gate)
+                    if (!_nameToProvider.TryGetValue(item.ProviderName, out provider))
                     {
-                        if (!_nameToProvider.TryGetValue(item.ProviderName, out provider))
-                        {
-                            provider = GetImportedAndBuiltInProviders(roles: ImmutableHashSet<string>.Empty).FirstOrDefault(p => p.Name == item.ProviderName);
-                            _nameToProvider.Add(item.ProviderName, provider);
-                        }
+                        provider = GetImportedAndBuiltInProviders(roles: ImmutableHashSet<string>.Empty).FirstOrDefault(isNameMatchingProviderPredicate);
+                        _nameToProvider.Add(item.ProviderName, provider);
                     }
-
-                    provider ??= GetProjectCompletionProviders(project).FirstOrDefault(p => p.Name == item.ProviderName);
                 }
 
-                return provider;
+                return provider ?? GetProjectCompletionProviders(project).FirstOrDefault(isNameMatchingProviderPredicate);
             }
 
             public ConcatImmutableArray<CompletionProvider> GetFilteredProviders(

@@ -398,10 +398,10 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Don't call. Used for pre-populating NuGet providers only.
         /// </summary>
-        internal static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
+        internal static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project project)
             => ProviderManager.GetProjectCompletionProviders(project);
 
-        internal CompletionProvider? GetProvider(CompletionItem item, Project? project = null)
+        internal CompletionProvider? GetProvider(CompletionItem item, Project? project)
             => _providerManager.GetProvider(item, project);
 
         internal TestAccessor GetTestAccessor()

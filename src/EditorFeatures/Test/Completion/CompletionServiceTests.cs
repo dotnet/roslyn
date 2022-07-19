@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Diagnostics;
 #nullable disable
 
 using System;
@@ -11,6 +9,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -58,7 +58,7 @@ class Test {
 
             var expectedChange = new TextChange(item.Span, nameof(DebugAssertTestCompletionProvider));
             var actualChange = (await completionService.GetChangeAsync(document, item).ConfigureAwait(false)).TextChange;
-            Assert.True(expectedChange == actualChange);
+            Assert.Equal(expectedChange, actualChange);
         }
 
         private class MockAnalyzerReference : AnalyzerReference, ICompletionProviderFactory

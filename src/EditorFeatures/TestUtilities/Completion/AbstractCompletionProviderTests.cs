@@ -111,8 +111,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         internal virtual CompletionService GetCompletionService(Project project)
         {
             var completionService = project.LanguageServices.GetRequiredService<CompletionService>();
-            var completionProviders = completionService.GetLazyImportedProviders();
-            var completionProvider = Assert.Single(completionProviders).Value;
+            var completionProviders = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet<string>.Empty, project);
+            var completionProvider = Assert.Single(completionProviders);
             Assert.IsType(GetCompletionProviderType(), completionProvider);
 
             return completionService;
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             Assert.Contains(itemToCommit, items.Select(x => x.DisplayText), GetStringComparer());
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
-            if (service.GetProvider(firstItem) is ICustomCommitCompletionProvider customCommitCompletionProvider)
+            if (service.GetProvider(firstItem, document.Project) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
                 VerifyCustomCommitWorker(service, customCommitCompletionProvider, firstItem, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
