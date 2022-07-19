@@ -39,6 +39,7 @@
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\AbstractCloudCachePersistentStorageService.cs" Link="Host\Storage\AbstractCloudCachePersistentStorageService.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\CloudCachePersistentStorage.cs" Link="Host\Storage\CloudCachePersistentStorage.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\ProjectContainerKeyCache.cs" Link="Host\Storage\ProjectContainerKeyCache.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\FileDownloader.cs" Link="Host\Storage\FileDownloader.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\TelemetryLogger.cs" Link="Services\ProcessTelemetry\TelemetryLogger.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\AbstractWorkspaceTelemetryService.cs" Link="Services\ProcessTelemetry\AbstractWorkspaceTelemetryService.cs" />
   </ItemGroup>

@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public static async ValueTask<ISymbolSearchUpdateEngine> CreateEngineAsync(
             Workspace workspace,
             ISymbolSearchLogService logService,
+            IFileDownloaderFactory fileDownloaderFactory,
             CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(workspace, cancellationToken).ConfigureAwait(false);
@@ -33,16 +34,16 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             }
 
             // Couldn't go out of proc.  Just do everything inside the current process.
-            return CreateEngineInProcess();
+            return CreateEngineInProcess(fileDownloaderFactory);
         }
 
         /// <summary>
         /// This returns a No-op engine if called on non-Windows OS, because the backing storage depends on Windows APIs.
         /// </summary>
-        public static ISymbolSearchUpdateEngine CreateEngineInProcess()
+        public static ISymbolSearchUpdateEngine CreateEngineInProcess(IFileDownloaderFactory fileDownloaderFactory)
         {
             return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-                new SymbolSearchUpdateEngine() :
+                new SymbolSearchUpdateEngine(fileDownloaderFactory) :
                 SymbolSearchUpdateNoOpEngine.Instance;
         }
     }

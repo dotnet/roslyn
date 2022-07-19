@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(IErrorTag))]
-    internal partial class DiagnosticsSuggestionTaggerProvider :
+    internal sealed partial class DiagnosticsSuggestionTaggerProvider :
         AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
         private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
@@ -46,6 +46,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
             => diagnostic.Severity == DiagnosticSeverity.Info;
+
+        protected internal override bool SupportsDignosticMode(DiagnosticMode mode)
+        {
+            // We only support push diagnostics.  When pull diagnostics are on, ellipses suggestions are handled by the
+            // lsp client.
+            return mode == DiagnosticMode.Push;
+        }
 
         protected override IErrorTag CreateTag(Workspace workspace, DiagnosticData diagnostic)
             => new ErrorTag(

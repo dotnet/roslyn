@@ -37,9 +37,8 @@ using IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IVsT
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-
 #pragma warning disable CS0618 // Type or member is obsolete
-    internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument
+    internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument, IContainedDocument
 #pragma warning restore CS0618 // Type or member is obsolete
     {
         private const string ReturnReplacementString = @"{|r|}";
@@ -215,11 +214,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public void UpdateText(SourceText newText)
         {
-            var subjectBuffer = (IProjectionBuffer)this.SubjectBuffer;
-            var originalSnapshot = subjectBuffer.CurrentSnapshot;
-            var originalText = originalSnapshot.AsText();
+            var originalText = SubjectBuffer.CurrentSnapshot.AsText();
+            ApplyChanges(originalText, newText.GetTextChanges(originalText));
+        }
 
-            var changes = newText.GetTextChanges(originalText);
+        public ITextSnapshot ApplyChanges(IEnumerable<TextChange> changes)
+            => ApplyChanges(SubjectBuffer.CurrentSnapshot.AsText(), changes);
+
+        private ITextSnapshot ApplyChanges(SourceText originalText, IEnumerable<TextChange> changes)
+        {
+            var subjectBuffer = (IProjectionBuffer)SubjectBuffer;
 
             IEnumerable<int> affectedVisibleSpanIndices = null;
             var editorVisibleSpansInOriginal = SharedPools.Default<List<TextSpan>>().AllocateAndClear();
@@ -230,14 +234,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
                 editorVisibleSpansInOriginal.AddRange(GetEditorVisibleSpans());
                 var newChanges = FilterTextChanges(originalText, editorVisibleSpansInOriginal, changes).ToList();
-                if (newChanges.Count == 0)
+                if (newChanges.Count > 0)
                 {
-                    // no change to apply
-                    return;
+                    ApplyChanges(subjectBuffer, newChanges, editorVisibleSpansInOriginal, out affectedVisibleSpanIndices);
+                    AdjustIndentation(subjectBuffer, affectedVisibleSpanIndices);
                 }
 
-                ApplyChanges(subjectBuffer, newChanges, editorVisibleSpansInOriginal, out affectedVisibleSpanIndices);
-                AdjustIndentation(subjectBuffer, affectedVisibleSpanIndices);
+                return subjectBuffer.CurrentSnapshot;
             }
             finally
             {
@@ -246,10 +249,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
         }
 
-        private IEnumerable<TextChange> FilterTextChanges(SourceText originalText, List<TextSpan> editorVisibleSpansInOriginal, IReadOnlyList<TextChange> changes)
+        private IEnumerable<TextChange> FilterTextChanges(SourceText originalText, List<TextSpan> editorVisibleSpansInOriginal, IEnumerable<TextChange> changes)
         {
             // no visible spans or changes
-            if (editorVisibleSpansInOriginal.Count == 0 || changes.Count == 0)
+            if (editorVisibleSpansInOriginal.Count == 0 || !changes.Any())
             {
                 // return empty one
                 yield break;

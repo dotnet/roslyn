@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Indicates the type is declared in source and is only visible in the file it is declared in.
         /// </summary>
-        bool IsFile { get; }
+        bool IsFileLocal { get; }
 
         /// <summary>
         /// Returns collection of names of members declared within this type.

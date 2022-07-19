@@ -47,13 +47,13 @@ public class FileModifierTests : CSharpTestBase
             // (3,16): error CS8936: Feature 'file types' is not available in C# 10.0. Please use language version 11.0 or greater.
             //     file class C { }
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C").WithArguments("file types", "11.0").WithLocation(3, 16),
-            // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            // (3,16): error CS9054: File-local type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C { }
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
 
         comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            // (3,16): error CS9054: File-local type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C { }
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
     }
@@ -83,11 +83,11 @@ public class FileModifierTests : CSharpTestBase
         {
             var outer = comp.GetMember<NamedTypeSymbol>("Outer");
             Assert.Equal(Accessibility.Internal, outer.DeclaredAccessibility);
-            Assert.True(((SourceMemberContainerTypeSymbol)outer).IsFile);
+            Assert.True(((SourceMemberContainerTypeSymbol)outer).IsFileLocal);
 
             var classC = comp.GetMember<NamedTypeSymbol>("Outer.C");
             Assert.Equal(Accessibility.Private, classC.DeclaredAccessibility);
-            Assert.False(((SourceMemberContainerTypeSymbol)classC).IsFile);
+            Assert.False(((SourceMemberContainerTypeSymbol)classC).IsFileLocal);
         }
     }
 
@@ -109,13 +109,13 @@ public class FileModifierTests : CSharpTestBase
             // (3,16): error CS8936: Feature 'file types' is not available in C# 10.0. Please use language version 11.0 or greater.
             //     file class C { }
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C").WithArguments("file types", "11.0").WithLocation(3, 16),
-            // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            // (3,16): error CS9054: File-local type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C { }
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
 
         comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            // (3,16): error CS9054: File-local type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C { }
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
     }
@@ -137,7 +137,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (8,10): error CS9051: File type 'Outer.C' cannot be used in a member signature in non-file type 'D'.
+            // (8,10): error CS9051: File-local type 'Outer.C' cannot be used in a member signature in non-file-local type 'D'.
             //     void M(Outer.C c) { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M").WithArguments("Outer.C", "D").WithLocation(8, 10));
     }
@@ -396,7 +396,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (10,12): error CS9051: File type 'E' cannot be used in a member signature in non-file type 'Attr'.
+            // (10,12): error CS9051: File-local type 'E' cannot be used in a member signature in non-file-local type 'Attr'.
             //     public Attr(E e) { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "Attr").WithArguments("E", "Attr").WithLocation(10, 12));
     }
@@ -713,8 +713,8 @@ public class FileModifierTests : CSharpTestBase
     [InlineData("", "file", "C", "<>F1__C")]
     public void Duplication_01(string firstFileModifier, string secondFileModifier, string firstMetadataName, string secondMetadataName)
     {
-        // A file type is allowed to have the same name as a non-file type from a different file.
-        // When both a file type and non-file type with the same name are in scope, the file type is preferred, since it's "more local".
+        // A file-local type is allowed to have the same name as a non-file-local type from a different file.
+        // When both a file-local type and non-file-local type with the same name are in scope, the file-local type is preferred, since it's "more local".
         var source1 = $$"""
             using System;
 
@@ -896,7 +896,7 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal(2, cs.Length);
 
         var c0 = cs[0];
-        Assert.True(c0 is SourceMemberContainerTypeSymbol { IsFile: false });
+        Assert.True(c0 is SourceMemberContainerTypeSymbol { IsFileLocal: false });
 
         var syntaxReferences = c0.DeclaringSyntaxReferences;
         Assert.Equal(2, syntaxReferences.Length);
@@ -904,7 +904,7 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal(comp.SyntaxTrees[1], syntaxReferences[1].SyntaxTree);
 
         var c1 = cs[1];
-        Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFile: true });
+        Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFileLocal: true });
         Assert.Equal(comp.SyntaxTrees[2], c1.DeclaringSyntaxReferences.Single().SyntaxTree);
 
         var tree = comp.SyntaxTrees[2];
@@ -962,11 +962,11 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal(2, cs.Length);
 
         var c0 = cs[0];
-        Assert.True(c0 is SourceMemberContainerTypeSymbol { IsFile: false });
+        Assert.True(c0 is SourceMemberContainerTypeSymbol { IsFileLocal: false });
         Assert.Equal(comp.SyntaxTrees[0], c0.DeclaringSyntaxReferences.Single().SyntaxTree);
 
         var c1 = cs[1];
-        Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFile: true });
+        Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFileLocal: true });
 
         var syntaxReferences = c1.DeclaringSyntaxReferences;
         Assert.Equal(2, syntaxReferences.Length);
@@ -1024,11 +1024,11 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal(2, cs.Length);
 
         var c0 = cs[0];
-        Assert.Equal(firstClassIsFile, ((SourceMemberContainerTypeSymbol)c0).IsFile);
+        Assert.Equal(firstClassIsFile, ((SourceMemberContainerTypeSymbol)c0).IsFileLocal);
         Assert.Equal(comp.SyntaxTrees[0], c0.DeclaringSyntaxReferences.Single().SyntaxTree);
 
         var c1 = cs[1];
-        Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFile: true });
+        Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFileLocal: true });
         Assert.Equal(comp.SyntaxTrees[1], c1.DeclaringSyntaxReferences.Single().SyntaxTree);
 
         var tree = comp.SyntaxTrees[1];
@@ -1082,14 +1082,14 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal(2, cs.Length);
 
         var c0 = cs[0];
-        Assert.True(c0 is SourceMemberContainerTypeSymbol { IsFile: false });
+        Assert.True(c0 is SourceMemberContainerTypeSymbol { IsFileLocal: false });
         var syntaxReferences = c0.DeclaringSyntaxReferences;
         Assert.Equal(2, syntaxReferences.Length);
         Assert.Equal(comp.SyntaxTrees[0], syntaxReferences[0].SyntaxTree);
         Assert.Equal(comp.SyntaxTrees[1], syntaxReferences[1].SyntaxTree);
 
         var c1 = cs[1];
-        Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFile: true });
+        Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFileLocal: true });
         Assert.Equal(comp.SyntaxTrees[1], c1.DeclaringSyntaxReferences.Single().SyntaxTree);
 
 
@@ -1103,7 +1103,7 @@ public class FileModifierTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MissingPartial, "C").WithArguments("C").WithLocation(8, 12));
 
         var c = comp.GetMember("C");
-        Assert.True(c is SourceMemberContainerTypeSymbol { IsFile: true });
+        Assert.True(c is SourceMemberContainerTypeSymbol { IsFileLocal: true });
         syntaxReferences = c.DeclaringSyntaxReferences;
         Assert.Equal(3, syntaxReferences.Length);
         Assert.Equal(comp.SyntaxTrees[0], syntaxReferences[0].SyntaxTree);
@@ -1153,11 +1153,11 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal(2, cs.Length);
 
         var c0 = cs[0];
-        Assert.True(c0 is SourceMemberContainerTypeSymbol { IsFile: true });
+        Assert.True(c0 is SourceMemberContainerTypeSymbol { IsFileLocal: true });
         Assert.Equal(comp.SyntaxTrees[0], c0.DeclaringSyntaxReferences.Single().SyntaxTree);
 
         var c1 = cs[1];
-        Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFile: true });
+        Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFileLocal: true });
         var syntaxReferences = c1.DeclaringSyntaxReferences;
         Assert.Equal(2, syntaxReferences.Length);
         Assert.Equal(comp.SyntaxTrees[1], syntaxReferences[0].SyntaxTree);
@@ -1174,14 +1174,14 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal(2, cs.Length);
 
         c0 = cs[0];
-        Assert.True(c0 is SourceMemberContainerTypeSymbol { IsFile: true });
+        Assert.True(c0 is SourceMemberContainerTypeSymbol { IsFileLocal: true });
         syntaxReferences = c0.DeclaringSyntaxReferences;
         Assert.Equal(2, syntaxReferences.Length);
         Assert.Equal(comp.SyntaxTrees[0], syntaxReferences[0].SyntaxTree);
         Assert.Equal(comp.SyntaxTrees[0], syntaxReferences[1].SyntaxTree);
 
         c1 = cs[1];
-        Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFile: true });
+        Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFileLocal: true });
         Assert.Equal(comp.SyntaxTrees[1], c1.DeclaringSyntaxReferences.Single().SyntaxTree);
     }
 
@@ -1220,19 +1220,19 @@ public class FileModifierTests : CSharpTestBase
 
         var compilation = CreateCompilation(new[] { source1, source2, source3 });
         compilation.VerifyDiagnostics(
-            // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            // (3,16): error CS9054: File-local type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16),
-            // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            // (3,16): error CS9054: File-local type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
 
         var classOuter = compilation.GetMember<NamedTypeSymbol>("Outer");
         var cs = classOuter.GetMembers("C");
         Assert.Equal(3, cs.Length);
-        Assert.True(cs[0] is SourceMemberContainerTypeSymbol { IsFile: true });
-        Assert.True(cs[1] is SourceMemberContainerTypeSymbol { IsFile: true });
-        Assert.True(cs[2] is SourceMemberContainerTypeSymbol { IsFile: false });
+        Assert.True(cs[0] is SourceMemberContainerTypeSymbol { IsFileLocal: true });
+        Assert.True(cs[1] is SourceMemberContainerTypeSymbol { IsFileLocal: true });
+        Assert.True(cs[2] is SourceMemberContainerTypeSymbol { IsFileLocal: false });
     }
 
     [Fact]
@@ -1274,9 +1274,9 @@ public class FileModifierTests : CSharpTestBase
         var namespaceNS = compilation.GetMember<NamespaceSymbol>("NS");
         var cs = namespaceNS.GetMembers("C");
         Assert.Equal(3, cs.Length);
-        Assert.True(cs[0] is SourceMemberContainerTypeSymbol { IsFile: true });
-        Assert.True(cs[1] is SourceMemberContainerTypeSymbol { IsFile: true });
-        Assert.True(cs[2] is SourceMemberContainerTypeSymbol { IsFile: false });
+        Assert.True(cs[0] is SourceMemberContainerTypeSymbol { IsFileLocal: true });
+        Assert.True(cs[1] is SourceMemberContainerTypeSymbol { IsFileLocal: true });
+        Assert.True(cs[2] is SourceMemberContainerTypeSymbol { IsFileLocal: false });
     }
 
     [Theory]
@@ -1579,10 +1579,10 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (7,17): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (7,17): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'D'.
             //     public void M1(C c) { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M1").WithArguments("C", "D").WithLocation(7, 17),
-            // (8,18): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (8,18): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'D'.
             //     private void M2(C c) { } // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M2").WithArguments("C", "D").WithLocation(8, 18));
     }
@@ -1604,10 +1604,10 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (7,14): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (7,14): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'D'.
             //     public C M1() => new C(); // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M1").WithArguments("C", "D").WithLocation(7, 14),
-            // (8,15): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (8,15): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'D'.
             //     private C M2() => new C(); // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M2").WithArguments("C", "D").WithLocation(8, 15));
     }
@@ -1632,19 +1632,19 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (8,7): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'E'.
+            // (8,7): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'E'.
             //     C field; // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "field").WithArguments("C", "E").WithLocation(8, 7),
             // (8,7): warning CS0169: The field 'E.field' is never used
             //     C field; // 1
             Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("E.field").WithLocation(8, 7),
-            // (9,7): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'E'.
+            // (9,7): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'E'.
             //     C property { get; set; } // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "property").WithArguments("C", "E").WithLocation(9, 7),
-            // (10,12): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'E'.
+            // (10,12): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'E'.
             //     object this[C c] { get => c; set { } } // 3
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "this").WithArguments("C", "E").WithLocation(10, 12),
-            // (11,13): error CS9051: File type 'D' cannot be used in a member signature in non-file type 'E'.
+            // (11,13): error CS9051: File-local type 'D' cannot be used in a member signature in non-file-local type 'E'.
             //     event D @event; // 4
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "@event").WithArguments("D", "E").WithLocation(11, 13),
             // (11,13): warning CS0067: The event 'E.event' is never used
@@ -1673,19 +1673,19 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (9,13): error CS9051: File type 'C.Inner' cannot be used in a member signature in non-file type 'E'.
+            // (9,13): error CS9051: File-local type 'C.Inner' cannot be used in a member signature in non-file-local type 'E'.
             //     C.Inner field; // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "field").WithArguments("C.Inner", "E").WithLocation(9, 13),
             // (9,13): warning CS0169: The field 'E.field' is never used
             //     C.Inner field; // 1
             Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("E.field").WithLocation(9, 13),
-            // (10,13): error CS9051: File type 'C.Inner' cannot be used in a member signature in non-file type 'E'.
+            // (10,13): error CS9051: File-local type 'C.Inner' cannot be used in a member signature in non-file-local type 'E'.
             //     C.Inner property { get; set; } // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "property").WithArguments("C.Inner", "E").WithLocation(10, 13),
-            // (11,12): error CS9051: File type 'C.Inner' cannot be used in a member signature in non-file type 'E'.
+            // (11,12): error CS9051: File-local type 'C.Inner' cannot be used in a member signature in non-file-local type 'E'.
             //     object this[C.Inner inner] { get => inner; set { } } // 3
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "this").WithArguments("C.Inner", "E").WithLocation(11, 12),
-            // (12,27): error CS9051: File type 'C.InnerDelegate' cannot be used in a member signature in non-file type 'E'.
+            // (12,27): error CS9051: File-local type 'C.InnerDelegate' cannot be used in a member signature in non-file-local type 'E'.
             //     event C.InnerDelegate @event; // 4
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "@event").WithArguments("C.InnerDelegate", "E").WithLocation(12, 27),
             // (12,27): warning CS0067: The event 'E.event' is never used
@@ -1730,16 +1730,16 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (24,17): error CS9051: File type 'C.Inner' cannot be used in a member signature in non-file type 'E.Inner'.
+            // (24,17): error CS9051: File-local type 'C.Inner' cannot be used in a member signature in non-file-local type 'E.Inner'.
             //         C.Inner field; // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "field").WithArguments("C.Inner", "E.Inner").WithLocation(24, 17),
-            // (25,17): error CS9051: File type 'C.Inner' cannot be used in a member signature in non-file type 'E.Inner'.
+            // (25,17): error CS9051: File-local type 'C.Inner' cannot be used in a member signature in non-file-local type 'E.Inner'.
             //         C.Inner property { get; set; } // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "property").WithArguments("C.Inner", "E.Inner").WithLocation(25, 17),
-            // (26,16): error CS9051: File type 'C.Inner' cannot be used in a member signature in non-file type 'E.Inner'.
+            // (26,16): error CS9051: File-local type 'C.Inner' cannot be used in a member signature in non-file-local type 'E.Inner'.
             //         object this[C.Inner inner] { get => inner; set { } } // 3
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "this").WithArguments("C.Inner", "E.Inner").WithLocation(26, 16),
-            // (27,31): error CS9051: File type 'C.InnerDelegate' cannot be used in a member signature in non-file type 'E.Inner'.
+            // (27,31): error CS9051: File-local type 'C.InnerDelegate' cannot be used in a member signature in non-file-local type 'E.Inner'.
             //         event C.InnerDelegate @event; // 4
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "@event").WithArguments("C.InnerDelegate", "E.Inner").WithLocation(27, 31));
     }
@@ -1758,10 +1758,10 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (5,15): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'Del1'.
+            // (5,15): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'Del1'.
             // delegate void Del1(C c); // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "Del1").WithArguments("C", "Del1").WithLocation(5, 15),
-            // (6,12): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'Del2'.
+            // (6,12): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'Del2'.
             // delegate C Del2(); // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "Del2").WithArguments("C", "Del2").WithLocation(6, 12));
     }
@@ -1783,10 +1783,10 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (7,30): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (7,30): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'D'.
             //     public static D operator +(D d, C c) => d; // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "+").WithArguments("C", "D").WithLocation(7, 30),
-            // (8,30): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (8,30): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'D'.
             //     public static C operator -(D d1, D d2) => new C(); // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "-").WithArguments("C", "D").WithLocation(8, 30));
     }
@@ -1807,7 +1807,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (7,12): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (7,12): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'D'.
             //     public D(C c) { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "D").WithArguments("C", "D").WithLocation(7, 12));
     }
@@ -1828,13 +1828,13 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (7,14): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (7,14): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'D'.
             //     public C M(C c1, C c2) => c1; // 1, 2, 3
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M").WithArguments("C", "D").WithLocation(7, 14),
-            // (7,14): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (7,14): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'D'.
             //     public C M(C c1, C c2) => c1; // 1, 2, 3
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M").WithArguments("C", "D").WithLocation(7, 14),
-            // (7,14): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D'.
+            // (7,14): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'D'.
             //     public C M(C c1, C c2) => c1; // 1, 2, 3
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M").WithArguments("C", "D").WithLocation(7, 14));
     }
@@ -1851,13 +1851,13 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (1,19): error CS9052: File type 'C' cannot use accessibility modifiers.
+            // (1,19): error CS9052: File-local type 'C' cannot use accessibility modifiers.
             // public file class C { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeNoExplicitAccessibility, "C").WithArguments("C").WithLocation(1, 19),
-            // (2,21): error CS9052: File type 'D' cannot use accessibility modifiers.
+            // (2,21): error CS9052: File-local type 'D' cannot use accessibility modifiers.
             // file internal class D { } // 2
             Diagnostic(ErrorCode.ERR_FileTypeNoExplicitAccessibility, "D").WithArguments("D").WithLocation(2, 21),
-            // (3,20): error CS9052: File type 'E' cannot use accessibility modifiers.
+            // (3,20): error CS9052: File-local type 'E' cannot use accessibility modifiers.
             // private file class E { } // 3, 4
             Diagnostic(ErrorCode.ERR_FileTypeNoExplicitAccessibility, "E").WithArguments("E").WithLocation(3, 20),
             // (3,20): error CS1527: Elements defined in a namespace cannot be explicitly declared as private, protected, protected internal, or private protected
@@ -1895,13 +1895,13 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (2,7): error CS9053: File type 'Base' cannot be used as a base type of non-file type 'Derived1'.
+            // (2,7): error CS9053: File-local type 'Base' cannot be used as a base type of non-file-local type 'Derived1'.
             // class Derived1 : Base { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeBase, "Derived1").WithArguments("Base", "Derived1").WithLocation(2, 7),
             // (3,14): error CS0060: Inconsistent accessibility: base class 'Base' is less accessible than class 'Derived2'
             // public class Derived2 : Base { } // 2, 3
             Diagnostic(ErrorCode.ERR_BadVisBaseClass, "Derived2").WithArguments("Derived2", "Base").WithLocation(3, 14),
-            // (3,14): error CS9053: File type 'Base' cannot be used as a base type of non-file type 'Derived2'.
+            // (3,14): error CS9053: File-local type 'Base' cannot be used as a base type of non-file-local type 'Derived2'.
             // public class Derived2 : Base { } // 2, 3
             Diagnostic(ErrorCode.ERR_FileTypeBase, "Derived2").WithArguments("Base", "Derived2").WithLocation(3, 14));
     }
@@ -1921,7 +1921,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (6,11): error CS9053: File type 'Interface' cannot be used as a base type of non-file type 'Derived3'.
+            // (6,11): error CS9053: File-local type 'Interface' cannot be used as a base type of non-file-local type 'Derived3'.
             // interface Derived3 : Interface { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeBase, "Derived3").WithArguments("Interface", "Derived3").WithLocation(6, 11));
     }
@@ -2026,7 +2026,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (3,19): error CS9053: File type 'I1' cannot be used as a base type of non-file type 'Derived'.
+            // (3,19): error CS9053: File-local type 'I1' cannot be used as a base type of non-file-local type 'Derived'.
             // partial interface Derived : I1 { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeBase, "Derived").WithArguments("I1", "Derived").WithLocation(3, 19));
     }
@@ -2065,7 +2065,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (7,17): error CS9051: File type 'I' cannot be used in a member signature in non-file type 'C'.
+            // (7,17): error CS9051: File-local type 'I' cannot be used in a member signature in non-file-local type 'C'.
             //     public void F(I i) { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "F").WithArguments("I", "C").WithLocation(7, 17));
     }
@@ -2086,7 +2086,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (7,12): error CS9051: File type 'I' cannot be used in a member signature in non-file type 'C'.
+            // (7,12): error CS9051: File-local type 'I' cannot be used in a member signature in non-file-local type 'C'.
             //     void I.F(I i) { }
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "F").WithArguments("I", "C").WithLocation(7, 12));
     }
@@ -2171,19 +2171,19 @@ public class FileModifierTests : CSharpTestBase
                 // (1,28): warning CS0649: Field 'S.X' is never assigned to, and will always have its default value 0
                 // file struct S { public int X; }
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "X").WithArguments("S.X", "0").WithLocation(1, 28),
-                // (5,18): error CS9051: File type 'Container<S>' cannot be used in a member signature in non-file type 'Program'.
+                // (5,18): error CS9051: File-local type 'Container<S>' cannot be used in a member signature in non-file-local type 'Program'.
                 //     Container<S> M1() => new Container<S>(); // 1
                 Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M1").WithArguments("Container<S>", "Program").WithLocation(5, 18),
-                // (6,9): error CS9051: File type 'S[]' cannot be used in a member signature in non-file type 'Program'.
+                // (6,9): error CS9051: File-local type 'S[]' cannot be used in a member signature in non-file-local type 'Program'.
                 //     S[] M2() => new S[0]; // 2
                 Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M2").WithArguments("S[]", "Program").WithLocation(6, 9),
-                // (7,12): error CS9051: File type '(S, S)' cannot be used in a member signature in non-file type 'Program'.
+                // (7,12): error CS9051: File-local type '(S, S)' cannot be used in a member signature in non-file-local type 'Program'.
                 //     (S, S) M3() => (new S(), new S()); // 3
                 Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M3").WithArguments("(S, S)", "Program").WithLocation(7, 12),
-                // (8,8): error CS9051: File type 'S*' cannot be used in a member signature in non-file type 'Program'.
+                // (8,8): error CS9051: File-local type 'S*' cannot be used in a member signature in non-file-local type 'Program'.
                 //     S* M4() => null; // 4
                 Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M4").WithArguments("S*", "Program").WithLocation(8, 8),
-                // (9,24): error CS9051: File type 'delegate*<S, void>' cannot be used in a member signature in non-file type 'Program'.
+                // (9,24): error CS9051: File-local type 'delegate*<S, void>' cannot be used in a member signature in non-file-local type 'Program'.
                 //     delegate*<S, void> M5() => null; // 5
                 Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M5").WithArguments("delegate*<S, void>", "Program").WithLocation(9, 24));
     }
@@ -2207,7 +2207,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (10,30): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'E.M<T>(T)'.
+            // (10,30): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'E.M<T>(T)'.
             //     void M<T>(T t) where T : C { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "C").WithArguments("C", "E.M<T>(T)").WithLocation(10, 30));
     }
@@ -2234,7 +2234,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (7,{{17 + typeKind.Length}}): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'E<T>'.
+            // (7,{{17 + typeKind.Length}}): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'E<T>'.
             // {{typeKind}} E<T> where T : C // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "C").WithArguments("C", "E<T>").WithLocation(7, 17 + typeKind.Length));
     }
@@ -2282,7 +2282,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (5,36): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'D2<T>'.
+            // (5,36): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'D2<T>'.
             // delegate void D2<T>(T t) where T : C; // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "C").WithArguments("C", "D2<T>").WithLocation(5, 36));
     }
@@ -2302,16 +2302,16 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
         comp.VerifyDiagnostics(
-            // (3,8): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'R1'.
+            // (3,8): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'R1'.
             // record R1(C c); // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "R1").WithArguments("C", "R1").WithLocation(3, 8),
-            // (3,8): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'R1'.
+            // (3,8): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'R1'.
             // record R1(C c); // 1
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "R1").WithArguments("C", "R1").WithLocation(3, 8),
-            // (4,15): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'R2'.
+            // (4,15): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'R2'.
             // record struct R2(C c); // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "R2").WithArguments("C", "R2").WithLocation(4, 15),
-            // (4,15): error CS9051: File type 'C' cannot be used in a member signature in non-file type 'R2'.
+            // (4,15): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'R2'.
             // record struct R2(C c); // 2
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "R2").WithArguments("C", "R2").WithLocation(4, 15)
             );
@@ -2443,7 +2443,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (5,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            // (5,16): error CS9054: File-local type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C // 1
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(5, 16),
             // (15,15): error CS0122: 'Outer.C' is inaccessible due to its protection level
@@ -2484,7 +2484,7 @@ public class FileModifierTests : CSharpTestBase
             // (5,15): error CS0117: 'Outer' does not contain a definition for 'C'
             //         Outer.C.M(); // 1
             Diagnostic(ErrorCode.ERR_NoSuchMember, "C").WithArguments("Outer", "C").WithLocation(5, 15),
-            // (5,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            // (5,16): error CS9054: File-local type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(5, 16));
     }
@@ -2581,7 +2581,7 @@ public class FileModifierTests : CSharpTestBase
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // global using static C;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "global using static C;").WithLocation(1, 1),
-                // (1,21): error CS9055: File type 'C' cannot be used in a 'global using static' directive.
+                // (1,21): error CS9055: File-local type 'C' cannot be used in a 'global using static' directive.
                 // global using static C;
                 Diagnostic(ErrorCode.ERR_GlobalUsingStaticFileType, "C").WithArguments("C").WithLocation(1, 21),
                 // (5,9): error CS0103: The name 'M' does not exist in the current context
@@ -2620,7 +2620,7 @@ public class FileModifierTests : CSharpTestBase
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // global using static Container<C>;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "global using static Container<C>;").WithLocation(1, 1),
-                // (1,21): error CS9055: File type 'Container<C>' cannot be used in a 'global using static' directive.
+                // (1,21): error CS9055: File-local type 'Container<C>' cannot be used in a 'global using static' directive.
                 // global using static Container<C>;
                 Diagnostic(ErrorCode.ERR_GlobalUsingStaticFileType, "Container<C>").WithArguments("Container<C>").WithLocation(1, 21),
                 // (5,9): error CS0103: The name 'M' does not exist in the current context
@@ -2791,7 +2791,7 @@ public class FileModifierTests : CSharpTestBase
         // 'Derived.C' is not actually accessible from 'Program', so we just bind to 'Base.C'.
         var compilation = CreateCompilation(new[] { source, main });
         compilation.VerifyDiagnostics(
-            // (16,20): error CS9054: File type 'Derived.C' must be defined in a top level type; 'Derived.C' is a nested type.
+            // (16,20): error CS9054: File-local type 'Derived.C' must be defined in a top level type; 'Derived.C' is a nested type.
             //     new file class C
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Derived.C").WithLocation(16, 20));
 
@@ -3212,7 +3212,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (8,7): error CS9053: File type 'C' cannot be used as a base type of non-file type 'D'.
+            // (8,7): error CS9053: File-local type 'C' cannot be used as a base type of non-file-local type 'D'.
             // class D : C1 { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeBase, "D").WithArguments("NS.C", "NS.D").WithLocation(8, 7));
     }
@@ -3266,7 +3266,7 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateSubmission(source1, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.Preview));
         comp.VerifyDiagnostics(
-            // (5,19): error CS9054: File type 'C1' must be defined in a top level type; 'C1' is a nested type.
+            // (5,19): error CS9054: File-local type 'C1' must be defined in a top level type; 'C1' is a nested type.
             // static file class C1
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C1").WithArguments("C1").WithLocation(5, 19),
             // (7,24): error CS1109: Extension methods must be defined in a top level static class; C1 is a nested class
@@ -3376,14 +3376,14 @@ public class FileModifierTests : CSharpTestBase
         // from source
         var comp = CreateCompilation(source1);
         comp.VerifyDiagnostics(
-            // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+            // (3,16): error CS9054: File-local type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
             //     file class C { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16));
         var sourceMember = comp.GetMember<NamedTypeSymbol>("Outer.C");
         Assert.Equal("<>F0__C", sourceMember.MetadataName);
 
         var sourceType = comp.GetTypeByMetadataName("Outer.<>F0__C");
-        // Note: strictly speaking, it would be reasonable to return the (invalid) nested file type symbol here.
+        // Note: strictly speaking, it would be reasonable to return the (invalid) nested file-local type symbol here.
         // However, since we don't actually support nested file types, we don't think we need the API to do the additional lookup
         // when the requested type is nested, and so we end up giving a null here.
         Assert.Null(sourceType);
@@ -3515,19 +3515,19 @@ public class FileModifierTests : CSharpTestBase
         var type = (INamedTypeSymbol)model.GetTypeInfo(node.Type!).Type!;
         Assert.Equal("C@<tree 0>", type.ToTestDisplayString());
         Assert.Equal(tree, type.GetSymbol()!.AssociatedSyntaxTree);
-        Assert.True(type.IsFile);
+        Assert.True(type.IsFileLocal);
 
         var referencingMetadataComp = CreateCompilation("", new[] { comp.ToMetadataReference() });
         type = ((Compilation)referencingMetadataComp).GetTypeByMetadataName("<>F0__C")!;
         Assert.Equal("C@<tree 0>", type.ToTestDisplayString());
         Assert.Equal(tree, type.GetSymbol()!.AssociatedSyntaxTree);
-        Assert.True(type.IsFile);
+        Assert.True(type.IsFileLocal);
 
         var referencingImageComp = CreateCompilation("", new[] { comp.EmitToImageReference() });
         type = ((Compilation)referencingImageComp).GetTypeByMetadataName("<>F0__C")!;
         Assert.Equal("<>F0__C", type.ToTestDisplayString());
         Assert.Null(type.GetSymbol()!.AssociatedSyntaxTree);
-        Assert.False(type.IsFile);
+        Assert.False(type.IsFileLocal);
     }
 
     [Fact]
@@ -3550,7 +3550,7 @@ public class FileModifierTests : CSharpTestBase
         var type = (INamedTypeSymbol)model.GetTypeInfo(node.Type!).Type!;
         Assert.Equal("C", type.ToTestDisplayString());
         Assert.Null(type.GetSymbol()!.AssociatedSyntaxTree);
-        Assert.False(type.IsFile);
+        Assert.False(type.IsFileLocal);
     }
 
     [Fact]
@@ -3573,6 +3573,6 @@ public class FileModifierTests : CSharpTestBase
         var type = (INamedTypeSymbol)model.GetTypeInfo(node.Type!).Type!;
         Assert.Equal("C<System.Int32>@<tree 0>", type.ToTestDisplayString());
         Assert.Equal(tree, type.GetSymbol()!.AssociatedSyntaxTree);
-        Assert.True(type.IsFile);
+        Assert.True(type.IsFileLocal);
     }
 }
