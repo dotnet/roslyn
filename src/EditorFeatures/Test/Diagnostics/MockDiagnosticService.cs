@@ -38,14 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         [Obsolete]
         public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-            => GetPushDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, DiagnosticMode.Default, cancellationToken).AsTask().WaitAndGetResult_CanCallOnBackground(cancellationToken);
+            => GetPullDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken).AsTask().WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
-        public ValueTask<ImmutableArray<DiagnosticData>> GetPullDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
-        {
-            return new ValueTask<ImmutableArray<DiagnosticData>>(GetDiagnostics(workspace, projectId, documentId));
-        }
-
-        public ValueTask<ImmutableArray<DiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<DiagnosticData>> GetPullDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
             return new ValueTask<ImmutableArray<DiagnosticData>>(GetDiagnostics(workspace, projectId, documentId));
         }
@@ -58,12 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return _diagnostic == null ? ImmutableArray<DiagnosticData>.Empty : ImmutableArray.Create(_diagnostic);
         }
 
-        public ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(Workspace workspace, ProjectId? projectId, DocumentId? documentId, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
-        {
-            return GetDiagnosticBuckets(workspace, projectId, documentId);
-        }
-
-        public ImmutableArray<DiagnosticBucket> GetPushDiagnosticBuckets(Workspace workspace, ProjectId? projectId, DocumentId? documentId, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
+        public ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(Workspace workspace, ProjectId? projectId, DocumentId? documentId, CancellationToken cancellationToken)
         {
             return GetDiagnosticBuckets(workspace, projectId, documentId);
         }

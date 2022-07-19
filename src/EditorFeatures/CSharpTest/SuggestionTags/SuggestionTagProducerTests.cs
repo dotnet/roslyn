@@ -19,6 +19,8 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Xunit;
 
+#if false
+
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
 {
     [UseExportProvider]
@@ -51,3 +53,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
         }
     }
 }
+
+#endif
