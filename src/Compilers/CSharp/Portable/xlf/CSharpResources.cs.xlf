@@ -207,6 +207,11 @@
         <target state="translated">Operátor {0} nejde použít pro operand {1}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadParameterModifiersOrder">
+        <source> The parameter modifier '{0}' cannot follow '{1}'</source>
+        <target state="new"> The parameter modifier '{0}' cannot follow '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">Neplatný operand pro porovnávací vzorek. Vyžaduje se hodnota, ale nalezeno: {0}.</target>

@@ -71,9 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this._refKind = refTypeSyntax.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword ?
                     RefKind.RefReadOnly :
                     RefKind.Ref;
-                this._scope = refTypeSyntax.ScopedKeyword.Kind() == SyntaxKind.ScopedKeyword ?
-                    DeclarationScope.ValueScoped :
-                    (hasScopedModifier ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+                this._scope = hasScopedModifier ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
             }
             else
             {

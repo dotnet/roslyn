@@ -2500,6 +2500,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_BadParameterModifiers" xml:space="preserve">
     <value> The parameter modifier '{0}' cannot be used with '{1}'</value>
   </data>
+  <data name="ERR_BadParameterModifiersOrder" xml:space="preserve">
+    <value> The parameter modifier '{0}' cannot follow '{1}'</value>
+  </data>
   <data name="ERR_BadTypeforThis" xml:space="preserve">
     <value>The first parameter of an extension method cannot be of type '{0}'</value>
   </data>

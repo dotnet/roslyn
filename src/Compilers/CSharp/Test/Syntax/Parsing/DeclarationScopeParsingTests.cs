@@ -229,31 +229,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Method_05()
         {
             string source = "ref scoped R F() => default;";
-            UsingDeclaration(source, TestOptions.Regular11);
+            UsingDeclaration(source, TestOptions.Regular11,
+                // (1,14): error CS1003: Syntax error, ',' expected
+                // ref scoped R F() => default;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "F").WithArguments(",").WithLocation(1, 14)
+                );
 
-            N(SyntaxKind.MethodDeclaration);
+            N(SyntaxKind.FieldDeclaration);
             {
-                N(SyntaxKind.RefType);
+                N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.RefKeyword);
-                    N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
                     {
                         N(SyntaxKind.IdentifierToken, "R");
-                    }
-                }
-                N(SyntaxKind.IdentifierToken, "F");
-                N(SyntaxKind.ParameterList);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.CloseParenToken);
-                }
-                N(SyntaxKind.ArrowExpressionClause);
-                {
-                    N(SyntaxKind.EqualsGreaterThanToken);
-                    N(SyntaxKind.DefaultLiteralExpression);
-                    {
-                        N(SyntaxKind.DefaultKeyword);
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
@@ -1201,8 +1197,6 @@ ref scoped F4() { }";
         scoped int a;
         scoped ref int b;
         scoped ref readonly int c;
-        ref scoped int d;
-        ref readonly scoped int e;
     }}
 }}
 ";
@@ -1288,6 +1282,69 @@ ref scoped F4() { }";
                                 }
                                 N(SyntaxKind.SemicolonToken);
                             }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Local_02_RefScoped(LanguageVersion langVersion)
+        {
+            string source = """
+class Program
+{
+    static void Main()
+    {
+        ref scoped int d;
+        ref readonly scoped int e;
+    }
+}
+""";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (5,20): error CS1001: Identifier expected
+                //         ref scoped int d;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 20),
+                // (5,20): error CS1002: ; expected
+                //         ref scoped int d;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "int").WithLocation(5, 20),
+                // (6,29): error CS1001: Identifier expected
+                //         ref readonly scoped int e;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(6, 29),
+                // (6,29): error CS1002: ; expected
+                //         ref readonly scoped int e;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "int").WithLocation(6, 29)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Main");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.LocalDeclarationStatement);
                             {
                                 N(SyntaxKind.VariableDeclaration);
@@ -1295,11 +1352,25 @@ ref scoped F4() { }";
                                     N(SyntaxKind.RefType);
                                     {
                                         N(SyntaxKind.RefKeyword);
-                                        N(SyntaxKind.ScopedKeyword);
-                                        N(SyntaxKind.PredefinedType);
+                                        N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IntKeyword);
+                                            N(SyntaxKind.IdentifierToken, "scoped");
                                         }
+                                    }
+                                    M(SyntaxKind.VariableDeclarator);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
                                     }
                                     N(SyntaxKind.VariableDeclarator);
                                     {
@@ -1316,11 +1387,25 @@ ref scoped F4() { }";
                                     {
                                         N(SyntaxKind.RefKeyword);
                                         N(SyntaxKind.ReadOnlyKeyword);
-                                        N(SyntaxKind.ScopedKeyword);
-                                        N(SyntaxKind.PredefinedType);
+                                        N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IntKeyword);
+                                            N(SyntaxKind.IdentifierToken, "scoped");
                                         }
+                                    }
+                                    M(SyntaxKind.VariableDeclarator);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
                                     }
                                     N(SyntaxKind.VariableDeclarator);
                                     {
@@ -1347,7 +1432,6 @@ ref scoped F4() { }";
             string source =
 @"scoped int a;
 scoped ref int b;
-ref scoped int c;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
@@ -1395,20 +1479,47 @@ ref scoped int c;
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Local_03_RefScoped(LanguageVersion langVersion)
+        {
+            string source = @"
+ref scoped int c;
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // ref scoped int c;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(2, 5)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                    }
+                }
                 N(SyntaxKind.GlobalStatement);
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
                     {
                         N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.RefType);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.ScopedKeyword);
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.IntKeyword);
-                                }
+                                N(SyntaxKind.IntKeyword);
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
@@ -1430,8 +1541,6 @@ ref scoped int c;
         {
             string source =
 @"scoped ref readonly S a;
-ref readonly scoped S b;
-scoped ref readonly scoped S c;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
@@ -1461,6 +1570,31 @@ scoped ref readonly scoped S c;
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Local_04_RefScoped(LanguageVersion langVersion)
+        {
+            string source = @"
+ref readonly scoped S b;
+scoped ref readonly scoped S c;
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,23): error CS1003: Syntax error, ',' expected
+                // ref readonly scoped S b;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",").WithLocation(2, 23),
+                // (3,30): error CS1003: Syntax error, ',' expected
+                // scoped ref readonly scoped S c;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(3, 30)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
                 N(SyntaxKind.GlobalStatement);
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
@@ -1471,15 +1605,14 @@ scoped ref readonly scoped S c;
                             {
                                 N(SyntaxKind.RefKeyword);
                                 N(SyntaxKind.ReadOnlyKeyword);
-                                N(SyntaxKind.ScopedKeyword);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "S");
+                                    N(SyntaxKind.IdentifierToken, "scoped");
                                 }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "b");
+                                N(SyntaxKind.IdentifierToken, "S");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -1496,15 +1629,14 @@ scoped ref readonly scoped S c;
                             {
                                 N(SyntaxKind.RefKeyword);
                                 N(SyntaxKind.ReadOnlyKeyword);
-                                N(SyntaxKind.ScopedKeyword);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "S");
+                                    N(SyntaxKind.IdentifierToken, "scoped");
                                 }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "c");
+                                N(SyntaxKind.IdentifierToken, "S");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -1688,8 +1820,6 @@ ref readonly scoped.nested c;
 @"scoped scoped a;
 scoped ref scoped b;
 scoped ref readonly scoped c;
-ref scoped scoped d;
-ref readonly scoped scoped e;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
@@ -1761,6 +1891,31 @@ ref readonly scoped scoped e;
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Local_07_RefScoped(LanguageVersion langVersion)
+        {
+            string source = @"
+ref scoped scoped d;
+ref readonly scoped scoped e;
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,19): error CS1003: Syntax error, ',' expected
+                // ref scoped scoped d;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "d").WithArguments(",").WithLocation(2, 19),
+                // (3,28): error CS1003: Syntax error, ',' expected
+                // ref readonly scoped scoped e;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "e").WithArguments(",").WithLocation(3, 28)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
                 N(SyntaxKind.GlobalStatement);
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
@@ -1770,7 +1925,6 @@ ref readonly scoped scoped e;
                             N(SyntaxKind.RefType);
                             {
                                 N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.ScopedKeyword);
                                 N(SyntaxKind.IdentifierName);
                                 {
                                     N(SyntaxKind.IdentifierToken, "scoped");
@@ -1778,7 +1932,7 @@ ref readonly scoped scoped e;
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "d");
+                                N(SyntaxKind.IdentifierToken, "scoped");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -1794,7 +1948,6 @@ ref readonly scoped scoped e;
                             {
                                 N(SyntaxKind.RefKeyword);
                                 N(SyntaxKind.ReadOnlyKeyword);
-                                N(SyntaxKind.ScopedKeyword);
                                 N(SyntaxKind.IdentifierName);
                                 {
                                     N(SyntaxKind.IdentifierToken, "scoped");
@@ -1802,7 +1955,7 @@ ref readonly scoped scoped e;
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "e");
+                                N(SyntaxKind.IdentifierToken, "scoped");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -1821,7 +1974,6 @@ ref readonly scoped scoped e;
             string source =
 @"scoped var a;
 scoped ref var b;
-ref scoped var c;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
@@ -1869,6 +2021,27 @@ ref scoped var c;
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Local_08_RefScoped(LanguageVersion langVersion)
+        {
+            string source = @"
+ref scoped var c;
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,16): error CS1003: Syntax error, ',' expected
+                // ref scoped var c;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(2, 16)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
                 N(SyntaxKind.GlobalStatement);
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
@@ -1878,15 +2051,14 @@ ref scoped var c;
                             N(SyntaxKind.RefType);
                             {
                                 N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.ScopedKeyword);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "var");
+                                    N(SyntaxKind.IdentifierToken, "scoped");
                                 }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "c");
+                                N(SyntaxKind.IdentifierToken, "var");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -1904,8 +2076,6 @@ ref scoped var c;
         {
             string source =
 @"scoped ref readonly var a;
-ref readonly scoped var b;
-scoped ref readonly scoped var c;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
@@ -1935,6 +2105,31 @@ scoped ref readonly scoped var c;
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Local_09_RefReadonlyScoped(LanguageVersion langVersion)
+        {
+            string source = @"
+ref readonly scoped var b;
+scoped ref readonly scoped var c;
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,25): error CS1003: Syntax error, ',' expected
+                // ref readonly scoped var b;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",").WithLocation(2, 25),
+                // (3,32): error CS1003: Syntax error, ',' expected
+                // scoped ref readonly scoped var c;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(3, 32)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
                 N(SyntaxKind.GlobalStatement);
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
@@ -1945,15 +2140,14 @@ scoped ref readonly scoped var c;
                             {
                                 N(SyntaxKind.RefKeyword);
                                 N(SyntaxKind.ReadOnlyKeyword);
-                                N(SyntaxKind.ScopedKeyword);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "var");
+                                    N(SyntaxKind.IdentifierToken, "scoped");
                                 }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "b");
+                                N(SyntaxKind.IdentifierToken, "var");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -1970,15 +2164,14 @@ scoped ref readonly scoped var c;
                             {
                                 N(SyntaxKind.RefKeyword);
                                 N(SyntaxKind.ReadOnlyKeyword);
-                                N(SyntaxKind.ScopedKeyword);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "var");
+                                    N(SyntaxKind.IdentifierToken, "scoped");
                                 }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "c");
+                                N(SyntaxKind.IdentifierToken, "var");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -2478,7 +2671,26 @@ readonly scoped record struct C();
             string source =
 @"delegate ref scoped int B();
 ";
-            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (1,21): error CS1001: Identifier expected
+                // delegate ref scoped int B();
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(1, 21),
+                // (1,21): error CS1003: Syntax error, '(' expected
+                // delegate ref scoped int B();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(").WithLocation(1, 21),
+                // (1,26): error CS1003: Syntax error, ',' expected
+                // delegate ref scoped int B();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",").WithLocation(1, 26),
+                // (1,27): error CS8124: Tuple must contain at least two elements.
+                // delegate ref scoped int B();
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 27),
+                // (1,28): error CS1001: Identifier expected
+                // delegate ref scoped int B();
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 28),
+                // (1,28): error CS1026: ) expected
+                // delegate ref scoped int B();
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 28)
+                );
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2488,17 +2700,49 @@ readonly scoped record struct C();
                     N(SyntaxKind.RefType);
                     {
                         N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ScopedKeyword);
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IntKeyword);
+                            N(SyntaxKind.IdentifierToken, "scoped");
                         }
                     }
-                    N(SyntaxKind.IdentifierToken, "B");
+                    M(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "B");
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
@@ -2812,7 +3056,6 @@ using ref scoped r;
         {
             string source =
 @"using scoped R r1;
-using ref scoped R r2;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
@@ -2838,6 +3081,27 @@ using ref scoped R r2;
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Using_02_RefScoped(LanguageVersion langVersion)
+        {
+            string source = @"
+using ref scoped R r2;
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,20): error CS1002: ; expected
+                // using ref scoped R r2;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "r2").WithLocation(2, 20)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
                 N(SyntaxKind.GlobalStatement);
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
@@ -2848,16 +3112,26 @@ using ref scoped R r2;
                             N(SyntaxKind.RefType);
                             {
                                 N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.ScopedKeyword);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "R");
+                                    N(SyntaxKind.IdentifierToken, "scoped");
                                 }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "r2");
+                                N(SyntaxKind.IdentifierToken, "R");
                             }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "r2");
                         }
                         N(SyntaxKind.SemicolonToken);
                     }
@@ -2936,7 +3210,6 @@ await using ref scoped r;
         {
             string source =
 @"await using scoped R r1;
-await using ref scoped R r2;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
@@ -2963,6 +3236,27 @@ await using ref scoped R r2;
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Using_04_RefScoped(LanguageVersion langVersion)
+        {
+            string source = @"
+await using ref scoped R r2;
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,26): error CS1002: ; expected
+                // await using ref scoped R r2;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "r2").WithLocation(2, 26)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
                 N(SyntaxKind.GlobalStatement);
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
@@ -2974,16 +3268,26 @@ await using ref scoped R r2;
                             N(SyntaxKind.RefType);
                             {
                                 N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.ScopedKeyword);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "R");
+                                    N(SyntaxKind.IdentifierToken, "scoped");
                                 }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "r2");
+                                N(SyntaxKind.IdentifierToken, "R");
                             }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "r2");
                         }
                         N(SyntaxKind.SemicolonToken);
                     }

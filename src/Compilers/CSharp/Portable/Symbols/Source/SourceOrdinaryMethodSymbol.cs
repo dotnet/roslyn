@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics: diagnostics);
 
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
-            var returnTypeSyntax = syntax.ReturnType.SkipRef(out RefKind refKind, allowScoped: false, diagnostics);
+            var returnTypeSyntax = syntax.ReturnType.SkipRef(out RefKind refKind);
             TypeWithAnnotations returnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
 
             // span-like types are returnable in general

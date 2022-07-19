@@ -7304,25 +7304,8 @@ done:
                     readonlyKeyword = this.CheckFeatureAvailability(readonlyKeyword, MessageID.IDS_FeatureReadOnlyReferences);
                 }
 
-                SyntaxToken scopedKeyword = null;
-                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword && mode == ParseTypeMode.Normal)
-                {
-                    var resetPoint = this.GetResetPoint();
-
-                    this.EatToken();
-                    bool shouldTreatAsModifier = ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
-
-                    this.Reset(ref resetPoint);
-                    this.Release(ref resetPoint);
-
-                    if (shouldTreatAsModifier)
-                    {
-                        scopedKeyword = this.EatContextualToken(SyntaxKind.ScopedKeyword);
-                    }
-                }
-
                 var type = ParseTypeCore(ParseTypeMode.AfterRef);
-                return _syntaxFactory.RefType(refKeyword, readonlyKeyword, scopedKeyword, type);
+                return _syntaxFactory.RefType(refKeyword, readonlyKeyword, type);
             }
 
             return ParseTypeCore(mode);

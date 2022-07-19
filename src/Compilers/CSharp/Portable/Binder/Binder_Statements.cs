@@ -704,12 +704,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (node.Declaration.Type is RefTypeSyntax { ScopedKeyword: var scopedKeyword } &&
-                scopedKeyword.Kind() == SyntaxKind.ScopedKeyword)
-            {
-                ModifierUtils.CheckScopedModifierAvailability(typeSyntax, scopedKeyword, diagnostics);
-            }
-
             bool isVar;
             AliasSymbol alias;
             TypeWithAnnotations declType = BindVariableTypeWithAnnotations(node.Declaration, diagnostics, typeSyntax, ref isConst, isVar: out isVar, alias: out alias);

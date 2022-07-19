@@ -405,7 +405,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var seenParams = false;
             var seenIn = false;
             bool scopedBeforeRef = false;
-            bool scopedAfterRef = false;
 
             foreach (var modifier in parameter.Modifiers)
             {
@@ -541,14 +540,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.ScopedKeyword when !parsingFunctionPointerParams:
                         ModifierUtils.CheckScopedModifierAvailability(parameter, modifier, diagnostics);
                         {
-                            ref bool scopedBeforeOrAfter = ref (seenIn || seenOut || seenRef) ? ref scopedAfterRef : ref scopedBeforeRef;
-                            if (scopedBeforeOrAfter)
+                            if (seenIn)
                             {
-                                addERR_DupParamMod(diagnostics, modifier);
+                                addERR_BadParameterModifiersOrder(diagnostics, modifier, SyntaxKind.InKeyword);
+                            }
+                            else if (seenOut)
+                            {
+                                addERR_BadParameterModifiersOrder(diagnostics, modifier, SyntaxKind.OutKeyword);
+                            }
+                            else if (seenRef)
+                            {
+                                addERR_BadParameterModifiersOrder(diagnostics, modifier, SyntaxKind.RefKeyword);
                             }
                             else
                             {
-                                scopedBeforeOrAfter = true;
+                                if (scopedBeforeRef)
+                                {
+                                    addERR_DupParamMod(diagnostics, modifier);
+                                }
+                                else
+                                {
+                                    scopedBeforeRef = true;
+                                }
                             }
                         }
                         break;
@@ -567,6 +580,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static void addERR_DupParamMod(BindingDiagnosticBag diagnostics, SyntaxToken modifier)
             {
                 diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(modifier.Kind()));
+            }
+
+            static void addERR_BadParameterModifiersOrder(BindingDiagnosticBag diagnostics, SyntaxToken modifier, SyntaxKind otherModifierKind)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadParameterModifiersOrder, modifier.GetLocation(), SyntaxFacts.GetText(modifier.Kind()), SyntaxFacts.GetText(otherModifierKind));
             }
 
             static void addERR_BadParameterModifiers(BindingDiagnosticBag diagnostics, SyntaxToken modifier, SyntaxKind otherModifierKind)
@@ -851,7 +869,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var refKind = RefKind.None;
             bool scopedBeforeRef = false;
-            bool scopedAfterRef = false;
 
             refnessKeyword = default(SyntaxToken);
             paramsKeyword = default(SyntaxToken);
@@ -893,19 +910,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             scopedBeforeRef = true;
                         }
-                        else
-                        {
-                            scopedAfterRef = true;
-                        }
                         break;
                 }
             }
 
-            if (scopedAfterRef)
-            {
-                scope = DeclarationScope.ValueScoped;
-            }
-            else if (scopedBeforeRef)
+            if (scopedBeforeRef)
             {
                 scope = (refKind == RefKind.None) ? DeclarationScope.ValueScoped : DeclarationScope.RefScoped;
             }
