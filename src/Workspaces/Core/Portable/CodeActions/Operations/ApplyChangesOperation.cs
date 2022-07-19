@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -115,38 +116,20 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 }
 
                 // We have to at least have some changed document
-                if (!changedProject.GetChangedDocuments().Any() &&
-                    !changedProject.GetChangedAdditionalDocuments().Any() &&
-                    !changedProject.GetChangedAnalyzerConfigDocuments().Any())
+                var changedDocuments = changedProject.GetChangedDocuments()
+                    .Concat(changedProject.GetChangedAdditionalDocuments())
+                    .Concat(changedProject.GetChangedAnalyzerConfigDocuments()).ToImmutableArray();
+
+                if (changedDocuments.Length == 0)
                 {
                     Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_NoChangedDocument, logLevel: LogLevel.Information);
                     return false;
                 }
 
-                if (!TryForkTextChanges(changedProject, changedProject.GetChangedDocuments(), static (s, i) => s.GetDocument(i), static (s, i, t) => s.WithDocumentText(i, t)) ||
-                    !TryForkTextChanges(changedProject, changedProject.GetChangedAdditionalDocuments(), static (s, i) => s.GetAdditionalDocument(i), static (s, i, t) => s.WithAdditionalDocumentText(i, t)) ||
-                    !TryForkTextChanges(changedProject, changedProject.GetChangedAnalyzerConfigDocuments(), static (s, i) => s.GetAnalyzerConfigDocument(i), static (s, i, t) => s.WithAnalyzerConfigDocumentText(i, t)))
-                {
-                    return false;
-                }
-            }
-
-            Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationSucceeded, logLevel: LogLevel.Information);
-            return workspace.TryApplyChanges(forkedSolution, progressTracker);
-
-            bool TryForkTextChanges(
-                ProjectChanges changedProject,
-                IEnumerable<DocumentId> changedDocuments,
-                Func<Solution, DocumentId, TextDocument?> getDocument,
-                Func<Solution, DocumentId, SourceText, Solution> withDocumentText)
-            {
                 foreach (var documentId in changedDocuments)
                 {
-                    var originalDocument = getDocument(changedProject.OldProject.Solution, documentId);
-                    var changedDocument = getDocument(changedProject.NewProject.Solution, documentId);
-
-                    Contract.ThrowIfNull(originalDocument);
-                    Contract.ThrowIfNull(changedDocument);
+                    var originalDocument = changedProject.OldProject.Solution.GetRequiredTextDocument(documentId);
+                    var changedDocument = changedProject.NewProject.Solution.GetRequiredTextDocument(documentId);
 
                     // it has to be a text change the operation wants to make.  If the operation is making some other
                     // sort of change, we can't merge this operation in.
@@ -157,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                     }
 
                     // If the document has gone away, we definitely cannot apply a text change to it.
-                    var currentDocument = getDocument(currentSolution, documentId);
+                    var currentDocument = currentSolution.GetDocument(documentId);
                     if (currentDocument is null)
                     {
                         Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_DocumentRemoved, logLevel: LogLevel.Information);
@@ -173,11 +156,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
                         return false;
                     }
 
-                    forkedSolution = withDocumentText(forkedSolution, documentId, changedDocument.GetTextSynchronously(cancellationToken));
+                    forkedSolution = forkedSolution.WithTextDocumentText(documentId, changedDocument.GetTextSynchronously(cancellationToken));
                 }
-
-                return true;
             }
+
+            Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationSucceeded, logLevel: LogLevel.Information);
+            return workspace.TryApplyChanges(forkedSolution, progressTracker);
         }
     }
 }
