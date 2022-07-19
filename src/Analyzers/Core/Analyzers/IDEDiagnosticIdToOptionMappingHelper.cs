@@ -69,7 +69,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Verify that the option is either being added for the first time, or the existing option is already the same.
             // Latter can happen in tests as we re-instantiate the analyzer for every test, which attempts to add the mapping every time.
             Debug.Assert(!map.TryGetValue(diagnosticId, out var existingOptions) || options.SetEquals(existingOptions));
-
+            foreach (var option in options)
+            {
+                if (option is IPerLanguageValuedOption)
+                {
+                    Debug.Assert(option.StorageLocations.OfType<RoamingProfileStorageLocation>().Single().GetKeyNameForLanguage(null).Contains("%LANGUAGE%"));
+                }
+                else if (option is ISingleValuedOption singleValuedOption)
+                {
+                    Debug.Assert(option.StorageLocations.OfType<IEditorConfigStorageLocation2>().Single() is { } editorConfigLocation &&
+                        (
+                        (singleValuedOption.LanguageName is null && (editorConfigLocation.KeyName.StartsWith("dotnet_") || editorConfigLocation.KeyName == "file_header_template")) ||
+                        (singleValuedOption.LanguageName == LanguageNames.CSharp && editorConfigLocation.KeyName.StartsWith("csharp_")) ||
+                        (singleValuedOption.LanguageName == LanguageNames.VisualBasic && editorConfigLocation.KeyName.StartsWith("visual_basic_"))
+                        )
+                    );
+                }
+                else
+                {
+                    Debug.Fail("Unexpected option type.");
+                }
+            }
             map.TryAdd(diagnosticId, options);
         }
 
