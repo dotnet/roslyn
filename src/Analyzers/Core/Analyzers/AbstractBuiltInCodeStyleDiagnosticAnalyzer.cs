@@ -15,6 +15,8 @@ using Roslyn.Utilities;
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #endif
 
+#pragma warning disable IDE0060 // Remove unused parameter - TODO: Will follow-up and remove language parameters.
+
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer
