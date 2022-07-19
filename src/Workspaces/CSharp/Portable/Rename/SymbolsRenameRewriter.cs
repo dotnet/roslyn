@@ -26,7 +26,7 @@ using static Microsoft.CodeAnalysis.Rename.RenameUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Rename
 {
-    internal class SymbolsRenameRewriter : CSharpSyntaxRewriter
+    internal sealed class SymbolsRenameRewriter : CSharpSyntaxRewriter
     {
         private readonly DocumentId _documentId;
         private readonly Solution _solution;
@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         private readonly Dictionary<SymbolKey, RenameSymbolContext> _renameContexts;
         private readonly Dictionary<TextSpan, HashSet<TextSpanRenameContext>> _stringAndCommentRenameContexts;
 
-        public SymbolsRenameRewriter(
-            RenameRewriterParameters parameters) : base(visitIntoStructuredTrivia: true)
+        public SymbolsRenameRewriter(RenameRewriterParameters parameters) : base(visitIntoStructuredTrivia: true)
         {
             var document = parameters.Document;
             _documentId = document.Id;
@@ -165,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             return newNode;
         }
 
-        protected bool ShouldComplexifyNode(SyntaxNode node, bool isInConflictLambdaBody)
+        private bool ShouldComplexifyNode(SyntaxNode node, bool isInConflictLambdaBody)
         {
             return !isInConflictLambdaBody &&
                    _skipRenameForComplexification == 0 &&
@@ -183,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     node is BaseTypeSyntax);
         }
 
-        protected void AddModifiedSpan(TextSpan oldSpan, TextSpan newSpan)
+        private void AddModifiedSpan(TextSpan oldSpan, TextSpan newSpan)
         {
             newSpan = new TextSpan(oldSpan.Start, newSpan.Length);
 
@@ -198,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             }
         }
 
-        protected async Task<SyntaxToken> RenameAndAnnotateAsync(
+        private async Task<SyntaxToken> RenameAndAnnotateAsync(
             SyntaxToken token,
             SyntaxToken newToken,
             bool isRenameLocation,
@@ -577,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             }
             else if (newToken.IsKind(SyntaxKind.IdentifierToken) && newToken.Parent.IsKind(SyntaxKind.XmlName))
             {
-                var matchingContext = textSpanSymbolContexts.OrderByDescending(c => c.Priority).FirstOrDefault(c => c.SymbolContext.OriginalText == newToken.ValueText);
+                var matchingContext = textSpanSymbolContexts.FirstOrDefault(c => c.SymbolContext.OriginalText == newToken.ValueText);
                 if (matchingContext != null)
                 {
                     var newIdentifierToken = SyntaxFactory.Identifier(newToken.LeadingTrivia, matchingContext.SymbolContext.ReplacementText, newToken.TrailingTrivia);
@@ -589,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             return newToken;
         }
 
-        protected static SyntaxToken RenameToken(
+        private static SyntaxToken RenameToken(
             SyntaxToken oldToken,
             SyntaxToken newToken,
             string? prefix,
@@ -754,36 +753,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             return null;
         }
 
-        protected static bool IsPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
+        private static bool IsPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
             => IsGetPropertyAccessorNameConflict(token, replacementText)
             || IsSetPropertyAccessorNameConflict(token, replacementText)
             || IsInitPropertyAccessorNameConflict(token, replacementText);
 
-        protected static bool IsGetPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
+        private static bool IsGetPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
             => token.IsKind(SyntaxKind.GetKeyword)
             && IsNameConflictWithProperty("get", token.Parent as AccessorDeclarationSyntax, replacementText);
 
-        protected static bool IsSetPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
+        private static bool IsSetPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
             => token.IsKind(SyntaxKind.SetKeyword)
             && IsNameConflictWithProperty("set", token.Parent as AccessorDeclarationSyntax, replacementText);
 
-        protected static bool IsInitPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
+        private static bool IsInitPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
             => token.IsKind(SyntaxKind.InitKeyword)
             // using "set" here is intentional. The compiler generates set_PropName for both set and init accessors.
             && IsNameConflictWithProperty("set", token.Parent as AccessorDeclarationSyntax, replacementText);
 
-        protected static bool IsNameConflictWithProperty(string prefix, AccessorDeclarationSyntax? accessor, string replacementText)
+        private static bool IsNameConflictWithProperty(string prefix, AccessorDeclarationSyntax? accessor, string replacementText)
             => accessor?.Parent?.Parent is PropertyDeclarationSyntax property   // 3 null checks in one: accessor -> accessor list -> property declaration
             && replacementText.Equals(prefix + "_" + property.Identifier.Text, StringComparison.Ordinal);
 
-        protected static bool IsPossiblyDestructorConflict(SyntaxToken token, string replacementText)
+        private static bool IsPossiblyDestructorConflict(SyntaxToken token, string replacementText)
         {
             return replacementText == "Finalize" &&
                 token.IsKind(SyntaxKind.IdentifierToken) &&
                 token.Parent.IsKind(SyntaxKind.DestructorDeclaration);
         }
 
-        protected SyntaxTrivia RenameInCommentTrivia(
+        private SyntaxTrivia RenameInCommentTrivia(
             SyntaxTrivia trivia,
             ImmutableSortedDictionary<TextSpan, (string replacementText, string matchText)> subSpanToReplacementString)
         {

@@ -283,5 +283,24 @@ namespace Microsoft.CodeAnalysis.Rename
 
             return subSpanToReplacementTextBuilder.ToImmutable();
         }
+
+        /// We try to rewrite all locations that are invalid candidate locations. If there is only
+        /// one location it must be the correct one (the symbol is ambiguous to something else)
+        /// and we always try to rewrite it.  If there are multiple locations, we only allow it
+        /// if the candidate reason allows for it).
+        internal static bool ShouldIncludeLocation(ISet<RenameLocation> renameLocations, RenameLocation location)
+        {
+            if (location.IsRenameInStringOrComment)
+            {
+                return false;
+            }
+
+            if (renameLocations.Count == 1)
+            {
+                return true;
+            }
+
+            return RenameLocation.ShouldRename(location);
+        }
     }
 }

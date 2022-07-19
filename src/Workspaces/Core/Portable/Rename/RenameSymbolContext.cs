@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.Rename
     /// RenameSymbolContext contains all the immutable context information to rename the <paramref name="RenamedSymbol"/>.
     /// </summary>
     internal record RenameSymbolContext(
-        int Priority,
         RenameAnnotation RenamableSymbolDeclarationAnnotation,
         Location? RenamableDeclarationLocation,
         string ReplacementText,

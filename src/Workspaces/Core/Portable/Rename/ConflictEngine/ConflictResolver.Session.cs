@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -769,7 +770,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     var symbolContext = new RenameSymbolContext
                     (
-                        Priority: 0,
                         RenamableSymbolDeclarationAnnotation: _renamedSymbolDeclarationAnnotation,
                         RenamableDeclarationLocation: _renameSymbolDeclarationLocation,
                         ReplacementText: _replacementText,
@@ -790,14 +790,21 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var semanticModel = await document.GetRequiredSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                         var originalSyntaxRoot = await semanticModel.SyntaxTree.GetRootAsync(_cancellationToken).ConfigureAwait(false);
 
+                        using var _ = ArrayBuilder<RenameLocation>.GetInstance(out var locationsInDocument);
+                        foreach (var location in renameLocations)
+                        {
+                            if (location.DocumentId == documentId)
+                                locationsInDocument.Add(location);
+                        }
+
                         // Get all rename locations for the current document.
-                        var textSpanRenameContexts = renameLocations
-                            .Where(location => location.DocumentId == documentId && ShouldIncludeLocation(renameLocations, location))
+                        var textSpanRenameContexts = locationsInDocument
+                            .Where(location => ShouldIncludeLocation(renameLocations, location))
                             .SelectAsArray(location => new TextSpanRenameContext(location, symbolContext));
 
                         // All textspan in the document documentId, that requires rename in String or Comment
-                        var stringAndCommentTextSpanContexts = renameLocations
-                            .Where(l => l.DocumentId == documentId && l.IsRenameInStringOrComment)
+                        var stringAndCommentTextSpanContexts = locationsInDocument
+                            .Where(l => l.IsRenameInStringOrComment)
                             .SelectAsArray(location => new TextSpanRenameContext(location, symbolContext));
 
                         var conflictLocationSpans = _conflictLocations
@@ -847,7 +854,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             /// one location it must be the correct one (the symbol is ambiguous to something else)
             /// and we always try to rewrite it.  If there are multiple locations, we only allow it
             /// if the candidate reason allows for it).
-            private static bool ShouldIncludeLocation(ISet<RenameLocation> renameLocations, RenameLocation location)
+            internal static bool ShouldIncludeLocation(ISet<RenameLocation> renameLocations, RenameLocation location)
             {
                 if (location.IsRenameInStringOrComment)
                 {
