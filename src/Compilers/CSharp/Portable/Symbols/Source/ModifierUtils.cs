@@ -12,18 +12,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal static class ModifierUtils
     {
         internal static DeclarationModifiers MakeAndCheckNontypeMemberModifiers(
-            bool isForTypeDeclaration,
+            bool isOrdinaryMethod,
             bool isForInterfaceMember,
             SyntaxTokenList modifiers,
             DeclarationModifiers defaultAccess,
             DeclarationModifiers allowedModifiers,
             Location errorLocation,
             BindingDiagnosticBag diagnostics,
-            out bool modifierErrors,
-            bool isOrdinaryMethod = false)
+            out bool modifierErrors)
         {
             var result = modifiers.ToDeclarationModifiers(diagnostics.DiagnosticBag ?? new DiagnosticBag(), isOrdinaryMethod: isOrdinaryMethod);
-            result = CheckModifiers(isForTypeDeclaration, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
+            result = CheckModifiers(isForTypeDeclaration: false, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
             {
