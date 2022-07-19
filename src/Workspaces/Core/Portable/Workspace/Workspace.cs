@@ -1941,9 +1941,9 @@ namespace Microsoft.CodeAnalysis
             this.OnAnalyzerConfigDocumentTextLoaderChanged(id, TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())));
         }
 
-        #endregion
+#endregion
 
-        #region Checks and Asserts
+#region Checks and Asserts
         /// <summary>
         /// Throws an exception is the solution is not empty.
         /// </summary>
@@ -2197,6 +2197,6 @@ namespace Microsoft.CodeAnalysis
         protected virtual string GetAnalyzerConfigDocumentName(DocumentId documentId)
             => GetDocumentName(documentId);
 
-        #endregion
+#endregion
     }
 }
