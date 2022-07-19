@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private readonly ReferenceCountedDisposable<State> _state;
 
-            public event EventHandler<EventArgs>? SuggestedActionsChanged;
+            public event EventHandler<EventArgs>? SuggestedActionsChanged { add { } remove { } }
 
             public readonly IGlobalOptionService GlobalOptions;
 
@@ -447,11 +447,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         }
 
                         if (!result.UpToDate)
-                        {
-                            // reset solution version number so that we can raise suggested action changed event
-                            Volatile.Write(ref state.Target.LastSolutionVersionReported, InvalidSolutionVersion);
                             return null;
-                        }
                     }
 
                     return null;
@@ -524,16 +520,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (state is null)
                     return;
 
-                // REVIEW: this event should give both old and new workspace as argument so that
-                // one doesn't need to hold onto workspace in field.
-
-                // remove existing event registration
-                if (state.Target.Workspace != null)
-                {
-                    state.Target.Workspace.Services.GetRequiredService<IWorkspaceStatusService>().StatusChanged -= OnWorkspaceStatusChanged;
-                    state.Target.Workspace.DocumentActiveContextChanged -= OnActiveContextChanged;
-                }
-
                 // REVIEW: why one need to get new workspace from registration? why not just pass in the new workspace?
                 // add new event registration
                 RegisterEventsToWorkspace(state, state.Target.Registration.Workspace);
@@ -544,79 +530,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 state.Target.Workspace = workspace;
 
                 if (state.Target.Workspace == null)
-                {
                     return;
-                }
 
-                state.Target.Workspace.DocumentActiveContextChanged += OnActiveContextChanged;
-                state.Target.Workspace.Services.GetRequiredService<IWorkspaceStatusService>().StatusChanged += OnWorkspaceStatusChanged;
                 state.Target.Workspace.WorkspaceChanged += OnWorkspaceChanged;
-            }
-
-            private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
-            {
-                switch (e.Kind)
-                {
-                    // Only care about document changes here, the call to OnSuggestedActionsChange
-                    // will filter and make sure the event only gets sent if its relevant to this buffer.
-                    case WorkspaceChangeKind.DocumentAdded:
-                    case WorkspaceChangeKind.DocumentRemoved:
-                    case WorkspaceChangeKind.DocumentReloaded:
-                    case WorkspaceChangeKind.DocumentChanged:
-                        OnSuggestedActionsChanged(e.NewSolution.Workspace, e.DocumentId, e.NewSolution.WorkspaceVersion);
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            private void OnActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
-            {
-                // REVIEW: it would be nice for changed event to pass in both old and new document.
-                OnSuggestedActionsChanged(e.Solution.Workspace, e.NewActiveContextDocumentId, e.Solution.WorkspaceVersion);
-            }
-
-            private void OnWorkspaceStatusChanged(object sender, EventArgs args)
-            {
-                using var state = _state.TryAddReference();
-                if (state is null)
-                    return;
-
-                var document = state.Target.SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-                if (document == null)
-                {
-                    // document is already closed
-                    return;
-                }
-
-                // ask editor to refresh light-bulb when workspace solution status is changed
-                this.SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
-            }
-
-            private void OnSuggestedActionsChanged(Workspace currentWorkspace, DocumentId? currentDocumentId, int solutionVersion)
-            {
-                using var state = _state.TryAddReference();
-                if (state is null)
-                    return;
-
-                var buffer = state.Target.SubjectBuffer;
-                var workspace = buffer.GetWorkspace();
-
-                // workspace is not ready, nothing to do.
-                if (workspace == null || workspace != currentWorkspace)
-                {
-                    return;
-                }
-
-                if (currentDocumentId != workspace.GetDocumentIdInCurrentContext(buffer.AsTextContainer()) ||
-                    solutionVersion == Volatile.Read(ref state.Target.LastSolutionVersionReported))
-                {
-                    return;
-                }
-
-                this.SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
-
-                Volatile.Write(ref state.Target.LastSolutionVersionReported, solutionVersion);
             }
 
             public async Task<ISuggestedActionCategorySet?> GetSuggestedActionCategoriesAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
