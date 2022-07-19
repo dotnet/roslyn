@@ -7880,7 +7880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var delegateType = targetType.GetDelegateType();
                         VisitLambda(lambda, delegateType, stateForLambda);
-                        if (reportRemainingWarnings)
+                        if (reportRemainingWarnings && delegateType is not null)
                         {
                             ReportNullabilityMismatchWithTargetDelegate(diagnosticLocationOpt, delegateType, lambda);
                         }

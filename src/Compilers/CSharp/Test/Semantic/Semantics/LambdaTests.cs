@@ -6782,5 +6782,41 @@ class Program
             Assert.Equal(RefKind.In, lambdas[1].Parameters[0].RefKind);
             Assert.Equal(RefKind.Out, lambdas[2].Parameters[0].RefKind);
         }
+
+        [Fact]
+        public void InvalidCast()
+        {
+            var source = """
+                using System;
+                #nullable enable
+                internal class Program
+                {
+                    void Main(string[] args)
+                    {
+                        Choice(args.Length > 0
+                            ? (Action)(() => DS1()
+                            : () => DS2(args[0]));
+                    }
+
+                    void DS1()
+                    { }
+
+                    void DS2(string a)
+                    { }
+
+                    void Choice(Action a)
+                    {
+                        a();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var action = syntaxTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().First(id => id.Identifier.ValueText == "Action");
+            var model = comp.GetSemanticModel(syntaxTree);
+            AssertEx.Equal("System.Action", model.GetTypeInfo(action).Type.ToTestDisplayString());
+        }
     }
 }
