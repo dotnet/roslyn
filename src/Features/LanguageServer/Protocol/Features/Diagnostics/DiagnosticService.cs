@@ -32,8 +32,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly object _gate = new();
         private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map = new();
 
-        private readonly EventListenerTracker<IDiagnosticService> _eventListenerTracker;
-
         public IGlobalOptionService GlobalOptions { get; }
 
         private ImmutableHashSet<IDiagnosticUpdateSource> _updateSources;
@@ -48,14 +46,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             GlobalOptions = globalOptions;
 
             // we use registry service rather than doing MEF import since MEF import method can have race issue where
-            // update source gets created before aggregator - diagnostic service - is created and we will lose events fired before
-            // the aggregator is created.
+            // update source gets created before aggregator - diagnostic service - is created and we will lose events
+            // fired before the aggregator is created.
             _updateSources = ImmutableHashSet<IDiagnosticUpdateSource>.Empty;
 
             // queue to serialize events.
             _eventQueue = new TaskQueue(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), TaskScheduler.Default);
-
-            _eventListenerTracker = new EventListenerTracker<IDiagnosticService>(eventListeners, WellKnownEventListeners.DiagnosticService);
         }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated
@@ -73,8 +69,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void RaiseDiagnosticsUpdated(IDiagnosticUpdateSource source, DiagnosticsUpdatedArgs args)
         {
-            _eventListenerTracker.EnsureEventListener(args.Workspace, this);
-
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
 
             _eventQueue.ScheduleTask(DiagnosticsUpdatedEventName, () =>
@@ -420,20 +414,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Id = args.Id;
                 Diagnostics = diagnostics;
             }
-        }
-
-        internal TestAccessor GetTestAccessor()
-            => new(this);
-
-        internal readonly struct TestAccessor
-        {
-            private readonly DiagnosticService _diagnosticService;
-
-            internal TestAccessor(DiagnosticService diagnosticService)
-                => _diagnosticService = diagnosticService;
-
-            internal ref readonly EventListenerTracker<IDiagnosticService> EventListenerTracker
-                => ref _diagnosticService._eventListenerTracker;
         }
     }
 }

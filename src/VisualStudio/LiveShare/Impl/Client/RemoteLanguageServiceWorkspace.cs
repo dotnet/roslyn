@@ -69,8 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// </summary>
         private ImmutableHashSet<string> _registeredExternalPaths;
 
-        private readonly RemoteDiagnosticListTable _remoteDiagnosticListTable;
-
         public bool IsRemoteSession => _session != null;
 
         /// <summary>
@@ -83,14 +81,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IVsFolderWorkspaceService vsFolderWorkspaceService,
             SVsServiceProvider serviceProvider,
-            IDiagnosticService diagnosticService,
+            IGlobalOptionService globalOptions,
             ITableManagerProvider tableManagerProvider,
             IThreadingContext threadingContext)
             : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.CloudEnvironmentClientWorkspace)
         {
             _serviceProvider = serviceProvider;
 
-            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(threadingContext, serviceProvider, this, diagnosticService, tableManagerProvider);
+            GlobalOptions = globalOptions;
 
             var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
@@ -102,8 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             _registeredExternalPaths = ImmutableHashSet<string>.Empty;
         }
 
-        private IGlobalOptionService GlobalOptions
-            => _remoteDiagnosticListTable.GlobalOptions;
+        private IGlobalOptionService GlobalOptions { get; }
 
         void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? windowFrame) => NotifyOnDocumentOpened(moniker, textBuffer);
 
@@ -129,10 +126,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             await UpdatePathsToRemoteFilesAsync(session).ConfigureAwait(false);
 
             _vsFolderWorkspaceService.OnActiveWorkspaceChanged += OnActiveWorkspaceChangedAsync;
-            session.RemoteServicesChanged += (object sender, RemoteServicesChangedEventArgs e) =>
-            {
-                _remoteDiagnosticListTable.UpdateWorkspaceDiagnosticsPresent(_session.RemoteServiceNames.Contains("workspaceDiagnostics"));
-            };
         }
 
         public string? GetRemoteExternalRoot(string filePath)

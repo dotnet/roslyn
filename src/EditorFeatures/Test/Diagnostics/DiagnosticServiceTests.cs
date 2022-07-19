@@ -23,11 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             var diagnosticService = Assert.IsType<DiagnosticService>(workspace.ExportProvider.GetExportedValue<IDiagnosticService>());
 
-            // These tests were originally written under the assumption that the diagnostic service will not be
-            // initialized with listeners. If this check ever fails, the tests that use this method should be reviewed
-            // for impact.
-            Assert.Empty(diagnosticService.GetTestAccessor().EventListenerTracker.GetTestAccessor().EventListeners);
-
             return diagnosticService;
         }
 
