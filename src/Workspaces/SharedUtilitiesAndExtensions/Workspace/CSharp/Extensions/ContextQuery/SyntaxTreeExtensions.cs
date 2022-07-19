@@ -3004,8 +3004,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var possibleBaseListSyntax = targetToken.GetAncestor<BaseListSyntax>();
             var possibleBaseTypeSyntax = targetToken.GetAncestor<BaseTypeSyntax>();
 
-            if (possibleBaseListSyntax is null ||
-                !possibleBaseListSyntax.IsParentKind(SyntaxKind.ClassDeclaration))
+            if (possibleBaseListSyntax?.Parent is not ClassDeclarationSyntax)
             {
                 return false;
             }
@@ -3042,8 +3041,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var possibleBaseListSyntax = targetToken.GetAncestor<BaseListSyntax>();
             var possibleBaseTypeSyntax = targetToken.GetAncestor<BaseTypeSyntax>();
 
-            if (possibleBaseListSyntax is null ||
-                !possibleBaseListSyntax.IsParentKind(SyntaxKind.RecordDeclaration))
+            if (possibleBaseListSyntax?.Parent is not RecordDeclarationSyntax)
             {
                 return false;
             }
