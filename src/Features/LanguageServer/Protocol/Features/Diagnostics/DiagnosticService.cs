@@ -32,8 +32,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly object _gate = new();
         private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map = new();
 
-        private readonly EventListenerTracker<IDiagnosticService> _eventListenerTracker;
-
         public IGlobalOptionService GlobalOptions { get; }
 
         private ImmutableHashSet<IDiagnosticUpdateSource> _updateSources;
@@ -48,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             GlobalOptions = globalOptions;
 
             // we use registry service rather than doing MEF import since MEF import method can have race issue where
-            // update source gets created before aggregator - diagnostic service - is created and we will lose events fired before
-            // the aggregator is created.
+            // update source gets created before aggregator - diagnostic service - is created and we will lose events
+            // fired before the aggregator is created.
             _updateSources = ImmutableHashSet<IDiagnosticUpdateSource>.Empty;
 
             // queue to serialize events.
