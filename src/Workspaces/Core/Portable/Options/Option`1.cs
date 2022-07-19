@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -75,6 +76,12 @@ namespace Microsoft.CodeAnalysis.Options
         bool IOption.IsPerLanguage => false;
 
         OptionDefinition IOption2.OptionDefinition => _optionDefinition;
+
+        /// <summary>
+        /// We access LanguageName for analyzer and EditorConfig UI options.
+        /// These options should use <see cref="SingleValuedOption2{T}"/> instead.
+        /// </summary>
+        string? ISingleValuedOption.LanguageName => throw ExceptionUtilities.Unreachable;
 
         bool IEquatable<IOption2?>.Equals(IOption2? other) => Equals(other);
 

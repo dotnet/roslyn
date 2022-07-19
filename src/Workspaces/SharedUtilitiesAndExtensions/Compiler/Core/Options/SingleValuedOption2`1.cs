@@ -12,6 +12,17 @@ namespace Microsoft.CodeAnalysis.Options
     /// </summary>
     internal interface ISingleValuedOption : IOptionWithGroup
     {
+        /// <summary>
+        /// The language name that supports this option, or null if it's supported by multiple languages.
+        /// </summary>
+        /// <remarks>
+        /// This is an optional metadata used for:
+        /// <list type="bullet">
+        /// <item><description>Analyzer id to option mapping, used (for example) by configure code-style code action</description></item>
+        /// <item><description>EditorConfig UI to determine whether to put this option under <c>[*.cs]</c>, <c>[*.vb]</c>, or <c>[*.{cs,vb}]</c></description></item>
+        /// </list>
+        /// </remarks>
+        public string? LanguageName { get; }
     }
 
     /// <inheritdoc cref="ISingleValuedOption"/>
@@ -72,6 +83,11 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         internal SingleValuedOption2(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation2> storageLocations)
+            : this(feature, group, name, defaultValue, storageLocations, null)
+        {
+        }
+
+        internal SingleValuedOption2(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation2> storageLocations, string? languageName)
         {
             if (string.IsNullOrWhiteSpace(feature))
             {
@@ -85,6 +101,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             OptionDefinition = new OptionDefinition(feature, group, name, defaultValue, typeof(T), isPerLanguage: false);
             this.StorageLocations = storageLocations;
+            LanguageName = languageName;
         }
 
 #if CODE_STYLE
@@ -103,6 +120,8 @@ namespace Microsoft.CodeAnalysis.Options
         OptionGroup IOptionWithGroup.Group => this.Group;
 
         OptionDefinition IOption2.OptionDefinition => OptionDefinition;
+
+        public string? LanguageName { get; }
 
         public override string ToString() => OptionDefinition.ToString();
 

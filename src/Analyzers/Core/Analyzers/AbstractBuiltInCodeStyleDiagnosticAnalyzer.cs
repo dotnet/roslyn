@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             bool configurable = true)
             : this(diagnosticId, enforceOnBuild, title, messageFormat, isUnnecessary, configurable)
         {
-            AddDiagnosticIdToOptionMapping(diagnosticId, option, language);
+            AddDiagnosticIdToOptionMapping(diagnosticId, option);
         }
 
         /// <summary>
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             RoslynDebug.Assert(options != null);
             Debug.Assert(options.Count > 1);
-            AddDiagnosticIdToOptionMapping(diagnosticId, options, language);
+            AddDiagnosticIdToOptionMapping(diagnosticId, options);
         }
 
         /// <summary>
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             : this(supportedDiagnosticsWithOptions.Keys.ToImmutableArray())
         {
             foreach (var (descriptor, option) in supportedDiagnosticsWithOptions)
-                AddDiagnosticIdToOptionMapping(descriptor.Id, option, language);
+                AddDiagnosticIdToOptionMapping(descriptor.Id, option);
         }
 
         /// <summary>
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             : this(supportedDiagnosticsWithLangaugeSpecificOptions.Keys.Concat(supportedDiagnosticsWithPerLanguageOptions.Keys).ToImmutableArray())
         {
             foreach (var (descriptor, option) in supportedDiagnosticsWithLangaugeSpecificOptions)
-                AddDiagnosticIdToOptionMapping(descriptor.Id, option, language);
+                AddDiagnosticIdToOptionMapping(descriptor.Id, option);
 
             foreach (var (descriptor, option) in supportedDiagnosticsWithPerLanguageOptions)
                 AddDiagnosticIdToOptionMapping(descriptor.Id, option);
@@ -191,19 +191,19 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             }
         }
 
-        private static void AddDiagnosticIdToOptionMapping(string diagnosticId, ISingleValuedOption? option, string language)
+        private static void AddDiagnosticIdToOptionMapping(string diagnosticId, ISingleValuedOption? option)
         {
             if (option != null)
             {
-                AddDiagnosticIdToOptionMapping(diagnosticId, ImmutableHashSet.Create(option), language);
+                AddDiagnosticIdToOptionMapping(diagnosticId, ImmutableHashSet.Create(option));
             }
         }
 
         private static void AddDiagnosticIdToOptionMapping(string diagnosticId, ImmutableHashSet<IPerLanguageValuedOption> options)
             => IDEDiagnosticIdToOptionMappingHelper.AddOptionMapping(diagnosticId, options);
 
-        private static void AddDiagnosticIdToOptionMapping(string diagnosticId, ImmutableHashSet<ISingleValuedOption> options, string language)
-            => IDEDiagnosticIdToOptionMappingHelper.AddOptionMapping(diagnosticId, options, language);
+        private static void AddDiagnosticIdToOptionMapping(string diagnosticId, ImmutableHashSet<ISingleValuedOption> options)
+            => IDEDiagnosticIdToOptionMappingHelper.AddOptionMapping(diagnosticId, options);
 
         public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
 
