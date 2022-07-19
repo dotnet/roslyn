@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -56,7 +57,15 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             // if there was no intermediary edit, just apply the change fully.
             if (changedSolution.WorkspaceVersion == currentSolution.WorkspaceVersion)
-                return workspace.TryApplyChanges(changedSolution, progressTracker);
+            {
+                var result = workspace.TryApplyChanges(changedSolution, progressTracker);
+
+                Logger.Log(
+                    result ? FunctionId.ApplyChangesOperation_WorkspaceVersionMatch_ApplicationSucceeded : FunctionId.ApplyChangesOperation_WorkspaceVersionMatch_ApplicationFailed,
+                    logLevel: LogLevel.Information);
+
+                return result;
+            }
 
             // Otherwise, we need to see what changes were actually made and see if we can apply them.  The general rules are:
             //
@@ -77,6 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 solutionChanges.GetRemovedProjects().Any() ||
                 solutionChanges.GetRemovedAnalyzerReferences().Any())
             {
+                Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_IncompatibleSolutionChange, logLevel: LogLevel.Information);
                 return false;
             }
 
@@ -100,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                     changedProject.GetRemovedMetadataReferences().Any() ||
                     changedProject.GetRemovedProjectReferences().Any())
                 {
+                    Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_IncompatibleProjectChange, logLevel: LogLevel.Information);
                     return false;
                 }
 
@@ -108,6 +119,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                     !changedProject.GetChangedAdditionalDocuments().Any() &&
                     !changedProject.GetChangedAnalyzerConfigDocuments().Any())
                 {
+                    Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_NoChangedDocument, logLevel: LogLevel.Information);
                     return false;
                 }
 
@@ -119,6 +131,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 }
             }
 
+            Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationSucceeded, logLevel: LogLevel.Information);
             return workspace.TryApplyChanges(forkedSolution, progressTracker);
 
             bool TryForkTextChanges(
@@ -138,18 +151,27 @@ namespace Microsoft.CodeAnalysis.CodeActions
                     // it has to be a text change the operation wants to make.  If the operation is making some other
                     // sort of change, we can't merge this operation in.
                     if (!changedDocument.HasTextChanged(originalDocument, ignoreUnchangeableDocument: false))
+                    {
+                        Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_NoTextChange, logLevel: LogLevel.Information);
                         return false;
+                    }
 
                     // If the document has gone away, we definitely cannot apply a text change to it.
                     var currentDocument = getDocument(currentSolution, documentId);
                     if (currentDocument is null)
+                    {
+                        Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_DocumentRemoved, logLevel: LogLevel.Information);
                         return false;
+                    }
 
                     // If the file contents changed in the current workspace, then we can't apply this change to it.
                     // Note: we could potentially try to do a 3-way merge in the future, including handling conflicts
                     // with that.  For now though, we'll leave that out of scope.
                     if (originalDocument.HasTextChanged(currentDocument, ignoreUnchangeableDocument: false))
+                    {
+                        Logger.Log(FunctionId.ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_TextChangeConflict, logLevel: LogLevel.Information);
                         return false;
+                    }
 
                     forkedSolution = withDocumentText(forkedSolution, documentId, changedDocument.GetTextSynchronously(cancellationToken));
                 }
