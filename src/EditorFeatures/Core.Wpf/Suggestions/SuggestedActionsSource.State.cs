@@ -24,8 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 public readonly ITextBuffer SubjectBuffer;
                 public readonly WorkspaceRegistration Registration;
 
-                // mutable state
-                public Workspace? Workspace { get; set; }
+                public Workspace? Workspace => Registration.Workspace;
 
                 public State(SuggestedActionsSource source, SuggestedActionsSourceProvider owner, ITextView textView, ITextBuffer textBuffer)
                 {
@@ -39,12 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 void IDisposable.Dispose()
                 {
-                    if (Workspace != null)
-                        Workspace.WorkspaceChanged -= _source.OnWorkspaceChanged;
-
-                    if (Registration != null)
-                        Registration.WorkspaceChanged -= _source.OnWorkspaceChanged;
-
                     if (TextView != null)
                         TextView.Closed -= _source.OnTextViewClosed;
                 }

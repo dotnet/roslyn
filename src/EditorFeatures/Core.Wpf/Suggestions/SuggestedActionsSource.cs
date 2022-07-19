@@ -59,10 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 _state = new ReferenceCountedDisposable<State>(new State(this, owner, textView, textBuffer));
 
                 _state.Target.TextView.Closed += OnTextViewClosed;
-
-                RegisterEventsToWorkspace(_state, _state.Target.Registration.Workspace);
-
-                _state.Target.Registration.WorkspaceChanged += OnWorkspaceChanged;
             }
 
             public void Dispose()
@@ -515,27 +511,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private void OnTextViewClosed(object sender, EventArgs e)
                 => Dispose();
-
-            private void OnWorkspaceChanged(object sender, EventArgs e)
-            {
-                using var state = _state.TryAddReference();
-                if (state is null)
-                    return;
-
-                // REVIEW: why one need to get new workspace from registration? why not just pass in the new workspace?
-                // add new event registration
-                RegisterEventsToWorkspace(state, state.Target.Registration.Workspace);
-            }
-
-            private void RegisterEventsToWorkspace(ReferenceCountedDisposable<State> state, Workspace? workspace)
-            {
-                state.Target.Workspace = workspace;
-
-                if (state.Target.Workspace == null)
-                    return;
-
-                state.Target.Workspace.WorkspaceChanged += OnWorkspaceChanged;
-            }
 
             public async Task<ISuggestedActionCategorySet?> GetSuggestedActionCategoriesAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
             {
