@@ -31,9 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// Starts a new task to compute the data model.
+        /// Enqueues a new task to compute the data model.
         /// </summary>
-        private void StartComputeDataModelTask()
+        private void EnqueueComputeDataModelTask()
         {
             // 'true' value is unused. This just signals to the queue that we have work to do.
             _computeDataModelQueue.AddWork(true);
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             // The model can be null if the LSP document symbol request returns a null response.
             if (model is not null)
-                StartFilterAndSortDataModelTask();
+                EnqueueFilterAndSortDataModelTask();
 
             return model;
 
@@ -106,9 +106,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         }
 
         /// <summary>
-        /// Starts a new task to filter and sort the data model.
+        /// Enqueues a new task to filter and sort the data model.
         /// </summary>
-        private void StartFilterAndSortDataModelTask()
+        private void EnqueueFilterAndSortDataModelTask()
         {
             // 'true' value is unused. This just signals to the queue that we have work to do.
             _filterAndSortDataModelQueue.AddWork(true);
@@ -139,16 +139,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             updatedDocumentSymbolData = DocumentOutlineHelper.SortDocumentSymbolData(updatedDocumentSymbolData, sortOption, cancellationToken);
 
-            StartHighlightExpandAndPresentItemsTask(ExpansionOption.NoChange);
+            EnqueueHighlightExpandAndPresentItemsTask(ExpansionOption.NoChange);
 
             return new DocumentSymbolDataModel(updatedDocumentSymbolData, model.OriginalSnapshot);
         }
 
         /// <summary>
-        /// Starts a new task to highlight the symbol node corresponding to the current caret position in the editor, expand/collapse
+        /// Enqueues a new task to highlight the symbol node corresponding to the current caret position in the editor, expand/collapse
         /// nodes, and update the UI.
         /// </summary>
-        private void StartHighlightExpandAndPresentItemsTask(ExpansionOption expansionOption)
+        private void EnqueueHighlightExpandAndPresentItemsTask(ExpansionOption expansionOption)
         {
             _highlightExpandAndPresentItemsQueue.AddWork(expansionOption);
         }
