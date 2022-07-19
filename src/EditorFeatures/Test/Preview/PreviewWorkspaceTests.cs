@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.True(taskSource.Task.IsCompleted);
 
             var args = taskSource.Task.Result;
-            Assert.True(args.GetPullDiagnostics(globalOptions).Length > 0);
+            Assert.True(args.Diagnostics.Length > 0);
         }
 
         [Trait(Traits.Editor, Traits.Editors.Preview)]

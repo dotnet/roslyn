@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Common;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -14,7 +13,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticsUpdatedKind Kind { get; }
         public Solution? Solution { get; }
 
-        private readonly ImmutableArray<DiagnosticData> _diagnostics;
+        /// <summary>
+        /// All the diagnostics for this event.  Most clients should not use this.  The only clients that should are
+        /// ones that are aggregating the values transparently and then forwarding on later on to other clients that
+        /// will make this decision.
+        /// </summary>
+        public readonly ImmutableArray<DiagnosticData> Diagnostics;
 
         private DiagnosticsUpdatedArgs(
             object id,
@@ -33,17 +37,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             Solution = solution;
             Kind = kind;
-            _diagnostics = diagnostics;
+            Diagnostics = diagnostics;
         }
-
-        /// <summary>
-        /// Gets all the diagnostics for this event, regardless if this is for pull or push diagnostics.  Most clients
-        /// should not use this.  The only clients that should are ones that are aggregating the values transparently
-        /// and then forwarding on later on to other clients that will make this decision.
-        /// </summary>
-        /// <returns></returns>
-        public ImmutableArray<DiagnosticData> GetAllDiagnosticsRegardlessOfPushPullSetting()
-            => _diagnostics;
 
         public static DiagnosticsUpdatedArgs DiagnosticsCreated(
             object id,

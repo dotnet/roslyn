@@ -193,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return;
                     }
 
-                    var diagnostics = e.GetPullDiagnostics(GlobalOptions);
+                    var diagnostics = e.Diagnostics;
                     if (diagnostics.Length == 0)
                     {
                         OnDataRemoved(e);
@@ -595,7 +595,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     id = analyzer.Analyzer.ToString();
                 }
 
-                var diagnostics = e.GetPullDiagnostics(globalOptions);
+                var diagnostics = e.Diagnostics;
                 return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object?)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, diagnostics)})";
             }
         }
