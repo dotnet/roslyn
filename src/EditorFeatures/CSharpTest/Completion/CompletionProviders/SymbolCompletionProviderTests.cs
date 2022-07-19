@@ -1889,6 +1889,33 @@ class B : {qualification}$$
 ", "I");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_InTheMiddleOfQualifiedName()
+        {
+            var markup = @"
+namespace MyNameSpace
+{
+    static class StaticClass {}
+    sealed class SealedClass {}
+    struct S {}
+    enum E {}
+    record R {}
+}
+
+namespace MyNameSpace.Segment
+{
+
+    class BaseClass {}
+
+    class C : MyNameSpace.$$.BaseClass
+}";
+            await VerifyItemIsAbsentAsync(markup, "StaticClass");
+            await VerifyItemIsAbsentAsync(markup, "SealedClass");
+            await VerifyItemIsAbsentAsync(markup, "S");
+            await VerifyItemIsAbsentAsync(markup, "E");
+            await VerifyItemIsAbsentAsync(markup, "R");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData("")]
         [InlineData("MyNameSpace.")]
@@ -1932,6 +1959,31 @@ interface I {{}}
 
 struct B : {qualification}$$
 ", "I");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListStruct_InTheMiddleOfQualifiedName()
+        {
+            var markup = @"
+namespace MyNameSpace
+{
+    class C {}
+    struct S {}
+    enum E {}
+    record R {}
+}
+
+namespace MyNameSpace.Segment
+{
+
+    interface I {}
+
+    struct B : MyNameSpace.$$.I
+}";
+            await VerifyItemIsAbsentAsync(markup, "C");
+            await VerifyItemIsAbsentAsync(markup, "S");
+            await VerifyItemIsAbsentAsync(markup, "E");
+            await VerifyItemIsAbsentAsync(markup, "R");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2005,6 +2057,31 @@ interface I : {qualification}$$
 {{
     interface I2 {{}}
 }}", "I");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListInterface_InTheMiddleOfQualifiedName()
+        {
+            var markup = @"
+namespace MyNameSpace
+{
+    class C {}
+    struct S {}
+    enum E {}
+    record R {}
+}
+
+namespace MyNameSpace.Segment
+{
+
+    interface I2 {}
+
+    interface I : MyNameSpace.$$.I2
+}";
+            await VerifyItemIsAbsentAsync(markup, "C");
+            await VerifyItemIsAbsentAsync(markup, "S");
+            await VerifyItemIsAbsentAsync(markup, "E");
+            await VerifyItemIsAbsentAsync(markup, "R");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2280,6 +2357,31 @@ record B : MyNameSpace.My$$Recorrd<>";
 
             await VerifyItemExistsAsync(markup, "MyRecord", displayTextSuffix: "<>");
             await VerifyItemIsAbsentAsync(markup, "MyStruct");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListRecord_InTheMiddleOfQualifiedName()
+        {
+            var markup = @"
+namespace MyNameSpace
+{
+    class C {}
+    struct S {}
+    enum E {}
+    sealed record SealedRecord {}
+}
+
+namespace MyNameSpace.Segment
+{
+
+    record RBase {}
+
+    record R : MyNameSpace.$$.RBase
+}";
+            await VerifyItemIsAbsentAsync(markup, "C");
+            await VerifyItemIsAbsentAsync(markup, "S");
+            await VerifyItemIsAbsentAsync(markup, "E");
+            await VerifyItemIsAbsentAsync(markup, "SealedRecord");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]

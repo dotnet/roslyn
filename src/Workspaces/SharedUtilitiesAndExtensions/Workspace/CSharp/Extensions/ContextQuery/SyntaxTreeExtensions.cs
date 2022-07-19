@@ -3019,7 +3019,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // 2. The only available target token type is qualified names. If there is generic names or whatever else,
             // then it is not directly inheritance context and our restrictions are not valid there
             return possibleBaseListSyntax.Types[0].Equals(possibleBaseTypeSyntax) &&
-                   targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax };
+                   targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax or QualifiedNameSyntax };
         }
 
         public static bool IsBaseEnumContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
@@ -3033,7 +3033,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // The first part of condition checks for non-written base type, e.g. "class C : $$" or "class C : Base, $$"
             // The second one checks quilified name cases, e.g. "class C : System.$$"
             return (targetToken.IsKind(SyntaxKind.ColonToken, SyntaxKind.CommaToken) && targetToken.Parent is BaseListSyntax { Parent: not EnumDeclarationSyntax }) ||
-                    targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax };
+                    targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax or QualifiedNameSyntax };
         }
 
         public static bool IsBaseRecordContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
@@ -3056,7 +3056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // 2. The only available target token type is qualified names. If there is generic names or whatever else,
             // then it is not directly inheritance context and our restrictions are not valid there
             return possibleBaseListSyntax.Types[0].Equals(possibleBaseTypeSyntax) &&
-                   targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax };
+                   targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax or QualifiedNameSyntax};
         }
     }
 }
