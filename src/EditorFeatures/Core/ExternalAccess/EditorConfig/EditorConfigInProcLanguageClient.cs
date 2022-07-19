@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
@@ -18,6 +19,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
 using Newtonsoft.Json;
 using Roslyn.Utilities;
+using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
 {
@@ -55,6 +57,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
                     Change = TextDocumentSyncKind.Incremental
                 },
                 HoverProvider = true,
+                CompletionProvider = new CompletionOptions
+                {
+                    ResolveProvider = true,
+                    TriggerCharacters = new string[] { " ", ":", ".", "=", "\"", "'", "{", "," },
+                    AllCommitCharacters = RoslynCompletion.CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray()
+                },
             };
 
             return serverCapabilities;
