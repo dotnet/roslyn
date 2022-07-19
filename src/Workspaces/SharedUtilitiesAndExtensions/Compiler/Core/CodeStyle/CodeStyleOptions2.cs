@@ -155,8 +155,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             "dotnet_style_prefer_simplified_boolean_expressions",
             "TextEditor.%LANGUAGE%.Specific.PreferSimplifiedBooleanExpressions");
 
-        internal static readonly PerLanguageValuedOption2<OperatorPlacementWhenWrappingPreference> OperatorPlacementWhenWrapping =
-            CreateOption(
+        internal static readonly SingleValuedOption2<OperatorPlacementWhenWrappingPreference> OperatorPlacementWhenWrapping =
+            CreateCommonOption(
                 CodeStyleOptionGroups.ExpressionLevelPreferences,
                 nameof(OperatorPlacementWhenWrapping),
                 IdeCodeStyleOptions.CommonOptions.Default.OperatorPlacementWhenWrapping,
@@ -359,8 +359,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 KeyValuePairUtil.Create("when_strongly_typed", ForEachExplicitCastInSourcePreference.WhenStronglyTyped),
             });
 
-        internal static readonly PerLanguageValuedOption2<CodeStyleOption2<ForEachExplicitCastInSourcePreference>> ForEachExplicitCastInSource =
-            CreateOption(
+        internal static readonly SingleValuedOption2<CodeStyleOption2<ForEachExplicitCastInSourcePreference>> ForEachExplicitCastInSource =
+            CreateCommonOption(
                 CodeStyleOptionGroups.ExpressionLevelPreferences,
                 nameof(ForEachExplicitCastInSource),
                 IdeCodeStyleOptions.CommonOptions.Default.ForEachExplicitCastInSource,
