@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 => _completionServiceWithProviders = completionServiceWithProviders;
 
             internal ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles, Project? project = null)
-                => _completionServiceWithProviders._providerManager.GetProviders(roles, project);
+                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetProviders(roles, project);
 
             internal async Task<CompletionContext> GetContextAsync(
                 CompletionProvider provider,

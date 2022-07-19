@@ -96,17 +96,6 @@ namespace Microsoft.CodeAnalysis.Completion
                 }
             }
 
-            /// <summary>
-            /// Don't call. For test only.
-            /// </summary>
-            public ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles, Project? project)
-            {
-                using var _ = ArrayBuilder<CompletionProvider>.GetInstance(out var providers);
-                providers.AddRange(GetImportedAndBuiltInProviders(roles));
-                providers.AddRange(GetProjectCompletionProviders(project));
-                return providers.ToImmutable();
-            }
-
             public CompletionProvider? GetProvider(CompletionItem item, Project? project)
             {
                 if (item.ProviderName == null)
@@ -229,6 +218,27 @@ namespace Microsoft.CodeAnalysis.Completion
 
                     extensions = default;
                     return false;
+                }
+            }
+
+            internal TestAccessor GetTestAccessor()
+                => new(this);
+
+            internal readonly struct TestAccessor
+            {
+                private readonly ProviderManager _providerManager;
+
+                public TestAccessor(ProviderManager providerManager)
+                {
+                    _providerManager = providerManager;
+                }
+
+                public ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles, Project? project)
+                {
+                    using var _ = ArrayBuilder<CompletionProvider>.GetInstance(out var providers);
+                    providers.AddRange(_providerManager.GetImportedAndBuiltInProviders(roles));
+                    providers.AddRange(GetProjectCompletionProviders(project));
+                    return providers.ToImmutable();
                 }
             }
         }
