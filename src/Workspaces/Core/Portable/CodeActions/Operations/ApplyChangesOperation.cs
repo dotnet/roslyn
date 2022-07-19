@@ -72,10 +72,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             var solutionChanges = changedSolution.GetChanges(originalSolution);
 
-            if (solutionChanges.GetAddedProjects().Count() > 0 ||
-                solutionChanges.GetAddedAnalyzerReferences().Count() > 0 ||
-                solutionChanges.GetRemovedProjects().Count() > 0 ||
-                solutionChanges.GetRemovedAnalyzerReferences().Count() > 0)
+            if (solutionChanges.GetAddedProjects().Any() ||
+                solutionChanges.GetAddedAnalyzerReferences().Any() ||
+                solutionChanges.GetRemovedProjects().Any() ||
+                solutionChanges.GetRemovedAnalyzerReferences().Any())
             {
                 return false;
             }
@@ -87,25 +87,33 @@ namespace Microsoft.CodeAnalysis.CodeActions
             foreach (var changedProject in solutionChanges.GetProjectChanges())
             {
                 // We only support text changes.  If we see any other changes to this project, bail out immediately.
-                if (changedProject.GetAddedAdditionalDocuments().Count() > 0 ||
-                    changedProject.GetAddedAnalyzerConfigDocuments().Count() > 0 ||
-                    changedProject.GetAddedAnalyzerReferences().Count() > 0 ||
-                    changedProject.GetAddedDocuments().Count() > 0 ||
-                    changedProject.GetAddedMetadataReferences().Count() > 0 ||
-                    changedProject.GetAddedProjectReferences().Count() > 0 ||
-                    changedProject.GetRemovedAdditionalDocuments().Count() > 0 ||
-                    changedProject.GetRemovedAnalyzerConfigDocuments().Count() > 0 ||
-                    changedProject.GetRemovedAnalyzerReferences().Count() > 0 ||
-                    changedProject.GetRemovedDocuments().Count() > 0 ||
-                    changedProject.GetRemovedMetadataReferences().Count() > 0 ||
-                    changedProject.GetRemovedProjectReferences().Count() > 0)
+                if (changedProject.GetAddedAdditionalDocuments().Any() ||
+                    changedProject.GetAddedAnalyzerConfigDocuments().Any() ||
+                    changedProject.GetAddedAnalyzerReferences().Any() ||
+                    changedProject.GetAddedDocuments().Any() ||
+                    changedProject.GetAddedMetadataReferences().Any() ||
+                    changedProject.GetAddedProjectReferences().Any() ||
+                    changedProject.GetRemovedAdditionalDocuments().Any() ||
+                    changedProject.GetRemovedAnalyzerConfigDocuments().Any() ||
+                    changedProject.GetRemovedAnalyzerReferences().Any() ||
+                    changedProject.GetRemovedDocuments().Any() ||
+                    changedProject.GetRemovedMetadataReferences().Any() ||
+                    changedProject.GetRemovedProjectReferences().Any())
                 {
                     return false;
                 }
 
-                if (!TryForkTextChanges(changedProject, changedProject.GetChangedDocuments(), static (s, i) => s.GetRequiredDocument(i), static (s, i, t) => s.WithDocumentText(i, t)) ||
-                    !TryForkTextChanges(changedProject, changedProject.GetChangedAdditionalDocuments(), static (s, i) => s.GetRequiredAdditionalDocument(i), static (s, i, t) => s.WithAdditionalDocumentText(i, t)) ||
-                    !TryForkTextChanges(changedProject, changedProject.GetChangedAnalyzerConfigDocuments(), static (s, i) => s.GetRequiredAnalyzerConfigDocument(i), static (s, i, t) => s.WithAnalyzerConfigDocumentText(i, t)))
+                // We have to at least have some changed document
+                if (!changedProject.GetChangedDocuments().Any() &&
+                    !changedProject.GetChangedAdditionalDocuments().Any() &&
+                    !changedProject.GetChangedAnalyzerConfigDocuments().Any())
+                {
+                    return false;
+                }
+
+                if (!TryForkTextChanges(changedProject, changedProject.GetChangedDocuments(), static (s, i) => s.GetDocument(i), static (s, i, t) => s.WithDocumentText(i, t)) ||
+                    !TryForkTextChanges(changedProject, changedProject.GetChangedAdditionalDocuments(), static (s, i) => s.GetAdditionalDocument(i), static (s, i, t) => s.WithAdditionalDocumentText(i, t)) ||
+                    !TryForkTextChanges(changedProject, changedProject.GetChangedAnalyzerConfigDocuments(), static (s, i) => s.GetAnalyzerConfigDocument(i), static (s, i, t) => s.WithAnalyzerConfigDocumentText(i, t)))
                 {
                     return false;
                 }
@@ -116,17 +124,16 @@ namespace Microsoft.CodeAnalysis.CodeActions
             bool TryForkTextChanges(
                 ProjectChanges changedProject,
                 IEnumerable<DocumentId> changedDocuments,
-                Func<Solution, DocumentId, TextDocument> getDocument,
+                Func<Solution, DocumentId, TextDocument?> getDocument,
                 Func<Solution, DocumentId, SourceText, Solution> withDocumentText)
             {
-                var sawChangedDocument = false;
-
                 foreach (var documentId in changedDocuments)
                 {
-                    sawChangedDocument = true;
-
                     var originalDocument = getDocument(changedProject.OldProject.Solution, documentId);
                     var changedDocument = getDocument(changedProject.NewProject.Solution, documentId);
+
+                    Contract.ThrowIfNull(originalDocument);
+                    Contract.ThrowIfNull(changedDocument);
 
                     // it has to be a text change the operation wants to make.  If the operation is making some other
                     // sort of change, we can't merge this operation in.
@@ -147,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                     forkedSolution = withDocumentText(forkedSolution, documentId, changedDocument.GetTextSynchronously(cancellationToken));
                 }
 
-                return sawChangedDocument;
+                return true;
             }
         }
     }
