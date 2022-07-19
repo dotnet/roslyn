@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
-
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
