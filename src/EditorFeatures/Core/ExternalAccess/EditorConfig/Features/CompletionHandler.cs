@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Security.AccessControl;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 {
@@ -43,6 +44,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             var document = context.AdditionalDocument;
             Contract.ThrowIfNull(document);
 
+            var workspace = context.Solution?.Workspace;
+            Contract.ThrowIfNull(workspace);
+
             Contract.ThrowIfNull(request.Context);
 
             var filePath = document.FilePath;
@@ -50,6 +54,24 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var offset = text.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(request.Position));
+
+            var settingsAggregator = workspace.Services.GetRequiredService<ISettingsAggregator>();
+
+            var codeStyleProvider = settingsAggregator.GetSettingsProvider<CodeStyleSetting>(filePath);
+            var codeStyleSettings = codeStyleProvider?.GetCurrentDataSnapshot();
+            var cs = codeStyleSettings?.Select(setting => setting);
+
+            var whitespaceProvider = settingsAggregator.GetSettingsProvider<WhitespaceSetting>(filePath);
+            var whitespaceSettings = whitespaceProvider?.GetCurrentDataSnapshot();
+            var ws = whitespaceSettings?.Select(setting => setting.Key.Option.StorageLocations.FirstOrDefault());
+
+            var analyzerProvider = settingsAggregator.GetSettingsProvider<AnalyzerSetting>(filePath);
+            var analyzerSettings = analyzerProvider?.GetCurrentDataSnapshot();
+            var ans = analyzerSettings?.Select(setting => setting);
+
+            var namingStyleProvider = settingsAggregator.GetSettingsProvider<NamingStyleSetting>(filePath);
+            var namingStyleSettings = namingStyleProvider?.GetCurrentDataSnapshot();
+            var ns = analyzerSettings?.Select(setting => setting);
 
             if (request.Context.TriggerCharacter == "=")
             {
