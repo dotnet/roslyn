@@ -6783,6 +6783,7 @@ class Program
             Assert.Equal(RefKind.Out, lambdas[2].Parameters[0].RefKind);
         }
 
+        [WorkItem(61013, "https://github.com/dotnet/roslyn/issues/61013")]
         [Fact]
         public void InvalidCast()
         {
