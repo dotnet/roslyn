@@ -20,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             Return GetOption(key)
         End Function
 
-        Private Overloads Function GetBooleanOption(key As Option2(Of Boolean)) As Boolean
+        Private Overloads Function GetBooleanOption(key As SingleValuedOption2(Of Boolean)) As Boolean
             Return GetOption(key)
         End Function
 
@@ -28,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             SetOption(key, value)
         End Sub
 
-        Private Overloads Sub SetBooleanOption(key As Option2(Of Boolean), value As Boolean)
+        Private Overloads Sub SetBooleanOption(key As SingleValuedOption2(Of Boolean), value As Boolean)
             SetOption(key, value)
         End Sub
     End Class
