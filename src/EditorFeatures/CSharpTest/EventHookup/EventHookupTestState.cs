@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 
             _testSessionHookupMutex = new Mutex(false);
             _commandHandler.TESTSessionHookupMutex = _testSessionHookupMutex;
-            options.SetGlobalOptions(Workspace.GlobalOptions);
+            options?.SetGlobalOptions(Workspace.GlobalOptions);
         }
 
         public static EventHookupTestState CreateTestState(string markup, OptionsCollection options = null)

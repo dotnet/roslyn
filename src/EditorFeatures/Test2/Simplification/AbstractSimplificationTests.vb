@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             document = document.WithSyntaxRoot(root)
 
 #Disable Warning RS0030 ' Do Not used banned APIs
-            Dim optionSet = options.ToOptionSet()
+            Dim optionSet = options?.ToOptionSet()
             Dim simplifiedDocument As Document
             If Not explicitSpansToSimplifyWithin.IsDefaultOrEmpty Then
                 simplifiedDocument = Await Simplifier.ReduceAsync(document, explicitSpansToSimplifyWithin, optionSet)

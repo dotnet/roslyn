@@ -58,7 +58,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Optional editorConfig As String = "") As Task
             Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code, editorConfig))
                 Dim workspace = state.Workspace
-                options.SetGlobalOptions(workspace.GlobalOptions)
+                options?.SetGlobalOptions(workspace.GlobalOptions)
 
                 Dim codeElement = GetCodeElement(state)
                 Assert.NotNull(codeElement)
