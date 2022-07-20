@@ -24,6 +24,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
     using LspDocumentSymbol = DocumentSymbol;
+    using Range = LanguageServer.Protocol.Range;
 
     internal static class DocumentOutlineHelper
     {
@@ -98,11 +99,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var currentStart = 0;
 
             while (currentStart < allSymbols.Length)
-                finalResult.Add(NestDescendantSymbols(allSymbols, currentStart, originalSnapshot, out currentStart));
+                finalResult.Add(NestDescendantSymbols(allSymbols, currentStart, out currentStart));
 
             return new DocumentSymbolDataModel(finalResult.ToImmutable(), originalSnapshot);
 
-            static DocumentSymbolData NestDescendantSymbols(ImmutableArray<LspDocumentSymbol> allSymbols, int start, ITextSnapshot originalSnapshot, out int newStart)
+            DocumentSymbolData NestDescendantSymbols(ImmutableArray<LspDocumentSymbol> allSymbols, int start, out int newStart)
             {
                 var currentItem = allSymbols[start];
                 start++;
@@ -115,15 +116,21 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     if (!Contains(currentItem, nextItem))
                         break;
 
-                    currentItemChildren.Add(NestDescendantSymbols(allSymbols, start: newStart, originalSnapshot, out newStart));
+                    currentItemChildren.Add(NestDescendantSymbols(allSymbols, start: newStart, out newStart));
                 }
 
-                return new DocumentSymbolData(currentItem, originalSnapshot, currentItemChildren.ToImmutable());
+                return new DocumentSymbolData(currentItem, GetSymbolRangeSpan(currentItem.Range), GetSymbolRangeSpan(currentItem.SelectionRange), currentItemChildren.ToImmutable());
             }
 
             static bool Contains(LspDocumentSymbol parent, LspDocumentSymbol child)
+                => child.Range.Start.Line > parent.Range.Start.Line && child.Range.End.Line < parent.Range.End.Line;
+
+            SnapshotSpan GetSymbolRangeSpan(Range symbolRange)
             {
-                return child.Range.Start.Line > parent.Range.Start.Line && child.Range.End.Line < parent.Range.End.Line;
+                var originalStartPosition = originalSnapshot.GetLineFromLineNumber(symbolRange.Start.Line).Start.Position + symbolRange.Start.Character;
+                var originalEndPosition = originalSnapshot.GetLineFromLineNumber(symbolRange.End.Line).Start.Position + symbolRange.End.Character;
+
+                return new SnapshotSpan(originalSnapshot, Span.FromBounds(originalStartPosition, originalEndPosition));
             }
         }
 
@@ -159,7 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 foreach (var documentSymbol in documentSymbolData)
                 {
                     var sortedChildren = SortDocumentSymbols(documentSymbol.Children, sortOption, cancellationToken);
-                    sortedDocumentSymbols.Add(new DocumentSymbolData(documentSymbol, sortedChildren));
+                    sortedDocumentSymbols.Add(documentSymbol.WithChildren(sortedChildren));
                 }
 
                 switch (sortOption)
@@ -206,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 var filteredChildren = SearchDocumentSymbolData(documentSymbol.Children, pattern, cancellationToken);
                 if (SearchNodeTree(documentSymbol, patternMatcher, cancellationToken))
-                    filteredDocumentSymbols.Add(new DocumentSymbolData(documentSymbol, filteredChildren));
+                    filteredDocumentSymbols.Add(documentSymbol.WithChildren(filteredChildren));
             }
 
             return filteredDocumentSymbols.ToImmutable();

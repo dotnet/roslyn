@@ -22,24 +22,16 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         public SnapshotSpan SelectionRangeSpan { get; }
         public ImmutableArray<DocumentSymbolData> Children { get; }
 
-        public DocumentSymbolData(DocumentSymbol documentSymbol, ITextSnapshot originalSnapshot, ImmutableArray<DocumentSymbolData> children)
+        public DocumentSymbolData(DocumentSymbol documentSymbol, SnapshotSpan rangeSpan, SnapshotSpan selectionRangeSpan, ImmutableArray<DocumentSymbolData> children)
         {
             Name = documentSymbol.Name;
             SymbolKind = documentSymbol.Kind;
-            RangeSpan = GetSymbolRangeSpan(documentSymbol.Range);
-            SelectionRangeSpan = GetSymbolRangeSpan(documentSymbol.SelectionRange);
+            RangeSpan = rangeSpan;
+            SelectionRangeSpan = selectionRangeSpan;
             Children = children;
-
-            SnapshotSpan GetSymbolRangeSpan(Range symbolRange)
-            {
-                var originalStartPosition = originalSnapshot.GetLineFromLineNumber(symbolRange.Start.Line).Start.Position + symbolRange.Start.Character;
-                var originalEndPosition = originalSnapshot.GetLineFromLineNumber(symbolRange.End.Line).Start.Position + symbolRange.End.Character;
-
-                return new SnapshotSpan(originalSnapshot, Span.FromBounds(originalStartPosition, originalEndPosition));
-            }
         }
 
-        public DocumentSymbolData(DocumentSymbolData documentSymbolData, ImmutableArray<DocumentSymbolData> children)
+        private DocumentSymbolData(DocumentSymbolData documentSymbolData, ImmutableArray<DocumentSymbolData> children)
         {
             Name = documentSymbolData.Name;
             SymbolKind = documentSymbolData.SymbolKind;
@@ -47,5 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             SelectionRangeSpan = documentSymbolData.SelectionRangeSpan;
             Children = children;
         }
+
+        public DocumentSymbolData WithChildren(ImmutableArray<DocumentSymbolData> children)
+            => new(this, children);
     }
 }
