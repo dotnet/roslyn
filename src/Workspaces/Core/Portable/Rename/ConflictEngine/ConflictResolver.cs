@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A conflict resolution containing the new solution.</returns>
         internal static async Task<ConflictResolution> ResolveLightweightConflictsAsync(
+            ISymbol symbol,
             LightweightRenameLocations lightweightRenameLocations,
             string replacementText,
             ImmutableHashSet<ISymbol>? nonConflictSymbols,
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
-                    var serializableSymbol = SerializableSymbolAndProjectId.Dehydrate(lightweightRenameLocations.Solution, lightweightRenameLocations.Symbol, cancellationToken);
+                    var serializableSymbol = SerializableSymbolAndProjectId.Dehydrate(lightweightRenameLocations.Solution, symbol, cancellationToken);
                     var serializableLocationSet = lightweightRenameLocations.Dehydrate();
                     var nonConflictSymbolIds = nonConflictSymbols?.SelectAsArray(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)) ?? default;
 
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
             }
 
-            var heavyweightLocations = await lightweightRenameLocations.ToHeavyweightAsync(cancellationToken).ConfigureAwait(false);
+            var heavyweightLocations = await lightweightRenameLocations.ToHeavyweightAsync(symbol, cancellationToken).ConfigureAwait(false);
             if (heavyweightLocations is null)
                 return new ConflictResolution(WorkspacesResources.Failed_to_resolve_rename_conflicts);
 

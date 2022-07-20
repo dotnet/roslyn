@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                     CanEditDocument(solution, documentId, linkedFiles, canEdit));
 
             var resolution = await filteredLocations.ResolveConflictsAsync(
-                propertySymbol.Name, nonConflictSymbols: ImmutableHashSet.Create<ISymbol>(propertySymbol), cancellationToken).ConfigureAwait(false);
+                fieldSymbol, propertySymbol.Name, nonConflictSymbols: ImmutableHashSet.Create<ISymbol>(propertySymbol), cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfFalse(resolution.IsSuccessful);
 

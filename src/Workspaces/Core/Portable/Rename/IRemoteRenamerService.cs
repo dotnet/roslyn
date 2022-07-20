@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 _referencedSymbols);
 
         internal static async Task<LightweightRenameLocations?> TryRehydrateAsync(
-            Solution solution, ISymbol symbol, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations locations, CancellationToken cancellationToken)
+            Solution solution, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations locations, CancellationToken cancellationToken)
         {
             if (locations == null)
                 return null;
@@ -164,7 +164,6 @@ namespace Microsoft.CodeAnalysis.Rename
                 locBuilder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
 
             return new LightweightRenameLocations(
-                symbol,
                 solution,
                 locations.Options,
                 fallbackOptions,

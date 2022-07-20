@@ -108,11 +108,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 var nonConflictSymbols = await GetNonConflictSymbolsAsync(solution, nonConflictSymbolIds, cancellationToken).ConfigureAwait(false);
 
                 var locations = await LightweightRenameLocations.TryRehydrateAsync(
-                    solution, symbol, GetClientOptionsProvider(callbackId), serializableLocations, cancellationToken).ConfigureAwait(false);
+                    solution, GetClientOptionsProvider(callbackId), serializableLocations, cancellationToken).ConfigureAwait(false);
                 if (locations == null)
                     return null;
 
-                var result = await locations.ResolveConflictsAsync(replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+                var result = await locations.ResolveConflictsAsync(symbol, replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
                 return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
