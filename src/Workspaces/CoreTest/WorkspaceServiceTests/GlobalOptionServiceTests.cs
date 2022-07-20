@@ -294,9 +294,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public void TestPerLanguageCodeStyleOptions()
         {
             using var workspace = new AdhocWorkspace();
-            var PerLanguageValuedOption2 = new PerLanguageOption2<CodeStyleOption2<bool>>("test", "test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning));
-            var perLanguageOption = PerLanguageValuedOption2.ToPublicOption();
-            var newValueCodeStyleOption2 = new CodeStyleOption2<bool>(!PerLanguageValuedOption2.DefaultValue.Value, PerLanguageValuedOption2.DefaultValue.Notification);
+            var perLanguageOption2 = new PerLanguageOption2<CodeStyleOption2<bool>>("test", "test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning));
+            var perLanguageOption = perLanguageOption2.ToPublicOption();
+            var newValueCodeStyleOption2 = new CodeStyleOption2<bool>(!perLanguageOption2.DefaultValue.Value, perLanguageOption2.DefaultValue.Notification);
             var newValueCodeStyleOption = (CodeStyleOption<bool>)newValueCodeStyleOption2!;
 
             // Test "OptionKey" based overloads for get/set options on OptionSet and OptionService using different public and internal type combinations.
@@ -304,37 +304,37 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             //  1. { PerLanguageOption, CodeStyleOption }
             TestCodeStyleOptionsCommon(workspace, perLanguageOption, LanguageNames.CSharp, newValueCodeStyleOption);
 
-            //  2. { PerLanguageValuedOption2, CodeStyleOption }
-            TestCodeStyleOptionsCommon(workspace, PerLanguageValuedOption2, LanguageNames.CSharp, newValueCodeStyleOption);
+            //  2. { PerLanguageOption2, CodeStyleOption }
+            TestCodeStyleOptionsCommon(workspace, perLanguageOption2, LanguageNames.CSharp, newValueCodeStyleOption);
 
             //  3. { PerLanguageOption, CodeStyleOption2 }
             TestCodeStyleOptionsCommon(workspace, perLanguageOption, LanguageNames.CSharp, newValueCodeStyleOption2);
 
-            //  4. { PerLanguageValuedOption2, CodeStyleOption2 }
-            TestCodeStyleOptionsCommon(workspace, PerLanguageValuedOption2, LanguageNames.CSharp, newValueCodeStyleOption2);
+            //  4. { PerLanguageOption2, CodeStyleOption2 }
+            TestCodeStyleOptionsCommon(workspace, perLanguageOption2, LanguageNames.CSharp, newValueCodeStyleOption2);
 
             var optionService = GetOptionService(workspace.Services);
             var originalOptionSet = new SolutionOptionSet(optionService);
 
-            // Test "PerLanguageOption" and "PerLanguageValuedOption2" overloads for OptionSet and OptionService.
+            // Test "PerLanguageOption" and "PerLanguageOption2" overloads for OptionSet and OptionService.
 
             //  1. Verify default value.
             Assert.Equal(perLanguageOption.DefaultValue, originalOptionSet.GetOption(perLanguageOption, LanguageNames.CSharp));
-            Assert.Equal(PerLanguageValuedOption2.DefaultValue, originalOptionSet.GetOption(PerLanguageValuedOption2, LanguageNames.CSharp));
+            Assert.Equal(perLanguageOption2.DefaultValue, originalOptionSet.GetOption(perLanguageOption2, LanguageNames.CSharp));
 
             //  2. OptionSet validations.
             var newOptionSet = originalOptionSet.WithChangedOption(perLanguageOption, LanguageNames.CSharp, newValueCodeStyleOption);
             Assert.Equal(newValueCodeStyleOption, newOptionSet.GetOption(perLanguageOption, LanguageNames.CSharp));
-            Assert.Equal(newValueCodeStyleOption2, newOptionSet.GetOption(PerLanguageValuedOption2, LanguageNames.CSharp));
+            Assert.Equal(newValueCodeStyleOption2, newOptionSet.GetOption(perLanguageOption2, LanguageNames.CSharp));
 
-            newOptionSet = originalOptionSet.WithChangedOption(PerLanguageValuedOption2, LanguageNames.CSharp, newValueCodeStyleOption2);
+            newOptionSet = originalOptionSet.WithChangedOption(perLanguageOption2, LanguageNames.CSharp, newValueCodeStyleOption2);
             Assert.Equal(newValueCodeStyleOption, newOptionSet.GetOption(perLanguageOption, LanguageNames.CSharp));
-            Assert.Equal(newValueCodeStyleOption2, newOptionSet.GetOption(PerLanguageValuedOption2, LanguageNames.CSharp));
+            Assert.Equal(newValueCodeStyleOption2, newOptionSet.GetOption(perLanguageOption2, LanguageNames.CSharp));
 
             //  3. IOptionService validation
 
             optionService.GlobalOptions.SetOptions(newOptionSet, ((SolutionOptionSet)newOptionSet).GetChangedOptions());
-            Assert.Equal(newValueCodeStyleOption2, optionService.GlobalOptions.GetOption(PerLanguageValuedOption2, LanguageNames.CSharp));
+            Assert.Equal(newValueCodeStyleOption2, optionService.GlobalOptions.GetOption(perLanguageOption2, LanguageNames.CSharp));
         }
 
         [Fact]
