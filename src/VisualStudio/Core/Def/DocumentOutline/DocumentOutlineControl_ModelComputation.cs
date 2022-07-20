@@ -184,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Expand/collapse nodes based on the given Expansion Option.
-            var expansion = expansionOption.First();
+            var expansion = expansionOption.Last();
             if (expansion is not ExpansionOption.NoChange && SymbolTree.ItemsSource is not null)
                 DocumentOutlineHelper.SetIsExpanded(documentSymbolUIItems, (IEnumerable<DocumentSymbolUIItem>)SymbolTree.ItemsSource, expansion);
 
