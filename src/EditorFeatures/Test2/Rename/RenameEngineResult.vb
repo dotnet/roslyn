@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim symbol = RenameLocations.ReferenceProcessing.TryGetRenamableSymbolAsync(document, cursorPosition, CancellationToken.None).Result
+                Dim symbol = RenameUtilities.TryGetRenamableSymbolAsync(document, cursorPosition, CancellationToken.None).Result
                 If symbol Is Nothing Then
                     AssertEx.Fail("The symbol touching the $$ could not be found.")
                 End If

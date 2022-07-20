@@ -146,11 +146,9 @@ namespace Microsoft.CodeAnalysis.Rename
                 options);
         }
 
+        /// <inheritdoc cref="LightweightRenameLocations.FindRenameLocationsAsync"/>
         internal static Task<LightweightRenameLocations> FindLightweightRenameLocationsAsync(Solution solution, ISymbol symbol, SymbolRenameOptions options, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-            => LightweightRenameLocations.FindLightweightLocationsAsync(symbol, solution, options, fallbackOptions, cancellationToken);
-
-        //internal static Task<LightweightRenameLocations> FindLightweightRenameLocationsAsync(Solution solution, ISymbol symbol, SymbolRenameOptions options, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-        //    => LightweightRenameLocations.FindLocationsAsync(symbol, solution, options, fallbackOptions, cancellationToken);
+            => LightweightRenameLocations.FindRenameLocationsAsync(symbol, solution, options, fallbackOptions, cancellationToken);
 
         internal static async Task<ConflictResolution> RenameSymbolAsync(
             Solution solution,
@@ -220,8 +218,8 @@ namespace Microsoft.CodeAnalysis.Rename
             // Since we know we're in the oop process, we know we won't need to make more OOP calls.  Since this is the
             // rename entry-point that does the entire rename, we can directly use the heavyweight RenameLocations type,
             // without having to go through any intermediary LightweightTypes.
-            var renameLocations = await RenameLocations.FindLocationsInCurrentProcessAsync(symbol, solution, options, cleanupOptions, cancellationToken).ConfigureAwait(false);
-            return await ConflictResolver.ResolveConflictsInCurrentProcessAsync(renameLocations, newName, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+            var renameLocations = await HeavyweightRenameLocations.FindLocationsInCurrentProcessAsync(symbol, solution, options, cleanupOptions, cancellationToken).ConfigureAwait(false);
+            return await ConflictResolver.ResolveHeavyweightConflictsInCurrentProcessAsync(renameLocations, newName, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
         }
     }
 }

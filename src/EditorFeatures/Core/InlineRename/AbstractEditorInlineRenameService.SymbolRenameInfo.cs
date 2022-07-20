@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _fallbackOptions = fallbackOptions;
                 this.RenameSymbol = renameSymbol;
 
-                this.HasOverloads = RenameLocations.GetOverloadedSymbols(this.RenameSymbol).Any();
+                this.HasOverloads = RenameUtilities.GetOverloadedSymbols(this.RenameSymbol).Any();
                 this.MustRenameOverloads = forceRenameOverloads;
 
                 _isRenamingAttributePrefix = CanRenameAttributePrefix(triggerText);

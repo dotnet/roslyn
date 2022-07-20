@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var fallbackOptions = GetClientOptionsProvider(callbackId);
 
-                var result = await LightweightRenameLocations.FindLightweightLocationsAsync(
+                var result = await LightweightRenameLocations.FindRenameLocationsAsync(
                     symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 return result.Dehydrate();
@@ -112,12 +112,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (lightweightLocations == null)
                     return null;
 
-                var renameLocations = await lightweightLocations.ToRenameLocationsAsync(cancellationToken).ConfigureAwait(false);
-                if (renameLocations is null)
+                var heavyweightLocations = await lightweightLocations.ToHeavyweightAsync(cancellationToken).ConfigureAwait(false);
+                if (heavyweightLocations is null)
                     return null;
 
-                var result = await ConflictResolver.ResolveConflictsInCurrentProcessAsync(
-                    renameLocations, replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+                var result = await ConflictResolver.ResolveHeavyweightConflictsInCurrentProcessAsync(
+                    heavyweightLocations, replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
                 return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
