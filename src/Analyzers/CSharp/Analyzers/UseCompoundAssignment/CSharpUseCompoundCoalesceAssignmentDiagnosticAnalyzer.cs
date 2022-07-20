@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -150,6 +149,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             if (!UseCompoundAssignmentUtilities.IsSideEffectFree(
                     syntaxFacts, testedExpression, semanticModel, cancellationToken))
             {
+                return;
+            }
+
+            if (semanticModel.GetTypeInfo(testedExpression, cancellationToken).Type.IsPointerType())
+            {
+                // pointers cannot use ??=
                 return;
             }
 

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -218,6 +219,59 @@ class C
 }";
                 await TestAddNamedTypeAsync(input, expected,
                     modifiers: new Editing.DeclarationModifiers(isStatic: true));
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
+            public async Task AddStaticAbstractClass()
+            {
+                var input = "namespace [|N|] { }";
+                var expected = @"namespace N
+{
+    public static class C
+    {
+    }
+}";
+                // note that 'abstract' is dropped here
+                await TestAddNamedTypeAsync(input, expected,
+                    modifiers: new Editing.DeclarationModifiers(isStatic: true, isAbstract: true));
+            }
+
+            [Theory, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
+            [InlineData(Accessibility.NotApplicable)]
+            [InlineData(Accessibility.Internal)]
+            [InlineData(Accessibility.Public)]
+            public async Task AddFileClass(Accessibility accessibility)
+            {
+                var input = "namespace [|N|] { }";
+                var expected = @"namespace N
+{
+    file class C
+    {
+    }
+}";
+                // note: when invalid combinations of modifiers+accessibility are present here,
+                // we actually drop the accessibility. This is similar to what is done if someone declares a 'static abstract class C { }'.
+                await TestAddNamedTypeAsync(input, expected,
+                    accessibility: accessibility,
+                    modifiers: new Editing.DeclarationModifiers(isFile: true));
+            }
+
+            [Theory, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
+            [InlineData("struct", TypeKind.Struct)]
+            [InlineData("interface", TypeKind.Interface)]
+            [InlineData("enum", TypeKind.Enum)]
+            public async Task AddFileType(string kindString, TypeKind typeKind)
+            {
+                var input = "namespace [|N|] { }";
+                var expected = @"namespace N
+{
+    file " + kindString + @" C
+    {
+    }
+}";
+                await TestAddNamedTypeAsync(input, expected,
+                    typeKind: typeKind,
+                    modifiers: new Editing.DeclarationModifiers(isFile: true));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
@@ -1038,7 +1092,8 @@ class C
                     parameters: Parameters(Parameter(typeof(int), "i")),
                     getStatements: "return String.Empty;",
                     isIndexer: true,
-                    options: new Dictionary<OptionKey2, object> {
+                    options: new OptionsCollection(LanguageNames.CSharp)
+                    {
                         { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
                         { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
                     });

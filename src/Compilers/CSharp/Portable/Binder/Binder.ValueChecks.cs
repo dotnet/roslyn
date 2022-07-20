@@ -3543,6 +3543,11 @@ moreArguments:
                 case BoundKind.BinaryOperator:
                     var binary = (BoundBinaryOperator)expr;
 
+                    if (binary.OperatorKind == BinaryOperatorKind.Utf8Addition)
+                    {
+                        return true;
+                    }
+
                     return CheckValEscape(binary.Left.Syntax, binary.Left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
                            CheckValEscape(binary.Right.Syntax, binary.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 

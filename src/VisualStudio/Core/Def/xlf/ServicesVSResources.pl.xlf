@@ -469,17 +469,17 @@
       </trans-unit>
       <trans-unit id="Fix_analyzer_warnings_and_errors">
         <source>Fix analyzer warnings and errors</source>
-        <target state="new">Fix analyzer warnings and errors</target>
+        <target state="translated">Naprawianie ostrzeżeń i błędów analizatora</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_warnings_and_errors_set_in_EditorConfig">
         <source>Fix all warnings and errors set in EditorConfig</source>
-        <target state="new">Fix all warnings and errors set in EditorConfig</target>
+        <target state="translated">Naprawianie wszystkich ostrzeżeń i błędów ustawionych w elemencie EditorConfig</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_analyzer_warnings_and_errors_set_in_EditorConfig">
         <source>Fix analyzer warnings and errors set in EditorConfig</source>
-        <target state="new">Fix analyzer warnings and errors set in EditorConfig</target>
+        <target state="translated">Naprawianie ostrzeżeń i błędów analizatora ustawionych w elemencie EditorConfig</target>
         <note />
       </trans-unit>
       <trans-unit id="For_non_interface_members">
@@ -1069,7 +1069,7 @@
       </trans-unit>
       <trans-unit id="Prefer_Utf8_string_literals">
         <source>Prefer UTF-8 string literals</source>
-        <target state="new">Prefer UTF-8 string literals</target>
+        <target state="translated">Preferuj literały ciągu UTF-8</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
@@ -1179,7 +1179,7 @@
       </trans-unit>
       <trans-unit id="Rename">
         <source>Rename</source>
-        <target state="new">Rename</target>
+        <target state="translated">Zmień nazwę</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
@@ -1189,7 +1189,7 @@
       </trans-unit>
       <trans-unit id="Rename_asynchronously_experimental">
         <source>Rename asynchronously experimental</source>
-        <target state="new">Rename asynchronously experimental</target>
+        <target state="translated">Zmienianie nazwy asynchronicznie eksperymentalnej</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
@@ -1384,7 +1384,7 @@
       </trans-unit>
       <trans-unit id="Stack_Trace">
         <source>Stack Trace</source>
-        <target state="new">Stack Trace</target>
+        <target state="translated">Śledzenie stosu</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace_Explorer">

@@ -92,12 +92,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
             var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (3,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref T F1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 12),
-                // (4,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12),
+                // (4,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref readonly T F2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref readonly T").WithArguments("ref fields").WithLocation(4, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref readonly T").WithArguments("ref fields", "11.0").WithLocation(4, 12));
 
             comp = CreateCompilation(sourceA);
             comp.VerifyEmitDiagnostics();
@@ -130,26 +130,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (8,25): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,25): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         s1 = new S<T> { F1 = t };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("ref fields").WithLocation(8, 25),
-                // (14,25): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "F1").WithArguments("ref fields", "11.0").WithLocation(8, 25),
+                // (14,25): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         s2 = new S<T> { F1 = t };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("ref fields").WithLocation(14, 25),
-                // (19,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "F1").WithArguments("ref fields", "11.0").WithLocation(14, 25),
+                // (19,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         M1(s.F1);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F1").WithArguments("ref fields").WithLocation(19, 12),
-                // (20,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F1").WithArguments("ref fields", "11.0").WithLocation(19, 12),
+                // (20,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         M1(s.F2);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F2").WithArguments("ref fields").WithLocation(20, 12),
-                // (21,16): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F2").WithArguments("ref fields", "11.0").WithLocation(20, 12),
+                // (21,16): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         M2(ref s.F1);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F1").WithArguments("ref fields").WithLocation(21, 16));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F1").WithArguments("ref fields", "11.0").WithLocation(21, 16));
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F1"), "ref T S<T>.F1", RefKind.Ref, new string[0]);
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F2"), "ref readonly T S<T>.F2", RefKind.RefReadOnly, new string[0]);
 
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F1"), "ref T S<T>.F1", RefKind.Ref, new string[0]);
@@ -168,9 +168,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
             var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (3,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref T F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12));
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref T S<T>.F", RefKind.Ref, new string[0]);
 
@@ -198,19 +198,19 @@ class Program
 
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (8,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         s.F = 2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(8, 9),
-                // (9,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F").WithArguments("ref fields", "11.0").WithLocation(8, 9),
+                // (9,27): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         Console.WriteLine(s.F);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(9, 27),
-                // (12,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F").WithArguments("ref fields", "11.0").WithLocation(9, 27),
+                // (12,27): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         Console.WriteLine(s.F);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(12, 27));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F").WithArguments("ref fields", "11.0").WithLocation(12, 27));
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref T S<T>.F", RefKind.Ref, new string[0]);
 
-            var verifier = CompileAndVerify(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularNext, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+            var verifier = CompileAndVerify(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular11, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
 3
@@ -235,9 +235,9 @@ class Program
 }";
             var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (3,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref readonly T F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref readonly T").WithArguments("ref fields").WithLocation(3, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref readonly T").WithArguments("ref fields", "11.0").WithLocation(3, 12));
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref readonly T S<T>.F", RefKind.RefReadOnly, new string[0]);
 
@@ -270,19 +270,19 @@ class Program
 
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (13,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         s.F.G = 2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(13, 9),
-                // (14,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F").WithArguments("ref fields", "11.0").WithLocation(13, 9),
+                // (14,27): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         Console.WriteLine(s.F.G);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(14, 27),
-                // (17,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F").WithArguments("ref fields", "11.0").WithLocation(14, 27),
+                // (17,27): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         Console.WriteLine(s.F.G);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(17, 27));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F").WithArguments("ref fields", "11.0").WithLocation(17, 27));
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref readonly T S<T>.F", RefKind.RefReadOnly, new string[0]);
 
-            var verifier = CompileAndVerify(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularNext, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+            var verifier = CompileAndVerify(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular11, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
 3
@@ -716,6 +716,37 @@ class Program
             AssertEx.Equal(expectedReferences, fieldReferences.ToTestDisplayStrings());
         }
 
+        [WorkItem(62596, "https://github.com/dotnet/roslyn/issues/62596")]
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void NonRefStructContainer(string type)
+        {
+            var source =
+$@"#pragma warning disable 169
+{type} R
+{{
+    ref int F;
+}}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (4,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     ref int F;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(4, 5),
+                // (4,13): error CS9059: A ref field can only be declared in a ref struct.
+                //     ref int F;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "F").WithLocation(4, 13));
+
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,13): error CS9059: A ref field can only be declared in a ref struct.
+                //     ref int F;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "F").WithLocation(4, 13));
+        }
+
         /// <summary>
         /// Determination of enum underlying type should ignore ref fields
         /// and fields with required custom modifiers.
@@ -804,9 +835,9 @@ class Program
 
             comp = CreateEmptyCompilation(source, references: new[] { refA }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (3,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref T F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 12),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12),
                 // (10,20): error CS8167: Cannot return by reference a member of parameter 'r' because it is not a ref or out parameter
                 //         return ref r.F;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r").WithArguments("r").WithLocation(10, 20));
@@ -816,9 +847,9 @@ class Program
             // https://github.com/dotnet/roslyn/issues/62131: Enable updated escape rules if
             // System.Runtime.CompilerServices.RuntimeFeature.ByRefFields exists.
             comp.VerifyDiagnostics(
-                // (3,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref T F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 12),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12),
                 // (10,20): error CS8167: Cannot return by reference a member of parameter 'r' because it is not a ref or out parameter
                 //         return ref r.F;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r").WithArguments("r").WithLocation(10, 20));
@@ -831,6 +862,71 @@ class Program
             comp = CreateEmptyCompilation(source, references: new[] { refAB });
             comp.VerifyDiagnostics();
             Assert.True(comp.Assembly.RuntimeSupportsByRefFields);
+        }
+
+        /// <summary>
+        /// Ref fields of ref struct type are not supported.
+        /// </summary>
+        [Fact]
+        public void RefFieldTypeRefStruct_01()
+        {
+            var source =
+@"#pragma warning disable 169
+ref struct R1<T>
+{
+}
+ref struct R2<T>
+{
+    public ref R1<T> F;
+}
+class Program
+{
+    static void F(ref R1<int> r1)
+    {
+        var r2 = new R2<int>();
+        r2.F = ref r1;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,12): error CS9050: A ref field cannot refer to a ref struct.
+                //     public ref R1<T> F;
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R1<T>").WithLocation(7, 12));
+        }
+
+        /// <summary>
+        /// Ref fields of ref struct type are not supported.
+        /// </summary>
+        [Fact]
+        public void RefFieldTypeRefStruct_02()
+        {
+            var sourceA =
+@".class public sealed R1 extends [mscorlib]System.ValueType
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (01 00 00 00)
+}
+.class public sealed R2 extends [mscorlib]System.ValueType
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (01 00 00 00)
+  .field public valuetype R1& F
+}
+";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"class Program
+{
+    static void F(ref R1 r1)
+    {
+        var r2 = new R2();
+        r2.F = ref r1;
+    }
+}";
+            var comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (6,12): error CS0570: 'R2.F' is not supported by the language
+                //         r2.F = ref r1;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F").WithArguments("R2.F").WithLocation(6, 12));
         }
 
         [Fact]
@@ -855,9 +951,9 @@ class Program
 
             var expectedLegacyDiagnostics = new DiagnosticDescription[]
             {
-                // (3,5): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     ref T F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 5),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 5),
                 // (5,23): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     ref T F0() => ref this.F;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this.F").WithLocation(5, 23),
@@ -911,9 +1007,9 @@ class Program
 
             var expectedLegacyDiagnostics = new DiagnosticDescription[]
             {
-                // (3,5): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     ref T F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 5),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 5)
             };
 
             var expectedUpdatedDiagnostics = new DiagnosticDescription[]
@@ -5467,31 +5563,11 @@ class Program
         return r2In.R1.F;
     }
 }";
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
-@"42
-42
-42
-"));
-            verifier.VerifyIL("Program.Read<T>",
-@"{
-  // Code size       18 (0x12)
-  .maxstack  1
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  ldfld      ""ref R1<T> R2<T>.R1""
-  IL_0007:  ldfld      ""ref T R1<T>.F""
-  IL_000c:  ldobj      ""T""
-  IL_0011:  ret
-}");
-            verifier.VerifyIL("Program.ReadIn<T>",
-@"{
-  // Code size       17 (0x11)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""ref R1<T> R2<T>.R1""
-  IL_0006:  ldfld      ""ref T R1<T>.F""
-  IL_000b:  ldobj      ""T""
-  IL_0010:  ret
-}");
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,12): error CS9050: A ref field cannot refer to a ref struct.
+                //     public ref R1<T> R1;
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R1<T>").WithLocation(9, 12));
         }
 
         [Fact]
@@ -6197,6 +6273,9 @@ class Program
             var comp = CreateCompilation(source);
             // https://github.com/dotnet/roslyn/issues/62098: Allow ref field of the containing type.
             comp.VerifyEmitDiagnostics(
+                // (3,12): error CS9050: A ref field cannot refer to a ref struct.
+                //     public ref R<T> Next;
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R<T>").WithLocation(3, 12),
                 // (3,21): error CS0523: Struct member 'R<T>.Next' of type 'R<T>' causes a cycle in the struct layout
                 //     public ref R<T> Next;
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "Next").WithArguments("R<T>.Next", "R<T>").WithLocation(3, 21));
@@ -6422,7 +6501,7 @@ class Program
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Span(LanguageVersion languageVersion)
         {
             var source =
@@ -6530,27 +6609,27 @@ public static class A
 }";
             var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (7,33): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,33): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static void F1(R x1, scoped R y1) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 33),
-                // (8,37): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 33),
+                // (8,37): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static void F2(ref R x2, scoped ref R y2, ref scoped R z2) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 37),
-                // (8,58): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 37),
+                // (8,58): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static void F2(ref R x2, scoped ref R y2, ref scoped R z2) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 58),
-                // (9,36): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 58),
+                // (9,36): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static void F3(in R x3, scoped in R y3, in scoped R z3) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 36),
-                // (9,55): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 36),
+                // (9,55): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static void F3(in R x3, scoped in R y3, in scoped R z3) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 55),
-                // (10,37): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 55),
+                // (10,37): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static void F4(out R x4, scoped out R y4, out scoped R z4) { x4 = default; y4 = default; z4 = default; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 37),
-                // (10,58): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 37),
+                // (10,58): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static void F4(out R x4, scoped out R y4, out scoped R z4) { x4 = default; y4 = default; z4 = default; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 58));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 58));
 
             verify(comp);
 
@@ -6617,15 +6696,15 @@ struct B<T>
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (3,7): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,7): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     A(scoped ref T t) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(3, 7),
-                // (4,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(3, 7),
+                // (4,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     T this[scoped in object o] => default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(4, 12),
-                // (5,45): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 12),
+                // (5,45): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static implicit operator B<T>(in scoped A<T> a) => default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(5, 45));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(5, 45));
             verify(comp);
 
             comp = CreateCompilation(source);
@@ -6659,21 +6738,21 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (7,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,24): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         static void L1(scoped R x1) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 24),
-                // (8,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 24),
+                // (8,24): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         static void L2(scoped ref int x2) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 24),
-                // (9,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 24),
+                // (9,24): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         static void L3(scoped in int x3) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 24),
-                // (10,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 24),
+                // (10,24): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         static void L4(scoped out int x4) { x4 = 0; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 24),
-                // (11,38): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 24),
+                // (11,38): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         static void L5(object o, ref scoped R x5) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(11, 38));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(11, 38));
             verify(comp);
 
             comp = CreateCompilation(source);
@@ -6713,21 +6792,21 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (6,19): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,19): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         var f1 = (scoped R x1) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(6, 19),
-                // (7,19): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 19),
+                // (7,19): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         var f2 = (scoped ref int x2) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 19),
-                // (8,19): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 19),
+                // (8,19): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         var f3 = (scoped in int x3) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 19),
-                // (9,19): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 19),
+                // (9,19): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         var f4 = (scoped out int x4) => { x4 = 0; };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 19),
-                // (10,33): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 19),
+                // (10,33): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         var f5 = (object o, ref scoped R x5) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 33));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 33));
             verify(comp);
 
             comp = CreateCompilation(source);
@@ -6774,15 +6853,15 @@ delegate void D3(object o, ref scoped R r3);
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (2,18): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,18): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // delegate void D1(scoped R r1);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(2, 18),
-                // (3,18): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(2, 18),
+                // (3,18): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // delegate void D2(scoped ref R r2);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(3, 18),
-                // (4,32): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(3, 18),
+                // (4,32): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // delegate void D3(object o, ref scoped R r3);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(4, 32));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 32));
             verify(comp);
 
             comp = CreateCompilation(source);
@@ -6814,15 +6893,15 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (4,20): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static void F1(scoped R r1) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(4, 20),
-                // (5,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 20),
+                // (5,24): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static void F2(ref scoped R x, scoped ref int y) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(5, 24),
-                // (5,36): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(5, 24),
+                // (5,36): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static void F2(ref scoped R x, scoped ref int y) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(5, 36),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(5, 36),
                 // (8,19): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
                 //         delegate*<scoped R, void> f1 = &F1;
                 Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(8, 19),
@@ -7213,7 +7292,7 @@ static class Extensions
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void ReturnTypeScope(LanguageVersion langVersion)
         {
             var source =
@@ -7255,7 +7334,7 @@ class Program
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void DelegateReturnTypeScope(LanguageVersion langVersion)
         {
             var source =
@@ -7271,7 +7350,7 @@ delegate ref scoped R D();
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void TypeScopeModifier_01(LanguageVersion langVersion)
         {
             var source =
@@ -7294,7 +7373,7 @@ scoped readonly ref struct C { }
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void TypeScopeModifier_02(LanguageVersion langVersion)
         {
             var source =
@@ -7333,15 +7412,18 @@ ref struct R2
                 // (5,15): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped R1 F1;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("scoped").WithLocation(5, 15),
-                // (6,5): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     ref scoped R1 F2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref scoped R1").WithArguments("ref fields").WithLocation(6, 5),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref scoped R1").WithArguments("ref fields", "11.0").WithLocation(6, 5),
+                // (6,5): error CS9050: A ref field cannot refer to a ref struct.
+                //     ref scoped R1 F2;
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref scoped R1").WithLocation(6, 5),
                 // (6,9): error CS0106: The modifier 'scoped' is not valid for this item
                 //     ref scoped R1 F2;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(6, 9),
-                // (7,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     scoped ref int F3;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref int").WithArguments("ref fields").WithLocation(7, 12),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(7, 12),
                 // (7,20): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped ref int F3;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "F3").WithArguments("scoped").WithLocation(7, 20));
@@ -7351,6 +7433,9 @@ ref struct R2
                 // (5,15): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped R1 F1;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("scoped").WithLocation(5, 15),
+                // (6,5): error CS9050: A ref field cannot refer to a ref struct.
+                //     ref scoped R1 F2;
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref scoped R1").WithLocation(6, 5),
                 // (6,9): error CS0106: The modifier 'scoped' is not valid for this item
                 //     ref scoped R1 F2;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(6, 9),
@@ -7361,7 +7446,7 @@ ref struct R2
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void PropertyTypeScope(LanguageVersion langVersion)
         {
             var source =
@@ -7506,33 +7591,33 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (7,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped R r1 = default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 9),
-                // (8,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 9),
+                // (8,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped ref R r2 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 9),
-                // (9,13): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 9),
+                // (9,13): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         ref scoped R r3 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 13),
-                // (10,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 13),
+                // (10,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped ref scoped R r4 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 9),
-                // (10,20): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 9),
+                // (10,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped ref scoped R r4 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 20),
-                // (11,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 20),
+                // (11,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped ref readonly R r5 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(11, 9),
-                // (12,22): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(11, 9),
+                // (12,22): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         ref readonly scoped R r6 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(12, 22),
-                // (13,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(12, 22),
+                // (13,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped ref readonly scoped R r7 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(13, 9),
-                // (13,29): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(13, 9),
+                // (13,29): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped ref readonly scoped R r7 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(13, 29));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(13, 29));
             verify(comp, useUpdatedEscapeRules: false);
 
             comp = CreateCompilation(source);
@@ -7655,15 +7740,15 @@ ref struct scoped { }
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (3,1): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // scoped scoped s3 = default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(3, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(3, 1),
                 // (3,15): warning CS0219: The variable 's3' is assigned but its value is never used
                 // scoped scoped s3 = default;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s3").WithArguments("s3").WithLocation(3, 15),
-                // (4,1): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // scoped ref scoped s4 = ref s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(4, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 1),
                 // (5,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // ref struct scoped { }
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(5, 12));
@@ -7695,7 +7780,7 @@ ref struct scoped { }
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void LocalScope_05(LanguageVersion langVersion)
         {
             var source =
@@ -11533,7 +11618,7 @@ class Program
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void InstanceMethodWithOutVar_01(LanguageVersion languageVersion)
         {
             var source =
@@ -11587,7 +11672,7 @@ class Program
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void InstanceMethodWithOutVar_03(LanguageVersion languageVersion)
         {
             var source =
@@ -11617,7 +11702,7 @@ class Program
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void ReturnThis_01(LanguageVersion languageVersion)
         {
             var source =
@@ -11639,7 +11724,7 @@ class Program
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void ReturnThis_02(LanguageVersion languageVersion)
         {
             var source =

@@ -46,7 +46,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void TypeChecks(TypeSymbol type, BindingDiagnosticBag diagnostics)
         {
-            if (type.IsStatic)
+            if (type.HasFileLocalTypes() && !ContainingType.HasFileLocalTypes())
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, this.ErrorLocation, type, ContainingType);
+            }
+            else if (type.IsStatic)
             {
                 // Cannot declare a variable of static type '{0}'
                 diagnostics.Add(ErrorCode.ERR_VarDeclIsStaticClass, this.ErrorLocation, type);
@@ -477,11 +481,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var typeOnly = typeSyntax.SkipRef(out refKind);
                     Debug.Assert(refKind is RefKind.None or RefKind.Ref or RefKind.RefReadOnly);
+                    type = binder.BindType(typeOnly, diagnosticsForFirstDeclarator);
                     if (refKind != RefKind.None)
                     {
                         MessageID.IDS_FeatureRefFields.CheckFeatureAvailability(diagnostics, compilation, typeSyntax.Location);
+                        if (!containingType.IsRefLikeType)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_RefFieldInNonRefStruct, ErrorLocation);
+                        }
+                        if (type.Type?.IsRefLikeType == true)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_RefFieldCannotReferToRefStruct, typeSyntax.Location);
+                        }
                     }
-                    type = binder.BindType(typeOnly, diagnosticsForFirstDeclarator);
                 }
                 else
                 {

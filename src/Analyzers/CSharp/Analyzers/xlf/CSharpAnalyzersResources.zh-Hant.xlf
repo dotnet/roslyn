@@ -119,12 +119,12 @@
       </trans-unit>
       <trans-unit id="Nullable_directive_is_redundant">
         <source>Nullable directive is redundant</source>
-        <target state="new">Nullable directive is redundant</target>
+        <target state="translated">可為 Null 的指示詞是多餘的</target>
         <note />
       </trans-unit>
       <trans-unit id="Nullable_directive_is_unnecessary">
         <source>Nullable directive is unnecessary</source>
-        <target state="new">Nullable directive is unnecessary</target>
+        <target state="translated">無須使用可為 Null 的指示詞</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="Remove_redundant_nullable_directive">
         <source>Remove redundant nullable directive</source>
-        <target state="new">Remove redundant nullable directive</target>
+        <target state="translated">移除多餘而可為 Null 的指示詞</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_suppression_operators">
@@ -159,7 +159,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_nullable_directive">
         <source>Remove unnecessary nullable directive</source>
-        <target state="new">Remove unnecessary nullable directive</target>
+        <target state="translated">移除不必要而可為 Null 的指示詞</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">

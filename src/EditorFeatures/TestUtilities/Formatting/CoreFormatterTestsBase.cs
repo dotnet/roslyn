@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
         protected abstract SyntaxNode ParseCompilationUnit(string expected);
 
         internal static void TestIndentation(
-            int point, int? expectedIndentation, ITextView textView, TestHostDocument subjectDocument, IGlobalOptionService globalOptions)
+            int point, int? expectedIndentation, ITextView textView, TestHostDocument subjectDocument, EditorOptionsService editorOptionsService)
         {
             var textUndoHistory = new Mock<ITextUndoHistoryRegistry>();
             var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>();
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             var snapshot = subjectDocument.GetTextBuffer().CurrentSnapshot;
             var indentationLineFromBuffer = snapshot.GetLineFromPosition(point);
 
-            var provider = new SmartIndent(textView, globalOptions);
+            var provider = new SmartIndent(textView, editorOptionsService);
             var actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer);
 
             Assert.Equal(expectedIndentation, actualIndentation.Value);
@@ -75,12 +75,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             bool useTabs)
         {
             var language = GetLanguageName();
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(IndentationOptionsStorage.SmartIndent, language), indentStyle);
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FormattingOptions2.UseTabs, language, useTabs)));
+            var editorOptionsFactory = workspace.GetService<IEditorOptionsFactoryService>();
+            var document = workspace.Documents.First();
+            var textBuffer = document.GetTextBuffer();
+            var editorOptions = editorOptionsFactory.GetOptions(textBuffer);
 
-            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            editorOptions.SetOptionValue(DefaultOptions.IndentStyleId, indentStyle.ToEditorIndentStyle());
+            editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
+
+            // Remove once https://github.com/dotnet/roslyn/issues/62204 is fixed:
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(IndentationOptionsStorage.SmartIndent, document.Project.Language), indentStyle);
+
+            var snapshot = textBuffer.CurrentSnapshot;
             var bufferGraph = new Mock<IBufferGraph>(MockBehavior.Strict);
             bufferGraph.Setup(x => x.MapUpToSnapshot(It.IsAny<SnapshotPoint>(),
                                                      It.IsAny<PointTrackingMode>(),
@@ -106,7 +113,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             textView.Setup(x => x.BufferGraph).Returns(bufferGraph.Object);
             textView.SetupGet(x => x.TextSnapshot.TextBuffer).Returns(projectionBuffer.Object);
 
-            var provider = new SmartIndent(textView.Object, workspace.GlobalOptions);
+            var provider = new SmartIndent(
+                textView.Object,
+                workspace.GetService<EditorOptionsService>());
 
             var indentationLineFromBuffer = snapshot.GetLineFromLineNumber(indentationLine);
             var actualIndentation = provider.GetDesiredIndentation(indentationLineFromBuffer);
@@ -114,25 +123,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             Assert.Equal(expectedIndentation, actualIndentation);
         }
 
-        private protected void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, params (PerLanguageOption2<bool> option, bool enabled)[] options)
+        private protected void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, OptionsCollection options = null)
         {
             AssertFormatWithView(expectedWithMarker, codeWithMarker, parseOptions: null, options);
         }
 
-        private protected void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, ParseOptions parseOptions, params (PerLanguageOption2<bool> option, bool enabled)[] options)
+        private protected void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, ParseOptions parseOptions, OptionsCollection options = null)
         {
             using var workspace = CreateWorkspace(codeWithMarker, parseOptions);
 
-            if (options != null)
-            {
-                var optionSet = workspace.Options;
-                foreach (var option in options)
-                {
-                    optionSet = optionSet.WithChangedOption(option.option, GetLanguageName(), option.enabled);
-                }
-
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(optionSet));
-            }
+            options?.SetGlobalOptions(workspace.GlobalOptions);
 
             // set up caret position
             var testDocument = workspace.Documents.Single();

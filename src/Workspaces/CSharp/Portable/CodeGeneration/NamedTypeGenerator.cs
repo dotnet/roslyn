@@ -267,11 +267,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
-            var defaultAccessibility = destination is CodeGenerationDestination.CompilationUnit or CodeGenerationDestination.Namespace
-                ? Accessibility.Internal
-                : Accessibility.Private;
-
-            AddAccessibilityModifiers(namedType.DeclaredAccessibility, tokens, info, defaultAccessibility);
+            if (!namedType.IsFileLocal)
+            {
+                var defaultAccessibility = destination is CodeGenerationDestination.CompilationUnit or CodeGenerationDestination.Namespace
+                    ? Accessibility.Internal
+                    : Accessibility.Private;
+                AddAccessibilityModifiers(namedType.DeclaredAccessibility, tokens, info, defaultAccessibility);
+            }
+            else
+            {
+                tokens.Add(SyntaxFactory.Token(SyntaxKind.FileKeyword));
+            }
 
             if (namedType.IsStatic)
             {

@@ -10947,7 +10947,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: "not found");
+            var verifier = CompileAndVerify(source, expectedOutput: "Attr`1[System.String]");
             verifier.VerifyDiagnostics();
         }
 

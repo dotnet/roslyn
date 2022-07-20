@@ -555,7 +555,7 @@ namespace Roslyn.Test.Utilities
             string expected,
             string actual,
             string message = null,
-            bool escapeQuotes = true,
+            bool escapeQuotes = false,
             [CallerFilePath] string expectedValueSourcePath = null,
             [CallerLineNumber] int expectedValueSourceLine = 0)
         {
