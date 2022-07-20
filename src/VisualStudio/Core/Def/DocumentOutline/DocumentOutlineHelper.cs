@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         ///         ]
         ///     }
         /// ]
-        public static DocumentSymbolDataModel GetDocumentSymbolDataModel(LspDocumentSymbol[] documentSymbols, ITextSnapshot originalSnapshot)
+        public static DocumentSymbolDataModel CreateDocumentSymbolDataModel(LspDocumentSymbol[] documentSymbols, ITextSnapshot originalSnapshot)
         {
             var allSymbols = documentSymbols
                 .SelectMany(x => x.Children)

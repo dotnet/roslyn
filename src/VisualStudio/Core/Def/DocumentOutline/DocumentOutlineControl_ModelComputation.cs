@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 if (responseBody is null)
                     return null;
 
-                return DocumentOutlineHelper.GetDocumentSymbolDataModel(responseBody, currentSnapshot);
+                return DocumentOutlineHelper.CreateDocumentSymbolDataModel(responseBody, currentSnapshot);
             }
 
             string? GetFilePath()
