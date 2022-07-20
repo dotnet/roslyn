@@ -123,25 +123,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             Assert.Equal(expectedIndentation, actualIndentation);
         }
 
-        private protected void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, params (PerLanguageOption2<bool> option, bool enabled)[] options)
+        private protected void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, OptionsCollection options = null)
         {
             AssertFormatWithView(expectedWithMarker, codeWithMarker, parseOptions: null, options);
         }
 
-        private protected void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, ParseOptions parseOptions, params (PerLanguageOption2<bool> option, bool enabled)[] options)
+        private protected void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, ParseOptions parseOptions, OptionsCollection options = null)
         {
             using var workspace = CreateWorkspace(codeWithMarker, parseOptions);
 
-            if (options != null)
-            {
-                var optionSet = workspace.Options;
-                foreach (var option in options)
-                {
-                    optionSet = optionSet.WithChangedOption(option.option, GetLanguageName(), option.enabled);
-                }
-
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(optionSet));
-            }
+            options?.SetGlobalOptions(workspace.GlobalOptions);
 
             // set up caret position
             var testDocument = workspace.Documents.Single();
