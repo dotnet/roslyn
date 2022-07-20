@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             var renameOptions = new SymbolRenameOptions();
 
-            var fieldLocations = await Renamer.FindRenameLocationsAsync(
+            var fieldLocations = await Renamer.FindLightweightRenameLocationsAsync(
                 solution, fieldSymbol, renameOptions, context.Options, cancellationToken).ConfigureAwait(false);
 
             // First, create the updated property we want to replace the old property with
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             linkedFiles.AddRange(fieldDocument.GetLinkedDocumentIds());
             linkedFiles.AddRange(propertyDocument.GetLinkedDocumentIds());
 
-            var canEdit = new Dictionary<SyntaxTree, bool>();
+            var canEdit = new Dictionary<DocumentId, bool>();
 
             // Now, rename all usages of the field to point at the property.  Except don't actually 
             // rename the field itself.  We want to be able to find it again post rename.
@@ -131,11 +132,13 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             // same as the property we're trying to get the references pointing to.
 
             var filteredLocations = fieldLocations.Filter(
-                location => location.SourceTree != null &&
-                            !location.IntersectsWith(declaratorLocation) &&
-                            CanEditDocument(solution, location.SourceTree, linkedFiles, canEdit));
+                (documentId, span) =>
+                    fieldDocument.Id == documentId &&
+                    !span.IntersectsWith(declaratorLocation.SourceSpan) &&
+                    CanEditDocument(solution, documentId, linkedFiles, canEdit));
 
-            var resolution = await filteredLocations.ResolveConflictsAsync(
+            var resolution = await ConflictResolver.ResolveLightweightConflictsAsync(
+                filteredLocations,
                 propertySymbol.Name,
                 nonConflictSymbols: ImmutableHashSet.Create<ISymbol>(propertySymbol),
                 cancellationToken).ConfigureAwait(false);
@@ -262,17 +265,18 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         }
 
         private static bool CanEditDocument(
-            Solution solution, SyntaxTree sourceTree,
+            Solution solution,
+            DocumentId documentId,
             HashSet<DocumentId> linkedDocuments,
-            Dictionary<SyntaxTree, bool> canEdit)
+            Dictionary<DocumentId, bool> canEdit)
         {
-            if (!canEdit.ContainsKey(sourceTree))
+            if (!canEdit.ContainsKey(documentId))
             {
-                var document = solution.GetDocument(sourceTree);
-                canEdit[sourceTree] = document != null && !linkedDocuments.Contains(document.Id);
+                var document = solution.GetDocument(documentId);
+                canEdit[documentId] = document != null && !linkedDocuments.Contains(document.Id);
             }
 
-            return canEdit[sourceTree];
+            return canEdit[documentId];
         }
 
         private async Task<SyntaxNode> FormatAsync(SyntaxNode newRoot, Document document, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
@@ -288,7 +292,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         }
 
         private static bool IsWrittenToOutsideOfConstructorOrProperty(
-            IFieldSymbol field, RenameLocations renameLocations, TPropertyDeclaration propertyDeclaration, CancellationToken cancellationToken)
+            IFieldSymbol field, LightweightRenameLocations renameLocations, TPropertyDeclaration propertyDeclaration, CancellationToken cancellationToken)
         {
             var constructorNodes = field.ContainingType.GetMembers()
                                                        .Where(m => m.IsConstructor())

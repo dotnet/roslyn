@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Rename.RenameLocations;
 
@@ -125,6 +126,15 @@ namespace Microsoft.CodeAnalysis.Rename
                 renameLocations.ReferencedSymbols.IsDefault ? default : renameLocations.ReferencedSymbols.SelectAsArray(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)));
         }
 
+        public LightweightRenameLocations Filter(Func<DocumentId, TextSpan, bool> filter)
+            => new(
+                this.Symbol,
+                this.Solution,
+                this.Options,
+                this.FallbackOptions,
+                this.Locations.Where(loc => filter(loc.DocumentId, loc.Location.SourceSpan)).ToImmutableHashSet(),
+                this.ImplicitLocations.WhereAsArray(loc => filter(loc.Document, loc.Location)),
+                this.ReferencedSymbols);
     }
 
     /// <summary>
@@ -275,14 +285,5 @@ namespace Microsoft.CodeAnalysis.Rename
         //public Task<ConflictResolution> ResolveConflictsAsync(string replacementText, ImmutableHashSet<ISymbol>? nonConflictSymbols = null, CancellationToken cancellationToken = default)
         //    => ConflictResolver.ResolveLightweightConflictsAsync(this, replacementText, nonConflictSymbols, cancellationToken);
 
-        public RenameLocations Filter(Func<Location, bool> filter)
-            => new(
-                this.Symbol,
-                this.Solution,
-                this.Options,
-                this.FallbackOptions,
-                this.Locations.Where(loc => filter(loc.Location)).ToImmutableHashSet(),
-                this.ImplicitLocations.WhereAsArray(loc => filter(loc.Location)),
-                this.ReferencedSymbols);
     }
 }
