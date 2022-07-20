@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// symbol and returns how to resolve those conflicts.  Will not cross any process boundaries to do this.
         /// </summary>
         internal static async Task<ConflictResolution> ResolveHeavyweightConflictsInCurrentProcessAsync(
-            HeavyweightRenameLocations renameLocations,
+            SymbolicRenameLocations renameLocations,
             string replacementText,
-            ImmutableHashSet<ISymbol>? nonConflictSymbols,
+            ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken)
         {
             // when someone e.g. renames a symbol from metadata through the API (IDE blocks this), we need to return
@@ -56,22 +56,22 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
             var resolution = await ResolveMutableConflictsAsync(
-                renameLocations, renameSymbolDeclarationLocation, replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+                renameLocations, renameSymbolDeclarationLocation, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
 
             return resolution.ToConflictResolution();
         }
 
         private static Task<MutableConflictResolution> ResolveMutableConflictsAsync(
-            HeavyweightRenameLocations renameLocationSet,
+            SymbolicRenameLocations renameLocationSet,
             Location renameSymbolDeclarationLocation,
             string replacementText,
-            ImmutableHashSet<ISymbol>? nonConflictSymbols,
+            ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var session = new Session(
                 renameLocationSet, renameSymbolDeclarationLocation,
-                replacementText, nonConflictSymbols, cancellationToken);
+                replacementText, nonConflictSymbolKeys, cancellationToken);
             return session.ResolveConflictsAsync();
         }
 

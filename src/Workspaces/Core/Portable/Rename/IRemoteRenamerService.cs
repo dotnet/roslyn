@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Rename
             SerializableSymbolAndProjectId symbolAndProjectId,
             string replacementText,
             SymbolRenameOptions options,
-            ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds,
+            ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken);
 
         ValueTask<SerializableRenameLocations?> FindRenameLocationsAsync(
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Rename
             SerializableSymbolAndProjectId symbolAndProjectId,
             SerializableRenameLocations renameLocationSet,
             string replacementText,
-            ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds,
+            ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken);
     }
 
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 _referencedSymbols);
 
         internal static async Task<LightweightRenameLocations?> TryRehydrateAsync(
-            ConnectionScope<IRemoteRenamerService> scope, Solution solution, ISymbol symbol, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations locations, CancellationToken cancellationToken)
+            ConnectionScope<IRemoteRenamerService> scope, Solution solution, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations locations, CancellationToken cancellationToken)
         {
             if (locations == null)
                 return null;
@@ -165,7 +165,6 @@ namespace Microsoft.CodeAnalysis.Rename
 
             return new LightweightRenameLocations(
                 scope,
-                symbol,
                 solution,
                 locations.Options,
                 fallbackOptions,

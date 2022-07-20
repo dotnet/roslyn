@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Rename
 {
     /// <summary>
-    /// Equivalent to <see cref="HeavyweightRenameLocations"/> except that references to symbols are kept in a lightweight fashion
+    /// Equivalent to <see cref="SymbolicRenameLocations"/> except that references to symbols are kept in a lightweight fashion
     /// to avoid expensive rehydration steps as a host and OOP communicate.
     /// </summary>
     internal sealed partial class LightweightRenameLocations
@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Rename
         // Long lasting connection to oop process if we have one.
         public readonly ConnectionScope<IRemoteRenamerService>? RemoteConnectionScope;
 
-        public readonly ISymbol Symbol;
         public readonly Solution Solution;
         public readonly SymbolRenameOptions Options;
         public readonly CodeCleanupOptionsProvider FallbackOptions;
@@ -43,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Rename
 
         private LightweightRenameLocations(
             ConnectionScope<IRemoteRenamerService>? remoteConnectionScope,
-            ISymbol symbol,
             Solution solution,
             SymbolRenameOptions options,
             CodeCleanupOptionsProvider fallbackOptions,
@@ -52,7 +50,6 @@ namespace Microsoft.CodeAnalysis.Rename
             SerializableSymbolAndProjectId[]? referencedSymbols)
         {
             RemoteConnectionScope = remoteConnectionScope;
-            Symbol = symbol;
             Solution = solution;
             Options = options;
             FallbackOptions = fallbackOptions;
@@ -67,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Rename
             RemoteConnectionScope?.Dispose();
         }
 
-        public async Task<HeavyweightRenameLocations?> ToHeavyweightAsync(CancellationToken cancellationToken)
+        public async Task<SymbolicRenameLocations?> ToHeavyweightAsync(ISymbol symbol, CancellationToken cancellationToken)
         {
             var referencedSymbols = _referencedSymbols is null
                 ? default
@@ -80,14 +77,14 @@ namespace Microsoft.CodeAnalysis.Rename
                 ? default
                 : await _implicitLocations.SelectAsArrayAsync(loc => loc.RehydrateAsync(Solution, cancellationToken)).ConfigureAwait(false);
 
-            return new HeavyweightRenameLocations(
-               Symbol,
-               Solution,
-               Options,
-               FallbackOptions,
-               Locations,
-               implicitLocations,
-               referencedSymbols);
+            return new SymbolicRenameLocations(
+                symbol,
+                Solution,
+                Options,
+                FallbackOptions,
+                Locations,
+                implicitLocations,
+                referencedSymbols);
         }
 
         /// <summary>
@@ -118,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Rename
                             if (result.HasValue && result.Value != null)
                             {
                                 var rehydrated = await TryRehydrateAsync(
-                                    renameScope, solution, symbol, fallbackOptions, result.Value, cancellationToken).ConfigureAwait(false);
+                                    renameScope, solution, fallbackOptions, result.Value, cancellationToken).ConfigureAwait(false);
 
                                 if (rehydrated != null)
                                 {
@@ -132,13 +129,13 @@ namespace Microsoft.CodeAnalysis.Rename
                     }
                 }
 
-                var renameLocations = await HeavyweightRenameLocations.FindLocationsInCurrentProcessAsync(
+                var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(
                     symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 // Passing the scope to LightweightRenameLocations. It is responsible now for disposing of it.
                 forwardedScopeOwnership = true;
                 return new LightweightRenameLocations(
-                    renameScope, symbol, solution, options, fallbackOptions, renameLocations.Locations,
+                    renameScope, solution, options, fallbackOptions, renameLocations.Locations,
                     renameLocations.ImplicitLocations.IsDefault ? null : renameLocations.ImplicitLocations.Select(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)).ToArray(),
                     renameLocations.ReferencedSymbols.IsDefault ? null : renameLocations.ReferencedSymbols.Select(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)).ToArray());
             }
@@ -147,6 +144,57 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (!forwardedScopeOwnership)
                     renameScope?.Dispose();
             }
+        }
+
+
+        /// <summary>
+        /// Performs the renaming of the symbol in the solution, identifies renaming conflicts and automatically
+        /// resolves them where possible.
+        /// </summary>
+        /// <param name="replacementText">The new name of the identifier</param>
+        /// <param name="nonConflictSymbolKeys">Used after renaming references. References that now bind to any of these
+        /// symbols are not considered to be in conflict. Useful for features that want to rename existing references to
+        /// point at some existing symbol. Normally this would be a conflict, but this can be used to override that
+        /// behavior.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A conflict resolution containing the new solution.</returns>
+        internal static async Task<ConflictResolution> ResolveLightweightConflictsAsync(
+            ISymbol symbol,
+            LightweightRenameLocations lightweightRenameLocations,
+            string replacementText,
+            ImmutableArray<SymbolKey> nonConflictSymbolKeys,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using (Logger.LogBlock(FunctionId.Renamer_ResolveConflictsAsync, cancellationToken))
+            {
+                var solution = lightweightRenameLocations.Solution;
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                if (client != null)
+                {
+                    var serializableSymbol = SerializableSymbolAndProjectId.Dehydrate(lightweightRenameLocations.Solution, symbol, cancellationToken);
+                    var serializableLocationSet = lightweightRenameLocations.Dehydrate();
+
+                    var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
+                        solution,
+                        (service, solutionInfo, callbackId, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, callbackId, serializableSymbol, serializableLocationSet, replacementText, nonConflictSymbolKeys, cancellationToken),
+                        callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, lightweightRenameLocations.FallbackOptions),
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (result.HasValue && result.Value != null)
+                        return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+
+                    // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)
+                }
+            }
+
+            var heavyweightLocations = await lightweightRenameLocations.ToHeavyweightAsync(symbol, cancellationToken).ConfigureAwait(false);
+            if (heavyweightLocations is null)
+                return new ConflictResolution(WorkspacesResources.Failed_to_resolve_rename_conflicts);
+
+            return await ConflictResolver.ResolveHeavyweightConflictsInCurrentProcessAsync(
+                heavyweightLocations, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<ConnectionScope<IRemoteRenamerService>?> CreateRenameScopeAsync(
@@ -160,12 +208,20 @@ namespace Microsoft.CodeAnalysis.Rename
 
             return client.CreateConnectionScope<IRemoteRenamerService>(
                 solution, callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, fallbackOptions));
+
+            //// Couldn't effectively search in OOP. Perform the search in-proc.
+            //var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(
+            //    symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
+
+            //return new LightweightRenameLocations(
+            //    solution, options, fallbackOptions, renameLocations.Locations,
+            //    renameLocations.ImplicitLocations.IsDefault ? null : renameLocations.ImplicitLocations.Select(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)).ToArray(),
+            //    renameLocations.ReferencedSymbols.IsDefault ? null : renameLocations.ReferencedSymbols.Select(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)).ToArray());
         }
 
         public LightweightRenameLocations Filter(Func<DocumentId, TextSpan, bool> filter)
             => new(
                 this.RemoteConnectionScope,
-                this.Symbol,
                 this.Solution,
                 this.Options,
                 this.FallbackOptions,
@@ -178,15 +234,16 @@ namespace Microsoft.CodeAnalysis.Rename
         /// resolves them where possible.
         /// </summary>
         /// <param name="replacementText">The new name of the identifier</param>
-        /// <param name="nonConflictSymbols">Used after renaming references. References that now bind to any of these
+        /// <param name="nonConflictSymbolKeys">Used after renaming references. References that now bind to any of these
         /// symbols are not considered to be in conflict. Useful for features that want to rename existing references to
         /// point at some existing symbol. Normally this would be a conflict, but this can be used to override that
         /// behavior.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A conflict resolution containing the new solution.</returns>
         internal async Task<ConflictResolution> ResolveConflictsAsync(
+            ISymbol symbol,
             string replacementText,
-            ImmutableHashSet<ISymbol>? nonConflictSymbols,
+            ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -196,12 +253,11 @@ namespace Microsoft.CodeAnalysis.Rename
                 // If we made a remote connection, then piggy back off of that.
                 if (this.RemoteConnectionScope != null)
                 {
-                    var serializableSymbol = SerializableSymbolAndProjectId.Dehydrate(this.Solution, this.Symbol, cancellationToken);
+                    var serializableSymbol = SerializableSymbolAndProjectId.Dehydrate(this.Solution, symbol, cancellationToken);
                     var serializableLocationSet = this.Dehydrate();
-                    var nonConflictSymbolIds = nonConflictSymbols?.SelectAsArray(s => SerializableSymbolAndProjectId.Dehydrate(this.Solution, s, cancellationToken)) ?? default;
 
                     var result = await this.RemoteConnectionScope.TryInvokeAsync<SerializableConflictResolution?>(
-                        (service, solutionInfo, callbackId, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, callbackId, serializableSymbol, serializableLocationSet, replacementText, nonConflictSymbolIds, cancellationToken),
+                        (service, solutionInfo, callbackId, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, callbackId, serializableSymbol, serializableLocationSet, replacementText, nonConflictSymbolKeys, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
 
                     if (result.HasValue && result.Value != null)
@@ -212,12 +268,12 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             // Otherwise, fallback to inproc.
-            var heavyweightLocations = await this.ToHeavyweightAsync(cancellationToken).ConfigureAwait(false);
+            var heavyweightLocations = await this.ToHeavyweightAsync(symbol, cancellationToken).ConfigureAwait(false);
             if (heavyweightLocations is null)
                 return new ConflictResolution(WorkspacesResources.Failed_to_resolve_rename_conflicts);
 
             return await ConflictResolver.ResolveHeavyweightConflictsInCurrentProcessAsync(
-                heavyweightLocations, replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+                heavyweightLocations, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
         }
     }
 }
