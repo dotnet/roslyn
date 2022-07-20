@@ -83,10 +83,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var fallbackOptions = GetClientOptionsProvider(callbackId);
 
-                var result = await RenameLocations.FindLocationsAsync(
+                var result = await LightweightRenameLocations.FindLightweightLocationsAsync(
                     symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                return result.Dehydrate(solution, cancellationToken);
+                return result.Dehydrate();
             }, cancellationToken);
         }
 

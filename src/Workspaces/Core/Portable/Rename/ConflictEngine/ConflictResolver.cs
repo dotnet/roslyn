@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 renameLocations, replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<ConflictResolution> ResolveConflictsInCurrentProcessAsync(
+        internal static async Task<ConflictResolution> ResolveConflictsInCurrentProcessAsync(
             RenameLocations renameLocationSet,
             string replacementText,
             ImmutableHashSet<ISymbol>? nonConflictSymbols,

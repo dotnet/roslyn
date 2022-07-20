@@ -217,8 +217,11 @@ namespace Microsoft.CodeAnalysis.Rename
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var renameLocations = await FindLightweightRenameLocationsAsync(solution, symbol, options, cleanupOptions, cancellationToken).ConfigureAwait(false);
-            return await ConflictResolver.ResolveLightweightConflictsAsync(renameLocations, newName, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+            // Since we know we're in the oop process, we know we won't need to make more OOP calls.  Since this is the
+            // rename entry-point that does the entire rename, we can directly use the heavyweight RenameLocations type,
+            // without having to go through any intermediary LightweightTypes.
+            var renameLocations = await RenameLocations.FindLocationsInCurrentProcessAsync(symbol, solution, options, cleanupOptions, cancellationToken).ConfigureAwait(false);
+            return await ConflictResolver.ResolveConflictsInCurrentProcessAsync(renameLocations, newName, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
         }
     }
 }
