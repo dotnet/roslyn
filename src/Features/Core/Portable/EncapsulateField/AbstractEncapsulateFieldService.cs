@@ -337,11 +337,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         }
 
         private ISet<(DocumentId documentId, TextSpan span)> GetConstructorLocations(Solution solution, INamedTypeSymbol containingType)
-            => GetConstructorNodes(containingType).Select(n =>
-            {
-                var location = n.GetLocation();
-                return (solution.GetRequiredDocument(n.SyntaxTree).Id, n.Span);
-            }).ToSet();
+            => GetConstructorNodes(containingType).Select(n => (solution.GetRequiredDocument(n.SyntaxTree).Id, n.Span)).ToSet();
 
         internal abstract IEnumerable<SyntaxNode> GetConstructorNodes(INamedTypeSymbol containingType);
 
