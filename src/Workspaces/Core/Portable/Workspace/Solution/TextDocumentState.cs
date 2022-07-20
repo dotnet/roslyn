@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         /// only retrieve is asynchronously through <see cref="TextAndVersionSource"/>.
         /// </summary> 
         protected readonly SourceText? sourceText;
-        protected ITextAndVersionSource TextAndVersionSource { get; }
+        internal ITextAndVersionSource TextAndVersionSource { get; }
         public readonly LoadTextOptions LoadTextOptions;
 
         // Checksums for this solution state

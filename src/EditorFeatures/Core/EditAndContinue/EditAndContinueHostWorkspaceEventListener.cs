@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,29 +28,55 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public void StartListening(Workspace workspace, object serviceOpt)
         {
-            workspace.DocumentOpened += WorkspaceDocumentOpened;
+            workspace.WorkspaceChanged += WorkspaceChanged;
         }
 
-        public void StopListening(Workspace workspace)
+        private static void WorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
         {
-            workspace.DocumentOpened -= WorkspaceDocumentOpened;
-        }
+            Debug.Assert(sender is Workspace);
 
-        private void WorkspaceDocumentOpened(object? sender, DocumentEventArgs e)
-        {
             if (!DebuggerContractVersionCheck.IsRequiredDebuggerContractVersionAvailable())
             {
                 return;
             }
 
-            WorkspaceDocumentOpenedImpl(e);
+            if (e.DocumentId == null)
+            {
+                return;
+            }
+
+            var oldDocument = e.OldSolution.GetDocument(e.DocumentId);
+            if (oldDocument == null)
+            {
+                // document added
+                return;
+            }
+
+            var newDocument = e.NewSolution.GetDocument(e.DocumentId);
+            if (newDocument == null)
+            {
+                // document removed
+                return;
+            }
+
+            // When a document is open its loader transitions from file-based loader to text buffer based.
+            // The file checksum is no longer available from the latter, so capture it at this moment.
+            if (oldDocument.State.TextAndVersionSource.CanReloadText && !newDocument.State.TextAndVersionSource.CanReloadText)
+            {
+                WorkspaceDocumentLoaderChanged((Workspace)sender, oldDocument);
+            }
+        }
+
+        public void StopListening(Workspace workspace)
+        {
+            workspace.WorkspaceChanged -= WorkspaceChanged;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void WorkspaceDocumentOpenedImpl(DocumentEventArgs e)
+        private static void WorkspaceDocumentLoaderChanged(Workspace workspace, Document document)
         {
-            var proxy = new RemoteEditAndContinueServiceProxy(e.Document.Project.Solution.Workspace);
-            _ = Task.Run(() => proxy.OnSourceFileUpdatedAsync(e.Document, CancellationToken.None)).ReportNonFatalErrorAsync();
+            var proxy = new RemoteEditAndContinueServiceProxy(workspace);
+            _ = Task.Run(() => proxy.OnSourceFileUpdatedAsync(document, CancellationToken.None)).ReportNonFatalErrorAsync();
         }
     }
 }
