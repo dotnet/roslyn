@@ -39,13 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         }
 
         #region "Annotation"
+
         public override SyntaxNode AnnotateAndRename(RenameRewriterParameters parameters)
         {
             var renameAnnotationRewriter = new RenameRewriter(parameters);
             return renameAnnotationRewriter.Visit(parameters.SyntaxRoot)!;
         }
 
-        internal sealed class RenameRewriter : CSharpSyntaxRewriter
+        private sealed class RenameRewriter : CSharpSyntaxRewriter
         {
             private readonly DocumentId _documentId;
             private readonly Solution _solution;

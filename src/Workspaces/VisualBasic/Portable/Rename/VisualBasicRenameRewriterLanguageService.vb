@@ -27,12 +27,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         Private Sub New()
         End Sub
 
+#Region "Annotation"
+
         Public Overrides Function AnnotateAndRename(parameters As RenameRewriterParameters) As SyntaxNode
             Dim renameRewriter = New SymbolsRenameRewriter(parameters)
             Return renameRewriter.Visit(parameters.SyntaxRoot)
         End Function
 
-        Private Class SymbolsRenameRewriter
+        Private NotInheritable Class SymbolsRenameRewriter
             Inherits VisualBasicSyntaxRewriter
 
             Private ReadOnly _documentId As DocumentId
@@ -759,6 +761,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Return newToken
             End Function
         End Class
+#End Region
 
 #Region "Declaration Conflicts"
 
