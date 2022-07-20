@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private readonly ComEventSink _codeWindowEventsSink;
         private readonly CompilationAvailableTaggerEventSource _textViewEventSource;
         private readonly CancellationTokenSource _cancellationTokenSource;
-        private readonly CancellationToken _cancellationToken;
+        private CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
         /// <summary>
         /// The type of sorting to be applied to the data model in <see cref="FilterAndSortDataModelAsync"/>.
@@ -98,7 +98,6 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _codeWindow = codeWindow;
             _cancellationTokenSource = new CancellationTokenSource();
-            _cancellationToken = _cancellationTokenSource.Token;
             SortOption = SortOption.Location;
 
             _computeDataModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?>(
@@ -106,20 +105,20 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 ComputeDataModelAsync,
                 EqualityComparer<bool>.Default,
                 asyncListener,
-                _cancellationToken);
+                CancellationToken);
 
             _filterAndSortDataModelQueue = new AsyncBatchingWorkQueue<bool, DocumentSymbolDataModel?>(
                 DelayTimeSpan.NearImmediate,
                 FilterAndSortDataModelAsync,
                 EqualityComparer<bool>.Default,
                 asyncListener,
-                _cancellationToken);
+                CancellationToken);
 
             _highlightExpandAndPresentItemsQueue = new AsyncBatchingWorkQueue<ExpansionOption>(
                 DelayTimeSpan.NearImmediate,
                 HighlightExpandAndPresentItemsAsync,
                 asyncListener,
-                _cancellationToken);
+                CancellationToken);
 
             // We don't think the shell is initialized lazily, so we'll Debug.Fail(), but if it was we'd still
             // see the view created later so this will still function.
