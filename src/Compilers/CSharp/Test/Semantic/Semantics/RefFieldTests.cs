@@ -11778,21 +11778,25 @@ public ref struct R
 ";
             var source = @"
 int x = 42;
-var r = new R() { field = ref x }; // 1
+var r1 = new R() { field = ref x }; // 1
+var r2 = new R() { field = x }; // 2
 
-R r2 = default;
-_ = r2 with { field = ref x }; // 2
+R r3 = default;
+_ = r3 with { field = ref x }; // 3
 ";
             var lib = CreateCompilation(lib_cs, parseOptions: TestOptions.Regular11);
 
             var comp = CreateCompilation(source, references: new[] { lib.EmitToImageReference() }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (3,19): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // var r = new R() { field = ref x }; // 1
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(3, 19),
-                // (6,15): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // _ = r2 with { field = ref x }; // 2
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(6, 15)
+                // (3,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // var r1 = new R() { field = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(3, 20),
+                // (4,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // var r2 = new R() { field = x }; // 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(4, 20),
+                // (7,15): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // _ = r3 with { field = ref x }; // 3
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(7, 15)
                 );
         }
 
@@ -11896,6 +11900,36 @@ ref struct R
                 // (3,31): error CS8173: The expression must be of type 'int' because it is being assigned by reference
                 // var r = new R() { field = ref x };
                 Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "x").WithArguments("int").WithLocation(3, 31)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RHSTypeMustMatch_ImplicitConversionExists()
+        {
+            // The right operand must be an expression that yields an lvalue designating a value of the same type as the left operand.
+            var source = @"
+S1 x = default;
+var r = new R() { field = ref x };
+
+struct S1 { }
+struct S2
+{
+    public static implicit operator S2(S1 s1) => throw null;
+}
+ref struct R
+{
+    public ref S2 field;
+    public override string ToString()
+    {
+        return field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,31): error CS8173: The expression must be of type 'S2' because it is being assigned by reference
+                // var r = new R() { field = ref x };
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "x").WithArguments("S2").WithLocation(3, 31)
                 );
         }
 
@@ -12004,6 +12038,8 @@ ref struct R
     public ref int field;
 }
 ";
+            // Confusing error message
+            // Tracked by https://github.com/dotnet/roslyn/issues/62756
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,39): error CS8331: Cannot assign to method 'C.Value()' because it is a readonly variable
@@ -12035,6 +12071,8 @@ ref struct R2
     public ref int _f;
 }
 ";
+            // Diagnostic is missing parameter name
+            // Tracked by https://github.com/dotnet/roslyn/issues/62096
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,31): error CS8331: Cannot assign to variable 'in int' because it is a readonly variable
@@ -12464,6 +12502,35 @@ class C
         }
 
         [Fact]
+        public void RefInitializer_OnEvent_ThisMemberAccess()
+        {
+            var source = @"
+int x = 42;
+var r1 = new C { this.a = ref x }; // 1
+
+class C
+{
+    public event System.Action a;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,16): error CS1922: Cannot initialize type 'C' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                // var r1 = new C { this.a = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ this.a = ref x }").WithArguments("C").WithLocation(3, 16),
+                // (3,18): error CS0747: Invalid initializer member declarator
+                // var r1 = new C { this.a = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "this.a = ref x").WithLocation(3, 18),
+                // (3,18): error CS0026: Keyword 'this' is not valid in a static property, static method, or static field initializer
+                // var r1 = new C { this.a = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_ThisInStaticMeth, "this").WithLocation(3, 18),
+                // (7,32): warning CS0067: The event 'C.a' is never used
+                //     public event System.Action a;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "a").WithArguments("C.a").WithLocation(7, 32)
+                );
+        }
+
+        [Fact]
         public void RefInitializer_OnMethodGroup()
         {
             var source = @"
@@ -12664,6 +12731,22 @@ ref struct R<T>
         }
 
         [Fact]
+        public void RefInitializer_DynamicField_DynamicValue()
+        {
+            var source = @"
+dynamic i = 42;
+var r = new R<dynamic> { F = ref i };
+
+ref struct R<T>
+{
+    public ref T F;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void RefInitializer_DynamicInstance()
         {
             var source = @"
@@ -12806,6 +12889,7 @@ public ref struct R
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(36, 21)
                 );
 
+            // Initializer values behave like constructor parameters for purpose of escape analysis
             source = @"
 public class C
 {
@@ -12906,7 +12990,13 @@ class C
         int x = 42;
         r = new Container { item = { field = ref x } }; // 3
     }
-}
+    public static Container M6()
+    {
+        int x = 42;
+        var r = new Container { item = { field = ref x } };
+        return r; // 4
+    }
+ }
 ref struct Container
 {
     public Item item;
@@ -12926,7 +13016,10 @@ ref struct Item
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(18, 42),
                 // (25,38): error CS8168: Cannot return local 'x' by reference because it is not a ref local
                 //         r = new Container { item = { field = ref x } }; // 3
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(25, 38)
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(25, 38),
+                // (31,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(31, 16)
                 );
         }
 

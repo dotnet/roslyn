@@ -455,9 +455,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
+        [Theory, WorkItem(62120, "https://github.com/dotnet/roslyn/issues/62120")]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void ObjectInitializer_CompoundAssignment(LanguageVersion languageVersion)
+        {
+            string source = "new S { F += ref t }";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
+                // (1,14): error CS1525: Invalid expression term 'ref'
+                // new S { F += ref t }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref t").WithArguments("ref").WithLocation(1, 14)
+                );
+
+            N(SyntaxKind.ObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "S");
+                }
+                N(SyntaxKind.CollectionInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.AddAssignmentExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "F");
+                        }
+                        N(SyntaxKind.PlusEqualsToken);
+                        N(SyntaxKind.RefExpression);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "t");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void RefObjectInitializer_NestedInitializer(LanguageVersion languageVersion)
         {
             string source = "new S { F = ref { F2 = t } }";
@@ -522,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void RefCollectionInitializer(LanguageVersion languageVersion)
         {
             string source = "new S { ref t }";
@@ -554,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void RefDictionaryInitializer(LanguageVersion languageVersion)
         {
             string source = "new S { [0] = ref t }";
@@ -605,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void RefComplexElementInitializer(LanguageVersion languageVersion)
         {
             string source = "new S { ref { 1, 2 } }";
