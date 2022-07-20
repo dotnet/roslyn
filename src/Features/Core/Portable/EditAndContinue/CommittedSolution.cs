@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -229,24 +230,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return (null, DocumentState.DesignTimeOnly);
             }
 
+            Contract.ThrowIfNull(document.FilePath);
+
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var sourceTextVersion = (committedDocument == null) ? await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false) : default;
 
-            // run file IO on a background thread:
-            var (matchingSourceText, pdbHasDocument) = await Task.Run(() =>
-            {
-                var compilationOutputs = _debuggingSession.GetCompilationOutputs(document.Project);
-                using var debugInfoReaderProvider = GetMethodDebugInfoReader(compilationOutputs, document.Project.Name);
-                if (debugInfoReaderProvider == null)
-                {
-                    return (null, null);
-                }
-
-                var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueMethodDebugInfoReader();
-
-                Contract.ThrowIfNull(document.FilePath);
-                return TryGetPdbMatchingSourceText(debugInfoReader, document.FilePath, sourceText.Encoding);
-            }, cancellationToken).ConfigureAwait(false);
+            var (matchingSourceText, pdbHasDocument) = await TryGetMatchingSourceTextAsync(document, sourceText, currentDocument, cancellationToken).ConfigureAwait(false);
 
             lock (_guard)
             {
@@ -323,6 +312,40 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        private async ValueTask<(SourceText? matchingSourceText, bool? hasDocument)> TryGetMatchingSourceTextAsync(Document document, SourceText sourceText, Document? currentDocument, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(document.FilePath);
+
+            var pdbHasDocument = TryReadSourceFileChecksumFromPdb(document, out var requiredChecksum, out var checksumAlgorithm);
+
+            var matchingSourceText = (pdbHasDocument == true) ?
+                await TryGetMatchingSourceTextAsync(sourceText, document.FilePath, currentDocument, requiredChecksum, checksumAlgorithm, cancellationToken).ConfigureAwait(false) : null;
+
+            return (matchingSourceText, pdbHasDocument);
+        }
+
+        private static async ValueTask<SourceText?> TryGetMatchingSourceTextAsync(
+            SourceText sourceText, string filePath, Document? currentDocument, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
+        {
+            if (IsMatchingSourceText(sourceText, requiredChecksum, checksumAlgorithm))
+            {
+                return sourceText;
+            }
+
+            if (currentDocument != null)
+            {
+                var currentDocumentSourceText = await currentDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                if (IsMatchingSourceText(currentDocumentSourceText, requiredChecksum, checksumAlgorithm))
+                {
+                    return currentDocumentSourceText;
+                }
+            }
+
+            return await Task.Run(
+                () => TryGetPdbMatchingSourceTextFromDisk(filePath, sourceText.Encoding, requiredChecksum, checksumAlgorithm, out var sourceTextFromDisk) ? sourceTextFromDisk : null,
+                cancellationToken).ConfigureAwait(false);
+        }
+
         internal static async Task<IEnumerable<KeyValuePair<DocumentId, DocumentState>>> GetMatchingDocumentsAsync(
             IEnumerable<(Project, IEnumerable<CodeAnalysis.DocumentState>)> documentsByProject,
             Func<Project, CompilationOutputs> compilationOutputsProvider,
@@ -364,8 +387,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         // TODO: https://github.com/dotnet/roslyn/issues/51993
                         // avoid rereading the file in common case - the workspace should create source texts with the right checksum algorithm and encoding
-                        var (source, hasDocument) = TryGetPdbMatchingSourceText(debugInfoReader, sourceFilePath, sourceText.Encoding);
-                        if (source != null)
+                        if (TryReadSourceFileChecksumFromPdb(debugInfoReader, sourceFilePath, out var requiredChecksum, out var checksumAlgorithm) == true &&
+                            await TryGetMatchingSourceTextAsync(sourceText, sourceFilePath, currentDocument: null, requiredChecksum, checksumAlgorithm, cancellationToken).ConfigureAwait(false) != null)
                         {
                             return documentState.Id;
                         }
@@ -411,14 +434,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static (SourceText? Source, bool? HasDocument) TryGetPdbMatchingSourceText(EditAndContinueMethodDebugInfoReader debugInfoReader, string sourceFilePath, Encoding? encoding)
-        {
-            var hasDocument = TryReadSourceFileChecksumFromPdb(debugInfoReader, sourceFilePath, out var symChecksum, out var algorithm);
-            if (hasDocument != true)
-            {
-                return (Source: null, hasDocument);
-            }
+        private static bool IsMatchingSourceText(SourceText sourceText, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm)
+            => checksumAlgorithm == sourceText.ChecksumAlgorithm && sourceText.GetChecksum().SequenceEqual(requiredChecksum);
 
+        private static bool TryGetPdbMatchingSourceTextFromDisk(string sourceFilePath, Encoding? encoding, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, [NotNullWhen(true)] out SourceText? matchingSourceText)
+        {
             try
             {
                 using var fileStream = new FileStream(sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
@@ -427,22 +447,40 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // This might differ from the encoding that the compiler chooses, so if we just relied on the compiler we 
                 // might end up updating the committed solution with a document that has a different encoding than 
                 // the one that's in the workspace, resulting in false document changes when we compare the two.
-                var sourceText = SourceText.From(fileStream, encoding, checksumAlgorithm: algorithm);
-                var fileChecksum = sourceText.GetChecksum();
+                var sourceText = SourceText.From(fileStream, encoding, checksumAlgorithm);
 
-                if (fileChecksum.SequenceEqual(symChecksum))
+                if (IsMatchingSourceText(sourceText, requiredChecksum, checksumAlgorithm))
                 {
-                    return (sourceText, hasDocument);
+                    matchingSourceText = sourceText;
+                    return true;
                 }
 
                 EditAndContinueWorkspaceService.Log.Write("Checksum differs for source file '{0}'", sourceFilePath);
-                return (Source: null, hasDocument);
             }
             catch (Exception e)
             {
                 EditAndContinueWorkspaceService.Log.Write("Error calculating checksum for source file '{0}': '{1}'", sourceFilePath, e.Message);
-                return (Source: null, HasDocument: null);
             }
+
+            matchingSourceText = null;
+            return false;
+        }
+
+        private bool? TryReadSourceFileChecksumFromPdb(Document document, out ImmutableArray<byte> requiredChecksum, out SourceHashAlgorithm checksumAlgorithm)
+        {
+            Contract.ThrowIfNull(document.FilePath);
+
+            var compilationOutputs = _debuggingSession.GetCompilationOutputs(document.Project);
+            using var debugInfoReaderProvider = GetMethodDebugInfoReader(compilationOutputs, document.Project.Name);
+            if (debugInfoReaderProvider == null)
+            {
+                requiredChecksum = default;
+                checksumAlgorithm = default;
+                return null;
+            }
+
+            var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueMethodDebugInfoReader();
+            return TryReadSourceFileChecksumFromPdb(debugInfoReader, document.FilePath, out requiredChecksum, out checksumAlgorithm);
         }
 
         /// <summary>
