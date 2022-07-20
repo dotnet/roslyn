@@ -103,8 +103,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 using var _1 = PooledHashSet<TextSpan>.GetInstance(out var conflictLocationSetBuilder);
                 using var _2 = ArrayBuilder<RenameSymbolContext>.GetInstance(out var symbolContextsBuilder);
-                using var _3 = ArrayBuilder<TextSpanRenameContext>.GetInstance(out var tokenTextSpanRenameContextsBuilder);
-                using var _4 = ArrayBuilder<TextSpanRenameContext>.GetInstance(out var stringAndCommentsContextsBuilder);
+                using var _3 = ArrayBuilder<LocationRenameContext>.GetInstance(out var tokenTextSpanRenameContextsBuilder);
+                using var _4 = ArrayBuilder<LocationRenameContext>.GetInstance(out var stringAndCommentsContextsBuilder);
 
                 foreach (var (tag, spans) in annotatedSpans)
                 {
@@ -157,12 +157,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                             var locationsInDocument = renameLocationsSet.Locations.Where(location => location.DocumentId == document.Id).ToImmutableArray();
                             var textSpanRenameContexts = locationsInDocument
                                 .WhereAsArray(location => RenameUtilities.ShouldIncludeLocation(renameLocationsSet.Locations, location))
-                                .SelectAsArray(location => new TextSpanRenameContext(location, symbolContext));
+                                .SelectAsArray(location => new LocationRenameContext(location, symbolContext));
                             tokenTextSpanRenameContextsBuilder.AddRange(textSpanRenameContexts);
 
                             var stringAndCommentsRenameContexts = locationsInDocument
                                 .WhereAsArray(location => location.IsRenameInStringOrComment)
-                                .SelectAsArray(location => new TextSpanRenameContext(location, symbolContext));
+                                .SelectAsArray(location => new LocationRenameContext(location, symbolContext));
                             stringAndCommentsContextsBuilder.AddRange(stringAndCommentsRenameContexts);
                         }
                     }

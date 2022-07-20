@@ -8,5 +8,5 @@ namespace Microsoft.CodeAnalysis.Rename
     /// Represent the rename context information for the given <paramref name="RenameLocation"/>.
     /// </summary>
     /// <param name="SymbolContext">The linked rename symbol for this location.</param>
-    internal record TextSpanRenameContext(RenameLocation RenameLocation, RenameSymbolContext SymbolContext);
+    internal readonly record struct LocationRenameContext(RenameLocation RenameLocation, RenameSymbolContext SymbolContext);
 }

@@ -800,16 +800,16 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         // Get all rename locations for the current document.
                         var textSpanRenameContexts = locationsInDocument
                             .Where(location => ShouldIncludeLocation(renameLocations, location))
-                            .SelectAsArray(location => new TextSpanRenameContext(location, symbolContext));
+                            .SelectAsArray(location => new LocationRenameContext(location, symbolContext));
 
                         // All textspan in the document documentId, that requires rename in String or Comment
                         var stringAndCommentTextSpanContexts = locationsInDocument
                             .Where(l => l.IsRenameInStringOrComment)
-                            .SelectAsArray(location => new TextSpanRenameContext(location, symbolContext));
+                            .SelectAsArray(location => new LocationRenameContext(location, symbolContext));
 
                         var conflictLocationSpans = _conflictLocations
                                                     .Where(t => t.DocumentId == documentId)
-                                                    .Select(t => t.ComplexifiedSpan).ToImmutableHashSet();
+                                                    .Select(t => t.ComplexifiedSpan).ToSet();
 
                         // Annotate all nodes with a RenameLocation annotations to record old locations & old referenced symbols.
                         // Also annotate nodes that should get complexified (nodes for rename locations + conflict locations)

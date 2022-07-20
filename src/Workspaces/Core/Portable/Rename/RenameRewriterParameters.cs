@@ -11,8 +11,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
-    internal record RenameRewriterParameters(
-        ImmutableHashSet<TextSpan> ConflictLocationSpans,
+    internal readonly record struct RenameRewriterParameters(
+        ISet<TextSpan> ConflictLocationSpans,
         Solution OriginalSolution,
         SyntaxTree OriginalSyntaxTree,
         RenamedSpansTracker RenameSpansTracker,
@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Rename
         Document Document,
         SemanticModel SemanticModel,
         AnnotationTable<RenameAnnotation> RenameAnnotations,
-        ImmutableArray<TextSpanRenameContext> TokenTextSpanRenameContexts,
-        ImmutableArray<TextSpanRenameContext> StringAndCommentsTextSpanRenameContexts,
+        ImmutableArray<LocationRenameContext> TokenTextSpanRenameContexts,
+        ImmutableArray<LocationRenameContext> StringAndCommentsTextSpanRenameContexts,
         ImmutableArray<RenameSymbolContext> RenameSymbolContexts,
         CancellationToken CancellationToken);
 }

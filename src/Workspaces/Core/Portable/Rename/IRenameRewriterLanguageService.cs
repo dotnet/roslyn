@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
@@ -149,5 +151,148 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
             }
         }
+
+        protected static Dictionary<SymbolKey, RenameSymbolContext> GroupRenameContextBySymbolKey(
+            ImmutableArray<RenameSymbolContext> symbolContexts, IEqualityComparer<SymbolKey> comparer)
+        {
+            var renameContexts = new Dictionary<SymbolKey, RenameSymbolContext>(comparer);
+            foreach (var context in symbolContexts)
+            {
+                renameContexts[context.RenamedSymbol.GetSymbolKey()] = context;
+            }
+
+            return renameContexts;
+        }
+
+        protected static Dictionary<TextSpan, LocationRenameContext> GroupTextRenameContextsByTextSpan(
+            ImmutableArray<LocationRenameContext> textSpanRenameContexts)
+        {
+            var textSpanToRenameContext = new Dictionary<TextSpan, LocationRenameContext>();
+            foreach (var context in textSpanRenameContexts)
+            {
+                var textSpan = context.RenameLocation.Location.SourceSpan;
+                if (!textSpanToRenameContext.TryGetValue(textSpan, out var existingRenameContext))
+                {
+                    textSpanToRenameContext[textSpan] = context;
+                }
+#if DEBUG
+                else if (!existingRenameContext.Equals(context))
+                {
+                    // A textSpan is being renamed with different rename location info, should not happen.
+                    throw new ArgumentException(
+                        $"{textSpan} of {context.RenameLocation.DocumentId} is being renamed to two differnt locations info: {existingRenameContext}, {context}. ");
+                }
+#endif
+            }
+
+            return textSpanToRenameContext;
+        }
+
+        protected static Dictionary<TextSpan, HashSet<LocationRenameContext>> GroupStringAndCommentsTextSpanRenameContexts(
+            ImmutableArray<LocationRenameContext> renameSymbolContexts)
+        {
+            var textSpanToRenameContexts = new Dictionary<TextSpan, HashSet<LocationRenameContext>>();
+            foreach (var context in renameSymbolContexts)
+            {
+                var containingSpan = context.RenameLocation.ContainingLocationForStringOrComment;
+                if (textSpanToRenameContexts.TryGetValue(containingSpan, out var existingContexts))
+                {
+                    existingContexts.Add(context);
+                }
+                else
+                {
+                    textSpanToRenameContexts[containingSpan] = new HashSet<LocationRenameContext>() { context };
+                }
+            }
+
+            return textSpanToRenameContexts;
+        }
+
+        protected static ImmutableHashSet<RenameSymbolContext> FilterRenameSymbolContexts(
+            IEnumerable<RenameSymbolContext> renameContexts, Func<RenameSymbolContext, bool> predicate)
+        {
+            using var _ = PooledHashSet<RenameSymbolContext>.GetInstance(out var builder);
+
+            foreach (var renameSymbolContext in renameContexts)
+            {
+                if (predicate(renameSymbolContext))
+                    builder.Add(renameSymbolContext);
+            }
+
+            return builder.ToImmutableHashSet();
+        }
+
+        /// <summary>
+        /// Given a set of renameLocations, create a sorted dictionary, maps the renameLocation to its replacementText and matchedText.
+        /// The map is later used when rename inside a comment/string.
+        /// e.g.
+        /// class Hello
+        /// {
+        ///     void World()
+        ///     {
+        ///         var hello = "Hello World".
+        ///     }
+        /// }
+        /// If rename class 'Hello' to 'Hello2', void 'World' to 'World2',
+        /// <param name="locationRenameContexts"/> would contain the subspan info within string "Hello World".
+        /// The output dictionary woud looks like
+        /// {
+        ///     "0-4" : ("Hello", "Hello2"),
+        ///     "6-10" : ("World", "World2")
+        /// }
+        /// </summary>
+        internal static ImmutableSortedDictionary<TextSpan, (string replacementText, string matchText)> CreateSubSpanToReplacementTextDictionary(
+            HashSet<LocationRenameContext> locationRenameContexts)
+        {
+            var subSpanToReplacementTextBuilder = ImmutableSortedDictionary.CreateBuilder<TextSpan, (string replacementText, string matchText)>();
+            foreach (var context in locationRenameContexts)
+            {
+                var renameLocation = context.RenameLocation;
+                var location = renameLocation.Location;
+                var replacementText = context.SymbolContext.ReplacementText;
+                var originalText = context.SymbolContext.OriginalText;
+                if (location.IsInSource && renameLocation.IsRenameInStringOrComment)
+                {
+                    var sourceSpan = location.SourceSpan;
+
+                    // SourceSpan should be a part of the containing location.
+                    RoslynDebug.Assert(sourceSpan.Start >= renameLocation.ContainingLocationForStringOrComment.Start);
+                    RoslynDebug.Assert(sourceSpan.End <= renameLocation.ContainingLocationForStringOrComment.End);
+
+                    // Calculate the relative postion within the containg location.
+                    var subSpan = new TextSpan(
+                        sourceSpan.Start - renameLocation.ContainingLocationForStringOrComment.Start,
+                        sourceSpan.Length);
+
+                    if (!subSpanToReplacementTextBuilder.TryGetValue(subSpan, out var replacementTextAndOriginalText))
+                    {
+                        subSpanToReplacementTextBuilder[subSpan] = (replacementText, originalText);
+                    }
+#if DEBUG
+                    else if (!replacementTextAndOriginalText.Equals((replacementText, originalText)))
+                    {
+                        // Two symbol tries to rename a same subspan,
+                        // Exmaple:
+                        //      // Comment Hello
+                        // class Hello
+                        // {
+                        //    
+                        // }
+                        // class World
+                        // {
+                        //    void Hello() { }
+                        // }
+                        // If try to rename both 'class Hello' to 'Bar' and 'void Hello()' to 'Goo'. So both of them will try to rename
+                        // 'Comment Hello'.
+                        throw new ArgumentException(
+                            $"{sourceSpan} of {context.RenameLocation.DocumentId} is being renamed to two differnt locations text: {replacementTextAndOriginalText.replacementText}, {replacementText}. ");
+                    }
+#endif
+                }
+            }
+
+            return subSpanToReplacementTextBuilder.ToImmutable();
+        }
+
     }
 }
