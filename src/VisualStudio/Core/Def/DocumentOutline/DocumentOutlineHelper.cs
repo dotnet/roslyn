@@ -215,17 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             static bool SearchNodeTree(DocumentSymbolData tree, PatternMatcher patternMatcher, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
-                if (patternMatcher.Matches(tree.Name))
-                    return true;
-
-                foreach (var childItem in tree.Children)
-                {
-                    if (SearchNodeTree(childItem, patternMatcher, cancellationToken))
-                        return true;
-                }
-
-                return false;
+                return patternMatcher.Matches(tree.Name) || tree.Children.Any(c => SearchNodeTree(c, patternMatcher, cancellationToken));
             }
         }
 
