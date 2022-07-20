@@ -114,11 +114,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (rehydratedSet == null)
                     return null;
 
-                var result = await ConflictResolver.ResolveConflictsAsync(
-                    rehydratedSet,
-                    replacementText,
-                    nonConflictSymbols,
-                    cancellationToken).ConfigureAwait(false);
+                var result = await ConflictResolver.ResolveConflictsInCurrentProcessAsync(
+                    rehydratedSet, replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
                 return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }

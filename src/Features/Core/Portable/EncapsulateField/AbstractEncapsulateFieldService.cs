@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         {
             foreach (var constructor in constructorLocations)
             {
-                if (constructor.documentId == documentId&&
+                if (constructor.documentId == documentId &&
                     span.IntersectsWith(constructor.span))
                 {
                     return true;

@@ -280,10 +280,5 @@ namespace Microsoft.CodeAnalysis.Rename
 
             return new SearchResult(locations.ToImmutable(), implicitLocations, referencedSymbols);
         }
-
-
-        //public Task<ConflictResolution> ResolveConflictsAsync(string replacementText, ImmutableHashSet<ISymbol>? nonConflictSymbols = null, CancellationToken cancellationToken = default)
-        //    => ConflictResolver.ResolveLightweightConflictsAsync(this, replacementText, nonConflictSymbols, cancellationToken);
-
     }
 }
