@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // prepare workspace as if it was loaded from project files:
             using var _ = CreateWorkspace(out var solution, out var service, new[] { typeof(NoCompilationLanguageService) });
 
-            var projectPId = ProjectId.CreateNewId();            
+            var projectPId = ProjectId.CreateNewId();
             solution = solution
                 .AddProject(projectPId, "P", "P", LanguageNames.CSharp)
                 .WithProjectChecksumAlgorithm(projectPId, SourceHashAlgorithm.Sha1);
@@ -984,7 +984,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var document1 = solution.
                 AddProject("test", "test", LanguageNames.CSharp).
                 AddMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework)).
-                AddDocument("a.cs", SourceText.From(source1, Encoding.UTF8), filePath: sourceFile.Path);
+                AddDocument("a.cs", SourceText.From(source1, Encoding.UTF8, SourceHashAlgorithms.Default), filePath: sourceFile.Path);
 
             var project = document1.Project;
             solution = project.Solution;
@@ -995,7 +995,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EnterBreakState(debuggingSession);
 
             // change the source:
-            solution = solution.WithDocumentText(document1.Id, SourceText.From("class C1 { void M() { System.Console.WriteLine(2); } }", Encoding.UTF8));
+            solution = solution.WithDocumentText(document1.Id, SourceText.From("class C1 { void M() { System.Console.WriteLine(2); } }", Encoding.UTF8, SourceHashAlgorithms.Default));
             var document2 = solution.GetDocument(document1.Id);
 
             using var fileLock = File.Open(sourceFile.Path, FileMode.Open, FileAccess.Read, FileShare.None);
