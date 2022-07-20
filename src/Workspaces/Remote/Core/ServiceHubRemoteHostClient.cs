@@ -5,6 +5,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -122,6 +123,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 _assetStorage,
                 _errorReportingService,
                 _shutdownCancellationService);
+        }
+
+        public override async Task<ConnectionScope<TService>> CreateConnectionScopeAsync<TService>(
+            Solution solution, object? callbackTarget, CancellationToken cancellationToken)
+        {
+            // ConnectionScope will take ownership of both connection and scope.
+            var connection = CreateConnection<TService>(callbackTarget);
+            var scope = await connection.CreateScopeAsync(solution, cancellationToken).ConfigureAwait(false);
+            return new ConnectionScope<TService>(connection, solution, scope);
         }
 
         public override void Dispose()

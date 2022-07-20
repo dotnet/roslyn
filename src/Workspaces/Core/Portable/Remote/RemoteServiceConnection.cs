@@ -3,14 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
+    internal interface IRemoteScope : IDisposable
+    {
+    }
+
     /// <summary>
     /// Abstracts a connection to a service implementing type <typeparamref name="TService"/>.
     /// </summary>
@@ -18,12 +19,9 @@ namespace Microsoft.CodeAnalysis.Remote
     internal abstract class RemoteServiceConnection<TService> : IDisposable
         where TService : class
     {
-        public interface IScope : IDisposable
-        {
-            Checksum SolutionChecksum { get; }
-        }
-
         public abstract void Dispose();
+
+        public abstract Task<IRemoteScope> CreateScopeAsync(Solution solution, CancellationToken cancellationToken);
 
         // no solution, no callback
 
@@ -82,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Remote
             CancellationToken cancellationToken);
 
         public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
-            IScope scope,
+            IRemoteScope scope,
             Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
             CancellationToken cancellationToken);
 

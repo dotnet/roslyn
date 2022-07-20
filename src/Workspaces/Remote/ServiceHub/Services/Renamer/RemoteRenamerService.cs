@@ -103,12 +103,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (symbol is null)
                     return null;
 
-                var locations = await LightweightRenameLocations.TryRehydrateAsync(
-                    solution, GetClientOptionsProvider(callbackId), serializableLocations, cancellationToken).ConfigureAwait(false);
+                var locations = await SymbolicRenameLocations.TryRehydrateAsync(
+                    symbol, solution, GetClientOptionsProvider(callbackId), serializableLocations, cancellationToken).ConfigureAwait(false);
                 if (locations == null)
                     return null;
 
-                var result = await locations.ResolveConflictsAsync(symbol, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+                var result = await ConflictResolver.ResolveHeavyweightConflictsInCurrentProcessAsync(
+                    locations, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
                 return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }

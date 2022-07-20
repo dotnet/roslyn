@@ -174,6 +174,36 @@ namespace Microsoft.CodeAnalysis.Rename
         }
     }
 
+    internal partial class SymbolicRenameLocations
+    {
+        internal static async Task<SymbolicRenameLocations?> TryRehydrateAsync(
+            ISymbol symbol, Solution solution, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations locations, CancellationToken cancellationToken)
+        {
+            if (locations == null)
+                return null;
+
+            Contract.ThrowIfNull(locations.Locations);
+
+            using var _1 = ArrayBuilder<RenameLocation>.GetInstance(locations.Locations.Length, out var locBuilder);
+            foreach (var loc in locations.Locations)
+                locBuilder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
+
+            var rehydrated = await SerializableRenameLocations.TryRehydrateAsync(
+                solution, locations.ImplicitLocations, locations.ReferencedSymbols, cancellationToken).ConfigureAwait(false);
+            if (rehydrated == null)
+                return null;
+
+            return new SymbolicRenameLocations(
+                symbol,
+                solution,
+                locations.Options,
+                fallbackOptions,
+                locBuilder.ToImmutableHashSet(),
+                rehydrated.Value.implicitLocations,
+                rehydrated.Value.referencedSymbols);
+        }
+    }
+
     [DataContract]
     internal sealed class SerializableRenameLocations
     {
@@ -201,6 +231,23 @@ namespace Microsoft.CodeAnalysis.Rename
             Locations = locations;
             ImplicitLocations = implicitLocations;
             ReferencedSymbols = referencedSymbols;
+        }
+
+        public static async Task<(ImmutableArray<ReferenceLocation> implicitLocations, ImmutableArray<ISymbol> referencedSymbols)?> TryRehydrateAsync(
+            Solution solution, SerializableReferenceLocation[]? implicitLocations, SerializableSymbolAndProjectId[]? referencedSymbols, CancellationToken cancellationToken)
+        {
+            var implicitLocationsArray = implicitLocations is null
+                ? default
+                : await implicitLocations.SelectAsArrayAsync(loc => loc.RehydrateAsync(solution, cancellationToken)).ConfigureAwait(false);
+
+            var referencedSymbolsArray = referencedSymbols is null
+                ? default
+                : await referencedSymbols.SelectAsArrayAsync(sym => sym.TryRehydrateAsync(solution, cancellationToken)).ConfigureAwait(false);
+
+            if (!referencedSymbolsArray.IsDefault && referencedSymbols.Any(s => s is null))
+                return null;
+
+            return (implicitLocationsArray, referencedSymbolsArray);
         }
     }
 

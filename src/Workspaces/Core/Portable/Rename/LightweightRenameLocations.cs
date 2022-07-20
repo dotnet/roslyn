@@ -66,16 +66,10 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public async Task<SymbolicRenameLocations?> ToHeavyweightAsync(ISymbol symbol, CancellationToken cancellationToken)
         {
-            var referencedSymbols = _referencedSymbols is null
-                ? default
-                : await _referencedSymbols.SelectAsArrayAsync(sym => sym.TryRehydrateAsync(Solution, cancellationToken)).ConfigureAwait(false);
-
-            if (!referencedSymbols.IsDefault && referencedSymbols.Any(s => s is null))
+            var rehydrated = await SerializableRenameLocations.TryRehydrateAsync(
+                this.Solution, _implicitLocations, _referencedSymbols, cancellationToken).ConfigureAwait(false);
+            if (rehydrated == null)
                 return null;
-
-            var implicitLocations = _implicitLocations is null
-                ? default
-                : await _implicitLocations.SelectAsArrayAsync(loc => loc.RehydrateAsync(Solution, cancellationToken)).ConfigureAwait(false);
 
             return new SymbolicRenameLocations(
                 symbol,
@@ -83,8 +77,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 Options,
                 FallbackOptions,
                 Locations,
-                implicitLocations,
-                referencedSymbols);
+                rehydrated.Value.implicitLocations,
+                rehydrated.Value.referencedSymbols);
         }
 
         /// <summary>
@@ -206,17 +200,9 @@ namespace Microsoft.CodeAnalysis.Rename
             if (client == null)
                 return null;
 
-            return client.CreateConnectionScope<IRemoteRenamerService>(
-                solution, callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, fallbackOptions));
-
-            //// Couldn't effectively search in OOP. Perform the search in-proc.
-            //var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(
-            //    symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
-
-            //return new LightweightRenameLocations(
-            //    solution, options, fallbackOptions, renameLocations.Locations,
-            //    renameLocations.ImplicitLocations.IsDefault ? null : renameLocations.ImplicitLocations.Select(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)).ToArray(),
-            //    renameLocations.ReferencedSymbols.IsDefault ? null : renameLocations.ReferencedSymbols.Select(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)).ToArray());
+            var callbackTarget = new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, fallbackOptions);
+            return await client.CreateConnectionScopeAsync<IRemoteRenamerService>(
+                solution, callbackTarget, cancellationToken).ConfigureAwait(false);
         }
 
         public LightweightRenameLocations Filter(Func<DocumentId, TextSpan, bool> filter)

@@ -15,16 +15,11 @@ namespace Microsoft.CodeAnalysis.Remote;
 
 internal partial class SolutionAssetStorage
 {
-    internal interface IScope : IDisposable
-    {
-
-    }
-
-    internal sealed partial class Scope : IDisposable
+    internal sealed partial class Scope : IRemoteScope
     {
         private readonly SolutionAssetStorage _storage;
 
-        public readonly Checksum SolutionChecksum;
+        public Checksum SolutionChecksum { get; }
         public readonly SolutionState Solution;
 
         /// <summary>

@@ -85,6 +85,19 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             base.Dispose();
         }
 
+        public override Task<ConnectionScope<TService>> CreateConnectionScopeAsync<TService>(Solution solution, object? callbackTarget, CancellationToken cancellationToken)
+        {
+            var connection = this.CreateConnection<TService>(callbackTarget);
+            return Task.FromResult(new ConnectionScope<TService>(connection, solution, new TrivialRemoteScope()));
+        }
+
+        private sealed class TrivialRemoteScope : IRemoteScope
+        {
+            public void Dispose()
+            {
+            }
+        }
+
         public sealed class ServiceProvider : IServiceProvider
         {
             public readonly TraceSource TraceSource;

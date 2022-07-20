@@ -13,18 +13,18 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal abstract class ConnectionScope<TService> : IDisposable
+    internal sealed class ConnectionScope<TService> : IDisposable
         where TService : class
     {
         public RemoteServiceConnection<TService> Connection { get; }
         public Solution Solution { get; }
 
-        private readonly RemoteServiceConnection<TService>.IScope _scope;
+        private readonly IRemoteScope _scope;
 
-        protected ConnectionScope(
+        public ConnectionScope(
             RemoteServiceConnection<TService> connection,
             Solution solution,
-            RemoteServiceConnection<TService>.IScope scope)
+            IRemoteScope scope)
         {
             Connection = connection;
             Solution = solution;
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return service.TryGetRemoteHostClientAsync(cancellationToken);
         }
 
-        public abstract ConnectionScope<TService> CreateConnectionScope<TService>(Solution solution, object? callbackTarget) where TService : class;
+        public abstract Task<ConnectionScope<TService>> CreateConnectionScopeAsync<TService>(Solution solution, object? callbackTarget, CancellationToken cancellationToken) where TService : class;
 
         public abstract RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget)
             where T : class;
