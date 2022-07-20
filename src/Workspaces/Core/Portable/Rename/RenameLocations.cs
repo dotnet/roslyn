@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Rename
                         if (result.HasValue && result.Value != null)
                         {
                             var rehydrated = await TryRehydrateAsync(
-                                solution, fallbackOptions, result.Value, cancellationToken).ConfigureAwait(false);
+                                solution, symbol, fallbackOptions, result.Value, cancellationToken).ConfigureAwait(false);
 
                             if (rehydrated != null)
                                 return rehydrated;

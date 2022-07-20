@@ -51,12 +51,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
+                    var serializableSymbol = SerializableSymbolAndProjectId.Dehydrate(renameLocationSet.Solution, renameLocationSet.Symbol, cancellationToken);
                     var serializableLocationSet = renameLocationSet.Dehydrate(solution, cancellationToken);
                     var nonConflictSymbolIds = nonConflictSymbols?.SelectAsArray(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)) ?? default;
 
                     var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
                         solution,
-                        (service, solutionInfo, callbackId, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, callbackId, serializableLocationSet, replacementText, nonConflictSymbolIds, cancellationToken),
+                        (service, solutionInfo, callbackId, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, callbackId, serializableSymbol, serializableLocationSet, replacementText, nonConflictSymbolIds, cancellationToken),
                         callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, renameLocationSet.FallbackOptions),
                         cancellationToken).ConfigureAwait(false);
 

@@ -85,7 +85,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var result = await RenameLocations.FindLocationsAsync(
                     symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
-
                 return result.Dehydrate(solution, cancellationToken);
             }, cancellationToken);
         }
@@ -93,6 +92,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public ValueTask<SerializableConflictResolution?> ResolveConflictsAsync(
             Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
+            SerializableSymbolAndProjectId symbolAndProjectId,
             SerializableRenameLocations renameLocationSet,
             string replacementText,
             ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds,
@@ -100,11 +100,16 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
+                var symbol = await symbolAndProjectId.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                if (symbol is null)
+                    return null;
+
                 var nonConflictSymbols = await GetNonConflictSymbolsAsync(solution, nonConflictSymbolIds, cancellationToken).ConfigureAwait(false);
 
                 var fallbackOptions = GetClientOptionsProvider(callbackId);
 
-                var rehydratedSet = await RenameLocations.TryRehydrateAsync(solution, fallbackOptions, renameLocationSet, cancellationToken).ConfigureAwait(false);
+                var rehydratedSet = await RenameLocations.TryRehydrateAsync(
+                    solution, symbol, fallbackOptions, renameLocationSet, cancellationToken).ConfigureAwait(false);
                 if (rehydratedSet == null)
                     return null;
 

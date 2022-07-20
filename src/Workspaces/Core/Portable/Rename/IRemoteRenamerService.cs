@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Rename
         ValueTask<SerializableConflictResolution?> ResolveConflictsAsync(
             Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
+            SerializableSymbolAndProjectId symbolAndProjectId,
             SerializableRenameLocations renameLocationSet,
             string replacementText,
             ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds,
@@ -203,20 +204,13 @@ namespace Microsoft.CodeAnalysis.Rename
     {
         public SerializableRenameLocations Dehydrate(Solution solution, CancellationToken cancellationToken)
             => new(
-                SerializableSymbolAndProjectId.Dehydrate(solution, Symbol, cancellationToken),
                 Options,
                 SerializableSearchResult.Dehydrate(solution, _result, cancellationToken));
 
-        internal static async Task<RenameLocations?> TryRehydrateAsync(Solution solution, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations locations, CancellationToken cancellationToken)
+        internal static async Task<RenameLocations?> TryRehydrateAsync(
+            Solution solution, ISymbol symbol, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations locations, CancellationToken cancellationToken)
         {
             if (locations == null)
-                return null;
-
-            if (locations.Symbol == null)
-                return null;
-
-            var symbol = await locations.Symbol.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-            if (symbol == null)
                 return null;
 
             Contract.ThrowIfNull(locations.Result);
@@ -234,17 +228,13 @@ namespace Microsoft.CodeAnalysis.Rename
     internal sealed class SerializableRenameLocations
     {
         [DataMember(Order = 0)]
-        public readonly SerializableSymbolAndProjectId? Symbol;
-
-        [DataMember(Order = 1)]
         public readonly SymbolRenameOptions Options;
 
-        [DataMember(Order = 2)]
+        [DataMember(Order = 1)]
         public readonly SerializableSearchResult? Result;
 
-        public SerializableRenameLocations(SerializableSymbolAndProjectId? symbol, SymbolRenameOptions options, SerializableSearchResult? result)
+        public SerializableRenameLocations(SymbolRenameOptions options, SerializableSearchResult? result)
         {
-            Symbol = symbol;
             Options = options;
             Result = result;
         }
