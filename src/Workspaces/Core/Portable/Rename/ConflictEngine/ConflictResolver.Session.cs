@@ -41,8 +41,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private readonly ImmutableHashSet<ISymbol>? _nonConflictSymbols;
             private readonly CancellationToken _cancellationToken;
 
-            private readonly RenameAnnotation _renamedSymbolDeclarationAnnotation = new();
-
             // Contains Strings like Bar -> BarAttribute ; Property Bar -> Bar , get_Bar, set_Bar
             private readonly List<string> _possibleNameConflicts = new();
             private readonly HashSet<DocumentId> _documentsIdsToBeCheckedForConflict = new();
@@ -770,16 +768,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     var symbolContext = new RenameSymbolContext
                     (
-                        RenamableSymbolDeclarationAnnotation: _renamedSymbolDeclarationAnnotation,
-                        RenamableDeclarationLocation: _renameSymbolDeclarationLocation,
                         ReplacementText: _replacementText,
                         OriginalText: _originalText,
                         PossibleNameConflicts: _possibleNameConflicts,
                         RenamedSymbol: _renameLocationSet.Symbol,
                         AliasSymbol: _renameLocationSet.Symbol as IAliasSymbol,
-                        ReplacementTextValid: replacementTextValid,
-                        IsRenamingInStrings: RenameOptions.RenameInComments,
-                        IsRenamingInComments: RenameOptions.RenameInStrings
+                        ReplacementTextValid: replacementTextValid
                     );
 
                     foreach (var documentId in documentIdsToRename.ToList())

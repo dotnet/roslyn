@@ -134,16 +134,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                             renameRewriterService.TryAddPossibleNameConflicts(renameSymbol, replacementText, possibleNameConflicts);
                             var symbolContext = new RenameSymbolContext(
-                                    new RenameAnnotation(),
-                                    renameSymbol.Locations.First(l => l.IsInSource),
                                     replacementText,
                                     renameSymbol.Name,
                                     possibleNameConflicts,
                                     renameSymbol,
                                     renameSymbol as IAliasSymbol,
-                                    renameRewriterService.IsIdentifierValid(replacementText, syntaxFacts),
-                                    options.RenameInStrings,
-                                    options.RenameInComments);
+                                    renameRewriterService.IsIdentifierValid(replacementText, syntaxFacts));
 
                             symbolContextsBuilder.Add(symbolContext);
 

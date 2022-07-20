@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Rename
         ///     "6-10" : ("World", "World2")
         /// }
         /// </summary>
-        internal static ImmutableSortedDictionary<TextSpan, (string replacementText, string matchText)> CreateSubSpanToReplacementTextDictionary(
+        internal static ImmutableSortedDictionary<TextSpan, (string replacementText, string matchText)> CreateSubSpanToReplacementTextInfoDictionary(
             HashSet<LocationRenameContext> locationRenameContexts)
         {
             var subSpanToReplacementTextBuilder = ImmutableSortedDictionary.CreateBuilder<TextSpan, (string replacementText, string matchText)>();
@@ -255,8 +255,8 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 var renameLocation = context.RenameLocation;
                 var location = renameLocation.Location;
-                var replacementText = context.SymbolContext.ReplacementText;
-                var originalText = context.SymbolContext.OriginalText;
+                var replacementText = context.ReplacementText;
+                var originalText = context.OriginalText;
                 if (location.IsInSource && renameLocation.IsRenameInStringOrComment)
                 {
                     var sourceSpan = location.SourceSpan;

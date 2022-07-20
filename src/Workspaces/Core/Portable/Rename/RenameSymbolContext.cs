@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
@@ -11,14 +10,10 @@ namespace Microsoft.CodeAnalysis.Rename
     /// RenameSymbolContext contains all the immutable context information to rename the <paramref name="RenamedSymbol"/>.
     /// </summary>
     internal record RenameSymbolContext(
-        RenameAnnotation RenamableSymbolDeclarationAnnotation,
-        Location? RenamableDeclarationLocation,
         string ReplacementText,
         string OriginalText,
         ICollection<string> PossibleNameConflicts,
         ISymbol RenamedSymbol,
         IAliasSymbol? AliasSymbol,
-        bool ReplacementTextValid,
-        bool IsRenamingInStrings,
-        bool IsRenamingInComments);
+        bool ReplacementTextValid);
 }
