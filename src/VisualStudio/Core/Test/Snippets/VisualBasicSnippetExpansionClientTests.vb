@@ -351,22 +351,24 @@ End Class</Test>
 
             Using workspace = TestWorkspace.Create(workspaceXml, openDocuments:=False)
                 Dim document = workspace.Documents.Single()
+                Dim optionsService = workspace.GetService(Of EditorOptionsService)()
+                Dim textBuffer = document.GetTextBuffer()
+                Dim editorOptions = optionsService.Factory.GetOptions(textBuffer)
 
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(FormattingOptions.UseTabs, document.Project.Language, True) _
-                    .WithChangedOption(FormattingOptions.TabSize, document.Project.Language, tabSize) _
-                    .WithChangedOption(FormattingOptions.IndentationSize, document.Project.Language, tabSize)))
+                editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, False)
+                editorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, tabSize)
+                editorOptions.SetOptionValue(DefaultOptions.IndentSizeOptionId, tabSize)
 
                 Dim snippetExpansionClient = New SnippetExpansionClient(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Guids.CSharpLanguageServiceId,
                     document.GetTextView(),
-                    document.GetTextBuffer(),
+                    textBuffer,
                     signatureHelpControllerProvider:=Nothing,
                     editorCommandHandlerServiceFactory:=Nothing,
                     Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    workspace.GetService(Of EditorOptionsService)())
+                    optionsService)
 
                 SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
             End Using
