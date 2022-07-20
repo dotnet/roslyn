@@ -391,7 +391,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             //  Test matrix using different OptionKey and OptionKey2 get/set operations.
             var optionKey = new OptionKey(option, language);
-            var optionKey2 = new OptionKey2(option, language);
+            var optionKey2 = option switch
+            {
+                IPerLanguageValuedOption perLanguageValuedOption => new OptionKey2(perLanguageValuedOption, language!),
+                ISingleValuedOption singleValued => new OptionKey2(singleValued),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
 
             // Value return from "object GetOption(OptionKey)" should always be public CodeStyleOption type.
             var newPublicValue = newValue.AsPublicCodeStyleOption();
