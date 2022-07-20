@@ -5750,8 +5750,8 @@ System.Console.Write($""{x1} {x2} {x3}"");
             // extra check on var
             var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
             Assert.Equal("var", x123Var.Type.ToString());
-            Assert.Equal("(Script.var x1, (Script.var x2, Script.var x3))", model.GetTypeInfo(x123Var.Type).Type.ToTestDisplayString());
-            Assert.Equal("(Script.var x1, (Script.var x2, Script.var x3))", model.GetSymbolInfo(x123Var.Type).Symbol.GetSymbol().ToTestDisplayString());
+            Assert.Equal("Script.var", model.GetTypeInfo(x123Var.Type).Type.ToTestDisplayString());
+            Assert.Equal("Script.var", model.GetSymbolInfo(x123Var.Type).Symbol.GetSymbol().ToTestDisplayString());
         }
 
         [Fact]
