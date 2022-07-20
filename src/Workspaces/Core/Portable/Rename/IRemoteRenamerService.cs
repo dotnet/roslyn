@@ -75,6 +75,8 @@ namespace Microsoft.CodeAnalysis.Rename
             => ((RemoteOptionsProvider<CodeCleanupOptions>)GetCallback(callbackId)).GetOptionsAsync(language, cancellationToken);
     }
 
+#if false
+
     [DataContract]
     internal class SerializableSearchResult
     {
@@ -132,6 +134,8 @@ namespace Microsoft.CodeAnalysis.Rename
             return new RenameLocations.SearchResult(locations, implicitLocations, referencedSymbols);
         }
     }
+
+#endif
 
     [DataContract]
     internal readonly struct SerializableRenameLocation
@@ -205,7 +209,9 @@ namespace Microsoft.CodeAnalysis.Rename
         public SerializableRenameLocations Dehydrate(Solution solution, CancellationToken cancellationToken)
             => new(
                 Options,
-                SerializableSearchResult.Dehydrate(solution, _result, cancellationToken));
+                Locations.Select(SerializableRenameLocation.Dehydrate).ToArray(),
+                ImplicitLocations.IsDefault ? null : ImplicitLocations.Select(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)).ToArray(),
+                ReferencedSymbols.IsDefault ? null : ReferencedSymbols.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)).ToArray());
 
         internal static async Task<RenameLocations?> TryRehydrateAsync(
             Solution solution, ISymbol symbol, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations locations, CancellationToken cancellationToken)
@@ -213,15 +219,76 @@ namespace Microsoft.CodeAnalysis.Rename
             if (locations == null)
                 return null;
 
-            Contract.ThrowIfNull(locations.Result);
+            ImmutableArray<ReferenceLocation> implicitLocations = default;
+            ImmutableArray<ISymbol> referencedSymbols = default;
+
+            Contract.ThrowIfNull(locations.Locations);
+
+            using var _1 = ArrayBuilder<RenameLocation>.GetInstance(locations.Locations.Length, out var locBuilder);
+            foreach (var loc in locations.Locations)
+                locBuilder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
+
+            if (locations.ImplicitLocations != null)
+            {
+                using var _2 = ArrayBuilder<ReferenceLocation>.GetInstance(locations.ImplicitLocations.Length, out var builder);
+                foreach (var loc in locations.ImplicitLocations)
+                    builder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
+
+                implicitLocations = builder.ToImmutable();
+            }
+
+            if (locations.ReferencedSymbols != null)
+            {
+                using var _3 = ArrayBuilder<ISymbol>.GetInstance(locations.ReferencedSymbols.Length, out var builder);
+                foreach (var referencedSymbol in locations.ReferencedSymbols)
+                    builder.AddIfNotNull(await referencedSymbol.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
+
+                referencedSymbols = builder.ToImmutable();
+            }
 
             return new RenameLocations(
                 symbol,
                 solution,
                 locations.Options,
                 fallbackOptions,
-                await locations.Result.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
+                locBuilder.ToImmutableHashSet(),
+                implicitLocations,
+                referencedSymbols);
         }
+
+        //public async Task<RenameLocations.SearchResult> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
+        //{
+        //    ImmutableArray<ReferenceLocation> implicitLocations = default;
+        //    ImmutableArray<ISymbol> referencedSymbols = default;
+
+        //    Contract.ThrowIfNull(Locations);
+
+        //    using var _1 = ArrayBuilder<RenameLocation>.GetInstance(Locations.Length, out var locBuilder);
+        //    foreach (var loc in Locations)
+        //        locBuilder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
+
+        //    var locations = locBuilder.ToImmutableHashSet();
+
+        //    if (ImplicitLocations != null)
+        //    {
+        //        using var _2 = ArrayBuilder<ReferenceLocation>.GetInstance(ImplicitLocations.Length, out var builder);
+        //        foreach (var loc in ImplicitLocations)
+        //            builder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
+
+        //        implicitLocations = builder.ToImmutable();
+        //    }
+
+        //    if (ReferencedSymbols != null)
+        //    {
+        //        using var _3 = ArrayBuilder<ISymbol>.GetInstance(ReferencedSymbols.Length, out var builder);
+        //        foreach (var symbol in ReferencedSymbols)
+        //            builder.AddIfNotNull(await symbol.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
+
+        //        referencedSymbols = builder.ToImmutable();
+        //    }
+
+        //    return new RenameLocations.SearchResult(locations, implicitLocations, referencedSymbols);
+        //}
     }
 
     [DataContract]
@@ -230,13 +297,27 @@ namespace Microsoft.CodeAnalysis.Rename
         [DataMember(Order = 0)]
         public readonly SymbolRenameOptions Options;
 
-        [DataMember(Order = 1)]
-        public readonly SerializableSearchResult? Result;
+        // We use arrays so we can represent default immutable arrays.
 
-        public SerializableRenameLocations(SymbolRenameOptions options, SerializableSearchResult? result)
+        [DataMember(Order = 1)]
+        public SerializableRenameLocation[]? Locations;
+
+        [DataMember(Order = 2)]
+        public SerializableReferenceLocation[]? ImplicitLocations;
+
+        [DataMember(Order = 3)]
+        public SerializableSymbolAndProjectId[]? ReferencedSymbols;
+
+        public SerializableRenameLocations(
+            SymbolRenameOptions options,
+            SerializableRenameLocation[]? locations,
+            SerializableReferenceLocation[]? implicitLocations,
+            SerializableSymbolAndProjectId[]? referencedSymbols)
         {
             Options = options;
-            Result = result;
+            Locations = locations;
+            ImplicitLocations = implicitLocations;
+            ReferencedSymbols = referencedSymbols;
         }
     }
 
