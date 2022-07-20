@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Rename
             SerializableSymbolAndProjectId symbolAndProjectId,
             string replacementText,
             SymbolRenameOptions options,
-            ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds,
+            ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken);
 
         ValueTask<SerializableRenameLocations?> FindRenameLocationsAsync(
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Rename
             SerializableSymbolAndProjectId symbolAndProjectId,
             SerializableRenameLocations renameLocationSet,
             string replacementText,
-            ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds,
+            ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken);
     }
 
