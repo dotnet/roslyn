@@ -70,7 +70,6 @@ class C
             VerifySuppressedAndFilteredDiagnostics(compilation, analyzers);
         }
 
-
         [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
         [Fact]
         public void TestSuppression_CompilerSyntaxBindingError_AndSuppressibleWarning()

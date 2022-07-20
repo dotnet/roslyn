@@ -1101,7 +1101,8 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(additionalTextFiles, analyzerConfigProvider);
+                AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
+                    additionalTextFiles, analyzerConfigProvider);
 
                 if (!analyzers.IsEmpty)
                 {
@@ -1158,10 +1159,9 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 // NOTE: Unlike the PDB path, the XML doc path is not embedded in the assembly, so we don't need to pass it to emit.
-                var emitOptions =
-                    Arguments.EmitOptions.
-                        WithOutputNameOverride(outputName).
-                        WithPdbFilePath(PathUtilities.NormalizePathPrefix(finalPdbFilePath, Arguments.PathMap));
+                var emitOptions = Arguments.EmitOptions.
+                    WithOutputNameOverride(outputName).
+                    WithPdbFilePath(PathUtilities.NormalizePathPrefix(finalPdbFilePath, Arguments.PathMap));
 
                 // TODO(https://github.com/dotnet/roslyn/issues/19592):
                 // This feature flag is being maintained until our next major release to avoid unnecessary 
