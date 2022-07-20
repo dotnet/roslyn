@@ -148,8 +148,8 @@ namespace Microsoft.CodeAnalysis.Rename
             => new(
                 Options,
                 Locations.Select(SerializableRenameLocation.Dehydrate).ToArray(),
-                ImplicitLocations.IsDefault ? null : ImplicitLocations.ToArray(),
-                ReferencedSymbols.IsDefault ? null : ReferencedSymbols.ToArray());
+                _implicitLocations,
+                _referencedSymbols);
 
         internal static async Task<LightweightRenameLocations?> TryRehydrateAsync(
             Solution solution, ISymbol symbol, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations locations, CancellationToken cancellationToken)
@@ -157,24 +157,11 @@ namespace Microsoft.CodeAnalysis.Rename
             if (locations == null)
                 return null;
 
-            ImmutableArray<SerializableReferenceLocation> implicitLocations = default;
-            ImmutableArray<SerializableSymbolAndProjectId> referencedSymbols = default;
-
             Contract.ThrowIfNull(locations.Locations);
 
             using var _1 = ArrayBuilder<RenameLocation>.GetInstance(locations.Locations.Length, out var locBuilder);
             foreach (var loc in locations.Locations)
                 locBuilder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
-
-            if (locations.ImplicitLocations != null)
-            {
-                implicitLocations = locations.ImplicitLocations.ToImmutableArray();
-            }
-
-            if (locations.ReferencedSymbols != null)
-            {
-                referencedSymbols = locations.ReferencedSymbols.ToImmutableArray();
-            }
 
             return new LightweightRenameLocations(
                 symbol,
@@ -182,8 +169,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 locations.Options,
                 fallbackOptions,
                 locBuilder.ToImmutableHashSet(),
-                implicitLocations,
-                referencedSymbols);
+                locations.ImplicitLocations,
+                locations.ReferencedSymbols);
         }
     }
 
