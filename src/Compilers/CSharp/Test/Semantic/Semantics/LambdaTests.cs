@@ -6820,13 +6820,13 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics( 
-                    // (4,20): error CS8917: The delegate type could not be inferred.
-                    //         var lam1 = (x = 7) => x;
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(x = 7) => x").WithLocation(4, 20),
-                    // (4,23): error CS1065: Default values are not valid in this context.
-                    //         var lam1 = (x = 7) => x;
-                    Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(4, 23));
+            comp.VerifyDiagnostics(
+                // (5,20): error CS8917: The delegate type could not be inferred.
+                //         var lam1 = (x = 7) => x;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(x = 7) => x").WithLocation(5, 20),
+                // (5,23): error CS1065: Default values are not valid in this context.
+                //         var lam1 = (x = 7) => x;
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 23));
         }
     }
 }
