@@ -15,8 +15,8 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageServiceBrokerShim;
 using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     {
         public static async Task<JToken?> DocumentSymbolsRequestAsync(
             ITextBuffer textBuffer,
-            ILanguageServiceBrokerShim languageServiceBroker,
+            ILanguageServiceBroker2 languageServiceBroker,
             string textViewFilePath,
             CancellationToken cancellationToken)
         {
@@ -42,13 +42,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 }
             };
 
-            return await languageServiceBroker.RequestAsync(
+            return (await languageServiceBroker.RequestAsync(
                 textBuffer: textBuffer,
                 method: Methods.TextDocumentDocumentSymbolName,
                 capabilitiesFilter: (JToken x) => true,
                 languageServerName: WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString(),
                 parameterFactory: _ => JToken.FromObject(parameterFactory),
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                cancellationToken: cancellationToken).ConfigureAwait(false))?.Response;
         }
 
         /// <summary>

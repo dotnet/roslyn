@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
@@ -16,8 +15,8 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageServiceBrokerShim;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -30,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// </summary>
     internal partial class DocumentOutlineControl : UserControl, IVsCodeWindowEvents, IDisposable
     {
-        private readonly ILanguageServiceBrokerShim _languageServiceBroker;
+        private readonly ILanguageServiceBroker2 _languageServiceBroker;
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
@@ -85,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new();
 
         public DocumentOutlineControl(
-            ILanguageServiceBrokerShim languageServiceBroker,
+            ILanguageServiceBroker2 languageServiceBroker,
             IThreadingContext threadingContext,
             IAsynchronousOperationListener asyncListener,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
