@@ -56,19 +56,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return option;
         }
 
-        private static Option2<T> CreateCommonOption<T>(
-            OptionGroup group, string name, T defaultValue,
-            OptionStorageLocation2 storageLocation1, OptionStorageLocation2 storageLocation2)
-        {
-            var option = new Option2<T>(
-                "CodeStyleOptions",
-                group, name, defaultValue,
-                ImmutableArray.Create(storageLocation1, storageLocation2));
-
-            s_allOptionsBuilder.Add(option);
-            return option;
-        }
-
         /// <remarks>
         /// When user preferences are not yet set for a style, we fall back to the default value.
         /// One such default(s), is that the feature is turned on, so that codegen consumes it,
@@ -269,8 +256,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             CodeStyleOptionGroups.Suppressions,
             nameof(RemoveUnnecessarySuppressionExclusions),
             IdeCodeStyleOptions.CommonOptions.Default.RemoveUnnecessarySuppressionExclusions,
-            EditorConfigStorageLocation.ForStringOption("dotnet_remove_unnecessary_suppression_exclusions", emptyStringRepresentation: "none"),
-            new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RemoveUnnecessarySuppressionExclusions"));
+            EditorConfigStorageLocation.ForStringOption("dotnet_remove_unnecessary_suppression_exclusions", emptyStringRepresentation: "none"));
 
         private static readonly BidirectionalMap<string, AccessibilityModifiersRequired> s_accessibilityModifiersRequiredMap =
             new(new[]
