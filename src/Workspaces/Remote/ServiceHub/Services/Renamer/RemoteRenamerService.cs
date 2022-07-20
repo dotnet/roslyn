@@ -85,6 +85,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var result = await RenameLocations.FindLocationsAsync(
                     symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
+
                 return result.Dehydrate(solution, cancellationToken);
             }, cancellationToken);
         }

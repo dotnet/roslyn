@@ -82,24 +82,26 @@ namespace Microsoft.CodeAnalysis.Rename
         public readonly SymbolRenameOptions Options;
         public readonly CodeCleanupOptionsProvider FallbackOptions;
 
-        private readonly SearchResult _result;
-
-        public ISet<RenameLocation> Locations => _result.Locations;
-        public ImmutableArray<ISymbol> ReferencedSymbols => _result.ReferencedSymbols;
-        public ImmutableArray<ReferenceLocation> ImplicitLocations => _result.ImplicitLocations;
+        public readonly ImmutableHashSet<RenameLocation> Locations;
+        public readonly ImmutableArray<ReferenceLocation> ImplicitLocations;
+        public readonly ImmutableArray<ISymbol> ReferencedSymbols;
 
         private RenameLocations(
             ISymbol symbol,
             Solution solution,
             SymbolRenameOptions options,
             CodeCleanupOptionsProvider fallbackOptions,
-            SearchResult result)
+            ImmutableHashSet<RenameLocation> locations,
+            ImmutableArray<ReferenceLocation> implicitLocations,
+            ImmutableArray<ISymbol> referencedSymbols)
         {
             Solution = solution;
             Symbol = symbol;
             Options = options;
             FallbackOptions = fallbackOptions;
-            _result = result;
+            Locations = locations;
+            ReferencedSymbols = referencedSymbols;
+            ImplicitLocations = implicitLocations;
         }
 
         internal static RenameLocations Create(
@@ -112,8 +114,7 @@ namespace Microsoft.CodeAnalysis.Rename
             CodeCleanupOptionsProvider fallbackOptions)
         {
             return new RenameLocations(
-                symbol, solution, options, fallbackOptions,
-                new SearchResult(locations, implicitLocations, referencedSymbols));
+                symbol, solution, options, fallbackOptions, locations, implicitLocations, referencedSymbols);
         }
 
         /// <summary>
@@ -208,10 +209,9 @@ namespace Microsoft.CodeAnalysis.Rename
 
                 return new RenameLocations(
                     symbol, solution, options, cleanupOptions,
-                    new SearchResult(
-                        mergedLocations.ToImmutable(),
-                        mergedImplicitLocations.ToImmutable(),
-                        mergedReferencedSymbols.ToImmutable()));
+                    mergedLocations.ToImmutable(),
+                    mergedImplicitLocations.ToImmutable(),
+                    mergedReferencedSymbols.ToImmutable());
             }
         }
 
