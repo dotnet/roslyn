@@ -38,56 +38,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         private const string s_metadataNameSeparators = " .,:<`>()\r\n";
 
         /// <summary>
-        /// Performs the renaming of the symbol in the solution, identifies renaming conflicts and automatically
-        /// resolves them where possible.
-        /// </summary>
-        /// <param name="replacementText">The new name of the identifier</param>
-        /// <param name="nonConflictSymbols">Used after renaming references. References that now bind to any of these
-        /// symbols are not considered to be in conflict. Useful for features that want to rename existing references to
-        /// point at some existing symbol. Normally this would be a conflict, but this can be used to override that
-        /// behavior.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A conflict resolution containing the new solution.</returns>
-        internal static async Task<ConflictResolution> ResolveLightweightConflictsAsync(
-            LightweightRenameLocations lightweightRenameLocations,
-            string replacementText,
-            ImmutableHashSet<ISymbol>? nonConflictSymbols,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            using (Logger.LogBlock(FunctionId.Renamer_ResolveConflictsAsync, cancellationToken))
-            {
-                var solution = lightweightRenameLocations.Solution;
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client != null)
-                {
-                    var serializableSymbol = SerializableSymbolAndProjectId.Dehydrate(lightweightRenameLocations.Solution, lightweightRenameLocations.Symbol, cancellationToken);
-                    var serializableLocationSet = lightweightRenameLocations.Dehydrate();
-                    var nonConflictSymbolIds = nonConflictSymbols?.SelectAsArray(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)) ?? default;
-
-                    var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
-                        solution,
-                        (service, solutionInfo, callbackId, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, callbackId, serializableSymbol, serializableLocationSet, replacementText, nonConflictSymbolIds, cancellationToken),
-                        callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, lightweightRenameLocations.FallbackOptions),
-                        cancellationToken).ConfigureAwait(false);
-
-                    if (result.HasValue && result.Value != null)
-                        return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-
-                    // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)
-                }
-            }
-
-            var heavyweightLocations = await lightweightRenameLocations.ToHeavyweightAsync(cancellationToken).ConfigureAwait(false);
-            if (heavyweightLocations is null)
-                return new ConflictResolution(WorkspacesResources.Failed_to_resolve_rename_conflicts);
-
-            return await ResolveHeavyweightConflictsInCurrentProcessAsync(
-                heavyweightLocations, replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
         /// Finds any conflicts that would arise from using <paramref name="replacementText"/> as the new name for a
         /// symbol and returns how to resolve those conflicts.  Will not cross any process boundaries to do this.
         /// </summary>

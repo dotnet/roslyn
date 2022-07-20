@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.Remote
     internal abstract class RemoteServiceConnection<TService> : IDisposable
         where TService : class
     {
+        public interface IScope : IDisposable
+        {
+            Checksum SolutionChecksum { get; }
+        }
+
         public abstract void Dispose();
 
         // no solution, no callback
@@ -73,6 +78,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
             Solution solution,
+            Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
+            CancellationToken cancellationToken);
+
+        public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
+            IScope scope,
             Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
             CancellationToken cancellationToken);
 

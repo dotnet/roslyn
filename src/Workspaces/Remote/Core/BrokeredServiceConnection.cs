@@ -190,6 +190,20 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(IScope scope, Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
+                return await invocation(rental.Service, scope.SolutionChecksum, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
+            {
+                OnUnexpectedException(exception, cancellationToken);
+                return default;
+            }
+        }
+
         // project, no callback
 
         public override async ValueTask<bool> TryInvokeAsync(Project project, Func<TService, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)

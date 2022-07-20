@@ -13,6 +13,38 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
+    internal abstract class ConnectionScope<TService> : IDisposable
+        where TService : class
+    {
+        public RemoteServiceConnection<TService> Connection { get; }
+        public Solution Solution { get; }
+
+        private readonly RemoteServiceConnection<TService>.IScope _scope;
+
+        protected ConnectionScope(
+            RemoteServiceConnection<TService> connection,
+            Solution solution,
+            RemoteServiceConnection<TService>.IScope scope)
+        {
+            Connection = connection;
+            Solution = solution;
+            _scope = scope;
+        }
+
+        public void Dispose()
+        {
+            _scope.Dispose();
+            Connection.Dispose();
+        }
+
+        public async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
+            Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation,
+            CancellationToken cancellationToken)
+        {
+            return await this.Connection.TryInvokeAsync(_scope, invocation, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
     /// <summary>
     /// This represents client in client/server model.
     /// 
@@ -56,6 +88,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             return service.TryGetRemoteHostClientAsync(cancellationToken);
         }
+
+        public abstract ConnectionScope<TService> CreateConnectionScope<TService>(Solution solution, object? callbackTarget) where TService : class;
 
         public abstract RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget)
             where T : class;
