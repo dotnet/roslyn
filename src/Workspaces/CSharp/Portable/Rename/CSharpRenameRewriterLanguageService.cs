@@ -443,6 +443,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 var newToken = base.VisitToken(token);
                 newToken = UpdateAliasAnnotation(newToken);
                 newToken = RenameWithinToken(token, newToken);
+
+                // We don't want to annotate XmlName with RenameActionAnnotation
+                if (newToken.Parent.IsKind(SyntaxKind.XmlName))
+                {
+                    return newToken;
+                }
+
                 if (!_isProcessingComplexifiedSpans && _textSpanToRenameContexts.TryGetValue(token.Span, out var locationRenameContext))
                 {
                     newToken = RenameAndAnnotateAsync(

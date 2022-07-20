@@ -431,6 +431,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 newToken = UpdateAliasAnnotation(newToken)
                 newToken = RenameWithinToken(token, newToken)
 
+                ' We don't want to annotate XmlName with RenameActionAnnotation
+                If newToken.Kind = SyntaxKind.XmlNameToken Then
+                    Return newToken
+                End If
+
                 Dim locationRenameContext As LocationRenameContext = Nothing
                 If Not _isProcessingComplexifiedSpans AndAlso _textSpanToRenameContexts.TryGetValue(token.Span, locationRenameContext) Then
                     newToken = RenameAndAnnotateAsync(
