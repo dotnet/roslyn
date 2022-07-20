@@ -249,7 +249,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Contract.ThrowIfFalse(_documentOutlineViewHost is null);
 
                 _documentOutlineControl = new DocumentOutlineControl(
-                        languageServiceBroker, threadingContext, asyncListener, editorAdaptersFactoryService, _codeWindow);
+                    languageServiceBroker, threadingContext, asyncListener, editorAdaptersFactoryService, _codeWindow);
 
                 _documentOutlineViewHost = new ElementHost
                 {
