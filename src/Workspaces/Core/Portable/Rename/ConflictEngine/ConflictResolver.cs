@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// symbol and returns how to resolve those conflicts.  Will not cross any process boundaries to do this.
         /// </summary>
         internal static async Task<ConflictResolution> ResolveHeavyweightConflictsInCurrentProcessAsync(
-            HeavyweightRenameLocations renameLocations,
+            SymbolicRenameLocations renameLocations,
             string replacementText,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken)
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         }
 
         private static Task<MutableConflictResolution> ResolveMutableConflictsAsync(
-            HeavyweightRenameLocations renameLocationSet,
+            SymbolicRenameLocations renameLocationSet,
             Location renameSymbolDeclarationLocation,
             string replacementText,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
