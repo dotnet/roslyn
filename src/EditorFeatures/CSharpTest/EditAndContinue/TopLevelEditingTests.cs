@@ -6443,7 +6443,8 @@ partial class C
                         {
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F1")),
                         })
-                });
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -7726,6 +7727,10 @@ class C
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.Main"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.EntryPoint"))
                 },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.Renamed, "static void EntryPoint(string[] args)", FeaturesResources.method)},
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -9241,10 +9246,11 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
-                SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.op_Addition"), deletedSymbolContainerProvider: c => c.GetMember("C")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.op_Subtraction"))
-            });
+                {
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.op_Addition"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.op_Subtraction"))
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -13369,6 +13375,10 @@ class C
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.add_F")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.remove_F")),
                 },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.Renamed, "event int F", FeaturesResources.event_) },
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -13388,7 +13398,7 @@ class C
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.add_F")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.remove_F")),
                 },
-                capabilities: EditAndContinueCapabilities.Baseline);
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -13471,12 +13481,12 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-               new[]
-               {
+                new[]
+                {
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Q")),
-               },
-               capabilities: EditAndContinueCapabilities.Baseline);
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -13742,12 +13752,16 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-               new[]
-               {
+                new[]
+                {
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Q"))
-               },
-               capabilities: EditAndContinueCapabilities.Baseline);
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.Renamed, "int Q", FeaturesResources.property_)},
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -13782,14 +13796,14 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-               new[]
-               {
+                new[]
+                {
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Q")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_Q"))
-               },
-               capabilities: EditAndContinueCapabilities.Baseline);
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -13801,14 +13815,14 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-               new[]
-               {
+                new[]
+                {
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Q")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_Q"))
-               },
-               capabilities: EditAndContinueCapabilities.Baseline);
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -13820,12 +13834,12 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-               new[]
-               {
+                new[]
+                {
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Q"))
-               },
-               capabilities: EditAndContinueCapabilities.Baseline);
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -15722,7 +15736,11 @@ readonly struct S
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("E")));
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("E"))
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -15784,7 +15802,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
