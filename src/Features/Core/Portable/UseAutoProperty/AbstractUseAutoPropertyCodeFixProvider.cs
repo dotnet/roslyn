@@ -137,11 +137,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                     !span.IntersectsWith(declaratorLocation.SourceSpan) &&
                     CanEditDocument(solution, documentId, linkedFiles, canEdit));
 
-            var resolution = await ConflictResolver.ResolveLightweightConflictsAsync(
-                filteredLocations,
-                propertySymbol.Name,
-                nonConflictSymbols: ImmutableHashSet.Create<ISymbol>(propertySymbol),
-                cancellationToken).ConfigureAwait(false);
+            var resolution = await filteredLocations.ResolveConflictsAsync(
+                propertySymbol.Name, nonConflictSymbols: ImmutableHashSet.Create<ISymbol>(propertySymbol), cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfFalse(resolution.IsSuccessful);
 

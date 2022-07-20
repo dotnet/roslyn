@@ -314,8 +314,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var initialLocations = await Renamer.FindLightweightRenameLocationsAsync(
                 solution, field, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-            var resolution = await ConflictResolver.ResolveLightweightConflictsAsync(
-                initialLocations.Filter(filter), finalName, nonConflictSymbols: null, cancellationToken).ConfigureAwait(false);
+            var resolution = await initialLocations.Filter(filter).ResolveConflictsAsync(
+                finalName, nonConflictSymbols: null, cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfFalse(resolution.IsSuccessful);
 
