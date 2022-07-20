@@ -173,8 +173,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ImmutableArray<SyntaxToken> tokens,
             CancellationToken cancellationToken)
         {
-            var semanticFacts = state.SemanticFacts;
-
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
             foreach (var token in tokens)
             {
@@ -184,20 +182,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     symbol, state, token, cancellationToken).ConfigureAwait(false);
                 if (matched)
                 {
-                    RoslynDebug.Assert(token.Parent != null);
+                    var finderLocation = CreateFinderLocation(state, token, reason, cancellationToken);
 
-                    var alias = state.Cache.GetAliasInfo(semanticFacts, token, cancellationToken);
-
-                    var location = token.GetLocation();
-                    var symbolUsageInfo = GetSymbolUsageInfo(token.Parent, state, cancellationToken);
-
-                    locations.Add(new FinderLocation(token.Parent, new ReferenceLocation(
-                        state.Document, alias, location, isImplicit: false,
-                        symbolUsageInfo, GetAdditionalFindUsagesProperties(token.Parent, state), reason)));
+                    locations.Add(finderLocation);
                 }
             }
 
             return locations.ToImmutable();
+        }
+
+        protected static FinderLocation CreateFinderLocation(
+            FindReferencesDocumentState state, SyntaxToken token, CandidateReason reason, CancellationToken cancellationToken)
+        {
+            RoslynDebug.Assert(token.Parent != null);
+
+            return new FinderLocation(token.Parent, new ReferenceLocation(
+                state.Document,
+                state.Cache.GetAliasInfo(state.SemanticFacts, token, cancellationToken),
+                token.GetLocation(),
+                isImplicit: false,
+                GetSymbolUsageInfo(token.Parent, state, cancellationToken),
+                GetAdditionalFindUsagesProperties(token.Parent, state),
+                reason));
         }
 
         private static IAliasSymbol? GetAliasSymbol(
