@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var tokens = await FindMatchingIdentifierTokensAsync(state, symbol.Name, cancellationToken).ConfigureAwait(false);
 
-            var normalTokens = tokens.WhereAsArray(static (token, state) => !IsObjectCreationToken(token, state), state);
-            var objectCreationTokens = tokens.WhereAsArray(static (token, state) => IsObjectCreationToken(token, state), state);
-
             var normalReferences = await FindReferencesInTokensAsync(
-                symbol, state, objectCreationTokens, cancellationToken).ConfigureAwait(false);
+                symbol, state,
+                tokens.WhereAsArray(static (token, state) => !IsObjectCreationToken(token, state), state),
+                cancellationToken).ConfigureAwait(false);
 
-            var objectCreationReferences = GetObjectCreationReferences(objectCreationTokens);
+            var objectCreationReferences = GetObjectCreationReferences(
+                tokens.WhereAsArray(static (token, state) => IsObjectCreationToken(token, state), state));
 
             return normalReferences.Concat(objectCreationReferences);
 
