@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// <item><description>Analyzer id to option mapping, used (for example) by configure code-style code action</description></item>
         /// <item><description>EditorConfig UI to determine whether to put this option under <c>[*.cs]</c>, <c>[*.vb]</c>, or <c>[*.{cs,vb}]</c></description></item>
         /// </list>
+        /// Note that this property is not (and should not be) used for computing option values or storing options.
         /// </remarks>
         public string? LanguageName { get; }
     }
@@ -67,17 +68,17 @@ namespace Microsoft.CodeAnalysis.Options
         {
         }
 
-        internal Option2(string feature, OptionGroup group, string name, T defaultValue, OptionStorageLocation2 storageLocation)
+        public Option2(string feature, OptionGroup group, string name, T defaultValue, OptionStorageLocation2 storageLocation)
             : this(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation))
         {
         }
 
-        internal Option2(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation2> storageLocations)
+        public Option2(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation2> storageLocations)
             : this(feature, group, name, defaultValue, storageLocations, null)
         {
         }
 
-        internal Option2(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation2> storageLocations, string? languageName)
+        public Option2(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation2> storageLocations, string? languageName)
         {
             if (string.IsNullOrWhiteSpace(feature))
             {

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -77,11 +78,14 @@ namespace Microsoft.CodeAnalysis.Options
 
         OptionDefinition IOption2.OptionDefinition => _optionDefinition;
 
-        /// <summary>
-        /// We access LanguageName for analyzer and EditorConfig UI options.
-        /// These options should use <see cref="Option2{T}"/> instead.
-        /// </summary>
-        string? ISingleValuedOption.LanguageName => throw ExceptionUtilities.Unreachable;
+        string? ISingleValuedOption.LanguageName
+        {
+            get
+            {
+                Debug.Fail("It's not expected that we access LanguageName property for Option<T>. The options we use should be Option2<T>.");
+                return null;
+            }
+        }
 
         bool IEquatable<IOption2?>.Equals(IOption2? other) => Equals(other);
 

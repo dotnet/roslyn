@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
     /// Marker interface for <see cref="PerLanguageOption2{T}"/>.
-    /// This option applies to multiple languages, with each language has a different value.
+    /// This option may apply to multiple languages, such that the option can have a different value for each language.
     /// </summary>
     internal interface IPerLanguageValuedOption : IOptionWithGroup
     {
@@ -77,26 +77,26 @@ namespace Microsoft.CodeAnalysis.Options
         {
         }
 
-        internal PerLanguageOption2(string feature, OptionGroup group, string name, T defaultValue)
+        public PerLanguageOption2(string feature, OptionGroup group, string name, T defaultValue)
             : this(feature, group, name, defaultValue, ImmutableArray<OptionStorageLocation2>.Empty)
         {
         }
 
-        internal PerLanguageOption2(
+        public PerLanguageOption2(
             string feature, OptionGroup group, string name, T defaultValue,
             OptionStorageLocation2 storageLocation)
             : this(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation))
         {
         }
 
-        internal PerLanguageOption2(
+        public PerLanguageOption2(
             string feature, OptionGroup group, string name, T defaultValue,
             OptionStorageLocation2 storageLocation1, OptionStorageLocation2 storageLocation2)
             : this(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation1, storageLocation2))
         {
         }
 
-        internal PerLanguageOption2(
+        public PerLanguageOption2(
             string feature, OptionGroup group, string name, T defaultValue,
             ImmutableArray<OptionStorageLocation2> storageLocations)
         {
