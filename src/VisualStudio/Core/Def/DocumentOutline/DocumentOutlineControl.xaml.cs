@@ -247,45 +247,34 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             if (sender is StackPanel panel && panel.DataContext is DocumentSymbolUIItem symbol)
             {
-                var token = _asyncListener.BeginAsyncOperation(nameof(JumpToContentAsync));
-                var task = JumpToContentAsync(symbol);
-                task.CompletesAsyncOperation(token);
-            }
-        }
+                _threadingContext.ThrowIfNotOnUIThread();
 
-        /// <summary>
-        /// Given a DocumentSymbolUIItem, moves the caret to the start of its selection range in the latest active text view.
-        /// </summary>
-        private async Task JumpToContentAsync(DocumentSymbolUIItem symbol)
-        {
-            // Switch to the UI thread to update the latest active text view.
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_cancellationToken);
+                var activeTextView = GetLastActiveIWpfTextView();
+                if (activeTextView is null)
+                    return;
 
-            var activeTextView = GetLastActiveIWpfTextView();
-            if (activeTextView is null)
-                return;
+                // When the user clicks on a symbol node in the window, we want to move the cursor to that line in the editor. If we
+                // don't unsubscribe from Caret_PositionChanged first, we will call EnqueueHighlightExpandAndPresentItemsTask() once
+                // we move the cursor ourselves. This is not ideal because we would be doing extra work to update the view with an
+                // identical document symbol tree.
+                activeTextView.Caret.PositionChanged -= Caret_PositionChanged;
 
-            // When the user clicks on a symbol node in the window, we want to move the cursor to that line in the editor. If we
-            // don't unsubscribe from Caret_PositionChanged first, we will call EnqueueHighlightExpandAndPresentItemsTask() once
-            // we move the cursor ourselves. This is not ideal because we would be doing extra work to update the view with an
-            // identical document symbol tree.
-            activeTextView.Caret.PositionChanged -= Caret_PositionChanged;
+                // Prevents us from being permanently unsubscribed if an exception is thrown while updating the text view selection.
+                try
+                {
+                    // Map the symbol's selection range start SnapshotPoint to a SnapshotPoint in the current textview.
+                    var currentPoint = symbol.SelectionRangeSpan.Start.TranslateTo(activeTextView.TextSnapshot, PointTrackingMode.Negative);
 
-            // Prevents us from being permanently unsubscribed if an exception is thrown while updating the text view selection.
-            try
-            {
-                // Map the symbol's selection range start SnapshotPoint to a SnapshotPoint in the current textview.
-                var currentPoint = symbol.SelectionRangeSpan.Start.TranslateTo(activeTextView.TextSnapshot, PointTrackingMode.Negative);
-
-                // Set the active text view selection to this SnapshotPoint (by converting it to a SnapshotSpan).
-                var currentSpan = new SnapshotSpan(currentPoint, currentPoint);
-                activeTextView.SetSelection(currentSpan);
-                activeTextView.ViewScroller.EnsureSpanVisible(currentSpan);
-            }
-            finally
-            {
-                // Resubscribe to Caret_PositionChanged again so that when the user clicks somewhere else, we can highlight that node.
-                activeTextView.Caret.PositionChanged += Caret_PositionChanged;
+                    // Set the active text view selection to this SnapshotPoint (by converting it to a SnapshotSpan).
+                    var currentSpan = new SnapshotSpan(currentPoint, currentPoint);
+                    activeTextView.SetSelection(currentSpan);
+                    activeTextView.ViewScroller.EnsureSpanVisible(currentSpan);
+                }
+                finally
+                {
+                    // Resubscribe to Caret_PositionChanged again so that when the user clicks somewhere else, we can highlight that node.
+                    activeTextView.Caret.PositionChanged += Caret_PositionChanged;
+                }
             }
         }
     }
