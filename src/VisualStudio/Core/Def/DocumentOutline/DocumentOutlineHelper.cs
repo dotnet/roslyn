@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             using var _ = ArrayBuilder<DocumentSymbolUIItem>.GetInstance(out var documentSymbolItems);
             foreach (var documentSymbol in documentSymbolData)
             {
-                var children = documentSymbol.Children.IsEmpty ? ImmutableArray<DocumentSymbolUIItem>.Empty : GetDocumentSymbolUIItems(documentSymbol.Children, threadingContext);
+                var children = GetDocumentSymbolUIItems(documentSymbol.Children, threadingContext);
                 var documentSymbolItem = new DocumentSymbolUIItem(documentSymbol, children, threadingContext);
                 documentSymbolItems.Add(documentSymbolItem);
             }
