@@ -60,36 +60,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             return WithReplaceFirst(syntaxTree, oldText, string.Empty);
         }
-
-#if DEBUG
-        internal static string Dump(this SyntaxNode node)
-        {
-
-            return TreeDumper.DumpCompact(makeTree(node));
-
-            static TreeDumperNode makeTree(SyntaxNodeOrToken nodeOrToken)
-            {
-                var kind = nodeOrToken.Kind().ToString();
-
-                if (nodeOrToken.AsNode(out var node)
-                    && node is not IdentifierNameSyntax)
-                {
-                    return new TreeDumperNode(kind, null, node.ChildNodesAndTokens().Select(makeTree));
-                }
-
-                return new TreeDumperNode($"""{kind} {stringOrMissing(nodeOrToken)}""");
-            }
-
-            static string stringOrMissing(SyntaxNodeOrToken nodeOrToken)
-            {
-                return nodeOrToken.IsMissing ? "<missing>" : $@"""{nodeOrToken}""";
-            }
-        }
-
-        internal static string Dump(this SyntaxTree tree)
-        {
-            return tree.GetRoot().Dump();
-        }
-#endif
     }
 }
