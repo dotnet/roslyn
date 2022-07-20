@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         /// <inheritdoc cref="LightweightRenameLocations.FindRenameLocationsAsync"/>
-        internal static Task<LightweightRenameLocations> FindLightweightRenameLocationsAsync(Solution solution, ISymbol symbol, SymbolRenameOptions options, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        internal static Task<LightweightRenameLocations> FindRenameLocationsAsync(Solution solution, ISymbol symbol, SymbolRenameOptions options, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
             => LightweightRenameLocations.FindRenameLocationsAsync(symbol, solution, options, fallbackOptions, cancellationToken);
 
         internal static async Task<ConflictResolution> RenameSymbolAsync(
