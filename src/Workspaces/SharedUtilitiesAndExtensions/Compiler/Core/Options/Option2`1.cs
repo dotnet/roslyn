@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Options
                 throw new ArgumentException(nameof(name));
             }
 
-            OptionDefinition = new OptionDefinition(feature, group, name, defaultValue, typeof(T), isPerLanguage: false);
+            OptionDefinition = new OptionDefinition(feature, group, name, defaultValue, typeof(T));
             this.StorageLocations = storageLocations;
         }
 
