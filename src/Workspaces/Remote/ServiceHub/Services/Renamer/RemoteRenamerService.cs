@@ -107,15 +107,17 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var nonConflictSymbols = await GetNonConflictSymbolsAsync(solution, nonConflictSymbolIds, cancellationToken).ConfigureAwait(false);
 
-                var fallbackOptions = GetClientOptionsProvider(callbackId);
+                var lightweightLocations = await LightweightRenameLocations.TryRehydrateAsync(
+                    solution, symbol, GetClientOptionsProvider(callbackId), renameLocationSet, cancellationToken).ConfigureAwait(false);
+                if (lightweightLocations == null)
+                    return null;
 
-                var rehydratedSet = await RenameLocations.TryRehydrateAsync(
-                    solution, symbol, fallbackOptions, renameLocationSet, cancellationToken).ConfigureAwait(false);
-                if (rehydratedSet == null)
+                var renameLocations = await lightweightLocations.ToRenameLocationsAsync(cancellationToken).ConfigureAwait(false);
+                if (renameLocations is null)
                     return null;
 
                 var result = await ConflictResolver.ResolveConflictsInCurrentProcessAsync(
-                    rehydratedSet, replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+                    renameLocations, replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
                 return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }

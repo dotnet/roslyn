@@ -14,8 +14,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Rename.ConflictEngine;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Rename.RenameLocations;
@@ -138,8 +136,7 @@ namespace Microsoft.CodeAnalysis.Rename
     }
 
     /// <summary>
-    /// Holds the Locations of a symbol that should be renamed, along with the symbol and Solution
-    /// for the set.
+    /// Holds the Locations of a symbol that should be renamed, along with the symbol and Solution for the set.
     /// </summary>
     internal sealed partial class RenameLocations
     {
