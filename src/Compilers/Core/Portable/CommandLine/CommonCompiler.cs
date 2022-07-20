@@ -1102,7 +1102,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
-                    additionalTextFiles, analyzerConfigProvider);
+                     additionalTextFiles, analyzerConfigProvider);
 
                 if (!analyzers.IsEmpty)
                 {
