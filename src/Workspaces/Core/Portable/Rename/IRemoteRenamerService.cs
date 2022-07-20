@@ -142,59 +142,6 @@ namespace Microsoft.CodeAnalysis.Rename
         }
     }
 
-    internal partial class RenameLocations
-    {
-        public SerializableRenameLocations Dehydrate(Solution solution, CancellationToken cancellationToken)
-            => new(
-                Options,
-                Locations.Select(SerializableRenameLocation.Dehydrate).ToArray(),
-                ImplicitLocations.IsDefault ? null : ImplicitLocations.Select(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)).ToArray(),
-                ReferencedSymbols.IsDefault ? null : ReferencedSymbols.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)).ToArray());
-
-        internal static async Task<RenameLocations?> TryRehydrateAsync(
-            Solution solution, ISymbol symbol, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations locations, CancellationToken cancellationToken)
-        {
-            if (locations == null)
-                return null;
-
-            ImmutableArray<ReferenceLocation> implicitLocations = default;
-            ImmutableArray<ISymbol> referencedSymbols = default;
-
-            Contract.ThrowIfNull(locations.Locations);
-
-            using var _1 = ArrayBuilder<RenameLocation>.GetInstance(locations.Locations.Length, out var locBuilder);
-            foreach (var loc in locations.Locations)
-                locBuilder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
-
-            if (locations.ImplicitLocations != null)
-            {
-                using var _2 = ArrayBuilder<ReferenceLocation>.GetInstance(locations.ImplicitLocations.Length, out var builder);
-                foreach (var loc in locations.ImplicitLocations)
-                    builder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
-
-                implicitLocations = builder.ToImmutable();
-            }
-
-            if (locations.ReferencedSymbols != null)
-            {
-                using var _3 = ArrayBuilder<ISymbol>.GetInstance(locations.ReferencedSymbols.Length, out var builder);
-                foreach (var referencedSymbol in locations.ReferencedSymbols)
-                    builder.AddIfNotNull(await referencedSymbol.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
-
-                referencedSymbols = builder.ToImmutable();
-            }
-
-            return new RenameLocations(
-                symbol,
-                solution,
-                locations.Options,
-                fallbackOptions,
-                locBuilder.ToImmutableHashSet(),
-                implicitLocations,
-                referencedSymbols);
-        }
-    }
-
     internal partial class LightweightRenameLocations
     {
         public SerializableRenameLocations Dehydrate()

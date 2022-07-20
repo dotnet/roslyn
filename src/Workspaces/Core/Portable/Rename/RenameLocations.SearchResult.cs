@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Rename
 {
     internal sealed partial class RenameLocations
     {
-        public class SearchResult
+        private readonly struct SearchResult
         {
             public readonly ImmutableHashSet<RenameLocation> Locations;
             public readonly ImmutableArray<ReferenceLocation> ImplicitLocations;
