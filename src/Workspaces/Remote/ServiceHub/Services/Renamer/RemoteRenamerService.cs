@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
@@ -81,10 +82,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var fallbackOptions = GetClientOptionsProvider(callbackId);
 
-                var result = await LightweightRenameLocations.FindRenameLocationsAsync(
+                var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(
                     symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                return result.Dehydrate();
+                return new SerializableRenameLocations(
+                    options,
+                    renameLocations.Locations.Select(loc => SerializableRenameLocation.Dehydrate(loc)).ToArray(),
+                    renameLocations.ImplicitLocations.IsDefault ? null : renameLocations.ImplicitLocations.Select(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)).ToArray(),
+                    renameLocations.ReferencedSymbols.IsDefault ? null : renameLocations.ReferencedSymbols.Select(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)).ToArray());
             }, cancellationToken);
         }
 
