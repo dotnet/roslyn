@@ -32,9 +32,10 @@ namespace Microsoft.CodeAnalysis.Rename
         public readonly SymbolRenameOptions Options;
         public readonly CodeCleanupOptionsProvider FallbackOptions;
 
-        private readonly LightweightSearchResult _result;
+        public readonly ImmutableHashSet<RenameLocation> Locations;
+        private readonly ImmutableArray<SerializableReferenceLocation> ImplicitLocations;
+        private readonly ImmutableArray<SerializableSymbolAndProjectId> ReferencedSymbols;
 
-        public ISet<RenameLocation> Locations => _result.Locations;
         //public ImmutableArray<ISymbol> ReferencedSymbols => _result.ReferencedSymbols;
         //public ImmutableArray<ReferenceLocation> ImplicitLocations => _result.ImplicitLocations;
 
@@ -43,31 +44,18 @@ namespace Microsoft.CodeAnalysis.Rename
             Solution solution,
             SymbolRenameOptions options,
             CodeCleanupOptionsProvider fallbackOptions,
-            LightweightSearchResult result)
+            ImmutableHashSet<RenameLocation> locations,
+            ImmutableArray<SerializableReferenceLocation> implicitLocations,
+            ImmutableArray<SerializableSymbolAndProjectId> referencedSymbols)
         {
             Solution = solution;
             Symbol = symbol;
             Options = options;
             FallbackOptions = fallbackOptions;
-            _result = result;
-        }
-
-        public class LightweightSearchResult
-        {
-            public readonly ImmutableHashSet<RenameLocation> Locations;
-            public readonly ImmutableArray<SerializableReferenceLocation> ImplicitLocations;
-            public readonly ImmutableArray<SerializableSymbolAndProjectId> ReferencedSymbols;
-
-            public LightweightSearchResult(
-                ImmutableHashSet<RenameLocation> locations,
-                ImmutableArray<SerializableReferenceLocation> implicitLocations,
-                ImmutableArray<SerializableSymbolAndProjectId> referencedSymbols)
-            {
-                Contract.ThrowIfNull(locations);
-                this.Locations = locations;
-                this.ImplicitLocations = implicitLocations;
-                this.ReferencedSymbols = referencedSymbols;
-            }
+            Contract.ThrowIfNull(locations);
+            this.Locations = locations;
+            this.ImplicitLocations = implicitLocations;
+            this.ReferencedSymbols = referencedSymbols;
         }
     }
 
