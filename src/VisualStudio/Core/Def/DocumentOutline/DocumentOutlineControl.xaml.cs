@@ -245,10 +245,9 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private void JumpToContent(object sender, EventArgs e)
         {
+            _threadingContext.ThrowIfNotOnUIThread();
             if (sender is StackPanel panel && panel.DataContext is DocumentSymbolUIItem symbol)
             {
-                _threadingContext.ThrowIfNotOnUIThread();
-
                 var activeTextView = GetLastActiveIWpfTextView();
                 if (activeTextView is null)
                     return;
