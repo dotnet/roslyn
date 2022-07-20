@@ -17,9 +17,60 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Rename.RenameLocations;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
+    /// <summary>
+    /// Equivalent to <see cref="RenameLocations"/> except that references to symbols are kept in a lightweight fashion
+    /// to avoid expensive rehydration steps as a host and OOP communicate.
+    /// </summary>
+    internal sealed class LightweightRenameLocations
+    {
+        public readonly Solution Solution;
+        public readonly ISymbol Symbol;
+        public readonly SymbolRenameOptions Options;
+        public readonly CodeCleanupOptionsProvider FallbackOptions;
+
+        private readonly LightweightSearchResult _result;
+
+        public ISet<RenameLocation> Locations => _result.Locations;
+        //public ImmutableArray<ISymbol> ReferencedSymbols => _result.ReferencedSymbols;
+        //public ImmutableArray<ReferenceLocation> ImplicitLocations => _result.ImplicitLocations;
+
+        private LightweightRenameLocations(
+            ISymbol symbol,
+            Solution solution,
+            SymbolRenameOptions options,
+            CodeCleanupOptionsProvider fallbackOptions,
+            LightweightSearchResult result)
+        {
+            Solution = solution;
+            Symbol = symbol;
+            Options = options;
+            FallbackOptions = fallbackOptions;
+            _result = result;
+        }
+
+        public class LightweightSearchResult
+        {
+            public readonly ImmutableHashSet<RenameLocation> Locations;
+            public readonly ImmutableArray<SerializableReferenceLocation> ImplicitLocations;
+            public readonly ImmutableArray<SerializableSymbolAndProjectId> ReferencedSymbols;
+
+            public LightweightSearchResult(
+                ImmutableHashSet<RenameLocation> locations,
+                ImmutableArray<SerializableReferenceLocation> implicitLocations,
+                ImmutableArray<SerializableSymbolAndProjectId> referencedSymbols)
+            {
+                Contract.ThrowIfNull(locations);
+                this.Locations = locations;
+                this.ImplicitLocations = implicitLocations;
+                this.ReferencedSymbols = referencedSymbols;
+            }
+        }
+    }
+
     /// <summary>
     /// Holds the Locations of a symbol that should be renamed, along with the symbol and Solution
     /// for the set.
