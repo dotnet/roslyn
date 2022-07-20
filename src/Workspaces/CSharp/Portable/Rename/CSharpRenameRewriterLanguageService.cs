@@ -680,19 +680,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 // Rename the xml tag in structure comment
                 else if (newToken.IsKind(SyntaxKind.IdentifierToken) && newToken.Parent.IsKind(SyntaxKind.XmlName))
                 {
-                    var matchingContexts = textSpanSymbolContexts.Where(context => context.OriginalText == newToken.ValueText);
-
-#if DEBUG
-                    if (matchingContexts.Select(context => context.ReplacementText).Distinct().Count() > 1)
+                    var originalText = newToken.ToString();
+                    var replacementText = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(
+                        originalText,
+                        subSpanToReplacementTextInfo);
+                    if (replacementText != originalText)
                     {
-                        // This identifier is renamed to different replacementText?
-                        throw new ArgumentException($"{token} is tried to replaced to different text");
+                        var newIdentifierToken = SyntaxFactory.Identifier(
+                            newToken.LeadingTrivia,
+                            replacementText,
+                            newToken.TrailingTrivia);
+                        newToken = newToken.CopyAnnotationsTo(_renameAnnotations.WithAdditionalAnnotations(newIdentifierToken, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = token.Span }));
+                        AddModifiedSpan(token.Span, newToken.Span);
                     }
-#endif
-                    var matchingContext = matchingContexts.First();
-                    var newIdentifierToken = SyntaxFactory.Identifier(newToken.LeadingTrivia, matchingContext.ReplacementText, newToken.TrailingTrivia);
-                    newToken = newToken.CopyAnnotationsTo(_renameAnnotations.WithAdditionalAnnotations(newIdentifierToken, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = token.Span }));
-                    AddModifiedSpan(token.Span, newToken.Span);
                 }
 
                 return newToken;

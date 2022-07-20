@@ -181,14 +181,12 @@ namespace Microsoft.CodeAnalysis.Rename
                 {
                     textSpanToRenameContext[textSpan] = context;
                 }
-#if DEBUG
                 else if (!existingRenameContext.Equals(context))
                 {
-                    // A textSpan is being renamed with different rename location info, should not happen.
+                    // A textSpan is being renamed with different rename location info.
                     throw new ArgumentException(
                         $"{textSpan} of {context.RenameLocation.DocumentId} is being renamed to two differnt locations info: {existingRenameContext}, {context}. ");
                 }
-#endif
             }
 
             return textSpanToRenameContext;
@@ -274,7 +272,6 @@ namespace Microsoft.CodeAnalysis.Rename
                     {
                         subSpanToReplacementTextBuilder[subSpan] = (replacementText, originalText);
                     }
-#if DEBUG
                     else if (!replacementTextAndOriginalText.Equals((replacementText, originalText)))
                     {
                         // Two symbol tries to rename a same subspan,
@@ -293,7 +290,6 @@ namespace Microsoft.CodeAnalysis.Rename
                         throw new ArgumentException(
                             $"{sourceSpan} of {context.RenameLocation.DocumentId} is being renamed to two differnt locations text: {replacementTextAndOriginalText.replacementText}, {replacementText}. ");
                     }
-#endif
                 }
             }
 

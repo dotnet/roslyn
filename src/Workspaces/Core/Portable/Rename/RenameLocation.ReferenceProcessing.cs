@@ -579,14 +579,14 @@ namespace Microsoft.CodeAnalysis.Rename
 
             internal static string ReplaceMatchingSubStrings(
                 string replaceInsideString,
-                ImmutableSortedDictionary<TextSpan, (string replacementText, string matchText)> subSpansToReplace)
+                ImmutableSortedDictionary<TextSpan, (string replacementText, string matchText)> subSpansToReplacementTextInfo)
             {
                 // We are provided specific matches to replace inside the string.
                 // Process the input string from start to end, replacing matchText with replacementText
                 // at the provided sub-spans within the string for these matches.
                 var stringBuilder = new StringBuilder();
                 var startOffset = 0;
-                foreach (var (subspan, (replacementText, matchText)) in subSpansToReplace)
+                foreach (var (subspan, (replacementText, matchText)) in subSpansToReplacementTextInfo)
                 {
                     Debug.Assert(subspan.Start <= replaceInsideString.Length);
                     Debug.Assert(subspan.End <= replaceInsideString.Length);

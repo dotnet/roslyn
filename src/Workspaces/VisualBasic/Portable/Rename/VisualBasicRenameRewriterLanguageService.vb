@@ -714,12 +714,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             End Function
 
             Private Function RenameWithinToken(token As SyntaxToken, newToken As SyntaxToken) As SyntaxToken
-                Dim textSpanSymbolContexts As HashSet(Of LocationRenameContext) = Nothing
-                If _isProcessingComplexifiedSpans OrElse Not _stringAndCommentRenameContexts.TryGetValue(token.Span, textSpanSymbolContexts) OrElse textSpanSymbolContexts.Count = 0 Then
+                Dim locationSymbolContexts As HashSet(Of LocationRenameContext) = Nothing
+                If _isProcessingComplexifiedSpans OrElse Not _stringAndCommentRenameContexts.TryGetValue(token.Span, locationSymbolContexts) OrElse locationSymbolContexts.Count = 0 Then
                     Return newToken
                 End If
 
-                Dim subSpanToReplacementTextInfo = CreateSubSpanToReplacementTextInfoDictionary(textSpanSymbolContexts)
+                Dim subSpanToReplacementTextInfo = CreateSubSpanToReplacementTextInfoDictionary(locationSymbolContexts)
 
                 Dim kind = newToken.Kind()
                 If kind = SyntaxKind.StringLiteralToken Then
@@ -729,18 +729,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 ElseIf kind = SyntaxKind.XmlTextLiteralToken Then
                     newToken = RenameInStringLiteral(token, newToken, subSpanToReplacementTextInfo, AddressOf SyntaxFactory.XmlTextLiteralToken)
                 ElseIf kind = SyntaxKind.XmlNameToken Then
-                    Dim matchingContexts = textSpanSymbolContexts.Where(Function(c) CaseInsensitiveComparison.Equals(c.OriginalText, newToken.ValueText))
-#If DEBUG Then
-                    If matchingContexts.Select(Function(context) context.ReplacementText).Distinct().Count() > 1 Then
-                        ' This identifier is renamed to different replacementText?
-                        Throw New ArgumentException($"{token} is tried to replaced to different text")
+                    Dim originalText = newToken.ToString()
+                    Dim replacementText = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(originalText, subSpanToReplacementTextInfo)
+                    If replacementText <> originalText Then
+                        Dim newIdentifierToken = SyntaxFactory.XmlNameToken(newToken.LeadingTrivia, replacementText, SyntaxFacts.GetKeywordKind(replacementText), newToken.TrailingTrivia)
+                        newToken = token.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(newIdentifierToken, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = token.Span}))
+                        AddModifiedSpan(token.Span, newToken.Span)
                     End If
-#End If
-                    Dim matchingContext = matchingContexts.First()
-                    Dim replacementText = matchingContext.ReplacementText
-                    Dim newIdentifierToken = SyntaxFactory.XmlNameToken(newToken.LeadingTrivia, replacementText, SyntaxFacts.GetKeywordKind(replacementText), newToken.TrailingTrivia)
-                    newToken = token.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(newIdentifierToken, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = token.Span}))
-                    AddModifiedSpan(token.Span, newToken.Span)
                 End If
 
                 Return newToken

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Rename;
@@ -192,6 +193,81 @@ public class Apple2
     }
 }", cancellationToken);
         }
+
+        [Fact]
+        public async Task TestRenameFailed()
+        {
+            var cancellationToken = CancellationToken.None;
+            using var verifier = new Verifier(@"
+                   <Workspace>
+                       <Project Language=""C#"" CommonReferences=""true"">
+                           <Document FilePath=""test1.cs"">
+interface IBar
+{
+    void {|Rename1:Hello|}();
+}
+
+class Bar : IBar
+{
+    public void {|Rename2:Hello|}();
+}
+
+                           </Document>
+                    </Project>
+                </Workspace>
+");
+
+            var renameOption = new SymbolRenameOptions();
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                verifier.RenameAndAnnotatedDocumentAsync(
+                    documentFilePath: "test1.cs",
+                    new()
+                    {
+                        { "Rename1", ("Hello1", renameOption) },
+                        { "Rename2", ("Hello2", renameOption) },
+                    }, cancellationToken));
+        }
+
+        [Fact]
+        public async Task TestRenameStringFail()
+        {
+            var cancellationToken = CancellationToken.None;
+            using var verifier = new Verifier(@"
+                   <Workspace>
+                       <Project Language=""C#"" CommonReferences=""true"">
+                           <Document FilePath=""test1.cs"">
+class {|Rename1:World|}
+{
+    public void Hello();
+    {
+        var x = ""Hello World"";
+    }
+}
+
+class World_X
+{
+    public void {|Rename2:World|}()
+    {
+    }
+}
+
+                           </Document>
+                    </Project>
+                </Workspace>
+");
+
+            var renameOption = new SymbolRenameOptions() { RenameInStrings = true };
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                verifier.RenameAndAnnotatedDocumentAsync(
+                    documentFilePath: "test1.cs",
+                    new()
+                    {
+                        { "Rename1", ("World1", renameOption) },
+                        { "Rename2", ("Hello2", renameOption) },
+                    }, cancellationToken));
+        }
+
         #endregion
 
         #region Visual Basic
