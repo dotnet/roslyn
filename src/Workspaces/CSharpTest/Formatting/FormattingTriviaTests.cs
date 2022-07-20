@@ -12,6 +12,7 @@ using Xunit;
 using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
@@ -1790,11 +1791,10 @@ class F
 	string s;
 }";
             var tree = SyntaxFactory.ParseCompilationUnit(code);
-
-            var newLineText = SyntaxFactory.ElasticEndOfLine(DefaultWorkspace.Options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp));
+            var newLine = Environment.NewLine;
 
             tree = tree.ReplaceTokens(tree.DescendantTokens(descendIntoTrivia: true)
-                                          .Where(tr => tr.IsKind(SyntaxKind.EndOfDirectiveToken)), (o, r) => o.WithTrailingTrivia(o.LeadingTrivia.Add(newLineText))
+                                          .Where(tr => tr.IsKind(SyntaxKind.EndOfDirectiveToken)), (o, r) => o.WithTrailingTrivia(o.LeadingTrivia.Add(SyntaxFactory.ElasticEndOfLine(newLine)))
                                                                                                               .WithLeadingTrivia(SyntaxFactory.TriviaList())
                                                                                                               .WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation));
 
@@ -1804,7 +1804,7 @@ class F
             {
                 Common = new SyntaxFormattingOptions.CommonOptions
                 {
-                    LineFormatting = new LineFormattingOptions { UseTabs = true }
+                    LineFormatting = new LineFormattingOptions { UseTabs = true, NewLine = newLine }
                 }
             };
 

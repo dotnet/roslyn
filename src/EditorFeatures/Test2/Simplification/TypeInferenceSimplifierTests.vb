@@ -70,9 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
-
-            Await TestAsync(input, expected, simplificationOptionSet)
+            Await TestAsync(input, expected)
         End Function
 
         <WorkItem(734369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734369")>
@@ -102,9 +100,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
-
-            Await TestAsync(input, expected, simplificationOptionSet)
+            Await TestAsync(input, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -167,9 +163,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Class
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
-
-            Await TestAsync(input, expected, simplificationOptionSet)
+            Await TestAsync(input, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -204,9 +198,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
-
-            Await TestAsync(input, expected, simplificationOptionSet)
+            Await TestAsync(input, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -255,9 +247,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Class
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
-
-            Await TestAsync(input, expected, simplificationOptionSet)
+            Await TestAsync(input, expected)
         End Function
 
         <WorkItem(734377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734377")>
@@ -305,9 +295,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
-
-            Await TestAsync(input, expected, simplificationOptionSet)
+            Await TestAsync(input, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -358,9 +346,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
-
-            Await TestAsync(input, expected, simplificationOptionSet)
+            Await TestAsync(input, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -409,9 +395,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Class
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
-
-            Await TestAsync(input, expected, simplificationOptionSet)
+            Await TestAsync(input, expected)
         End Function
 
 #Region "Type Argument Expand/Reduce for Generic Method Calls - 639136"
@@ -469,9 +453,7 @@ class D : C
 }]]>
               </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
-
-            Await TestAsync(input, expected, simplificationOptionSet)
+            Await TestAsync(input, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -524,9 +506,7 @@ End Class
 ]]>
               </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
-
-            Await TestAsync(input, expected, simplificationOptionSet)
+            Await TestAsync(input, expected)
         End Function
 
         <WorkItem(734377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734377")>
@@ -570,9 +550,7 @@ Namespace X
 End Namespace
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
-
-            Await TestAsync(input, expected, simplificationOptionSet)
+            Await TestAsync(input, expected)
         End Function
 
         <WorkItem(860111, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860111")>
@@ -620,9 +598,7 @@ Namespace Y
 End Namespace
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {}
-
-            Await TestAsync(input, expected, simplificationOptionSet)
+            Await TestAsync(input, expected)
         End Function
 #End Region
 
