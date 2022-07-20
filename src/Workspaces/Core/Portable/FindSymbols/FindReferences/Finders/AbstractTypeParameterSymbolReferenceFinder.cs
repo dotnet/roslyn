@@ -34,16 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var objectCreationTokens = tokens.WhereAsArray(static (token, state) => IsObjectCreationToken(token, state), state);
 
             var normalReferences = await FindReferencesInTokensAsync(
-                symbol,
-                state,
-                normalTokens,
-                tokensMatch: static (state, token, _, _) =>
-                {
-                    Contract.ThrowIfTrue(IsObjectCreationToken(token, state));
-                    return true;
-                },
-                value: /*unused*/true,
-                cancellationToken).ConfigureAwait(false);
+                symbol, state, objectCreationTokens, cancellationToken).ConfigureAwait(false);
 
             var objectCreationReferences = GetObjectCreationReferences(objectCreationTokens);
 
