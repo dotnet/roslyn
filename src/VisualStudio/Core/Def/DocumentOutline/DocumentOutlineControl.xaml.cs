@@ -157,8 +157,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         {
             _threadingContext.ThrowIfNotOnUIThread();
             _codeWindowEventsSink.Unadvise();
-            _textViewEventSource.Disconnect();
             _textViewEventSource.Changed -= OnEventSourceChanged;
+            _textViewEventSource.Disconnect();
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource.Dispose();
         }
