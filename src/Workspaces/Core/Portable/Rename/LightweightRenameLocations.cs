@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Rename
 {
     /// <summary>
-    /// Equivalent to <see cref="HeavyweightRenameLocations"/> except that references to symbols are kept in a lightweight fashion
+    /// Equivalent to <see cref="SymbolicRenameLocations"/> except that references to symbols are kept in a lightweight fashion
     /// to avoid expensive rehydration steps as a host and OOP communicate.
     /// </summary>
     internal sealed partial class LightweightRenameLocations
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Rename
             _referencedSymbols = referencedSymbols;
         }
 
-        public async Task<HeavyweightRenameLocations?> ToHeavyweightAsync(ISymbol symbol, CancellationToken cancellationToken)
+        public async Task<SymbolicRenameLocations?> ToSymbolicLocationsAsync(ISymbol symbol, CancellationToken cancellationToken)
         {
             var referencedSymbols = _referencedSymbols is null
                 ? default
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 ? default
                 : await _implicitLocations.SelectAsArrayAsync(loc => loc.RehydrateAsync(Solution, cancellationToken)).ConfigureAwait(false);
 
-            return new HeavyweightRenameLocations(
+            return new SymbolicRenameLocations(
                 symbol,
                 Solution,
                 Options,
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             // Couldn't effectively search in OOP. Perform the search in-proc.
-            var renameLocations = await HeavyweightRenameLocations.FindLocationsInCurrentProcessAsync(
+            var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(
                 symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             return new LightweightRenameLocations(

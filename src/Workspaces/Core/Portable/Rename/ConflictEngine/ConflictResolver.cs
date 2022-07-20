@@ -79,11 +79,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
             }
 
-            var heavyweightLocations = await lightweightRenameLocations.ToHeavyweightAsync(symbol, cancellationToken).ConfigureAwait(false);
+            var heavyweightLocations = await lightweightRenameLocations.ToSymbolicLocationsAsync(symbol, cancellationToken).ConfigureAwait(false);
             if (heavyweightLocations is null)
                 return new ConflictResolution(WorkspacesResources.Failed_to_resolve_rename_conflicts);
 
-            return await ResolveHeavyweightConflictsInCurrentProcessAsync(
+            return await ResolveSymbolicLocationConflictsInCurrentProcessAsync(
                 heavyweightLocations, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
         }
 
@@ -91,8 +91,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// Finds any conflicts that would arise from using <paramref name="replacementText"/> as the new name for a
         /// symbol and returns how to resolve those conflicts.  Will not cross any process boundaries to do this.
         /// </summary>
-        internal static async Task<ConflictResolution> ResolveHeavyweightConflictsInCurrentProcessAsync(
-            HeavyweightRenameLocations renameLocations,
+        internal static async Task<ConflictResolution> ResolveSymbolicLocationConflictsInCurrentProcessAsync(
+            SymbolicRenameLocations renameLocations,
             string replacementText,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken)
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         }
 
         private static Task<MutableConflictResolution> ResolveMutableConflictsAsync(
-            HeavyweightRenameLocations renameLocationSet,
+            SymbolicRenameLocations renameLocationSet,
             Location renameSymbolDeclarationLocation,
             string replacementText,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
