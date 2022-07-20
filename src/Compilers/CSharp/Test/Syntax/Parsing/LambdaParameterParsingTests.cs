@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -2651,7 +2652,7 @@ class C {
         }
 
         [Fact]
-        public void TestDefaultValueMissingRestOfLambda()
+        public void TestDefaultValueMissingRestOfLambda1()
         {
             string source = "(int x =";
             UsingExpression(source,
@@ -2676,6 +2677,286 @@ class C {
             }
             EOF();
         }
+
+
+        [Fact]
+        public void TestDefaultValueMissingRestOfLambda2()
+        {
+            string source = "(int x = 5";
+            UsingExpression(source,
+                // (1,1): error CS1073: Unexpected token 'x'
+                // (int x =
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(int ").WithArguments("x").WithLocation(1, 1),
+                // (1,2): error CS1525: Invalid expression term 'int'
+                // (int x =
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 2),
+                // (1,6): error CS1026: ) expected
+                // (int x =
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(1, 6));
+
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                M(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+
+        [Fact]
+        public void TestDefaultValueMissingRestOfLambda3()
+        {
+            string source = "(int x = 3,";
+            UsingExpression(source,
+                // (1,1): error CS1073: Unexpected token 'x'
+                // (int x =
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(int ").WithArguments("x").WithLocation(1, 1),
+                // (1,2): error CS1525: Invalid expression term 'int'
+                // (int x =
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 2),
+                // (1,6): error CS1026: ) expected
+                // (int x =
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(1, 6));
+
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                M(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueNoIdentifier()
+        {
+            string source = "(int = 3) => 4";
+            UsingExpression(source,
+                // (1,6): error CS1001: Identifier expected
+                // (int = 3) => 4
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(1, 6));
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "3");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueDoubleEquals()
+        {
+            string source = "(int x = 3 = 3) => x";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                }
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueEqualsEquals()
+        {
+            string source = "(int x == 4) => x";
+            UsingExpression(source,
+                // (1,1): error CS1073: Unexpected token 'x'
+                // (int x == 4) => x
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(int ").WithArguments("x").WithLocation(1, 1),
+                // (1,2): error CS1525: Invalid expression term 'int'
+                // (int x == 4) => x
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 2),
+                // (1,6): error CS1026: ) expected
+                // (int x == 4) => x
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(1, 6));
+
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                M(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueDelegateSyntax()
+        {
+            string source = "delegate(int x = 10) { return x; }";
+            UsingExpression(source);
+
+            N(SyntaxKind.AnonymousMethodExpression);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "10");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ReturnStatement);
+                    {
+                        N(SyntaxKind.ReturnKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+
+        [Fact]
+        public void TestDefaultValueWithAttributeOnParam()
+        {
+            string source = "([MyAttribute(3, arg1=true)] int x = -1) => x";
+            UsingExpression(source);
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueWithOtherModifiers()
+        {
+            string source = "(ref int a, out int b, int c = 0) => { b = a + c; }";
+            UsingExpression(source);
+            EOF();
+        }
+
+
+        [Fact]
+        public void TestDefaultValueWithComplexExpression1()
+        {
+            string source = "(int arg = y switch { < 0 => -1, 0 => 0, > 0 => 1}) => arg";
+            UsingExpression(source);
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueWithLambdaAsValue()
+        {
+            string source = "(int arg, Func<int, int> lam = (x) => 2 * x) => lam(arg)";
+            UsingExpression(source);
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueWithSwitchLambdaAsValue()
+        {
+
+            string source = @"(int arg,
+                            Func<int, Color> colorFunc = (Color c = Color.Red) => c switch 
+                                                                           { 1 => Color.Green, 2 => Color.Red, 3 => Color.Blue }) =>
+            { return colorFunc(arg); }";
+            UsingExpression(source);
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueNestedParens()
+        {
+            string source = "(a = (b = (c = (d = 3) => d) => c) => b) => a";
+            UsingExpression(source);
+            EOF();
+        }
+
+        [Fact]
+        public void TestDefaultValueWithComplexExpression2()
+        {
+            string source = "(int arg = a ? b ? w : x : c ? y : z)  => arg";
+            UsingExpression(source);
+            EOF();
+        }
+
 
         [Fact]
         public void TestNullCheckedDefaultValueSimpleLambda()
