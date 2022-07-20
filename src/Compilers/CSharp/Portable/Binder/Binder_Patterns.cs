@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     convertedType = inputType;
                 }
 
-                if ((constantValueOpt?.IsNumeric == true) && HasBlockedINumberConversion(patternConversion, inputType))
+                if ((constantValueOpt?.IsNumeric == true) && ShouldBlockINumberBaseConversion(patternConversion, inputType))
                 {
                     // Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.
                     diagnostics.Add(ErrorCode.ERR_CannotMatchOnINumberBase, node.Location, inputType);
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool HasBlockedINumberConversion(Conversion patternConversion, TypeSymbol inputType)
+        private bool ShouldBlockINumberBaseConversion(Conversion patternConversion, TypeSymbol inputType)
         {
             // We want to block constant and relation patterns that have an input type constrained to or inherited from INumberBase<T>, if we don't
             // know how to represent the constant being matched against in the input type. For example, `1.0 is 1` will work when written inline, but
@@ -449,16 +449,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var iNumberBase = Compilation.GetWellKnownType(WellKnownType.System_Numerics_INumberBase_T);
-
-            if (iNumberBase.IsErrorType())
-            {
-                return false;
-            }
-
             var interfaces = inputType is TypeParameterSymbol typeParam ? typeParam.EffectiveInterfacesNoUseSiteDiagnostics : inputType.AllInterfacesNoUseSiteDiagnostics;
-            return interfaces.Any(static (i, iNumberBase) => i.OriginalDefinition.Equals(iNumberBase, TypeCompareKind.AllIgnoreOptions), iNumberBase)
-                   || inputType.OriginalDefinition.Equals(iNumberBase, TypeCompareKind.AllIgnoreOptions);
+            return interfaces.Any(static (i, _) => i.IsWellKnownINumberBaseType(), 0) || inputType.IsWellKnownINumberBaseType();
         }
 
         private static ExpressionSyntax SkipParensAndNullSuppressions(ExpressionSyntax e, BindingDiagnosticBag diagnostics, ref bool hasErrors)
@@ -1663,7 +1655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constantValueOpt = ConstantValue.Bad;
             }
 
-            if (!hasErrors && HasBlockedINumberConversion(patternConversion, inputType))
+            if (!hasErrors && ShouldBlockINumberBaseConversion(patternConversion, inputType))
             {
                 // Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.
                 diagnostics.Add(ErrorCode.ERR_CannotMatchOnINumberBase, node.Location, inputType);

@@ -328,8 +328,6 @@ namespace Microsoft.CodeAnalysis
 
         System_GC,
 
-        System_Numerics_INumberBase_T,
-
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
     }
@@ -646,8 +644,6 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute",
             "System.MissingMethodException",
             "System.GC",
-
-            "System.Numerics.INumberBase`1",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
