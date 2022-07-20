@@ -195,6 +195,51 @@ namespace Microsoft.CodeAnalysis.Rename
         }
     }
 
+    internal partial class LightweightRenameLocations
+    {
+        public SerializableRenameLocations Dehydrate()
+            => new(
+                Options,
+                Locations.Select(SerializableRenameLocation.Dehydrate).ToArray(),
+                ImplicitLocations.IsDefault ? null : ImplicitLocations.ToArray(),
+                ReferencedSymbols.IsDefault ? null : ReferencedSymbols.ToArray());
+
+        internal static async Task<LightweightRenameLocations?> TryRehydrateAsync(
+            Solution solution, ISymbol symbol, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations locations, CancellationToken cancellationToken)
+        {
+            if (locations == null)
+                return null;
+
+            ImmutableArray<SerializableReferenceLocation> implicitLocations = default;
+            ImmutableArray<SerializableSymbolAndProjectId> referencedSymbols = default;
+
+            Contract.ThrowIfNull(locations.Locations);
+
+            using var _1 = ArrayBuilder<RenameLocation>.GetInstance(locations.Locations.Length, out var locBuilder);
+            foreach (var loc in locations.Locations)
+                locBuilder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
+
+            if (locations.ImplicitLocations != null)
+            {
+                implicitLocations = locations.ImplicitLocations.ToImmutableArray();
+            }
+
+            if (locations.ReferencedSymbols != null)
+            {
+                referencedSymbols = locations.ReferencedSymbols.ToImmutableArray();
+            }
+
+            return new LightweightRenameLocations(
+                symbol,
+                solution,
+                locations.Options,
+                fallbackOptions,
+                locBuilder.ToImmutableHashSet(),
+                implicitLocations,
+                referencedSymbols);
+        }
+    }
+
     [DataContract]
     internal sealed class SerializableRenameLocations
     {
@@ -204,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Rename
         // We use arrays so we can represent default immutable arrays.
 
         [DataMember(Order = 1)]
-        public SerializableRenameLocation[]? Locations;
+        public SerializableRenameLocation[] Locations;
 
         [DataMember(Order = 2)]
         public SerializableReferenceLocation[]? ImplicitLocations;
@@ -214,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public SerializableRenameLocations(
             SymbolRenameOptions options,
-            SerializableRenameLocation[]? locations,
+            SerializableRenameLocation[] locations,
             SerializableReferenceLocation[]? implicitLocations,
             SerializableSymbolAndProjectId[]? referencedSymbols)
         {

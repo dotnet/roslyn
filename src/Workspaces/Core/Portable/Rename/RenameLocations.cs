@@ -25,10 +25,10 @@ namespace Microsoft.CodeAnalysis.Rename
     /// Equivalent to <see cref="RenameLocations"/> except that references to symbols are kept in a lightweight fashion
     /// to avoid expensive rehydration steps as a host and OOP communicate.
     /// </summary>
-    internal sealed class LightweightRenameLocations
+    internal sealed partial class LightweightRenameLocations
     {
-        public readonly Solution Solution;
         public readonly ISymbol Symbol;
+        public readonly Solution Solution;
         public readonly SymbolRenameOptions Options;
         public readonly CodeCleanupOptionsProvider FallbackOptions;
 
@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.Rename
             ImmutableArray<SerializableReferenceLocation> implicitLocations,
             ImmutableArray<SerializableSymbolAndProjectId> referencedSymbols)
         {
-            Solution = solution;
             Symbol = symbol;
+            Solution = solution;
             Options = options;
             FallbackOptions = fallbackOptions;
             Contract.ThrowIfNull(locations);
@@ -57,58 +57,30 @@ namespace Microsoft.CodeAnalysis.Rename
             this.ImplicitLocations = implicitLocations;
             this.ReferencedSymbols = referencedSymbols;
         }
-    }
 
-    /// <summary>
-    /// Holds the Locations of a symbol that should be renamed, along with the symbol and Solution
-    /// for the set.
-    /// </summary>
-    internal sealed partial class RenameLocations
-    {
-        public readonly Solution Solution;
-        public readonly ISymbol Symbol;
-        public readonly SymbolRenameOptions Options;
-        public readonly CodeCleanupOptionsProvider FallbackOptions;
-
-        public readonly ImmutableHashSet<RenameLocation> Locations;
-        public readonly ImmutableArray<ReferenceLocation> ImplicitLocations;
-        public readonly ImmutableArray<ISymbol> ReferencedSymbols;
-
-        private RenameLocations(
-            ISymbol symbol,
-            Solution solution,
-            SymbolRenameOptions options,
-            CodeCleanupOptionsProvider fallbackOptions,
-            ImmutableHashSet<RenameLocation> locations,
-            ImmutableArray<ReferenceLocation> implicitLocations,
-            ImmutableArray<ISymbol> referencedSymbols)
+        public async Task<RenameLocations?> ToRenameLocationsAsync(CancellationToken cancellationToken)
         {
-            Solution = solution;
-            Symbol = symbol;
-            Options = options;
-            FallbackOptions = fallbackOptions;
-            Locations = locations;
-            ReferencedSymbols = referencedSymbols;
-            ImplicitLocations = implicitLocations;
-        }
+            var referencedSymbols = ReferencedSymbols.IsDefault
+                ? default
+                : await ReferencedSymbols.SelectAsArrayAsync(sym => sym.TryRehydrateAsync(Solution, cancellationToken)).ConfigureAwait(false);
 
-        internal static RenameLocations Create(
-            ImmutableHashSet<RenameLocation> locations,
-            ISymbol symbol,
-            Solution solution,
-            ImmutableArray<ISymbol> referencedSymbols,
-            ImmutableArray<ReferenceLocation> implicitLocations,
-            SymbolRenameOptions options,
-            CodeCleanupOptionsProvider fallbackOptions)
-        {
+            if (!referencedSymbols.IsDefault && referencedSymbols.Any(s => s is null))
+                return null;
+
             return new RenameLocations(
-                symbol, solution, options, fallbackOptions, locations, implicitLocations, referencedSymbols);
+               Symbol,
+               Solution,
+               Options,
+               FallbackOptions,
+               Locations,
+               ImplicitLocations.IsDefault ? default : await ImplicitLocations.SelectAsArrayAsync(loc => loc.RehydrateAsync(Solution, cancellationToken)).ConfigureAwait(false),
+               referencedSymbols);
         }
 
         /// <summary>
         /// Find the locations that need to be renamed.
         /// </summary>
-        public static async Task<RenameLocations> FindLocationsAsync(
+        public static async Task<LightweightRenameLocations> FindLightweightLocationsAsync(
             ISymbol symbol, Solution solution, SymbolRenameOptions options, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(solution);
@@ -144,11 +116,52 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             // Couldn't effectively search in OOP. Perform the search in-proc.
-            return await FindLocationsInCurrentProcessAsync(
+            var renameLocations = await FindLocationsInCurrentProcessAsync(
                 symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
+
+            return new LightweightRenameLocations(
+                symbol, solution, options, fallbackOptions, renameLocations.Locations,
+                renameLocations.ImplicitLocations.IsDefault ? default : renameLocations.ImplicitLocations.SelectAsArray(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)),
+                renameLocations.ReferencedSymbols.IsDefault ? default : renameLocations.ReferencedSymbols.SelectAsArray(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)));
         }
 
-        private static async Task<RenameLocations> FindLocationsInCurrentProcessAsync(
+    }
+
+    /// <summary>
+    /// Holds the Locations of a symbol that should be renamed, along with the symbol and Solution
+    /// for the set.
+    /// </summary>
+    internal sealed partial class RenameLocations
+    {
+        public readonly Solution Solution;
+        public readonly ISymbol Symbol;
+        public readonly SymbolRenameOptions Options;
+        public readonly CodeCleanupOptionsProvider FallbackOptions;
+
+        public readonly ImmutableHashSet<RenameLocation> Locations;
+        public readonly ImmutableArray<ReferenceLocation> ImplicitLocations;
+        public readonly ImmutableArray<ISymbol> ReferencedSymbols;
+
+        public RenameLocations(
+            ISymbol symbol,
+            Solution solution,
+            SymbolRenameOptions options,
+            CodeCleanupOptionsProvider fallbackOptions,
+            ImmutableHashSet<RenameLocation> locations,
+            ImmutableArray<ReferenceLocation> implicitLocations,
+            ImmutableArray<ISymbol> referencedSymbols)
+        {
+            Solution = solution;
+            Symbol = symbol;
+            Options = options;
+            FallbackOptions = fallbackOptions;
+            Contract.ThrowIfNull(locations);
+            Locations = locations;
+            ReferencedSymbols = referencedSymbols;
+            ImplicitLocations = implicitLocations;
+        }
+
+        public static async Task<RenameLocations> FindLocationsInCurrentProcessAsync(
             ISymbol symbol, Solution solution, SymbolRenameOptions options, CodeCleanupOptionsProvider cleanupOptions, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(symbol);
@@ -258,28 +271,18 @@ namespace Microsoft.CodeAnalysis.Rename
             return new SearchResult(locations.ToImmutable(), implicitLocations, referencedSymbols);
         }
 
-        /// <summary>
-        /// Performs the renaming of the symbol in the solution, identifies renaming conflicts and automatically
-        /// resolves them where possible.
-        /// </summary>
-        /// <param name="replacementText">The new name of the identifier</param>
-        /// <param name="nonConflictSymbols">Used after renaming references. References that now bind to any of these
-        /// symbols are not considered to be in conflict. Useful for features that want to rename existing references to
-        /// point at some existing symbol. Normally this would be a conflict, but this can be used to override that
-        /// behavior.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A conflict resolution containing the new solution.</returns>
-        public Task<ConflictResolution> ResolveConflictsAsync(string replacementText, ImmutableHashSet<ISymbol>? nonConflictSymbols = null, CancellationToken cancellationToken = default)
-            => ConflictResolver.ResolveConflictsAsync(this, replacementText, nonConflictSymbols, cancellationToken);
+
+        //public Task<ConflictResolution> ResolveConflictsAsync(string replacementText, ImmutableHashSet<ISymbol>? nonConflictSymbols = null, CancellationToken cancellationToken = default)
+        //    => ConflictResolver.ResolveLightweightConflictsAsync(this, replacementText, nonConflictSymbols, cancellationToken);
 
         public RenameLocations Filter(Func<Location, bool> filter)
-            => Create(
-                this.Locations.Where(loc => filter(loc.Location)).ToImmutableHashSet(),
+            => new(
                 this.Symbol,
                 this.Solution,
-                this.ReferencedSymbols,
-                this.ImplicitLocations.WhereAsArray(loc => filter(loc.Location)),
                 this.Options,
-                this.FallbackOptions);
+                this.FallbackOptions,
+                this.Locations.Where(loc => filter(loc.Location)).ToImmutableHashSet(),
+                this.ImplicitLocations.WhereAsArray(loc => filter(loc.Location)),
+                this.ReferencedSymbols);
     }
 }
