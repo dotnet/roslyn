@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         private class PerLanguageEnumCodeStyleSetting<T> : EnumCodeStyleSettingBase<T>
             where T : Enum
         {
-            private readonly PerLanguageValuedOption2<CodeStyleOption2<T>> _option;
+            private readonly PerLanguageOption2<CodeStyleOption2<T>> _option;
             private readonly AnalyzerConfigOptions _editorConfigOptions;
             private readonly OptionSet _visualStudioOptions;
 
-            public PerLanguageEnumCodeStyleSetting(PerLanguageValuedOption2<CodeStyleOption2<T>> option,
+            public PerLanguageEnumCodeStyleSetting(PerLanguageOption2<CodeStyleOption2<T>> option,
                                                    string description,
                                                    T[] enumValues,
                                                    string[] valueDescriptions,

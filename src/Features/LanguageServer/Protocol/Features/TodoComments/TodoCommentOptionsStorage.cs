@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
 {
     internal static class TodoCommentOptionsStorage
     {
-        public static readonly SingleValuedOption2<string> TokenList = new("TodoCommentOptions", "TokenList", TodoCommentOptions.Default.TokenList);
+        public static readonly Option2<string> TokenList = new("TodoCommentOptions", "TokenList", TodoCommentOptions.Default.TokenList);
 
         public static TodoCommentOptions GetTodoCommentOptions(this IGlobalOptionService globalOptions)
             => new(globalOptions.GetOption(TokenList) ?? TodoCommentOptions.Default.TokenList);

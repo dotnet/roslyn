@@ -55,13 +55,13 @@ public class GlobalOptionsTests
             AccessedOptionKeys.Add(key);
         }
 
-        public T GetOption<T>(SingleValuedOption2<T> option)
+        public T GetOption<T>(Option2<T> option)
         {
             OnOptionAccessed(new OptionKey(option));
             return (T)GetNonEqualValue(typeof(T), option.DefaultValue);
         }
 
-        public T GetOption<T>(PerLanguageValuedOption2<T> option, string? languageName)
+        public T GetOption<T>(PerLanguageOption2<T> option, string? languageName)
         {
             OnOptionAccessed(new OptionKey(option, languageName));
             return (T)GetNonEqualValue(typeof(T), option.DefaultValue);

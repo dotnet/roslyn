@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.Editor.Options
     {
         private const string FeatureName = "SignatureHelpOptions";
 
-        public static readonly PerLanguageValuedOption2<bool> ShowSignatureHelp = new(FeatureName, nameof(ShowSignatureHelp), defaultValue: true);
+        public static readonly PerLanguageOption2<bool> ShowSignatureHelp = new(FeatureName, nameof(ShowSignatureHelp), defaultValue: true);
     }
 }

@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        private static PerLanguageValuedOption2<bool> GetFadingOptionForDiagnostic(string diagnosticId)
+        private static PerLanguageOption2<bool> GetFadingOptionForDiagnostic(string diagnosticId)
             => diagnosticId switch
             {
                 IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId => FadingOptions.FadeOutUnusedImports,

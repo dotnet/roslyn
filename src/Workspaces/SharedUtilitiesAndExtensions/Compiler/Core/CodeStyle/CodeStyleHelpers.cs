@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return false;
         }
 
-        public static SingleValuedOption2<T> CreateOption<T>(
+        public static Option2<T> CreateOption<T>(
             OptionGroup group,
             string feature,
             string name,
@@ -121,12 +121,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             OptionStorageLocation2 storageLocation,
             string languageName)
         {
-            var option = new SingleValuedOption2<T>(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation), languageName);
+            var option = new Option2<T>(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation), languageName);
             optionsBuilder.Add(option);
             return option;
         }
 
-        public static SingleValuedOption2<T> CreateOption<T>(
+        public static Option2<T> CreateOption<T>(
             OptionGroup group,
             string feature,
             string name,
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             OptionStorageLocation2 storageLocation2,
             string languageName)
         {
-            var option = new SingleValuedOption2<T>(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation1, storageLocation2), languageName);
+            var option = new Option2<T>(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation1, storageLocation2), languageName);
             optionsBuilder.Add(option);
             return option;
         }
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 KeyValuePairUtil.Create("unused_local_variable", UnusedValuePreference.UnusedLocalVariable),
             });
 
-        public static SingleValuedOption2<CodeStyleOption2<UnusedValuePreference>> CreateUnusedExpressionAssignmentOption(
+        public static Option2<CodeStyleOption2<UnusedValuePreference>> CreateUnusedExpressionAssignmentOption(
             OptionGroup group,
             string feature,
             string name,

@@ -95,10 +95,10 @@ internal readonly struct AnalyzerOptionsProvider
 
     public string FileHeaderTemplate => GetOption(CodeStyleOptions2.FileHeaderTemplate, defaultValue: string.Empty); // no fallback IDE option
 
-    private TValue GetOption<TValue>(SingleValuedOption2<TValue> option, TValue defaultValue)
+    private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
         => _options.GetEditorConfigOption(option, defaultValue);
 
-    private TValue GetOption<TValue>(PerLanguageValuedOption2<TValue> option, TValue defaultValue)
+    private TValue GetOption<TValue>(PerLanguageOption2<TValue> option, TValue defaultValue)
         => _options.GetEditorConfigOption(option, defaultValue);
 
     private IdeCodeStyleOptions.CommonOptions FallbackCodeStyleOptions

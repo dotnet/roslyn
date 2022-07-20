@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
     {
         private class PerLanguageBooleanCodeStyleSetting : BooleanCodeStyleSettingBase
         {
-            private readonly PerLanguageValuedOption2<CodeStyleOption2<bool>> _option;
+            private readonly PerLanguageOption2<CodeStyleOption2<bool>> _option;
             private readonly AnalyzerConfigOptions _editorConfigOptions;
             private readonly OptionSet _visualStudioOptions;
 
-            public PerLanguageBooleanCodeStyleSetting(PerLanguageValuedOption2<CodeStyleOption2<bool>> option,
+            public PerLanguageBooleanCodeStyleSetting(PerLanguageOption2<CodeStyleOption2<bool>> option,
                                                       string description,
                                                       string? trueValueDescription,
                                                       string? falseValueDescription,

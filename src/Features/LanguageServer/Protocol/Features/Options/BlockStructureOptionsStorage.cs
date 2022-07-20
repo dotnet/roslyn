@@ -31,50 +31,50 @@ internal static class BlockStructureOptionsStorage
 
     private const string FeatureName = "BlockStructureOptions";
 
-    public static readonly PerLanguageValuedOption2<bool> ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = new(
+    public static readonly PerLanguageOption2<bool> ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = new(
         FeatureName, "ShowBlockStructureGuidesForCommentsAndPreprocessorRegions", BlockStructureOptions.Default.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions"));
 
-    public static readonly PerLanguageValuedOption2<bool> ShowBlockStructureGuidesForDeclarationLevelConstructs = new(
+    public static readonly PerLanguageOption2<bool> ShowBlockStructureGuidesForDeclarationLevelConstructs = new(
         FeatureName, "ShowBlockStructureGuidesForDeclarationLevelConstructs", BlockStructureOptions.Default.ShowBlockStructureGuidesForDeclarationLevelConstructs,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowBlockStructureGuidesForDeclarationLevelConstructs"));
 
-    public static readonly PerLanguageValuedOption2<bool> ShowBlockStructureGuidesForCodeLevelConstructs = new(
+    public static readonly PerLanguageOption2<bool> ShowBlockStructureGuidesForCodeLevelConstructs = new(
         FeatureName, "ShowBlockStructureGuidesForCodeLevelConstructs", BlockStructureOptions.Default.ShowBlockStructureGuidesForCodeLevelConstructs,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowBlockStructureGuidesForCodeLevelConstructs"));
 
-    public static readonly PerLanguageValuedOption2<bool> ShowOutliningForCommentsAndPreprocessorRegions = new(
+    public static readonly PerLanguageOption2<bool> ShowOutliningForCommentsAndPreprocessorRegions = new(
         FeatureName, "ShowOutliningForCommentsAndPreprocessorRegions", BlockStructureOptions.Default.ShowOutliningForCommentsAndPreprocessorRegions,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowOutliningForCommentsAndPreprocessorRegions"));
 
-    public static readonly PerLanguageValuedOption2<bool> ShowOutliningForDeclarationLevelConstructs = new(
+    public static readonly PerLanguageOption2<bool> ShowOutliningForDeclarationLevelConstructs = new(
         FeatureName, "ShowOutliningForDeclarationLevelConstructs", BlockStructureOptions.Default.ShowOutliningForDeclarationLevelConstructs,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowOutliningForDeclarationLevelConstructs"));
 
-    public static readonly PerLanguageValuedOption2<bool> ShowOutliningForCodeLevelConstructs = new(
+    public static readonly PerLanguageOption2<bool> ShowOutliningForCodeLevelConstructs = new(
         FeatureName, "ShowOutliningForCodeLevelConstructs", BlockStructureOptions.Default.ShowOutliningForCodeLevelConstructs,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowOutliningForCodeLevelConstructs"));
 
-    public static readonly PerLanguageValuedOption2<bool> CollapseRegionsWhenFirstOpened = new(
+    public static readonly PerLanguageOption2<bool> CollapseRegionsWhenFirstOpened = new(
         FeatureName, "CollapseRegionsWhenFirstOpened", BlockStructureOptions.Default.CollapseRegionsWhenFirstOpened,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseRegionsWhenFirstOpened"));
 
-    public static readonly PerLanguageValuedOption2<bool> CollapseImportsWhenFirstOpened = new(
+    public static readonly PerLanguageOption2<bool> CollapseImportsWhenFirstOpened = new(
         FeatureName, "CollapseImportsWhenFirstOpened", BlockStructureOptions.Default.CollapseImportsWhenFirstOpened,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseImportsWhenFirstOpened"));
 
-    public static readonly PerLanguageValuedOption2<bool> CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened = new(
+    public static readonly PerLanguageOption2<bool> CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened = new(
         FeatureName, "CollapseMetadataImplementationsWhenFirstOpened", BlockStructureOptions.Default.CollapseMetadataImplementationsWhenFirstOpened,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseMetadataImplementationsWhenFirstOpened"));
-    public static readonly PerLanguageValuedOption2<bool> CollapseMetadataSignatureFilesWhenFirstOpened = new(
+    public static readonly PerLanguageOption2<bool> CollapseMetadataSignatureFilesWhenFirstOpened = new(
         FeatureName, "CollapseEmptyMetadataImplementationsWhenFirstOpened", BlockStructureOptions.Default.CollapseEmptyMetadataImplementationsWhenFirstOpened,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseEmptyMetadataImplementationsWhenFirstOpened"));
 
-    public static readonly PerLanguageValuedOption2<bool> CollapseRegionsWhenCollapsingToDefinitions = new(
+    public static readonly PerLanguageOption2<bool> CollapseRegionsWhenCollapsingToDefinitions = new(
         FeatureName, "CollapseRegionsWhenCollapsingToDefinitions", BlockStructureOptions.Default.CollapseRegionsWhenCollapsingToDefinitions,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseRegionsWhenCollapsingToDefinitions"));
 
-    public static readonly PerLanguageValuedOption2<int> MaximumBannerLength = new(
+    public static readonly PerLanguageOption2<int> MaximumBannerLength = new(
         FeatureName, "MaximumBannerLength", BlockStructureOptions.Default.MaximumBannerLength,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.MaximumBannerLength"));
 }

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService : ISolutionCrawlerRegistrationService
     {
-        internal static readonly SingleValuedOption2<bool> EnableSolutionCrawler = new("InternalSolutionCrawlerOptions", "Solution Crawler", defaultValue: true,
+        internal static readonly Option2<bool> EnableSolutionCrawler = new("InternalSolutionCrawlerOptions", "Solution Crawler", defaultValue: true,
             storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\Internal\SolutionCrawler\Solution Crawler"));
 
         /// <summary>

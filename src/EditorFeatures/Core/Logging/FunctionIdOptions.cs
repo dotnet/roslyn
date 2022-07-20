@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 {
     internal static class FunctionIdOptions
     {
-        private static readonly ConcurrentDictionary<FunctionId, SingleValuedOption2<bool>> s_options =
+        private static readonly ConcurrentDictionary<FunctionId, Option2<bool>> s_options =
             new();
 
-        private static readonly Func<FunctionId, SingleValuedOption2<bool>> s_optionCreator = CreateOption;
+        private static readonly Func<FunctionId, Option2<bool>> s_optionCreator = CreateOption;
 
-        private static SingleValuedOption2<bool> CreateOption(FunctionId id)
+        private static Option2<bool> CreateOption(FunctionId id)
         {
             var name = Enum.GetName(typeof(FunctionId), id) ?? throw ExceptionUtilities.UnexpectedValue(id);
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         public static IEnumerable<IOption> GetOptions()
             => GetFunctionIds().Select(GetOption);
 
-        public static SingleValuedOption2<bool> GetOption(FunctionId id)
+        public static Option2<bool> GetOption(FunctionId id)
             => s_options.GetOrAdd(id, s_optionCreator);
 
         public static Func<FunctionId, bool> CreateFunctionIsEnabledPredicate(IGlobalOptionService globalOptions)

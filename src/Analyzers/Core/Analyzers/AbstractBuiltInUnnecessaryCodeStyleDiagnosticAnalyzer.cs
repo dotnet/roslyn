@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             string diagnosticId,
             EnforceOnBuild enforceOnBuild,
             IPerLanguageValuedOption? option,
-            PerLanguageValuedOption2<bool>? fadingOption,
+            PerLanguageOption2<bool>? fadingOption,
             LocalizableString title,
             LocalizableString? messageFormat = null,
             bool configurable = true)
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             string diagnosticId,
             EnforceOnBuild enforceOnBuild,
             ISingleValuedOption? option,
-            PerLanguageValuedOption2<bool>? fadingOption,
+            PerLanguageOption2<bool>? fadingOption,
             string language,
             LocalizableString title,
             LocalizableString? messageFormat = null,
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             string diagnosticId,
             EnforceOnBuild enforceOnBuild,
             ImmutableHashSet<IPerLanguageValuedOption> options,
-            PerLanguageValuedOption2<bool>? fadingOption,
+            PerLanguageOption2<bool>? fadingOption,
             LocalizableString title,
             LocalizableString? messageFormat = null,
             bool configurable = true)
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             AddDiagnosticIdToFadingOptionMapping(diagnosticId, fadingOption);
         }
 
-        private static void AddDiagnosticIdToFadingOptionMapping(string diagnosticId, PerLanguageValuedOption2<bool>? fadingOption)
+        private static void AddDiagnosticIdToFadingOptionMapping(string diagnosticId, PerLanguageOption2<bool>? fadingOption)
         {
             if (fadingOption != null)
             {

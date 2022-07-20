@@ -17,15 +17,15 @@ internal static class ClassificationOptionsStorage
             // ForceFrozenPartialSemanticsForCrossProcessOperations not stored in global options
         };
 
-    public static PerLanguageValuedOption2<bool> ClassifyReassignedVariables =
+    public static PerLanguageOption2<bool> ClassifyReassignedVariables =
         new("ClassificationOptions", "ClassifyReassignedVariables", ClassificationOptions.Default.ClassifyReassignedVariables,
             storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.ClassificationOptions.ClassifyReassignedVariables"));
 
-    public static PerLanguageValuedOption2<bool> ColorizeRegexPatterns =
+    public static PerLanguageOption2<bool> ColorizeRegexPatterns =
         new("RegularExpressionsOptions", "ColorizeRegexPatterns", ClassificationOptions.Default.ColorizeRegexPatterns,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ColorizeRegexPatterns"));
 
-    public static PerLanguageValuedOption2<bool> ColorizeJsonPatterns =
+    public static PerLanguageOption2<bool> ColorizeJsonPatterns =
         new("JsonFeatureOptions", "ColorizeJsonPatterns", ClassificationOptions.Default.ColorizeJsonPatterns,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ColorizeJsonPatterns"));
 }

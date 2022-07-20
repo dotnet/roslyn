@@ -6,17 +6,17 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    internal partial class PerLanguageValuedOption2<T>
+    internal partial class Option2<T>
     {
         [return: NotNullIfNotNull("option")]
-        public static explicit operator PerLanguageOption<T>?(PerLanguageValuedOption2<T>? option)
+        public static explicit operator Option<T>?(Option2<T>? option)
         {
             if (option is null)
             {
                 return null;
             }
 
-            return new PerLanguageOption<T>(option.OptionDefinition, option.StorageLocations.As<OptionStorageLocation>());
+            return new Option<T>(option.OptionDefinition, option.StorageLocations.As<OptionStorageLocation>());
         }
     }
 }

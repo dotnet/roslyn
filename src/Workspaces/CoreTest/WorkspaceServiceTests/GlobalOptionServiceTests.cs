@@ -166,9 +166,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             using var workspace = new AdhocWorkspace();
             var globalOptions = GetGlobalOptionService(workspace.Services);
-            var option1 = new SingleValuedOption2<int>("Feature1", "Name1", defaultValue: 1);
-            var option2 = new SingleValuedOption2<int>("Feature2", "Name2", defaultValue: 2);
-            var option3 = new SingleValuedOption2<int>("Feature3", "Name3", defaultValue: 3);
+            var option1 = new Option2<int>("Feature1", "Name1", defaultValue: 1);
+            var option2 = new Option2<int>("Feature2", "Name2", defaultValue: 2);
+            var option3 = new Option2<int>("Feature3", "Name3", defaultValue: 3);
 
             var changedOptions = new List<OptionChangedEventArgs>();
 
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public void TestPerLanguageCodeStyleOptions()
         {
             using var workspace = new AdhocWorkspace();
-            var PerLanguageValuedOption2 = new PerLanguageValuedOption2<CodeStyleOption2<bool>>("test", "test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning));
+            var PerLanguageValuedOption2 = new PerLanguageOption2<CodeStyleOption2<bool>>("test", "test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning));
             var perLanguageOption = PerLanguageValuedOption2.ToPublicOption();
             var newValueCodeStyleOption2 = new CodeStyleOption2<bool>(!PerLanguageValuedOption2.DefaultValue.Value, PerLanguageValuedOption2.DefaultValue.Notification);
             var newValueCodeStyleOption = (CodeStyleOption<bool>)newValueCodeStyleOption2!;
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public void TestLanguageSpecificCodeStyleOptions()
         {
             using var workspace = new AdhocWorkspace();
-            var option2 = new SingleValuedOption2<CodeStyleOption2<bool>>("test", "test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning));
+            var option2 = new Option2<CodeStyleOption2<bool>>("test", "test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning));
             var option = option2.ToPublicOption();
             var newValueCodeStyleOption2 = new CodeStyleOption2<bool>(!option2.DefaultValue.Value, option2.DefaultValue.Notification);
             var newValueCodeStyleOption = (CodeStyleOption<bool>)newValueCodeStyleOption2!;

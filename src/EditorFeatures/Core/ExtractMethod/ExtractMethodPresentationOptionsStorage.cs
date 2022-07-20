@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         private const string FeatureName = "ExtractMethodOptions";
 
-        public static readonly PerLanguageValuedOption2<bool> AllowBestEffort = new(FeatureName, "AllowBestEffort", defaultValue: true,
+        public static readonly PerLanguageOption2<bool> AllowBestEffort = new(FeatureName, "AllowBestEffort", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Allow Best Effort"));
     }
 }

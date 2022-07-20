@@ -10,13 +10,13 @@ internal sealed class ColorSchemeOptions
 {
     internal const string ColorSchemeSettingKey = "TextEditor.Roslyn.ColorSchemeName";
 
-    public static readonly SingleValuedOption2<ColorSchemeName> ColorScheme = new(
+    public static readonly Option2<ColorSchemeName> ColorScheme = new(
         "ColorSchemeOptions",
         "ColorSchemeName",
         defaultValue: ColorSchemeName.VisualStudio2019,
         storageLocation: new RoamingProfileStorageLocation(ColorSchemeSettingKey));
 
-    public static readonly SingleValuedOption2<UseEnhancedColors> LegacyUseEnhancedColors = new(
+    public static readonly Option2<UseEnhancedColors> LegacyUseEnhancedColors = new(
         "ColorSchemeOptions",
         "LegacyUseEnhancedColors",
         defaultValue: UseEnhancedColors.Default,

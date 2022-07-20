@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 
         protected AbstractOrderModifiersDiagnosticAnalyzer(
             ISyntaxFacts syntaxFacts,
-            SingleValuedOption2<CodeStyleOption2<string>> option,
+            Option2<CodeStyleOption2<string>> option,
             AbstractOrderModifiersHelpers helpers,
             string language)
             : base(IDEDiagnosticIds.OrderModifiersDiagnosticId,

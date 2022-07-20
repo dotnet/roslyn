@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
     internal sealed class InlineDiagnosticsOptions
     {
-        public static readonly PerLanguageValuedOption2<bool> EnableInlineDiagnostics =
+        public static readonly PerLanguageOption2<bool> EnableInlineDiagnostics =
             new("InlineDiagnosticsOptions",
                 "EnableInlineDiagnostics",
                 defaultValue: false,
                 storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineDiagnostics"));
 
-        public static readonly PerLanguageValuedOption2<InlineDiagnosticsLocations> Location =
+        public static readonly PerLanguageOption2<InlineDiagnosticsLocations> Location =
             new("InlineDiagnosticsOptions",
                 "Location",
                 defaultValue: InlineDiagnosticsLocations.PlacedAtEndOfCode,

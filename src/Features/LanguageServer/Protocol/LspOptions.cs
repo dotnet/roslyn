@@ -20,15 +20,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// This sets the max list size we will return in response to a completion request.
         /// If there are more than this many items, we will set the isIncomplete flag on the returned completion list.
         /// </summary>
-        public static readonly SingleValuedOption2<int> MaxCompletionListSize = new(FeatureName, nameof(MaxCompletionListSize), defaultValue: 1000,
+        public static readonly Option2<int> MaxCompletionListSize = new(FeatureName, nameof(MaxCompletionListSize), defaultValue: 1000,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(MaxCompletionListSize)));
 
         // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
-        public static readonly SingleValuedOption2<bool> LspEditorFeatureFlag = new(FeatureName, nameof(LspEditorFeatureFlag), defaultValue: false,
+        public static readonly Option2<bool> LspEditorFeatureFlag = new(FeatureName, nameof(LspEditorFeatureFlag), defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.LSP.Editor"));
 
         // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
-        public static readonly SingleValuedOption2<bool> LspSemanticTokensFeatureFlag = new(FeatureName, nameof(LspSemanticTokensFeatureFlag), defaultValue: false,
+        public static readonly Option2<bool> LspSemanticTokensFeatureFlag = new(FeatureName, nameof(LspSemanticTokensFeatureFlag), defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.LSP.SemanticTokens"));
     }
 }

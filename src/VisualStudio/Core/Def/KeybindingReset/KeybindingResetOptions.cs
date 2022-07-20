@@ -15,19 +15,19 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
     {
         private const string LocalRegistryPath = @"Roslyn\Internal\KeybindingsStatus\";
 
-        public static readonly SingleValuedOption2<ReSharperStatus> ReSharperStatus = new(nameof(KeybindingResetOptions),
+        public static readonly Option2<ReSharperStatus> ReSharperStatus = new(nameof(KeybindingResetOptions),
             nameof(ReSharperStatus), defaultValue: KeybindingReset.ReSharperStatus.NotInstalledOrDisabled,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(ReSharperStatus)));
 
-        public static readonly SingleValuedOption2<bool> NeedsReset = new(nameof(KeybindingResetOptions),
+        public static readonly Option2<bool> NeedsReset = new(nameof(KeybindingResetOptions),
             nameof(NeedsReset), defaultValue: false,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(NeedsReset)));
 
-        public static readonly SingleValuedOption2<bool> NeverShowAgain = new(nameof(KeybindingResetOptions),
+        public static readonly Option2<bool> NeverShowAgain = new(nameof(KeybindingResetOptions),
             nameof(NeverShowAgain), defaultValue: false,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(NeverShowAgain)));
 
-        public static readonly SingleValuedOption2<bool> EnabledFeatureFlag = new(nameof(KeybindingResetOptions),
+        public static readonly Option2<bool> EnabledFeatureFlag = new(nameof(KeybindingResetOptions),
             nameof(EnabledFeatureFlag), defaultValue: false,
             storageLocation: new FeatureFlagStorageLocation("Roslyn.KeybindingResetEnabled"));
     }

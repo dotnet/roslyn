@@ -51,12 +51,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             ResetPerLanguageOption(globalOptions, FeatureOnOffOptions.PrettyListing);
             ResetPerLanguageOption(globalOptions, CompletionViewOptions.EnableArgumentCompletionSnippets);
 
-            static void ResetOption<T>(IGlobalOptionService globalOptions, SingleValuedOption2<T> option)
+            static void ResetOption<T>(IGlobalOptionService globalOptions, Option2<T> option)
             {
                 globalOptions.SetGlobalOption(new OptionKey(option, language: null), option.DefaultValue);
             }
 
-            static void ResetPerLanguageOption<T>(IGlobalOptionService globalOptions, PerLanguageValuedOption2<T> option)
+            static void ResetPerLanguageOption<T>(IGlobalOptionService globalOptions, PerLanguageOption2<T> option)
             {
                 globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.CSharp), option.DefaultValue);
                 globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.VisualBasic), option.DefaultValue);

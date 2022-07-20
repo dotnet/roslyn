@@ -123,12 +123,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             Assert.Equal(expectedIndentation, actualIndentation);
         }
 
-        private protected void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, params (PerLanguageValuedOption2<bool> option, bool enabled)[] options)
+        private protected void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, params (PerLanguageOption2<bool> option, bool enabled)[] options)
         {
             AssertFormatWithView(expectedWithMarker, codeWithMarker, parseOptions: null, options);
         }
 
-        private protected void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, ParseOptions parseOptions, params (PerLanguageValuedOption2<bool> option, bool enabled)[] options)
+        private protected void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, ParseOptions parseOptions, params (PerLanguageOption2<bool> option, bool enabled)[] options)
         {
             using var workspace = CreateWorkspace(codeWithMarker, parseOptions);
 

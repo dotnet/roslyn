@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Classification
         // We want to track text changes so that we can try to only reclassify a method body if
         // all edits were contained within one.
         protected sealed override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
-        protected sealed override IEnumerable<SingleValuedOption2<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
+        protected sealed override IEnumerable<Option2<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
 
         protected AbstractSemanticOrEmbeddedClassificationViewTaggerProvider(
             IThreadingContext threadingContext,

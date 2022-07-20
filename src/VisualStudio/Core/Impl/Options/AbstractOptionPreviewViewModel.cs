@@ -211,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         protected void AddParenthesesOption(
             string language, OptionStore optionStore,
-            PerLanguageValuedOption2<CodeStyleOption2<ParenthesesPreference>> languageOption,
+            PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> languageOption,
             string title, string[] examples, bool defaultAddForClarity)
         {
             var preferences = new List<ParenthesesPreference>();

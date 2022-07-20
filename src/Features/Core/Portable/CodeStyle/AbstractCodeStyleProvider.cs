@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     internal abstract partial class AbstractCodeStyleProvider<TOptionValue, TCodeStyleProvider>
         where TCodeStyleProvider : AbstractCodeStyleProvider<TOptionValue, TCodeStyleProvider>, new()
     {
-        private readonly SingleValuedOption2<CodeStyleOption2<TOptionValue>> _option;
+        private readonly Option2<CodeStyleOption2<TOptionValue>> _option;
         private readonly string _language;
         private readonly string _descriptorId;
         private readonly EnforceOnBuild _enforceOnBuild;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private readonly LocalizableString _message;
 
         protected AbstractCodeStyleProvider(
-            SingleValuedOption2<CodeStyleOption2<TOptionValue>> option,
+            Option2<CodeStyleOption2<TOptionValue>> option,
             string language,
             string descriptorId,
             EnforceOnBuild enforceOnBuild,

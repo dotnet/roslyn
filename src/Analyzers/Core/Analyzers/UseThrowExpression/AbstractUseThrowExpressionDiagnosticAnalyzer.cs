@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
     internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer :
         AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        protected AbstractUseThrowExpressionDiagnosticAnalyzer(SingleValuedOption2<CodeStyleOption2<bool>> preferThrowExpressionOption, string language)
+        protected AbstractUseThrowExpressionDiagnosticAnalyzer(Option2<CodeStyleOption2<bool>> preferThrowExpressionOption, string language)
             : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
                    EnforceOnBuildValues.UseThrowExpression,
                    preferThrowExpressionOption,

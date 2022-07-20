@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching
     {
         private readonly IBraceMatchingService _braceMatcherService;
 
-        protected override IEnumerable<SingleValuedOption2<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.BraceMatching);
+        protected override IEnumerable<Option2<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.BraceMatching);
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

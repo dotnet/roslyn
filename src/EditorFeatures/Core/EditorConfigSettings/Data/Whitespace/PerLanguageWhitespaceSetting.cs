@@ -42,11 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             }
         }
 
-        private readonly PerLanguageValuedOption2<T> _option;
+        private readonly PerLanguageOption2<T> _option;
         private readonly AnalyzerConfigOptions _editorConfigOptions;
         private readonly OptionSet _visualStudioOptions;
 
-        public PerLanguageWhitespaceSetting(PerLanguageValuedOption2<T> option,
+        public PerLanguageWhitespaceSetting(PerLanguageOption2<T> option,
                                             string description,
                                             AnalyzerConfigOptions editorConfigOptions,
                                             OptionSet visualStudioOptions,

@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    /// <inheritdoc cref="SingleValuedOption2{T}"/>
+    /// <inheritdoc cref="Option2{T}"/>
     public class Option<T> : ISingleValuedOption<T>
     {
         private readonly OptionDefinition _optionDefinition;
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// <inheritdoc cref="OptionDefinition.Type"/>
         public Type Type => _optionDefinition.Type;
 
-        /// <inheritdoc cref="SingleValuedOption2{T}.StorageLocations"/>
+        /// <inheritdoc cref="Option2{T}.StorageLocations"/>
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
         [Obsolete("Use a constructor that specifies an explicit default value.")]
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         /// <summary>
         /// We access LanguageName for analyzer and EditorConfig UI options.
-        /// These options should use <see cref="SingleValuedOption2{T}"/> instead.
+        /// These options should use <see cref="Option2{T}"/> instead.
         /// </summary>
         string? ISingleValuedOption.LanguageName => throw ExceptionUtilities.Unreachable;
 

@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [TagType(typeof(ClassificationTag))]
     internal partial class DiagnosticsClassificationTaggerProvider : AbstractDiagnosticsTaggerProvider<ClassificationTag>
     {
-        private static readonly IEnumerable<SingleValuedOption2<bool>> s_tagSourceOptions = ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Classification);
+        private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions = ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Classification);
 
         private readonly ClassificationTypeMap _typeMap;
         private readonly ClassificationTag _classificationTag;
         private readonly EditorOptionsService _editorOptionsService;
 
-        protected override IEnumerable<SingleValuedOption2<bool>> Options => s_tagSourceOptions;
+        protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

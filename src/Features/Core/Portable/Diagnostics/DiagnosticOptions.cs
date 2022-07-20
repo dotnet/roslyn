@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private const string FeatureName = "DiagnosticOptions";
 
-        public static readonly SingleValuedOption2<bool> LspPullDiagnosticsFeatureFlag = new(
+        public static readonly Option2<bool> LspPullDiagnosticsFeatureFlag = new(
             FeatureName, nameof(LspPullDiagnosticsFeatureFlag), defaultValue: false,
             new FeatureFlagStorageLocation("Lsp.PullDiagnostics"));
 
-        public static readonly SingleValuedOption2<bool> LogTelemetryForBackgroundAnalyzerExecution = new(
+        public static readonly Option2<bool> LogTelemetryForBackgroundAnalyzerExecution = new(
             FeatureName, nameof(LogTelemetryForBackgroundAnalyzerExecution), defaultValue: false,
             new FeatureFlagStorageLocation($"Roslyn.LogTelemetryForBackgroundAnalyzerExecution"));
     }

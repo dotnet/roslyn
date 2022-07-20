@@ -56,21 +56,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             Assert.Equal(defaultValue, setting.Value);
         }
 
-        private static SingleValuedOption2<CodeStyleOption2<bool>> CreateBoolOption(bool @default = false)
+        private static Option2<CodeStyleOption2<bool>> CreateBoolOption(bool @default = false)
         {
             var option = CodeStyleOption2<bool>.Default;
             option = (CodeStyleOption2<bool>)((ICodeStyleOption)option).WithValue(@default);
-            return new SingleValuedOption2<CodeStyleOption2<bool>>(feature: "TestFeature",
+            return new Option2<CodeStyleOption2<bool>>(feature: "TestFeature",
                                                        name: "TestOption",
                                                        defaultValue: option);
         }
 
-        private static SingleValuedOption2<CodeStyleOption2<T>> CreateEnumOption<T>(T @default)
+        private static Option2<CodeStyleOption2<T>> CreateEnumOption<T>(T @default)
             where T : notnull, Enum
         {
             var option = CodeStyleOption2<T>.Default;
             option = (CodeStyleOption2<T>)((ICodeStyleOption)option).WithValue(@default);
-            return new SingleValuedOption2<CodeStyleOption2<T>>(feature: "TestFeature",
+            return new Option2<CodeStyleOption2<T>>(feature: "TestFeature",
                                                     name: "TestOption",
                                                     defaultValue: option);
         }

@@ -31,25 +31,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         public int Count => _options.Count;
 
-        public void Set<T>(SingleValuedOption2<T> option, T value)
+        public void Set<T>(Option2<T> option, T value)
             => _options[new OptionKey2(option)] = value;
 
-        public void Add<T>(SingleValuedOption2<T> option, T value)
+        public void Add<T>(Option2<T> option, T value)
             => _options.Add(new OptionKey2(option), value);
 
-        public void Add<T>(SingleValuedOption2<CodeStyleOption2<T>> option, T value)
+        public void Add<T>(Option2<CodeStyleOption2<T>> option, T value)
             => Add(option, value, option.DefaultValue.Notification);
 
-        public void Add<T>(SingleValuedOption2<CodeStyleOption2<T>> option, T value, NotificationOption2 notification)
+        public void Add<T>(Option2<CodeStyleOption2<T>> option, T value, NotificationOption2 notification)
             => _options.Add(new OptionKey2(option), new CodeStyleOption2<T>(value, notification));
 
-        public void Add<T>(PerLanguageValuedOption2<T> option, T value)
+        public void Add<T>(PerLanguageOption2<T> option, T value)
             => _options.Add(new OptionKey2(option, _languageName), value);
 
-        public void Add<T>(PerLanguageValuedOption2<CodeStyleOption2<T>> option, T value)
+        public void Add<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T value)
             => Add(option, value, option.DefaultValue.Notification);
 
-        public void Add<T>(PerLanguageValuedOption2<CodeStyleOption2<T>> option, T value, NotificationOption2 notification)
+        public void Add<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T value, NotificationOption2 notification)
             => _options.Add(new OptionKey2(option, _languageName), new CodeStyleOption2<T>(value, notification));
 
         // 📝 This can be removed if/when collection initializers support AddRange.

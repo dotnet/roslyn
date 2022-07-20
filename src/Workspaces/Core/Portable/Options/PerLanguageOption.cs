@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    /// <inheritdoc cref="PerLanguageValuedOption2{T}"/>
+    /// <inheritdoc cref="PerLanguageOption2{T}"/>
     public class PerLanguageOption<T> : IPerLanguageValuedOption<T>
     {
         private readonly OptionDefinition _optionDefinition;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// <inheritdoc cref="OptionDefinition.DefaultValue"/>
         public T DefaultValue => (T)_optionDefinition.DefaultValue!;
 
-        /// <inheritdoc cref="PerLanguageValuedOption2{T}.StorageLocations"/>
+        /// <inheritdoc cref="PerLanguageOption2{T}.StorageLocations"/>
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
         public PerLanguageOption(string feature, string name, T defaultValue)

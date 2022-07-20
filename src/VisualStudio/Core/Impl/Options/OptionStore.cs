@@ -30,9 +30,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public object GetOption(OptionKey optionKey) => _optionSet.GetOption(optionKey);
         public T GetOption<T>(OptionKey optionKey) => _optionSet.GetOption<T>(optionKey);
         public T GetOption<T>(Option<T> option) => _optionSet.GetOption(option);
-        internal T GetOption<T>(SingleValuedOption2<T> option) => _optionSet.GetOption(option);
+        internal T GetOption<T>(Option2<T> option) => _optionSet.GetOption(option);
         public T GetOption<T>(PerLanguageOption<T> option, string language) => _optionSet.GetOption(option, language);
-        internal T GetOption<T>(PerLanguageValuedOption2<T> option, string language) => _optionSet.GetOption(option, language);
+        internal T GetOption<T>(PerLanguageOption2<T> option, string language) => _optionSet.GetOption(option, language);
         public OptionSet GetOptions() => _optionSet;
 
         public void SetOption(OptionKey optionKey, object value)
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             OnOptionChanged(new OptionKey(option));
         }
 
-        internal void SetOption<T>(SingleValuedOption2<T> option, T value)
+        internal void SetOption<T>(Option2<T> option, T value)
         {
             _optionSet = _optionSet.WithChangedOption(option, value);
 
@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             OnOptionChanged(new OptionKey(option, language));
         }
 
-        internal void SetOption<T>(PerLanguageValuedOption2<T> option, string language, T value)
+        internal void SetOption<T>(PerLanguageOption2<T> option, string language, T value)
         {
             _optionSet = _optionSet.WithChangedOption(option, language, value);
 

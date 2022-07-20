@@ -19,11 +19,11 @@ internal static class MetadataAsSourceOptionsStorage
             AlwaysUseDefaultSymbolServers = globalOptions.GetOption(AlwaysUseDefaultSymbolServers),
         };
 
-    public static SingleValuedOption2<bool> NavigateToDecompiledSources =
+    public static Option2<bool> NavigateToDecompiledSources =
         new("FeatureOnOffOptions", "NavigateToDecompiledSources", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation($"TextEditor.NavigateToDecompiledSources"));
 
-    public static SingleValuedOption2<bool> AlwaysUseDefaultSymbolServers =
+    public static Option2<bool> AlwaysUseDefaultSymbolServers =
         new("FeatureOnOffOptions", "AlwaysUseDefaultSymbolServers", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation($"TextEditor.AlwaysUseDefaultSymbolServers"));
 }

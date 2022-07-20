@@ -17,13 +17,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         private const string LocalRegistryPath = @"Roslyn\Internal\Performance\Logger\";
 
-        public static readonly SingleValuedOption2<bool> EtwLoggerKey = new(nameof(LoggerOptions), nameof(EtwLoggerKey), defaultValue: true,
+        public static readonly Option2<bool> EtwLoggerKey = new(nameof(LoggerOptions), nameof(EtwLoggerKey), defaultValue: true,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "EtwLogger"));
 
-        public static readonly SingleValuedOption2<bool> TraceLoggerKey = new(nameof(LoggerOptions), nameof(TraceLoggerKey), defaultValue: false,
+        public static readonly Option2<bool> TraceLoggerKey = new(nameof(LoggerOptions), nameof(TraceLoggerKey), defaultValue: false,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "TraceLogger"));
 
-        public static readonly SingleValuedOption2<bool> OutputWindowLoggerKey = new(nameof(LoggerOptions), nameof(OutputWindowLoggerKey), defaultValue: false,
+        public static readonly Option2<bool> OutputWindowLoggerKey = new(nameof(LoggerOptions), nameof(OutputWindowLoggerKey), defaultValue: false,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "OutputWindowLogger"));
     }
 }

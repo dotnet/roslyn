@@ -16,19 +16,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             MyBase.New(workspace, LanguageNames.VisualBasic)
         End Sub
 
-        Private Overloads Function GetBooleanOption(key As PerLanguageValuedOption2(Of Boolean)) As Boolean
+        Private Overloads Function GetBooleanOption(key As PerLanguageOption2(Of Boolean)) As Boolean
             Return GetOption(key)
         End Function
 
-        Private Overloads Function GetBooleanOption(key As SingleValuedOption2(Of Boolean)) As Boolean
+        Private Overloads Function GetBooleanOption(key As Option2(Of Boolean)) As Boolean
             Return GetOption(key)
         End Function
 
-        Private Overloads Sub SetBooleanOption(key As PerLanguageValuedOption2(Of Boolean), value As Boolean)
+        Private Overloads Sub SetBooleanOption(key As PerLanguageOption2(Of Boolean), value As Boolean)
             SetOption(key, value)
         End Sub
 
-        Private Overloads Sub SetBooleanOption(key As SingleValuedOption2(Of Boolean), value As Boolean)
+        Private Overloads Sub SetBooleanOption(key As Option2(Of Boolean), value As Boolean)
             SetOption(key, value)
         End Sub
     End Class

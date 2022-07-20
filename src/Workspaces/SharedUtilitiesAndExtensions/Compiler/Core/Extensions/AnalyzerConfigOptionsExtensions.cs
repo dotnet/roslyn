@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
     internal static class AnalyzerConfigOptionsExtensions
     {
 #if CODE_STYLE
-        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageValuedOption2<T> option, string language)
+        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption2<T> option, string language)
         {
             // Language is not used for .editorconfig lookups
             _ = language;
@@ -35,10 +35,10 @@ namespace Microsoft.CodeAnalysis
             => GetOptionWithAssertOnFailure<T>(analyzerConfigOptions, option);
 #endif
 
-        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, SingleValuedOption2<T> option)
+        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Option2<T> option)
             => GetOptionWithAssertOnFailure<T>(analyzerConfigOptions, option);
 
-        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageValuedOption2<T> option)
+        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption2<T> option)
             => GetOptionWithAssertOnFailure<T>(analyzerConfigOptions, option);
 
         private static T GetOptionWithAssertOnFailure<T>(AnalyzerConfigOptions analyzerConfigOptions, TOption option)

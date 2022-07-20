@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.Editing
 {
     internal class GenerationOptions
     {
-        public static readonly PerLanguageValuedOption2<bool> PlaceSystemNamespaceFirst = new(
+        public static readonly PerLanguageOption2<bool> PlaceSystemNamespaceFirst = new(
             "GenerationOptions", CodeStyleOptionGroups.Usings, "PlaceSystemNamespaceFirst",
             AddImportPlacementOptions.Default.PlaceSystemNamespaceFirst,
             EditorConfigStorageLocation.ForBoolOption("dotnet_sort_system_directives_first"),
             new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PlaceSystemNamespaceFirst"));
 
-        public static readonly PerLanguageValuedOption2<bool> SeparateImportDirectiveGroups = new(
+        public static readonly PerLanguageOption2<bool> SeparateImportDirectiveGroups = new(
             "GenerationOptions", CodeStyleOptionGroups.Usings, "SeparateImportDirectiveGroups",
             SyntaxFormattingOptions.CommonOptions.Default.SeparateImportDirectiveGroups,
             EditorConfigStorageLocation.ForBoolOption("dotnet_separate_import_directive_groups"),

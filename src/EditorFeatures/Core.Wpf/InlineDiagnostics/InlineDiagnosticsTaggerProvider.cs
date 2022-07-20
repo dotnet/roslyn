@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         private readonly IClassificationFormatMapService _classificationFormatMapService;
         private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
 
-        protected sealed override IEnumerable<PerLanguageValuedOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(InlineDiagnosticsOptions.EnableInlineDiagnostics);
+        protected sealed override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(InlineDiagnosticsOptions.EnableInlineDiagnostics);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

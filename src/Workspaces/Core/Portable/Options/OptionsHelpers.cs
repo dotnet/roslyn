@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.Options
         public static T GetOption<T>(Option<T> option, Func<OptionKey, object?> getOption)
             => GetOption<T>(new OptionKey(option), getOption);
 
-        public static T GetOption<T>(SingleValuedOption2<T> option, Func<OptionKey, object?> getOption)
+        public static T GetOption<T>(Option2<T> option, Func<OptionKey, object?> getOption)
             => GetOption<T>(new OptionKey(option), getOption);
 
         public static T GetOption<T>(PerLanguageOption<T> option, string? language, Func<OptionKey, object?> getOption)
             => GetOption<T>(new OptionKey(option, language), getOption);
 
-        public static T GetOption<T>(PerLanguageValuedOption2<T> option, string? language, Func<OptionKey, object?> getOption)
+        public static T GetOption<T>(PerLanguageOption2<T> option, string? language, Func<OptionKey, object?> getOption)
             => GetOption<T>(new OptionKey(option, language), getOption);
 
         public static T GetOption<T>(OptionKey2 optionKey, Func<OptionKey, object?> getOption)

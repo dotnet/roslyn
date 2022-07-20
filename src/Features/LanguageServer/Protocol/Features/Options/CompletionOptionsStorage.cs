@@ -35,79 +35,79 @@ internal static class CompletionOptionsStorage
 
     // feature flags
 
-    public static readonly SingleValuedOption2<bool> TypeImportCompletionFeatureFlag = new(nameof(CompletionOptions), nameof(TypeImportCompletionFeatureFlag),
+    public static readonly Option2<bool> TypeImportCompletionFeatureFlag = new(nameof(CompletionOptions), nameof(TypeImportCompletionFeatureFlag),
         CompletionOptions.Default.TypeImportCompletion,
         new FeatureFlagStorageLocation("Roslyn.TypeImportCompletion"));
 
-    public static readonly SingleValuedOption2<bool> UnnamedSymbolCompletionDisabledFeatureFlag = new(nameof(CompletionOptions), nameof(UnnamedSymbolCompletionDisabledFeatureFlag),
+    public static readonly Option2<bool> UnnamedSymbolCompletionDisabledFeatureFlag = new(nameof(CompletionOptions), nameof(UnnamedSymbolCompletionDisabledFeatureFlag),
         CompletionOptions.Default.UnnamedSymbolCompletionDisabled,
         new FeatureFlagStorageLocation("Roslyn.UnnamedSymbolCompletionDisabled"));
 
-    public static readonly SingleValuedOption2<bool> ShowNewSnippetExperienceFeatureFlag = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperienceFeatureFlag),
+    public static readonly Option2<bool> ShowNewSnippetExperienceFeatureFlag = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperienceFeatureFlag),
         CompletionOptions.Default.SnippetCompletion,
         new FeatureFlagStorageLocation("Roslyn.SnippetCompletion"));
 
     // This is serialized by the Visual Studio-specific LanguageSettingsPersister
-    public static readonly PerLanguageValuedOption2<bool> HideAdvancedMembers = new(nameof(CompletionOptions), nameof(HideAdvancedMembers), CompletionOptions.Default.HideAdvancedMembers);
+    public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new(nameof(CompletionOptions), nameof(HideAdvancedMembers), CompletionOptions.Default.HideAdvancedMembers);
 
     // This is serialized by the Visual Studio-specific LanguageSettingsPersister
-    public static readonly PerLanguageValuedOption2<bool> TriggerOnTyping = new(nameof(CompletionOptions), nameof(TriggerOnTyping), CompletionOptions.Default.TriggerOnTyping);
+    public static readonly PerLanguageOption2<bool> TriggerOnTyping = new(nameof(CompletionOptions), nameof(TriggerOnTyping), CompletionOptions.Default.TriggerOnTyping);
 
-    public static readonly PerLanguageValuedOption2<bool> TriggerOnTypingLetters = new(nameof(CompletionOptions), nameof(TriggerOnTypingLetters), CompletionOptions.Default.TriggerOnTypingLetters,
+    public static readonly PerLanguageOption2<bool> TriggerOnTypingLetters = new(nameof(CompletionOptions), nameof(TriggerOnTypingLetters), CompletionOptions.Default.TriggerOnTypingLetters,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerOnTypingLetters"));
 
-    public static readonly PerLanguageValuedOption2<bool?> TriggerOnDeletion = new(nameof(CompletionOptions), nameof(TriggerOnDeletion), CompletionOptions.Default.TriggerOnDeletion,
+    public static readonly PerLanguageOption2<bool?> TriggerOnDeletion = new(nameof(CompletionOptions), nameof(TriggerOnDeletion), CompletionOptions.Default.TriggerOnDeletion,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerOnDeletion"));
 
-    public static readonly PerLanguageValuedOption2<EnterKeyRule> EnterKeyBehavior =
+    public static readonly PerLanguageOption2<EnterKeyRule> EnterKeyBehavior =
         new(nameof(CompletionOptions), nameof(EnterKeyBehavior), CompletionOptions.Default.EnterKeyBehavior,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.EnterKeyBehavior"));
 
-    public static readonly PerLanguageValuedOption2<SnippetsRule> SnippetsBehavior =
+    public static readonly PerLanguageOption2<SnippetsRule> SnippetsBehavior =
         new(nameof(CompletionOptions), nameof(SnippetsBehavior), CompletionOptions.Default.SnippetsBehavior,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SnippetsBehavior"));
 
-    public static readonly PerLanguageValuedOption2<bool> ShowNameSuggestions =
+    public static readonly PerLanguageOption2<bool> ShowNameSuggestions =
         new(nameof(CompletionOptions), nameof(ShowNameSuggestions), CompletionOptions.Default.ShowNameSuggestions,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNameSuggestions"));
 
     //Dev16 options
 
     // Use tri-value so the default state can be used to turn on the feature with experimentation service.
-    public static readonly PerLanguageValuedOption2<bool?> ShowItemsFromUnimportedNamespaces =
+    public static readonly PerLanguageOption2<bool?> ShowItemsFromUnimportedNamespaces =
         new(nameof(CompletionOptions), nameof(ShowItemsFromUnimportedNamespaces), CompletionOptions.Default.ShowItemsFromUnimportedNamespaces,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowItemsFromUnimportedNamespaces"));
 
-    public static readonly PerLanguageValuedOption2<bool> TriggerInArgumentLists =
+    public static readonly PerLanguageOption2<bool> TriggerInArgumentLists =
         new(nameof(CompletionOptions), nameof(TriggerInArgumentLists), CompletionOptions.Default.TriggerInArgumentLists,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerInArgumentLists"));
 
     // Test-only option
-    public static readonly SingleValuedOption2<bool> ForceExpandedCompletionIndexCreation
+    public static readonly Option2<bool> ForceExpandedCompletionIndexCreation
         = new(nameof(CompletionOptions), nameof(ForceExpandedCompletionIndexCreation), defaultValue: false);
 
     // Set to true to update import completion cache in background if the provider isn't supposed to be triggered in the context.
     // (cache will alsways be refreshed when provider is triggered)
-    public static readonly SingleValuedOption2<bool> UpdateImportCompletionCacheInBackground
+    public static readonly Option2<bool> UpdateImportCompletionCacheInBackground
         = new(nameof(CompletionOptions), nameof(UpdateImportCompletionCacheInBackground), defaultValue: false);
 
     // Embedded languages:
 
-    public static PerLanguageValuedOption2<bool> ProvideRegexCompletions =
+    public static PerLanguageOption2<bool> ProvideRegexCompletions =
         new(
             "RegularExpressionsOptions",
             nameof(ProvideRegexCompletions),
             CompletionOptions.Default.ProvideRegexCompletions,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideRegexCompletions"));
 
-    public static readonly PerLanguageValuedOption2<bool> ProvideDateAndTimeCompletions =
+    public static readonly PerLanguageOption2<bool> ProvideDateAndTimeCompletions =
         new(
             "DateAndTime",
             nameof(ProvideDateAndTimeCompletions),
             CompletionOptions.Default.ProvideDateAndTimeCompletions,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions"));
 
-    public static readonly PerLanguageValuedOption2<bool?> ShowNewSnippetExperience
+    public static readonly PerLanguageOption2<bool?> ShowNewSnippetExperience
         = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperience), CompletionOptions.Default.ShowNewSnippetExperience,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNewSnippetExperience"));
 }

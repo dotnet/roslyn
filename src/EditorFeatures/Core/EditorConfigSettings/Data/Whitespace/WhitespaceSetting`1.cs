@@ -49,11 +49,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
         public override OptionKey2 Key => new(_option);
 
-        private readonly SingleValuedOption2<T> _option;
+        private readonly Option2<T> _option;
         private readonly AnalyzerConfigOptions _options;
         private readonly OptionSet _visualStudioOptions;
 
-        public WhitespaceSetting(SingleValuedOption2<T> option,
+        public WhitespaceSetting(Option2<T> option,
                                  string description,
                                  AnalyzerConfigOptions options,
                                  OptionSet visualStudioOptions,

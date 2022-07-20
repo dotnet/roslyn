@@ -32,7 +32,7 @@ internal static class ExtractMethodOptionsStorage
     public static ValueTask<ExtractMethodGenerationOptions> GetExtractMethodGenerationOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         => document.GetExtractMethodGenerationOptionsAsync(globalOptions.GetExtractMethodGenerationOptions(document.Project.LanguageServices), cancellationToken);
 
-    public static readonly PerLanguageValuedOption2<bool> DontPutOutOrRefOnStruct = new(
+    public static readonly PerLanguageOption2<bool> DontPutOutOrRefOnStruct = new(
         "ExtractMethodOptions", "DontPutOutOrRefOnStruct", ExtractMethodOptions.Default.DontPutOutOrRefOnStruct,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Don't Put Out Or Ref On Strcut")); // NOTE: the spelling error is what we've shipped and thus should not change
 }

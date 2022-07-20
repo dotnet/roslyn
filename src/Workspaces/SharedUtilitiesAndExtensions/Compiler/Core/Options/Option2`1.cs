@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// <summary>
     /// An global option. An instance of this class can be used to access an option value from an OptionSet.
     /// </summary>
-    internal partial class SingleValuedOption2<T> : ISingleValuedOption<T>
+    internal partial class Option2<T> : ISingleValuedOption<T>
     {
         public OptionDefinition OptionDefinition { get; }
 
@@ -57,27 +57,27 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public ImmutableArray<OptionStorageLocation2> StorageLocations { get; }
 
-        public SingleValuedOption2(string feature, string name, T defaultValue)
+        public Option2(string feature, string name, T defaultValue)
             : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocations: ImmutableArray<OptionStorageLocation2>.Empty)
         {
         }
 
-        public SingleValuedOption2(string feature, string name, T defaultValue, OptionStorageLocation2 storageLocation)
+        public Option2(string feature, string name, T defaultValue, OptionStorageLocation2 storageLocation)
             : this(feature, group: OptionGroup.Default, name, defaultValue, ImmutableArray.Create(storageLocation))
         {
         }
 
-        internal SingleValuedOption2(string feature, OptionGroup group, string name, T defaultValue, OptionStorageLocation2 storageLocation)
+        internal Option2(string feature, OptionGroup group, string name, T defaultValue, OptionStorageLocation2 storageLocation)
             : this(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation))
         {
         }
 
-        internal SingleValuedOption2(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation2> storageLocations)
+        internal Option2(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation2> storageLocations)
             : this(feature, group, name, defaultValue, storageLocations, null)
         {
         }
 
-        internal SingleValuedOption2(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation2> storageLocations, string? languageName)
+        internal Option2(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation2> storageLocations, string? languageName)
         {
             if (string.IsNullOrWhiteSpace(feature))
             {
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Options
             return OptionDefinition == other?.OptionDefinition;
         }
 
-        public static implicit operator OptionKey2(SingleValuedOption2<T> option)
+        public static implicit operator OptionKey2(Option2<T> option)
             => new(option);
     }
 }
