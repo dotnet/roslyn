@@ -19,6 +19,12 @@ namespace Microsoft.CodeAnalysis.Rename
 {
     internal interface IRenameRewriterLanguageService : ILanguageService
     {
+        /// <summary>
+        /// This method annotates the given syntax tree with all the locations that need to be checked for conflict
+        /// after the rename operation.  It also renames all the reference locations and expands any conflict locations.
+        /// </summary>
+        /// <param name="parameters">The options describing this rename operation</param>
+        /// <returns>The root of the annotated tree.</returns>
         SyntaxNode AnnotateAndRename(RenameRewriterParameters parameters);
 
         /// <summary>
