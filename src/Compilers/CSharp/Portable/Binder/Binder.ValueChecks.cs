@@ -1444,7 +1444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 scope == DeclarationScope.ValueScoped)
             {
                 // SPEC: For a given argument `a` that is passed to parameter `p`:
-                // SPEC: 1. If `p` is `scoped ref` then `a` does not contribute *ref-safe-to-escape* when considering arguments. Note that `ref scoped` is included here as it implies `scoped ref scoped`.
+                // SPEC: 1. If `p` is `scoped ref` then `a` does not contribute *ref-safe-to-escape* when considering arguments.
                 // SPEC: 2. If `p` is `scoped` then `a` does not contribute *safe-to-escape* when considering arguments.
                 return null;
             }

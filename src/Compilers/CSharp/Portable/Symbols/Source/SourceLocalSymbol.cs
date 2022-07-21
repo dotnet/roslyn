@@ -115,7 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // | scoped Span<int> s     | current method     | current method |
         // | ref Span<int> s        | calling method     | calling method |
         // | scoped ref Span<int> s | current method     | calling method |
-        // | ref scoped Span<int> s | current method     | current method |
 
         internal sealed override uint RefEscapeScope
         {
