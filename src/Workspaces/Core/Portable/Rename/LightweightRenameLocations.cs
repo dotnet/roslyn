@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Rename
     /// Equivalent to <see cref="SymbolicRenameLocations"/> except that references to symbols are kept in a lightweight fashion
     /// to avoid expensive rehydration steps as a host and OOP communicate.
     /// </summary>
-    internal sealed partial class LightweightRenameLocations
+    internal sealed partial class LightweightRenameLocations : IDisposable
     {
         public readonly Solution Solution;
         public readonly SymbolRenameOptions Options;
@@ -35,6 +35,14 @@ namespace Microsoft.CodeAnalysis.Rename
 
         private readonly SerializableReferenceLocation[]? _implicitLocations;
         private readonly SerializableSymbolAndProjectId[]? _referencedSymbols;
+
+
+
+        /// <summary>
+        /// Cancellation controlling a keep-alive communication channel we have with the OOP service. We do this to ensure 
+        /// that for the entirety of the inline-rename session 
+        /// </summary>
+        private readonly CancellationTokenSource _remoteHostKeepAliveTokenSource = new();
 
         private LightweightRenameLocations(
             Solution solution,
