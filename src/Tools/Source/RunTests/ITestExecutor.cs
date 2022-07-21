@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using PrepareTests;
 
 namespace RunTests
 {

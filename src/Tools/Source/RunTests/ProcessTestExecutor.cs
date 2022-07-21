@@ -15,7 +15,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.XPath;
-using PrepareTests;
 
 namespace RunTests
 {
@@ -39,10 +38,10 @@ namespace RunTests
             var builder = new StringBuilder();
             builder.Append($@"test");
 
-            var escapedAssemblyPaths = workItem.TypesToTest.Keys.Select(assembly => $"{sep}{assembly.AssemblyPath}{sep}");
+            var escapedAssemblyPaths = workItem.TypesToTest.Select(group => $"{sep}{group.Assembly.AssemblyPath}{sep}");
             builder.Append($@" {string.Join(" ", escapedAssemblyPaths)}");
 
-            var typeInfoList = workItem.TypesToTest.Values.SelectMany(type => type).ToImmutableArray();
+            var typeInfoList = workItem.TypesToTest.SelectMany(group => group.Types).ToImmutableArray();
             if (typeInfoList.Length > 0 || !string.IsNullOrWhiteSpace(Options.TestFilter))
             {
                 builder.Append($@" --filter {sep}");
@@ -127,7 +126,7 @@ namespace RunTests
             static bool HasBuiltInRetry(WorkItemInfo workItemInfo)
             {
                 // vs-extension-testing handles test retry internally.
-                return workItemInfo.TypesToTest.Keys.Any(assembly => assembly.AssemblyName == "Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll");
+                return workItemInfo.TypesToTest.Any(group => group.Assembly.AssemblyName == "Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll");
             }
         }
 

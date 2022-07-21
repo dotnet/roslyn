@@ -16,7 +16,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Mono.Options;
 using Newtonsoft.Json;
-using PrepareTests;
 
 namespace RunTests
 {
@@ -153,9 +152,9 @@ namespace RunTests
             static void AddRehydrateTestFoldersCommand(StringBuilder commandBuilder, WorkItemInfo workItem, bool isUnix)
             {
                 // Rehydrate assemblies that we need to run as part of this work item.
-                foreach (var testAssembly in workItem.TypesToTest.Keys)
+                foreach (var testAssemblyGroup in workItem.TypesToTest)
                 {
-                    var directoryName = Path.GetDirectoryName(testAssembly.AssemblyPath);
+                    var directoryName = Path.GetDirectoryName(testAssemblyGroup.Assembly.AssemblyPath);
                     if (isUnix)
                     {
                         // If we're on unix make sure we have permissions to run the rehydrate script.
@@ -204,12 +203,10 @@ namespace RunTests
                 // Create a payload directory that contains all the assemblies in the work item in separate folders.
                 var payloadDirectory = Path.Combine(msbuildTestPayloadRoot, "artifacts", "bin");
 
-                // Get the assembly path in the context of the helix work item.
+                // Update the assembly groups to test with the assembly paths in the context of the helix work item.
                 workItemInfo = workItemInfo with
                 {
-                    TypesToTest = workItemInfo.TypesToTest.ToImmutableSortedDictionary(
-                        kvp => kvp.Key with { AssemblyPath = GetHelixRelativeAssemblyPath(kvp.Key.AssemblyPath) },
-                        kvp => kvp.Value)
+                    TypesToTest = workItemInfo.TypesToTest.Select(group => group with { Assembly = group.Assembly with { AssemblyPath = GetHelixRelativeAssemblyPath(group.Assembly.AssemblyPath) } }).ToImmutableArray()
                 };
 
                 AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);

@@ -13,8 +13,9 @@ using System.Threading.Tasks;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using PrepareTests;
 using System.Xml.Linq;
+using System.Diagnostics.Contracts;
+using System.Runtime.InteropServices;
 
 namespace RunTests
 {
@@ -131,7 +132,7 @@ namespace RunTests
             var testExecutor = CreateTestExecutor(options);
             var testRunner = new TestRunner(options, testExecutor);
             var start = DateTime.Now;
-            var workItems = GetWorkItems(options);
+            var workItems = await GetWorkItemsAsync(options, cancellationToken);
             if (workItems.Length == 0)
             {
                 WriteLogFile(options);
@@ -282,11 +283,11 @@ namespace RunTests
             return null;
         }
 
-        private static ImmutableArray<WorkItemInfo> GetWorkItems(Options options)
+        private static async Task<ImmutableArray<WorkItemInfo>> GetWorkItemsAsync(Options options, CancellationToken cancellationToken)
         {
             var scheduler = new AssemblyScheduler(options);
             var assemblyPaths = GetAssemblyFilePaths(options);
-            var workItems = scheduler.Schedule(assemblyPaths);
+            var workItems = await scheduler.ScheduleAsync(assemblyPaths, cancellationToken);
             return workItems;
         }
 
@@ -295,46 +296,69 @@ namespace RunTests
             var list = new List<AssemblyInfo>();
             var binDirectory = Path.Combine(options.ArtifactsDirectory, "bin");
 
-            var assemblies = ListTests.GetTestAssemblyFilePaths(binDirectory, ShouldSkip, options.Configuration, options.TargetFrameworks);
-
-            return assemblies;
-
-            bool ShouldSkip(string projectDirectory)
+            // Find all the project folders that fit our naming scheme for unit tests.
+            foreach (var project in Directory.EnumerateDirectories(binDirectory, "*.UnitTests", SearchOption.TopDirectoryOnly))
             {
-                var name = Path.GetFileName(projectDirectory);
+                var name = Path.GetFileName(project);
                 if (!shouldInclude(name, options) || shouldExclude(name, options))
                 {
-                    Logger.Log($"Skipped {name} as it was not included");
-                    return true;
+                    continue;
+                }
+
+                var fileName = $"{name}.dll";
+                // Find the dlls matching the request configuration and target frameworks.
+                foreach (var targetFramework in options.TargetFrameworks)
+                {
+                    var targetFrameworkDirectory = Path.Combine(project, options.Configuration, targetFramework);
+                    var filePath = Path.Combine(targetFrameworkDirectory, fileName);
+                    if (File.Exists(filePath))
+                    {
+                        list.Add(new AssemblyInfo(filePath));
+                    }
+                    else if (Directory.Exists(targetFrameworkDirectory) && Directory.GetFiles(targetFrameworkDirectory, searchPattern: "*.UnitTests.dll") is { Length: > 0 } matches)
+                    {
+                        // If the unit test assembly name doesn't match the project folder name, but still matches our "unit test" name pattern, we want to run it.
+                        // If more than one such assembly is present in a project output folder, we assume something is wrong with the build configuration.
+                        // For example, one unit test project might be referencing another unit test project.
+                        if (matches.Length > 1)
+                        {
+                            var message = $"Multiple unit test assemblies found in '{targetFrameworkDirectory}'. Please adjust the build to prevent this. Matches:{Environment.NewLine}{string.Join(Environment.NewLine, matches)}";
+                            throw new Exception(message);
+                        }
+                        list.Add(new AssemblyInfo(matches[0]));
+                    }
+                }
+            }
+
+            Contract.Assert(list.Count > 0, $"Did not find any test assemblies");
+
+            list.Sort();
+            return list.ToImmutableArray();
+
+            static bool shouldInclude(string name, Options options)
+            {
+                foreach (var pattern in options.IncludeFilter)
+                {
+                    if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
+                    {
+                        return true;
+                    }
                 }
 
                 return false;
+            }
 
-                static bool shouldInclude(string name, Options options)
+            static bool shouldExclude(string name, Options options)
+            {
+                foreach (var pattern in options.ExcludeFilter)
                 {
-                    foreach (var pattern in options.IncludeFilter)
+                    if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
                     {
-                        if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
-                        {
-                            return true;
-                        }
+                        return true;
                     }
-
-                    return false;
                 }
 
-                static bool shouldExclude(string name, Options options)
-                {
-                    foreach (var pattern in options.ExcludeFilter)
-                    {
-                        if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
-                        {
-                            return true;
-                        }
-                    }
-
-                    return false;
-                }
+                return false;
             }
         }
 
