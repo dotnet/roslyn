@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Rename
                    location.ContainingLocationForStringOrComment,
                    location.IsWrittenTo);
 
-        public async Task<RenameLocation> RehydrateAsync(Solution solution, CancellationToken cancellation)
+        public async ValueTask<RenameLocation> RehydrateAsync(Solution solution, CancellationToken cancellation)
         {
             var document = solution.GetRequiredDocument(DocumentId);
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellation).ConfigureAwait(false);
@@ -157,15 +157,17 @@ namespace Microsoft.CodeAnalysis.Rename
         internal static async Task<SymbolicRenameLocations?> TryRehydrateAsync(
             ISymbol symbol, Solution solution, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations serializableLocations, CancellationToken cancellationToken)
         {
-            var locations = await serializableLocations.RehydrateLocationsAsync(solution, cancellationToken).ConfigureAwait(false);
-            if (locations == null)
+            if (serializableLocations == null)
                 return null;
 
-            var implicitLocations = await serializableLocations.ImplicitLocations.SelectAsArrayAsync(loc => loc.RehydrateAsync(solution, cancellationToken)).ConfigureAwait(false);
-            var referencedSymbols = await serializableLocations.ReferencedSymbols.SelectAsArrayAsync(sym => sym.TryRehydrateAsync(solution, cancellationToken)).ConfigureAwait(false);
+            var locations = await serializableLocations.Locations.SelectAsArrayAsync(
+                static (loc, solution, cancellationToken) => loc.RehydrateAsync(solution, cancellationToken), solution, cancellationToken).ConfigureAwait(false);
 
-            if (referencedSymbols.Any(s => s is null))
-                return null;
+            var implicitLocations = await serializableLocations.ImplicitLocations.SelectAsArrayAsync(
+                static (loc, solution, cancellationToken) => loc.RehydrateAsync(solution, cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+
+            var referencedSymbols = await serializableLocations.ReferencedSymbols.SelectAsArrayAsync(
+                static (sym, solution, cancellationToken) => sym.TryRehydrateAsync(solution, cancellationToken), solution, cancellationToken).ConfigureAwait(false);
 
             return new SymbolicRenameLocations(
                 symbol,
@@ -205,14 +207,14 @@ namespace Microsoft.CodeAnalysis.Rename
             ReferencedSymbols = referencedSymbols;
         }
 
-        public async ValueTask<ImmutableHashSet<RenameLocation>> RehydrateLocationsAsync(
+        public async ValueTask<ImmutableArray<RenameLocation>> RehydrateLocationsAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             using var _1 = ArrayBuilder<RenameLocation>.GetInstance(this.Locations.Length, out var locBuilder);
             foreach (var loc in this.Locations)
                 locBuilder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
 
-            return locBuilder.ToImmutableHashSet();
+            return locBuilder.ToImmutable();
         }
     }
 
