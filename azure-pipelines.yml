@@ -184,6 +184,16 @@ jobs:
 
 # Build Correctness Jobs
 
+- template: eng/pipelines/evaluate-changed-files.yml
+  parameters:
+    jobName: Determine_Changes
+    vmImageName: ubuntu-latest
+    paths:
+      - subset: compilers
+        include:
+        - src/Compilers/*
+        - src/Dependencies/*
+
 - template: eng/pipelines/build-windows-job.yml
   parameters:
     jobName: Correctness_Code_Analysis
@@ -229,55 +239,55 @@ jobs:
         jobName: Correctness_Build_Artifacts
         configuration: Release
     
-- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-  - job: Correctness_Determinism
-    pool:
-      name: NetCore1ESPool-Public
-      demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
-    timeoutInMinutes: 90
-    steps:
-      - template: eng/pipelines/checkout-windows-task.yml
+- job: Correctness_Determinism
+  dependsOn: Determine_Changes
+  condition: eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true')
+  pool:
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+  timeoutInMinutes: 90
+  steps:
+    - template: eng/pipelines/checkout-windows-task.yml
+    
+    - script: eng/test-determinism.cmd -configuration Debug
+      displayName: Build - Validate determinism
 
-      - script: eng/test-determinism.cmd -configuration Debug
-        displayName: Build - Validate determinism
+    - template: eng/pipelines/publish-logs.yml
+      parameters:
+        jobName: Correctness_Determinism
+        configuration: Debug
 
-      - template: eng/pipelines/publish-logs.yml
-        parameters:
-          jobName: Correctness_Determinism
-          configuration: Debug
+- job: Correctness_Bootstrap_Build
+  dependsOn: Determine_Changes
+  condition: eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true')
+  pool:
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+  timeoutInMinutes: 90
+  steps:
+    - template: eng/pipelines/checkout-windows-task.yml
 
-- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-  - job: Correctness_Bootstrap_Build
-    pool:
-      name: NetCore1ESPool-Public
-      demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
-    timeoutInMinutes: 90
-    steps:
-      - template: eng/pipelines/checkout-windows-task.yml
+    - script: eng/test-build-correctness.cmd -configuration Release -enableDumps
+      displayName: Build - Validate correctness
 
-      - script: eng/test-build-correctness.cmd -configuration Release -enableDumps
-        displayName: Build - Validate correctness
+    - template: eng/pipelines/publish-logs.yml
+      parameters:
+        jobName: Correctness_Bootstrap_Build
+        configuration: Release
 
-      - template: eng/pipelines/publish-logs.yml
-        parameters:
-          jobName: Correctness_Bootstrap_Build
-          configuration: Release
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Artifact Packages
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
+        ArtifactName: 'Bootstrap Packages - PreRelease'
+        publishLocation: Container
 
-      - task: PublishBuildArtifacts@1
-        displayName: Publish Artifact Packages
-        inputs:
-          PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
-          ArtifactName: 'Bootstrap Packages - PreRelease'
-          publishLocation: Container
-        condition: succeeded()
-
-      - task: PublishBuildArtifacts@1
-        displayName: Publish VSIX Packages
-        inputs:
-          PathtoPublish: '$(Build.SourcesDirectory)\artifacts\VSSetup\Release\Installer'
-          ArtifactName: 'Bootstrap VSIX - PreRelease'
-          publishLocation: Container
-        condition: succeeded()
+    - task: PublishBuildArtifacts@1
+      displayName: Publish VSIX Packages
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\VSSetup\Release\Installer'
+        ArtifactName: 'Bootstrap VSIX - PreRelease'
+        publishLocation: Container
 
 - job: Correctness_TodoCheck
   pool:
@@ -289,32 +299,32 @@ jobs:
     - pwsh: eng/todo-check.ps1
       displayName: Validate TODO/PROTOTYPE comments are not present
 
-- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-  - job: Correctness_Rebuild
-    pool:
-      name: NetCore1ESPool-Public
-      demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
-    timeoutInMinutes: 90
-    steps:
-      - template: eng/pipelines/checkout-windows-task.yml
+- job: Correctness_Rebuild
+  dependsOn: Determine_Changes
+  condition: eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true')
+  pool:
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+  timeoutInMinutes: 90
+  steps:
+    - template: eng/pipelines/checkout-windows-task.yml
 
-      - task: PowerShell@2
-        displayName: Restore
-        inputs:
-          filePath: eng/build.ps1
-          arguments: -configuration Debug -prepareMachine -ci -restore -binaryLog
+    - task: PowerShell@2
+      displayName: Restore
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -configuration Debug -prepareMachine -ci -restore -binaryLog
 
-      - powershell: .\eng\test-rebuild.ps1 -ci -configuration Release
-        displayName: Run BuildValidator
+    - powershell: .\eng\test-rebuild.ps1 -ci -configuration Release
+      displayName: Run BuildValidator
 
-      - task: PublishBuildArtifacts@1
-        displayName: Publish BuildValidator debug outputs
-        inputs:
-          PathtoPublish: '$(Build.SourcesDirectory)/artifacts/BuildValidator'
-          ArtifactName: 'BuildValidator_DebugOut'
-          publishLocation: Container
-        continueOnError: true
-        condition: failed()
+    - task: PublishBuildArtifacts@1
+      displayName: Publish BuildValidator debug outputs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/BuildValidator'
+        ArtifactName: 'BuildValidator_DebugOut'
+        publishLocation: Container
+      continueOnError: true
 
     - template: eng/pipelines/publish-logs.yml
       parameters:
