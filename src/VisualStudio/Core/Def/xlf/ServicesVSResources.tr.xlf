@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="Collapse_sourcelink_embedded_decompiled_files_on_open">
         <source>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</source>
-        <target state="translated">Dosya aılırken Kaynak Bağlantısı, Ekli ve Kaynak Koda Dönüştürülen kaynağı tanımlara daralt</target>
+        <target state="translated">Dosya açılırken Kaynak Bağlantısı, Ekli ve Kaynak Koda Dönüştürülen kaynağı tanımlara daralt</target>
         <note />
       </trans-unit>
       <trans-unit id="Color_hints">
