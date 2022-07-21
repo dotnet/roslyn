@@ -39,6 +39,9 @@
          Microsoft.Common.CurrentVersion.targets to see how it is consumed -->
     <WindowsAppContainer>false</WindowsAppContainer>
 
+    <!-- Used to control the running of the GenerateSatelliteAssemblies and CoreGenerateSatelliteAssemblies targets -->
+    <GenerateSatelliteAssemblies>true</GenerateSatelliteAssemblies>
+
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -51,6 +54,13 @@
   <PropertyGroup Condition="'$(IsWpfTempProject)' == 'true'">
     <EnableSourceLink>false</EnableSourceLink>
     <DeterministicSourcePaths>false</DeterministicSourcePaths>
+    <EnableXlfLocalization>false</EnableXlfLocalization>
+  </PropertyGroup>
+  
+  <!--
+    Disable Xliff if it's not necessary to generate satellite assemblies.
+  -->
+  <PropertyGroup Condition="'$(GenerateSatelliteAssemblies)' == 'false'">
     <EnableXlfLocalization>false</EnableXlfLocalization>
   </PropertyGroup>
 
