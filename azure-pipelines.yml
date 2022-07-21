@@ -184,6 +184,51 @@ jobs:
 
 # Build Correctness Jobs
 
+- template: eng/pipelines/build-windows-job.yml
+  parameters:
+    jobName: Correctness_Code_Analysis
+    configuration: Debug
+    queueName: Build.Windows.Amd64.VS2022.Pre.Open
+    restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+    buildArguments: -msbuildEngine dotnet -runAnalyzers -warnAsError /p:RoslynEnforceCodeStyle=true /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
+
+- job: Correctness_Build_Artifacts
+  pool:
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+  timeoutInMinutes: 90
+  steps:
+    - template: eng/pipelines/checkout-windows-task.yml
+
+    - task: PowerShell@2
+      displayName: Restore
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -configuration Release -prepareMachine -ci -restore -binaryLog
+
+    - task: PowerShell@2
+      displayName: Build
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLog
+
+    - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.sln
+      displayName: Validate Build Artifacts
+
+    - task: PowerShell@2
+      displayName: Generate Syntax Files
+      inputs:
+        filePath: eng/generate-compiler-code.ps1
+        arguments: -test -configuration Release
+        
+    - script: $(Build.SourcesDirectory)\.dotnet\dotnet.exe tool run dotnet-format whitespace  $(Build.SourcesDirectory)\src --folder --include-generated --include $(Build.SourcesDirectory)\src\Compilers\CSharp\Portable\Generated\ $(Build.SourcesDirectory)\src\Compilers\VisualBasic\Portable\Generated\ $(Build.SourcesDirectory)\src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\ --verify-no-changes
+      displayName: Validate Generated Syntax Files
+      
+    - template: eng/pipelines/publish-logs.yml
+      parameters:
+        jobName: Correctness_Build_Artifacts
+        configuration: Release
+    
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - job: Correctness_Determinism
     pool:
