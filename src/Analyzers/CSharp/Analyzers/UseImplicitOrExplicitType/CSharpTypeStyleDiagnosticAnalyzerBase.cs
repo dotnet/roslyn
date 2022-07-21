@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             string diagnosticId, EnforceOnBuild enforceOnBuild, LocalizableString title, LocalizableString message)
             : base(diagnosticId,
                    enforceOnBuild,
-                   ImmutableHashSet.Create<ILanguageSpecificOption>(CSharpCodeStyleOptions.VarForBuiltInTypes, CSharpCodeStyleOptions.VarWhenTypeIsApparent, CSharpCodeStyleOptions.VarElsewhere),
+                   ImmutableHashSet.Create<ISingleValuedOption>(CSharpCodeStyleOptions.VarForBuiltInTypes, CSharpCodeStyleOptions.VarWhenTypeIsApparent, CSharpCodeStyleOptions.VarElsewhere),
                    LanguageNames.CSharp,
                    title, message)
         {

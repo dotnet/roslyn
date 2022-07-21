@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Xunit;
@@ -42,9 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
         {
             var workspace = TestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures);
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement)
-                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement)));
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors), CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(CSharpCodeStyleOptions.PreferExpressionBodiedProperties), CSharpCodeStyleOptions.NeverWithSilentEnforcement);
 
             return new EncapsulateFieldTestState(workspace);
         }

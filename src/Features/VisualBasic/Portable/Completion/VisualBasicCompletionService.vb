@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
         End Function
 
         Private Function GetChangeText(item As CompletionItem) As String
-            Dim provider = TryCast(GetProvider(item), CommonCompletionProvider)
+            Dim provider = TryCast(GetProvider(item, project:=Nothing), CommonCompletionProvider)
             If provider IsNot Nothing Then
                 ' TODO: Document Is Not available in this code path.. what about providers that need to reconstruct information before producing text?
                 Dim result = provider.GetTextChangeAsync(Nothing, item, Nothing, CancellationToken.None).Result

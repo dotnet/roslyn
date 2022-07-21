@@ -383,4 +383,10 @@
   <data name="Remove_redundant_nullable_directive" xml:space="preserve">
     <value>Remove redundant nullable directive</value>
   </data>
+  <data name="Use_expression_body_for_lambda_expressions" xml:space="preserve">
+    <value>Use expression body for lambda expressions</value>
+  </data>
+  <data name="Use_block_body_for_lambda_expressions" xml:space="preserve">
+    <value>Use block body for lambda expressions</value>
+  </data>
 </root>

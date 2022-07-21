@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             s_localizableTitle, s_localizableInsideMessage);
 
         public MisplacedUsingDirectivesDiagnosticAnalyzer()
-           : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
+           : base(ImmutableDictionary<DiagnosticDescriptor, ISingleValuedOption>.Empty
                     .Add(s_outsideDiagnosticDescriptor, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement)
                     .Add(s_insideDiagnosticDescriptor, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement),
                  LanguageNames.CSharp)
