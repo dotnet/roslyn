@@ -1187,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsDerivedType(NamedTypeSymbol baseType, NamedTypeSymbol derivedType, ConsList<TypeSymbol> basesBeingResolved, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            Debug.Assert(!TypeSymbol.Equals(baseType, derivedType, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(!TypeSymbol.Equals(baseType, derivedType, TypeCompareKind.ConsiderEverything2));
 
             if (basesBeingResolved?.Any() != true)
             {
