@@ -1602,6 +1602,11 @@
         <target state="translated">La directive using est apparue précédemment comme using global</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_ArrayAccess">
+        <source>array access</source>
+        <target state="new">array access</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_AsyncMethodBuilderOverride">
         <source>async method builder override</source>
         <target state="translated">Remplacement du générateur de méthode asynchrone</target>
@@ -1765,6 +1770,11 @@
       <trans-unit id="IDS_FeatureSpanCharConstantPattern">
         <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
         <target state="translated">modèle correspondant à ReadOnly/Span&lt;char&gt; sur une chaîne constante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_PointerElementAccess">
+        <source>pointer element access</source>
+        <target state="new">pointer element access</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">

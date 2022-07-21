@@ -488,6 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // dynamic expressions are readwrite, and can even be passed by ref (which is implemented via a temp)
                 case BoundKind.DynamicMemberAccess:
                 case BoundKind.DynamicIndexerAccess:
+                case BoundKind.DynamicObjectInitializerMember:
                     {
                         if (RequiresRefAssignableVariable(valueKind))
                         {
@@ -3144,7 +3145,11 @@ moreArguments:
                 if (expression.Kind == BoundKind.AssignmentOperator)
                 {
                     var assignment = (BoundAssignmentOperator)expression;
-                    result = Math.Max(result, GetValEscape(assignment.Right, scopeOfTheContainingExpression));
+                    var rightValEscape = assignment.IsRef
+                        ? GetRefEscape(assignment.Right, scopeOfTheContainingExpression)
+                        : GetValEscape(assignment.Right, scopeOfTheContainingExpression);
+
+                    result = Math.Max(result, rightValEscape);
 
                     var left = (BoundObjectInitializerMember)assignment.Left;
                     result = Math.Max(result, GetValEscape(left.Arguments, scopeOfTheContainingExpression));
@@ -3773,7 +3778,11 @@ moreArguments:
                 if (expression.Kind == BoundKind.AssignmentOperator)
                 {
                     var assignment = (BoundAssignmentOperator)expression;
-                    if (!CheckValEscape(expression.Syntax, assignment.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
+                    bool valid = assignment.IsRef
+                        ? CheckRefEscape(expression.Syntax, assignment.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics)
+                        : CheckValEscape(expression.Syntax, assignment.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                    if (!valid)
                     {
                         return false;
                     }
