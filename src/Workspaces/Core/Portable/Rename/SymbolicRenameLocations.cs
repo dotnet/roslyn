@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Rename
     /// considered 'heavy weight' because it holds onto large entities (like Symbols) and thus should not be marshaled
     /// to/from a host to OOP.
     /// </summary>
-    internal sealed partial class HeavyweightRenameLocations
+    internal sealed partial class SymbolicRenameLocations
     {
         public readonly Solution Solution;
         public readonly ISymbol Symbol;
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public readonly ImmutableArray<ReferenceLocation> ImplicitLocations;
         public readonly ImmutableArray<ISymbol> ReferencedSymbols;
 
-        public HeavyweightRenameLocations(
+        public SymbolicRenameLocations(
             ISymbol symbol,
             Solution solution,
             SymbolRenameOptions options,
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <summary>
         /// Attempts to find all the locations to rename.  Will not cross any process boundaries to do this.
         /// </summary>
-        public static async Task<HeavyweightRenameLocations> FindLocationsInCurrentProcessAsync(
+        public static async Task<SymbolicRenameLocations> FindLocationsInCurrentProcessAsync(
             ISymbol symbol, Solution solution, SymbolRenameOptions options, CodeCleanupOptionsProvider cleanupOptions, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(symbol);
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 mergedLocations.AddRange(strings.NullToEmpty());
                 mergedLocations.AddRange(comments.NullToEmpty());
 
-                return new HeavyweightRenameLocations(
+                return new SymbolicRenameLocations(
                     symbol, solution, options, cleanupOptions,
                     mergedLocations.ToImmutable(),
                     mergedImplicitLocations.ToImmutable(),
