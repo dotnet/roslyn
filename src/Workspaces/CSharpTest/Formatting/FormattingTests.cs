@@ -4490,7 +4490,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact(Skip = "PROTOTYPE(default-params): =1 is no longer missing")]
+        [Fact]
         [WorkItem(542538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task MissingTokens()
@@ -4511,7 +4511,7 @@ class innerClass
 {
     public innerClass()
     {
-        myDelegate x = (int y=1) => { return; };
+        myDelegate x = (int y = 1) => { return; };
     }
 }";
 
