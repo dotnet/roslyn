@@ -178,7 +178,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             GetGenericInfo(moduleSymbol, handle, out genericParameterHandles, out arity, out mrEx);
 
-            bool mangleName;
             PENamedTypeSymbol result;
 
             if (arity == 0)
