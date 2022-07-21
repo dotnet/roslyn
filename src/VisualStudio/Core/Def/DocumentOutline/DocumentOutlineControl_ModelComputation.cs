@@ -53,9 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (activeTextView is null)
                 return null;
 
-            var currentSnapshot = activeTextView.TextSnapshot;
             var textBuffer = activeTextView.TextBuffer;
-
             var filePath = GetFilePath();
             if (filePath is null)
                 return null;
@@ -76,6 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                // Obtain the LSP response and text snapshot used.
                 var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(
                     textBuffer, _languageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
 
@@ -85,11 +84,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 if (response is null)
                     return null;
 
-                var responseBody = response.ToObject<DocumentSymbol[]>();
+                var responseBody = response.Value.response.ToObject<DocumentSymbol[]>();
                 if (responseBody is null)
                     return null;
 
-                return DocumentOutlineHelper.CreateDocumentSymbolDataModel(responseBody, currentSnapshot);
+                return DocumentOutlineHelper.CreateDocumentSymbolDataModel(responseBody, response.Value.snapshot);
             }
 
             string? GetFilePath()

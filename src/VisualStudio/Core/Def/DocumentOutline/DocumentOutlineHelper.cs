@@ -28,28 +28,40 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
     internal static class DocumentOutlineHelper
     {
-        public static async Task<JToken?> DocumentSymbolsRequestAsync(
+        /// <summary>
+        /// Makes an LSP document symbol request and returns the response and the text snapshot used at 
+        /// the time the LSP client sends the request to the server.
+        /// </summary>
+        public static async Task<(JToken response, ITextSnapshot snapshot)?> DocumentSymbolsRequestAsync(
             ITextBuffer textBuffer,
             ILanguageServiceBroker2 languageServiceBroker,
             string textViewFilePath,
             CancellationToken cancellationToken)
         {
-            var parameterFactory = new RoslynDocumentSymbolParams()
+            ITextSnapshot? requestSnapshot = null;
+            JToken ParameterFunction(ITextSnapshot snapshot)
             {
-                UseHierarchicalSymbols = true,
-                TextDocument = new TextDocumentIdentifier()
+                requestSnapshot = snapshot;
+                return JToken.FromObject(new RoslynDocumentSymbolParams()
                 {
-                    Uri = new Uri(textViewFilePath)
-                }
-            };
+                    UseHierarchicalSymbols = true,
+                    TextDocument = new TextDocumentIdentifier()
+                    {
+                        Uri = new Uri(textViewFilePath)
+                    }
+                });
+            }
 
-            return (await languageServiceBroker.RequestAsync(
+            var response = (await languageServiceBroker.RequestAsync(
                 textBuffer: textBuffer,
                 method: Methods.TextDocumentDocumentSymbolName,
                 capabilitiesFilter: (JToken x) => true,
                 languageServerName: WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString(),
-                parameterFactory: _ => JToken.FromObject(parameterFactory),
+                parameterFactory: ParameterFunction,
                 cancellationToken: cancellationToken).ConfigureAwait(false))?.Response;
+
+            // If the LSP server returns a valid response, then the text snapshot used will exist. 
+            return response is null ? null : (response, requestSnapshot!);
         }
 
         /// <summary>
