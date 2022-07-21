@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseExpressionBodyForLambda
 {
-    internal class UseExpressionBodyForLambdaCodeActionHelpers
+    internal static class UseExpressionBodyForLambdaCodeActionHelpers
     {
         internal static LambdaExpressionSyntax Update(SemanticModel semanticModel, LambdaExpressionSyntax originalDeclaration, LambdaExpressionSyntax currentDeclaration)
             => UpdateWorker(semanticModel, originalDeclaration, currentDeclaration).WithAdditionalAnnotations(Formatter.Annotation);
