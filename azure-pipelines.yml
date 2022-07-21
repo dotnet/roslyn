@@ -202,7 +202,7 @@ jobs:
           configuration: Debug
 
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-  - job: Correctness_Build
+  - job: Correctness_Bootstrap_Build
     pool:
       name: NetCore1ESPool-Public
       demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
@@ -215,14 +215,14 @@ jobs:
 
       - template: eng/pipelines/publish-logs.yml
         parameters:
-          jobName: Correctness_Build
+          jobName: Correctness_Bootstrap_Build
           configuration: Release
 
       - task: PublishBuildArtifacts@1
         displayName: Publish Artifact Packages
         inputs:
           PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
-          ArtifactName: 'Packages - PreRelease'
+          ArtifactName: 'Bootstrap Packages - PreRelease'
           publishLocation: Container
         condition: succeeded()
 
@@ -230,7 +230,7 @@ jobs:
         displayName: Publish VSIX Packages
         inputs:
           PathtoPublish: '$(Build.SourcesDirectory)\artifacts\VSSetup\Release\Installer'
-          ArtifactName: 'VSIX - PreRelease'
+          ArtifactName: 'Bootstrap VSIX - PreRelease'
           publishLocation: Container
         condition: succeeded()
 
