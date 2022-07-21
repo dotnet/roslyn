@@ -7,12 +7,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1303,6 +1303,34 @@ class C {
             Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d4.Kind());
             var d5 = d4.GetPreviousDirective();
             Assert.Null(d5);
+        }
+
+        [Fact]
+        public void TestGetNextAndPreviousDirectiveWithDuplicateTrivia()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(
+@"#region R
+class C {
+}
+");
+            var c = tree.GetCompilationUnitRoot().Members[0];
+
+            // Duplicate the leading trivia on the class
+            c = c.WithLeadingTrivia(c.GetLeadingTrivia().Concat(c.GetLeadingTrivia()));
+
+            var leadingTriviaWithDuplicate = c.GetLeadingTrivia();
+            Assert.Equal(2, leadingTriviaWithDuplicate.Count);
+
+            var firstDirective = Assert.IsType<RegionDirectiveTriviaSyntax>(leadingTriviaWithDuplicate[0].GetStructure());
+            var secondDirective = Assert.IsType<RegionDirectiveTriviaSyntax>(leadingTriviaWithDuplicate[1].GetStructure());
+
+            // Test GetNextDirective works correctly
+            Assert.Same(secondDirective, firstDirective.GetNextDirective());
+            Assert.Null(secondDirective.GetNextDirective());
+
+            // Test GetPreviousDirective works correctly
+            Assert.Null(firstDirective.GetPreviousDirective());
+            Assert.Same(secondDirective.GetPreviousDirective(), firstDirective);
         }
 
         [Fact]
