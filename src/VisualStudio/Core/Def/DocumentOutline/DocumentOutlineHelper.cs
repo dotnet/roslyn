@@ -100,6 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// ]
         public static DocumentSymbolDataModel CreateDocumentSymbolDataModel(LspDocumentSymbol[] documentSymbols, ITextSnapshot originalSnapshot)
         {
+            // Obtain a flat list of all the document symbols sorted by location in the document.
             var allSymbols = documentSymbols
                 .SelectMany(x => x.Children)
                 .Concat(documentSymbols)
@@ -107,36 +108,51 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 .ThenBy(x => x.Range.Start.Character)
                 .ToImmutableArray();
 
+            // Iterate through the document symbols, nest them, and add the top level symbols to finalResult.
             using var _1 = ArrayBuilder<DocumentSymbolData>.GetInstance(out var finalResult);
             var currentStart = 0;
-
             while (currentStart < allSymbols.Length)
                 finalResult.Add(NestDescendantSymbols(allSymbols, currentStart, out currentStart));
 
             return new DocumentSymbolDataModel(finalResult.ToImmutable(), originalSnapshot);
 
+            // Returns the symbol in the list at index start (the parent symbol) with the following symbols in the list
+            // (descendants) appropriately nested into the parent.
             DocumentSymbolData NestDescendantSymbols(ImmutableArray<LspDocumentSymbol> allSymbols, int start, out int newStart)
             {
-                var currentItem = allSymbols[start];
+                var currentParent = allSymbols[start];
                 start++;
                 newStart = start;
 
-                using var _2 = ArrayBuilder<DocumentSymbolData>.GetInstance(out var currentItemChildren);
+                // Iterates through the following symbols and checks whether the next symbol is in range of the parent and needs
+                // to be nested into the current parent symbol (along with following symbols that may be siblings/grandchildren/etc)
+                // or if the next symbol is a new parent.
+                using var _2 = ArrayBuilder<DocumentSymbolData>.GetInstance(out var currentSymbolChildren);
                 while (newStart < allSymbols.Length)
                 {
-                    var nextItem = allSymbols[newStart];
-                    if (!Contains(currentItem, nextItem))
+                    var nextSymbol = allSymbols[newStart];
+
+                    // If the next symbol in the list is not in range of the current parent (i.e. is a new parent), break.
+                    if (!Contains(currentParent, nextSymbol))
                         break;
 
-                    currentItemChildren.Add(NestDescendantSymbols(allSymbols, start: newStart, out newStart));
+                    // Otherwise, nest this child symbol and add it to currentSymbolChildren.
+                    currentSymbolChildren.Add(NestDescendantSymbols(allSymbols, start: newStart, out newStart));
                 }
 
-                return new DocumentSymbolData(currentItem, GetSymbolRangeSpan(currentItem.Range), GetSymbolRangeSpan(currentItem.SelectionRange), currentItemChildren.ToImmutable());
+                // Return the nested parent symbol.
+                return new DocumentSymbolData(
+                    currentParent,
+                    GetSymbolRangeSpan(currentParent.Range),
+                    GetSymbolRangeSpan(currentParent.SelectionRange),
+                    currentSymbolChildren.ToImmutable());
             }
 
+            // Returns whether the child symbol is in range of the parent symbol.
             static bool Contains(LspDocumentSymbol parent, LspDocumentSymbol child)
                 => child.Range.Start.Line > parent.Range.Start.Line && child.Range.End.Line < parent.Range.End.Line;
 
+            // Converts a Document Symbol Range to a SnapshotSpan within the text snapshot used for the LSP request.
             SnapshotSpan GetSymbolRangeSpan(Range symbolRange)
             {
                 var originalStartPosition = originalSnapshot.GetLineFromLineNumber(symbolRange.Start.Line).Start.Position + symbolRange.Start.Character;
