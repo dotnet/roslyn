@@ -337,8 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 case RefKind.Ref:
                 case RefKind.In:
-                    return parameterType.IsResolved &&
-                        parameterType.Type?.IsRefLikeType == true;
+                    return parameterType.IsRefLikeType();
                 default:
                     return false;
             }

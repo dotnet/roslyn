@@ -10911,7 +10911,8 @@ unsafe
             );
         }
 
-        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        [WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        [Fact]
         public void ReturnByRefFromRefReturningMethod_NotSafeToEscape()
         {
             string source = @"
@@ -10926,7 +10927,7 @@ unsafe
         return ref ptr(ref span);
     }
 
-    static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
+    static ref Span<int> ReturnByRef(ref Span<int> i) => throw null;
 }";
 
             var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular10, options: TestOptions.UnsafeReleaseExe);
@@ -10939,11 +10940,16 @@ unsafe
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "span").WithArguments("span").WithLocation(10, 28)
             );
 
+            // delegate*<,> parameter is implicitly scoped ref in C#11.
             comp = CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyDiagnostics(
-                // (13,62): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref parameter
-                //     static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(13, 62));
+                // (10,20): error CS8347: Cannot use a result of 'delegate*<ref Span<int>, ref Span<int>>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
+                //         return ref ptr(ref span);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ptr(ref span)").WithArguments("delegate*<ref System.Span<int>, ref System.Span<int>>", "0").WithLocation(10, 20),
+                // (10,28): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ref ptr(ref span);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(10, 28)
+            );
         }
 
         [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]

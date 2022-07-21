@@ -1477,19 +1477,10 @@ class C
         return ref x;
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSpan(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 10
 10");
-
-            comp = CreateCompilationWithMscorlibAndSpan(source);
-            comp.VerifyDiagnostics(
-                // (16,20): error CS8157: Cannot return 'q' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref q;
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "q").WithArguments("q").WithLocation(16, 20),
-                // (21,20): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
-                //         return ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(21, 20));
         }
 
         [Fact]

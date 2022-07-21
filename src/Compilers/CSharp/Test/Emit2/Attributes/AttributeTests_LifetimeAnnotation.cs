@@ -137,7 +137,7 @@ using System.Runtime.CompilerServices;
     [ScopedRef] event EventHandler E;
     [ScopedRef] object P { get; }
     [ScopedRef] static object M1() => throw null;
-    [ScopedRef] static object M2() => throw null;
+    [return: ScopedRef] static object M2() => throw null;
     static void M3<[ScopedRef] T>() { }
 }
 namespace System.Runtime.CompilerServices
