@@ -3925,34 +3925,25 @@ End Class
 
         <Fact, WorkItem(51011, "https://github.com/dotnet/roslyn/issues/51011")>
         Public Sub PartialMember_RenameInsertDelete()
-            ' The syntactic analysis for A And B produce rename edits since it  doesn't see that the member was in fact moved.
-            ' TODO: Currently, we don't even pass rename edits to semantic analysis where we could handle them as updates.
-
             Dim srcA1 = "Partial Class C" + vbCrLf + "Sub F1() : End Sub : End Class"
             Dim srcB1 = "Partial Class C" + vbCrLf + "Sub F2() : End Sub : End Class"
             Dim srcA2 = "Partial Class C" + vbCrLf + "Sub F2() : End Sub : End Class"
             Dim srcB2 = "Partial Class C" + vbCrLf + "Sub F1() : End Sub : End Class"
 
-            ' current outcome
-            GetTopEdits(srcA1, srcA2).VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Renamed, "Sub F2()", FeaturesResources.method))
-            GetTopEdits(srcB1, srcB2).VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Renamed, "Sub F1()", FeaturesResources.method))
-
-            ' correct outcome
-            'EditAndContinueValidation.VerifySemantics(
-            '     { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
-            '    
-            '    {
-            '        DocumentResults(semanticEdits:=
-            '            {
-            '                SemanticEdit(SemanticEditKind.Update, c => c.GetMember(Of NamedTypeSymbol)("C").GetMember("F2")),
-            '            }),
-            '
-            '        DocumentResults(
-            '            semanticEdits:=
-            '            {
-            '                SemanticEdit(SemanticEditKind.Update, c => c.GetMember(Of NamedTypeSymbol)("C").GetMember("F1")),
-            '            })
-            '    })
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F2"))
+                        }),
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F1"))
+                        })
+                })
         End Sub
 
         <Fact>
@@ -4687,8 +4678,12 @@ Imports System.Runtime.InteropServices
             edits.VerifyEdits(
                 "Update [Sub Goo]@11 -> [Sub Bar]@11")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "Sub Bar", FeaturesResources.method))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.Goo"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.Bar"))
+                })
         End Sub
 
         <Fact>
@@ -7957,8 +7952,12 @@ End Class"
             edits.VerifyEdits(
                 "Update [ReadOnly Property P As Integer]@10 -> [ReadOnly Property Q As Integer]@10")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "ReadOnly Property Q", FeaturesResources.property_))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.get_Q"))
+                })
         End Sub
 
         <Fact>
@@ -7970,8 +7969,12 @@ End Class"
             edits.VerifyEdits(
                 "Update [ReadOnly Property P As Integer]@10 -> [ReadOnly Property Q As Integer]@10")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "ReadOnly Property Q", FeaturesResources.property_))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.get_Q"))
+                })
         End Sub
 
         <Fact>
@@ -10184,8 +10187,16 @@ End Class
             edits.VerifyEdits(
                 "Update [Custom Event E As Action]@10 -> [Custom Event F As Action]@10")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "Event F", FeaturesResources.event_))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.add_E"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.remove_E"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.raise_E"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.add_F")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.remove_F")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.raise_F"))
+                })
         End Sub
 
         <Fact>

@@ -977,5 +977,15 @@ GetIndentionColumn(30),
 @"record struct R(int I,
                 string S) { }", new TestParameters(TestOptions.RegularPreview));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [WorkItem(61362, "https://github.com/dotnet/roslyn/issues/61362")]
+        public async Task TestWithMissingParameterList()
+        {
+            await TestMissingAsync(
+@"class C {
+    public void UpsertRecord<T>[||]
+}");
+        }
     }
 }

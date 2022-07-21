@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private readonly Registration _registration;
             private readonly object _gate = new();
 
-            private readonly LogAggregator _logAggregator = new();
+            private readonly CountLogAggregator<WorkspaceChangeKind> _logAggregator = new();
             private readonly IAsynchronousOperationListener _listener;
             private readonly IDocumentTrackingService _documentTrackingService;
             private readonly IWorkspaceConfigurationService? _workspaceConfigurationService;
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void ProcessEvent(WorkspaceChangeEventArgs args, string eventName)
             {
-                SolutionCrawlerLogger.LogWorkspaceEvent(_logAggregator, (int)args.Kind);
+                SolutionCrawlerLogger.LogWorkspaceEvent(_logAggregator, args.Kind);
 
                 // TODO: add telemetry that record how much it takes to process an event (max, min, average and etc)
                 switch (args.Kind)

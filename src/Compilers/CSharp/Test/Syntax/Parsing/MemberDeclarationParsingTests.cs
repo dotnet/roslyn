@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseMemberDeclaration(text, offset, options);
         }
 
-        private static readonly CSharpParseOptions RequiredMembersOptions = TestOptions.RegularNext;
+        private static readonly CSharpParseOptions RequiredMembersOptions = TestOptions.Regular11;
         public static readonly IEnumerable<object[]> Regular10AndScriptAndRequiredMembersMinimum = new[] { new[] { TestOptions.Regular10 }, new[] { RequiredMembersOptions }, new[] { TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10) } };
         public static readonly IEnumerable<object[]> Regular10AndScript = new[] { new[] { TestOptions.Regular10 }, new[] { TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp10) } };
 
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UnsignedRightShiftOperator_01()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingDeclaration("C operator >>>(C x, C y) => x;", options: options);
 
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UnsignedRightShiftOperator_02()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingDeclaration("C operator > >>(C x, C y) => x;", options: options,
                     // (1,14): error CS1003: Syntax error, '(' expected
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UnsignedRightShiftOperator_03()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingDeclaration("C operator >> >(C x, C y) => x;", options: options,
                     // (1,15): error CS1003: Syntax error, '(' expected
@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UnsignedRightShiftOperator_04()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingDeclaration("C operator >>>=(C x, C y) => x;", options: options,
                     // (1,14): error CS1003: Syntax error, '(' expected
@@ -1647,9 +1647,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RequiredModifierConversion_02(CSharpParseOptions parseOptions)
         {
             UsingDeclaration("static implicit required operator C(S s) {}", options: parseOptions,
-                // (1,17): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,17): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // static implicit required operator C(S s) {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "required ").WithArguments("static abstract members in interfaces").WithLocation(1, 17),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "required ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 17),
                 // (1,26): error CS1003: Syntax error, '.' expected
                 // static implicit required operator C(S s) {}
                 Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 26)
@@ -1916,9 +1916,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void OperatorDeclaration_ExplicitImplementation_01()
         {
             var error =
-                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                 // public int N.I.operator +(int x, int y) => x + y;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12);
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
@@ -2019,9 +2019,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("public int N.I.implicit (int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // public int N.I.implicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12)
                                 ).ToArray() :
                             errors);
 
@@ -2100,9 +2100,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("public int N.I.explicit (int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // public int N.I.explicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12)
                                 ).ToArray() :
                             errors);
 
@@ -2175,9 +2175,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("public int N.I operator +(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // public int N.I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12)
                                 ).ToArray() :
                             errors);
 
@@ -2250,9 +2250,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("public int I operator +(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // public int I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I ").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12)
                                 ).ToArray() :
                             errors);
 
@@ -2622,9 +2622,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void OperatorDeclaration_ExplicitImplementation_11()
         {
             var error =
-                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                 // public int N.I.operator +(int x, int y) => x + y;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12);
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
@@ -2729,9 +2729,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("public int N.I.implicit (int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // public int N.I.implicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12)
                                 ).ToArray() :
                             errors);
 
@@ -2814,9 +2814,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("public int N.I.explicit (int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // public int N.I.explicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12)
                                 ).ToArray() :
                             errors);
 
@@ -2893,9 +2893,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("public int N.I operator +(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // public int N.I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12)
                                 ).ToArray() :
                             errors);
 
@@ -2972,9 +2972,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("public int I operator +(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,12): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // public int I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I ").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 12)
                                 ).ToArray() :
                             errors);
 
@@ -3494,9 +3494,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void OperatorDeclaration_ExplicitImplementation_23()
         {
             var error =
-                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                 // int N.I.operator +(int x, int y) => x + y;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 5);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5);
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
@@ -3596,9 +3596,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("int N.I.implicit (int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // int N.I.implicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5)
                                 ).ToArray() :
                             errors);
 
@@ -3676,9 +3676,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("int N.I.explicit (int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // int N.I.explicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5)
                                 ).ToArray() :
                             errors);
 
@@ -3750,9 +3750,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("int N.I operator +(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // int N.I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5)
                                 ).ToArray() :
                             errors);
 
@@ -3824,9 +3824,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("int I operator +(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // int I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I ").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5)
                                 ).ToArray() :
                             errors);
 
@@ -4190,9 +4190,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void OperatorDeclaration_ExplicitImplementation_33()
         {
             var error =
-                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                 // int N.I.operator +(int x, int y) => x + y;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 5);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5);
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
@@ -4296,9 +4296,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("int N.I.implicit (int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // int N.I.implicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5)
                                 ).ToArray() :
                             errors);
 
@@ -4380,9 +4380,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("int N.I.explicit (int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // int N.I.explicit (int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5)
                                 ).ToArray() :
                             errors);
 
@@ -4458,9 +4458,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("int N.I operator +(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // int N.I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5)
                                 ).ToArray() :
                             errors);
 
@@ -4536,9 +4536,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("int I operator +(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,5): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,5): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // int I operator +(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I ").WithArguments("static abstract members in interfaces").WithLocation(1, 5)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 5)
                                 ).ToArray() :
                             errors);
 
@@ -5233,9 +5233,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ConversionDeclaration_ExplicitImplementation_01()
         {
             var error =
-                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,10): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                 // implicit N.I.operator int(int x) => x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 10);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 10);
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
@@ -5312,9 +5312,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("N.I.operator int(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,1): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,1): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // N.I.operator int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 1)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 1)
                                 ).ToArray() :
                             errors);
 
@@ -5437,9 +5437,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("implicit N.I operator int(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,10): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // implicit N.I operator int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 10)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 10)
                                 ).ToArray() :
                             errors);
 
@@ -5511,9 +5511,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingDeclaration("explicit I operator int(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,10): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // explicit I operator int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I ").WithArguments("static abstract members in interfaces").WithLocation(1, 10)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 10)
                                 ).ToArray() :
                             errors);
 
@@ -5860,9 +5860,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ConversionDeclaration_ExplicitImplementation_11()
         {
             var error =
-                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,10): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                 // explicit N.I.operator int(int x) => x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 10);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 10);
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
             {
@@ -5946,9 +5946,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("implicit N.I int(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,10): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // implicit N.I int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 10)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 10)
                                 ).ToArray() :
                             errors);
 
@@ -6024,9 +6024,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("explicit N.I. int(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,10): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // explicit N.I. int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 10)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 10)
                                 ).ToArray() :
                             errors);
 
@@ -6102,9 +6102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("implicit N.I operator int(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,10): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // implicit N.I operator int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I ").WithArguments("static abstract members in interfaces").WithLocation(1, 10)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "N.I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 10)
                                 ).ToArray() :
                             errors);
 
@@ -6180,9 +6180,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     UsingTree("explicit I operator int(int x) => x;", options: options.WithLanguageVersion(version),
                         version == LanguageVersion.CSharp9 ?
                             errors.Append(
-                                // (1,10): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (1,10): error CS8773: Feature 'static abstract members in interfaces' is not available in C# 9.0. Please use language version 11.0 or greater.
                                 // explicit I operator int(int x) => x;
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I ").WithArguments("static abstract members in interfaces").WithLocation(1, 10)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I ").WithArguments("static abstract members in interfaces", "11.0").WithLocation(1, 10)
                                 ).ToArray() :
                             errors);
 

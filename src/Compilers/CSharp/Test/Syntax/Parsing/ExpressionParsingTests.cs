@@ -5673,9 +5673,6 @@ select t";
         public void ObjectInitializer_BadRef()
         {
             UsingExpression("new C { P = ref }",
-                // (1,13): error CS1525: Invalid expression term 'ref'
-                // new C { P = ref }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(1, 13),
                 // (1,17): error CS1525: Invalid expression term '}'
                 // new C { P = ref }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 17));
@@ -5717,9 +5714,6 @@ select t";
         public void CollectionInitializer_BadRef_01()
         {
             UsingExpression("new C { ref }",
-                // (1,9): error CS1525: Invalid expression term 'ref'
-                // new C { ref }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(1, 9),
                 // (1,13): error CS1525: Invalid expression term '}'
                 // new C { ref }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 13));
@@ -6133,7 +6127,7 @@ select t";
         [Fact]
         public void UnsignedRightShift_01()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingExpression("x >>> y", options);
 
@@ -6156,7 +6150,7 @@ select t";
         [Fact]
         public void UnsignedRightShift_02()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingExpression("x > >> y", options,
                     // (1,5): error CS1525: Invalid expression term '>'
@@ -6191,7 +6185,7 @@ select t";
         [Fact]
         public void UnsignedRightShift_03()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingExpression("x >> > y", options,
                     // (1,6): error CS1525: Invalid expression term '>'
@@ -6226,7 +6220,7 @@ select t";
         [Fact]
         public void UnsignedRightShiftAssignment_01()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingExpression("x >>>= y", options);
 
@@ -6249,7 +6243,7 @@ select t";
         [Fact]
         public void UnsignedRightShiftAssignment_02()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingExpression("x > >>= y", options,
                     // (1,5): error CS1525: Invalid expression term '>'
@@ -6284,7 +6278,7 @@ select t";
         [Fact]
         public void UnsignedRightShiftAssignment_03()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingExpression("x >> >= y", options,
                     // (1,6): error CS1525: Invalid expression term '>='
@@ -6319,7 +6313,7 @@ select t";
         [Fact]
         public void UnsignedRightShiftAssignment_04()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingExpression("x >>> = y", options,
                     // (1,7): error CS1525: Invalid expression term '='

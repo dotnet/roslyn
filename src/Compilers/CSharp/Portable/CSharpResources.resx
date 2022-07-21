@@ -6433,6 +6433,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion10" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureNotAvailableInVersion11" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</value>
+  </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>
   </data>
@@ -6634,6 +6637,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_AnalyzerReferencesFramework_Title" xml:space="preserve">
     <value>The loaded assembly references .NET Framework, which is not supported.</value>
   </data>
+  <data name="WRN_AnalyzerReferencesNewerCompiler" xml:space="preserve">
+    <value>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
+  </data>
+  <data name="WRN_AnalyzerReferencesNewerCompiler_Title" xml:space="preserve">
+    <value>The analyzer assembly references a newer version of the compiler than the currently running version.</value>
+  </data>
   <data name="ERR_BadFieldTypeInRecord" xml:space="preserve">
     <value>The type '{0}' may not be used for a field of a record.</value>
   </data>
@@ -6765,6 +6774,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RefFieldCannotReferToRefStruct" xml:space="preserve">
     <value>A ref field cannot refer to a ref struct.</value>
+  </data>
+  <data name="ERR_RefFieldInNonRefStruct" xml:space="preserve">
+    <value>A ref field can only be declared in a ref struct.</value>
   </data>
 
   <data name="WRN_UseDefViolationPropertySupportedVersion" xml:space="preserve">
@@ -7122,19 +7134,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</value>
   </data>
   <data name="ERR_FileTypeDisallowedInSignature" xml:space="preserve">
-    <value>File type '{0}' cannot be used in a member signature in non-file type '{1}'.</value>
+    <value>File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</value>
   </data>
   <data name="ERR_FileTypeNoExplicitAccessibility" xml:space="preserve">
-    <value>File type '{0}' cannot use accessibility modifiers.</value>
+    <value>File-local type '{0}' cannot use accessibility modifiers.</value>
   </data>
   <data name="ERR_FileTypeBase" xml:space="preserve">
-    <value>File type '{0}' cannot be used as a base type of non-file type '{1}'.</value>
+    <value>File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</value>
   </data>
   <data name="ERR_FileTypeNested" xml:space="preserve">
-    <value>File type '{0}' must be defined in a top level type; '{0}' is a nested type.</value>
+    <value>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</value>
   </data>
   <data name="ERR_GlobalUsingStaticFileType" xml:space="preserve">
-    <value>File type '{0}' cannot be used in a 'global using static' directive.</value>
+    <value>File-local type '{0}' cannot be used in a 'global using static' directive.</value>
   </data>
   <data name="ERR_FileTypeNameDisallowed" xml:space="preserve">
     <value>Types and aliases cannot be named 'file'.</value>
@@ -7174,5 +7186,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureFileTypes" xml:space="preserve">
     <value>file types</value>
+  </data>
+  <data name="IDS_ArrayAccess" xml:space="preserve">
+    <value>array access</value>
+  </data>
+  <data name="IDS_PointerElementAccess" xml:space="preserve">
+    <value>pointer element access</value>
   </data>
 </root>

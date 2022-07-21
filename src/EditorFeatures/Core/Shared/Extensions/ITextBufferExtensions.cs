@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
@@ -64,6 +65,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
         public static ITextSnapshot ApplyChange(this ITextBuffer buffer, TextChange change)
         {
+            if (buffer.Properties.TryGetProperty<IContainedDocument>(typeof(IContainedDocument), out var containedDocument))
+            {
+                return containedDocument.ApplyChanges(new[] { change });
+            }
+
             using var edit = buffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
             edit.Replace(change.Span.ToSpan(), change.NewText);
             return edit.Apply();
@@ -71,12 +77,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
         public static ITextSnapshot ApplyChanges(this ITextBuffer buffer, IEnumerable<TextChange> changes)
         {
-            using var edit = buffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
-            return ApplyChanges(edit, changes);
-        }
+            if (buffer.Properties.TryGetProperty<IContainedDocument>(typeof(IContainedDocument), out var containedDocument))
+            {
+                return containedDocument.ApplyChanges(changes);
+            }
 
-        public static ITextSnapshot ApplyChanges(this ITextEdit edit, IEnumerable<TextChange> changes)
-        {
+            using var edit = buffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
             foreach (var change in changes)
             {
                 edit.Replace(change.Span.ToSpan(), change.NewText);

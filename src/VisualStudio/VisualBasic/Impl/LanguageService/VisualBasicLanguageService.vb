@@ -82,8 +82,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 bufferCoordinator,
                 Me.Package.ComponentModel,
                 project,
-                hierarchy,
-                itemid,
                 Me.LanguageServiceId)
         End Function
     End Class
