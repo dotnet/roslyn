@@ -186,6 +186,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             public void Dispose()
                 => _testWorkspace.Dispose();
         }
-
     }
 }
