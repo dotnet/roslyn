@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             _syntaxKinds = _helpers.SelectMany(h => h.SyntaxKinds).ToImmutableArray();
         }
 
-        private static ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption> GetSupportedDescriptorsWithOptions()
+        private static ImmutableDictionary<DiagnosticDescriptor, ISingleValuedOption> GetSupportedDescriptorsWithOptions()
         {
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticDescriptor, ILanguageSpecificOption>();
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticDescriptor, ISingleValuedOption>();
             foreach (var helper in _helpers)
             {
                 var descriptor = CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle);

@@ -2900,16 +2900,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">更新 {0} 的差異需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_lambda_expressions">
-        <source>Use block body for lambda expressions</source>
-        <target state="translated">使用 Lambda 運算式的區塊主體</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_lambda_expressions">
-        <source>Use expression body for lambda expressions</source>
-        <target state="translated">使用 Lambda 運算式的運算式主體</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
         <target state="translated">值:</target>

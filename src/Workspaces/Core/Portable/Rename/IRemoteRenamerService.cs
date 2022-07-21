@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public SerializableRenameLocations Dehydrate()
             => new(
                 Options,
-                Locations.Select(SerializableRenameLocation.Dehydrate).ToArray(),
+                Locations.SelectAsArray(SerializableRenameLocation.Dehydrate),
                 _implicitLocations,
                 _referencedSymbols);
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Rename
             if (locations == null)
                 return null;
 
-            Contract.ThrowIfNull(locations.Locations);
+            Contract.ThrowIfTrue(locations.Locations.IsDefault);
 
             using var _1 = ArrayBuilder<RenameLocation>.GetInstance(locations.Locations.Length, out var locBuilder);
             foreach (var loc in locations.Locations)
@@ -182,19 +182,19 @@ namespace Microsoft.CodeAnalysis.Rename
         // We use arrays so we can represent default immutable arrays.
 
         [DataMember(Order = 1)]
-        public SerializableRenameLocation[] Locations;
+        public readonly ImmutableArray<SerializableRenameLocation> Locations;
 
         [DataMember(Order = 2)]
-        public SerializableReferenceLocation[]? ImplicitLocations;
+        public readonly ImmutableArray<SerializableReferenceLocation> ImplicitLocations;
 
         [DataMember(Order = 3)]
-        public SerializableSymbolAndProjectId[]? ReferencedSymbols;
+        public readonly ImmutableArray<SerializableSymbolAndProjectId> ReferencedSymbols;
 
         public SerializableRenameLocations(
             SymbolRenameOptions options,
-            SerializableRenameLocation[] locations,
-            SerializableReferenceLocation[]? implicitLocations,
-            SerializableSymbolAndProjectId[]? referencedSymbols)
+            ImmutableArray<SerializableRenameLocation> locations,
+            ImmutableArray<SerializableReferenceLocation> implicitLocations,
+            ImmutableArray<SerializableSymbolAndProjectId> referencedSymbols)
         {
             Options = options;
             Locations = locations;

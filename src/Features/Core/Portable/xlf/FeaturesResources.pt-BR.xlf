@@ -2900,16 +2900,6 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Atualizar a variação de {0} requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_lambda_expressions">
-        <source>Use block body for lambda expressions</source>
-        <target state="translated">Usar o corpo do bloco para expressões lambda</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_lambda_expressions">
-        <source>Use expression body for lambda expressions</source>
-        <target state="translated">Usar corpo da expressão para expressões lambda</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
         <target state="translated">Valor:</target>

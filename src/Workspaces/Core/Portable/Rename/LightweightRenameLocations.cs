@@ -28,13 +28,8 @@ namespace Microsoft.CodeAnalysis.Rename
         public readonly CodeCleanupOptionsProvider FallbackOptions;
 
         public readonly ImmutableHashSet<RenameLocation> Locations;
-
-        // Note: these two are just stored as arrays so that we can pass them back/forth with a
-        // SerializableRenameLocations object without having to do any work.  As they are never mutated in this type and
-        // are private, this is safe and cheap.
-
-        private readonly SerializableReferenceLocation[]? _implicitLocations;
-        private readonly SerializableSymbolAndProjectId[]? _referencedSymbols;
+        private readonly ImmutableArray<SerializableReferenceLocation> _implicitLocations;
+        private readonly ImmutableArray<SerializableSymbolAndProjectId> _referencedSymbols;
 
         /// <summary>
         /// Cancellation controlling a keep-alive communication channel we have with the OOP service. We do this to ensure 
@@ -47,10 +42,12 @@ namespace Microsoft.CodeAnalysis.Rename
             SymbolRenameOptions options,
             CodeCleanupOptionsProvider fallbackOptions,
             ImmutableHashSet<RenameLocation> locations,
-            SerializableReferenceLocation[]? implicitLocations,
-            SerializableSymbolAndProjectId[]? referencedSymbols)
+            ImmutableArray<SerializableReferenceLocation> implicitLocations,
+            ImmutableArray<SerializableSymbolAndProjectId> referencedSymbols)
         {
             Contract.ThrowIfNull(locations);
+            Contract.ThrowIfTrue(implicitLocations.IsDefault);
+            Contract.ThrowIfTrue(referencedSymbols.IsDefault);
             Solution = solution;
             Options = options;
             FallbackOptions = fallbackOptions;
@@ -61,16 +58,12 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public async Task<SymbolicRenameLocations?> ToSymbolicLocationsAsync(ISymbol symbol, CancellationToken cancellationToken)
         {
-            var referencedSymbols = _referencedSymbols is null
-                ? default
-                : await _referencedSymbols.SelectAsArrayAsync(sym => sym.TryRehydrateAsync(Solution, cancellationToken)).ConfigureAwait(false);
+            var referencedSymbols = await _referencedSymbols.SelectAsArrayAsync(sym => sym.TryRehydrateAsync(Solution, cancellationToken)).ConfigureAwait(false);
 
-            if (!referencedSymbols.IsDefault && referencedSymbols.Any(s => s is null))
+            if (referencedSymbols.Any(s => s is null))
                 return null;
 
-            var implicitLocations = _implicitLocations is null
-                ? default
-                : await _implicitLocations.SelectAsArrayAsync(loc => loc.RehydrateAsync(Solution, cancellationToken)).ConfigureAwait(false);
+            var implicitLocations = await _implicitLocations.SelectAsArrayAsync(loc => loc.RehydrateAsync(Solution, cancellationToken)).ConfigureAwait(false);
 
             return new SymbolicRenameLocations(
                 symbol,
@@ -126,8 +119,8 @@ namespace Microsoft.CodeAnalysis.Rename
 
             return new LightweightRenameLocations(
                 solution, options, fallbackOptions, renameLocations.Locations,
-                renameLocations.ImplicitLocations.IsDefault ? null : renameLocations.ImplicitLocations.Select(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)).ToArray(),
-                renameLocations.ReferencedSymbols.IsDefault ? null : renameLocations.ReferencedSymbols.Select(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)).ToArray());
+                renameLocations.ImplicitLocations.SelectAsArray(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)),
+                renameLocations.ReferencedSymbols.SelectAsArray(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)));
         }
 
         public Task<ConflictResolution> ResolveConflictsAsync(ISymbol symbol, string replacementText, ImmutableArray<SymbolKey> nonConflictSymbolKeys, CancellationToken cancellationToken)
@@ -139,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 this.Options,
                 this.FallbackOptions,
                 this.Locations.Where(loc => filter(loc.DocumentId, loc.Location.SourceSpan)).ToImmutableHashSet(),
-                _implicitLocations?.Where(loc => filter(loc.Document, loc.Location)).ToArray(),
+                _implicitLocations.WhereAsArray(loc => filter(loc.Document, loc.Location)),
                 _referencedSymbols);
     }
 }

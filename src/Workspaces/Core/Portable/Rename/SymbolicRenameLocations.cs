@@ -44,11 +44,14 @@ namespace Microsoft.CodeAnalysis.Rename
             ImmutableArray<ReferenceLocation> implicitLocations,
             ImmutableArray<ISymbol> referencedSymbols)
         {
+            Contract.ThrowIfNull(locations);
+            Contract.ThrowIfTrue(implicitLocations.IsDefault);
+            Contract.ThrowIfTrue(referencedSymbols.IsDefault);
+
             Solution = solution;
             Symbol = symbol;
             Options = options;
             FallbackOptions = fallbackOptions;
-            Contract.ThrowIfNull(locations);
             Locations = locations;
             ReferencedSymbols = referencedSymbols;
             ImplicitLocations = implicitLocations;
