@@ -303,6 +303,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
             var (updates, _, _, _) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
 
+            // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
             if (updates.Status == Contracts.ManagedModuleUpdateStatus.Ready)
             {
                 _pendingUpdatedDesignTimeSolution = designTimeSolution;
@@ -323,6 +324,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var solution = GetCurrentCompileTimeSolution(designTimeSolution);
             var (moduleUpdates, diagnosticData, rudeEdits, syntaxError) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, s_noActiveStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
 
+            // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
             if (moduleUpdates.Status == Contracts.ManagedModuleUpdateStatus.Ready)
             {
                 _pendingUpdatedDesignTimeSolution = designTimeSolution;
