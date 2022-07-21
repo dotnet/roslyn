@@ -22,11 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// In non-speculative scenarios, the syntax tree being bound.
-        /// In speculative scenarios, the syntax tree from the original compilation used as the speculation context.
+        /// * In non-speculative scenarios, the identifier for the file being bound.
+        /// * In speculative scenarios, the identifier for the file from the original compilation used as the speculation context.
+        /// * In EE scenarios, the identifier for the file from the original compilation used as the evaluation context.
+        /// 
         /// This is <see langword="null"/> in some scenarios, such as the binder used for <see cref="CSharpCompilation.Conversions" />
         /// or the binder used to bind usings in <see cref="CSharpCompilation.UsingsFromOptionsAndDiagnostics"/>.
-        /// https://github.com/dotnet/roslyn/issues/62332: what about in EE scenarios?
         /// </summary>
         internal readonly NamedTypeSymbol.FileIdentifier? AssociatedFileIdentifier;
 
