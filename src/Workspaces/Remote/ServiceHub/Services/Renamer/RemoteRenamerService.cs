@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (locations == null)
                     return null;
 
-                var result = await ConflictResolver.ResolveHeavyweightConflictsInCurrentProcessAsync(
+                var result = await ConflictResolver.ResolveSymbolicLocationConflictsInCurrentProcessAsync(
                     locations, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
                 return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);

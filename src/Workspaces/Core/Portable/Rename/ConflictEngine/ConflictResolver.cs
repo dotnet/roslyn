@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// Finds any conflicts that would arise from using <paramref name="replacementText"/> as the new name for a
         /// symbol and returns how to resolve those conflicts.  Will not cross any process boundaries to do this.
         /// </summary>
-        internal static async Task<ConflictResolution> ResolveHeavyweightConflictsInCurrentProcessAsync(
+        internal static async Task<ConflictResolution> ResolveSymbolicLocationConflictsInCurrentProcessAsync(
             SymbolicRenameLocations renameLocations,
             string replacementText,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
