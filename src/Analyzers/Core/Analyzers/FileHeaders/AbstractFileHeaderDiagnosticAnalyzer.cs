@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             => CreateDescriptorWithId(IDEDiagnosticIds.FileHeaderMismatch, EnforceOnBuildValues.FileHeaderMismatch, title, message);
 
         protected AbstractFileHeaderDiagnosticAnalyzer(string language)
-            : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
+            : base(ImmutableDictionary<DiagnosticDescriptor, ISingleValuedOption>.Empty
                     .Add(s_invalidHeaderDescriptor, CodeStyleOptions2.FileHeaderTemplate)
                     .Add(s_missingHeaderDescriptor, CodeStyleOptions2.FileHeaderTemplate),
                  language)
