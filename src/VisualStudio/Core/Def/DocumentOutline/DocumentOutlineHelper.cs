@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var response = (await languageServiceBroker.RequestAsync(
                 textBuffer: textBuffer,
                 method: Methods.TextDocumentDocumentSymbolName,
-                capabilitiesFilter: (JToken x) => true,
+                capabilitiesFilter: _ => true,
                 languageServerName: WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString(),
                 parameterFactory: ParameterFunction,
                 cancellationToken: cancellationToken).ConfigureAwait(false))?.Response;
