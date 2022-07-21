@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         internal Option(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
-            : this(new OptionDefinition(feature, group, name, defaultValue, typeof(T), isPerLanguage: false), storageLocations)
+            : this(new OptionDefinition(feature, group, name, defaultValue, typeof(T)), storageLocations)
         {
         }
 
