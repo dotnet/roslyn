@@ -637,17 +637,27 @@ BC30045: Attribute constructor has a parameter of type 'Integer()(*,*)', which i
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact>
-        Public Sub AssemblyAttributeTarget()
-            Dim source = <![CDATA[
+        <Theory>
+        <InlineData("Assembly")>
+        <InlineData("Module")>
+        Public Sub AssemblyAndModuleAttributeTargets(attributeTarget As String)
+            Dim source = $"
 Imports System
 
-<Assembly: CLSCompliant(True)>'BIND:"Assembly: CLSCompliant(True)"
-]]>.Value
+<{attributeTarget}: CLSCompliant(True)>'BIND:""{attributeTarget}: CLSCompliant(True)""
+"
+            Dim syntax As String
+            If attributeTarget = "Assembly" Then
+                syntax = "Assembly: C ... liant(True)"
+            ElseIf attributeTarget = "Module" Then
+                syntax = "Module: CLS ... liant(True)"
+            Else
+                Throw TestExceptionUtilities.UnexpectedValue(attributeTarget)
+            End If
 
-            Dim expectedOperationTree = <![CDATA[
-IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Assembly: C ... liant(True)')
-  IObjectCreationOperation (Constructor: Sub System.CLSCompliantAttribute..ctor(isCompliant As System.Boolean)) (OperationKind.ObjectCreation, Type: System.CLSCompliantAttribute, IsImplicit) (Syntax: 'Assembly: C ... liant(True)')
+            Dim expectedOperationTree = $"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: '{syntax}')
+  IObjectCreationOperation (Constructor: Sub System.CLSCompliantAttribute..ctor(isCompliant As System.Boolean)) (OperationKind.ObjectCreation, Type: System.CLSCompliantAttribute, IsImplicit) (Syntax: '{syntax}')
     Arguments(1):
         IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: isCompliant) (OperationKind.Argument, Type: null) (Syntax: 'True')
           ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
@@ -655,7 +665,80 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Assembly: C 
           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Initializer:
       null
+"
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AttributeSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub ReturnAttributeTarget()
+            Dim source = <![CDATA[
+Imports System
+
+Class MyAttribute
+    Inherits Attribute
+
+    Public Sub New(x As Integer)
+    End Sub
+End Class
+
+Class C
+    Public Function M() As <My(10)> String 'BIND:"My(10)"
+        Return Nothing
+    End Function
+End Class
 ]]>.Value
+
+            Dim expectedOperationTree = "
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
+  IObjectCreationOperation (Constructor: Sub MyAttribute..ctor(x As System.Int32)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(10)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '10')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+"
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AttributeSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub AttributeOnEnumMember()
+            Dim source = <![CDATA[
+Imports System
+
+Class MyAttribute
+    Inherits Attribute
+
+    Public Sub New(x As Integer)
+    End Sub
+End Class
+
+Enum E
+    <My(10)>'BIND:"My(10)"
+    A
+End Enum
+]]>.Value
+
+            Dim expectedOperationTree = "
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
+  IObjectCreationOperation (Constructor: Sub MyAttribute..ctor(x As System.Int32)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(10)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '10')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+"
 
             Dim expectedDiagnostics = String.Empty
 

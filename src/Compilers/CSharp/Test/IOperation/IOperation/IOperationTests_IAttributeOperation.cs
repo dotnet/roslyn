@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -773,14 +774,16 @@ IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'M
             VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact]
-        public void AssemblyAttributeTarget()
+        [Theory]
+        [InlineData("assembly")]
+        [InlineData("module")]
+        public void AssemblyAndModuleAttributeTargets(string attributeTarget)
         {
-            string source = @"
-using System;
+            string source = $"""
+                using System;
 
-[assembly: /*<bind>*/CLSCompliant(true)/*</bind>*/]
-";
+                [{attributeTarget}: /*<bind>*/CLSCompliant(true)/*</bind>*/]
+                """;
 
             string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'CLSCompliant(true)')
@@ -793,7 +796,55 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'CLSCompliant
     Initializer:
       null
 ";
-            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, DiagnosticDescription.None);
+            var expectedDiagnostics = attributeTarget switch
+            {
+                "assembly" => DiagnosticDescription.None,
+                "module" => new DiagnosticDescription[]
+                {
+                    // (3,20): warning CS3012: You must specify the CLSCompliant attribute on the assembly, not the module, to enable CLS compliance checking
+                    // [module: /*<bind>*/CLSCompliant(true)/*</bind>*/]
+                    Diagnostic(ErrorCode.WRN_CLS_NotOnModules, "CLSCompliant(true)").WithLocation(3, 20),
+                },
+                _ => throw TestExceptionUtilities.UnexpectedValue(attributeTarget),
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ReturnAttributeTarget()
+        {
+            string source = """
+                using System;
+
+                class MyAttribute : Attribute
+                {
+                    public MyAttribute(int i) 
+                    {
+                    }
+                }
+
+                public class C
+                {
+                    [return: /*<bind>*/My(10)/*</bind>*/]
+                    public string M() => null;
+                }
+                """;
+
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 i)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(10)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '10')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -1032,6 +1083,218 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Initializer:
         null
+";
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void PropertyAttributeTargetOnRecordPositionalParameter()
+        {
+            string source = @"
+using System;
+
+class MyAttribute : Attribute
+{
+    public MyAttribute(int i)
+    {
+    }
+}
+
+record R([property: /*<bind>*/My(10)/*</bind>*/] string S);
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 i)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(10)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '10')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+        null
+";
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net50);
+        }
+
+        [Fact]
+        public void AttributeOnInvalidLocation()
+        {
+            string source = @"
+using System;
+
+class MyAttribute : Attribute
+{
+    public MyAttribute(int i)
+    {
+    }
+}
+
+class C
+{
+    void M()
+    {
+        [/*<bind>*/My(10)/*</bind>*/]
+        int x = 5;
+        _ = x;
+    }
+}
+";
+            var expectedDiagnostics = new[]
+            {
+                // (15,9): error CS7014: Attributes are not valid in this context.
+                //         [/*<bind>*/My(10)/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[/*<bind>*/My(10)/*</bind>*/]").WithLocation(15, 9),
+            };
+
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'My(10)')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 i)) (OperationKind.ObjectCreation, Type: MyAttribute, IsInvalid, IsImplicit) (Syntax: 'My(10)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '10')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+";
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void AttributeOnEnumMember()
+        {
+            string source = @"
+using System;
+
+class MyAttribute : Attribute
+{
+    public MyAttribute(int i)
+    {
+    }
+}
+
+enum E
+{
+        [/*<bind>*/My(10)/*</bind>*/]
+        A,
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 i)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(10)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '10')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+";
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void AttributeOnTypeParameter()
+        {
+            string source = @"
+using System;
+
+class MyAttribute : Attribute
+{
+    public MyAttribute(int i)
+    {
+    }
+}
+
+class C <[/*<bind>*/My(10)/*</bind>*/] T>
+{
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 i)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(10)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '10')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+";
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void AttributeOnTypeParameterWithCallerMemberName_Method()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class MyAttribute : Attribute
+{
+    public MyAttribute([CallerMemberName] string s = ""default"")
+    {
+    }
+}
+
+class C
+{
+    void M<[/*<bind>*/My/*</bind>*/] T>() { }
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor([System.String s = ""default""])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'My')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M"", IsImplicit) (Syntax: 'My')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+";
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void AttributeOnTypeParameterWithCallerMemberName_Class()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class MyAttribute : Attribute
+{
+    public MyAttribute([CallerMemberName] string s = ""default"")
+    {
+    }
+}
+
+class C<[/*<bind>*/My/*</bind>*/] T>
+{
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor([System.String s = ""default""])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'My')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""default"", IsImplicit) (Syntax: 'My')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ";
             VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
