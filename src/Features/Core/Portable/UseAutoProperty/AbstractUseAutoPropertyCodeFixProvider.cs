@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             var renameOptions = new SymbolRenameOptions();
 
-            var fieldLocations = await Renamer.FindRenameLocationsAsync(
+            using var fieldLocations = await Renamer.FindRenameLocations_MustDisposeAsync(
                 solution, fieldSymbol, renameOptions, context.Options, cancellationToken).ConfigureAwait(false);
 
             // First, create the updated property we want to replace the old property with

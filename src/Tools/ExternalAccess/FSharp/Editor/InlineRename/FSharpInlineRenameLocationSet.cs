@@ -17,6 +17,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
 {
     internal abstract class FSharpInlineRenameLocationSet : IInlineRenameLocationSet
     {
+        public void Dispose()
+        {
+        }
+
         /// <summary>
         /// The set of locations that need to be updated with the replacement text that the user
         /// has entered in the inline rename session.  These are the locations are all relative

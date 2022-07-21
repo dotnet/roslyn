@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor
         }
     }
 
-    internal interface IInlineRenameLocationSet
+    internal interface IInlineRenameLocationSet : IDisposable
     {
         /// <summary>
         /// The set of locations that need to be updated with the replacement text that the user

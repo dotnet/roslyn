@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Rename
     /// Equivalent to <see cref="SymbolicRenameLocations"/> except that references to symbols are kept in a lightweight fashion
     /// to avoid expensive rehydration steps as a host and OOP communicate.
     /// </summary>
-    internal sealed partial class LightweightRenameLocations
+    internal sealed partial class LightweightRenameLocations : IDisposable
     {
         // Long lasting connection to oop process if we have one.
         public readonly ConnectionScope<IRemoteRenamerService>? RemoteConnectionScope;
@@ -59,9 +60,19 @@ namespace Microsoft.CodeAnalysis.Rename
             _referencedSymbols = referencedSymbols;
         }
 
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            RemoteConnectionScope?.Dispose();
+        }
+
         ~LightweightRenameLocations()
         {
-            RemoteConnectionScope?.Dispose();
+
+            if (!Environment.HasShutdownStarted)
+            {
+                Contract.Fail($@"LightweightRenameLocations should have been disposed!");
+            }
         }
 
         public async Task<SymbolicRenameLocations?> ToHeavyweightAsync(ISymbol symbol, CancellationToken cancellationToken)
@@ -84,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <summary>
         /// Find the locations that need to be renamed.  Can cross process boundaries efficiently to do this.
         /// </summary>
-        public static async Task<LightweightRenameLocations> FindRenameLocationsAsync(
+        public static async Task<LightweightRenameLocations> FindRenameLocations_MustDisposeAsync(
             ISymbol symbol, Solution solution, SymbolRenameOptions options, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(solution);

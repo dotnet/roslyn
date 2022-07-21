@@ -30,6 +30,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                                                             .ToImmutableArray();
             }
 
+            public void Dispose()
+            {
+                _renameLocationSet.Dispose();
+            }
+
             private InlineRenameLocation ConvertLocation(RenameLocation location)
             {
                 return new InlineRenameLocation(

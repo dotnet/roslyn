@@ -145,6 +145,10 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
                     Locations = locations;
                 }
 
+                public void Dispose()
+                {
+                }
+
                 public IList<InlineRenameLocation> Locations { get; }
 
                 public bool IsReplacementTextValid(string replacementText)

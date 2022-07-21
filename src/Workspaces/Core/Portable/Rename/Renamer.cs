@@ -146,9 +146,9 @@ namespace Microsoft.CodeAnalysis.Rename
                 options);
         }
 
-        /// <inheritdoc cref="LightweightRenameLocations.FindRenameLocationsAsync"/>
-        internal static Task<LightweightRenameLocations> FindRenameLocationsAsync(Solution solution, ISymbol symbol, SymbolRenameOptions options, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-            => LightweightRenameLocations.FindRenameLocationsAsync(symbol, solution, options, fallbackOptions, cancellationToken);
+        /// <inheritdoc cref="LightweightRenameLocations.FindRenameLocations_MustDisposeAsync"/>
+        internal static Task<LightweightRenameLocations> FindRenameLocations_MustDisposeAsync(Solution solution, ISymbol symbol, SymbolRenameOptions options, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            => LightweightRenameLocations.FindRenameLocations_MustDisposeAsync(symbol, solution, options, fallbackOptions, cancellationToken);
 
         internal static async Task<ConflictResolution> RenameSymbolAsync(
             Solution solution,

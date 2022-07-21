@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 RenameInComments: false,
                 RenameFile: false);
 
-            var initialLocations = await Renamer.FindRenameLocationsAsync(
+            using var initialLocations = await Renamer.FindRenameLocations_MustDisposeAsync(
                 solution, field, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             var resolution = await initialLocations.Filter(filter).ResolveConflictsAsync(
