@@ -12734,16 +12734,179 @@ ref struct R<T>
         public void RefInitializer_DynamicField_DynamicValue()
         {
             var source = @"
-dynamic i = 42;
-var r = new R<dynamic> { F = ref i };
+public class C
+{
+    public static void Main()
+    {
+        dynamic i = 42;
+        var r = new R<dynamic> { F = ref i };
+        System.Console.Write(r.F);
+
+        var r2 = new R<dynamic>(ref i);
+        System.Console.Write(r2.F);
+    }
+}
 
 ref struct R<T>
 {
+    public R(ref T f) { F = ref f; }
     public ref T F;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreAppAndCSharp);
             comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("4242"));
+            verifier.VerifyIL("C.Main", """
+{
+  // Code size      256 (0x100)
+  .maxstack  9
+  .locals init (object V_0, //i
+                R<dynamic> V_1, //r
+                R<dynamic> V_2, //r2
+                R<dynamic> V_3)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   42
+  IL_0003:  box        "int"
+  IL_0008:  stloc.0
+  IL_0009:  ldloca.s   V_3
+  IL_000b:  initobj    "R<dynamic>"
+  IL_0011:  ldloc.3
+  IL_0012:  ldfld      "ref dynamic R<dynamic>.F"
+  IL_0017:  ldloc.0
+  IL_0018:  stind.ref
+  IL_0019:  ldloc.3
+  IL_001a:  stloc.1
+  IL_001b:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
+  IL_0020:  brfalse.s  IL_0024
+  IL_0022:  br.s       IL_0063
+  IL_0024:  ldc.i4     0x100
+  IL_0029:  ldstr      "Write"
+  IL_002e:  ldnull
+  IL_002f:  ldtoken    "C"
+  IL_0034:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_0039:  ldc.i4.2
+  IL_003a:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+  IL_003f:  dup
+  IL_0040:  ldc.i4.0
+  IL_0041:  ldc.i4.s   33
+  IL_0043:  ldnull
+  IL_0044:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+  IL_0049:  stelem.ref
+  IL_004a:  dup
+  IL_004b:  ldc.i4.1
+  IL_004c:  ldc.i4.0
+  IL_004d:  ldnull
+  IL_004e:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+  IL_0053:  stelem.ref
+  IL_0054:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+  IL_0059:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+  IL_005e:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
+  IL_0063:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
+  IL_0068:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Target"
+  IL_006d:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
+  IL_0072:  ldtoken    "System.Console"
+  IL_0077:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_007c:  ldloc.1
+  IL_007d:  ldfld      "ref dynamic R<dynamic>.F"
+  IL_0082:  ldind.ref
+  IL_0083:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)"
+  IL_0088:  nop
+  IL_0089:  ldloca.s   V_0
+  IL_008b:  newobj     "R<dynamic>..ctor(ref dynamic)"
+  IL_0090:  stloc.2
+  IL_0091:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
+  IL_0096:  brfalse.s  IL_009a
+  IL_0098:  br.s       IL_00d9
+  IL_009a:  ldc.i4     0x100
+  IL_009f:  ldstr      "Write"
+  IL_00a4:  ldnull
+  IL_00a5:  ldtoken    "C"
+  IL_00aa:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_00af:  ldc.i4.2
+  IL_00b0:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+  IL_00b5:  dup
+  IL_00b6:  ldc.i4.0
+  IL_00b7:  ldc.i4.s   33
+  IL_00b9:  ldnull
+  IL_00ba:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+  IL_00bf:  stelem.ref
+  IL_00c0:  dup
+  IL_00c1:  ldc.i4.1
+  IL_00c2:  ldc.i4.0
+  IL_00c3:  ldnull
+  IL_00c4:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+  IL_00c9:  stelem.ref
+  IL_00ca:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+  IL_00cf:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+  IL_00d4:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
+  IL_00d9:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
+  IL_00de:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Target"
+  IL_00e3:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
+  IL_00e8:  ldtoken    "System.Console"
+  IL_00ed:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_00f2:  ldloc.2
+  IL_00f3:  ldfld      "ref dynamic R<dynamic>.F"
+  IL_00f8:  ldind.ref
+  IL_00f9:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)"
+  IL_00fe:  nop
+  IL_00ff:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void RefInitializer_SubstitutedObjectField()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        object i = 42;
+        var r = new R<object> { F = ref i };
+        System.Console.Write(r.F);
+
+        var r2 = new R<object>(ref i);
+        System.Console.Write(r2.F);
+    }
+}
+
+ref struct R<T>
+{
+    public R(ref T f) { F = ref f; }
+    public ref T F;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("4242"));
+            verifier.VerifyIL("C.Main", """
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (object V_0, //i
+                R<object> V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  box        "int"
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  initobj    "R<object>"
+  IL_0010:  ldloc.1
+  IL_0011:  ldfld      "ref object R<object>.F"
+  IL_0016:  ldloc.0
+  IL_0017:  stind.ref
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      "ref object R<object>.F"
+  IL_001e:  ldind.ref
+  IL_001f:  call       "void System.Console.Write(object)"
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  newobj     "R<object>..ctor(ref object)"
+  IL_002b:  ldfld      "ref object R<object>.F"
+  IL_0030:  ldind.ref
+  IL_0031:  call       "void System.Console.Write(object)"
+  IL_0036:  ret
+}
+""");
         }
 
         [Fact]
