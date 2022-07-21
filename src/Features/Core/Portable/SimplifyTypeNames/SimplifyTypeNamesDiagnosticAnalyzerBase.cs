@@ -147,10 +147,10 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             }
 
             diagnostic = CreateDiagnostic(model, options, issueSpan, diagnosticId, inDeclaration);
-            return true;
+            return diagnostic is not null;
         }
 
-        internal static Diagnostic CreateDiagnostic(SemanticModel model, TSimplifierOptions options, TextSpan issueSpan, string diagnosticId, bool inDeclaration)
+        private static Diagnostic? CreateDiagnostic(SemanticModel model, TSimplifierOptions options, TextSpan issueSpan, string diagnosticId, bool inDeclaration)
         {
             DiagnosticDescriptor descriptor;
             ReportDiagnostic severity;
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             }
 #endif
 
-            return diagnostic;
+            return diagnostic.Diagnostic;
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()

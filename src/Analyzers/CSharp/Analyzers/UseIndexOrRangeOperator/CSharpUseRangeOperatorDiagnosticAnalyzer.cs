@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             return !invocation.Syntax.IsLeftSideOfAnyAssignExpression() || indexer == null || !IsWriteableIndexer(invocation, indexer);
         }
 
-        private Diagnostic CreateDiagnostic(Result result, ReportDiagnostic severity)
+        private DiagnosticHelper.DiagnosticWrapper CreateDiagnostic(Result result, ReportDiagnostic severity)
         {
             // Keep track of the invocation node
             var invocation = result.Invocation;
