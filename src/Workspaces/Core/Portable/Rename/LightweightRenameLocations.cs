@@ -18,12 +18,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Rename
 {
     /// <summary>
-    /// Equivalent to <see cref="HeavyweightRenameLocations"/> except that references to symbols are kept in a lightweight fashion
+    /// Equivalent to <see cref="SymbolicRenameLocations"/> except that references to symbols are kept in a lightweight fashion
     /// to avoid expensive rehydration steps as a host and OOP communicate.
     /// </summary>
     internal sealed partial class LightweightRenameLocations
     {
-        public readonly ISymbol Symbol;
         public readonly Solution Solution;
         public readonly SymbolRenameOptions Options;
         public readonly CodeCleanupOptionsProvider FallbackOptions;
@@ -38,7 +37,6 @@ namespace Microsoft.CodeAnalysis.Rename
         private readonly SerializableSymbolAndProjectId[]? _referencedSymbols;
 
         private LightweightRenameLocations(
-            ISymbol symbol,
             Solution solution,
             SymbolRenameOptions options,
             CodeCleanupOptionsProvider fallbackOptions,
@@ -46,7 +44,6 @@ namespace Microsoft.CodeAnalysis.Rename
             SerializableReferenceLocation[]? implicitLocations,
             SerializableSymbolAndProjectId[]? referencedSymbols)
         {
-            Symbol = symbol;
             Solution = solution;
             Options = options;
             FallbackOptions = fallbackOptions;
@@ -56,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Rename
             _referencedSymbols = referencedSymbols;
         }
 
-        public async Task<HeavyweightRenameLocations?> ToHeavyweightAsync(CancellationToken cancellationToken)
+        public async Task<SymbolicRenameLocations?> ToSymbolicLocationsAsync(ISymbol symbol, CancellationToken cancellationToken)
         {
             var referencedSymbols = _referencedSymbols is null
                 ? default
@@ -69,14 +66,14 @@ namespace Microsoft.CodeAnalysis.Rename
                 ? default
                 : await _implicitLocations.SelectAsArrayAsync(loc => loc.RehydrateAsync(Solution, cancellationToken)).ConfigureAwait(false);
 
-            return new HeavyweightRenameLocations(
-               Symbol,
-               Solution,
-               Options,
-               FallbackOptions,
-               Locations,
-               implicitLocations,
-               referencedSymbols);
+            return new SymbolicRenameLocations(
+                symbol,
+                Solution,
+                Options,
+                FallbackOptions,
+                Locations,
+                implicitLocations,
+                referencedSymbols);
         }
 
         /// <summary>
@@ -106,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Rename
                         if (result.HasValue && result.Value != null)
                         {
                             var rehydrated = await TryRehydrateAsync(
-                                solution, symbol, fallbackOptions, result.Value, cancellationToken).ConfigureAwait(false);
+                                solution, fallbackOptions, result.Value, cancellationToken).ConfigureAwait(false);
 
                             if (rehydrated != null)
                                 return rehydrated;
@@ -118,21 +115,20 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             // Couldn't effectively search in OOP. Perform the search in-proc.
-            var renameLocations = await HeavyweightRenameLocations.FindLocationsInCurrentProcessAsync(
+            var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(
                 symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             return new LightweightRenameLocations(
-                symbol, solution, options, fallbackOptions, renameLocations.Locations,
+                solution, options, fallbackOptions, renameLocations.Locations,
                 renameLocations.ImplicitLocations.IsDefault ? null : renameLocations.ImplicitLocations.Select(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)).ToArray(),
                 renameLocations.ReferencedSymbols.IsDefault ? null : renameLocations.ReferencedSymbols.Select(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)).ToArray());
         }
 
-        public Task<ConflictResolution> ResolveConflictsAsync(string replacementText, ImmutableHashSet<ISymbol>? nonConflictSymbols, CancellationToken cancellationToken)
-            => ConflictResolver.ResolveLightweightConflictsAsync(this, replacementText, nonConflictSymbols, cancellationToken);
+        public Task<ConflictResolution> ResolveConflictsAsync(ISymbol symbol, string replacementText, ImmutableArray<SymbolKey> nonConflictSymbolKeys, CancellationToken cancellationToken)
+            => ConflictResolver.ResolveLightweightConflictsAsync(symbol, this, replacementText, nonConflictSymbolKeys, cancellationToken);
 
         public LightweightRenameLocations Filter(Func<DocumentId, TextSpan, bool> filter)
             => new(
-                this.Symbol,
                 this.Solution,
                 this.Options,
                 this.FallbackOptions,

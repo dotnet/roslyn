@@ -94,7 +94,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                     return;
                 }
 
-                exception.SetCallstackIfEmpty();
                 var currentProcess = Process.GetCurrentProcess();
 
                 // write the exception to a log file:
