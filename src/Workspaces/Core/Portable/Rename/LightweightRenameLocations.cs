@@ -36,8 +36,6 @@ namespace Microsoft.CodeAnalysis.Rename
         private readonly SerializableReferenceLocation[]? _implicitLocations;
         private readonly SerializableSymbolAndProjectId[]? _referencedSymbols;
 
-
-
         /// <summary>
         /// Cancellation controlling a keep-alive communication channel we have with the OOP service. We do this to ensure 
         /// that for the entirety of the inline-rename session 
@@ -52,10 +50,10 @@ namespace Microsoft.CodeAnalysis.Rename
             SerializableReferenceLocation[]? implicitLocations,
             SerializableSymbolAndProjectId[]? referencedSymbols)
         {
+            Contract.ThrowIfNull(locations);
             Solution = solution;
             Options = options;
             FallbackOptions = fallbackOptions;
-            Contract.ThrowIfNull(locations);
             Locations = locations;
             _implicitLocations = implicitLocations;
             _referencedSymbols = referencedSymbols;
