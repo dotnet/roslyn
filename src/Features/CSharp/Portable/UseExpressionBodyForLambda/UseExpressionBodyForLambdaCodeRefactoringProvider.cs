@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeFixes.UseExpressionBodyForLambda;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -34,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var cancellationToken = context.CancellationToken;
 
             var optionProvider = await document.GetAnalyzerOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
-            var optionValue = UseExpressionBodyForLambdaDiagnosticAnalyzer.GetCodeStyleOption(optionProvider);
+            var optionValue = UseExpressionBodyForLambdaHelpers.GetCodeStyleOption(optionProvider);
 
-            var severity = UseExpressionBodyForLambdaDiagnosticAnalyzer.GetOptionSeverity(optionValue);
+            var severity = UseExpressionBodyForLambdaHelpers.GetOptionSeverity(optionValue);
             switch (severity)
             {
                 case ReportDiagnostic.Suppress:
@@ -173,9 +174,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             using var resultDisposer = ArrayBuilder<CodeAction>.GetInstance(out var result);
-            if (UseExpressionBodyForLambdaDiagnosticAnalyzer.CanOfferUseExpressionBody(option, lambdaNode, root.GetLanguageVersion()))
+            if (UseExpressionBodyForLambdaHelpers.CanOfferUseExpressionBody(option, lambdaNode, root.GetLanguageVersion()))
             {
-                var title = UseExpressionBodyForLambdaDiagnosticAnalyzer.UseExpressionBodyTitle.ToString();
+                var title = UseExpressionBodyForLambdaHelpers.UseExpressionBodyTitle.ToString();
                 result.Add(CodeAction.Create(
                     title,
                     c => UpdateDocumentAsync(
@@ -184,9 +185,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (UseExpressionBodyForLambdaDiagnosticAnalyzer.CanOfferUseBlockBody(semanticModel, option, lambdaNode, cancellationToken))
+            if (UseExpressionBodyForLambdaHelpers.CanOfferUseBlockBody(semanticModel, option, lambdaNode, cancellationToken))
             {
-                var title = UseExpressionBodyForLambdaDiagnosticAnalyzer.UseBlockBodyTitle.ToString();
+                var title = UseExpressionBodyForLambdaHelpers.UseBlockBodyTitle.ToString();
                 result.Add(CodeAction.Create(
                     title,
                     c => UpdateDocumentAsync(
@@ -204,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
             // We're only replacing a single declaration in the refactoring.  So pass 'declaration'
             // as both the 'original' and 'current' declaration.
-            var updatedDeclaration = UseExpressionBodyForLambdaCodeFixProvider.Update(semanticModel, declaration, declaration);
+            var updatedDeclaration = UseExpressionBodyForLambdaCodeActionHelpers.Update(semanticModel, declaration, declaration);
 
             var newRoot = root.ReplaceNode(declaration, updatedDeclaration);
             return document.WithSyntaxRoot(newRoot);
