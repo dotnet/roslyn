@@ -5,8 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
