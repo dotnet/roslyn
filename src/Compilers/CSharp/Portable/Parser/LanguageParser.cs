@@ -13383,13 +13383,8 @@ tryAgain:
             var identifier = this.ParseIdentifierToken();
             ParseParameterNullCheck(ref identifier, out var equalsToken);
 
-
-            // Handle the case where we have a default (optional) lambda parameter by eating '=', followed by 
-            // an EqualsValueClause which is simply an expression.
-            // The EqualsValueClause is then added as an attribute of the
-            // parsed parameter
+            // Parse default value if any
             equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
-
             var equalsValueClause = equalsToken == null
                 ? null
                 : _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore());

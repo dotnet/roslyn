@@ -4490,7 +4490,7 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(default-params): =1 is no longer missing")]
         [WorkItem(542538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542538")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task MissingTokens()

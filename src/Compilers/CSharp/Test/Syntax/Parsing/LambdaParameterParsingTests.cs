@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -3592,9 +3591,7 @@ class C {
         [Fact]
         public void TestDefaultValueTypedNestedLambda()
         {
-            var source = @"(Func<Func<Func<Func<int, int>, Func<int, int>>, Func<Func<int, int>, Func<int, int>>>, Func<Func<Func<int, int>, Func<int, int>>, Func<Func<int, int>, Func<int, int>>>> a = 
-                                    (Func<Func<Func<int, int>, Func<int, int>>, Func<Func<int, int>, Func<int, int>>> b = 
-                                                    (Func<Func<int, int>, Func<int, int>> c = (Func<int, int> d = (int e = 1) => e) => d) => c) => b) => a";
+            var source = @"(Func<int, int> a = (int b = 5) => b) => a";
             UsingExpression(source);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -3610,210 +3607,14 @@ class C {
                             N(SyntaxKind.TypeArgumentList);
                             {
                                 N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.GenericName);
+                                N(SyntaxKind.PredefinedType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "Func");
-                                    N(SyntaxKind.TypeArgumentList);
-                                    {
-                                        N(SyntaxKind.LessThanToken);
-                                        N(SyntaxKind.GenericName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "Func");
-                                            N(SyntaxKind.TypeArgumentList);
-                                            {
-                                                N(SyntaxKind.LessThanToken);
-                                                N(SyntaxKind.GenericName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "Func");
-                                                    N(SyntaxKind.TypeArgumentList);
-                                                    {
-                                                        N(SyntaxKind.LessThanToken);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.GreaterThanToken);
-                                                    }
-                                                }
-                                                N(SyntaxKind.CommaToken);
-                                                N(SyntaxKind.GenericName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "Func");
-                                                    N(SyntaxKind.TypeArgumentList);
-                                                    {
-                                                        N(SyntaxKind.LessThanToken);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.GreaterThanToken);
-                                                    }
-                                                }
-                                                N(SyntaxKind.GreaterThanToken);
-                                            }
-                                        }
-                                        N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.GenericName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "Func");
-                                            N(SyntaxKind.TypeArgumentList);
-                                            {
-                                                N(SyntaxKind.LessThanToken);
-                                                N(SyntaxKind.GenericName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "Func");
-                                                    N(SyntaxKind.TypeArgumentList);
-                                                    {
-                                                        N(SyntaxKind.LessThanToken);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.GreaterThanToken);
-                                                    }
-                                                }
-                                                N(SyntaxKind.CommaToken);
-                                                N(SyntaxKind.GenericName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "Func");
-                                                    N(SyntaxKind.TypeArgumentList);
-                                                    {
-                                                        N(SyntaxKind.LessThanToken);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.GreaterThanToken);
-                                                    }
-                                                }
-                                                N(SyntaxKind.GreaterThanToken);
-                                            }
-                                        }
-                                        N(SyntaxKind.GreaterThanToken);
-                                    }
+                                    N(SyntaxKind.IntKeyword);
                                 }
                                 N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.GenericName);
+                                N(SyntaxKind.PredefinedType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "Func");
-                                    N(SyntaxKind.TypeArgumentList);
-                                    {
-                                        N(SyntaxKind.LessThanToken);
-                                        N(SyntaxKind.GenericName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "Func");
-                                            N(SyntaxKind.TypeArgumentList);
-                                            {
-                                                N(SyntaxKind.LessThanToken);
-                                                N(SyntaxKind.GenericName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "Func");
-                                                    N(SyntaxKind.TypeArgumentList);
-                                                    {
-                                                        N(SyntaxKind.LessThanToken);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.GreaterThanToken);
-                                                    }
-                                                }
-                                                N(SyntaxKind.CommaToken);
-                                                N(SyntaxKind.GenericName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "Func");
-                                                    N(SyntaxKind.TypeArgumentList);
-                                                    {
-                                                        N(SyntaxKind.LessThanToken);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.GreaterThanToken);
-                                                    }
-                                                }
-                                                N(SyntaxKind.GreaterThanToken);
-                                            }
-                                        }
-                                        N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.GenericName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "Func");
-                                            N(SyntaxKind.TypeArgumentList);
-                                            {
-                                                N(SyntaxKind.LessThanToken);
-                                                N(SyntaxKind.GenericName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "Func");
-                                                    N(SyntaxKind.TypeArgumentList);
-                                                    {
-                                                        N(SyntaxKind.LessThanToken);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.GreaterThanToken);
-                                                    }
-                                                }
-                                                N(SyntaxKind.CommaToken);
-                                                N(SyntaxKind.GenericName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "Func");
-                                                    N(SyntaxKind.TypeArgumentList);
-                                                    {
-                                                        N(SyntaxKind.LessThanToken);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.PredefinedType);
-                                                        {
-                                                            N(SyntaxKind.IntKeyword);
-                                                        }
-                                                        N(SyntaxKind.GreaterThanToken);
-                                                    }
-                                                }
-                                                N(SyntaxKind.GreaterThanToken);
-                                            }
-                                        }
-                                        N(SyntaxKind.GreaterThanToken);
-                                    }
+                                    N(SyntaxKind.IntKeyword);
                                 }
                                 N(SyntaxKind.GreaterThanToken);
                             }
@@ -3829,248 +3630,17 @@ class C {
                                     N(SyntaxKind.OpenParenToken);
                                     N(SyntaxKind.Parameter);
                                     {
-                                        N(SyntaxKind.GenericName);
+                                        N(SyntaxKind.PredefinedType);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "Func");
-                                            N(SyntaxKind.TypeArgumentList);
-                                            {
-                                                N(SyntaxKind.LessThanToken);
-                                                N(SyntaxKind.GenericName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "Func");
-                                                    N(SyntaxKind.TypeArgumentList);
-                                                    {
-                                                        N(SyntaxKind.LessThanToken);
-                                                        N(SyntaxKind.GenericName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "Func");
-                                                            N(SyntaxKind.TypeArgumentList);
-                                                            {
-                                                                N(SyntaxKind.LessThanToken);
-                                                                N(SyntaxKind.PredefinedType);
-                                                                {
-                                                                    N(SyntaxKind.IntKeyword);
-                                                                }
-                                                                N(SyntaxKind.CommaToken);
-                                                                N(SyntaxKind.PredefinedType);
-                                                                {
-                                                                    N(SyntaxKind.IntKeyword);
-                                                                }
-                                                                N(SyntaxKind.GreaterThanToken);
-                                                            }
-                                                        }
-                                                        N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.GenericName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "Func");
-                                                            N(SyntaxKind.TypeArgumentList);
-                                                            {
-                                                                N(SyntaxKind.LessThanToken);
-                                                                N(SyntaxKind.PredefinedType);
-                                                                {
-                                                                    N(SyntaxKind.IntKeyword);
-                                                                }
-                                                                N(SyntaxKind.CommaToken);
-
-                                                                N(SyntaxKind.PredefinedType);
-                                                                {
-                                                                    N(SyntaxKind.IntKeyword);
-                                                                }
-                                                                N(SyntaxKind.GreaterThanToken);
-                                                            }
-                                                        }
-                                                        N(SyntaxKind.GreaterThanToken);
-                                                    }
-                                                }
-                                                N(SyntaxKind.CommaToken);
-                                                N(SyntaxKind.GenericName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "Func");
-                                                    N(SyntaxKind.TypeArgumentList);
-                                                    {
-                                                        N(SyntaxKind.LessThanToken);
-                                                        N(SyntaxKind.GenericName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "Func");
-                                                            N(SyntaxKind.TypeArgumentList);
-                                                            {
-                                                                N(SyntaxKind.LessThanToken);
-                                                                N(SyntaxKind.PredefinedType);
-                                                                {
-                                                                    N(SyntaxKind.IntKeyword);
-                                                                }
-                                                                N(SyntaxKind.CommaToken);
-                                                                N(SyntaxKind.PredefinedType);
-                                                                {
-                                                                    N(SyntaxKind.IntKeyword);
-                                                                }
-                                                                N(SyntaxKind.GreaterThanToken);
-                                                            }
-                                                        }
-                                                        N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.GenericName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "Func");
-                                                            N(SyntaxKind.TypeArgumentList);
-                                                            {
-                                                                N(SyntaxKind.LessThanToken);
-                                                                N(SyntaxKind.PredefinedType);
-                                                                {
-                                                                    N(SyntaxKind.IntKeyword);
-                                                                }
-                                                                N(SyntaxKind.CommaToken);
-                                                                N(SyntaxKind.PredefinedType);
-                                                                {
-                                                                    N(SyntaxKind.IntKeyword);
-                                                                }
-                                                                N(SyntaxKind.GreaterThanToken);
-                                                            }
-                                                        }
-                                                        N(SyntaxKind.GreaterThanToken);
-                                                    }
-                                                }
-                                                N(SyntaxKind.GreaterThanToken);
-                                            }
+                                            N(SyntaxKind.IntKeyword);
                                         }
                                         N(SyntaxKind.IdentifierToken, "b");
                                         N(SyntaxKind.EqualsValueClause);
                                         {
                                             N(SyntaxKind.EqualsToken);
-                                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                                            N(SyntaxKind.NumericLiteralExpression);
                                             {
-                                                N(SyntaxKind.ParameterList);
-                                                {
-                                                    N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.Parameter);
-
-                                                    {
-                                                        N(SyntaxKind.GenericName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "Func");
-                                                            N(SyntaxKind.TypeArgumentList);
-                                                            {
-                                                                N(SyntaxKind.LessThanToken);
-                                                                N(SyntaxKind.GenericName);
-                                                                {
-                                                                    N(SyntaxKind.IdentifierToken, "Func");
-                                                                    N(SyntaxKind.TypeArgumentList);
-                                                                    {
-                                                                        N(SyntaxKind.LessThanToken);
-                                                                        N(SyntaxKind.PredefinedType);
-                                                                        {
-                                                                            N(SyntaxKind.IntKeyword);
-                                                                        }
-                                                                        N(SyntaxKind.CommaToken);
-                                                                        N(SyntaxKind.PredefinedType);
-                                                                        {
-                                                                            N(SyntaxKind.IntKeyword);
-                                                                        }
-                                                                        N(SyntaxKind.GreaterThanToken);
-                                                                    }
-                                                                }
-                                                                N(SyntaxKind.CommaToken);
-                                                                N(SyntaxKind.GenericName);
-                                                                {
-                                                                    N(SyntaxKind.IdentifierToken, "Func");
-                                                                    N(SyntaxKind.TypeArgumentList);
-                                                                    {
-                                                                        N(SyntaxKind.LessThanToken);
-                                                                        N(SyntaxKind.PredefinedType);
-                                                                        {
-                                                                            N(SyntaxKind.IntKeyword);
-                                                                        }
-                                                                        N(SyntaxKind.CommaToken);
-                                                                        N(SyntaxKind.PredefinedType);
-                                                                        {
-                                                                            N(SyntaxKind.IntKeyword);
-                                                                        }
-                                                                        N(SyntaxKind.GreaterThanToken);
-                                                                    }
-                                                                }
-                                                                N(SyntaxKind.GreaterThanToken);
-                                                            }
-                                                        }
-                                                        N(SyntaxKind.IdentifierToken, "c");
-                                                        N(SyntaxKind.EqualsValueClause);
-                                                        {
-                                                            N(SyntaxKind.EqualsToken);
-                                                            N(SyntaxKind.ParenthesizedLambdaExpression);
-                                                            {
-                                                                N(SyntaxKind.ParameterList);
-                                                                {
-                                                                    N(SyntaxKind.OpenParenToken);
-                                                                    N(SyntaxKind.Parameter);
-                                                                    {
-                                                                        N(SyntaxKind.GenericName);
-                                                                        {
-                                                                            N(SyntaxKind.IdentifierToken, "Func");
-                                                                            N(SyntaxKind.TypeArgumentList);
-                                                                            {
-                                                                                N(SyntaxKind.LessThanToken);
-                                                                                N(SyntaxKind.PredefinedType);
-                                                                                {
-                                                                                    N(SyntaxKind.IntKeyword);
-                                                                                }
-                                                                                N(SyntaxKind.CommaToken);
-                                                                                N(SyntaxKind.PredefinedType);
-                                                                                {
-                                                                                    N(SyntaxKind.IntKeyword);
-                                                                                }
-                                                                                N(SyntaxKind.GreaterThanToken);
-                                                                            }
-                                                                        }
-                                                                        N(SyntaxKind.IdentifierToken, "d");
-                                                                        N(SyntaxKind.EqualsValueClause);
-                                                                        {
-                                                                            N(SyntaxKind.EqualsToken);
-                                                                            N(SyntaxKind.ParenthesizedLambdaExpression);
-                                                                            {
-                                                                                N(SyntaxKind.ParameterList);
-                                                                                {
-                                                                                    N(SyntaxKind.OpenParenToken);
-                                                                                    N(SyntaxKind.Parameter);
-                                                                                    {
-                                                                                        N(SyntaxKind.PredefinedType);
-                                                                                        {
-                                                                                            N(SyntaxKind.IntKeyword);
-                                                                                        }
-                                                                                        N(SyntaxKind.IdentifierToken, "e");
-                                                                                        N(SyntaxKind.EqualsValueClause);
-                                                                                        {
-                                                                                            N(SyntaxKind.EqualsToken);
-                                                                                            N(SyntaxKind.NumericLiteralExpression);
-                                                                                            {
-                                                                                                N(SyntaxKind.NumericLiteralToken, "1");
-                                                                                            }
-                                                                                        }
-                                                                                    }
-                                                                                    N(SyntaxKind.CloseParenToken);
-                                                                                }
-                                                                                N(SyntaxKind.EqualsGreaterThanToken);
-                                                                                N(SyntaxKind.IdentifierName);
-                                                                                {
-                                                                                    N(SyntaxKind.IdentifierToken, "e");
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                    N(SyntaxKind.CloseParenToken);
-                                                                }
-                                                                N(SyntaxKind.EqualsGreaterThanToken);
-                                                                N(SyntaxKind.IdentifierName);
-                                                                {
-                                                                    N(SyntaxKind.IdentifierToken, "d");
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                    N(SyntaxKind.CloseParenToken);
-                                                }
-                                                N(SyntaxKind.EqualsGreaterThanToken);
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "c");
-                                                }
+                                                N(SyntaxKind.NumericLiteralToken, "5");
                                             }
                                         }
                                     }
@@ -4171,7 +3741,6 @@ class C {
             }
             EOF();
         }
-
 
         [Fact]
         public void TestNullCheckedDefaultValueSimpleLambda()
