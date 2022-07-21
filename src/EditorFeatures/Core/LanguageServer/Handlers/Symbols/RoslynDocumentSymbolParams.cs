@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </remarks>
     internal class RoslynDocumentSymbolParams : DocumentSymbolParams
     {
-        [DataMember(Name = "useHierarchicalSymbols")]
+        [JsonProperty(PropertyName = "useHierarchicalSymbols", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool UseHierarchicalSymbols { get; set; }
     }
 }
