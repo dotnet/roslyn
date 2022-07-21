@@ -173,14 +173,12 @@ End Class";
 }";
             using var workspace = CreateWorkspace(LanguageNames.CSharp, code);
             var analyzerType = typeof(CSharpUseExplicitTypeDiagnosticAnalyzer);
+
             var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(workspace.Services.GetLanguageServices(LanguageNames.CSharp));
-
-            var options = workspace.Options
-                .WithChangedOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options).WithAnalyzerReferences(new[] { analyzerReference }));
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(CSharpCodeStyleOptions.VarWhenTypeIsApparent), new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
 
             // run analysis
             var project = workspace.CurrentSolution.Projects.First();

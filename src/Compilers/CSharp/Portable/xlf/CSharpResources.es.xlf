@@ -1602,6 +1602,11 @@
         <target state="translated">La directiva using aparecía anteriormente como using global</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_ArrayAccess">
+        <source>array access</source>
+        <target state="new">array access</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_AsyncMethodBuilderOverride">
         <source>async method builder override</source>
         <target state="translated">invalidación del generador de métodos asincrónicos</target>
@@ -1767,6 +1772,11 @@
         <target state="translated">patrón que coincide con ReadOnly/Span&lt;char&gt; en una cadena constante</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_PointerElementAccess">
+        <source>pointer element access</source>
+        <target state="new">pointer element access</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">El ensamblado "{0}" que contiene el tipo "{1}" hace referencia a .NET Framework, lo cual no se admite.</target>
@@ -1775,6 +1785,16 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">El ensamblado que se ha cargado hace referencia a .NET Framework, lo cual no se admite.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="new">The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
+        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
+        <target state="new">The analyzer assembly references a newer version of the compiler than the currently running version.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttrDependentTypeNotAllowed">

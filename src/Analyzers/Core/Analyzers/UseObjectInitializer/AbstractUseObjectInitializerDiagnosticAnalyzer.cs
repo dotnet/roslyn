@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         protected abstract bool FadeOutOperatorToken { get; }
 
         protected AbstractUseObjectInitializerDiagnosticAnalyzer()
-            : base(ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption>.Empty
+            : base(ImmutableDictionary<DiagnosticDescriptor, IPerLanguageValuedOption>.Empty
                     .Add(s_descriptor, CodeStyleOptions2.PreferObjectInitializer)
                     .Add(s_unnecessaryCodeDescriptor, CodeStyleOptions2.PreferObjectInitializer))
         {
