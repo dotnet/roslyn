@@ -229,8 +229,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private async Task<SyntaxToken> RenameAndAnnotateAsync(
                 SyntaxToken token,
                 SyntaxToken newToken,
-                bool isRenameLocation,
-                bool isOldText,
                 bool isVerbatim,
                 bool replacementTextValid,
                 bool isRenamableAccessor,
@@ -241,19 +239,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 {
                     if (_isProcessingComplexifiedSpans)
                     {
-                        // Rename Token
-                        if (isRenameLocation)
+                        var annotation = _renameAnnotations.GetAnnotations(token).OfType<RenameActionAnnotation>().FirstOrDefault();
+                        if (annotation != null)
                         {
-                            var annotation = _renameAnnotations.GetAnnotations(token).OfType<RenameActionAnnotation>().FirstOrDefault();
-                            if (annotation != null)
-                            {
-                                newToken = RenameToken(token, newToken, annotation.Prefix, annotation.Suffix, isVerbatim, replacementText, originalText, replacementTextValid);
-                                AddModifiedSpan(annotation.OriginalSpan, newToken.Span);
-                            }
-                            else
-                            {
-                                newToken = RenameToken(token, newToken, prefix: null, suffix: null, isVerbatim, replacementText, originalText, replacementTextValid);
-                            }
+                            newToken = RenameToken(token, newToken, annotation.Prefix, annotation.Suffix, isVerbatim, replacementText, originalText, replacementTextValid);
+                            AddModifiedSpan(annotation.OriginalSpan, newToken.Span);
+                        }
+                        else
+                        {
+                            newToken = RenameToken(token, newToken, prefix: null, suffix: null, isVerbatim, replacementText, originalText, replacementTextValid);
                         }
 
                         return newToken;
@@ -262,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     var symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Workspace.Services, _cancellationToken);
 
                     string? suffix = null;
-                    var prefix = isRenameLocation && isRenamableAccessor
+                    var prefix = isRenamableAccessor
                         ? newToken.ValueText.Substring(0, newToken.ValueText.IndexOf('_') + 1)
                         : null;
 
@@ -287,17 +281,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                                 suffix = "EventHandler";
                             }
                         }
-
-                        // This is a conflicting namespace declaration token. Even if the rename results in conflict with this namespace
-                        // conflict is not shown for the namespace so we are tracking this token
-                        if (!isRenameLocation && symbol is INamespaceSymbol && token.GetPreviousToken().IsKind(SyntaxKind.NamespaceKeyword))
-                        {
-                            return newToken;
-                        }
                     }
 
                     // Rename Token
-                    if (isRenameLocation && !this.AnnotateForComplexification)
+                    if (!this.AnnotateForComplexification)
                     {
                         var oldSpan = token.Span;
                         newToken = RenameToken(token, newToken, prefix, suffix, isVerbatim, replacementText, originalText, replacementTextValid);
@@ -308,22 +295,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     var renameDeclarationLocations = await
                         ConflictResolver.CreateDeclarationLocationAnnotationsAsync(_solution, symbols, _cancellationToken).ConfigureAwait(false);
 
-                    var isNamespaceDeclarationReference = false;
-                    if (isRenameLocation && token.GetPreviousToken().IsKind(SyntaxKind.NamespaceKeyword))
-                    {
-                        isNamespaceDeclarationReference = true;
-                    }
-
+                    var isNamespaceDeclarationReference = token.GetPreviousToken().IsKind(SyntaxKind.NamespaceKeyword);
                     var isMemberGroupReference = _semanticFactsService.IsInsideNameOfExpression(_semanticModel, token.Parent, _cancellationToken);
 
                     var renameAnnotation =
                             new RenameActionAnnotation(
                                 token.Span,
-                                isRenameLocation,
+                                isRenameLocation: true,
                                 prefix,
                                 suffix,
                                 renameDeclarationLocations: renameDeclarationLocations,
-                                isOriginalTextLocation: isOldText,
+                                isOriginalTextLocation: false,
                                 isNamespaceDeclarationReference: isNamespaceDeclarationReference,
                                 isInvocationExpression: false,
                                 isMemberGroupReference: isMemberGroupReference);
@@ -455,8 +437,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     newToken = RenameAndAnnotateAsync(
                         token,
                         newToken,
-                        isRenameLocation: true,
-                        isOldText: false,
                         isVerbatim: _syntaxFactsService.IsVerbatimIdentifier(locationRenameContext.ReplacementText),
                         replacementTextValid: locationRenameContext.ReplacementTextValid,
                         isRenamableAccessor: locationRenameContext.RenameLocation.IsRenamableAccessor,
@@ -523,18 +503,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 return newToken;
             }
 
-            private SyntaxToken AnnotateNonRenameLocation(SyntaxToken oldToken, SyntaxToken newToken)
+            private SyntaxToken AnnotateNonRenameLocation(SyntaxToken token, SyntaxToken newToken)
             {
                 if (!_isProcessingComplexifiedSpans)
                 {
                     // Annotate the token if it would cause conflict in all other scenarios
-                    var tokenText = oldToken.ValueText;
+                    var tokenText = token.ValueText;
                     var renameContexts = _renameContexts.Values;
                     var replacementMatchedContexts = FilterRenameSymbolContexts(renameContexts, context => context.ReplacementText == tokenText);
                     var originalTextMatchedContexts = FilterRenameSymbolContexts(renameContexts, context => context.OriginalText == tokenText);
                     var possibleNameConflictsContexts = FilterRenameSymbolContexts(renameContexts, context => context.PossibleNameConflicts.Contains(tokenText));
-                    var possiblyDestructorConflictContexts = FilterRenameSymbolContexts(renameContexts, context => IsPossiblyDestructorConflict(oldToken, context.ReplacementText));
-                    var propertyAccessorNameConflictContexts = FilterRenameSymbolContexts(renameContexts, context => IsPropertyAccessorNameConflict(oldToken, context.ReplacementText));
+                    var possiblyDestructorConflictContexts = FilterRenameSymbolContexts(renameContexts, context => IsPossiblyDestructorConflict(token, context.ReplacementText));
+                    var propertyAccessorNameConflictContexts = FilterRenameSymbolContexts(renameContexts, context => IsPropertyAccessorNameConflict(token, context.ReplacementText));
 
                     if (!replacementMatchedContexts.IsEmpty
                         || !originalTextMatchedContexts.IsEmpty
@@ -542,8 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         || !possiblyDestructorConflictContexts.IsEmpty
                         || !propertyAccessorNameConflictContexts.IsEmpty)
                     {
-                        newToken = AnnotateForConflictCheckAsync(newToken, !originalTextMatchedContexts.IsEmpty).WaitAndGetResult_CanCallOnBackground(_cancellationToken);
-                        _invocationExpressionsNeedingConflictChecks.AddRange(oldToken.GetAncestors<InvocationExpressionSyntax>());
+                        newToken = AnnotateForConflictCheckAsync(token, newToken, !originalTextMatchedContexts.IsEmpty).WaitAndGetResult_CanCallOnBackground(_cancellationToken);
                     }
 
                     return newToken;
@@ -552,12 +531,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 return newToken;
             }
 
-            private async Task<SyntaxToken> AnnotateForConflictCheckAsync(SyntaxToken token, bool isOldText)
+            private async Task<SyntaxToken> AnnotateForConflictCheckAsync(SyntaxToken token, SyntaxToken newToken, bool isOldText)
             {
                 var symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Workspace.Services, _cancellationToken);
+                var isNamespaceDeclarationReference = token.GetPreviousToken().IsKind(SyntaxKind.NamespaceKeyword);
+                if (symbols.Length == 1)
+                {
+                    // This is a conflicting namespace declaration token. Even if the rename results in conflict with this namespace
+                    // conflict is not shown for the namespace so we are tracking this token
+                    if (symbols[0] is INamespaceSymbol && isNamespaceDeclarationReference)
+                    {
+                        return newToken;
+                    }
+                }
+
                 var renameDeclarationLocations = await ConflictResolver.CreateDeclarationLocationAnnotationsAsync(_solution, symbols, _cancellationToken).ConfigureAwait(false);
                 var isMemberGroupReference = _semanticFactsService.IsInsideNameOfExpression(_semanticModel, token.Parent, _cancellationToken);
-                var isNamespaceDeclarationReference = token.GetPreviousToken().IsKind(SyntaxKind.NamespaceKeyword);
 
                 var renameAnnotation =
                         new RenameActionAnnotation(
@@ -571,8 +560,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                             isInvocationExpression: false,
                             isMemberGroupReference: isMemberGroupReference);
 
-                var newToken = _renameAnnotations.WithAdditionalAnnotations(token, renameAnnotation, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = token.Span });
+                newToken = _renameAnnotations.WithAdditionalAnnotations(newToken, renameAnnotation, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = token.Span });
                 _annotatedIdentifierTokens.Add(token);
+                _invocationExpressionsNeedingConflictChecks.AddRange(token.GetAncestors<InvocationExpressionSyntax>());
                 return newToken;
             }
 
