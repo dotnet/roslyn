@@ -259,13 +259,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 // Prevents us from being permanently unsubscribed if an exception is thrown while updating the text view selection.
                 try
                 {
-                    // Map the symbol's selection range start SnapshotPoint to a SnapshotPoint in the current textview.
-                    var currentPoint = symbol.SelectionRangeSpan.Start.TranslateTo(activeTextView.TextSnapshot, PointTrackingMode.Negative);
-
-                    // Set the active text view selection to this SnapshotPoint (by converting it to a SnapshotSpan).
-                    var currentSpan = new SnapshotSpan(currentPoint, currentPoint);
-                    activeTextView.SetSelection(currentSpan);
-                    activeTextView.ViewScroller.EnsureSpanVisible(currentSpan);
+                    // Map the symbol's selection range start SnapshotPoint to a SnapshotPoint in the current textview then set the
+                    // active text view caret position to this SnapshotPoint.
+                    activeTextView.TryMoveCaretToAndEnsureVisible(
+                        symbol.SelectionRangeSpan.Start.TranslateTo(activeTextView.TextSnapshot, PointTrackingMode.Negative));
                 }
                 finally
                 {
