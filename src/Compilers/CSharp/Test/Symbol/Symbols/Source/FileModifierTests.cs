@@ -1056,13 +1056,11 @@ public class FileModifierTests : CSharpTestBase
     public void Duplication_06()
     {
         var source1 = """
-            using System;
-
             partial class C
             {
                 public static void M()
                 {
-                    Console.Write(Number);
+                    System.Console.Write(Number);
                 }
             }
             """;
@@ -1110,12 +1108,12 @@ public class FileModifierTests : CSharpTestBase
 
         comp = CreateCompilation(new[] { (source2, "file1.cs"), (source1, "file2.cs") });
         comp.VerifyDiagnostics(
-            // file2.cs(5,24): error CS0111: Type 'C' already defines a member called 'M' with the same parameter types
+            // file2.cs(3,24): error CS0111: Type 'C' already defines a member called 'M' with the same parameter types
             //     public static void M()
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "C").WithLocation(5, 24),
-            // file2.cs(7,23): error CS0103: The name 'Number' does not exist in the current context
-            //         Console.Write(Number);
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "Number").WithArguments("Number").WithLocation(7, 23),
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "C").WithLocation(3, 24),
+            // file2.cs(5,30): error CS0103: The name 'Number' does not exist in the current context
+            //         System.Console.Write(Number);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "Number").WithArguments("Number").WithLocation(5, 30),
             // file1.cs(8,12): error CS0260: Missing partial modifier on declaration of type 'C'; another partial declaration of this type exists
             // file class C
             Diagnostic(ErrorCode.ERR_MissingPartial, "C").WithArguments("C").WithLocation(8, 12)
