@@ -73,6 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            internal sealed override SyntaxTree? AssociatedSyntaxTree => null;
+
             public sealed override int Arity
             {
                 get { return 0; }
@@ -122,6 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get { return false; }
             }
+
+            internal override bool HasDeclaredRequiredMembers => false;
 
             public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
             {

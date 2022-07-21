@@ -738,6 +738,15 @@ namespace Microsoft.CodeAnalysis
             return count;
         }
 
+        public static int Sum<T>(this ImmutableArray<T> items, Func<T, int> selector)
+        {
+            var sum = 0;
+            foreach (var item in items)
+                sum += selector(item);
+
+            return sum;
+        }
+
         internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
             where K : notnull
         {

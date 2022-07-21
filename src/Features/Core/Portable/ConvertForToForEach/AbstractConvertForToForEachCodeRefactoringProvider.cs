@@ -374,14 +374,17 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                             var firstVariable = (TVariableDeclaratorSyntax)variables[0];
                             if (IsValidVariableDeclarator(firstVariable))
                             {
-                                var firstVariableInitializer = syntaxFacts.GetValueOfEqualsValueClause(
-                                    syntaxFacts.GetInitializerOfVariableDeclarator(firstVariable));
-                                if (syntaxFacts.AreEquivalent(firstVariableInitializer, indexExpression))
+                                var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(firstVariable);
+                                if (initializer != null)
                                 {
-                                    var type = (TTypeNode?)syntaxFacts.GetTypeOfVariableDeclarator(firstVariable)?.WithoutLeadingTrivia();
-                                    var identifier = syntaxFacts.GetIdentifierOfVariableDeclarator(firstVariable);
-                                    var statement = firstStatement;
-                                    return (type, identifier, statement);
+                                    var firstVariableInitializer = syntaxFacts.GetValueOfEqualsValueClause(initializer);
+                                    if (syntaxFacts.AreEquivalent(firstVariableInitializer, indexExpression))
+                                    {
+                                        var type = (TTypeNode?)syntaxFacts.GetTypeOfVariableDeclarator(firstVariable)?.WithoutLeadingTrivia();
+                                        var identifier = syntaxFacts.GetIdentifierOfVariableDeclarator(firstVariable);
+                                        var statement = firstStatement;
+                                        return (type, identifier, statement);
+                                    }
                                 }
                             }
                         }

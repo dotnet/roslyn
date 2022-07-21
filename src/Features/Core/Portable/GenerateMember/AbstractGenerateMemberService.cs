@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             // TODO(cyrusn): Make sure that there is a totally visible part somewhere (i.e.
             // venus) that we can generate into.
             var locations = typeToGenerateIn.Locations;
-            return locations.Any(loc => loc.IsInSource);
+            return locations.Any(static loc => loc.IsInSource);
         }
 
         protected static bool TryDetermineTypeToGenerateIn(

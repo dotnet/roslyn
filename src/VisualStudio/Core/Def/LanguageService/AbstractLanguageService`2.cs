@@ -55,6 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         // Note: The lifetime for state in this class is carefully managed.  For every bit of state
         // we set up, there is a corresponding tear down phase which deconstructs the state in the
         // reverse order it was created in.
+        internal EditorOptionsService EditorOptionsService { get; private set; }
         internal VisualStudioWorkspaceImpl Workspace { get; private set; }
         internal IVsEditorAdaptersFactoryService EditorAdaptersFactoryService { get; private set; }
         internal HostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; private set; }
@@ -70,19 +71,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// </remarks>
         private bool _isSetUp;
 
-        protected AbstractLanguageService(
-            TPackage package)
+        protected AbstractLanguageService(TPackage package)
         {
-            this.Package = package;
+            Package = package;
         }
 
         public override IServiceProvider SystemServiceProvider
-        {
-            get
-            {
-                return this.Package;
-            }
-        }
+            => Package;
 
         /// <summary>
         /// Setup and TearDown go in reverse order.
@@ -140,6 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // This method should only contain calls to acquire services off of the component model
             // or service providers.  Anything else which is more complicated should go in Initialize
             // instead.
+            this.EditorOptionsService = this.Package.ComponentModel.GetService<EditorOptionsService>();
             this.Workspace = this.Package.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
             this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
             this.HostDiagnosticUpdateSource = this.Package.ComponentModel.GetService<HostDiagnosticUpdateSource>();
@@ -172,10 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private void PrimeLanguageServiceComponentsOnBackground()
         {
             var formatter = this.Workspace.Services.GetLanguageServices(RoslynLanguageName).GetService<ISyntaxFormattingService>();
-            if (formatter != null)
-            {
-                formatter.GetDefaultFormattingRules();
-            }
+            formatter?.GetDefaultFormattingRules();
         }
 
         protected abstract string ContentTypeName { get; }
@@ -198,22 +191,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 new StandaloneCommandFilter(
                     v, Package.ComponentModel).AttachToVsTextView());
 
-            var openDocument = wpfTextView.TextBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
+            var isMetadataAsSource = false;
+            var collapseAllImplementations = false;
 
-            // If the file is metadata as source, and the user has the preference set to collapse them, then
-            // always collapse all metadata as source
-            var globalOptions = this.Package.ComponentModel.GetService<IGlobalOptionService>();
-            var masWorkspace = openDocument?.Project.Solution.Workspace as MetadataAsSourceWorkspace;
-            var options = BlockStructureOptionsStorage.GetBlockStructureOptions(globalOptions, openDocument.Project.Language, isMetadataAsSource: masWorkspace is not null);
-            var collapseAllImplementations = masWorkspace is not null &&
-                masWorkspace.FileService.ShouldCollapseOnOpen(openDocument.FilePath, options);
+            var openDocument = wpfTextView.TextBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
+            if (openDocument?.Project.Solution.Workspace is MetadataAsSourceWorkspace masWorkspace)
+            {
+                isMetadataAsSource = true;
+
+                // If the file is metadata as source, and the user has the preference set to collapse them, then
+                // always collapse all metadata as source
+                var globalOptions = this.Package.ComponentModel.GetService<IGlobalOptionService>();
+                var options = BlockStructureOptionsStorage.GetBlockStructureOptions(globalOptions, openDocument.Project.Language, isMetadataAsSource: masWorkspace is not null);
+                collapseAllImplementations = masWorkspace.FileService.ShouldCollapseOnOpen(openDocument.FilePath, options);
+            }
 
             ConditionallyCollapseOutliningRegions(textView, wpfTextView, collapseAllImplementations);
 
             // If this is a metadata-to-source view, we want to consider the file read-only and prevent
             // it from being re-opened when VS is opened
-            if (masWorkspace is not null && ErrorHandler.Succeeded(textView.GetBuffer(out var vsTextLines)))
+            if (isMetadataAsSource && ErrorHandler.Succeeded(textView.GetBuffer(out var vsTextLines)))
             {
+                Contract.ThrowIfNull(openDocument);
+
                 ErrorHandler.ThrowOnFailure(vsTextLines.GetStateFlags(out var flags));
                 flags |= (int)BUFFERSTATEFLAGS.BSF_USER_READONLY;
                 ErrorHandler.ThrowOnFailure(vsTextLines.SetStateFlags(flags));
@@ -281,15 +281,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             IVsTextBufferCoordinator bufferCoordinator, VisualStudioProject project,
             IVsHierarchy hierarchy, uint itemid)
         {
-            var filePath = ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid);
-
             return new ContainedLanguage(
                 bufferCoordinator,
                 this.Package.ComponentModel,
                 this.Workspace,
                 project.Id,
                 project,
-                filePath,
                 this.LanguageServiceId);
         }
     }

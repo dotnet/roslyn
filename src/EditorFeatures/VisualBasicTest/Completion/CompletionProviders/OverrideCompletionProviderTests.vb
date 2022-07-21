@@ -1853,7 +1853,7 @@ public class C
 
                 Dim service = GetCompletionService(document.Project)
                 Dim completionList = Await GetCompletionListAsync(service, document, caretPosition, CompletionTrigger.Invoke)
-                Assert.False(completionList.Items.Any(Function(c) c.DisplayText = "e"))
+                Assert.False(completionList.ItemsList.Any(Function(c) c.DisplayText = "e"))
             End Using
         End Function
 

@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 public readonly ITextBuffer SubjectBuffer;
                 public readonly WorkspaceRegistration Registration;
 
-                // mutable state
-                public Workspace? Workspace { get; set; }
-                public int LastSolutionVersionReported;
+                public Workspace? Workspace => Registration.Workspace;
 
                 public State(SuggestedActionsSource source, SuggestedActionsSourceProvider owner, ITextView textView, ITextBuffer textBuffer)
                 {
@@ -36,26 +34,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     TextView = textView;
                     SubjectBuffer = textBuffer;
                     Registration = Workspace.GetWorkspaceRegistration(textBuffer.AsTextContainer());
-                    LastSolutionVersionReported = InvalidSolutionVersion;
                 }
 
                 void IDisposable.Dispose()
                 {
-                    if (Owner != null)
-                    {
-                        var updateSource = (IDiagnosticUpdateSource)Owner._diagnosticService;
-                        updateSource.DiagnosticsUpdated -= _source.OnDiagnosticsUpdated;
-                    }
-
-                    if (Workspace != null)
-                    {
-                        Workspace.Services.GetRequiredService<IWorkspaceStatusService>().StatusChanged -= _source.OnWorkspaceStatusChanged;
-                        Workspace.DocumentActiveContextChanged -= _source.OnActiveContextChanged;
-                    }
-
-                    if (Registration != null)
-                        Registration.WorkspaceChanged -= _source.OnWorkspaceChanged;
-
                     if (TextView != null)
                         TextView.Closed -= _source.OnTextViewClosed;
                 }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Completion;
@@ -22,13 +23,14 @@ internal static class CompletionOptionsStorage
             ShowNameSuggestions = options.GetOption(ShowNameSuggestions, language),
             ShowItemsFromUnimportedNamespaces = options.GetOption(ShowItemsFromUnimportedNamespaces, language),
             UnnamedSymbolCompletionDisabled = options.GetOption(UnnamedSymbolCompletionDisabledFeatureFlag),
-            TargetTypedCompletionFilter = options.GetOption(TargetTypedCompletionFilterFeatureFlag),
             TypeImportCompletion = options.GetOption(TypeImportCompletionFeatureFlag),
             ProvideDateAndTimeCompletions = options.GetOption(ProvideDateAndTimeCompletions, language),
             ProvideRegexCompletions = options.GetOption(ProvideRegexCompletions, language),
             ForceExpandedCompletionIndexCreation = options.GetOption(ForceExpandedCompletionIndexCreation),
             UpdateImportCompletionCacheInBackground = options.GetOption(UpdateImportCompletionCacheInBackground),
-            NamingStyleFallbackOptions = options.GetNamingStylePreferences(language)
+            NamingStyleFallbackOptions = options.GetNamingStylePreferences(language),
+            ShowNewSnippetExperience = options.GetOption(ShowNewSnippetExperience, language),
+            SnippetCompletion = options.GetOption(ShowNewSnippetExperienceFeatureFlag)
         };
 
     // feature flags
@@ -37,13 +39,13 @@ internal static class CompletionOptionsStorage
         CompletionOptions.Default.TypeImportCompletion,
         new FeatureFlagStorageLocation("Roslyn.TypeImportCompletion"));
 
-    public static readonly Option2<bool> TargetTypedCompletionFilterFeatureFlag = new(nameof(CompletionOptions), nameof(TargetTypedCompletionFilterFeatureFlag),
-        CompletionOptions.Default.TargetTypedCompletionFilter,
-        new FeatureFlagStorageLocation("Roslyn.TargetTypedCompletionFilter"));
-
     public static readonly Option2<bool> UnnamedSymbolCompletionDisabledFeatureFlag = new(nameof(CompletionOptions), nameof(UnnamedSymbolCompletionDisabledFeatureFlag),
         CompletionOptions.Default.UnnamedSymbolCompletionDisabled,
         new FeatureFlagStorageLocation("Roslyn.UnnamedSymbolCompletionDisabled"));
+
+    public static readonly Option2<bool> ShowNewSnippetExperienceFeatureFlag = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperienceFeatureFlag),
+        CompletionOptions.Default.SnippetCompletion,
+        new FeatureFlagStorageLocation("Roslyn.SnippetCompletion"));
 
     // This is serialized by the Visual Studio-specific LanguageSettingsPersister
     public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new(nameof(CompletionOptions), nameof(HideAdvancedMembers), CompletionOptions.Default.HideAdvancedMembers);
@@ -104,4 +106,8 @@ internal static class CompletionOptionsStorage
             nameof(ProvideDateAndTimeCompletions),
             CompletionOptions.Default.ProvideDateAndTimeCompletions,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions"));
+
+    public static readonly PerLanguageOption2<bool?> ShowNewSnippetExperience
+        = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperience), CompletionOptions.Default.ShowNewSnippetExperience,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNewSnippetExperience"));
 }

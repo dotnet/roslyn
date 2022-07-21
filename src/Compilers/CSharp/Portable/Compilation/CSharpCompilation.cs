@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_conversions == null)
                 {
-                    Interlocked.CompareExchange(ref _conversions, new BuckStopsHereBinder(this).Conversions, null);
+                    Interlocked.CompareExchange(ref _conversions, new BuckStopsHereBinder(this, associatedSyntaxTree: null).Conversions, null);
                 }
 
                 return _conversions;
@@ -3548,7 +3548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetSemanticModel((SyntaxTree)syntaxTree, ignoreAccessibility);
         }
 
-        protected override ImmutableArray<SyntaxTree> CommonSyntaxTrees
+        protected internal override ImmutableArray<SyntaxTree> CommonSyntaxTrees
         {
             get
             {
@@ -3800,7 +3800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 memberTypes[i].EnsureCSharpSymbolOrNull($"{nameof(memberTypes)}[{i}]");
             }
 
-            if (!memberIsReadOnly.IsDefault && memberIsReadOnly.Any(v => !v))
+            if (!memberIsReadOnly.IsDefault && memberIsReadOnly.Any(static v => !v))
             {
                 throw new ArgumentException($"Non-ReadOnly members are not supported in C# anonymous types.");
             }
@@ -3813,7 +3813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var name = memberNames[i];
                 var location = memberLocations.IsDefault ? Location.None : memberLocations[i];
                 var nullableAnnotation = memberNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : memberNullableAnnotations[i].ToInternalAnnotation();
-                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create(type, nullableAnnotation), RefKind.None));
+                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create(type, nullableAnnotation), RefKind.None, DeclarationScope.Unscoped));
             }
 
             var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);
@@ -3996,6 +3996,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return _lazyEmitNullablePublicOnly.Value();
             }
+        }
+
+        internal bool ShouldEmitNativeIntegerAttributes()
+        {
+            return !Assembly.RuntimeSupportsNumericIntPtr;
         }
 
         internal bool ShouldEmitNullableAttributes(Symbol symbol)

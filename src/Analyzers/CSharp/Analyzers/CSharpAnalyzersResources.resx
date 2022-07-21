@@ -182,6 +182,9 @@
   <data name="Use_block_body_for_operators" xml:space="preserve">
     <value>Use block body for operators</value>
   </data>
+  <data name="Use_block_body_for_conversion_operators" xml:space="preserve">
+    <value>Use block body for conversion operators</value>
+  </data>
   <data name="Use_block_body_for_properties" xml:space="preserve">
     <value>Use block body for properties</value>
   </data>
@@ -196,6 +199,9 @@
   </data>
   <data name="Use_expression_body_for_operators" xml:space="preserve">
     <value>Use expression body for operators</value>
+  </data>
+  <data name="Use_expression_body_for_conversion_operators" xml:space="preserve">
+    <value>Use expression body for conversion operators</value>
   </data>
   <data name="Use_expression_body_for_properties" xml:space="preserve">
     <value>Use expression body for properties</value>
@@ -340,9 +346,6 @@
   <data name="Use_tuple_to_swap_values" xml:space="preserve">
     <value>Use tuple to swap values</value>
   </data>
-  <data name="Use_parameter_null_checking" xml:space="preserve">
-    <value>Use parameter null checking</value>
-  </data>
   <data name="Lambda_expression_can_be_removed" xml:space="preserve">
     <value>Lambda expression can be removed</value>
   </data>
@@ -365,10 +368,25 @@
   <data name="Convert_to_top_level_statements" xml:space="preserve">
     <value>Convert to top-level statements</value>
   </data>
-  <data name="Convert_to_UTF8_string_literal" xml:space="preserve">
-    <value>Convert to UTF-8 string literal</value>
-  </data>
-  <data name="Use_UTF8_string_literal" xml:space="preserve">
+  <data name="Use_Utf8_string_literal" xml:space="preserve">
     <value>Use UTF-8 string literal</value>
+  </data>
+  <data name="Nullable_directive_is_unnecessary" xml:space="preserve">
+    <value>Nullable directive is unnecessary</value>
+  </data>
+  <data name="Remove_unnecessary_nullable_directive" xml:space="preserve">
+    <value>Remove unnecessary nullable directive</value>
+  </data>
+  <data name="Nullable_directive_is_redundant" xml:space="preserve">
+    <value>Nullable directive is redundant</value>
+  </data>
+  <data name="Remove_redundant_nullable_directive" xml:space="preserve">
+    <value>Remove redundant nullable directive</value>
+  </data>
+  <data name="Use_expression_body_for_lambda_expressions" xml:space="preserve">
+    <value>Use expression body for lambda expressions</value>
+  </data>
+  <data name="Use_block_body_for_lambda_expressions" xml:space="preserve">
+    <value>Use block body for lambda expressions</value>
   </data>
 </root>

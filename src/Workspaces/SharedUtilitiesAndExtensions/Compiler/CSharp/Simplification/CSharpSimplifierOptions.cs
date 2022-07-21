@@ -76,7 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 VarWhenTypeIsApparent = options.GetEditorConfigOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, fallbackOptions.VarWhenTypeIsApparent),
                 VarElsewhere = options.GetEditorConfigOption(CSharpCodeStyleOptions.VarElsewhere, fallbackOptions.VarElsewhere),
                 PreferSimpleDefaultExpression = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, fallbackOptions.PreferSimpleDefaultExpression),
-                PreferParameterNullChecking = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferParameterNullChecking, fallbackOptions.PreferParameterNullChecking),
                 AllowEmbeddedStatementsOnSameLine = options.GetEditorConfigOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, fallbackOptions.AllowEmbeddedStatementsOnSameLine),
                 PreferBraces = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferBraces, fallbackOptions.PreferBraces),
                 PreferThrowExpression = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferThrowExpression, fallbackOptions.PreferThrowExpression)

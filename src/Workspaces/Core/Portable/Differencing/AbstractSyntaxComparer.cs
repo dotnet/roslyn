@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         private IEnumerable<SyntaxNode> EnumerateDescendants(SyntaxNode node)
         {
             foreach (var descendant in node.DescendantNodesAndTokens(
-                descendIntoChildren: child => ShouldEnumerateChildren(child),
+                descendIntoChildren: ShouldEnumerateChildren,
                 descendIntoTrivia: false))
             {
                 var descendantNode = descendant.AsNode();

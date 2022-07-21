@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
             // See if we have an existing part in another file.  If so, we'll have to generate our declaration as partial.
-            var hasExistingPart = programType.DeclaringSyntaxReferences.Any(d => d.GetSyntax(cancellationToken) is TypeDeclarationSyntax);
+            var hasExistingPart = programType.DeclaringSyntaxReferences.Any(static (d, cancellationToken) => d.GetSyntax(cancellationToken) is TypeDeclarationSyntax, cancellationToken);
 
             var method = (MethodDeclarationSyntax)generator.MethodDeclaration(
                 mainMethod, WellKnownMemberNames.EntryPointMethodName,

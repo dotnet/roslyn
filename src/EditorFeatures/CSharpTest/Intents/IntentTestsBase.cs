@@ -47,11 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
             string? priorText = null)
         {
             var documentSet = additionalDocuments.Prepend(activeDocument).ToArray();
-            using var workspace = TestWorkspace.CreateCSharp(documentSet, exportProvider: EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider());
-            if (options != null)
-            {
-                workspace.ApplyOptions(options!);
-            }
+
+            using var workspace = TestWorkspace.CreateCSharp(documentSet, composition: EditorTestCompositions.EditorFeatures);
+            options?.SetGlobalOptions(workspace.GlobalOptions);
 
             var intentSource = workspace.ExportProvider.GetExportedValue<IIntentSourceProvider>();
 

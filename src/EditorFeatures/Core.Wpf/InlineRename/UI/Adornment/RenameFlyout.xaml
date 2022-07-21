@@ -16,6 +16,7 @@
              GotKeyboardFocus="Adornment_GotKeyboardFocus"
              Focusable="False"
              UseLayoutRounding="True"
+             x:Name="control"
              Background="{DynamicResource {x:Static rename:InlineRenameColors.BackgroundBrushKey}}">
 
     <UserControl.Resources>
@@ -98,7 +99,7 @@
             
             <StackPanel Orientation="Vertical" Visibility="{Binding IsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <CheckBox Content="{Binding ElementName=control, Path=RenameOverloads}" Margin="0,5,0,0" IsChecked="{Binding Path=RenameOverloadFlag, Mode=TwoWay}"
-                      Name="OverloadsCheckbox" Visibility="{Binding RenameOverloadsVisibility}" IsEnabled="{Binding IsRenameOverloadsEditable}" />
+                      Name="OverloadsCheckbox" Visibility="{Binding IsRenameOverloadsVisible, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}" IsEnabled="{Binding IsRenameOverloadsEditable}" />
                 <CheckBox Name="CommentsCheckbox" Content="{Binding ElementName=control, Path=SearchInComments}" Margin="0,5,0,0" IsChecked="{Binding Path=RenameInCommentsFlag, Mode=TwoWay}" />
                 <CheckBox Name="StringsCheckbox" Content="{Binding ElementName=control, Path=SearchInStrings}" Margin="0,5,0,0" IsChecked="{Binding Path=RenameInStringsFlag, Mode=TwoWay}" />
                 <CheckBox Name="FileRenameCheckbox" 

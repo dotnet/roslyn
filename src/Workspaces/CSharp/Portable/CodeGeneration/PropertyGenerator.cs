@@ -397,6 +397,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
                     }
+
+                    if (property.IsRequired)
+                    {
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.RequiredKeyword));
+                    }
                 }
             }
 

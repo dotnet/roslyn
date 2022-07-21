@@ -6,6 +6,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -13,6 +14,8 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Xunit;
 
@@ -40,37 +43,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
         {
             var workspace = TestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures);
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement)
-                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement)));
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors), CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(CSharpCodeStyleOptions.PreferExpressionBodiedProperties), CSharpCodeStyleOptions.NeverWithSilentEnforcement);
 
             return new EncapsulateFieldTestState(workspace);
         }
 
-        public void Encapsulate()
+        public async Task EncapsulateAsync()
         {
             var args = new EncapsulateFieldCommandArgs(_testDocument.GetTextView(), _testDocument.GetTextBuffer());
             var commandHandler = Workspace.ExportProvider.GetCommandHandler<EncapsulateFieldCommandHandler>(PredefinedCommandHandlerNames.EncapsulateField, ContentTypeNames.CSharpContentType);
+            var provider = Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var waiter = (IAsynchronousOperationWaiter)provider.GetListener(FeatureAttribute.EncapsulateField);
             commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create());
+            await waiter.ExpeditedWaitAsync();
         }
 
         public void Dispose()
-        {
-            if (Workspace != null)
-            {
-                Workspace.Dispose();
-            }
-        }
+            => Workspace?.Dispose();
 
-        public void AssertEncapsulateAs(string expected)
+        public async Task AssertEncapsulateAsAsync(string expected)
         {
-            Encapsulate();
+            await EncapsulateAsync();
             Assert.Equal(expected, _testDocument.GetTextBuffer().CurrentSnapshot.GetText().ToString());
         }
 
-        public void AssertError()
+        public async Task AssertErrorAsync()
         {
-            Encapsulate();
+            await EncapsulateAsync();
             Assert.NotNull(NotificationMessage);
         }
     }

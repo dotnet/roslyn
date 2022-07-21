@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var initialIndentation = baseIndentationFinder.GetIndentationOfCurrentPosition(
                     rootNode,
                     initialOperation,
-                    t => _tokenStream.GetCurrentColumn(t), cancellationToken);
+                    _tokenStream.GetCurrentColumn, cancellationToken);
 
                 var data = new SimpleIndentationData(initialOperation.TextSpan, initialIndentation);
                 _indentationTree.AddIntervalInPlace(data);
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _initialIndentBlockOperations = indentationOperations;
             }
 
-            suppressOperations?.Do(o => this.AddInitialSuppressOperation(o));
+            suppressOperations?.Do(this.AddInitialSuppressOperation);
         }
 
         public void AddIndentBlockOperations(

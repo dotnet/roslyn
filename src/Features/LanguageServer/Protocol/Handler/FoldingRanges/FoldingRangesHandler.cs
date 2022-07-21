@@ -114,7 +114,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     StartCharacter = linePositionSpan.Start.Character,
                     EndLine = linePositionSpan.End.Line,
                     EndCharacter = linePositionSpan.End.Character,
-                    Kind = foldingRangeKind
+                    Kind = foldingRangeKind,
+                    CollapsedText = span.BannerText
                 });
             }
 

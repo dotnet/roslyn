@@ -93,10 +93,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             Option2<CodeStyleOption2<UnusedValuePreference>> unusedValueExpressionStatementOption,
             Option2<CodeStyleOption2<UnusedValuePreference>> unusedValueAssignmentOption,
             string language)
-            : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
+            : base(ImmutableDictionary<DiagnosticDescriptor, ISingleValuedOption>.Empty
                         .Add(s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption)
                         .Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption),
-                   ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption>.Empty
+                   ImmutableDictionary<DiagnosticDescriptor, IPerLanguageValuedOption>.Empty
                         .Add(s_unusedParameterRule, CodeStyleOptions2.UnusedParameters),
                    language)
         {

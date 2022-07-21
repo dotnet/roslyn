@@ -58,15 +58,13 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             TargetItems = targetItems;
         }
 
-        public static InheritanceMarginItem CreateOrdered(
+        public static InheritanceMarginItem? CreateOrdered(
             int lineNumber,
             string? topLevelDisplayText,
             ImmutableArray<TaggedText> displayTexts,
             Glyph glyph,
             ImmutableArray<InheritanceTargetItem> targetItems)
-        {
-            return new(lineNumber, topLevelDisplayText, displayTexts, glyph, Order(targetItems));
-        }
+            => targetItems.IsEmpty ? null : new(lineNumber, topLevelDisplayText, displayTexts, glyph, Order(targetItems));
 
         public static ImmutableArray<InheritanceTargetItem> Order(ImmutableArray<InheritanceTargetItem> targetItems)
             => targetItems.OrderBy(t => t.DisplayName).ThenByDescending(t => t.LanguageGlyph).ThenBy(t => t.ProjectName ?? "").ToImmutableArray();

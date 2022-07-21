@@ -38,7 +38,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new DefaultDiagnosticIncrementalAnalyzer(this, workspace);
+        {
+            if (_globalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode))
+            {
+                // We rely on LSP to query us for diagnostics when things have changed and poll us for changes that might
+                // have happened to the project or closed files outside of VS.
+                return NoOpIncrementalAnalyzer.Instance;
+            }
+
+            return new DefaultDiagnosticIncrementalAnalyzer(this, workspace);
+        }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
         public event EventHandler DiagnosticsCleared { add { } remove { } }
@@ -55,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs state)
             => DiagnosticsUpdated?.Invoke(this, state);
 
-        private class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
+        private sealed class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
         {
             private readonly DefaultDiagnosticAnalyzerService _service;
             private readonly Workspace _workspace;
@@ -66,18 +75,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _service = service;
                 _workspace = workspace;
                 _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(service._analyzerInfoCache);
+                _service._globalOptions.OptionChanged += OnGlobalOptionChanged;
             }
 
-            public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
+            public void Shutdown()
+            {
+                _service._globalOptions.OptionChanged -= OnGlobalOptionChanged;
+            }
+
+            private void OnGlobalOptionChanged(object sender, OptionChangedEventArgs e)
             {
                 if (e.Option == InternalRuntimeDiagnosticOptions.Syntax ||
                     e.Option == InternalRuntimeDiagnosticOptions.Semantic ||
                     e.Option == InternalRuntimeDiagnosticOptions.ScriptSemantic)
                 {
-                    return true;
+                    var service = _workspace.Services.GetService<ISolutionCrawlerService>();
+                    service?.Reanalyze(_workspace, this, projectIds: null, documentIds: null, highPriority: false);
                 }
-
-                return false;
             }
 
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)

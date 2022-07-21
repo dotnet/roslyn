@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         public async Task<Solution> GetSolutionAsync(SolutionAssetStorage.Scope scope)
         {
-            var (solutionInfo, _) = await new AssetProvider(this).CreateSolutionInfoAndOptionsAsync(scope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
+            var solutionInfo = await new AssetProvider(this).CreateSolutionInfoAsync(scope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
 
             var workspace = new AdhocWorkspace(Services.HostServices);
             return workspace.AddSolution(solutionInfo);

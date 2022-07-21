@@ -82,17 +82,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
             _sessionId = default;
         }
 
-        public async ValueTask<bool> HasChangesAsync(Solution solution, string? sourceFilePath, CancellationToken cancellationToken)
-        {
-            var sessionId = _sessionId;
-            if (sessionId == default)
-            {
-                return false;
-            }
-
-            return await _encService.HasChangesAsync(sessionId, solution, s_noActiveStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
-        }
-
         public async ValueTask<ManagedModuleUpdates> GetEditAndContinueUpdatesAsync(Solution solution, CancellationToken cancellationToken)
         {
             var result = await _encService.EmitSolutionUpdateAsync(GetSessionId(), solution, s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);

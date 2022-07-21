@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
                 // Invalid char can only appear in namespace name when there's error,
                 // which we have checked before creating any code actions.
-                Debug.Assert(parts.IsEmpty || parts.Any(s => s.IndexOfAny(Path.GetInvalidPathChars()) < 0));
+                Debug.Assert(parts.IsEmpty || parts.Any(static s => s.IndexOfAny(Path.GetInvalidPathChars()) < 0));
 
                 var projectRootFolder = FolderInfo.CreateFolderHierarchyForProject(document.Project);
                 var candidateFolders = FindCandidateFolders(projectRootFolder, parts, ImmutableArray<string>.Empty);

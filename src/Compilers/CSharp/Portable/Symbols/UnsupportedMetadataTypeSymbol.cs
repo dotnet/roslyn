@@ -37,5 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
         }
+
+        internal override SyntaxTree? AssociatedSyntaxTree => null;
     }
 }

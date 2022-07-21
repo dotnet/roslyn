@@ -35,6 +35,7 @@ using Roslyn.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
+using Microsoft.CodeAnalysis.Indentation;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -1942,7 +1943,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // stop observing it and let GC reclaim it
             if (PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono)
             {
-                Assert.IsType<TemporaryStorageServiceFactory.TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageService>());
+                Assert.IsType<TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageService>());
                 observedText.AssertReleased();
             }
             else
@@ -3143,7 +3144,7 @@ class C
         [Fact]
         public void NoCompilationProjectsHaveNullSyntaxTreesAndSemanticModels()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageServiceFactory) });
+            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
             var solution = workspace.CurrentSolution;
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
@@ -3164,7 +3165,7 @@ class C
         [Fact]
         public void ChangingFilePathOfFileInNoCompilationProjectWorks()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageServiceFactory) });
+            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
             var solution = workspace.CurrentSolution;
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
@@ -3265,16 +3266,16 @@ class C
                     projectReferences: new[] { new ProjectReference(dependsOnVbNormalProject.Id) }));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestOptionChangesForLanguagesNotInSolution()
         {
             // Create an empty solution with no projects.
             using var workspace = CreateWorkspace();
             var s0 = workspace.CurrentSolution;
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            var optionService = workspace.Services.GetRequiredService<ILegacyWorkspaceOptionService>();
 
             // Apply an option change to a C# option.
-            var option = GenerationOptions.PlaceSystemNamespaceFirst;
+            var option = FormattingOptions.UseTabs;
             var defaultValue = option.DefaultValue;
             var changedValue = !defaultValue;
             var options = s0.Options.WithChangedOption(option, LanguageNames.CSharp, changedValue);
@@ -3287,13 +3288,8 @@ class C
             var s2 = s1.AddProject("P1", "A1", LanguageNames.VisualBasic).Solution;
             VerifyOptionSet(s2.Options);
 
-            // Verify option value is preserved on roundtriping the option set (serialize and deserialize).
-            var s3 = s2.AddProject("P2", "A2", LanguageNames.CSharp).Solution;
-            var roundTripOptionSet = SerializeAndDeserialize((SerializableOptionSet)s3.Options, optionService);
-            VerifyOptionSet(roundTripOptionSet);
-
             // Verify option value is preserved on removing a project.
-            var s4 = s3.RemoveProject(s3.Projects.Single(p => p.Name == "P2").Id);
+            var s4 = s2.RemoveProject(s2.Projects.Single(p => p.Name == "P1").Id);
             VerifyOptionSet(s4.Options);
 
             return;
@@ -3302,16 +3298,6 @@ class C
             {
                 Assert.Equal(changedValue, optionSet.GetOption(option, LanguageNames.CSharp));
                 Assert.Equal(defaultValue, optionSet.GetOption(option, LanguageNames.VisualBasic));
-            }
-
-            static SerializableOptionSet SerializeAndDeserialize(SerializableOptionSet optionSet, IOptionService optionService)
-            {
-                using var stream = new MemoryStream();
-                using var writer = new ObjectWriter(stream);
-                optionSet.Serialize(writer, CancellationToken.None);
-                stream.Position = 0;
-                using var reader = ObjectReader.TryGetReader(stream);
-                return SerializableOptionSet.Deserialize(reader, optionService, CancellationToken.None);
             }
         }
 

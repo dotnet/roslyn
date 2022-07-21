@@ -871,7 +871,10 @@ namespace Microsoft.CodeAnalysis
                             // and the prior generated trees are identical.
                             if (compilationWithStaleGeneratedTrees != null)
                             {
-                                if (generatorInfo.Documents.Count != runResult.Results.Sum(r => r.GeneratedSources.Length))
+                                var generatedTreeCount =
+                                    runResult.Results.Sum(r => IsGeneratorRunResultToIgnore(r) ? 0 : r.GeneratedSources.Length);
+
+                                if (generatorInfo.Documents.Count != generatedTreeCount)
                                 {
                                     compilationWithStaleGeneratedTrees = null;
                                 }
@@ -879,6 +882,11 @@ namespace Microsoft.CodeAnalysis
 
                             foreach (var generatorResult in runResult.Results)
                             {
+                                if (IsGeneratorRunResultToIgnore(generatorResult))
+                                {
+                                    continue;
+                                }
+
                                 foreach (var generatedSource in generatorResult.GeneratedSources)
                                 {
                                     var existing = FindExistingGeneratedDocumentState(
@@ -1065,7 +1073,24 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-                return compilationInfo.GeneratorInfo.Driver?.GetRunResult().Diagnostics ?? ImmutableArray<Diagnostic>.Empty;
+
+                var driverRunResult = compilationInfo.GeneratorInfo.Driver?.GetRunResult();
+                if (driverRunResult is null)
+                {
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
+
+                using var _ = ArrayBuilder<Diagnostic>.GetInstance(capacity: driverRunResult.Diagnostics.Length, out var builder);
+
+                foreach (var result in driverRunResult.Results)
+                {
+                    if (!IsGeneratorRunResultToIgnore(result))
+                    {
+                        builder.AddRange(result.Diagnostics);
+                    }
+                }
+
+                return builder.ToImmutableAndClear();
             }
 
             public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId)
@@ -1077,6 +1102,34 @@ namespace Microsoft.CodeAnalysis
                 // correct and can be re-ran later.
                 return state is FinalState finalState ? finalState.GeneratorInfo.Documents.GetState(documentId) : null;
             }
+
+            // HACK HACK HACK HACK around a problem introduced by https://github.com/dotnet/sdk/pull/24928. The Razor generator is
+            // controlled by a flag that lives in an .editorconfig file; in the IDE we generally don't run the generator and instead use
+            // the design-time files added through the legacy IDynamicFileInfo API. When we're doing Hot Reload we then
+            // remove those legacy files and remove the .editorconfig file that is supposed to disable the generator, for the Hot
+            // Reload pass we then are running the generator. This is done in the CompileTimeSolutionProvider.
+            //
+            // https://github.com/dotnet/sdk/pull/24928 introduced an issue where even though the Razor generator is being told to not
+            // run, it still runs anyways. As a tactical fix rather than reverting that PR, for Visual Studio 17.3 Preview 2 we are going
+            // to do a hack here which is to rip out generated files.
+
+            private bool IsGeneratorRunResultToIgnore(GeneratorRunResult result)
+            {
+                var globalOptions = this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions;
+
+                // This matches the implementation in https://github.com/chsienki/sdk/blob/4696442a24e3972417fb9f81f182420df0add107/src/RazorSdk/SourceGenerators/RazorSourceGenerator.RazorProviders.cs#L27-L28
+                var suppressGenerator = globalOptions.TryGetValue("build_property.SuppressRazorSourceGenerator", out var option) && option == "true";
+
+                if (!suppressGenerator)
+                    return false;
+
+                var generatorType = result.Generator.GetGeneratorType();
+                return generatorType.FullName == "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator" &&
+                       generatorType.Assembly.GetName().Name == "Microsoft.NET.Sdk.Razor.SourceGenerators";
+            }
+
+            // END HACK HACK HACK HACK, or the setup of it at least; once this hack is removed the calls to IsGeneratorRunResultToIgnore
+            // need to be cleaned up.
 
             #region Versions and Checksums
 

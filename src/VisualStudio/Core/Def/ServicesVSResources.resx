@@ -1333,6 +1333,9 @@ Additional information: {1}</value>
   <data name="Entire_solution" xml:space="preserve">
     <value>Entire solution</value>
   </data>
+  <data name="Show_compiler_errors_and_warnings_for_colon" xml:space="preserve">
+    <value>Show compiler errors and warnings for:</value>
+  </data>
   <data name="Edit" xml:space="preserve">
     <value>_Edit</value>
   </data>
@@ -1950,7 +1953,7 @@ Additional information: {1}</value>
     <value>{0} ({1})</value>
     <comment>Used to show a symbol name, followed by the project name it came from</comment>
   </data>
-  <data name="Prefer_UTF8_string_literals" xml:space="preserve">
+  <data name="Prefer_Utf8_string_literals" xml:space="preserve">
     <value>Prefer UTF-8 string literals</value>
   </data>
   <data name="Collapse_regions_on_file_open" xml:space="preserve">
@@ -1961,5 +1964,23 @@ Additional information: {1}</value>
   </data>
   <data name="Collapse_sourcelink_embedded_decompiled_files_on_open" xml:space="preserve">
     <value>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</value>
+  </data>
+  <data name="Rename" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+  <data name="Rename_asynchronously_experimental" xml:space="preserve">
+    <value>Rename asynchronously experimental</value>
+  </data>
+  <data name="Fix_analyzer_warnings_and_errors" xml:space="preserve">
+    <value>Fix analyzer warnings and errors</value>
+  </data>
+  <data name="Fix_analyzer_warnings_and_errors_set_in_EditorConfig" xml:space="preserve">
+    <value>Fix analyzer warnings and errors set in EditorConfig</value>
+  </data>
+  <data name="Fix_all_warnings_and_errors_set_in_EditorConfig" xml:space="preserve">
+    <value>Fix all warnings and errors set in EditorConfig</value>
+  </data>
+  <data name="Stack_Trace" xml:space="preserve">
+    <value>Stack Trace</value>
   </data>
 </root>

@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
-        <source>A shared abstract interface member cannot be accessed.</source>
-        <target state="translated">Auf einen freigegebenen abstrakten Schnittstellenmember kann nicht zugegriffen werden.</target>
+        <source>A shared abstract or virtual interface member cannot be accessed.</source>
+        <target state="translated">Auf einen freigegebenen abstrakten oder virtuellen Schnittstellenmember kann nicht zugegriffen werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -25,6 +25,11 @@
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">Der Typ "{0}" kann nicht eingebettet werden, weil er einen nicht abstrakten Member aufweist. Legen Sie die Eigenschaft "Interoptypen einbetten" ggf. auf FALSE fest.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoNotUseCompilerFeatureRequired">
+        <source>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">"System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute" ist nur für die Compilerverwendung reserviert.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -63,13 +68,18 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
-        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
-        <target state="translated">{0} „{1}“ kann die Schnittstelle „{3}“ nicht implementieren, da sie freigegebene abstrakte „{2}“ enthält.</target>
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
+        <target state="translated">{0} "{1}" kann die Schnittstelle "{3}" nicht implementieren, da sie freigegebene abstrakte oder virtuelle "{2}" enthält.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
         <target state="translated">Das Attribut "UnmanagedCallersOnly" wird nicht unterstützt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedCompilerFeature">
+        <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
+        <target state="translated">"{0}" erfordert die Compilerfunktion "{1}", die von dieser Version des Visual Basic Compilers nicht unterstützt wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -249,7 +259,7 @@
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emit compiler output in UTF8 character
+-utf8output[+|-]                  Emit compiler output in UTF-8 character
                                   encoding.
 @&lt;file&gt;                           Insert command-line settings from a text file
 -vbruntime[+|-|*]                 Compile with/without the default Visual Basic
@@ -259,167 +269,167 @@
 </source>
         <target state="translated">                  Visual Basic-Compileroptionen
 
-                                  – AUSGABEDATEI –
--out:&lt;Datei&gt;                       Gibt den Ausgabedateinamen an.
--target:exe                       Erstellt eine Konsolenanwendung (Standardwert).
+                                  - AUSGABEDATEI -
+-out:&lt;file&gt;                      Gibt den Namen der Ausgabedatei an.
+-target:exe                       Erstellt eine Konsolenanwendung (Standard).
                                   (Kurzform: -t)
--target:winexe                    Erstellt eine Windows-Anwendung.
--target:library                  Erstellt eine Bibliotheksassembly.
--target:module                    Erstellt ein Modul, das einer Assembly
-                                  hinzugefügt werden kann.
--target:appcontainerexe           Erstellt eine Windows-Anwendung, die in
-                                  AppContainer ausgeführt wird.
--target:winmdobj                  Erstellt eine Windows-Metadatenzwischendatei.
--doc[+|-]                         Generiert eine XML-Dokumentationsdatei.
--doc:&lt;Datei&gt;                       Generiert eine XML-Dokumentationsdatei in &lt;Datei&gt;.
--refout:&lt;Datei&gt;                    Zu generierende Referenzassemblyausgabe
+-target:winexe Erstellen einer Windows-Anwendung.
+-target:library Erstellt eine Bibliotheksassembly.
+-target:module Erstellen Sie ein Modul, das einer
+ Assembly hinzugefügt werden kann.
+-target:appcontainerexe Erstellen Sie eine Windows-Anwendung, die in
+ AppContainer ausgeführt wird.
+-target:winmdobj Erstellt eine Zwischendatei für Windows-Metadaten
+-doc[+|-] Generiert eine XML-Dokumentationsdatei.
+-doc:&lt;file&gt; Generiert eine XML-Dokumentationsdatei in &lt;datei&gt;.
+-refout:&lt;file&gt; Verweisassemblyausgabe zum Generieren von
 
-                                  – EINGABEDATEIEN –
--addmodule:&lt;Dateiliste&gt;            Verweist auf Metadaten aus den angegebenen Modulen.
--link:&lt;Dateiliste&gt;                 Bettet Metadaten aus der angegebenen Interop-
-                                  assembly ein. (Kurzform: -l)
--recurse:&lt;Platzhalter&gt;               Schließt alle Dateien im aktuellen Verzeichnis
-                                  und dessen Unterverzeichnissen gemäß den
-                                  Platzhalterspezifikationen ein.
--reference:&lt;Dateiliste&gt;            Verweist auf Metadaten aus der angegebenen
-                                  Assembly. (Kurzform: -r)
--analyzer:&lt;Dateiliste&gt;             Führt die Analyzer aus dieser Assembly aus.
-                                  (Kurzform: -a)
--additionalfile:&lt;Dateiliste&gt;       Zusätzliche Dateien, die sich nicht direkt auf die Code-
-                                  generierung auswirken, aber ggf. von Analyzern zum Erstellen von
-                                  Fehlern oder Warnungen verwendet werden können.
+ - INPUT FILES -
+-addmodule:&lt;file_list&gt; Verweismetadaten aus den angegebenen Modulen
+-link:&lt;file_list&gt; Einbetten von Metadaten aus der angegebenen Interop-
+ Assembly. (Kurzform: -l)
+-recurse:&lt;wildcard&gt; Schließen Sie alle Dateien im aktuellen Verzeichnis
+ und Unterverzeichnisse gemäß den
+ Platzhalterspezifikationen ein.
+-reference:&lt;file_list&gt; Verweismetadaten aus der angegebenen
+ Assembly. (Kurzform: -r)
+-analyzer:&lt;file_list&gt;             Führt die Analysatoren von dieser Assembly aus
+                                  (Kurz form: -a)
+-additionalfile:&lt;file list&gt;       Zusätzliche Dateien, die sich nicht direkt auf die Codegenerierung auswirken
+                                  aber von Analysatoren für verwendet werden können
+                                  Fehler oder Warnungen erzeugen.
 
-                                  – RESSOURCEN –
--linkresource:&lt;resinfo&gt;           Verknüpft die angegebene Datei als eine externe
+                                  - RESOURCES -
+-linkresource:&lt;resinfo&gt;           Verknüpft die angegebene Datei als externe
                                   Assemblyressource.
-                                  resinfo:&lt;Datei&gt;[,&lt;Name&gt;[,public|private]]
-                                  (Kurzform: -linkres)
--nowin32manifest                  Das Standardmanifest soll nicht in den
-                                  Manifestabschnitt der PE-Ausgabedatei eingebettet werden.
--resource:&lt;resinfo&gt;               Fügt die angegebene Datei als eine eingebettete
-                                  Assemblyressource hinzu.
-                                  resinfo:&lt;Datei&gt;[,&lt;Name&gt;[,public|private]]
-                                  (Kurzform: -res)
--win32icon:&lt;Datei&gt;                 Gibt eine Win32-Symboldatei (ICO-Datei) für die
-                                  Win32-Standardressourcen an.
--win32manifest:&lt;Datei&gt;             Die angegebene Datei wird im Manifest-
-                                  abschnitt der PE-Ausgabedatei eingebettet.
--win32resource:&lt;Datei&gt;             Gibt eine Win32-Ressourcendatei (RES-Datei) an.
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
+                                  (Kurz form: -linkres)
+-nowin32manifest                  Das Standardmanifest sollte nicht in den Manifestabschnitt des Ausgabe-PE eingebettet werden
+                                  Fügt die angegebene Datei als eingebettete Assemblyressource hinzu.
+-resource:&lt;resinfo&gt;               Fügt die angegebene Datei als eingebettete Datei hinzu
+                                  Assembly Resource.
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
+                                  (Short form: -res)
+-win32icon:&lt;file&gt;                 Gibt eine Win32-Symboldatei (.ico) für die 
+                                  Standard-Win32-Ressourcen an..
+-win32manifest:&lt;file&gt;             Die bereitgestellte Datei wird in den Manifestabschnitt
+                                  des Ausgabe-PE eingebettet.
+-win32resource:&lt;file&gt;             Gibt eine Win32-Ressourcendatei (.res) an.
 
-                                  – CODEGENERIERUNG –
--optimize[+|-]                    Aktiviert Optimierungen.
--removeintchecks[+|-]             Entfernt Integerüberprüfungen. Standardmäßig deaktiviert.
--debug[+|-]                       Gibt Debuginformationen aus.
--debug:full                       Gibt vollständige Debuginformationen aus (Standardeinstellung).
--debug:pdbonly                    Gibt vollständige Debuginformationen aus.
--debug:portable                   Gibt plattformübergreifende Debuginformationen aus.
--debug:embedded                   Gibt plattformübergreifende Debuginformationen in
-                                  die Ziel-DLL oder -EXE aus.
--deterministic                    Generiert eine deterministische Assembly
-                                  (einschließlich Modulversion-GUID und Zeitstempel)
--refonly                          Erstellt eine Referenzassembly anstelle der Hauptausgabe
--instrument:TestCoverage          Erstellt eine Assembly, die zum Erfassen von Abdeckungsinformationen
-                                  instrumentiert ist.
--sourcelink:&lt;Datei&gt;                Quelllinkinformationen, die in die PDB-Datei eingebettet werden sollen.
+                                  - CODE GENERATION -
+-optimize[+|-]                    Optimierungen aktivieren.
+-removeintchecks[+|-]             Ganzzahlprüfungen entfernen. Standard aus.
+-debug[+|-]                       Debugging-Informationen ausgeben.
+-debug:full                      Vollständige Debugging-Informationen ausgeben (Standard).
+-debug:pdbonly                    Vollständige Debugging-Informationen ausgeben.
+-debug:portable                   Gibt plattformübergreifende Debugging-Informationen aus.
+-debug:embedded                  Gibt plattformübergreifende Debugging-Informationen
+                                  in die Ziel .dll or .exe.
+-deterministische                   «
+                                  (mit Moduleversion GUID und timestamp)
+-refonly                          Erstellen Sie anstelle der Hauptausgabe eine Referenzbaugruppe
+-instrument:TestCoverage          Produzieren Sie eine zum Sammeln instrumentierte Baugruppe
+                                  coverage information
+-sourcelink:&lt;file&gt;                Quelllinkinformationen zum Einbetten in PDB.
 
-                                  – FEHLER UND WARNUNGEN –
--nowarn                           Deaktiviert alle Warnungen.
--nowarn:&lt;Zahlenliste&gt;             Deaktiviert eine Liste einzelner Warnungen.
--warnaserror[+|-]                 Behandelt alle Warnungen als Fehler.
--warnaserror[+|-]:&lt;Zahlenliste&gt;   Behandelt eine Liste von Warnungen als Fehler.
--ruleset:&lt;Datei&gt;                   Gibt eine Regelsatzdatei an, die bestimmte
-                                  Diagnosefunktionen deaktiviert.
--errorlog:&lt;Datei&gt;[,version=&lt;sarif_version&gt;]         
-                                  Gibt eine Datei an, in der alle Compiler- und Analyzer-
-                                  diagnosedaten im SARIF-Format protokolliert werden.
-                                  sarif_version:{1|2|2.1} Standardwerte sind 1. 2 und 2.1,
-                                  beide beziehen sich auf SARIF-Version 2.1.0.
--reportanalyzer                   Meldet zusätzliche Analyzerinformationen, z. B.
-                                  die Ausführungszeit.
--skipanalyzers[+|-]               Überspringt die Ausführung von Diagnoseanalysen.
+                                  - ERRORS uND WARNINGS -
+-nowarn                           Disable all warnings.
+-nowarn:&lt;number_list&gt;             Deaktivieren Sie eine Liste mit einzelnen Warnungen.
+-warnaserror[+|-]                 Behandeln Sie alle Warnungen als Fehler.
+-warnaserror[+|-]:&lt;number_list&gt;   Behandeln Sie eine Liste mit Warnungen als Fehler.
+-ruleset:&lt;file&gt;                   Geben Sie eine Regelsatzdatei an, die bestimmte deaktiviert
+                                  diagnostics.
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
+                                  Geben Sie eine Datei an, um alle Compiler und Analysatoren zu protokollieren
+                                  diagnostics in SARIF format.
+                                  sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                                  both mean SARIF version 2.1.0.
+-reportanalyzer                   Melden Sie zusätzliche Analysatorinformationen, wie z
+                                  Ausführungszeit.
+-skipanalyzers[+|-]               Ausführung von Diagnoseanalysatoren überspringen.
 
-                                  – SPRACHE –
--define:&lt;Symbolliste&gt;             Deklariert globale bedingte Kompilierung von
-                                  Symbolen. symbol_list:name=value,...
+                                  - LANGUAGE -
+-define:&lt;symbol_list&gt;             Deklarieren Sie die globale bedingte Kompilierung
+                                  symbol(s). symbol_list:name=value,...
                                   (Kurzform: -d)
--imports:&lt;Importliste&gt;            Deklariert globale Importe für Namespaces in
-                                  Metadatendateien, auf die verwiesen wird.
+-imports:&lt;import_list&gt;            Deklariert globale Imports für Namespaces in
+                                  referenzierten Metadatendateien.
                                   import_list:namespace,...
--langversion:?                    Zeigt die zulässigen Werte für die Sprachversion an.
--langversion:&lt;Zeichenfolge&gt;             Gibt die Sprachversion an:
-                                  "default" (neueste Hauptversion) oder
-                                  "latest" (neueste Version, einschließlich Nebenversionen)
-                                  oder bestimmte Versionen wie "14" oder "15.3".
--optionexplicit[+|-]              Erfordert die explizite Deklaration von Variablen.
--optioninfer[+|-]                 Lässt den Typrückschluss von Variablen zu.
--rootnamespace:&lt;Zeichenfolge&gt;           Gibt den Stammnamespace für alle Typ-
-                                  deklarationen an.
--optionstrict[+|-]                Erzwingt strenge Sprachsemantik.
--optionstrict:custom              Warnt, wenn die strenge Sprachsemantik nicht
-                                  beachtet wird.
--optioncompare:binary             Gibt Zeichenfolgenvergleiche im Binärstil an.
+-langversion:?                    Zeigen Sie die zulässigen Werte für die Sprachversion an
+-langversion:&lt;string&gt;             Specify language version such as
+                                  `default` (latest major version), or
+                                  `latest` (latest version, including minor versions),
+                                  or specific versions like `14` or `15.3`
+-optionexplicit[+|-]              Require explicit declaration of variables.
+-optioninfer[+|-]                 Allow type inference of variables.
+-rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type
+                                  declarations.
+-optionstrict[+|-]                Enforce strict language semantics.
+-optionstrict:custom              Warn when strict language semantics are not
+                                  respected.
+-optioncompare:binary             Specifies binary-style string comparisons.
                                   Dies ist die Standardeinstellung.
 -optioncompare:text               Gibt Zeichenfolgenvergleiche im Textstil an.
 
-                                  – SONSTIGES –
--help                             Zeigt diese Syntaxinformationen an. (Kurzform: -?)
--noconfig                         Schließt die VBC.RSP-Datei nicht automatisch ein.
--nologo                           Zeigt das Compilercopyrightbanner nicht an.
--quiet                            Stiller Ausgabemodus.
--verbose                          Zeigt ausführliche Meldungen an.
--parallel[+|-]                    Gleichzeitige Erstellung.
--version                          Zeigt die Compilerversionsnummer und die Beendigung an.
+                                  - MISCELLANEOUS -
+-help                             Zeigt diese Nutzungsmeldung an. (Short form: -?)
+-noconfig                         Do not auto-include VBC.RSP file.
+-nologo                           Do not display compiler copyright banner.
+-quiet                            Quiet output mode.
+-verbose                          Display verbose messages.
+-parallel[+|-]                    Concurrent build.
+-version                          Display the compiler version number and exit.
 
-                                  – ERWEITERT –
--baseaddress:&lt;Zahl&gt;             Die Basisadresse für eine Bibliothek oder ein Modul
-                                  (hexadezimal).
--checksumalgorithm:&lt;alg&gt;          Legt den Algorithmus zum Berechnen der Quelldatei-
-                                  prüfsumme fest, die in der PDB-Datei gespeichert ist. Unterstützte Werte sind:
-                                  SHA1 oder SHA256 (Standard).
--codepage:&lt;Zahl&gt;                Gibt die Codepage an, die beim Öffnen von
-                                  Quelldateien verwendet werden soll.
--delaysign[+|-]                   Signiert die Assembly verzögert nur mithilfe des öffentlichen
-                                  Teils des Schlüssels für einen starken Namen.
--publicsign[+|-]                  Signiert die Assembly öffentlich nur mithilfe des öffentlichen
-                                  Teils des Schlüssels für einen starken Namen.
--errorreport:&lt;Zeichenfolge&gt;             Gibt an, wie interne Compiler-
-                                                                    fehler behandelt werden. Mögliche Werte sind "prompt", "send", "none" oder "queue"
-                                  (Standardwert).
--filealign:&lt;Zahl&gt;               Gibt die Ausrichtung an, die für die Abschnitte der
-                                  Ausgabedatei verwendet wird.
--highentropyva[+|-]               Aktiviert ASLR mit hoher Entropie.
--keycontainer:&lt;Zeichenfolge&gt;            Gibt einen Schlüsselcontainer mit starkem Namen an.
--keyfile:&lt;Datei&gt;                   Gibt eine Schlüsseldatei mit starkem Namen an.
--libpath:&lt;Pfadliste&gt;              Die Liste der Verzeichnisse, die nach Metadaten-
-                                  verweisen durchsucht werden sollen (durch Semikolons getrennt).
--main:&lt;Klasse&gt;                     Gibt die Klasse oder das Modul an, die bzw. das
-                                  "Sub Main" enthält. Es kann sich auch um eine Klasse handeln,
-                                  die von "System.Windows.Forms.Form" erbt.
-                                  (Kurzform: -m)
--moduleassemblyname:&lt;Zeichenfolge&gt;      Der Name der Assembly, zu der dieses Modul
-                                  gehören wird.
--netcf                            Gibt .NET Compact Framework als Ziel an.
--nostdlib                         Keine Verweise auf Standardbibliotheken
-                                  ("system.dll" und VBC.RSP-Datei).
+                                  - ADVANCED -
+-baseaddress:&lt;number&gt;             The base address for a library or module
+                                  (hex).
+-checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
+                                  checksum stored in PDB. Unterstützte Werte sind:
+                                  SHA1 or SHA256 (default).
+-codepage:&lt;number&gt;                Specifies the codepage to use when opening
+                                  source files.
+-delaysign[+|-]                   Delay-sign the assembly using only the public
+                                  portion of the strong name key.
+-publicsign[+|-]                  Public-sign the assembly using only the public
+                                  portion of the strong name key.
+-errorreport:&lt;string&gt;             Specifies how to handle internal compiler
+                                  errors; must be prompt, send, none, or queue
+                                  (default).
+-filealign:&lt;number&gt;               Specify the alignment used for output file
+                                  sections.
+-highentropyva[+|-]               Enable high-entropy ASLR.
+-keycontainer:&lt;string&gt;            Specifies a strong name key container.
+-keyfile:&lt;file&gt;                   Specifies a strong name key file.
+-libpath:&lt;path_list&gt;              List of directories to search for metadata
+                                  references. Semikolon getrennt.)
+-main:&lt;class&gt;                     Gibt die Klasse oder das Modul an, das Sub Main enthält.
+                                  Sub Main. Es kann auch eine Klasse sein, die
+                                  von System.Windows.Forms.Form erbt.
+                                  (Short form: -m)
+-moduleassemblyname:&lt;string&gt;      Name der Assembly, in der dieses Modul enthalten sein wird
+                                  be a part of.
+-netcf                            Target the .NET Compact Framework.
+-nostdlib                         Do not reference standard libraries
+                                  (system.dll and VBC.RSP file).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  Gibt eine Zuordnung für die Ausgabe der Quellpfadnamen durch
-                                  den Compiler an.
--platform:&lt;Zeichenfolge&gt;                Schränkt die Plattformen ein, auf denen dieser Code ausgeführt werden kann;
-                                  gültige Werte sind "x86", "x64", "Itanium", "arm", "arm64",
-                                  "AnyCPU32BitPreferred" oder "anycpu" (Standard).
--preferreduilang                  Gibt den Namen der bevorzugten Ausgabesprache an.
--nosdkpath                        Deaktiviert das Durchsuchen des Standard-SDK-Pfads nach Standardbibliotheksassemblys.
--sdkpath:&lt;Pfad&gt;                   Der Speicherort des .NET Framework SDK-Verzeichnisses
+                                  Specify a mapping for source path names output by
+                                  the compiler.
+-platform:&lt;string&gt;                Limit which platforms this code can run on;
+                                  must be x86, x64, Itanium, arm, arm64
+                                  AnyCPU32BitPreferred or anycpu (default).
+-preferreduilang                  Specify the preferred output language name.
+-nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
--subsystemversion:&lt;Version&gt;       Gibt die Subsystemversion der PE-Ausgabedatei an.
-                                  version:&lt;Zahl&gt;[.&lt;Zahl&gt;]
--utf8output[+|-]                  Gibt die Compilerausgabe in UTF8-Zeichen-
-                                  codierung aus.
-@&lt;Datei&gt;                           Fügt Befehlszeileneinstellungen aus einer Textdatei ein.
--vbruntime[+|-|*]                 Kompiliert mit der bzw. ohne die Visual Basic-
-                                  Standardruntime.
--vbruntime:&lt;Datei&gt;                 Kompiliert mit der Visual Basic-
-                                  Alternativruntime in &lt;Datei&gt;.
+-subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
+                                  version:&lt;number&gt;[.&lt;number&gt;]
+-utf8output[+|-]                  Emit compiler output in UTF-8 character
+                                  encoding.
+@&lt;file&gt;                           Insert command-line settings from a text file
+-vbruntime[+|-|*]                 Compile with/without the default Visual Basic
+                                  runtime.
+-vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
+                                  runtime in &lt;file&gt;.
 </target>
         <note />
       </trans-unit>
@@ -516,6 +526,16 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">Die geladene Assembly verweist auf das .NET Framework. Dies wird nicht unterstützt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="new">The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
+        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
+        <target state="new">The analyzer assembly references a newer version of the compiler than the currently running version.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">

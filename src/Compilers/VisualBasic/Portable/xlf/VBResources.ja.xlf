@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
-        <source>A shared abstract interface member cannot be accessed.</source>
-        <target state="translated">共有された抽象インターフェイスメンバーにアクセスできません。</target>
+        <source>A shared abstract or virtual interface member cannot be accessed.</source>
+        <target state="translated">共有された抽象または仮想インターフェイスメンバーにアクセスできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -25,6 +25,11 @@
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">型 '{0}' には非抽象メンバーがあるため、この型を埋め込むことはできません。'相互運用型の埋め込み' プロパティを false に設定することをご検討ください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoNotUseCompilerFeatureRequired">
+        <source>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' は、コンパイラのみで使用するために予約されています。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -63,13 +68,18 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
-        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
-        <target state="translated">{0} '{1}' には、共有された抽象 '{2}' が含まれているため、インターフェイス '{3}' を実装できません。</target>
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
+        <target state="translated">{0} '{1}' には、共有された抽象または仮想 '{2}' が含まれているため、インターフェイス '{3}' を実装できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
         <target state="translated">'UnmanagedCallersOnly' 属性はサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedCompilerFeature">
+        <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
+        <target state="translated">'{0}' にはコンパイラ機能 '{1}' が必要ですが、このバージョンのVisual Basic コンパイラではサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -249,7 +259,7 @@
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emit compiler output in UTF8 character
+-utf8output[+|-]                  Emit compiler output in UTF-8 character
                                   encoding.
 @&lt;file&gt;                           Insert command-line settings from a text file
 -vbruntime[+|-|*]                 Compile with/without the default Visual Basic
@@ -257,168 +267,168 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Visual Basic コンパイラのオプション
+        <target state="translated">                  Visual Basic コンパイラ オプション
 
                                   - 出力ファイル -
 -out:&lt;file&gt;                       出力ファイル名を指定します。
--target:exe                       コンソール アプリケーションを作成します (既定)。
-                                  (短い形式: -t)
+-target:exe                       コンソール アプリケーションを作成します (デフォルト)。
+                                (短縮形: -t)
 -target:winexe                    Windows アプリケーションを作成します。
 -target:library                   ライブラリ アセンブリを作成します。
--target:module                    アセンブリに追加できるモジュールを作成
-                                  します。
--target:appcontainerexe           AppContainer で実行される Windows アプリケーションを
-                                  作成します。
--target:winmdobj                  Windows メタデータ中間ファイルを作成します
+-target:module                    アセンブリに追加できるモジュールを作成します。
+                                  
+-target:appcontainerexe           AppContainer で実行される Windows アプリケーション
+                                  を作成します。
+-target:winmdobj                  Windows メタデータ中間ファイルを作成します。
 -doc[+|-]                         XML ドキュメント ファイルを生成します。
--doc:&lt;file&gt;                       XML ドキュメント ファイルを &lt;file&gt; に生成します。
--refout:&lt;file&gt;                    生成する参照アセンブリの出力
+-doc:&lt;file&gt;                       &lt;file&gt; に XML ドキュメント ファイルを生成します。
+-refout:&lt;file&gt;                    生成する参照アセンブリ出力を指定します。
 
                                   - 入力ファイル -
--addmodule:&lt;file_list&gt;            指定されたモジュールからメタデータを参照します
--link:&lt;file_list&gt;                 指定された相互運用アセンブリから
-                                  メタデータを埋め込みます。(短い形式: -l)
--recurse:&lt;wildcard&gt;               ワイルドカードの指定に従い、
-                                  現在のディレクトリとサブディレクトリ内の
-                                  すべてのファイルをインクルードします。
--reference:&lt;file_list&gt;            指定されたアセンブリから
-                                  メタデータを参照します。(短い形式: -r)
--analyzer:&lt;file_list&gt;             このアセンブリからアナライザーを実行します
-                                  (短い形式: -a)
--additionalfile:&lt;file list&gt;       コード生成には直接影響しないものの、
-                                  アナライザーがエラーまたは警告を
-                                  生成するために使用する可能性のある追加ファイル。
+-addmodule:&lt;file_list&gt;            指定したモジュールからメタデータを参照します。
+-link:&lt;file_list&gt;                 指定した相互運用アセンブリからメタデータを
+                                  埋め込みます。(短縮形: -l)
+-recurse:&lt;wildcard&gt;               現在のディレクトリ
+                                  およびサブディレクトリ内のすべてのファイルを、
+                                  ワイルドカードの指定に従って含めます。
+-reference:&lt;file_list&gt;            指定したアセンブリからメタデータを
+                                  参照します。(短縮形: -r)
+-analyzer:&lt;file_list&gt;             このアセンブリからアナライザーを実行します。
+                                  (短縮形: -a)
+-additionalfile:&lt;file list&gt;       アナライザーがエラーや警告を生成するのに使う
+                                   (コード生成に直接影響しない) 追加ファイルを
+                                  指定します。
 
                                   - リソース -
--linkresource:&lt;resinfo&gt;           指定されたファイルを外部のアセンブリ リソースとして
+-linkresource:&lt;resinfo&gt;           指定したファイルを外部アセンブリ リソースとして
                                   リンクします。
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                  (短い形式: -linkres)
--nowin32manifest                  出力 PE のマニフェスト セクションに既定の
-                                  マニフェストを埋め込まないでください。
--resource:&lt;resinfo&gt;               指定されたファイルを
-                                  埋め込みアセンブリ リソースとして追加します。
+                                  (短縮形: -linkres)
+-nowin32manifest                  デフォルトのマニフェストを出力 PE のマニフェスト
+                                  セクションに埋め込まないようにします。
+-resource:&lt;resinfo&gt;               指定したファイルを埋め込み
+                                  アセンブリ リソースとして追加します。
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                  (短い形式: -res)
--win32icon:&lt;file&gt;                 Win32 アイコン ファイル (.ico) を
-                                  既定の Win32 リソースに指定します。
--win32manifest:&lt;file&gt;             指定されたファイルは出力 PE の
-                                  マニフェスト セクションに埋め込まれています。
+                                  (短縮形: -res)
+-win32icon:&lt;file&gt;                 デフォルトの Win32 リソースとして Win32 アイコン
+                                  ファイル (.ico) を指定します。
+-win32manifest:&lt;file&gt;             指定したファイルを出力 PE のマニフェスト
+                                 セクションに埋め込みます。
 -win32resource:&lt;file&gt;             Win32 リソース ファイル (.res) を指定します。
 
                                   - コード生成 -
 -optimize[+|-]                    最適化を有効にします。
--removeintchecks[+|-]             整数のチェックを削除します。既定値は Off です。
--debug[+|-]                       デバッグ情報を生成します。
--debug:full                       完全なデバッグ情報を生成します (既定値)。
--debug:pdbonly                    完全なデバッグ情報を生成します。
--debug:portable                   クロスプラットフォーム デバッグ情報を生成します。
--debug:embedded                   クロスプラットフォーム デバッグ情報を
-                                  ターゲット .dll または .exe 内に生成します。
--deterministic                    決定論的アセンブリを作成します
-                                  (モジュール バージョン GUID やタイムスタンプなど)
--refonly                          メイン出力の代わりに参照アセンブリを生成します
--instrument:TestCoverage          カバレッジ情報を収集するようにインストルメント
-                                  されたアセンブリを生成します
+-removeintchecks[+|-]             integer チェックを省きます。デフォルトはオフです。
+-debug[+|-]                       デバッグ情報を出力します。
+-debug:full                       すべてのデバッグ情報を出力します (デフォルト)。
+-debug:pdbonly                    すべてのデバッグ情報を出力します。
+-debug:portable                   クロス プラットフォームのデバッグ情報を出力します。
+-debug:embedded                   クロス プラットフォームのデバッグ情報をターゲットの
+                                  .dll または .exe に出力します。
+-deterministic                    決定的なアセンブリを出力します。
+                                  (モジュール バージョンの GUID とタイムスタンプを含む)
+-refonly                          本来の出力の代わりに参照アセンブリを出力します。
+-instrument:TestCoverage          カバレッジ情報の収集命令のあるアセンブリを
+                                  出力します。
 -sourcelink:&lt;file&gt;                PDB に埋め込むソース リンク情報。
 
                                   - エラーと警告 -
--nowarn                           すべての警告を無効にします。
--nowarn:&lt;number_list&gt;             個々の警告リストを無効にします。
+-nowarn                           すべての警告を抑止します。
+-nowarn:&lt;number_list&gt;             リストで指定された警告を抑止します。
 -warnaserror[+|-]                 すべての警告をエラーとして扱います。
--warnaserror[+|-]:&lt;number_list&gt;   警告リストをエラーとして扱います。
--ruleset:&lt;file&gt;                   特定の診断を無効にするルールセット ファイルを
-                                  指定します。
+-warnaserror[+|-]:&lt;number_list&gt;   リストで指定された警告をエラーとして扱います。
+-ruleset:&lt;file&gt;                   特定の診断を抑止するルールセット ファイル
+                                  を指定します。
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
-                                  すべてのコンパイラおよびアナライザーの診断を
-                                  SARIF 形式でログに記録するためのファイルを指定します。
-                                  sarif_version:{1|2|2.1} 既定値は 1 です。2 と 2.1 は
-                                  どちらも SARIF バージョン 2.1.0 を意味します。
--reportanalyzer                   追加のアナライザー情報を報告します
-                                  (実行時間など)。
--skipanalyzers[+|-]               アナライザーの診断の実行をスキップします。
+                                  コンパイラとアナライザーのすべての診断を SARIF 形式で
+                                  ログ出力するファイルを指定します。
+                                  sarif_version:{1|2|2.1} デフォルトは 1. 2 と 2.1
+                                  両方とも SARIF バージョン 2.1.0 を意味します。
+-reportanalyzer                   実行時間などの追加のアナライザー情報を
+                                  レポートします。
+-skipanalyzers[+|-]               診断アナライザーの実行をスキップします。
 
                                   - 言語 -
--define:&lt;symbol_list&gt;             条件付きコンパイル シンボルをグローバルに宣言
-                                  します。symbol_list:name=value,...
-                                  (短い形式: -d)
--imports:&lt;import_list&gt;            参照されたメタデータ ファイルの
-                                  名前空間に対して Imports をグローバルに宣言します。
-                                  import_list:namespace,...
--langversion:?                    言語バージョンに許容される値を表示します
--langversion:&lt;string&gt;             `default` (最新のメジャー バージョン) や
-                                  `latest` (マイナー バージョンを含む最新バージョン)
-                                  または、`14` や `15.3`などの特定バージョン
-                                  で言語バージョンを指定します。
--optionexplicit[+|-]              変数の明示的な宣言が必要です。
--optioninfer[+|-]                 変数の型の推定を許可します。
--rootnamespace:&lt;string&gt;           すべての型宣言に対して
-                                  ルート名前空間を指定します。
--optionstrict[+|-]                厳密な言語セマンティクスを適用します。
--optionstrict:custom              厳密な言語セマンティクスが
-                                  守られていないときに警告します。
+-define:&lt;symbol_list&gt;             グローバルな条件付きコンパイル シンボルを
+                                  宣言します。symbol_list:name=値,...
+                                (短縮形: -d)
+-imports:&lt;import_list&gt;            参照先のメタデータ ファイルの名前空間へのグローバルな
+                                  インポートを宣言します。
+                                  import_list:名前空間,...
+-langversion:?                  言語バージョンに使用できる値を表示します。
+-langversion:&lt;string&gt;             言語バージョンとして
+                                  `default` (最新のメジャー バージョン)、
+                                  `latest` (マイナー バージョンを含む最新のバージョン)、
+                                  `14` や `15.3` などの特定のバージョンを指定します。
+-optionexplicit[+|-]              変数の明示的な宣言を必須とします。
+-optioninfer[+|-]                 変数の型推定を有効にします。
+-rootnamespace:&lt;string&gt;           すべての型宣言のルートの名前空間を
+                                  指定します。
+-optionstrict[+|-]                厳格な言語セマンティクスを適用します。
+-optionstrict:custom              厳密な言語セマンティクスから外れる場合に
+                                  警告します。
 -optioncompare:binary             バイナリ スタイルの文字列比較を指定します。
-                                  これは既定値です。
+                                これがデフォルトです。
 -optioncompare:text               テキスト スタイルの文字列比較を指定します。
 
                                   - その他 -
--help                             使用法に関するメッセージを表示します。(短い形式: -?)
--noconfig                         VBC.RSP ファイルを自動的にはインクルードしません。
--nologo                           コンパイラの著作権情報を表示しません。
--quiet                            非表示出力モードです。
+-help                             このヘルプメッセージを表示します。(短縮形: -?)
+-noconfig                         VBC.RSP ファイルをオート インクルードしません。
+-nologo                           コンパイラの著作権バナーを表示しません。
+-quiet                            何も表示しません。
 -verbose                          詳細メッセージを表示します。
--parallel[+|-]                    ビルドを並列処理します。
--version                          コンパイラのバージョン番号を出力して終了します。
+-parallel[+|-]                    コンカレント ビルド。
+-version                          コンパイラ のバージョン番号を表紙して終了します。
 
                                   - 詳細 -
--baseaddress:&lt;number&gt;             ライブラリまたはモジュールのベース アドレス
-                                  (16 進数)。
--checksumalgorithm:&lt;alg&gt;          PDB に格納されているソース ファイルのチェックサム
-                                  を計算するアルゴリズムを指定します。サポートされる値:
-                                  SHA1 や SHA256 (既定)。
--codepage:&lt;number&gt;                ソース ファイルを開くときに使用するコードページを
-                                  指定します。
--delaysign[+|-]                   アセンブリの遅延署名には厳密な名前キーのうち
-                                  公開された部分のみを使用します。
--publicsign[+|-]                  厳密な名前キーの公開部分のみを使ってアセンブリ
-                                  を公開署名します。
--errorreport:&lt;string&gt;             内部コンパイラ エラーの処理方法を指定
-                                  します。prompt、send、none、queue
-                                  (既定) のいずれかでなければなりません。
--filealign:&lt;number&gt;               出力ファイル セクションで使う配置
+-baseaddress:&lt;number&gt;             ライブラリまたはモジュールのベースアドレス
+                                  (16 進数).
+-checksumalgorithm:&lt;alg&gt;          PDB に保存するソース ファイルのチェックサム計算
+                                  アルゴリズムを指定します。サポートされている値:
+                                SHA1 または SHA256 (デフォルト).
+-codepage:&lt;number&gt;                ソース ファイルを開くときに使用するコード ページ
                                   を指定します。
--highentropyva[+|-]               高エントロピ ASLR を有効化します。
--keycontainer:&lt;string&gt;            厳密な名前キーのコンテナーを指定します。
--keyfile:&lt;file&gt;                   厳密な名前キーのファイルを指定します。
--libpath:&lt;path_list&gt;              メタデータ参照を検索する
-                                  ディレクトリの (セミコロン区切りの) リスト。
--main:&lt;class&gt;                     Sub Main を含むクラスまたはモジュール
-                                  を指定します。System.Windows.Forms.Form から継承
-                                  されるクラスにすることもできます。
-                                  (短い形式: -m)
--moduleassemblyname:&lt;string&gt;      このモジュールが一部となる
-                                  アセンブリ名です。
--netcf                            .NET Compact Framework をターゲットにします。
--nostdlib                         標準ライブラリ
-                                  (system.dll と VBC.RSP ファイル) を参照しません。
--pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  コンパイラが出力するソース パス名のマッピングを
+-delaysign[+|-]                   厳密な名前キーのパブリック 部分のみを使用して
+                                  アセンブリに遅延署名します。
+-publicsign[+|-]                  厳密な名前キーのパブリック 部分のみを使用して
+                                  アセンブリに公開署名します。
+-errorreport:&lt;string&gt;             内部コンパイラ エラーを処理する方法を
+                                  指定します。値は次のいずれか: prompt, send, none, queue
+                                  (デフォルト)
+-filealign:&lt;number&gt;               出力ファイルのセクションに使用する配置を
                                   指定します。
--platform:&lt;string&gt;                このコードを実行できるプラットフォームは
-                                  x86、x64、Itanium、arm、arm64、
-                                  AnyCPU32BitPreferred、anycpu (既定) のいずれかでなければなりません。
--preferreduilang                  出力用の優先する言語名を指定します。
+-highentropyva[+|-]               高エントロピ ASLR を有効にします。
+-keycontainer:&lt;string&gt;            厳密な名前のキー コンテナーを指定します。
+-keyfile:&lt;file&gt;                   厳密な名前のキー ファイルを指定します。 
+-libpath:&lt;path_list&gt;              メタデータ参照を検索するディレクトリの
+                                  一覧です。(セミコロン区切り)
+-main:&lt;class&gt;                     Sub Main を含むクラスまたはモジュールを
+                                  .指定します。System.Windows.Forms.Form からの
+                                  継承クラスにすることもできます。
+                                (短縮形: -m)
+-moduleassemblyname:&lt;string&gt;      このモジュールが含まれる
+                                  アセンブリの名前 。
+-netcf                            .NET Compact Framework を対象とします。
+-nostdlib                         標準ライブラリ (system.dll と VBC.RSP ファイル)
+                                  を参照しません。
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                                ソースのパス名についてコンパイラが出力するマッピングを
+                                  指定します。
+-platform:&lt;string&gt;                このコードを実行できるプラットフォームを限定します。
+                                  値は次のいずれか: x86, x64, Itanium, arm, arm64
+                                  AnyCPU32BitPreferred, anycpu (デフォルト).
+-preferreduilang                  優先して出力する言語名を指定します。
 -nosdkpath                        標準ライブラリ アセンブリの既定の SDK パスの検索を無効にします。
--sdkpath:&lt;path&gt;                   .NET Framework SDK ディレクトリ (mscorlib.dll)
-                                  の場所。
+-sdkpath:&lt;path&gt;                   .NET Framework SDK ディレクトリ の場所。
+                                  (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       出力 PE のサブシステム バージョンを指定します。
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  コンパイラ出力を UTF-8 文字エンコード
-                                  で作成します。
-@&lt;file&gt;                           コマンド ライン設定をテキスト ファイルから挿入します
--vbruntime[+|-|*]                 既定の Visual Basic ランタイムを使用して、または使用せずに
+-utf8output[+|-]                  コンパイラの出力を UTF-8 文字エンコード
+                                  にします。
+@&lt;file&gt;                           コマンド ライン設定をテキスト ファイルから挿入します。
+-vbruntime[+|-|*]                 既定の Visual Basic ランタイムを使用して/使用せずに
                                   コンパイルします。
--vbruntime:&lt;file&gt;                 &lt;file&gt; の別の Visual Basic ランタイムを使用して
+-vbruntime:&lt;file&gt;                 Visual Basic ランタイムとして &lt;file&gt; を代わりに使用して
                                   コンパイルします。
 </target>
         <note />
@@ -516,6 +526,16 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">読み込まれたアセンブリが .NET Framework を参照しています。これはサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="new">The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
+        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
+        <target state="new">The analyzer assembly references a newer version of the compiler than the currently running version.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">

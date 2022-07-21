@@ -34,22 +34,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// Gets the formatting rules that would be applied if left unspecified.
         /// </summary>
         internal static ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules(Document document)
-        {
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
+            => GetDefaultFormattingRules(document.Project.LanguageServices);
 
-            var service = document.GetLanguageService<ISyntaxFormattingService>();
-            if (service != null)
-            {
-                return service.GetDefaultFormattingRules();
-            }
-            else
-            {
-                return ImmutableArray<AbstractFormattingRule>.Empty;
-            }
-        }
+        internal static ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules(HostLanguageServices languageServices)
+            => languageServices.GetService<ISyntaxFormattingService>()?.GetDefaultFormattingRules() ?? ImmutableArray<AbstractFormattingRule>.Empty;
 
         /// <summary>
         /// Formats the whitespace in a document.
@@ -331,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         internal static SyntaxFormattingOptions GetFormattingOptions(Workspace workspace, OptionSet? optionSet, string language)
         {
             var syntaxFormattingService = workspace.Services.GetRequiredLanguageService<ISyntaxFormattingService>(language);
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            var optionService = workspace.Services.GetRequiredService<IEditorConfigOptionMappingService>();
             var configOptionSet = (optionSet ?? workspace.CurrentSolution.Options).AsAnalyzerConfigOptions(optionService, language);
             return syntaxFormattingService.GetFormattingOptions(configOptionSet, fallbackOptions: null);
         }
@@ -339,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 #pragma warning disable RS0030 // Do not used banned APIs (backwards compatibility)
         internal static async ValueTask<(SyntaxFormattingOptions? Syntax, LineFormattingOptions Line)> GetFormattingOptionsAsync(Document document, OptionSet? optionSet, CancellationToken cancellationToken)
         {
-            var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+            var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IEditorConfigOptionMappingService>();
             var configOptionSet = (optionSet ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).AsAnalyzerConfigOptions(optionService, document.Project.Language);
 
             LineFormattingOptions lineFormattingOptions;
@@ -382,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 #pragma warning disable RS0030 // Do not used banned APIs (backwards compatibility)
         internal static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(Document document, CancellationToken cancellationToken)
         {
-            var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+            var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IEditorConfigOptionMappingService>();
             var configOptionSet = (await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).AsAnalyzerConfigOptions(optionService, document.Project.Language);
             return configOptionSet.GetOrganizeImportsOptions(fallbackOptions: null);
         }

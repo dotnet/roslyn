@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         TExpressionSyntax,
         TThisExpressionSyntax,
         TMemberAccessExpressionSyntax> :
-        AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
         where TExpressionSyntax : SyntaxNode
         where TThisExpressionSyntax : TExpressionSyntax
@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         protected AbstractSimplifyThisOrMeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId,
                    EnforceOnBuildValues.RemoveQualification,
-                   ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.QualifyPropertyAccess, CodeStyleOptions2.QualifyMethodAccess, CodeStyleOptions2.QualifyEventAccess),
+                   ImmutableHashSet.Create<IPerLanguageValuedOption>(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.QualifyPropertyAccess, CodeStyleOptions2.QualifyMethodAccess, CodeStyleOptions2.QualifyEventAccess),
+                   fadingOption: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Remove_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(WorkspacesResources.Name_can_be_simplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
-                   isUnnecessary: true)
+                   new LocalizableResourceString(nameof(WorkspacesResources.Name_can_be_simplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
         {
         }
 

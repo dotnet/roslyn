@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int StringLiteralToken { get; }
         int? SingleLineRawStringLiteralToken { get; }
         int? MultiLineRawStringLiteralToken { get; }
-        int? UTF8StringLiteralToken { get; }
-        int? UTF8SingleLineRawStringLiteralToken { get; }
-        int? UTF8MultiLineRawStringLiteralToken { get; }
+        int? Utf8StringLiteralToken { get; }
+        int? Utf8SingleLineRawStringLiteralToken { get; }
+        int? Utf8MultiLineRawStringLiteralToken { get; }
 
         #endregion
 
@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ParenthesizedExpression { get; }
         int QueryExpression { get; }
         int? RangeExpression { get; }
+        int? RefExpression { get; }
         int ReferenceEqualsExpression { get; }
         int ReferenceNotEqualsExpression { get; }
         int SimpleMemberAccessExpression { get; }
@@ -142,12 +143,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int ExpressionStatement { get; }
         int ForEachStatement { get; }
+        int IfStatement { get; }
         int LocalDeclarationStatement { get; }
         int? LocalFunctionStatement { get; }
         int LockStatement { get; }
         int ReturnStatement { get; }
         int ThrowStatement { get; }
         int UsingStatement { get; }
+        int YieldReturnStatement { get; }
 
         #endregion
 

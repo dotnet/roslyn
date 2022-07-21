@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         private class Session
         {
             // Set of All Locations that will be renamed (does not include non-reference locations that need to be checked for conflicts)
-            private readonly RenameLocations _renameLocationSet;
+            private readonly SymbolicRenameLocations _renameLocationSet;
 
             // Rename Symbol's Source Location
             private readonly Location _renameSymbolDeclarationLocation;
             private readonly DocumentId _documentIdOfRenameSymbolDeclaration;
             private readonly string _originalText;
             private readonly string _replacementText;
-            private readonly ImmutableHashSet<ISymbol>? _nonConflictSymbols;
+            private readonly ImmutableArray<SymbolKey> _nonConflictSymbolKeys;
             private readonly CancellationToken _cancellationToken;
 
             private readonly RenameAnnotation _renamedSymbolDeclarationAnnotation = new();
@@ -53,17 +53,17 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private bool _documentOfRenameSymbolHasBeenRenamed;
 
             public Session(
-                RenameLocations renameLocationSet,
+                SymbolicRenameLocations renameLocationSet,
                 Location renameSymbolDeclarationLocation,
                 string replacementText,
-                ImmutableHashSet<ISymbol>? nonConflictSymbols,
+                ImmutableArray<SymbolKey> nonConflictSymbolKeys,
                 CancellationToken cancellationToken)
             {
                 _renameLocationSet = renameLocationSet;
                 _renameSymbolDeclarationLocation = renameSymbolDeclarationLocation;
                 _originalText = renameLocationSet.Symbol.Name;
                 _replacementText = replacementText;
-                _nonConflictSymbols = nonConflictSymbols;
+                _nonConflictSymbolKeys = nonConflictSymbolKeys;
                 _cancellationToken = cancellationToken;
 
                 _conflictLocations = SpecializedCollections.EmptySet<ConflictLocationInfo>();
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     {
                         var definitionLocations = _renameLocationSet.Symbol.Locations;
                         var definitionDocuments = definitionLocations
-                            .Select(l => conflictResolution.OldSolution.GetDocument(l.SourceTree))
+                            .Select(l => conflictResolution.OldSolution.GetRequiredDocument(l.SourceTree))
                             .Distinct();
 
                         if (definitionDocuments.Count() == 1 && _replacementTextValid)
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         // fixed them because of rename).  Also, don't bother checking if a custom
                         // callback was provided.  The caller might be ok with a rename that introduces
                         // errors.
-                        if (!documentIdErrorStateLookup[documentId] && _nonConflictSymbols == null)
+                        if (!documentIdErrorStateLookup[documentId] && _nonConflictSymbolKeys.IsDefault)
                         {
                             await conflictResolution.CurrentSolution.GetRequiredDocument(documentId).VerifyNoErrorsAsync("Rename introduced errors in error-free code", _cancellationToken, ignoreErrorCodes).ConfigureAwait(false);
                         }
@@ -464,21 +464,19 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             private async Task<ImmutableHashSet<ISymbol>?> GetNonConflictSymbolsAsync(Project currentProject)
             {
-                if (_nonConflictSymbols == null)
+                if (_nonConflictSymbolKeys.IsDefault)
                     return null;
 
                 var compilation = await currentProject.GetRequiredCompilationAsync(_cancellationToken).ConfigureAwait(false);
                 return ImmutableHashSet.CreateRange(
-                    _nonConflictSymbols.Select(s => s.GetSymbolKey().Resolve(compilation).GetAnySymbol()).WhereNotNull());
+                    _nonConflictSymbolKeys.Select(s => s.Resolve(compilation).GetAnySymbol()).WhereNotNull());
             }
 
-            private bool IsConflictFreeChange(
+            private static bool IsConflictFreeChange(
                 ImmutableArray<ISymbol> symbols, ImmutableHashSet<ISymbol>? nonConflictSymbols)
             {
-                if (_nonConflictSymbols != null)
+                if (nonConflictSymbols != null)
                 {
-                    RoslynDebug.Assert(nonConflictSymbols != null);
-
                     foreach (var symbol in symbols)
                     {
                         // Reference not points at a symbol in the conflict-free list.  This is a conflict-free change.
@@ -498,7 +496,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 SyntaxNode syntaxRoot)
             {
                 return syntaxRoot.DescendantNodesAndTokens(descendIntoTrivia: true)
-                    .Where(s => _renameAnnotations.HasAnnotations<RenameActionAnnotation>(s))
+                    .Where(_renameAnnotations.HasAnnotations<RenameActionAnnotation>)
                     .Select(s => (s, _renameAnnotations.GetAnnotations<RenameActionAnnotation>(s).Single()));
             }
 

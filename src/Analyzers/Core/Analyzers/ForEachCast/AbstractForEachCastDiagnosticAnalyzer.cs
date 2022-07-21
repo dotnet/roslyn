@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
                   diagnosticId: IDEDiagnosticIds.ForEachCastDiagnosticId,
                   EnforceOnBuildValues.ForEachCast,
                   CodeStyleOptions2.ForEachExplicitCastInSource,
+                  language: null!,
                   title: new LocalizableResourceString(nameof(AnalyzersResources.Add_explicit_cast), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                   messageFormat: new LocalizableResourceString(nameof(AnalyzersResources._0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
 
             // We can only fix this issue if the collection type implemented ienumerable and we have
             // System.Linq.Enumerable available.  Then we can add a .Cast call to their collection explicitly.
-            var isFixable = collectionType.Equals(ienumerableType) || collectionType.AllInterfaces.Any(i => i.Equals(ienumerableType)) &&
+            var isFixable = collectionType.Equals(ienumerableType) || collectionType.AllInterfaces.Any(static (i, ienumerableType) => i.Equals(ienumerableType), ienumerableType) &&
                 semanticModel.Compilation.GetBestTypeByMetadataName(typeof(Enumerable).FullName!) != null;
 
             var options = semanticModel.Compilation.Options;
@@ -141,6 +142,6 @@ namespace Microsoft.CodeAnalysis.ForEachCast
         private static bool IsStronglyTyped(INamedTypeSymbol ienumerableOfTType, ITypeSymbol collectionType, ITypeSymbol collectionElementType)
             => collectionElementType.SpecialType != SpecialType.System_Object ||
                collectionType.OriginalDefinition.Equals(ienumerableOfTType) ||
-               collectionType.AllInterfaces.Any(i => i.OriginalDefinition.Equals(ienumerableOfTType));
+               collectionType.AllInterfaces.Any(static (i, ienumerableOfTType) => i.OriginalDefinition.Equals(ienumerableOfTType), ienumerableOfTType);
     }
 }

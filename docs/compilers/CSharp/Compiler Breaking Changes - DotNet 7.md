@@ -1,8 +1,65 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## Types cannot be named `file`
+
+***Introduced in Visual Studio 2022 version 17.4.*** Starting in C# 11, types cannot be named `file`. The compiler will report an error on all such type names. To work around this, the type name and all usages must be escaped with an `@`:
+
+```csharp
+class file {} // Error CS9056
+class @file {} // No error
+```
+
+This was done as `file` is now a modifier for type declarations.
+
+You can learn more about this change in the associated [csharplang issue](https://github.com/dotnet/csharplang/issues/6011).
+
+## Required spaces in #line span directives
+
+***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
+
+When the `#line` span directive was introduced in C# 10, it required no particular spacing.  
+For example, this would be valid: `#line(1,2)-(3,4)5"file.cs"`.
+
+In Visual Studio 17.3, the compiler requires spaces before the first parenthesis, the character
+offset, and the file name.  
+So the above example fails to parse unless spaces are added: `#line (1,2)-(3,4) 5 "file.cs"`.
+
+## Checked operators on System.IntPtr and System.UIntPtr
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
+
+When the platform supports __numeric__ `IntPtr` and `UIntPtr` types (as indicated by the presence of
+`System.Runtime.CompilerServices.RuntimeFeature.NumericIntPtr`) the built-in operators from `nint`
+and `nuint` apply to those underlying types.
+This means that on such platforms, `IntPtr` and `UIntPtr` have built-in `checked` operators, which
+can now throw when an overflow occurs.
+
+```csharp
+IntPtr M(IntPtr x, int y)
+{
+    checked
+    {
+        return x + y; // may now throw
+    }
+}
+
+unsafe IntPtr M2(void* ptr)
+{
+    return checked((IntPtr)ptr); // may now throw
+}
+```
+
+Possible workarounds are:
+
+1. Specify `unchecked` context
+2. Downgrade to a platform/TFM without numeric `IntPtr`/`UIntPtr` types
+
+Also, implicit conversions between `IntPtr`/`UIntPtr` and other numeric types are treated as standard
+conversions on such platforms. This can affect overload resolution in some cases.
+
 ## Nameof operator in attribute on method or local function
 
-***Introduced in .NET SDK 7.0.400, Visual Studio 2022 version 17.3.***
+***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
 
 When the language version is C# 11 or later, a `nameof` operator in an attribute on a method
 brings the type parameters of that method in scope. The same applies for local functions.  
@@ -39,11 +96,71 @@ Possible workarounds are:
 
 1. Rename the type parameter or parameter to avoid shadowing the name from outer scope.
 1. Use a string literal instead of the `nameof` operator.
-1. Downgrade the `<LangVersion>` element to 9.0 or earlier.
 
-Note: The break will also apply to C# 10 and earlier when .NET 7 ships, but is
-currently scoped down to users of LangVer=preview.  
-Tracked by https://github.com/dotnet/roslyn/issues/60640
+## Cannot return an out parameter by reference
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
+
+With language version C# 11 or later, or with .NET 7.0 or later, an `out` parameter cannot be returned by reference.
+
+```csharp
+static ref T ReturnOutParamByRef<T>(out T t)
+{
+    t = default;
+    return ref t; // error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+}
+```
+
+A possible workaround is to change the method signature to pass the parameter by `ref` instead.
+
+```csharp
+static ref T ReturnRefParamByRef<T>(ref T t)
+{
+    t = default;
+    return ref t; // ok
+}
+```
+
+## Method ref struct return escape analysis depends on ref escape of ref arguments
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
+
+With language version C# 11 or later, or with .NET 7.0 or later, the return value of a method invocation that returns a `ref struct` is only _safe-to-escape_ if all the `ref` and `in` arguments to the method invocation are _ref-safe-to-escape_. _The `in` arguments may include implicit default parameter values._
+
+```csharp
+ref struct R { }
+
+static R MayCaptureArg(ref int i) => new R();
+
+static R MayCaptureDefaultArg(in int i = 0) => new R();
+
+static R Create()
+{
+    int i = 0;
+    // error CS8347: Cannot use a result of 'MayCaptureArg(ref int)' because it may expose
+    // variables referenced by parameter 'i' outside of their declaration scope
+    return MayCaptureArg(ref i);
+}
+
+static R CreateDefault()
+{
+    // error CS8347: Cannot use a result of 'MayCaptureDefaultArg(in int)' because it may expose
+    // variables referenced by parameter 'i' outside of their declaration scope
+    return MayCaptureDefaultArg();
+}
+```
+
+A possible workaround, if the `ref` or `in` argument is not captured in the `ref struct` return value, is to declare the parameter as `scoped ref` or `scoped in`.
+
+```csharp
+static R CannotCaptureArg(scoped ref int i) => new R();
+
+static R Create()
+{
+    int i = 0;
+    return CannotCaptureArg(ref i); // ok
+}
+```
 
 ## Unsigned right shift operator
 
@@ -63,59 +180,6 @@ A possible workaround is to switch to using `>>>` operator:
 ``` C#
 static C1 Test1(C1 x, int y) => x >>> y;
 ``` 
-
-## UTF8 String Literal conversion
-
-***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
-The language added conversions between `string` constants and `byte` sequences
-where the text is converted into the equivalent UTF8 byte representation.
-Specifically the compiler allowed an implicit conversions from **`string` constants**
-to `byte[]`, `Span<byte>`, and `ReadOnlySpan<byte>` types.
-
-The conversions can lead to an overload resolution failure due to an ambiguity for a code
-that compiled successfully before. For example:
-``` C#
-Test("s"); // error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(ReadOnlySpan<char>)' and 'C.Test(byte[])'
-
-static string Test(ReadOnlySpan<char> a) => "ReadOnlySpan";
-static string Test(byte[] a) => "array";
-```
-
-A possible workaround is to apply an explicit cast to the constant string argument.
-
-The conversions can lead to an invocation of a different member. For example:
-``` C#
-Test("s", (int)1); // Used to call `Test(ReadOnlySpan<char> a, long x)`, but calls `Test(byte[] a, int x)` now
-
-static string Test(ReadOnlySpan<char> a, long x) => "ReadOnlySpan";
-static string Test(byte[] a, int x) => "array";
-```
-
-A possible workaround is to apply an explicit cast to the constant string argument.
-
-The conversions can lead to an invocation of an instance member where an extension method used to be invoked.
-For example:
-``` C#
-class Program
-{
-    static void Main()
-    {
-        var p = new Program();
-        p.M(""); // Used to call E.M, but calls Program.M now
-    }
-
-    public string M(byte[] b) => "byte[]";
-}
-
-static class E
-{
-    public static string M(this object o, string s) => "string";
-}
-```
-
-Possible workarounds are:
-1. Apply an explicit cast to the constant string argument.
-2. Call the extension method by using static method invocation syntax.
 
 ## Foreach enumerator as a ref struct
 
@@ -358,3 +422,16 @@ Console.WriteLine($"{{{12:X}}}");
 The workaround is to remove the extra braces in the format string.
 
 You can learn more about this change in the associated [roslyn issue](https://github.com/dotnet/roslyn/issues/57750).
+
+## Types cannot be named `required`
+
+***Introduced in Visual Studio 2022 version 17.3.*** Starting in C# 11, types cannot be named `required`. The compiler will report an error on all such type names. To work around this, the type name and all usages must be escaped with an `@`:
+
+```csharp
+class required {} // Error CS9029
+class @required {} // No error
+```
+
+This was done as `required` is now a member modifier for properties and fields.
+
+You can learn more about this change in the associated [csharplang issue](https://github.com/dotnet/csharplang/issues/3630).

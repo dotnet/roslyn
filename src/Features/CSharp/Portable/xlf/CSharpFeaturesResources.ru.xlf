@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_await">
         <source>Add 'await'</source>
-        <target state="new">Add 'await'</target>
+        <target state="translated">Добавить "await"</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_await_and_ConfigureAwaitFalse">
@@ -117,11 +117,6 @@
         <target state="translated">Применить настройки для оператора using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_utf8_string_literal_preferences">
-        <source>Apply UTF-8 string literal preferences</source>
-        <target state="new">Apply UTF-8 string literal preferences</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_var_preferences">
         <source>Apply 'var' preferences</source>
         <target state="translated">Применить настройки для \"var\"</target>
@@ -189,12 +184,12 @@
       </trans-unit>
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
-        <target state="new">Global 'using' directives</target>
+        <target state="translated">Глобальные директивы using</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
-        <target state="translated">Встроенная временная переменная</target>
+        <target state="translated">Встроить временную переменную</target>
         <note />
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
@@ -764,7 +759,7 @@
       </trans-unit>
       <trans-unit id="without_leading_whitespace_may_change_semantics">
         <source>... without leading whitespace (may change semantics)</source>
-        <target state="new">... without leading whitespace (may change semantics)</target>
+        <target state="translated">... без начального пробела (может изменить семантику)</target>
         <note>This clause is a follow up to the "Convert to raw string" loc string.
     The intent is that the user sees "Convert to raw string" as an option to select,
     and that is then followed with this clause.  This is so we don't have a huge string

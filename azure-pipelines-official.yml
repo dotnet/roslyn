@@ -71,7 +71,7 @@ variables:
   - name: Insertion.TitlePrefix
     value: '[Auto Insertion]'
   - name: Insertion.TitleSuffix
-    value: '[Skip-SymbolCheck]'
+    value: ''
 
 stages:
 
@@ -82,11 +82,11 @@ stages:
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022
 
   jobs:
-  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.2') }}:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.3') }}:
     - template: /eng/common/templates/job/onelocbuild.yml
       parameters:
         MirrorRepo: roslyn
-        MirrorBranch: release/dev17.2
+        MirrorBranch: release/dev17.3
         LclSource: lclFilesfromPackage
         LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -190,6 +190,7 @@ stages:
                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                    /p:DotnetPublishUsingPipelines=true
                    /p:IgnoreIbcMergeErrors=true
+                   /p:GenerateSbom=true
       condition: succeeded()
       
     - template: eng\common\templates\steps\generate-sbom.yml
@@ -310,11 +311,11 @@ stages:
         - OfficialBuild
       pool:
         name: NetCore1ESPool-Svc-Internal
-        demands: ImageOverride -equals Build.Server.Amd64.VS2019
+        demands: ImageOverride -equals Build.Windows.Amd64.VS2022
 
 - stage: insert
   dependsOn:
-  - build
+  - publish_using_darc
   displayName: Insert to VS
 
   jobs:

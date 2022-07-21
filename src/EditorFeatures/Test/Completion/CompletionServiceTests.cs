@@ -48,8 +48,17 @@ class Test {
             var completions = await completionService.GetCompletionsAsync(document, caretPosition, CompletionOptions.Default, OptionValueSet.Empty);
 
             Assert.False(completions.IsEmpty);
-            var item = Assert.Single(completions.Items.Where(item => item.ProviderName == typeof(DebugAssertTestCompletionProvider).FullName));
-            Assert.Equal("Assertion failed", item.DisplayText);
+
+            var item = Assert.Single(completions.ItemsList.Where(item => item.ProviderName == typeof(DebugAssertTestCompletionProvider).FullName));
+            Assert.Equal(nameof(DebugAssertTestCompletionProvider), item.DisplayText);
+
+            var expectedDescriptionText = nameof(DebugAssertTestCompletionProvider);
+            var actualDescriptionText = (await completionService.GetDescriptionAsync(document, item, CompletionOptions.Default, SymbolDescriptionOptions.Default).ConfigureAwait(false))!.Text;
+            Assert.Equal(expectedDescriptionText, actualDescriptionText);
+
+            var expectedChange = new TextChange(item.Span, nameof(DebugAssertTestCompletionProvider));
+            var actualChange = (await completionService.GetChangeAsync(document, item).ConfigureAwait(false)).TextChange;
+            Assert.Equal(expectedChange, actualChange);
         }
 
         private class MockAnalyzerReference : AnalyzerReference, ICompletionProviderFactory
@@ -93,9 +102,19 @@ class Test {
 
             public override async Task ProvideCompletionsAsync(CompletionContext context)
             {
-                var completionItem = CompletionItem.Create(displayText: "Assertion failed", displayTextSuffix: "", rules: CompletionItemRules.Default);
+                var completionItem = CompletionItem.Create(displayText: nameof(DebugAssertTestCompletionProvider), displayTextSuffix: "", rules: CompletionItemRules.Default);
                 context.AddItem(completionItem);
                 context.CompletionListSpan = await GetTextChangeSpanAsync(context.Document, context.CompletionListSpan, context.CancellationToken).ConfigureAwait(false);
+            }
+
+            public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            {
+                return Task.FromResult(CompletionDescription.FromText(nameof(DebugAssertTestCompletionProvider)));
+            }
+
+            public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+            {
+                return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, nameof(DebugAssertTestCompletionProvider))));
             }
 
             private static async Task<TextSpan> GetTextChangeSpanAsync(Document document, TextSpan startSpan, CancellationToken cancellationToken)

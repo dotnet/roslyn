@@ -5,52 +5,41 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
-    internal class RegexEmbeddedLanguage : IEmbeddedLanguageFeatures
+    internal class RegexEmbeddedLanguage : IEmbeddedLanguage
     {
         public readonly EmbeddedLanguageInfo Info;
 
-        private readonly AbstractEmbeddedLanguageFeaturesProvider _provider;
+        private readonly AbstractEmbeddedLanguagesProvider _provider;
 
-        public IDocumentHighlightsService? DocumentHighlightsService { get; }
         public EmbeddedLanguageCompletionProvider CompletionProvider { get; }
 
         public RegexEmbeddedLanguage(
-            AbstractEmbeddedLanguageFeaturesProvider provider,
+            AbstractEmbeddedLanguagesProvider provider,
             EmbeddedLanguageInfo info)
         {
             Info = info;
 
             _provider = provider;
 
-            DocumentHighlightsService = new RegexDocumentHighlightsService(this);
             CompletionProvider = new RegexEmbeddedCompletionProvider(this);
         }
 
-#nullable disable
         internal async Task<(RegexTree tree, SyntaxToken token)> TryGetTreeAndTokenAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, this.Info);
             var tree = detector.TryParseString(token, semanticModel, cancellationToken);
             return tree == null ? default : (tree, token);
-        }
-
-        internal async Task<RegexTree> TryGetTreeAtPositionAsync(
-            Document document, int position, CancellationToken cancellationToken)
-        {
-            var (tree, _) = await TryGetTreeAndTokenAtPositionAsync(
-                document, position, cancellationToken).ConfigureAwait(false);
-            return tree;
         }
 
         public string EscapeText(string text, SyntaxToken token)

@@ -16,18 +16,18 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Shows the name and the parameters of the delegate (e.g. "SomeDelegate(int x)").  
-        /// </summary>
-        /// <remarks>
+        /// <para>
         /// The format of the parameters will be determined by the other flags passed.
-        /// </remarks>
+        /// </para>
+        /// </summary>
         NameAndParameters = 1,
 
         /// <summary>
-        /// Shows the name and the signature of the delegate (e.g. "void SomeDelegate(int x)").  
-        /// </summary>
-        /// <remarks>
+        /// Shows the name and the signature of the delegate (e.g. "void SomeDelegate(int x)").
+        /// <para>
         /// The format of the signature will be determined by the other flags passed.
-        /// </remarks>
+        /// </para>
+        /// </summary>
         NameAndSignature = 2,
     }
 }

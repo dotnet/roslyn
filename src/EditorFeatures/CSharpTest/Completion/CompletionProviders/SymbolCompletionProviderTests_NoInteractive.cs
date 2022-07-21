@@ -341,7 +341,7 @@ class C
             var displayOptions = SymbolDescriptionOptions.Default;
             var completions = await service.GetCompletionsAsync(document, position, options, OptionValueSet.Empty);
 
-            var item = completions.Items.First(i => i.DisplayText == "Beep");
+            var item = completions.ItemsList.First(i => i.DisplayText == "Beep");
             var edit = testDocument.GetTextBuffer().CreateEdit();
             edit.Delete(Span.FromBounds(position - 10, position));
             edit.Apply();

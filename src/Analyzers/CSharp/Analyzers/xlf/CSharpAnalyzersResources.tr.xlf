@@ -29,13 +29,8 @@
       </trans-unit>
       <trans-unit id="Convert_to_Program_Main_style_program">
         <source>Convert to 'Program.Main' style program</source>
-        <target state="new">Convert to 'Program.Main' style program</target>
+        <target state="translated">'Program.Main' stil programına dönüştür</target>
         <note>{Locked="Program.Main"} this is the C# syntax we are going to generate</note>
-      </trans-unit>
-      <trans-unit id="Convert_to_UTF8_string_literal">
-        <source>Convert to UTF-8 string literal</source>
-        <target state="new">Convert to UTF-8 string literal</target>
-        <note />
       </trans-unit>
       <trans-unit id="Convert_to_block_scoped_namespace">
         <source>Convert to block scoped namespace</source>
@@ -49,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_top_level_statements">
         <source>Convert to top-level statements</source>
-        <target state="new">Convert to top-level statements</target>
+        <target state="translated">Üst düzey deyimlere dönüştür</target>
         <note />
       </trans-unit>
       <trans-unit id="Deconstruct_variable_declaration">
@@ -122,6 +117,16 @@
         <target state="translated">Null denetimi daha fazla ayrıntıya sahip olabilir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Nullable_directive_is_redundant">
+        <source>Nullable directive is redundant</source>
+        <target state="translated">Null atanabilir yönerge yineleniyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nullable_directive_is_unnecessary">
+        <source>Nullable directive is unnecessary</source>
+        <target state="translated">Null atanabilir yönerge gereksiz</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
         <target state="translated">Tür denetimi yerine 'null' denetimini tercih et</target>
@@ -137,6 +142,11 @@
         <target state="translated">İşleci kaldır (semantiği korur)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_nullable_directive">
+        <source>Remove redundant nullable directive</source>
+        <target state="translated">Yinelenen null atanabilir yönergeyi kaldırın</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_suppression_operators">
         <source>Remove suppression operators</source>
         <target state="translated">Gizleme işleçlerini kaldır</target>
@@ -145,6 +155,11 @@
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
         <target state="translated">Gereksiz lambda ifadesini kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_nullable_directive">
+        <source>Remove unnecessary nullable directive</source>
+        <target state="translated">Gereksiz null atanabilir yönergeyi kaldırın</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
@@ -187,9 +202,9 @@
         <target state="translated">Ulaşılamayan kod algılandı</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_UTF8_string_literal">
+      <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
-        <target state="new">Use UTF-8 string literal</target>
+        <target state="translated">UTF-8 sabit değerli dizesini kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
@@ -202,9 +217,19 @@
         <target state="translated">Oluşturucular için blok gövdesi kullan</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_block_body_for_conversion_operators">
+        <source>Use block body for conversion operators</source>
+        <target state="translated">Dönüştürme işleçleri için blok gövdesi kullan</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_indexers">
         <source>Use block body for indexers</source>
         <target state="translated">Dizin oluşturucular için blok gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_lambda_expressions">
+        <source>Use block body for lambda expressions</source>
+        <target state="new">Use block body for lambda expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
@@ -247,9 +272,19 @@
         <target state="translated">Oluşturucular için ifade gövdesi kullan</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_expression_body_for_conversion_operators">
+        <source>Use expression body for conversion operators</source>
+        <target state="translated">Dönüştürme işleçleri için ifade gövdesi kullan</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_expression_body_for_indexers">
         <source>Use expression body for indexers</source>
         <target state="translated">Dizin oluşturucular için ifade gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambda_expressions">
+        <source>Use expression body for lambda expressions</source>
+        <target state="new">Use expression body for lambda expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">
@@ -306,11 +341,6 @@
         <source>Use 'new(...)'</source>
         <target state="translated">'new(...)' kullanın</target>
         <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Use_parameter_null_checking">
-        <source>Use parameter null checking</source>
-        <target state="translated">Parametre null denetimini kullan</target>
-        <note />
       </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>

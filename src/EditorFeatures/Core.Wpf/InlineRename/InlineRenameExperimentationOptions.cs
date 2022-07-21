@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename
 {
     internal sealed class InlineRenameExperimentationOptions
     {
-        public static readonly Option<bool> UseInlineAdornment = new(
+        public static readonly Option2<bool> UseInlineAdornment = new(
             feature: "InlineRenameExperimentation",
             name: "UseInlineAdornment",
             defaultValue: false,

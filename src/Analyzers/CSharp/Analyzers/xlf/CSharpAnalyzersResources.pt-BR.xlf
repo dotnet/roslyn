@@ -29,13 +29,8 @@
       </trans-unit>
       <trans-unit id="Convert_to_Program_Main_style_program">
         <source>Convert to 'Program.Main' style program</source>
-        <target state="new">Convert to 'Program.Main' style program</target>
+        <target state="translated">Converter para 'Program.Main' o estilo do programa</target>
         <note>{Locked="Program.Main"} this is the C# syntax we are going to generate</note>
-      </trans-unit>
-      <trans-unit id="Convert_to_UTF8_string_literal">
-        <source>Convert to UTF-8 string literal</source>
-        <target state="new">Convert to UTF-8 string literal</target>
-        <note />
       </trans-unit>
       <trans-unit id="Convert_to_block_scoped_namespace">
         <source>Convert to block scoped namespace</source>
@@ -49,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_top_level_statements">
         <source>Convert to top-level statements</source>
-        <target state="new">Convert to top-level statements</target>
+        <target state="translated">Converter para instruções de alto-nível</target>
         <note />
       </trans-unit>
       <trans-unit id="Deconstruct_variable_declaration">
@@ -122,6 +117,16 @@
         <target state="translated">A verificação nula pode ser esclarecida</target>
         <note />
       </trans-unit>
+      <trans-unit id="Nullable_directive_is_redundant">
+        <source>Nullable directive is redundant</source>
+        <target state="translated">Diretiva que permite valor nulo é redundante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nullable_directive_is_unnecessary">
+        <source>Nullable directive is unnecessary</source>
+        <target state="translated">Diretiva que permite valor nulo é desnecessária</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
         <target state="translated">Preferir a verificação 'nula' à verificação de tipo</target>
@@ -137,6 +142,11 @@
         <target state="translated">Remover operador (preserva a semântica)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_nullable_directive">
+        <source>Remove redundant nullable directive</source>
+        <target state="translated">Remover diretiva que permite valor nulo redundante</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_suppression_operators">
         <source>Remove suppression operators</source>
         <target state="translated">Remover operadores de supressão</target>
@@ -145,6 +155,11 @@
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
         <target state="translated">Remover expressão lambda desnecessária</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_nullable_directive">
+        <source>Remove unnecessary nullable directive</source>
+        <target state="translated">Remover diretiva anulável desnecessária</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
@@ -187,9 +202,9 @@
         <target state="translated">Código inacessível detectado</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_UTF8_string_literal">
+      <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
-        <target state="new">Use UTF-8 string literal</target>
+        <target state="translated">Usar literal de cadeia de caracteres UTF-8</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
@@ -202,9 +217,19 @@
         <target state="translated">Usar o corpo do bloco para construtores</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_block_body_for_conversion_operators">
+        <source>Use block body for conversion operators</source>
+        <target state="translated">Usar o corpo do bloco para conversão de operadores</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_indexers">
         <source>Use block body for indexers</source>
         <target state="translated">Usar o corpo do bloco para indexadores</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_lambda_expressions">
+        <source>Use block body for lambda expressions</source>
+        <target state="new">Use block body for lambda expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
@@ -247,9 +272,19 @@
         <target state="translated">Usar o corpo da expressão para construtores</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_expression_body_for_conversion_operators">
+        <source>Use expression body for conversion operators</source>
+        <target state="translated">Usar o corpo do expressão para conversão de operadores</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_expression_body_for_indexers">
         <source>Use expression body for indexers</source>
         <target state="translated">Usar o corpo da expressão para indexadores</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambda_expressions">
+        <source>Use expression body for lambda expressions</source>
+        <target state="new">Use expression body for lambda expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">
@@ -306,11 +341,6 @@
         <source>Use 'new(...)'</source>
         <target state="translated">Usar 'new(...)'</target>
         <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Use_parameter_null_checking">
-        <source>Use parameter null checking</source>
-        <target state="translated">Usar o parâmetro de verificação nula</target>
-        <note />
       </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>

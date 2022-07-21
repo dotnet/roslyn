@@ -25,36 +25,19 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask<ImmutableArray<InheritanceMarginItem>> GetGlobalImportItemsAsync(
+        public ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMarginItemsAsync(
             Checksum solutionChecksum,
             DocumentId documentId,
             TextSpan spanToSearch,
+            bool includeGlobalImports,
             bool frozenPartialSemantics,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(solutionChecksum, solution =>
             {
                 var document = solution.GetRequiredDocument(documentId);
-                var service = (AbstractInheritanceMarginService)document.GetRequiredLanguageService<IInheritanceMarginService>();
-
-                return service.GetGlobalImportItemsAsync(document, spanToSearch, frozenPartialSemantics, cancellationToken);
-            }, cancellationToken);
-        }
-
-        public ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolItemsAsync(
-            Checksum solutionChecksum,
-            ProjectId projectId,
-            DocumentId? documentId,
-            ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
-            bool frozenPartialSemantics,
-            CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(solutionChecksum, solution =>
-            {
-                var project = solution.GetRequiredProject(projectId);
-                var document = solution.GetDocument(documentId);
-
-                return AbstractInheritanceMarginService.GetSymbolItemsAsync(project, document, symbolKeyAndLineNumbers, frozenPartialSemantics, cancellationToken);
+                var service = document.GetRequiredLanguageService<IInheritanceMarginService>();
+                return service.GetInheritanceMemberItemsAsync(document, spanToSearch, includeGlobalImports, frozenPartialSemantics, cancellationToken);
             }, cancellationToken);
         }
     }

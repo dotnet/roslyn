@@ -159,10 +159,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        // https://github.com/dotnet/roslyn/issues/61999
+        // Determine if 'null' is the right return value here
+        internal override SyntaxTree AssociatedSyntaxTree => null;
+
         public override IEnumerable<string> MemberNames
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
+
+        internal override bool HasDeclaredRequiredMembers => false;
 
         public override ImmutableArray<Symbol> GetMembers()
         {

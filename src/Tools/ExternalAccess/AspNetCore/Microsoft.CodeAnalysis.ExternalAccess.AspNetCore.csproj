@@ -26,11 +26,13 @@
     -->
     <InternalsVisibleTo Include="Microsoft.AspNetCore.Analyzers" Key="$(AspNetCoreKey)" />
     <InternalsVisibleTo Include="Microsoft.AspNetCore.App.Analyzers" Key="$(AspNetCoreKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.App.Analyzers.Test" Key="$(AspNetCoreKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.UnitTests" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
     <ProjectReference Include="..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />

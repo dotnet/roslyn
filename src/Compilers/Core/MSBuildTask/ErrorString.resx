@@ -154,6 +154,12 @@
   <data name="CopyRefAssembly_SkippingCopy1" xml:space="preserve">
     <value>Reference assembly "{0}" already has latest information. Leaving it untouched.</value>
   </data>
+  <data name="CopyRefAssembly_Changed" xml:space="preserve">
+    <value>Source reference assembly "{0}" (timestamp "{1}", MVID "{2}") differs from destination "{3}" (timestamp "{4}", MVID "{5}").</value>
+  </data>
+  <data name="CopyRefAssembly_Copying" xml:space="preserve">
+    <value>Copying reference assembly from "{0}" to "{1}".</value>
+  </data>
   <data name="CopyRefAssembly_SourceNotRef1" xml:space="preserve">
     <value>Could not extract the MVID from "{0}". Are you sure it is a reference assembly?</value>
   </data>

@@ -208,9 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 WithTypeParametersBinder? withTypeParametersBinder;
                 Binder? withParametersBinder;
-                // The LangVer check will be removed before shipping .NET 7.
-                // Tracked by https://github.com/dotnet/roslyn/issues/60640
-                if (((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0) && _enclosing.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureExtendedNameofScope))
+                if ((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0)
                 {
                     var attributeTarget = getAttributeTarget(_enclosing);
                     withTypeParametersBinder = getExtraWithTypeParametersBinder(_enclosing, attributeTarget);
@@ -609,6 +607,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
         {
             VisitCommonForEachStatement(node);
+        }
+
+        public override void VisitCheckedExpression(CheckedExpressionSyntax node)
+        {
+            Binder binder = _enclosing.WithCheckedOrUncheckedRegion(@checked: node.Kind() == SyntaxKind.CheckedExpression);
+            AddToMap(node, binder);
+            Visit(node.Expression, binder);
         }
 
         public override void VisitCheckedStatement(CheckedStatementSyntax node)

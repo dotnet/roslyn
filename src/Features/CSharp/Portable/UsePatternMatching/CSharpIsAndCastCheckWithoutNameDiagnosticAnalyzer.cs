@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var currentNode = root.GetAnnotatedNodes(s_referenceAnnotation).Single();
             var diagnostics = updatedSemanticModel.GetDiagnostics(currentNode.Span, cancellationToken);
 
-            return diagnostics.Any(d => d.Id is CS0165 or CS0103);
+            return diagnostics.Any(static d => d.Id is CS0165 or CS0103);
         }
 
         public static SemanticModel ReplaceMatches(

@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var context = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
 
-            if (context.IsInTaskLikeTypeContext)
+            if (context.IsTaskLikeTypeContext)
                 return false;
 
             var spanStart = position;

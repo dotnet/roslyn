@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         public AutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperations,
-            IGlobalOptionService globalOptions)
-            : base(undoRegistry, editorOperations, globalOptions)
+            EditorOptionsService editorOptionsService)
+            : base(undoRegistry, editorOperations, editorOptionsService)
         {
         }
 
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             CancellationToken cancellationToken)
         {
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
-            var formattingOptions = document.GetSyntaxFormattingOptionsAsync(GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+            var formattingOptions = document.GetSyntaxFormattingOptionsAsync(EditorOptionsService.GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
 
             // Add braces for the selected node
             if (addBrace)
@@ -336,8 +336,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 if (selectedNode is BaseTypeDeclarationSyntax
                     or BaseMethodDeclarationSyntax
                     or LocalFunctionStatementSyntax
-                    or FieldDeclarationSyntax
-                    or EventFieldDeclarationSyntax
                     or AccessorDeclarationSyntax
                     or ObjectCreationExpressionSyntax
                     or WhileStatementSyntax
@@ -369,7 +367,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     // }
                     // In this case, the last close brace of 'void Main()' would be thought as a part of the try statement,
                     // and the last close brace of 'Bar' would be thought as a part of Main()
-                    // So for these case, just find the missing open brace position and directly insert '()' to the document
+                    // For field and event declarations node because
+                    // class A
+                    // {
+                    //     int Hel$$lo
+                    //
+                    //     [SomeAttribute]
+                    //     void Bar() { }
+                    // }
+                    // Parser would think '[SomeAttribute]' (BrackedArgumentList) is a part of the 'Hello' (VariableDeclarator).
+                    // So for these cases, just find the missing open brace position and directly insert '()' to the document
 
                     // 1. Find the position to insert braces.
                     var insertionPosition = GetBraceInsertionPosition(selectedNode);
@@ -406,8 +413,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             if (selectedNode is BaseTypeDeclarationSyntax
                 or BaseMethodDeclarationSyntax
                 or LocalFunctionStatementSyntax
-                or FieldDeclarationSyntax
-                or EventFieldDeclarationSyntax
                 or AccessorDeclarationSyntax)
             {
                 var newRoot = ReplaceNodeAndFormat(
@@ -624,6 +629,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 CatchClauseSyntax catchClauseNode => catchClauseNode.Block.SpanStart,
                 FinallyClauseSyntax finallyClauseNode => finallyClauseNode.Block.SpanStart,
                 CheckedStatementSyntax checkedStatementNode => checkedStatementNode.Keyword.Span.End,
+                FieldDeclarationSyntax fieldDeclarationNode => fieldDeclarationNode.Declaration.Variables[0].Identifier.Span.End,
+                EventFieldDeclarationSyntax eventFieldDeclarationNode => eventFieldDeclarationNode.Declaration.Variables[0].Identifier.Span.End,
                 _ => throw ExceptionUtilities.Unreachable,
             };
         }

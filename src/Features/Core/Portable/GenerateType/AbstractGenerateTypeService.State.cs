@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         var symbol = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateInOpt, document.Project.Solution, cancellationToken).ConfigureAwait(false);
                         if (symbol == null ||
                             !symbol.IsKind(SymbolKind.NamedType) ||
-                            !symbol.Locations.Any(loc => loc.IsInSource))
+                            !symbol.Locations.Any(static loc => loc.IsInSource))
                         {
                             TypeToGenerateInOpt = null;
                             return;

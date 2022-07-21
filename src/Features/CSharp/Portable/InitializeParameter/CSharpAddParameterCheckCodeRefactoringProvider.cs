@@ -107,22 +107,5 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 statement: ifTrueStatement,
                 @else: null);
         }
-
-        protected override async Task<Document?> TryAddNullCheckToParameterDeclarationAsync(Document document, ParameterSyntax parameterSyntax, CSharpSimplifierOptions options, CancellationToken cancellationToken)
-        {
-            var tree = parameterSyntax.SyntaxTree;
-            if (!tree.Options.LanguageVersion().IsCSharp11OrAbove())
-                return null;
-
-            if (!options.PreferParameterNullChecking.Value)
-                return null;
-
-            // We expect the syntax tree to already be in memory since we already have a node from the tree
-            var syntaxRoot = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            syntaxRoot = syntaxRoot.ReplaceNode(
-                parameterSyntax,
-                parameterSyntax.WithExclamationExclamationToken(Token(SyntaxKind.ExclamationExclamationToken)));
-            return document.WithSyntaxRoot(syntaxRoot);
-        }
     }
 }

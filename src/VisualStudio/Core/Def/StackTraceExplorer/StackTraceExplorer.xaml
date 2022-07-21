@@ -29,7 +29,8 @@
             MouseDoubleClick="ListViewItem_MouseDoubleClick" 
             Visibility="{Binding IsListVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
             BorderThickness="0"
-            Background="Transparent">
+            Background="Transparent"
+            AutomationProperties.Name="{Binding StackTrace}">
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <Style.Triggers>

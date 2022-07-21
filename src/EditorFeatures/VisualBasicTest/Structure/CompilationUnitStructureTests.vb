@@ -36,7 +36,7 @@ Class C1
 End Class
 "
 
-            Dim options = New BlockStructureOptions(CollapseImportsWhenFirstOpened:=collapseUsingsByDefault)
+            Dim options = New BlockStructureOptions() With {.CollapseImportsWhenFirstOpened = collapseUsingsByDefault}
 
             Await VerifyBlockSpansAsync(code, options,
                 Region("span", "Imports ...", autoCollapse:=True, isDefaultCollapsed:=collapseUsingsByDefault))

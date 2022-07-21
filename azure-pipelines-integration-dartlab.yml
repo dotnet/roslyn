@@ -20,7 +20,7 @@ resources:
     endpoint: dnceng/internal dotnet-roslyn
     type: git
     name: internal/dotnet-roslyn
-    ref: $(Build.SourceBranchName)
+    ref: $(Build.SourceBranch)
     trigger:
     - main
 
@@ -29,7 +29,7 @@ variables:
   value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
 
 stages:
-- template: \stages\visual-studio\base.yml@DartLabTemplates
+- template: \stages\visual-studio\agent.yml@DartLabTemplates
   parameters:
     displayName: VS Integration
     testLabPoolName: VS-Platform
@@ -68,4 +68,4 @@ stages:
         configuration: $(_configuration)
         oop64bit: $(_oop64bit)
         lspEditor: false
-        shallowCheckout: false
+        skipCheckout: true

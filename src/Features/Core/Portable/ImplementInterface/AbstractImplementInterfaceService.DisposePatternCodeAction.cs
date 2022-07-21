@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             var unimplementedMembers = explicitly
                 ? state.MembersWithoutExplicitImplementation
                 : state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented;
-            if (!unimplementedMembers.Any(m => m.type.Equals(idisposableType)))
+            if (!unimplementedMembers.Any(static (m, idisposableType) => m.type.Equals(idisposableType), idisposableType))
                 return false;
 
             // The dispose pattern is only applicable if the implementing type does

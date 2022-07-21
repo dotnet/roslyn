@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 if (CSharpSelectionResult.ShouldCallConfigureAwaitFalse())
                 {
-                    if (AnalyzerResult.ReturnType.GetMembers().Any(x => x is IMethodSymbol
+                    if (AnalyzerResult.ReturnType.GetMembers().Any(static x => x is IMethodSymbol
                         {
                             Name: nameof(Task.ConfigureAwait),
                             Parameters: { Length: 1 } parameters
@@ -854,7 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var localFunctionKind = new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction);
                 if (LocalFunction)
                 {
-                    if (namingRules.Any(rule => rule.NamingStyle.CapitalizationScheme.Equals(Capitalization.CamelCase) && rule.SymbolSpecification.AppliesTo(localFunctionKind, CreateMethodModifiers(), null)))
+                    if (namingRules.Any(static (rule, arg) => rule.NamingStyle.CapitalizationScheme.Equals(Capitalization.CamelCase) && rule.SymbolSpecification.AppliesTo(arg.localFunctionKind, arg.self.CreateMethodModifiers(), null), (self: this, localFunctionKind)))
                     {
                         methodName = NewMethodCamelCaseStr;
                     }

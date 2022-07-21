@@ -73,6 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override ArrowExpressionClauseSyntax? GetExpressionBody(SyntaxNode declaration)
             => GetExpressionBody((TDeclaration)declaration);
 
+        public override bool IsRelevantDeclarationNode(SyntaxNode node)
+            => node is TDeclaration;
+
         public override bool CanOfferUseExpressionBody(CodeStyleOption2<ExpressionBodyPreference> preference, SyntaxNode declaration, bool forAnalyzer)
             => CanOfferUseExpressionBody(preference, (TDeclaration)declaration, forAnalyzer);
 

@@ -71,8 +71,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var useInlineAdornment = _globalOptionService.GetOption(InlineRenameExperimentationOptions.UseInlineAdornment);
                 if (useInlineAdornment)
                 {
+                    if (!_textView.HasAggregateFocus)
+                    {
+                        // For the rename flyout, the adornment is dismissed on focus lost. There's
+                        // no need to keep an adornment on every textview for show/hide behaviors
+                        return;
+                    }
+
+                    // Get the active selection to make sure the rename text is selected in the same way
+                    var originalSpan = _renameService.ActiveSession.TriggerSpan;
+                    var selectionSpan = _textView.Selection.SelectedSpans.First();
+
+                    var start = selectionSpan.IsEmpty
+                        ? 0
+                        : selectionSpan.Start - originalSpan.Start; // The length from the identifier to the start of selection
+
+                    var length = selectionSpan.IsEmpty
+                        ? originalSpan.Length
+                        : selectionSpan.Length;
+
+                    var identifierSelection = new TextSpan(start, length);
+
                     var adornment = new RenameFlyout(
-                        (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session)),
+                        (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session, identifierSelection, registerOleComponent: true)),
                         _textView);
 
                     _adornmentLayer.AddAdornment(

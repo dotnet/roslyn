@@ -470,6 +470,7 @@ public record [|R|] : IEquatable<R>
     [CompilerGenerated]
     protected R(R original);
 
+    [CompilerGenerated]
     protected virtual Type EqualityContract {{ get; }}
 
     [CompilerGenerated]
@@ -502,6 +503,16 @@ using System.Text;
 
 public record [|R|]
 {{
+    [CompilerGenerated]
+    protected virtual Type EqualityContract
+    {{
+        [CompilerGenerated]
+        get
+        {{
+            return typeof(R);
+        }}
+    }}
+
     [CompilerGenerated]
     public override string ToString()
     {{
@@ -741,6 +752,77 @@ public class C
                 };
 
                 await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
+            }
+
+            [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            public async Task TestRequiredProperty(bool signaturesOnly)
+            {
+                var metadataSource = """
+                    public class C { public required int Property { get; set; } }
+                    namespace System.Runtime.CompilerServices
+                    {
+                        public sealed class RequiredMemberAttribute : Attribute { }
+                        public sealed class CompilerFeatureRequiredAttribute : Attribute
+                        {
+                            public CompilerFeatureRequiredAttribute(string featureName)
+                            {
+                                FeatureName = featureName;
+                            }
+                            public string FeatureName { get; }
+                            public bool IsOptional { get; set; }
+                        }
+                    }
+
+                    """;
+                var symbolName = "C";
+
+                // ICSharpDecompiler does not yet support decoding required members nicely
+                var expected = signaturesOnly switch
+                {
+                    true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+using System.Runtime.CompilerServices;
+
+[RequiredMember]
+public class [|C|]
+{{
+    public C();
+
+    [RequiredMember]
+    public required int Property {{ get; set; }}
+}}",
+                    false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
+#endregion
+
+using System;
+using System.Runtime.CompilerServices;
+
+[RequiredMember]
+public class [|C|]
+{{
+    [RequiredMember]
+    public int Property {{ get; set; }}
+
+    [Obsolete(""Constructors of types with required members are not supported in this version of your compiler."", true)]
+    [CompilerFeatureRequired(""RequiredMembers"")]
+    public C()
+    {{
+    }}
+}}
+#if false // {CSharpEditorResources.Decompilation_log}
+{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+------------------
+{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+#endif",
+                };
+
+                await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
             }
         }
     }
