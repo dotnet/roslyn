@@ -295,6 +295,5 @@ namespace Microsoft.CodeAnalysis.Rename
 
             return subSpanToReplacementTextBuilder.ToImmutable();
         }
-
     }
 }
