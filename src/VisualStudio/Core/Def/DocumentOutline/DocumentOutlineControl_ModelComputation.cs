@@ -17,19 +17,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 {
+    /// The passing of the data model between the queues starts with _computeDataModelQueue which flows into _filterAndSortDataModelQueue which
+    /// will then flow into _highlightExpandAndPresentItemsQueue. 
+
+    /// Work is added to the _computeDataModelQueue when the user opens a new code window or makes changes to the text buffer.
+    /// Work is added to the _filterAndSortDataModelQueue when the user performs a sort or search operation.
+    /// Work is added to the _highlightExpandAndPresentItemsQueue when the user moves the caret around or expands/collapses all nodes.
+
     internal partial class DocumentOutlineControl
     {
-        private IWpfTextView? GetLastActiveIWpfTextView()
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
-
-            // If we return null, the calling queue returns and we stop processing.
-            if (ErrorHandler.Failed(_codeWindow.GetLastActiveView(out var textView)))
-                return null;
-
-            return _editorAdaptersFactoryService.GetWpfTextView(textView);
-        }
-
         /// <summary>
         /// Enqueues a new task to compute the data model.
         /// </summary>
@@ -202,6 +198,17 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
 
             SymbolTree.ItemsSource = documentSymbolUIItems;
+        }
+
+        private IWpfTextView? GetLastActiveIWpfTextView()
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
+
+            // If we return null, the calling queue returns and we stop processing.
+            if (ErrorHandler.Failed(_codeWindow.GetLastActiveView(out var textView)))
+                return null;
+
+            return _editorAdaptersFactoryService.GetWpfTextView(textView);
         }
     }
 }
