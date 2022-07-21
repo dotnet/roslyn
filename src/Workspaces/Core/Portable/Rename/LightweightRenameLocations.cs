@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public readonly SymbolRenameOptions Options;
         public readonly CodeCleanupOptionsProvider FallbackOptions;
 
-        public readonly ImmutableHashSet<RenameLocation> Locations;
+        public readonly ImmutableArray<RenameLocation> Locations;
         private readonly ImmutableArray<SerializableReferenceLocation> _implicitLocations;
         private readonly ImmutableArray<SerializableSymbolAndProjectId> _referencedSymbols;
 
@@ -35,11 +35,11 @@ namespace Microsoft.CodeAnalysis.Rename
             Solution solution,
             SymbolRenameOptions options,
             CodeCleanupOptionsProvider fallbackOptions,
-            ImmutableHashSet<RenameLocation> locations,
+            ImmutableArray<RenameLocation> locations,
             ImmutableArray<SerializableReferenceLocation> implicitLocations,
             ImmutableArray<SerializableSymbolAndProjectId> referencedSymbols)
         {
-            Contract.ThrowIfNull(locations);
+            Contract.ThrowIfTrue(locations.IsDefault);
             Contract.ThrowIfTrue(implicitLocations.IsDefault);
             Contract.ThrowIfTrue(referencedSymbols.IsDefault);
             Solution = solution;
@@ -52,12 +52,14 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public async Task<SymbolicRenameLocations?> ToSymbolicLocationsAsync(ISymbol symbol, CancellationToken cancellationToken)
         {
-            var referencedSymbols = await _referencedSymbols.SelectAsArrayAsync(sym => sym.TryRehydrateAsync(Solution, cancellationToken)).ConfigureAwait(false);
+            var referencedSymbols = await _referencedSymbols.SelectAsArrayAsync(
+                static (sym, solution, cancellationToken) => sym.TryRehydrateAsync(solution, cancellationToken), Solution, cancellationToken).ConfigureAwait(false);
 
             if (referencedSymbols.Any(s => s is null))
                 return null;
 
-            var implicitLocations = await _implicitLocations.SelectAsArrayAsync(loc => loc.RehydrateAsync(Solution, cancellationToken)).ConfigureAwait(false);
+            var implicitLocations = await _implicitLocations.SelectAsArrayAsync(
+                static (loc, solution, cancellationToken) => loc.RehydrateAsync(solution, cancellationToken), Solution, cancellationToken).ConfigureAwait(false);
 
             return new SymbolicRenameLocations(
                 symbol,
@@ -125,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 this.Solution,
                 this.Options,
                 this.FallbackOptions,
-                this.Locations.Where(loc => filter(loc.DocumentId, loc.Location.SourceSpan)).ToImmutableHashSet(),
+                this.Locations.WhereAsArray(loc => filter(loc.DocumentId, loc.Location.SourceSpan)),
                 _implicitLocations.WhereAsArray(loc => filter(loc.Document, loc.Location)),
                 _referencedSymbols);
     }
