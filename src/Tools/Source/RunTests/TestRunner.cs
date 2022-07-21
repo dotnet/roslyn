@@ -149,12 +149,12 @@ namespace RunTests
                 throw new IOException($@"Could not find global.json by walking up from ""{AppContext.BaseDirectory}"".");
             }
 
-            static void AddRehydrateTestFoldersCommand(StringBuilder commandBuilder, WorkItemInfo workItem, bool isUnix)
+            static void AddRehydrateTestFoldersCommand(StringBuilder commandBuilder, WorkItemInfo workItemInfo, bool isUnix)
             {
                 // Rehydrate assemblies that we need to run as part of this work item.
-                foreach (var testAssemblyGroup in workItem.TypesToTest)
+                foreach (var testAssembly in workItemInfo.Filters.Keys)
                 {
-                    var directoryName = Path.GetDirectoryName(testAssemblyGroup.Assembly.AssemblyPath);
+                    var directoryName = Path.GetDirectoryName(testAssembly.AssemblyPath);
                     if (isUnix)
                     {
                         // If we're on unix make sure we have permissions to run the rehydrate script.
@@ -204,10 +204,7 @@ namespace RunTests
                 var payloadDirectory = Path.Combine(msbuildTestPayloadRoot, "artifacts", "bin");
 
                 // Update the assembly groups to test with the assembly paths in the context of the helix work item.
-                workItemInfo = workItemInfo with
-                {
-                    TypesToTest = workItemInfo.TypesToTest.Select(group => group with { Assembly = group.Assembly with { AssemblyPath = GetHelixRelativeAssemblyPath(group.Assembly.AssemblyPath) } }).ToImmutableArray()
-                };
+                workItemInfo = workItemInfo with { Filters = workItemInfo.Filters.ToImmutableSortedDictionary(kvp => kvp.Key with { AssemblyPath = GetHelixRelativeAssemblyPath(kvp.Key.AssemblyPath) }, kvp => kvp.Value) };
 
                 AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);
 

@@ -38,23 +38,18 @@ namespace RunTests
             var builder = new StringBuilder();
             builder.Append($@"test");
 
-            var escapedAssemblyPaths = workItem.TypesToTest.Select(group => $"{sep}{group.Assembly.AssemblyPath}{sep}");
+            var escapedAssemblyPaths = workItem.Filters.Keys.Select(assembly => $"{sep}{assembly.AssemblyPath}{sep}");
             builder.Append($@" {string.Join(" ", escapedAssemblyPaths)}");
 
-            var typeInfoList = workItem.TypesToTest.SelectMany(group => group.Types).ToImmutableArray();
-            if (typeInfoList.Length > 0 || !string.IsNullOrWhiteSpace(Options.TestFilter))
+            var filters = workItem.Filters.Values.SelectMany(filter => filter).Where(filter => !string.IsNullOrEmpty(filter.GetFilterString())).ToImmutableArray();
+            if (filters.Length > 0 || !string.IsNullOrWhiteSpace(Options.TestFilter))
             {
                 builder.Append($@" --filter {sep}");
                 var any = false;
-                foreach (var typeInfo in typeInfoList)
+                foreach (var filter in filters)
                 {
                     MaybeAddSeparator();
-                    // https://docs.microsoft.com/en-us/dotnet/core/testing/selective-unit-tests?pivots=mstest#syntax
-                    // We want to avoid matching other test classes whose names are prefixed with this test class's name.
-                    // For example, avoid running 'AttributeTests_WellKnownMember', when the request here is to run 'AttributeTests'.
-                    // We append a '.', assuming that all test methods in the class *will* match it, but not methods in other classes.
-                    builder.Append(typeInfo.Name);
-                    builder.Append('.');
+                    builder.Append(filter.GetFilterString());
                 }
                 builder.Append(sep);
 
@@ -126,7 +121,7 @@ namespace RunTests
             static bool HasBuiltInRetry(WorkItemInfo workItemInfo)
             {
                 // vs-extension-testing handles test retry internally.
-                return workItemInfo.TypesToTest.Any(group => group.Assembly.AssemblyName == "Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll");
+                return workItemInfo.Filters.Keys.Any(key => key.AssemblyName == "Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll");
             }
         }
 

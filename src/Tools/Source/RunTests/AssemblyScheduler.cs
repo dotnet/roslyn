@@ -18,28 +18,60 @@ using System.Threading.Tasks;
 
 namespace RunTests
 {
-
-    /// <summary>
-    /// Defines a single work item to run.  The work item may contain tests from multiple assemblies
-    /// that should be run together in the same work item.
-    /// </summary>
-    internal readonly record struct WorkItemInfo(ImmutableArray<AssemblyTypeGroup> TypesToTest, int PartitionIndex)
+    internal record struct WorkItemInfo(ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<ITestFilter>> Filters, int PartitionIndex)
     {
-        internal string DisplayName
-        {
-            get
-            {
-                var assembliesString = string.Join("_", TypesToTest.Select(group => Path.GetFileNameWithoutExtension(group.Assembly.AssemblyName).Replace(".", string.Empty)));
-                return $"{assembliesString}_{PartitionIndex}";
-            }
-        }
-
-        internal static WorkItemInfo CreateFullAssembly(AssemblyInfo assembly, int partitionIndex)
-            => new(ImmutableArray<AssemblyTypeGroup>.Empty.Add(new(assembly, ImmutableArray<TypeInfo>.Empty, true)), partitionIndex);
+        internal string DisplayName => $"{string.Join("_", Filters.Keys.Select(a => Path.GetFileNameWithoutExtension(a.AssemblyName)))}_{PartitionIndex}";
     }
 
-    internal readonly record struct AssemblyTypeGroup(AssemblyInfo Assembly, ImmutableArray<TypeInfo> Types, bool ContainsAllTypesInAssembly);
+    internal interface ITestFilter
+    {
+        internal string GetFilterString();
 
+        internal TimeSpan GetExecutionTime();
+    }
+
+    internal record struct AssemblyTestFilter(ImmutableArray<TypeInfo> TypesInAssembly) : ITestFilter
+    {
+        TimeSpan ITestFilter.GetExecutionTime()
+        {
+            return TimeSpan.FromMilliseconds(TypesInAssembly.SelectMany(type => type.Tests).Sum(test => test.ExecutionTime.TotalMilliseconds));
+        }
+
+        string ITestFilter.GetFilterString()
+        {
+            return string.Empty;
+        }
+    }
+
+    internal record struct TypeTestFilter(TypeInfo Type) : ITestFilter
+    {
+        TimeSpan ITestFilter.GetExecutionTime()
+        {
+            return TimeSpan.FromMilliseconds(Type.Tests.Sum(test => test.ExecutionTime.TotalMilliseconds));
+        }
+
+        string ITestFilter.GetFilterString()
+        {
+            // https://docs.microsoft.com/en-us/dotnet/core/testing/selective-unit-tests?pivots=mstest#syntax
+            // We want to avoid matching other test classes whose names are prefixed with this test class's name.
+            // For example, avoid running 'AttributeTests_WellKnownMember', when the request here is to run 'AttributeTests'.
+            // We append a '.', assuming that all test methods in the class *will* match it, but not methods in other classes.
+            return $"{Type.Name}.";
+        }
+    }
+
+    internal record struct MethodTestFilter(MethodInfo Test) : ITestFilter
+    {
+        TimeSpan ITestFilter.GetExecutionTime()
+        {
+            return Test.ExecutionTime;
+        }
+
+        string ITestFilter.GetFilterString()
+        {
+            return Test.FullyQualifiedName;
+        }
+    }
 
     internal sealed class AssemblyScheduler
     {
@@ -53,26 +85,24 @@ namespace RunTests
         public async Task<ImmutableArray<WorkItemInfo>> ScheduleAsync(ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
         {
             Logger.Log($"Scheduling {assemblies.Length} assemblies");
+
+            var orderedTypeInfos = assemblies.ToImmutableSortedDictionary(assembly => assembly, GetTypeInfoList);
+
+            ConsoleUtil.WriteLine($"Found {orderedTypeInfos.Values.SelectMany(t => t).SelectMany(t => t.Tests).Count()} tests to run in {orderedTypeInfos.Keys.Count()} assemblies");
+
             if (_options.Sequential)
             {
                 Logger.Log("Building sequential work items");
                 // return individual work items per assembly that contain all the tests in that assembly.
-                return assemblies
-                    .Select(WorkItemInfo.CreateFullAssembly)
-                    .ToImmutableArray();
+                return CreateWorkItemsForFullAssemblies(orderedTypeInfos);
             }
 
-            var orderedTypeInfos = assemblies.ToImmutableSortedDictionary(assembly => assembly, GetTypeInfoList);
-            ConsoleUtil.WriteLine($"Found {orderedTypeInfos.Values.SelectMany(t => t).Count()} test types to run in {orderedTypeInfos.Keys.Count()} assemblies");
-
             // Retrieve test runtimes from azure devops historical data.
-            var testHistory = await TestHistoryManager.GetTestHistoryPerTypeAsync(cancellationToken);
+            var testHistory = await TestHistoryManager.GetTestHistoryAsync(cancellationToken);
             if (testHistory.IsEmpty)
             {
                 // We didn't have any test history from azure devops, just partition by assembly.
-                return assemblies
-                    .Select(WorkItemInfo.CreateFullAssembly)
-                    .ToImmutableArray();
+                return CreateWorkItemsForFullAssemblies(orderedTypeInfos);
             }
 
             // Now for our current set of test methods we got from the assemblies we built, match them to tests from our test run history
@@ -88,9 +118,22 @@ namespace RunTests
             // that some work items will run tests from multiple assemblies due to large variances in test execution time.
             var workItems = BuildWorkItems(orderedTypeInfos, executionTimeLimit);
 
-            ConsoleUtil.WriteLine($"Built {workItems.Length} work items");
+            //ConsoleUtil.WriteLine($"Built {workItems.Length} work items");
             LogWorkItems(workItems);
             return workItems;
+
+            static ImmutableArray<WorkItemInfo> CreateWorkItemsForFullAssemblies(ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> orderedTypeInfos)
+            {
+                var workItems = new List<WorkItemInfo>();
+                var partitionIndex = 0;
+                foreach (var orderedTypeInfo in orderedTypeInfos)
+                {
+                    var currentWorkItem = ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<ITestFilter>>.Empty.Add(orderedTypeInfo.Key, ImmutableArray.Create((ITestFilter)new AssemblyTestFilter(orderedTypeInfo.Value)));
+                    workItems.Add(new WorkItemInfo(currentWorkItem, partitionIndex++));
+                }
+
+                return workItems.ToImmutableArray();
+            }
         }
 
         private static ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> UpdateTestsWithExecutionTimes(
@@ -100,48 +143,51 @@ namespace RunTests
             // Determine the average execution time so that we can use it for tests that do not have any history.
             var averageExecutionTime = TimeSpan.FromMilliseconds(testHistory.Values.Average(t => t.TotalMilliseconds));
 
-            // Store the types from our assemblies that we couldn't find a history for to log.
-            var extraLocalTypes = new HashSet<string>();
+            // Store the tests from our assemblies that we couldn't find a history for to log.
+            var extraLocalTests = new HashSet<string>();
 
-            // Store the types that we were able to match to historical data.
-            var matchedLocalTypes = new HashSet<string>();
+            // Store the tests that we were able to match to historical data.
+            var matchedLocalTests = new HashSet<string>();
 
-            var updated = assemblyTypes.ToImmutableSortedDictionary(kvp => kvp.Key, kvp => kvp.Value.Select(typeInfo => WithExecutionTime(typeInfo)).ToImmutableArray());
-            LogResults(matchedLocalTypes, extraLocalTypes);
+            var updated = assemblyTypes.ToImmutableSortedDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.Select(typeInfo => typeInfo with { Tests = typeInfo.Tests.Select(method => WithExecutionTime(method)).ToImmutableArray() })
+                                .ToImmutableArray());
+            LogResults(matchedLocalTests, extraLocalTests);
             return updated;
 
-            TypeInfo WithExecutionTime(TypeInfo typeInfo)
+            MethodInfo WithExecutionTime(MethodInfo methodInfo)
             {
                 // Match by fully qualified test method name to azure devops historical data.
                 // Note for combinatorial tests, azure devops helpfully groups all sub-runs under a top level method (with combined test run times) with the same fully qualified method name
                 //  that we'll get from looking at all the test methods in the assembly with SRM.
-                if (testHistory.TryGetValue(typeInfo.FullyQualifiedName, out var executionTime))
+                if (testHistory.TryGetValue(methodInfo.FullyQualifiedName, out var executionTime))
                 {
-                    matchedLocalTypes.Add(typeInfo.FullyQualifiedName);
-                    return typeInfo with { ExecutionTime = executionTime };
+                    matchedLocalTests.Add(methodInfo.FullyQualifiedName);
+                    return methodInfo with { ExecutionTime = executionTime };
                 }
 
                 // We didn't find the local type from our assembly in test run historical data.
                 // This can happen if our SRM heuristic incorrectly counted a normal method as a test method (which it can do often).
-                extraLocalTypes.Add(typeInfo.FullyQualifiedName);
-                return typeInfo with { ExecutionTime = averageExecutionTime };
+                extraLocalTests.Add(methodInfo.FullyQualifiedName);
+                return methodInfo with { ExecutionTime = averageExecutionTime };
             }
 
-            void LogResults(HashSet<string> matchedLocalTypes, HashSet<string> extraLocalTypes)
+            void LogResults(HashSet<string> matchedLocalTests, HashSet<string> extraLocalTests)
             {
-                foreach (var extraLocalType in extraLocalTypes)
+                foreach (var extraLocalTest in extraLocalTests)
                 {
-                    Logger.Log($"Could not find test execution history for types in {extraLocalType}");
+                    Logger.Log($"Could not find test execution history for test {extraLocalTest}");
                 }
 
-                var extraRemoteTypes = testHistory.Keys.Where(type => !matchedLocalTypes.Contains(type));
-                foreach (var extraRemoteType in extraRemoteTypes)
+                var extraRemoteTests = testHistory.Keys.Where(type => !matchedLocalTests.Contains(type));
+                foreach (var extraRemoteTest in extraRemoteTests)
                 {
-                    Logger.Log($"Found historical data for types in {extraRemoteType} that were not present in local assemblies");
+                    Logger.Log($"Found historical data for test {extraRemoteTest} that was not present in local assemblies");
                 }
 
-                var totalExpectedRunTime = TimeSpan.FromMilliseconds(updated.Values.SelectMany(types => types).Sum(test => test.ExecutionTime.TotalMilliseconds));
-                ConsoleUtil.WriteLine($"Matched {matchedLocalTypes.Count} types with historical data.  {extraLocalTypes.Count} types were missing historical data.  {extraRemoteTypes.Count()} types were missing in local assemblies.  Estimate of total execution time for tests is {totalExpectedRunTime}.");
+                var totalExpectedRunTime = TimeSpan.FromMilliseconds(updated.Values.SelectMany(types => types).SelectMany(type => type.Tests).Sum(test => test.ExecutionTime.TotalMilliseconds));
+                ConsoleUtil.WriteLine($"Matched {matchedLocalTests.Count} tests with historical data.  {extraLocalTests.Count} tests were missing historical data.  {extraRemoteTests.Count()} tests were missing in local assemblies.  Estimate of total execution time for tests is {totalExpectedRunTime}.");
             }
         }
 
@@ -156,7 +202,7 @@ namespace RunTests
             var currentExecutionTime = TimeSpan.Zero;
 
             // Keep track of the types we're planning to add to the current work item.
-            var currentAssemblyTests = new Dictionary<AssemblyInfo, AssemblyTypeGroup>();
+            var currentFilters = new SortedDictionary<AssemblyInfo, List<ITestFilter>>();
 
             // Iterate through each assembly and type and build up the work items to run.
             // We add types from assemblies one by one until we hit our execution time limit,
@@ -164,48 +210,77 @@ namespace RunTests
             foreach (var (assembly, types) in typeInfos)
             {
                 // See if we can just add all types from this assembly to the current work item without going over our execution time limit.
-                var executionTimeForAllTypesInAssembly = TimeSpan.FromMilliseconds(types.Sum(t => t.ExecutionTime.TotalMilliseconds));
+                var executionTimeForAllTypesInAssembly = TimeSpan.FromMilliseconds(types.SelectMany(type => type.Tests).Sum(t => t.ExecutionTime.TotalMilliseconds));
                 if (executionTimeForAllTypesInAssembly + currentExecutionTime >= executionTimeLimit)
                 {
                     // We can't add every type - go type by type to add what we can and end the work item where we need to.
                     foreach (var type in types)
                     {
-                        if (type.ExecutionTime + currentExecutionTime >= executionTimeLimit)
+                        // See if we can add every test in this type to the current work item without going over our execution time limit.
+                        var executionTimeForAllTestsInType = TimeSpan.FromMilliseconds(type.Tests.Sum(method => method.ExecutionTime.TotalMilliseconds));
+                        if (executionTimeForAllTestsInType + currentExecutionTime >= executionTimeLimit)
                         {
-                            // Adding this type would put us over the time limit for this partition.
-                            // Add our accumulated tests and types and assemblies and end the work item.
-                            CreateWorkItemWithCurrentAssemblies();
-                        }
+                            // We can't add every test, go test by test to add what we can and end the work item when we hit the limit.
+                            foreach (var test in type.Tests)
+                            {
+                                if (test.ExecutionTime + currentExecutionTime >= executionTimeLimit)
+                                {
+                                    // Adding this type would put us over the time limit for this partition.
+                                    // Add the current work item to our list and start a new one.
+                                    AddCurrentWorkItem();
+                                }
 
-                        // Update the current group in the work item with this new type.  This is a partial group since we couldn't add all types in the assembly before.
-                        var typeList = currentAssemblyTests.TryGetValue(assembly, out var result) ? result.Types.Add(type) : ImmutableArray.Create(type);
-                        currentAssemblyTests[assembly] = new AssemblyTypeGroup(assembly, typeList, ContainsAllTypesInAssembly: false);
-                        currentExecutionTime += type.ExecutionTime;
+                                // Update the current group in the work item with this new type.
+                                AddFilter(assembly, new MethodTestFilter(test));
+                                currentExecutionTime += test.ExecutionTime;
+                            }
+                        }
+                        else
+                        {
+                            // All the tests in this type can be safely added to the current work item.
+                            // Add them and update our work item execution time with the total execution time of tests in the type.
+                            AddFilter(assembly, new TypeTestFilter(type));
+                            currentExecutionTime += executionTimeForAllTestsInType;
+                        }
                     }
                 }
                 else
                 {
                     // All the types in this assembly can safely be added to the current work item.
                     // Add them and update our work item execution time with the total execution time of tests in the assembly.
-                    currentAssemblyTests.Add(assembly, new AssemblyTypeGroup(assembly, types, ContainsAllTypesInAssembly: true));
+                    AddFilter(assembly, new AssemblyTestFilter(types));
                     currentExecutionTime += executionTimeForAllTypesInAssembly;
                 }
             }
 
             // Add any remaining tests to the work item.
-            CreateWorkItemWithCurrentAssemblies();
+            AddCurrentWorkItem();
             return workItems.ToImmutableArray();
 
-            void CreateWorkItemWithCurrentAssemblies()
+            void AddCurrentWorkItem()
             {
-                if (currentAssemblyTests.Any())
+                if (currentFilters.Any())
                 {
-                    workItems.Add(new WorkItemInfo(currentAssemblyTests.Values.ToImmutableArray(), workItemIndex));
+                    workItems.Add(new WorkItemInfo(currentFilters.ToImmutableSortedDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableArray()), workItemIndex));
                     workItemIndex++;
                 }
 
+                currentFilters = new();
                 currentExecutionTime = TimeSpan.Zero;
-                currentAssemblyTests = new();
+            }
+
+            void AddFilter(AssemblyInfo assembly, ITestFilter filter)
+            {
+                if (currentFilters.TryGetValue(assembly, out var assemblyFilters))
+                {
+                    assemblyFilters.Add(filter);
+                }
+                else
+                {
+                    var filterList = new List<ITestFilter>();
+                    filterList.Add(filter);
+                    currentFilters.Add(assembly, filterList);
+                }
             }
         }
 
@@ -215,13 +290,16 @@ namespace RunTests
             Logger.Log("==== Work Item List ====");
             foreach (var workItem in workItems)
             {
-                var types = workItem.TypesToTest.SelectMany(group => group.Types);
-                var totalRuntime = TimeSpan.FromMilliseconds(types.Sum(type => type.ExecutionTime.TotalMilliseconds));
-                Logger.Log($"- Work Item ({types.Count()} types, runtime {totalRuntime})");
-                foreach (var group in workItem.TypesToTest)
+                var totalRuntime = TimeSpan.FromMilliseconds(workItem.Filters.Values.SelectMany(f => f).Sum(f => f.GetExecutionTime().TotalMilliseconds));
+                Logger.Log($"- Work Item (Runtime {totalRuntime})");
+                foreach (var assembly in workItem.Filters)
                 {
-                    var typeExecutionTime = TimeSpan.FromMilliseconds(group.Types.Sum(test => test.ExecutionTime.TotalMilliseconds));
-                    Logger.Log($"    - {group.Assembly.AssemblyName} with {group.Types.Length} types, runtime {typeExecutionTime}");
+                    var assemblyRuntime = TimeSpan.FromMilliseconds(assembly.Value.Sum(f => f.GetExecutionTime().TotalMilliseconds));
+                    Logger.Log($"    - {assembly.Key.AssemblyName} with runtime {assemblyRuntime}");
+                    foreach (var filter in assembly.Value)
+                    {
+                        Logger.Log($"        - {filter} with runtime {filter.GetExecutionTime()}");
+                    }
                 }
             }
         }
@@ -254,12 +332,37 @@ namespace RunTests
                     continue;
                 }
 
-                list.Add(new TypeInfo(typeName, fullyQualifiedTypeName, methodCount, TimeSpan.Zero));
+                var methodList = new List<MethodInfo>();
+                GetMethods(reader, type, methodList, fullyQualifiedTypeName);
+
+                list.Add(new TypeInfo(typeName, fullyQualifiedTypeName, methodList.ToImmutableArray()));
             }
 
             // Ensure we get classes back in a deterministic order.
             list.Sort((x, y) => x.FullyQualifiedName.CompareTo(y.FullyQualifiedName));
             return list.ToImmutableArray();
+        }
+
+        private static bool IsPublicType(TypeDefinition type)
+        {
+            // See https://docs.microsoft.com/en-us/dotnet/api/system.reflection.typeattributes?view=net-6.0#examples
+            // for extracting this information from the TypeAttributes.
+            var visibility = type.Attributes & TypeAttributes.VisibilityMask;
+            var isPublic = visibility == TypeAttributes.Public || visibility == TypeAttributes.NestedPublic;
+            return isPublic;
+        }
+
+        private static bool IsClass(TypeDefinition type)
+        {
+            var classSemantics = type.Attributes & TypeAttributes.ClassSemanticsMask;
+            var isClass = classSemantics == TypeAttributes.Class;
+            return isClass;
+        }
+
+        private static bool IsAbstract(TypeDefinition type)
+        {
+            var isAbstract = (type.Attributes & TypeAttributes.Abstract) != 0;
+            return isAbstract;
         }
 
         /// <summary>
@@ -269,18 +372,8 @@ namespace RunTests
         /// </summary>
         private static bool ShouldIncludeType(MetadataReader reader, TypeDefinition type, int testMethodCount)
         {
-            // See https://docs.microsoft.com/en-us/dotnet/api/system.reflection.typeattributes?view=net-6.0#examples
-            // for extracting this information from the TypeAttributes.
-            var visibility = type.Attributes & TypeAttributes.VisibilityMask;
-            var isPublic = visibility == TypeAttributes.Public || visibility == TypeAttributes.NestedPublic;
-
-            var classSemantics = type.Attributes & TypeAttributes.ClassSemanticsMask;
-            var isClass = classSemantics == TypeAttributes.Class;
-
-            var isAbstract = (type.Attributes & TypeAttributes.Abstract) != 0;
-
             // xunit only handles public, non-abstract classes
-            if (!isPublic || isAbstract || !isClass)
+            if (!IsPublicType(type) || IsAbstract(type) || !IsClass(type))
             {
                 return false;
             }
@@ -304,14 +397,58 @@ namespace RunTests
             return !InheritsFromFrameworkBaseType(reader, type);
         }
 
+        private static void GetMethods(MetadataReader reader, TypeDefinition type, List<MethodInfo> methodList, string originalFullyQualifiedTypeName)
+        {
+            var methods = type.GetMethods();
+
+            foreach (var methodHandle in methods)
+            {
+                var method = reader.GetMethodDefinition(methodHandle);
+                var methodInfo = GetMethodInfo(reader, method, originalFullyQualifiedTypeName);
+                if (ShouldIncludeMethod(reader, method))
+                {
+                    methodList.Add(methodInfo);
+                }
+            }
+
+            var baseTypeHandle = type.BaseType;
+            if (!baseTypeHandle.IsNil && baseTypeHandle.Kind is HandleKind.TypeDefinition)
+            {
+                var baseType = reader.GetTypeDefinition((TypeDefinitionHandle)baseTypeHandle);
+
+                // We only want to look for test methods in public base types.
+                if (IsPublicType(baseType) && IsClass(baseType) && !InheritsFromFrameworkBaseType(reader, type))
+                {
+                    GetMethods(reader, baseType, methodList, originalFullyQualifiedTypeName);
+                }
+            }
+        }
+
+        private static bool ShouldIncludeMethod(MetadataReader reader, MethodDefinition method)
+        {
+            var visibility = method.Attributes & MethodAttributes.MemberAccessMask;
+            var isPublic = visibility == MethodAttributes.Public;
+
+            var hasMethodAttributes = method.GetCustomAttributes().Count > 0;
+
+            var isValidIdentifier = IsValidIdentifier(reader, method.Name);
+
+            return isPublic && hasMethodAttributes && isValidIdentifier;
+        }
+
+        private static MethodInfo GetMethodInfo(MetadataReader reader, MethodDefinition method, string fullyQualifiedTypeName)
+        {
+            var methodName = reader.GetString(method.Name);
+            return new MethodInfo(methodName, $"{fullyQualifiedTypeName}.{methodName}", TimeSpan.Zero);
+        }
+
         private static int GetMethodCount(MetadataReader reader, TypeDefinition type)
         {
             var count = 0;
             foreach (var handle in type.GetMethods())
             {
                 var methodDefinition = reader.GetMethodDefinition(handle);
-                if (methodDefinition.GetCustomAttributes().Count == 0 ||
-                    !IsValidIdentifier(reader, methodDefinition.Name))
+                if (!ShouldIncludeMethod(reader, methodDefinition))
                 {
                     continue;
                 }
