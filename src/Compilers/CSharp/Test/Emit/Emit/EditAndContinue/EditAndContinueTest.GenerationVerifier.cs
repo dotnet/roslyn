@@ -65,6 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 AssertEx.Equal(expected, actual, message: GetAssertMessage("PropertyDefs don't match"));
             }
 
+            internal void VerifyDeletedMembers(params string[] expected)
+            {
+                var actual = _generationInfo.Baseline.DeletedMembers.Select(e => e.Key.ToString() + ": {" + string.Join(", ", e.Value.Select(v => v.Name)) + "}");
+                AssertEx.SetEqual(expected, actual, itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
+            }
+
             internal void VerifyTableSize(TableIndex table, int expected)
             {
                 AssertEx.AreEqual(expected, _metadataReader.GetTableRowCount(table), message: GetAssertMessage($"{table} table size doesnt't match"));

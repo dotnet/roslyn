@@ -8,23 +8,33 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
-    /// Marker interface for language specific options.
+    /// Marker interface for options that has the same value for all languages.
     /// </summary>
-    internal interface ILanguageSpecificOption : IOptionWithGroup
+    internal interface ISingleValuedOption : IOptionWithGroup
     {
+        /// <summary>
+        /// The language name that supports this option, or null if it's supported by multiple languages.
+        /// </summary>
+        /// <remarks>
+        /// This is an optional metadata used for:
+        /// <list type="bullet">
+        /// <item><description>Analyzer id to option mapping, used (for example) by configure code-style code action</description></item>
+        /// <item><description>EditorConfig UI to determine whether to put this option under <c>[*.cs]</c>, <c>[*.vb]</c>, or <c>[*.{cs,vb}]</c></description></item>
+        /// </list>
+        /// Note that this property is not (and should not be) used for computing option values or storing options.
+        /// </remarks>
+        public string? LanguageName { get; }
     }
 
-    /// <summary>
-    /// Marker interface for language specific options.
-    /// </summary>
-    internal interface ILanguageSpecificOption<T> : ILanguageSpecificOption
+    /// <inheritdoc cref="ISingleValuedOption"/>
+    internal interface ISingleValuedOption<T> : ISingleValuedOption
     {
     }
 
     /// <summary>
     /// An global option. An instance of this class can be used to access an option value from an OptionSet.
     /// </summary>
-    internal partial class Option2<T> : ILanguageSpecificOption<T>
+    internal partial class Option2<T> : ISingleValuedOption<T>
     {
         public OptionDefinition OptionDefinition { get; }
 
@@ -49,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Options
         public ImmutableArray<OptionStorageLocation2> StorageLocations { get; }
 
         public Option2(string feature, string name, T defaultValue)
-            : this(feature, name, defaultValue, storageLocations: ImmutableArray<OptionStorageLocation2>.Empty)
+            : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocations: ImmutableArray<OptionStorageLocation2>.Empty)
         {
         }
 
@@ -58,22 +68,17 @@ namespace Microsoft.CodeAnalysis.Options
         {
         }
 
-        public Option2(string feature, string name, T defaultValue, ImmutableArray<OptionStorageLocation2> storageLocations)
-            : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocations)
-        {
-        }
-
-        internal Option2(string feature, OptionGroup group, string name, T defaultValue)
-            : this(feature, group, name, defaultValue, ImmutableArray<OptionStorageLocation2>.Empty)
-        {
-        }
-
-        internal Option2(string feature, OptionGroup group, string name, T defaultValue, OptionStorageLocation2 storageLocation)
+        public Option2(string feature, OptionGroup group, string name, T defaultValue, OptionStorageLocation2 storageLocation)
             : this(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation))
         {
         }
 
-        internal Option2(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation2> storageLocations)
+        public Option2(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation2> storageLocations)
+            : this(feature, group, name, defaultValue, storageLocations, null)
+        {
+        }
+
+        public Option2(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation2> storageLocations, string? languageName)
         {
             if (string.IsNullOrWhiteSpace(feature))
             {
@@ -85,8 +90,9 @@ namespace Microsoft.CodeAnalysis.Options
                 throw new ArgumentException(nameof(name));
             }
 
-            OptionDefinition = new OptionDefinition(feature, group, name, defaultValue, typeof(T), isPerLanguage: false);
+            OptionDefinition = new OptionDefinition(feature, group, name, defaultValue, typeof(T));
             this.StorageLocations = storageLocations;
+            LanguageName = languageName;
         }
 
 #if CODE_STYLE
@@ -105,6 +111,8 @@ namespace Microsoft.CodeAnalysis.Options
         OptionGroup IOptionWithGroup.Group => this.Group;
 
         OptionDefinition IOption2.OptionDefinition => OptionDefinition;
+
+        public string? LanguageName { get; }
 
         public override string ToString() => OptionDefinition.ToString();
 

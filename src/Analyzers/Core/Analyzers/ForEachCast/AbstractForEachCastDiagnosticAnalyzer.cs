@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
                   diagnosticId: IDEDiagnosticIds.ForEachCastDiagnosticId,
                   EnforceOnBuildValues.ForEachCast,
                   CodeStyleOptions2.ForEachExplicitCastInSource,
+                  language: null!,
                   title: new LocalizableResourceString(nameof(AnalyzersResources.Add_explicit_cast), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                   messageFormat: new LocalizableResourceString(nameof(AnalyzersResources._0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {

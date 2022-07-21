@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             string descriptorId, EnforceOnBuild enforceOnBuild, LocalizableString title, LocalizableString message, bool isUnnecessary = false)
             : base(descriptorId,
                    enforceOnBuild,
-                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.ArithmeticBinaryParentheses, CodeStyleOptions2.RelationalBinaryParentheses, CodeStyleOptions2.OtherBinaryParentheses, CodeStyleOptions2.OtherParentheses),
+                   options: ImmutableHashSet.Create<IPerLanguageValuedOption>(CodeStyleOptions2.ArithmeticBinaryParentheses, CodeStyleOptions2.RelationalBinaryParentheses, CodeStyleOptions2.OtherBinaryParentheses, CodeStyleOptions2.OtherParentheses),
                    title,
                    message,
                    isUnnecessary: isUnnecessary)

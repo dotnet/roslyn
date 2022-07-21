@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
-    internal sealed partial class HeavyweightRenameLocations
+    internal sealed partial class SymbolicRenameLocations
     {
         private readonly struct SearchResult
         {
