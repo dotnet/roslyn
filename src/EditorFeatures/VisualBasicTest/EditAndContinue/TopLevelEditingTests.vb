@@ -3923,7 +3923,8 @@ End Class
                 })
         End Sub
 
-        <Fact, WorkItem(51011, "https://github.com/dotnet/roslyn/issues/51011")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/62844")>
+        <WorkItem(51011, "https://github.com/dotnet/roslyn/issues/51011")>
         Public Sub PartialMember_RenameInsertDelete()
             Dim srcA1 = "Partial Class C" + vbCrLf + "Sub F1() : End Sub : End Class"
             Dim srcB1 = "Partial Class C" + vbCrLf + "Sub F2() : End Sub : End Class"
@@ -4668,7 +4669,7 @@ Imports System.Runtime.InteropServices
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/62844")>
         Public Sub Method_Rename()
             Dim src1 = "Class C : " & vbLf & "Sub Goo : End Sub : End Class"
             Dim src2 = "Class C : " & vbLf & "Sub Bar : End Sub : End Class"
@@ -7943,7 +7944,7 @@ End Class"
                 })
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/62844")>
         Public Sub PropertyRename1()
             Dim src1 = "Class C : ReadOnly Property P As Integer" & vbLf & "Get : End Get : End Property : End Class"
             Dim src2 = "Class C : ReadOnly Property Q As Integer" & vbLf & "Get : End Get : End Property : End Class"
@@ -7960,7 +7961,7 @@ End Class"
                 })
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/62844")>
         Public Sub PropertyRename2()
             Dim src1 = "Class C : ReadOnly Property P As Integer : End Class"
             Dim src2 = "Class C : ReadOnly Property Q As Integer : End Class"
@@ -10164,7 +10165,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/62844")>
         Public Sub Event_Rename()
             Dim src1 = "Class C : " &
                           "Custom Event E As Action" & vbLf &
@@ -10244,7 +10245,7 @@ End Class
                 Diagnostic(RudeEditKind.TypeUpdate, "value As Action(Of String)", FeaturesResources.parameter))
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/62844")>
         Public Sub EventInsert_IntoLayoutClass_Sequential()
             Dim src1 = "
 Imports System
