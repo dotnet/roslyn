@@ -182,21 +182,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
         {
+            if (_disabled)
+            {
+                return;
+            }
+
+            var committedDesignTimeSolution = Interlocked.Exchange(ref _pendingUpdatedDesignTimeSolution, null);
+            Contract.ThrowIfNull(committedDesignTimeSolution);
+
             try
             {
-                var committedDesignTimeSolution = Interlocked.Exchange(ref _pendingUpdatedDesignTimeSolution, null);
-                Contract.ThrowIfNull(committedDesignTimeSolution);
                 SolutionCommitted?.Invoke(committedDesignTimeSolution);
-
-                _committedDesignTimeSolution = committedDesignTimeSolution;
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
             }
 
+            _committedDesignTimeSolution = committedDesignTimeSolution;
+
             try
             {
-                Contract.ThrowIfTrue(_disabled);
                 await GetDebuggingSession().CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -293,9 +298,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var workspace = WorkspaceProvider.Value.Workspace;
-            var solution = GetCurrentCompileTimeSolution(_pendingUpdatedDesignTimeSolution = workspace.CurrentSolution);
+            var designTimeSolution = workspace.CurrentSolution;
+            var solution = GetCurrentCompileTimeSolution(designTimeSolution);
             var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
             var (updates, _, _, _) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+
+            if (updates.Status == Contracts.ManagedModuleUpdateStatus.Ready)
+            {
+                _pendingUpdatedDesignTimeSolution = designTimeSolution;
+            }
+
             return updates.FromContract();
         }
 
@@ -307,8 +319,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var workspace = WorkspaceProvider.Value.Workspace;
-            var solution = GetCurrentCompileTimeSolution(_pendingUpdatedDesignTimeSolution = workspace.CurrentSolution);
+            var designTimeSolution = workspace.CurrentSolution;
+            var solution = GetCurrentCompileTimeSolution(designTimeSolution);
             var (moduleUpdates, diagnosticData, rudeEdits, syntaxError) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, s_noActiveStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+
+            if (moduleUpdates.Status == Contracts.ManagedModuleUpdateStatus.Ready)
+            {
+                _pendingUpdatedDesignTimeSolution = designTimeSolution;
+            }
 
             var updates = moduleUpdates.Updates.SelectAsArray(
                 update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta, update.UpdatedTypes));

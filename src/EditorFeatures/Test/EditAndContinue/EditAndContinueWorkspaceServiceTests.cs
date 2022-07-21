@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.ExternalAccess.Watch.Api;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -1766,48 +1767,6 @@ class C { int Y => 2; }
             var (updates, _) = await EmitSolutionUpdateAsync(debuggingSession, solution);
             Assert.Equal(ManagedModuleUpdateStatus.Blocked, updates.Status);
 
-            // add a document:
-
-            oldSolution = solution;
-            projectC = solution.GetProjectsByName("C").Single();
-            var documentDId = DocumentId.CreateNewId(projectC.Id);
-            solution = solution.AddDocument(documentDId, "D", "class D {}", filePath: "D.cs");
-
-            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
-            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: "D.cs", CancellationToken.None));
-
-            // remove a document:
-
-            oldSolution = solution;
-            solution = solution.RemoveDocument(documentDId);
-
-            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
-            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, sourceFilePath: "D.cs", CancellationToken.None));
-
-            // add an additional document:
-
-            oldSolution = solution;
-            projectC = solution.GetProjectsByName("C").Single();
-            var documentXId = DocumentId.CreateNewId(projectC.Id);
-            solution = solution.AddAdditionalDocument(documentXId, "X", "xxx", filePath: "X");
-
-            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
-
-            // remove an additional document:
-            Assert.True(await EditSession.HasChangesAsync(solution, solution.RemoveAdditionalDocument(documentXId), CancellationToken.None));
-
-            // add a config document:
-
-            oldSolution = solution;
-            projectC = solution.GetProjectsByName("C").Single();
-            var documentYId = DocumentId.CreateNewId(projectC.Id);
-            solution = solution.AddAnalyzerConfigDocument(documentYId, "Y", SourceText.From("yyy"), filePath: "Y");
-
-            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
-
-            // remove a config document:
-            Assert.True(await EditSession.HasChangesAsync(solution, solution.RemoveAnalyzerConfigDocument(documentYId), CancellationToken.None));
-
             // add a project:
 
             oldSolution = solution;
@@ -1820,6 +1779,79 @@ class C { int Y => 2; }
             Assert.True(await EditSession.HasChangesAsync(solution, solution.RemoveProject(projectD.Id), CancellationToken.None));
 
             EndDebuggingSession(debuggingSession);
+        }
+
+        public enum DocumentKind
+        {
+            Source,
+            Additional,
+            AnalyzerConfig,
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task HasChanges_Documents(DocumentKind documentKind)
+        {
+            using var _ = CreateWorkspace(out var solution, out var service);
+
+            var pathA = Path.Combine(TempRoot.Root, "A.cs");
+            var pathX = Path.Combine(TempRoot.Root, "X");
+
+            var project = solution.AddProject("A", "A", "C#");
+            solution = project.Solution;
+
+            var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+            EnterBreakState(debuggingSession);
+
+            // add document:
+            var oldSolution = solution;
+            var documentXId = DocumentId.CreateNewId(project.Id);
+            solution = documentKind switch
+            {
+                DocumentKind.Source => solution.AddDocument(documentXId, "X", SourceText.From("xxx", Encoding.UTF8, SourceHashAlgorithm.Sha256), filePath: pathX),
+                DocumentKind.Additional => solution.AddAdditionalDocument(documentXId, "X", SourceText.From("xxx", Encoding.UTF8, SourceHashAlgorithm.Sha256), filePath: pathX),
+                DocumentKind.AnalyzerConfig => solution.AddAnalyzerConfigDocument(documentXId, "X", SourceText.From("xxx", Encoding.UTF8, SourceHashAlgorithm.Sha256), filePath: pathX),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
+            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
+            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, pathX, CancellationToken.None));
+
+            // update document to a different document snapshot but the same content:
+            oldSolution = solution;
+
+            solution = documentKind switch
+            {
+                DocumentKind.Source => solution.WithDocumentText(documentXId, SourceText.From("xxx", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
+                DocumentKind.Additional => solution.WithAdditionalDocumentText(documentXId, SourceText.From("xxx", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
+                DocumentKind.AnalyzerConfig => solution.WithAnalyzerConfigDocumentText(documentXId, SourceText.From("xxx", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
+            Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
+            Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, pathX, CancellationToken.None));
+
+            // update document content:
+            oldSolution = solution;
+            solution = documentKind switch
+            {
+                DocumentKind.Source => solution.WithDocumentText(documentXId, SourceText.From("xxx-changed", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
+                DocumentKind.Additional => solution.WithAdditionalDocumentText(documentXId, SourceText.From("xxx-changed", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
+                DocumentKind.AnalyzerConfig => solution.WithAnalyzerConfigDocumentText(documentXId, SourceText.From("xxx-changed", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
+            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
+            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, pathX, CancellationToken.None));
+
+            // remove document:
+            oldSolution = solution;
+            solution = documentKind switch
+            {
+                DocumentKind.Source => solution.RemoveDocument(documentXId),
+                DocumentKind.Additional => solution.RemoveAdditionalDocument(documentXId),
+                DocumentKind.AnalyzerConfig => solution.RemoveAnalyzerConfigDocument(documentXId),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
+            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
+            Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, pathX, CancellationToken.None));
         }
 
         [Fact]

@@ -272,14 +272,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // it suffices to check the content of one of the document if there are multiple linked ones:
             var documentId = newDocumentIds.First();
-            var oldDocument = oldSolution.GetDocument(documentId);
+            var oldDocument = await oldSolution.GetTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
             if (oldDocument == null)
             {
                 // file has been added
                 return true;
             }
 
-            var newDocument = newSolution.GetRequiredDocument(documentId);
+            var newDocument = await newSolution.GetRequiredTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
             return oldDocument != newDocument && !await ContentEqualsAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
         }
 
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return false;
         }
 
-        private static async ValueTask<bool> ContentEqualsAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        private static async ValueTask<bool> ContentEqualsAsync(TextDocument oldDocument, TextDocument newDocument, CancellationToken cancellationToken)
         {
             // Check if the currently observed document content has changed compared to the base document content.
             // This is an important optimization that aims to avoid IO while stepping in sources that have not changed.
@@ -374,10 +374,43 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 changedOrAddedDocuments.Add(document);
             }
 
-            // Any changes in non-generated documents might affect source generated documents as well,
+            // Any changes in non-generated document content might affect source generated documents as well,
             // no need to check further in that case.
-            return changedOrAddedDocuments is { Count: > 0 } ||
-                   HasChangesThatMayAffectSourceGenerators(oldProject.State, newProject.State);
+
+            if (changedOrAddedDocuments is { Count: > 0 })
+            {
+                return true;
+            }
+
+            foreach (var documentId in newProject.State.AdditionalDocumentStates.GetChangedStateIds(oldProject.State.AdditionalDocumentStates, ignoreUnchangedContent: true))
+            {
+                var document = newProject.GetRequiredAdditionalDocument(documentId);
+                if (!await ContentEqualsAsync(oldProject.GetRequiredAdditionalDocument(documentId), document, cancellationToken).ConfigureAwait(false))
+                {
+                    return true;
+                }
+            }
+
+            foreach (var documentId in newProject.State.AnalyzerConfigDocumentStates.GetChangedStateIds(oldProject.State.AnalyzerConfigDocumentStates, ignoreUnchangedContent: true))
+            {
+                var document = newProject.GetRequiredAnalyzerConfigDocument(documentId);
+                if (!await ContentEqualsAsync(oldProject.GetRequiredAnalyzerConfigDocument(documentId), document, cancellationToken).ConfigureAwait(false))
+                {
+                    return true;
+                }
+            }
+
+            // TODO: should handle removed documents above (detect them as edits) https://github.com/dotnet/roslyn/issues/62848
+            if (newProject.State.DocumentStates.GetRemovedStateIds(oldProject.State.DocumentStates).Any() ||
+                newProject.State.AdditionalDocumentStates.GetRemovedStateIds(oldProject.State.AdditionalDocumentStates).Any() ||
+                newProject.State.AdditionalDocumentStates.GetAddedStateIds(oldProject.State.AdditionalDocumentStates).Any() ||
+                newProject.State.AnalyzerConfigDocumentStates.GetRemovedStateIds(oldProject.State.AnalyzerConfigDocumentStates).Any() ||
+                newProject.State.AnalyzerConfigDocumentStates.GetAddedStateIds(oldProject.State.AnalyzerConfigDocumentStates).Any())
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static async Task PopulateChangedAndAddedDocumentsAsync(CommittedSolution oldSolution, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, CancellationToken cancellationToken)
@@ -453,7 +486,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 yield return documentId;
             }
 
-            if (!HasChangesThatMayAffectSourceGenerators(oldProject.State, newProject.State))
+            // Given the following assumptions:
+            // - source generators are deterministic,
+            // - metadata references and compilation options have not changed (TODO -- need to check),
+            // - source documents have not changed,
+            // - additional documents have not changed,
+            // - analyzer config documents have not changed,
+            // the outputs of source generators will not change.
+
+            if (!newProject.State.AdditionalDocumentStates.HasAnyStateChanges(oldProject.State.AdditionalDocumentStates) &&
+                !newProject.State.AnalyzerConfigDocumentStates.HasAnyStateChanges(oldProject.State.AnalyzerConfigDocumentStates))
             {
                 // Based on the above assumption there are no changes in source generated files.
                 yield break;
@@ -472,21 +514,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 yield return documentId;
             }
         }
-
-        /// <summary>
-        /// Given the following assumptions:
-        /// - source generators are deterministic,
-        /// - source documents, metadata references and compilation options have not changed,
-        /// - additional documents have not changed,
-        /// - analyzer config documents have not changed,
-        /// the outputs of source generators will not change.
-        /// 
-        /// Currently it's not possible to change compilation options (Project System is readonly during debugging).
-        /// </summary>
-        private static bool HasChangesThatMayAffectSourceGenerators(ProjectState oldProject, ProjectState newProject)
-            => newProject.DocumentStates.HasAnyStateChanges(oldProject.DocumentStates) ||
-               newProject.AdditionalDocumentStates.HasAnyStateChanges(oldProject.AdditionalDocumentStates) ||
-               newProject.AnalyzerConfigDocumentStates.HasAnyStateChanges(oldProject.AnalyzerConfigDocumentStates);
 
         private async Task<(ImmutableArray<DocumentAnalysisResults> results, ImmutableArray<Diagnostic> diagnostics)> AnalyzeDocumentsAsync(
             ArrayBuilder<Document> changedOrAddedDocuments,
