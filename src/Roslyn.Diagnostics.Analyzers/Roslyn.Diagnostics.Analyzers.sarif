@@ -83,7 +83,7 @@
         },
         "RS0034": {
           "id": "RS0034",
-          "shortDescription": "Exported parts should be marked with 'ImportingConstructorAttribute'",
+          "shortDescription": "Exported parts should have a public constructor marked with 'ImportingConstructorAttribute'",
           "fullDescription": "Exported parts should be marked with 'ImportingConstructorAttribute'.",
           "defaultLevel": "warning",
           "properties": {

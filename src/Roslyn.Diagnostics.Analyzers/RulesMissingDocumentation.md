@@ -10,7 +10,7 @@ RS0019 |  | 'SymbolDeclaredEvent' must be generated for source symbols |
 RS0023 |  | Parts exported with MEFv2 must be marked with 'SharedAttribute' |
 RS0032 |  | Test exports should not be discoverable |
 RS0033 |  | Importing constructor should be marked with 'ObsoleteAttribute' |
-RS0034 |  | Exported parts should be marked with 'ImportingConstructorAttribute' |
+RS0034 |  | Exported parts should have a public constructor marked with 'ImportingConstructorAttribute' |
 RS0038 |  | Prefer null literal |
 RS0040 |  | Defaultable types should have defaultable fields |
 RS0042 |  | Do not copy value |

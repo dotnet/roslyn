@@ -193,10 +193,10 @@
     <value>Exported parts should be marked with 'ImportingConstructorAttribute'.</value>
   </data>
   <data name="ExportedPartsShouldHaveImportingConstructorMessage" xml:space="preserve">
-    <value>'{0}' is MEF-exported and should have a single importing constructor of the correct form</value>
+    <value>'{0}' is MEF-exported and should have a single, public importing constructor of the correct form</value>
   </data>
   <data name="ExportedPartsShouldHaveImportingConstructorTitle" xml:space="preserve">
-    <value>Exported parts should be marked with 'ImportingConstructorAttribute'</value>
+    <value>Exported parts should have a public constructor marked with 'ImportingConstructorAttribute'</value>
   </data>
   <data name="ImportingConstructorShouldBeObsoleteDescription" xml:space="preserve">
     <value>Importing constructor should be marked with 'ObsoleteAttribute'.</value>
