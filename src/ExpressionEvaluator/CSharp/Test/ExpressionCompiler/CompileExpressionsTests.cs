@@ -722,7 +722,7 @@ class Program
     {
     }
 }";
-            var comp = CreateCompilation(SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.RegularPreview /* TODO2 use 11 */, path: "path/to/MyFile.cs", Encoding.Default), options: TestOptions.DebugDll);
+            var comp = CreateCompilation(SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular11, path: "path/to/MyFile.cs", Encoding.Default), options: TestOptions.DebugDll);
             WithRuntimeInstance(
                 comp,
                 references: null,
@@ -772,8 +772,8 @@ class Program
             var comp = CreateCompilation(
                 new[]
                 {
-                    SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreview /* TODO2 use 11 */, path: "path/to/Source1.cs", Encoding.Default),
-                    SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreview /* TODO2 use 11 */, path: "path/to/Source2.cs", Encoding.Default)
+                    SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.Regular11, path: "path/to/Source1.cs", Encoding.Default),
+                    SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.Regular11, path: "path/to/Source2.cs", Encoding.Default)
                 }, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(
@@ -831,8 +831,8 @@ class Program
             var comp = CreateCompilation(
                 new[]
                 {
-                    SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreview /* TODO2 use 11 */, path: "path/to/Source1.cs", Encoding.Default),
-                    SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreview /* TODO2 use 11 */, path: "path/to/Source2.cs", Encoding.Default)
+                    SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.Regular11, path: "path/to/Source1.cs", Encoding.Default),
+                    SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.Regular11, path: "path/to/Source2.cs", Encoding.Default)
                 }, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(
@@ -879,8 +879,8 @@ class Program
             var comp = CreateCompilation(
                 new[]
                 {
-                    SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreview /* TODO2 use 11 */, path: "path/to/Source1.cs", Encoding.Default),
-                    SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreview /* TODO2 use 11 */, path: "path/to/Source2.cs", Encoding.Default)
+                    SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.Regular11, path: "path/to/Source1.cs", Encoding.Default),
+                    SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.Regular11, path: "path/to/Source2.cs", Encoding.Default)
                 }, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(

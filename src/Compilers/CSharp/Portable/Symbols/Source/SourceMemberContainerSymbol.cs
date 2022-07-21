@@ -1765,7 +1765,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // but we're not interested in handling that for the purposes of producing this error.
                 var tree = declaration.Declarations[0].SyntaxReference.SyntaxTree;
                 // TODO2: we probably don't want to linearly search the syntax trees.
-                // TODO2: handle the same syntax tree instance being passed multiple times to a compilation?
                 foreach (var otherTree in DeclaringCompilation.SyntaxTrees)
                 {
                     if ((object)tree != otherTree && tree.FilePath == otherTree.FilePath)

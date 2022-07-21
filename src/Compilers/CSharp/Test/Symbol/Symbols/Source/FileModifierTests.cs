@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -3654,5 +3655,18 @@ public class FileModifierTests : CSharpTestBase
                 //         C1.M1();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "C1").WithArguments("C1").WithLocation(5, 9));
         }
+    }
+
+    [Fact]
+    public void SyntaxTreeAlreadyPresent()
+    {
+        var tree = SyntaxFactory.ParseSyntaxTree("""
+            partial file class C { }
+            """,
+            path: "file1.cs",
+            encoding: Encoding.Default);
+
+        var ex = Assert.Throws<ArgumentException>(() => CreateCompilation(new[] { tree, tree }));
+        Assert.Equal("trees[1]", ex.ParamName);
     }
 }
