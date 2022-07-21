@@ -32,6 +32,19 @@ namespace Microsoft.CodeAnalysis.Remote
             => new ClientCodeCleanupOptionsProvider(
                 (callbackId, language, cancellationToken) => _callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, language, cancellationToken), cancellationToken), callbackId);
 
+        public ValueTask KeepAliveAsync(
+            Checksum solutionChecksum,
+            CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(solutionChecksum, async solution =>
+            {
+                var taskCompletionSource = new TaskCompletionSource<bool>();
+                cancellationToken.Register(() => taskCompletionSource.TrySetCanceled(cancellationToken));
+
+                await taskCompletionSource.Task.ConfigureAwait(false);
+            }, cancellationToken);
+        }
+
         public ValueTask<SerializableConflictResolution?> RenameSymbolAsync(
             Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
@@ -73,12 +86,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (symbol == null)
                     return null;
 
-                var fallbackOptions = GetClientOptionsProvider(callbackId);
+                var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(
+                    symbol, solution, options, GetClientOptionsProvider(callbackId), cancellationToken).ConfigureAwait(false);
 
-                var result = await LightweightRenameLocations.FindRenameLocationsAsync(
-                    symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
-
-                return result.Dehydrate();
+                return new SerializableRenameLocations(
+                    options,
+                    renameLocations.Locations.SelectAsArray(SerializableRenameLocation.Dehydrate),
+                    renameLocations.ImplicitLocations.SelectAsArray(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)),
+                    renameLocations.ReferencedSymbols.SelectAsArray(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)));
             }, cancellationToken);
         }
 

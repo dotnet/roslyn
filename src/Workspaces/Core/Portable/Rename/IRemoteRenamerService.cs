@@ -32,6 +32,15 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         /// <summary>
+        /// Keeps alive this solution in the OOP process until the cancellation token is triggered.  Used so that we can
+        /// call FindRenameLocationsAsync followed by many calls to ResolveConflictsAsync, knowing that things will stay 
+        /// hydrated and alive on the OOP side.
+        /// </summary>
+        ValueTask KeepAliveAsync(
+            Checksum solutionChecksum,
+            CancellationToken cancellationToken);
+
+        /// <summary>
         /// Runs the entire rename operation OOP and returns the final result. More efficient (due to less back and
         /// forth marshaling) when the intermediary results of rename are not needed. To get the individual parts of
         /// rename remoted use <see cref="FindRenameLocationsAsync"/> and <see cref="ResolveConflictsAsync"/>.
@@ -157,8 +166,7 @@ namespace Microsoft.CodeAnalysis.Rename
         internal static async Task<SymbolicRenameLocations?> TryRehydrateAsync(
             ISymbol symbol, Solution solution, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations serializableLocations, CancellationToken cancellationToken)
         {
-            if (serializableLocations == null)
-                return null;
+            Contract.ThrowIfNull(serializableLocations);
 
             var locations = await serializableLocations.Locations.SelectAsArrayAsync(
                 static (loc, solution, cancellationToken) => loc.RehydrateAsync(solution, cancellationToken), solution, cancellationToken).ConfigureAwait(false);
