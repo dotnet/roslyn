@@ -6,14 +6,17 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class ModuleSymbolKey
+        private sealed class ModuleSymbolKey : AbstractSymbolKey<IModuleSymbol>
         {
-            public static void Create(IModuleSymbol symbol, SymbolKeyWriter visitor)
+            public static readonly ModuleSymbolKey Instance = new();
+
+            public sealed override void Create(IModuleSymbol symbol, SymbolKeyWriter visitor)
                 => visitor.WriteSymbolKey(symbol.ContainingSymbol);
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, IModuleSymbol? contextualSymbol, out string? failureReason)
             {
-                var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
+                var containingSymbolResolution = reader.ReadSymbolKey(contextualSymbol?.ContainingSymbol, out var containingSymbolFailureReason);
 
                 if (containingSymbolFailureReason != null)
                 {

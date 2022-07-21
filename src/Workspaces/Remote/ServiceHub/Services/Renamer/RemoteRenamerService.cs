@@ -83,36 +83,36 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var fallbackOptions = GetClientOptionsProvider(callbackId);
 
-                var result = await RenameLocations.FindLocationsAsync(
+                var result = await LightweightRenameLocations.FindRenameLocationsAsync(
                     symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                return result.Dehydrate(solution, cancellationToken);
+                return result.Dehydrate();
             }, cancellationToken);
         }
 
         public ValueTask<SerializableConflictResolution?> ResolveConflictsAsync(
             Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
-            SerializableRenameLocations renameLocationSet,
+            SerializableSymbolAndProjectId symbolAndProjectId,
+            SerializableRenameLocations serializableLocations,
             string replacementText,
             ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var nonConflictSymbols = await GetNonConflictSymbolsAsync(solution, nonConflictSymbolIds, cancellationToken).ConfigureAwait(false);
-
-                var fallbackOptions = GetClientOptionsProvider(callbackId);
-
-                var rehydratedSet = await RenameLocations.TryRehydrateAsync(solution, fallbackOptions, renameLocationSet, cancellationToken).ConfigureAwait(false);
-                if (rehydratedSet == null)
+                var symbol = await symbolAndProjectId.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                if (symbol is null)
                     return null;
 
-                var result = await ConflictResolver.ResolveConflictsAsync(
-                    rehydratedSet,
-                    replacementText,
-                    nonConflictSymbols,
-                    cancellationToken).ConfigureAwait(false);
+                var nonConflictSymbols = await GetNonConflictSymbolsAsync(solution, nonConflictSymbolIds, cancellationToken).ConfigureAwait(false);
+
+                var locations = await LightweightRenameLocations.TryRehydrateAsync(
+                    solution, symbol, GetClientOptionsProvider(callbackId), serializableLocations, cancellationToken).ConfigureAwait(false);
+                if (locations == null)
+                    return null;
+
+                var result = await locations.ResolveConflictsAsync(replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
                 return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }

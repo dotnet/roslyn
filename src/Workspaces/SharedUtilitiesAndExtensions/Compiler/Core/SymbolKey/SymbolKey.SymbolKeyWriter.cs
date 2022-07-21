@@ -319,31 +319,31 @@ namespace Microsoft.CodeAnalysis
             public override void VisitAlias(IAliasSymbol aliasSymbol)
             {
                 WriteType(SymbolKeyType.Alias);
-                AliasSymbolKey.Create(aliasSymbol, this);
+                AliasSymbolKey.Instance.Create(aliasSymbol, this);
             }
 
             public override void VisitArrayType(IArrayTypeSymbol arrayTypeSymbol)
             {
                 WriteType(SymbolKeyType.ArrayType);
-                ArrayTypeSymbolKey.Create(arrayTypeSymbol, this);
+                ArrayTypeSymbolKey.Instance.Create(arrayTypeSymbol, this);
             }
 
             public override void VisitAssembly(IAssemblySymbol assemblySymbol)
             {
                 WriteType(SymbolKeyType.Assembly);
-                AssemblySymbolKey.Create(assemblySymbol, this);
+                AssemblySymbolKey.Instance.Create(assemblySymbol, this);
             }
 
             public override void VisitDynamicType(IDynamicTypeSymbol dynamicTypeSymbol)
             {
                 WriteType(SymbolKeyType.DynamicType);
-                DynamicTypeSymbolKey.Create(this);
+                DynamicTypeSymbolKey.Instance.Create(dynamicTypeSymbol, this);
             }
 
             public override void VisitField(IFieldSymbol fieldSymbol)
             {
                 WriteType(SymbolKeyType.Field);
-                FieldSymbolKey.Create(fieldSymbol, this);
+                FieldSymbolKey.Instance.Create(fieldSymbol, this);
             }
 
             public override void VisitLabel(ILabelSymbol labelSymbol)
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis
                 if (!methodSymbol.Equals(methodSymbol.ConstructedFrom))
                 {
                     WriteType(SymbolKeyType.ConstructedMethod);
-                    ConstructedMethodSymbolKey.Create(methodSymbol, this);
+                    ConstructedMethodSymbolKey.Instance.Create(methodSymbol, this);
                 }
                 else
                 {
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         case MethodKind.ReducedExtension:
                             WriteType(SymbolKeyType.ReducedExtensionMethod);
-                            ReducedExtensionMethodSymbolKey.Create(methodSymbol, this);
+                            ReducedExtensionMethodSymbolKey.Instance.Create(methodSymbol, this);
                             break;
 
                         case MethodKind.AnonymousFunction:
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis
 
                         default:
                             WriteType(SymbolKeyType.Method);
-                            MethodSymbolKey.Create(methodSymbol, this);
+                            MethodSymbolKey.Instance.Create(methodSymbol, this);
                             break;
                     }
                 }
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis
             public override void VisitModule(IModuleSymbol moduleSymbol)
             {
                 WriteType(SymbolKeyType.Module);
-                ModuleSymbolKey.Create(moduleSymbol, this);
+                ModuleSymbolKey.Instance.Create(moduleSymbol, this);
             }
 
             public override void VisitNamedType(INamedTypeSymbol namedTypeSymbol)
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis
                 if (namedTypeSymbol.TypeKind == TypeKind.Error)
                 {
                     WriteType(SymbolKeyType.ErrorType);
-                    ErrorTypeSymbolKey.Create(namedTypeSymbol, this);
+                    ErrorTypeSymbolKey.Instance.Create(namedTypeSymbol, this);
                 }
                 else if (namedTypeSymbol.IsTupleType && namedTypeSymbol.TupleUnderlyingType is INamedTypeSymbol underlyingType && underlyingType != namedTypeSymbol)
                 {
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis
                     // We only need to store this extra information if there is some
                     // (ie. the current type differs from the underlying type, which has no element names)
                     WriteType(SymbolKeyType.TupleType);
-                    TupleTypeSymbolKey.Create(namedTypeSymbol, this);
+                    TupleTypeSymbolKey.Instance.Create(namedTypeSymbol, this);
                 }
                 else if (namedTypeSymbol.IsAnonymousType)
                 {
@@ -418,50 +418,50 @@ namespace Microsoft.CodeAnalysis
                     else
                     {
                         WriteType(SymbolKeyType.AnonymousType);
-                        AnonymousTypeSymbolKey.Create(namedTypeSymbol, this);
+                        AnonymousTypeSymbolKey.Instance.Create(namedTypeSymbol, this);
                     }
                 }
                 else
                 {
                     WriteType(SymbolKeyType.NamedType);
-                    NamedTypeSymbolKey.Create(namedTypeSymbol, this);
+                    NamedTypeSymbolKey.Instance.Create(namedTypeSymbol, this);
                 }
             }
 
             public override void VisitNamespace(INamespaceSymbol namespaceSymbol)
             {
                 WriteType(SymbolKeyType.Namespace);
-                NamespaceSymbolKey.Create(namespaceSymbol, this);
+                NamespaceSymbolKey.Instance.Create(namespaceSymbol, this);
             }
 
             public override void VisitParameter(IParameterSymbol parameterSymbol)
             {
                 WriteType(SymbolKeyType.Parameter);
-                ParameterSymbolKey.Create(parameterSymbol, this);
+                ParameterSymbolKey.Instance.Create(parameterSymbol, this);
             }
 
             public override void VisitPointerType(IPointerTypeSymbol pointerTypeSymbol)
             {
                 WriteType(SymbolKeyType.PointerType);
-                PointerTypeSymbolKey.Create(pointerTypeSymbol, this);
+                PointerTypeSymbolKey.Instance.Create(pointerTypeSymbol, this);
             }
 
             public override void VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
             {
                 WriteType(SymbolKeyType.FunctionPointer);
-                FunctionPointerTypeSymbolKey.Create(symbol, this);
+                FunctionPointerTypeSymbolKey.Instance.Create(symbol, this);
             }
 
             public override void VisitProperty(IPropertySymbol propertySymbol)
             {
                 WriteType(SymbolKeyType.Property);
-                PropertySymbolKey.Create(propertySymbol, this);
+                PropertySymbolKey.Instance.Create(propertySymbol, this);
             }
 
             public override void VisitEvent(IEventSymbol eventSymbol)
             {
                 WriteType(SymbolKeyType.Event);
-                EventSymbolKey.Create(eventSymbol, this);
+                EventSymbolKey.Instance.Create(eventSymbol, this);
             }
 
             public override void VisitTypeParameter(ITypeParameterSymbol typeParameterSymbol)
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
                     WriteType(SymbolKeyType.TypeParameter);
-                    TypeParameterSymbolKey.Create(typeParameterSymbol, this);
+                    TypeParameterSymbolKey.Instance.Create(typeParameterSymbol, this);
                 }
             }
 

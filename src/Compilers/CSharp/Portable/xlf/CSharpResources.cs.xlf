@@ -1777,6 +1777,16 @@
         <target state="translated">Načtené sestavení se odkazuje na architekturu .NET Framework, což se nepodporuje</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="new">The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
+        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
+        <target state="new">The analyzer assembly references a newer version of the compiler than the currently running version.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AttrDependentTypeNotAllowed">
         <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
         <target state="translated">Typ {0} nelze v tomto kontextu použít, protože se nedá reprezentovat v metadatech.</target>
@@ -2230,160 +2240,160 @@
                               specified directory.
 </source>
         <target state="translated">
-                             Parametry kompilátoru Visual C#
+ Parametry kompilátoru Visual C#
 
-                       - VÝSTUPNÍ SOUBORY -
--out:&lt;file&gt;                   Určuje název výstupního souboru (výchozí: základní název
-                               souboru s hlavní třídou nebo prvního souboru)
--target:exe                   Vytvoří spustitelný soubor konzoly (výchozí). (Krátký
-                              formát: -t:exe)
--target:winexe                Vytvoří spustitelný soubor systému Windows. (Krátký formát:
-                              -t:winexe)
--target:library               Vytvoří knihovnu. (Krátký formát: -t:library)
--target:module                Vytvoří modul, který se dá přidat do jiného
-                              sestavení. (Krátký formát: -t:module)
--target:appcontainerexe       Sestaví spustitelný soubor kontejneru Appcontainer. (Krátký formát:
-                              -t:appcontainerexe)
--target:winmdobj              Sestaví pomocný soubor modulu Windows Runtime, který
-                              využívá knihovna WinMDExp. (Krátký formát: -t:winmdobj)
--doc:&lt;file&gt;                   Soubor dokumentace XML, který má být vygenerován
--refout:&lt;file&gt;                Výstup referenčního sestavení, který má být vygenerován
--platform:&lt;string&gt;            Omezuje platformy, na kterých lze tento kód spustit: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred nebo
-                              anycpu. Výchozí nastavení je anycpu.
+ - VÝSTUPNÍ SOUBORY -
+-out:&lt;file&gt; Určuje název výstupního souboru (výchozí: základní název
+ souboru s hlavní třídou nebo prvního souboru)
+-target:exe Vytvoří spustitelný soubor konzoly (výchozí). (Krátký
+ formát: -t:exe)
+-target:winexe Vytvoří spustitelný soubor systému Windows. (Krátký formát:
+ -t:winexe)
+-target:library Vytvoří knihovnu. (Krátký formát: -t:library)
+-target:module Vytvoří modul, který se dá přidat do jiného
+ sestavení. (Krátký formát: -t:module)
+-target:appcontainerexe Sestaví spustitelný soubor kontejneru Appcontainer. (Krátký formát:
+ -t:appcontainerexe)
+-target:winmdobj Sestaví pomocný soubor modulu Windows Runtime, který
+ využívá knihovna WinMDExp. (Krátký formát: -t:winmdobj)
+-doc:&lt;file&gt; Soubor dokumentace XML, který má být vygenerován
+-refout:&lt;file&gt; Výstup referenčního sestavení, který má být vygenerován
+-platform:&lt;string&gt; Omezuje platformy, na kterých lze tento kód spustit: x86,
+ Itanium, x64, arm, arm64, anycpu32bitpreferred nebo
+ anycpu. Výchozí nastavení je anycpu.
 
-                       - VSTUPNÍ SOUBORY -
--recurse:&lt;wildcard&gt;           Zahrne všechny soubory v aktuálním adresáři
-                               a jeho podadresářích podle zadaného
-                               zástupného znaku.
--reference:&lt;alias&gt;=&lt;file&gt;     Odkazuje na metadata ze zadaného souboru sestavení
-                              pomocí daného aliasu. (Krátký formát: -r)
--reference:&lt;file list&gt;        Odkazuje na metadata ze zadaných souborů
-                              sestavení (Krátký formát: -r)
--addmodule:&lt;file list&gt;        Připojí zadané moduly k tomuto sestavení.
--link:&lt;file list&gt;             Vloží metadata ze zadaných souborů
-                              sestavení spolupráce (Krátký formát: -l)
--analyzer:&lt;file list&gt;         Spustí analyzátory z tohoto sestavení.
-                              (Krátký formát: -a)
--additionalfile:&lt;file list&gt;   Další soubory, které přímo neovlivňují generování
-                              kódu, ale analyzátory můžou jejich pomocí
-                              produkovat chyby nebo upozornění.
--embed                        Vloží všechny zdrojové soubory do PDB.
--embed:&lt;file list&gt;            Vloží konkrétní soubory do PDB.
+ - VSTUPNÍ SOUBORY -
+-recurse:&lt;wildcard&gt; Zahrne všechny soubory v aktuálním adresáři
+ a jeho podadresářích podle zadaného
+ zástupného znaku.
+-reference:&lt;alias&gt;=&lt;file&gt; Odkazuje na metadata ze zadaného souboru sestavení
+ pomocí daného aliasu. (Krátký formát: -r)
+-reference:&lt;file list&gt; Odkazuje na metadata ze zadaných souborů
+ sestavení (Krátký formát: -r)
+-addmodule:&lt;file list&gt; Připojí zadané moduly k tomuto sestavení.
+-link:&lt;file list&gt; Vloží metadata ze zadaných souborů
+ sestavení spolupráce (Krátký formát: -l)
+-analyzer:&lt;file list&gt; Spustí analyzátory z tohoto sestavení.
+ (Krátký formát: -a)
+-additionalfile:&lt;file list&gt; Další soubory, které přímo neovlivňují generování
+ kódu, ale analyzátory můžou jejich pomocí
+ produkovat chyby nebo upozornění.
+-embed Vloží všechny zdrojové soubory do PDB.
+-embed:&lt;file list&gt; Vloží konkrétní soubory do PDB.
 
-                       - PROSTŘEDKY -
--win32res:&lt;file&gt;              Určuje soubor prostředků Win32 (.res).
--win32icon:&lt;file&gt;             Použije pro výstup zadanou ikonu.
--win32manifest:&lt;file&gt;         Určuje soubor manifestu Win32 (.xml).
--nowin32manifest              Nezahrne výchozí manifest Win32.
--resource:&lt;resinfo&gt;           Vloží zadaný prostředek. (Krátký formát: -res)
--linkresource:&lt;resinfo&gt;       Propojí zadaný prostředek s tímto sestavením.
-                              (Krátký formát: -linkres) Prostředek má formát
-                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]].
+ - PROSTŘEDKY -
+-win32res:&lt;file&gt; Určuje soubor prostředků Win32 (.res).
+-win32icon:&lt;file&gt; Použije pro výstup zadanou ikonu.
+-win32manifest:&lt;file&gt; Určuje soubor manifestu Win32 (.xml).
+-nowin32manifest Nezahrne výchozí manifest Win32.
+-resource:&lt;resinfo&gt; Vloží zadaný prostředek. (Krátký formát: -res)
+-linkresource:&lt;resinfo&gt; Propojí zadaný prostředek s tímto sestavením.
+ (Krátký formát: -linkres) Prostředek má formát
+ is &lt;file&gt;[,&lt;string name&gt;[,public|private]].
 
-                       - GENEROVÁNÍ KÓDU -
--debug[+|-]                   Generuje ladicí informace.
+ - GENEROVÁNÍ KÓDU -
+-debug[+|-] Generuje ladicí informace.
 -debug:{full|pdbonly|portable|embedded}
-                              Určuje typ ladění (výchozí je možnost full,
-                              portable je formát napříč platformami,
-                              embedded je formát napříč platformami vložený do
-                              cílového souboru .dll nebo .exe).
--optimize[+|-]                Povolí optimalizace. (Krátký formát: -o)
--deterministic                Vytvoří deterministické sestavení
-                              (včetně GUID verze modulu a časového razítka).
--refonly                      Vytvoří referenční sestavení na místě hlavního výstupu.
--instrument:TestCoverage      Vytvoří sestavení instrumentované ke shromažďování
-                              informací o pokrytí.
--sourcelink:&lt;file&gt;            Informace o zdrojovém odkazu vkládané do souboru PDB..
+ Určuje typ ladění (výchozí je možnost full,
+ portable je formát napříč platformami,
+ embedded je formát napříč platformami vložený do
+ cílového souboru .dll nebo .exe).
+-optimize[+|-] Povolí optimalizace. (Krátký formát: -o)
+-deterministic Vytvoří deterministické sestavení
+ (včetně GUID verze modulu a časového razítka).
+-refonly Vytvoří referenční sestavení na místě hlavního výstupu.
+-instrument:TestCoverage Vytvoří sestavení instrumentované ke shromažďování
+ informací o pokrytí.
+-sourcelink:&lt;file&gt; Informace o zdrojovém odkazu vkládané do souboru PDB..
 
-                       - CHYBY A UPOZORNĚNÍ -
--warnaserror[+|-]             Hlásí všechna upozornění jako chyby.
+ - CHYBY A UPOZORNĚNÍ -
+-warnaserror[+|-] Hlásí všechna upozornění jako chyby.
 -warnaserror[+|-]:&lt;warn list&gt; Hlásí zadaná upozornění jako chyby.
-                              (Pro všechna upozornění na možnost použití hodnoty null použijte nullable.)
--warn:&lt;n&gt;                     Nastaví úroveň pro upozornění (0 a více). (Krátký formát: -w)
--nowarn:&lt;warn list&gt;           Zakáže zadaná upozornění.
-                              (Pro všechna upozornění na možnost použití hodnoty null použijte nullable.)
--ruleset:&lt;file&gt;               Určuje soubor sady pravidel, která zakazuje
-                              specifickou diagnostiku.
+ (Pro všechna upozornění na možnost použití hodnoty null použijte nullable.)
+-warn:&lt;n&gt; Nastaví úroveň pro upozornění (0 a více). (Krátký formát: -w)
+-nowarn:&lt;warn list&gt; Zakáže zadaná upozornění.
+ (Pro všechna upozornění na možnost použití hodnoty null použijte nullable.)
+-ruleset:&lt;file&gt; Určuje soubor sady pravidel, která zakazuje
+ specifickou diagnostiku.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                              Určuje soubor pro protokolování veškeré
-                              diagnostiky kompilátoru a analyzátoru.
-                              verze_sarif:{1|2|2.1} Výchozí jsou 1. 2 a 2.1.
-                              Obojí znamená SARIF verze 2.1.0.
--reportanalyzer               Hlásí další informace analyzátoru, např.
-                              dobu spuštění.
--skipanalyzers[+|-]           Přeskočí spouštění diagnostických analyzátorů.
+ Určuje soubor pro protokolování veškeré
+ diagnostiky kompilátoru a analyzátoru.
+ verze_sarif:{1|2|2.1} Výchozí jsou 1. 2 a 2.1.
+ Obojí znamená SARIF verze 2.1.0.
+-reportanalyzer Hlásí další informace analyzátoru, např.
+ dobu spuštění.
+-skipanalyzers[+|-] Přeskočí spouštění diagnostických analyzátorů.
 
-                       - JAZYK -
--checked[+|-]                 Generuje kontroly přetečení.
--unsafe[+|-]                  Povoluje nezabezpečený kód.
--define:&lt;symbol list&gt;         Definuje symboly podmíněné kompilace. (Krátký
-                              formát: -d)
--langversion:?                Zobrazuje povolené hodnoty pro verzi jazyka.
--langversion:&lt;string&gt;         Určuje verzi jazyka, například:
-                              latest (poslední verze včetně podverzí),
-                              default (stejné jako latest),
-                              latestmajor (poslední verze bez podverzí),
-                              preview (poslední verze včetně funkcí v nepodporované verzi preview)
-                              nebo konkrétní verze, například 6 nebo 7.1.
--nullable[+|-]                Určuje pro kontext s hodnotou null možnosti enable|disable.
+ - JAZYK -
+-checked[+|-] Generuje kontroly přetečení.
+-unsafe[+|-] Povoluje nezabezpečený kód.
+-define:&lt;symbol list&gt; Definuje symboly podmíněné kompilace. (Krátký
+ formát: -d)
+-langversion:? Zobrazuje povolené hodnoty pro verzi jazyka.
+-langversion:&lt;string&gt; Určuje verzi jazyka, například:
+ latest (poslední verze včetně podverzí),
+ default (stejné jako latest),
+ latestmajor (poslední verze bez podverzí),
+ preview (poslední verze včetně funkcí v nepodporované verzi preview)
+ nebo konkrétní verze, například 6 nebo 7.1.
+-nullable[+|-] Určuje pro kontext s hodnotou null možnosti enable|disable.
 -nullable:{enable|disable|warnings|annotations}
-                              Určuje pro kontext s hodnotou null možnosti enable|disable|warnings|annotations.
+ Určuje pro kontext s hodnotou null možnosti enable|disable|warnings|annotations.
 
-                       - ZABEZPEČENÍ -
--delaysign[+|-]               Vytvoří zpožděný podpis sestavení s využitím
-                              jenom veřejné části klíče silného názvu.
--publicsign[+|-]              Vytvoří veřejný podpis sestavení s využitím jenom veřejné
-                              části klíče silného názvu.
--keyfile:&lt;file&gt;               Určuje soubor klíče se silným názvem.
--keycontainer:&lt;string&gt;        Určuje kontejner klíče se silným názvem.
--highentropyva[+|-]           Povolí ASLR s vysokou entropií.
+ - ZABEZPEČENÍ -
+-delaysign[+|-] Vytvoří zpožděný podpis sestavení s využitím
+ jenom veřejné části klíče silného názvu.
+-publicsign[+|-] Vytvoří veřejný podpis sestavení s využitím jenom veřejné
+ části klíče silného názvu.
+-keyfile:&lt;file&gt; Určuje soubor klíče se silným názvem.
+-keycontainer:&lt;string&gt; Určuje kontejner klíče se silným názvem.
+-highentropyva[+|-] Povolí ASLR s vysokou entropií.
 
-                       - RŮZNÉ -
-@&lt;file&gt;                       Načte další možnosti ze souboru odpovědí.
--help                         Zobrazí tuto zprávu o použití. (Krátký formát: -?)
--nologo                       Potlačí zprávu o autorských právech kompilátoru.
--noconfig                     Nezahrnuje automaticky soubor CSC.RSP.
--parallel[+|-]                Souběžné sestavení.
--version                      Zobrazí číslo verze kompilátoru a ukončí se.
+ - RŮZNÉ -
+@&lt;file&gt; Načte další možnosti ze souboru odpovědí.
+-help Zobrazí tuto zprávu o použití. (Krátký formát: -?)
+-nologo Potlačí zprávu o autorských právech kompilátoru.
+-noconfig Nezahrnuje automaticky soubor CSC.RSP.
+-parallel[+|-] Souběžné sestavení.
+-version Zobrazí číslo verze kompilátoru a ukončí se.
 
-                       - POKROČILÉ -
--baseaddress:&lt;address&gt;        Základní adresa pro knihovnu, která se má sestavit.
--checksumalgorithm:&lt;alg&gt;      Určuje algoritmus pro výpočet kontrolního součtu
-                              zdrojového souboru uloženého v PDB. Podporované hodnoty:
-                              SHA1 nebo SHA256 (výchozí).
--codepage:&lt;n&gt;                 Určuje znakovou stránku, která se má použít
-                              při otevírání zdrojových souborů.
--utf8output                   Určuje výstup zpráv kompilátoru v kódování UTF-8.
--main:&lt;typ&gt;                  Určuje typ obsahující vstupní bod
-                              (ignoruje všechny ostatní potenciální vstupní body). (Krátký
-                              formát: -m)
--fullpaths                    Kompilátor generuje úplné cesty.
--filealign:&lt;n&gt;                Určuje zarovnání použité pro oddíly výstupního
-                              souboru.
+ - POKROČILÉ -
+-baseaddress:&lt;address&gt; Základní adresa pro knihovnu, která se má sestavit.
+-checksumalgorithm:&lt;alg&gt; Určuje algoritmus pro výpočet kontrolního součtu
+ zdrojového souboru uloženého v PDB. Podporované hodnoty:
+ SHA1 nebo SHA256 (výchozí).
+-codepage:&lt;n&gt; Určuje znakovou stránku, která se má použít
+ při otevírání zdrojových souborů.
+-utf8output Určuje výstup zpráv kompilátoru v kódování UTF-8.
+-main:&lt;typ&gt; Určuje typ obsahující vstupní bod
+ (ignoruje všechny ostatní potenciální vstupní body). (Krátký
+ formát: -m)
+-fullpaths Kompilátor generuje úplné cesty.
+-filealign:&lt;n&gt; Určuje zarovnání použité pro oddíly výstupního
+ souboru.
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              Určuje mapování pro výstup zdrojových názvů cest
-                              kompilátorem.
--pdb:&lt;file&gt;                   Určuje název souboru ladicích informací (výchozí:
-                              název výstupního souboru s příponou .pdb).
--errorendlocation             Vypíše řádek a sloupec koncového umístění
-                              jednotlivých chyb.
--preferreduilang              Určuje název upřednostňovaného výstupního jazyka.
--nosdkpath                    Zakazuje hledání cesty k výchozí sadě SDK pro sestavení standardních knihoven.
--nostdlib[+|-]                Neodkazuje na standardní knihovnu (mscorlib.dll).
--subsystemversion:&lt;string&gt;    Určuje verzi subsystému tohoto sestavení.
--lib:&lt;file list&gt;              Určuje další adresáře, ve kterých se mají
-                              hledat reference.
--errorreport:&lt;řetězec&gt;         Určuje způsob zpracování interních chyb kompilátoru:
-                              prompt, send, queue nebo none. Výchozí možnost je
-                              queue (zařadit do fronty).
--appconfig:&lt;file&gt;             Určuje konfigurační soubor aplikace,
-                              který obsahuje nastavení vazby sestavení.
--moduleassemblyname:&lt;string&gt;  Určuje název sestavení, jehož součástí bude
-                              tento modul.
--modulename:&lt;string&gt;          Určuje název zdrojového modulu.
--generatedfilesout:&lt;dir&gt;      Umístí soubory vygenerované během kompilace
-                              do zadaného adresáře.
+ Určuje mapování pro výstup zdrojových názvů cest
+ kompilátorem.
+-pdb:&lt;file&gt; Určuje název souboru ladicích informací (výchozí:
+ název výstupního souboru s příponou .pdb).
+-errorendlocation Vypíše řádek a sloupec koncového umístění
+ jednotlivých chyb.
+-preferreduilang Určuje název upřednostňovaného výstupního jazyka.
+-nosdkpath Zakazuje hledání cesty k výchozí sadě SDK pro sestavení standardních knihoven.
+-nostdlib[+|-] Neodkazuje na standardní knihovnu (mscorlib.dll).
+-subsystemversion:&lt;string&gt; Určuje verzi subsystému tohoto sestavení.
+-lib:&lt;file list&gt; Určuje další adresáře, ve kterých se mají
+ hledat reference.
+-errorreport:&lt;řetězec&gt; Určuje způsob zpracování interních chyb kompilátoru:
+ prompt, send, queue nebo none. Výchozí možnost je
+ queue (zařadit do fronty).
+-appconfig:&lt;file&gt; Určuje konfigurační soubor aplikace,
+ který obsahuje nastavení vazby sestavení.
+-moduleassemblyname:&lt;string&gt; Určuje název sestavení, jehož součástí bude
+ tento modul.
+-modulename:&lt;string&gt; Určuje název zdrojového modulu.
+-generatedfilesout:&lt;dir&gt; Umístí soubory vygenerované během kompilace
+ do zadaného adresáře.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
