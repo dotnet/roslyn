@@ -241,7 +241,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// <summary>
         /// When a symbol node in the window is clicked, move the caret to its position in the latest active text view.
         /// </summary>
-        private void JumpToContent(object sender, EventArgs e)
+        private void SymbolTree_MouseDown(object sender, EventArgs e)
         {
             _threadingContext.ThrowIfNotOnUIThread();
             if (sender is StackPanel panel && panel.DataContext is DocumentSymbolUIItem symbol)
