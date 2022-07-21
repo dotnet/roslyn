@@ -3,17 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
-using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -103,12 +97,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (symbol is null)
                     return null;
 
-                var locations = await LightweightRenameLocations.TryRehydrateAsync(
-                    solution, GetClientOptionsProvider(callbackId), serializableLocations, cancellationToken).ConfigureAwait(false);
+                var locations = await SymbolicRenameLocations.TryRehydrateAsync(
+                    symbol, solution, GetClientOptionsProvider(callbackId), serializableLocations, cancellationToken).ConfigureAwait(false);
                 if (locations == null)
                     return null;
 
-                var result = await locations.ResolveConflictsAsync(symbol, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+                var result = await ConflictResolver.ResolveSymbolicLocationConflictsInCurrentProcessAsync(
+                    locations, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
                 return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }

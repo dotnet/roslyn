@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Rename
     /// Equivalent to <see cref="SymbolicRenameLocations"/> except that references to symbols are kept in a lightweight fashion
     /// to avoid expensive rehydration steps as a host and OOP communicate.
     /// </summary>
-    internal sealed partial class LightweightRenameLocations : IDisposable
+    internal sealed partial class LightweightRenameLocations
     {
         public readonly Solution Solution;
         public readonly SymbolRenameOptions Options;
@@ -101,11 +101,18 @@ namespace Microsoft.CodeAnalysis.Rename
 
                         if (result.HasValue && result.Value != null)
                         {
-                            var rehydrated = await TryRehydrateAsync(
-                                solution, fallbackOptions, result.Value, cancellationToken).ConfigureAwait(false);
-
-                            if (rehydrated != null)
-                                return rehydrated;
+                            var serializableLocations = result.Value;
+                            var rehydratedLocations = await serializableLocations.RehydrateLocationsAsync(solution, cancellationToken).ConfigureAwait(false);
+                            if (rehydratedLocations != null)
+                            {
+                                return new LightweightRenameLocations(
+                                    solution,
+                                    serializableLocations.Options,
+                                    fallbackOptions,
+                                    rehydratedLocations,
+                                    serializableLocations.ImplicitLocations,
+                                    serializableLocations.ReferencedSymbols);
+                            }
                         }
 
                         // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)
