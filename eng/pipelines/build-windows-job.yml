@@ -32,6 +32,8 @@ jobs:
     ${{ if ne(parameters.vmImageName, '') }}:
       vmImage: ${{ parameters.vmImageName }}
   timeoutInMinutes: 40
+  variables:
+    artifactName: ${{ parameters.testArtifactName }}
 
   steps:
     - template: checkout-windows-task.yml
@@ -53,12 +55,14 @@ jobs:
       inputs:
         filePath: eng/prepare-tests.ps1
         arguments: -configuration ${{ parameters.configuration }}
+      condition: and(ne(variables['artifactName'], ''), succeeded())
 
     - task: PublishPipelineArtifact@1
       displayName: Publish Test Payload
       inputs:
         targetPath: '$(Build.SourcesDirectory)\artifacts\testPayload'
         artifactName: ${{ parameters.testArtifactName }}
+      condition: and(ne(variables['artifactName'], ''), succeeded())
 
     - template: publish-logs.yml
       parameters:
