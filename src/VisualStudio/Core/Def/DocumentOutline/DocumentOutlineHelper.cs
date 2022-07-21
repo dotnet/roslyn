@@ -60,8 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 parameterFactory: ParameterFunction,
                 cancellationToken: cancellationToken).ConfigureAwait(false))?.Response;
 
-            // If the LSP server returns a valid response, then the text snapshot used will exist. 
-            return response is null ? null : (response, requestSnapshot!);
+            Contract.ThrowIfNull(requestSnapshot);
+            return response is null ? null : (response, requestSnapshot);
         }
 
         /// <summary>
