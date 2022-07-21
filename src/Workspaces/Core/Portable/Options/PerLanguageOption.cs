@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <inheritdoc cref="PerLanguageOption2{T}"/>
-    public class PerLanguageOption<T> : IPerLanguageOption<T>
+    public class PerLanguageOption<T> : IPerLanguageValuedOption<T>
     {
         private readonly OptionDefinition _optionDefinition;
 

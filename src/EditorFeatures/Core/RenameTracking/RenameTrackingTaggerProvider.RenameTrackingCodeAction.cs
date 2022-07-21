@@ -118,7 +118,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     _threadingContext = threadingContext;
                 }
 
-                internal override async Task<bool> TryApplyAsync(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+                internal override async Task<bool> TryApplyAsync(
+                    Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
                 {
                     var error = await _committer.TryCommitAsync(cancellationToken).ConfigureAwait(false);
                     if (error == null)
