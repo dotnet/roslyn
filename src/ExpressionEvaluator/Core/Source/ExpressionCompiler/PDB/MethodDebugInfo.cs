@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             defaultNamespaceName: "",
             localVariableNames: ImmutableArray<string>.Empty,
             localConstants: ImmutableArray<TLocalSymbol>.Empty,
-            reuseSpan: ILSpan.MaxValue);
+            reuseSpan: ILSpan.MaxValue,
+            containingDocumentName: null,
+            containingDocumentChecksumOpt: default);
 
         /// <summary>
         /// Hoisted local variable scopes.
@@ -41,6 +43,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public readonly ImmutableArray<string> LocalVariableNames;
         public readonly ImmutableArray<TLocalSymbol> LocalConstants;
         public readonly ILSpan ReuseSpan;
+        public readonly string? ContainingDocumentName;
+        public readonly ImmutableArray<byte> ContainingDocumentChecksumOpt;
 
         public MethodDebugInfo(
             ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopeRecords,
@@ -51,7 +55,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             string defaultNamespaceName,
             ImmutableArray<string> localVariableNames,
             ImmutableArray<TLocalSymbol> localConstants,
-            ILSpan reuseSpan)
+            ILSpan reuseSpan,
+            string? containingDocumentName,
+            ImmutableArray<byte> containingDocumentChecksumOpt)
         {
             RoslynDebug.Assert(!importRecordGroups.IsDefault);
             RoslynDebug.Assert(!externAliasRecords.IsDefault);
@@ -69,6 +75,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             LocalVariableNames = localVariableNames;
             LocalConstants = localConstants;
             ReuseSpan = reuseSpan;
+
+            ContainingDocumentName = containingDocumentName;
+            ContainingDocumentChecksumOpt = containingDocumentChecksumOpt;
         }
 
         public ImmutableSortedSet<int> GetInScopeHoistedLocalIndices(int ilOffset, ref ILSpan methodContextReuseSpan)

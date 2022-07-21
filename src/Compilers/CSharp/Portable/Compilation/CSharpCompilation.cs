@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_conversions == null)
                 {
-                    Interlocked.CompareExchange(ref _conversions, new BuckStopsHereBinder(this, associatedSyntaxTree: null).Conversions, null);
+                    Interlocked.CompareExchange(ref _conversions, new BuckStopsHereBinder(this, associatedFileIdentifier: null).Conversions, null);
                 }
 
                 return _conversions;

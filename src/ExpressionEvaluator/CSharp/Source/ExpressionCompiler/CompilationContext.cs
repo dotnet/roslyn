@@ -60,10 +60,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // added (anonymous types, for instance).
             Debug.Assert(Compilation != compilation);
 
+            NamedTypeSymbol.FileIdentifier? identifier = methodDebugInfo.ContainingDocumentName is null
+                ? null
+                : new NamedTypeSymbol.FileIdentifier { DisplayFilePath = methodDebugInfo.ContainingDocumentName, FilePathChecksum = methodDebugInfo.ContainingDocumentChecksumOpt };
+
             NamespaceBinder = CreateBinderChain(
                 Compilation,
                 currentFrame.ContainingNamespace,
-                methodDebugInfo.ImportRecordGroups);
+                methodDebugInfo.ImportRecordGroups,
+                identifier);
 
             if (_methodNotType)
             {
@@ -697,7 +702,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static Binder CreateBinderChain(
             CSharpCompilation compilation,
             NamespaceSymbol @namespace,
-            ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups)
+            ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups,
+            NamedTypeSymbol.FileIdentifier? fileIdentifier)
         {
             var stack = ArrayBuilder<string>.GetInstance();
             while (@namespace is object)
@@ -706,8 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 @namespace = @namespace.ContainingNamespace;
             }
 
-            // https://github.com/dotnet/roslyn/issues/62334: add tests and adjust implementation to allow EE to access file types
-            Binder binder = new BuckStopsHereBinder(compilation, associatedSyntaxTree: null);
+            Binder binder = new BuckStopsHereBinder(compilation, fileIdentifier);
             var hasImports = !importRecordGroups.IsDefaultOrEmpty;
             var numImportStringGroups = hasImports ? importRecordGroups.Length : 0;
             var currentStringGroup = numImportStringGroups - 1;

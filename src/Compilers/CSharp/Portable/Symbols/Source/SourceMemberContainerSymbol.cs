@@ -828,7 +828,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsFileLocal => HasFlag(DeclarationModifiers.File);
 
-        internal sealed override SyntaxTree? AssociatedSyntaxTree => IsFileLocal ? declaration.Declarations[0].Location.SourceTree : null;
+        internal SyntaxTree AssociatedSyntaxTree => declaration.Declarations[0].Location.SourceTree;
+
+        internal sealed override FileIdentifier? AssociatedFileIdentifier
+        {
+            get
+            {
+                if (!IsFileLocal)
+                {
+                    return null;
+                }
+
+                // todo: consider caching this
+                return FileIdentifier.FromSyntaxTree(AssociatedSyntaxTree);
+            }
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool HasFlag(DeclarationModifiers flag) => (_declModifiers & flag) != 0;
@@ -1744,9 +1758,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (IsFileLocal && (object?)ContainingType != null)
+            if (IsFileLocal)
             {
-                diagnostics.Add(ErrorCode.ERR_FileTypeNested, location, this);
+                // A well-behaved file-local type only has declarations in one syntax tree.
+                // There may be multiple syntax trees across declarations in error scenarios,
+                // but we're not interested in handling that for the purposes of producing this error.
+                var tree = declaration.Declarations[0].SyntaxReference.SyntaxTree;
+                // TODO2: we probably don't want to linearly search the syntax trees.
+                // TODO2: handle the same syntax tree instance being passed multiple times to a compilation?
+                foreach (var otherTree in DeclaringCompilation.SyntaxTrees)
+                {
+                    if ((object)tree != otherTree && tree.FilePath == otherTree.FilePath)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_FileTypeNonUniquePath, location, this, tree.FilePath);
+                    }
+                }
+
+                if ((object?)ContainingType != null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeNested, location, this);
+                }
             }
 
             return;

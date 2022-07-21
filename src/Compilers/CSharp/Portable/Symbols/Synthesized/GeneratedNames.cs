@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -495,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<p" + StringExtensions.GetNumeral(ordinal) + ">";
         }
 
-        internal static string MakeFileIdentifier(string filePath, int ordinal)
+        internal static string MakeFileTypeMetadataNamePrefix(string filePath, ImmutableArray<byte> checksum)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var sb = pooledBuilder.Builder;
@@ -503,7 +504,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AppendFileName(filePath, sb);
             sb.Append('>');
             sb.Append((char)GeneratedNameKind.FileType);
-            sb.Append(ordinal);
+            foreach (var b in checksum)
+            {
+                sb.AppendFormat("{0:X2}", b);
+            }
             sb.Append("__");
             return pooledBuilder.ToStringAndFree();
         }

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -64,6 +65,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             ReadMethodCustomDebugInformation(reader, methodHandle, out var hoistedLocalScopes, out var defaultNamespace);
 
+            var documentHandle = reader.GetMethodDebugInformation(methodHandle).Document;
+            var document = reader.GetDocument(documentHandle);
+            var documentName = reader.GetString(document.Name);
+            using var sha256 = SHA256.Create();
+            var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(documentName));
+
             return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                 hoistedLocalScopes,
                 importGroups,
@@ -73,7 +80,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 defaultNamespace,
                 localVariableNames,
                 localConstants,
-                reuseSpan);
+                reuseSpan,
+                documentName,
+                hash.ToImmutableArray());
         }
 
         /// <summary>

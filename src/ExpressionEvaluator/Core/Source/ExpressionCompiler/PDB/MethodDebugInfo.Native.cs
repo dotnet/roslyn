@@ -9,6 +9,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
@@ -170,6 +172,23 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 var reuseSpan = GetReuseSpan(allScopes, ilOffset, isVisualBasicMethod);
 
+                string? name = null;
+                byte[]? checksum = null;
+                if (symReader.GetMethod(methodToken) is ISymEncUnmanagedMethod and ISymUnmanagedMethod methodInfo)
+                {
+                    // We need a receiver of type `ISymUnmanagedMethod` to call the extension `GetDocumentsForMethod()` here.
+                    // We also need to ensure that the receiver implements `ISymEncUnmanagedMethod` to prevent the extension from throwing.
+                    var doc = methodInfo.GetDocumentsForMethod() switch
+                    {
+                        [var singleDocument] => singleDocument,
+                        var documents => throw ExceptionUtilities.UnexpectedValue(documents)
+                    };
+
+                    name = doc.GetName();
+                    using var sha256 = SHA256.Create();
+                    checksum = sha256.ComputeHash(Encoding.UTF8.GetBytes(name));
+                }
+
                 return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                     hoistedLocalScopeRecords,
                     importRecordGroups,
@@ -179,7 +198,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     defaultNamespaceName,
                     containingScopes.GetLocalNames(),
                     constantsBuilder.ToImmutableAndFree(),
-                    reuseSpan);
+                    reuseSpan,
+                    name,
+                    checksum?.ToImmutableArray() ?? default);
             }
             catch (InvalidOperationException)
             {

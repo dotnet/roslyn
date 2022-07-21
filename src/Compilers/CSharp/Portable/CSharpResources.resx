@@ -7151,6 +7151,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FileTypeNameDisallowed" xml:space="preserve">
     <value>Types and aliases cannot be named 'file'.</value>
   </data>
+  <data name="ERR_FileTypeNonUniquePath" xml:space="preserve">
+    <value>File-local type '{0}' must be declared in a file with a unique path. Path '{1}' is used in multiple files.</value>
+  </data>
   <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
     <value>unsigned right shift</value>
   </data>

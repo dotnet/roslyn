@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal class BuckStopsHereBinder : Binder
     {
-        internal BuckStopsHereBinder(CSharpCompilation compilation, SyntaxTree? associatedSyntaxTree)
+        internal BuckStopsHereBinder(CSharpCompilation compilation, NamedTypeSymbol.FileIdentifier? associatedFileIdentifier)
             : base(compilation)
         {
-            this.AssociatedSyntaxTree = associatedSyntaxTree;
+            this.AssociatedFileIdentifier = associatedFileIdentifier;
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// or the binder used to bind usings in <see cref="CSharpCompilation.UsingsFromOptionsAndDiagnostics"/>.
         /// https://github.com/dotnet/roslyn/issues/62332: what about in EE scenarios?
         /// </summary>
-        internal readonly SyntaxTree? AssociatedSyntaxTree;
+        internal readonly NamedTypeSymbol.FileIdentifier? AssociatedFileIdentifier;
 
         internal override ImportChain? ImportChain
         {

@@ -11,6 +11,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -487,8 +489,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var fileIdentifier = this.AssociatedFileIdentifier();
-                // If we have a fileIdentifier, the type will definitely use CLS arity encoding for nonzero arity.
+                var fileIdentifier = this.GetFileLocalTypeMetadataNamePrefix();
+                // If we have a file prefix, the type will definitely use CLS arity encoding for nonzero arity.
                 Debug.Assert(!(fileIdentifier != null && !MangleName && Arity > 0));
                 return fileIdentifier != null || MangleName
                     ? MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity, fileIdentifier)
@@ -497,9 +499,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// If this type is a file-local type, returns the syntax tree where this type is visible. Otherwise, returns null.
+        /// If this type is a file-local type, returns an identifier for the file this type was declared in. Otherwise, returns null.
         /// </summary>
-        internal abstract SyntaxTree? AssociatedSyntaxTree { get; }
+        internal abstract FileIdentifier? AssociatedFileIdentifier { get; }
+
+        internal struct FileIdentifier
+        {
+            public ImmutableArray<byte> FilePathChecksum { get; init; }
+            public string DisplayFilePath { get; init; }
+
+            public static FileIdentifier FromSyntaxTree(SyntaxTree tree)
+            {
+                using var sha256 = SHA256.Create();
+                var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(tree.FilePath));
+                return new FileIdentifier
+                {
+                    FilePathChecksum = ImmutableArray.Create(hash),
+                    DisplayFilePath = tree.FilePath
+                };
+            }
+        }
+
 #nullable disable
 
         /// <summary>

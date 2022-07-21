@@ -331,21 +331,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 Done:
             if (isTopLevel
-                && scope is not PENamespaceSymbol
                 && (emittedTypeName.ForcedArity == -1 || emittedTypeName.ForcedArity == emittedTypeName.InferredArity)
                 && GeneratedNameParser.TryParseFileTypeName(
                     emittedTypeName.UnmangledTypeName,
                     out string? displayFileName,
-                    out int ordinal,
+                    out byte[]? checksum,
                     out string? sourceName))
             {
                 // also do a lookup for file types from source.
                 namespaceOrTypeMembers = scope.GetTypeMembers(sourceName);
                 foreach (var named in namespaceOrTypeMembers)
                 {
-                    if (named.AssociatedSyntaxTree is SyntaxTree tree
-                        && getDisplayName(tree) == displayFileName
-                        && named.DeclaringCompilation.GetSyntaxTreeOrdinal(tree) == ordinal
+                    if (named.AssociatedFileIdentifier is NamedTypeSymbol.FileIdentifier identifier
+                        && getDisplayName(identifier) == displayFileName
+                        && identifier.FilePathChecksum.SequenceEqual(checksum.ToImmutableArray())
                         && named.Arity == emittedTypeName.InferredArity)
                     {
                         if ((object?)namedType != null)
@@ -373,10 +372,10 @@ Done:
 
             return namedType;
 
-            static string getDisplayName(SyntaxTree tree)
+            static string getDisplayName(NamedTypeSymbol.FileIdentifier identifier)
             {
                 var sb = PooledStringBuilder.GetInstance();
-                GeneratedNames.AppendFileName(tree.FilePath, sb);
+                GeneratedNames.AppendFileName(identifier.DisplayFilePath, sb);
                 return sb.ToStringAndFree();
             }
         }

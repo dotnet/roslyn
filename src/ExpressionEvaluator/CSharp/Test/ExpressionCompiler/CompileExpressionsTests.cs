@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Text;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
@@ -703,6 +704,200 @@ class C
   IL_0006:  ldfld      ""object C.<M>d__3.x""
   IL_000b:  ret
 }");
+                });
+        }
+
+        [Fact]
+        public void FileLocalType_01()
+        {
+            var source =
+@"file class C
+{
+    public static int X = 42;
+}
+
+class Program
+{
+    public static void F()
+    {
+    }
+}";
+            var comp = CreateCompilation(SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.RegularPreview /* TODO2 use 11 */, path: "path/to/MyFile.cs", Encoding.Default), options: TestOptions.DebugDll);
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "Program.F");
+                    var assembly = context.CompileExpressions(
+                        ImmutableArray.Create("C.X"),
+                        out var methodTokens,
+                        out var errorMessages);
+                    Assert.NotNull(assembly);
+                    Assert.True(errorMessages.IsEmpty);
+                    Assert.Equal(1, methodTokens.Length);
+                    assembly.VerifyIL(methodTokens[0], "<>x0.<>m0",
+@"    {
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  ldsfld     0x0A000006
+  IL_0005:  ret
+}");
+                });
+        }
+
+        [Fact]
+        public void FileLocalType_02()
+        {
+            var source1 =
+@"file class C
+{
+    public static int X = 42;
+}
+
+class Program
+{
+    public static void F()
+    {
+    }
+}";
+            var source2 =
+@"file class C
+{
+    public static int X = 43;
+}
+";
+            var comp = CreateCompilation(
+                new[]
+                {
+                    SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreview /* TODO2 use 11 */, path: "path/to/Source1.cs", Encoding.Default),
+                    SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreview /* TODO2 use 11 */, path: "path/to/Source2.cs", Encoding.Default)
+                }, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "Program.F");
+                    var assembly = context.CompileExpressions(
+                        ImmutableArray.Create("C.X"),
+                        out var methodTokens,
+                        out var errorMessages);
+                    Assert.Empty(errorMessages);
+                    Assert.NotNull(assembly);
+                    Assert.Equal(1, methodTokens.Length);
+                    assembly.VerifyIL(methodTokens[0], "<>x0.<>m0",
+@"    {
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  ldsfld     0x0A000006
+  IL_0005:  ret
+}");
+                });
+        }
+
+        [Fact]
+        public void FileLocalType_03()
+        {
+            var source1 =
+@"file class Outer
+{
+    public class Inner
+    {
+        public static int X = 42;
+    }
+}
+
+class Program
+{
+    public static void F()
+    {
+    }
+}";
+            var source2 =
+@"file class Outer
+{
+    public class Inner
+    {
+        public static int X = 43;
+    }
+}
+";
+            var comp = CreateCompilation(
+                new[]
+                {
+                    SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreview /* TODO2 use 11 */, path: "path/to/Source1.cs", Encoding.Default),
+                    SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreview /* TODO2 use 11 */, path: "path/to/Source2.cs", Encoding.Default)
+                }, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "Program.F");
+                    var assembly = context.CompileExpressions(
+                        ImmutableArray.Create("Outer.Inner.X"),
+                        out var methodTokens,
+                        out var errorMessages);
+                    Assert.Empty(errorMessages);
+                    Assert.NotNull(assembly);
+                    Assert.Equal(1, methodTokens.Length);
+                    assembly.VerifyIL(methodTokens[0], "<>x0.<>m0",
+@"    {
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  ldsfld     0x0A000006
+  IL_0005:  ret
+}");
+                });
+        }
+
+        [Fact]
+        public void FileLocalType_04()
+        {
+            var source1 =
+@"class Program
+{
+    public static void F()
+    {
+    }
+}";
+            var source2 =
+@"file class C
+{
+    public static int X = 43;
+}
+";
+            var comp = CreateCompilation(
+                new[]
+                {
+                    SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularPreview /* TODO2 use 11 */, path: "path/to/Source1.cs", Encoding.Default),
+                    SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularPreview /* TODO2 use 11 */, path: "path/to/Source2.cs", Encoding.Default)
+                }, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(
+                comp,
+                references: null,
+                includeLocalSignatures: true,
+                includeIntrinsicAssembly: false,
+                validator: runtime =>
+                {
+                    var context = CreateMethodContext(runtime, "Program.F");
+                    var assembly = context.CompileExpressions(
+                        ImmutableArray.Create("C.X"),
+                        out var methodTokens,
+                        out var errorMessages);
+                    Assert.Equal(new[] { "(1,1): error CS0103: The name 'C' does not exist in the current context" }, errorMessages);
+                    Assert.Null(assembly);
+                    Assert.Empty(methodTokens);
                 });
         }
     }
