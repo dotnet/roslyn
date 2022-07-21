@@ -2492,8 +2492,8 @@ _ = x is { Length.Error: > 0 };
                 {
                     int o = t switch
                     {
-                        1 => 1, // 1
-                        > 1 => 2, // 2
+                        1 => 1,
+                        > 1 => 2,
                         _ => 3
                     };
                 }
@@ -2521,8 +2521,8 @@ _ = x is { Length.Error: > 0 };
                 {
                     int o = t switch
                     {
-                        1 => 1, // 1
-                        > 1 => 2, // 2
+                        1 => 1,
+                        > 1 => 2,
                         _ => 3
                     };
                 }
@@ -2531,19 +2531,19 @@ _ = x is { Length.Error: > 0 };
                 {
                     int o = t switch
                     {
-                        1 => 1, // 1
-                        > 1 => 2, // 2
+                        1 => 1,
+                        > 1 => 2,
                         _ => 3
                     };
                 }
 
                 namespace System.Numerics
                 {
-                    public class INumberBase<T1, T2> where T1 : INumberBase<T1, T2>
+                    public interface INumberBase<T1, T2> where T1 : INumberBase<T1, T2>
                     {
                     }
 
-                    public class INumberBase
+                    public interface INumberBase
                     {
                     }
                 }
@@ -2564,8 +2564,8 @@ _ = x is { Length.Error: > 0 };
                 {
                     int o = t switch
                     {
-                        1 => 1, // 1
-                        > 1 => 2, // 2
+                        1 => 1,
+                        > 1 => 2,
                         _ => 3
                     };
                 }
@@ -2593,8 +2593,8 @@ _ = x is { Length.Error: > 0 };
                 {
                     int o = t switch
                     {
-                        1 => 1, // 1
-                        > 1 => 2, // 2
+                        1 => 1,
+                        > 1 => 2,
                         _ => 3
                     };
                 }
