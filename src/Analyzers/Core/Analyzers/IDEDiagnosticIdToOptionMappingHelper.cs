@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -35,32 +36,48 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             => s_diagnosticIdToOptionMap.ContainsKey(diagnosticId) ||
                s_diagnosticIdToLanguageSpecificOptionsMap.Values.Any(map => map.ContainsKey(diagnosticId));
 
-        public static void AddOptionMapping(string diagnosticId, ImmutableHashSet<IPerLanguageValuedOption> perLanguageOptions)
+        public static void AddOptionMapping(string diagnosticId, ImmutableHashSet<IOption2> options)
         {
             diagnosticId = diagnosticId ?? throw new ArgumentNullException(nameof(diagnosticId));
-            perLanguageOptions = perLanguageOptions ?? throw new ArgumentNullException(nameof(perLanguageOptions));
+            options = options ?? throw new ArgumentNullException(nameof(options));
 
-            var options = perLanguageOptions.Cast<IOption2>().ToImmutableHashSet();
-            AddOptionMapping(s_diagnosticIdToOptionMap, diagnosticId, options);
-        }
-
-        public static void AddOptionMapping(string diagnosticId, ImmutableHashSet<ISingleValuedOption> languageSpecificOptions)
-        {
-            diagnosticId = diagnosticId ?? throw new ArgumentNullException(nameof(diagnosticId));
-            languageSpecificOptions = languageSpecificOptions ?? throw new ArgumentNullException(nameof(languageSpecificOptions));
-
-            var groups = languageSpecificOptions.GroupBy(o => o.LanguageName);
+            var groups = options.GroupBy(o => o.IsPerLanguage);
+            var multipleLanguagesOptionsBuilder = ImmutableHashSet.CreateBuilder<IOption2>();
             foreach (var group in groups)
             {
-                var language = group.Key;
-                var map = language switch
+                if (group.Key == true)
                 {
-                    null => s_diagnosticIdToOptionMap,
-                    _ => s_diagnosticIdToLanguageSpecificOptionsMap.GetOrAdd(language, _ => new ConcurrentDictionary<string, ImmutableHashSet<IOption2>>())
-                };
+                    foreach (var perLanguageValuedOption in group)
+                    {
+                        Debug.Assert(perLanguageValuedOption is IPerLanguageValuedOption);
+                        multipleLanguagesOptionsBuilder.Add(perLanguageValuedOption);
+                    }
+                }
+                else
+                {
+                    var languageGroups = group.GroupBy(o => ((ISingleValuedOption)o).LanguageName);
+                    foreach (var languageGroup in languageGroups)
+                    {
+                        var language = languageGroup.Key;
+                        if (language is null)
+                        {
+                            foreach (var option in languageGroup)
+                            {
+                                multipleLanguagesOptionsBuilder.Add(option);
+                            }
+                        }
+                        else
+                        {
+                            var map = s_diagnosticIdToLanguageSpecificOptionsMap.GetOrAdd(language, _ => new ConcurrentDictionary<string, ImmutableHashSet<IOption2>>());
+                            AddOptionMapping(map, diagnosticId, languageGroup.ToImmutableHashSet());
+                        }
+                    }
+                }
+            }
 
-                var options = group.Cast<IOption2>().ToImmutableHashSet();
-                AddOptionMapping(map, diagnosticId, options);
+            if (multipleLanguagesOptionsBuilder.Count > 0)
+            {
+                AddOptionMapping(s_diagnosticIdToOptionMap, diagnosticId, multipleLanguagesOptionsBuilder.ToImmutableHashSet());
             }
         }
 

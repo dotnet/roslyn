@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 : base(codeStyleProvider._descriptorId,
                        codeStyleProvider._enforceOnBuild,
                        codeStyleProvider._option,
-                       codeStyleProvider._language,
                        codeStyleProvider._title,
                        codeStyleProvider._message,
                        isUnnecessary,

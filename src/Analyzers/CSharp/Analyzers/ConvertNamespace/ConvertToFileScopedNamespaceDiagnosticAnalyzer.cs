@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             : base(IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId,
                    EnforceOnBuildValues.UseFileScopedNamespace,
                    CSharpCodeStyleOptions.NamespaceDeclarations,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_to_file_scoped_namespace), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
