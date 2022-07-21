@@ -3610,4 +3610,49 @@ public class FileModifierTests : CSharpTestBase
         Assert.Empty(identifier.GetValueOrDefault().DisplayFilePath);
         Assert.True(type.IsFileLocal);
     }
+
+    [Theory]
+    [CombinatorialData]
+    public void CannotAccessFromMetadata_01(bool useMetadataReference)
+    {
+        // Compare to 'InternalsVisibleToAndStrongNameTests.IVTBasicMetadata'
+        var fileTypeSource = """
+            [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("HasIVTAccess")]
+            file class C1 { public static void M1() {} }
+            """;
+
+        // reused across all compilations to try and trick the binder into thinking it's binding from the same file as 'file class C'.
+        var filePath = "file1.cs";
+
+        var comp0 = CreateCompilation((fileTypeSource, filePath), options: TestOptions.SigningReleaseDll);
+        comp0.VerifyDiagnostics();
+
+        var reference = useMetadataReference ? comp0.ToMetadataReference() : comp0.EmitToImageReference();
+
+        var useFileTypeSource = """
+            class C2
+            {
+                void M2()
+                {
+                    C1.M1();
+                }
+            }
+            """;
+
+        // Whether or not you have an IVT, the compiler won't bind to a file type from a different compilation.
+        verify("DoesNotHaveIVTAccess");
+        verify("HasIVTAccess");
+        void verify(string assemblyName)
+        {
+            var comp1 = CreateCompilation(
+                (useFileTypeSource, filePath),
+                references: new[] { reference },
+                assemblyName: assemblyName,
+                options: TestOptions.SigningReleaseDll);
+            comp1.VerifyDiagnostics(
+                // file1.cs(5,9): error CS0103: The name 'C1' does not exist in the current context
+                //         C1.M1();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "C1").WithArguments("C1").WithLocation(5, 9));
+        }
+    }
 }

@@ -1320,10 +1320,9 @@ symIsHidden:;
                 return true;
             }
 
-            if (symbol is PENamedTypeSymbol && (this.Flags & BinderFlags.InEEMethodBinder) == 0)
+            if ((object)symbol.DeclaringCompilation != this.Compilation
+                && (this.Flags & BinderFlags.InEEMethodBinder) == 0)
             {
-                // A file type from metadata is only accessible in EE scenarios
-                // TODO2: test a file type from metadata with an identical path
                 return false;
             }
 
