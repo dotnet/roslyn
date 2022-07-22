@@ -839,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                // todo: consider caching this
+                // TODO2: consider caching this
                 return FileIdentifier.FromSyntaxTree(AssociatedSyntaxTree);
             }
         }
