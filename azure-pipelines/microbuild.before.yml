@@ -12,3 +12,6 @@ steps:
   inputs:
     signType: $(SignType)
   displayName: Install MicroBuild Signing Plugin
+
+- task: MicroBuildSbomPlugin@1
+  displayName: Install MicroBuild Sbom Plugin

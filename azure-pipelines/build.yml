@@ -36,11 +36,6 @@ jobs:
     - template: microbuild.after.yml
       parameters:
         EnableAPIScan: ${{ parameters.EnableAPIScan }}
-    # Repeat this step to scoop up any artifacts that would only be collected after running microbuild.after.yml
-    - powershell: azure-pipelines/artifacts/_pipelines.ps1 -ArtifactNameSuffix "-$(Agent.JobName)"
-      failOnStderr: true
-      displayName: Publish artifacts
-      condition: succeededOrFailed()
 
   - template: expand-template.yml
 

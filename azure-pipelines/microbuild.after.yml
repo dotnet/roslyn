@@ -13,15 +13,6 @@ steps:
   condition: succeededOrFailed()
   displayName: MicroBuild Cleanup
 
-- task: ManifestGeneratorTask@0
-  displayName: Software Bill of Materials generation
-  inputs:
-    BuildDropPath: $(System.DefaultWorkingDirectory)/bin/Library/$(BuildConfiguration)
-    BuildComponentPath: $(System.DefaultWorkingDirectory)/obj/src/Library
-
-- powershell: Copy-Item -Recurse -Verbose "$(System.DefaultWorkingDirectory)/bin/Library/$(BuildConfiguration)/_manifest" "$(System.DefaultWorkingDirectory)/bin/Packages/$(BuildConfiguration)/NuGet"
-  displayName: Publish Software Bill of Materials
-
 - task: Ref12Analyze@0
   displayName: Ref12 (Codex) Analyze
   inputs:

@@ -1,4 +1,4 @@
-$InsertedPkgs = (& "$PSScriptRoot\..\artifacts\VSInsertion.ps1" -SbomNotRequired)
+$InsertedPkgs = (& "$PSScriptRoot\..\artifacts\VSInsertion.ps1")
 
 $icv=@()
 foreach ($kvp in $InsertedPkgs.GetEnumerator()) {

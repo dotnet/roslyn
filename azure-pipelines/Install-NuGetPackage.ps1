@@ -45,6 +45,8 @@ try {
         $p = Start-Process $nugetPath $nugetArgs -NoNewWindow -Wait -PassThru
         if ($p.ExitCode -ne 0) { throw }
     }
+
+    Write-Output (Get-ChildItem "$PackagesDir\$PackageId.*")[0].FullName
 } finally {
     Pop-Location
 }
