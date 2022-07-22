@@ -134,9 +134,8 @@ namespace Microsoft.CodeAnalysis.Remote
             // !!!CRITICAL!!! Ensure the moment we get the refCountedLazySolution we put it in a using-block.  That way
             // if anything causes us to abort/cancel, we'll reduce the incremented ref-count that GetLazySolutionAsync
             // caused.  Do NOT add anything between this line and the next.
-            var refCountedLazySolution =
-                await TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false) ??
-                await SlowGetOrCreateSolutionAsync(assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch, cancellationToken).ConfigureAwait(false);
+            var refCountedLazySolution = await GetOrCreateSolutionAsync(
+                assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch, cancellationToken).ConfigureAwait(false);
             await using var _ = refCountedLazySolution.ConfigureAwait(false);
 
             // Store this around so that if another call comes through for this same checksum, they will see the
@@ -157,17 +156,6 @@ namespace Microsoft.CodeAnalysis.Remote
             return (newSolution, result);
         }
 
-        private async ValueTask<ReferenceCountedDisposable<LazySolution>?> TryFastGetSolutionAsync(
-            Checksum solutionChecksum,
-            CancellationToken cancellationToken)
-        {
-            // Always return from the primary branch first, so we can use the solutions that were the real solutions of
-            // the workspace, and not ones forked off from that.  This gives the highest likelihood of sharing data and
-            // being able to reuse caches and services shared among all components.
-            return await _primaryBranchSolutionCache.TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false) ??
-                   await _anyBranchSolutionCache.TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-        }
-
         /// <summary>
         /// Sets our quick caches of the last solutions we computed.  That way if return all the way out and something
         /// else calls back in, we have a likely chance of a cache hit.
@@ -184,24 +172,36 @@ namespace Microsoft.CodeAnalysis.Remote
                 await _primaryBranchSolutionCache.SetLastRequestedSolutionAsync(solutionChecksum, solution, cancellationToken).ConfigureAwait(false);
         }
 
-        private async ValueTask<ReferenceCountedDisposable<LazySolution>> SlowGetOrCreateSolutionAsync(
+        private async ValueTask<ReferenceCountedDisposable<LazySolution>> GetOrCreateSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             int workspaceVersion,
             bool updatePrimaryBranch,
             CancellationToken cancellationToken)
         {
-            // First get/create the any-branch version of this solution.
-            var anyBranchRefCountedSolution = await _anyBranchSolutionCache.SlowGetOrCreateSolutionAsync(
-                solutionChecksum,
-                cancellationToken => ComputeSolutionAsync(assetProvider, solutionChecksum, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+            // Always return from the primary branch first, so we can use the solutions that were the real solutions of
+            // this Workspace, and not ones forked off from that.  This gives the highest likelihood of sharing data and
+            // being able to reuse caches and services shared among all components.
+            var primaryBranchRefCountedSolution = await _primaryBranchSolutionCache.TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            if (primaryBranchRefCountedSolution != null)
+                return primaryBranchRefCountedSolution;
+
+            // Otherwise, have the any-branch solution try to find or create the solution.
+            var anyBranchRefCountedSolution =
+                await _anyBranchSolutionCache.TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false) ??
+                await _anyBranchSolutionCache.SlowGetOrCreateSolutionAsync(
+                    solutionChecksum,
+                    cancellationToken => ComputeSolutionAsync(assetProvider, solutionChecksum, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
 
             if (!updatePrimaryBranch)
             {
                 // if we aren't updating the primary branch we're done and can just return the any branch solution
                 return anyBranchRefCountedSolution;
             }
+
+            // We were asked to update the primary branch solution.  So take the any-branch solution and promote it to
+            // the primary-branch-level.
 
             // Ensure we release the ref count on this solution once we're done.
             await using var _ = anyBranchRefCountedSolution.ConfigureAwait(false);
