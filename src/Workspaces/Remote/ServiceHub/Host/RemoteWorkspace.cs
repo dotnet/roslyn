@@ -391,21 +391,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
                     // refcount of 1 (for 'us').
-                    refCountedLazySolution = new LazyRefCountedSolution(
-                        _gate,
-                        getSolutionAsync,
-                        cleanup: () =>
-                        {
-                            // We must already be holding the lock when cleanup is called.
-                            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
-
-                            // Only remove a value from the map if it still exists and holds the same expected instance
-                            if (_solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out var remainingRefCountedLazySolution)
-                                && remainingRefCountedLazySolution == refCountedLazySolution)
-                            {
-                                _solutionChecksumToLazySolution.Remove(solutionChecksum);
-                            }
-                        });
+                    refCountedLazySolution = new LazyRefCountedSolution(this, solutionChecksum, getSolutionAsync);
+                    Contract.ThrowIfFalse(refCountedLazySolution.RefCount == 1);
                     _solutionChecksumToLazySolution.Add(solutionChecksum, refCountedLazySolution);
                     return refCountedLazySolution;
                 }
@@ -432,72 +419,57 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 solutionToDispose?.Dispose();
             }
-        }
 
-#pragma warning disable CA1200 // Avoid using cref tags with a prefix
-        /// <summary>
-        /// This type behaves similar to <see cref="T:Roslyn.Utilities.AsyncLazy{T}"/> (with <c>T</c> being <see
-        /// cref="Solution"/>), except for the following unique characteristics:
-        ///
-        /// <list type="bullet">
-        /// <item><description>This type will start the asynchronous computation in the constructor instead of waiting
-        /// for the first call to <see cref="M:Roslyn.Utilities.AsyncLazy{T}.GetValueAsync(CancellationToken)"/>.</description></item>
-        /// <item><description>This type can be disposed asynchronously to cancel the inner operation and wait for the
-        /// inner operation to complete cancellation processing (similar to <see
-        /// cref="TaskContinuationOptions.LazyCancellation"/>). Since <see cref="T:Roslyn.Utilities.AsyncLazy{T}"/> does
-        /// not directly expose the inner computation, it does not support lazy cancellation
-        /// scenarios.</description></item>
-        /// </list>
-        /// </summary>
-        private sealed class LazyRefCountedSolution : IDisposable
-        {
-            /// <summary>
-            /// Pointer to <see cref="RemoteWorkspace._gate"/>.
-            /// </summary>
-            private readonly SemaphoreSlim _gate;
-
-            private readonly CancellationTokenSource _cancellationTokenSource = new();
-            private readonly Action _cleanup;
-            private readonly Task<Solution> _task;
-
-            private int _refCount;
-
-            // For assertion purposes.
-            public int RefCount => _refCount;
-
-            public LazyRefCountedSolution(SemaphoreSlim gate, Func<CancellationToken, Task<Solution>> getSolutionAsync, Action cleanup)
+            public sealed class LazyRefCountedSolution : IDisposable
             {
-                _gate = gate;
-                _cleanup = cleanup;
-                _task = getSolutionAsync(_cancellationTokenSource.Token);
-                _refCount = 1;
-            }
+                private readonly ChecksumToSolutionCache _cache;
+                private readonly Checksum _solutionChecksum;
+                private readonly CancellationTokenSource _cancellationTokenSource = new();
+                private readonly Task<Solution> _task;
 
-            public Task<Solution> Task => _task;
+                private int _refCount = 1;
 
-            public void AddReference()
-            {
-                // We must be holding this gate when called.
-                Contract.ThrowIfFalse(_gate.CurrentCount == 0);
-                Contract.ThrowIfTrue(_refCount == 0);
-                _refCount++;
-            }
+                // For assertion purposes.
+                public int RefCount => _refCount;
 
-            public void Dispose()
-            {
-                // We must be holding this gate when called.
-                Contract.ThrowIfFalse(_gate.CurrentCount == 0);
-                Contract.ThrowIfTrue(_refCount == 0);
-                _refCount--;
-                if (_refCount == 0)
+                public LazyRefCountedSolution(
+                    ChecksumToSolutionCache cache,
+                    Checksum solutionChecksum,
+                    Func<CancellationToken, Task<Solution>> getSolutionAsync)
                 {
-                    _cancellationTokenSource.Cancel();
-                    _cancellationTokenSource.Dispose();
+                    _cache = cache;
+                    _solutionChecksum = solutionChecksum;
+                    _task = getSolutionAsync(_cancellationTokenSource.Token);
+                }
 
-                    _cleanup();
+                public Task<Solution> Task => _task;
+
+                public void AddReference()
+                {
+                    // We must be holding this gate when called.
+                    Contract.ThrowIfFalse(_cache._gate.CurrentCount == 0);
+                    Contract.ThrowIfTrue(_refCount == 0);
+                    _refCount++;
+                }
+
+                public void Dispose()
+                {
+                    using (_cache._gate.DisposableWait())
+                    {
+                        Contract.ThrowIfTrue(_refCount == 0);
+                        _refCount--;
+                        if (_refCount == 0)
+                        {
+                            _cancellationTokenSource.Cancel();
+                            _cancellationTokenSource.Dispose();
+
+                            Contract.ThrowIfFalse(_cache._solutionChecksumToLazySolution.TryGetValue(_solutionChecksum, out var existingSolution));
+                            Contract.ThrowIfFalse(existingSolution == this);
+                            _cache._solutionChecksumToLazySolution.Remove(_solutionChecksum);
+                        }
+                    }
                 }
             }
         }
-#pragma warning restore CA1200 // Avoid using cref tags with a prefix
     }
 }
