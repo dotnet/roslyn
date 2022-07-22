@@ -200,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 switch (sortOption)
                 {
                     case SortOption.Name:
-                        sortedDocumentSymbols.Sort(static (x, y) => x.Name.CompareTo(y.Name));
+                        sortedDocumentSymbols.Sort(static (x, y) => StringComparer.OrdinalIgnoreCase.Compare(x.Name, y.Name));
                         break;
                     case SortOption.Location:
                         sortedDocumentSymbols.Sort(static (x, y) => x.RangeSpan.Start - y.RangeSpan.Start);
