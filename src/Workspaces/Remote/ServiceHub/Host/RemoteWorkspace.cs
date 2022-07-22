@@ -145,25 +145,28 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 // Ensure we keep this lazy-solution around (and alive in _solutionChecksumToLazySolution as well) as
                 // long as we're processing.
-                ReferenceCountedDisposable<LazySolution>? refCountedLazySolution;
+                ReferenceCountedDisposable<LazySolution> refCountedLazySolution;
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
+
                     if (_lastRequestedPrimaryBranchSolution.checksum == solutionChecksum)
                     {
-                        refCountedLazySolution = _lastRequestedPrimaryBranchSolution.refCountedSolution.TryAddReference();
+                        // Adding references here (and in the 'else' block below) cannot fail.  We only have a matching
+                        // item in .refCountedSolution if it had a reference already added to it when it was placed in
+                        // this cache.  And the only thing that releases that extra item is code that runs while holding
+                        // the same gate that we are holding.  So it's not possible for us to race with anything on
+                        // this, and so we must succeed.
+                        refCountedLazySolution = _lastRequestedPrimaryBranchSolution.refCountedSolution.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
                     }
                     else if (_lastRequestedAnyBranchSolution.checksum == solutionChecksum)
                     {
-                        refCountedLazySolution = _lastRequestedAnyBranchSolution.refCountedSolution.TryAddReference();
+                        refCountedLazySolution = _lastRequestedAnyBranchSolution.refCountedSolution.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
                     }
                     else
                     {
                         return default;
                     }
                 }
-
-                if (refCountedLazySolution == null)
-                    return default;
 
                 await using var configuredAsyncDisposable = refCountedLazySolution.ConfigureAwait(false);
                 var solution = await refCountedLazySolution.Target.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
