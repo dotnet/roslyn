@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Cache of checksums/solutions for requests to update the primary-solution (e.g. the solution this <see
         /// cref="RemoteWorkspace"/> should actually use as its <see cref="Workspace.CurrentSolution"/>).  When requests
         /// come through, we should always try to service them from this cache if possible, or fallback to the
-        /// _anySolutionCache otherwise.
+        /// <see cref="_anyBranchSolutionCache"/> otherwise.
         /// </summary>
         private readonly ChecksumToSolutionCache _primaryBranchSolutionCache;
 
@@ -122,8 +122,7 @@ namespace Microsoft.CodeAnalysis.Remote
             CancellationToken cancellationToken)
         {
             // Trivial case.  See if the checksum being asked for actually corresponds to this workspace's current
-            // solution.  If so, just use that directly:
-
+            // solution.  If so, just use that directly.
             var currentSolution = this.CurrentSolution;
             var currentSolutionChecksum = await currentSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
             if (currentSolutionChecksum == solutionChecksum)
@@ -131,8 +130,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Next, look in our caches to see if we can find the item.
 
-            // !!!CRITICAL!!! Ensure the moment we get the refCountedLazySolution we put it in a using-block.  That way
-            // if anything causes us to abort/cancel, we'll reduce the incremented ref-count that GetLazySolutionAsync
+            // !!!CRITICAL!!! Ensure we immediately place the refCountedLazySolution in a using-block.  That way if
+            // anything causes us to abort/cancel, we'll reduce the incremented ref-count that GetOrCreateSolutionAsync
             // caused.  Do NOT add anything between this line and the next.
             var refCountedLazySolution = await GetOrCreateSolutionAsync(
                 assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch, cancellationToken).ConfigureAwait(false);
@@ -142,7 +141,9 @@ namespace Microsoft.CodeAnalysis.Remote
             // solution we just computed, even if we have returned.  This also ensures that if we promoted a
             // non-primary-solution to a primary-solution that it will now take precedence in all our caches for this
             // particular checksum.
-            await SetLastRequestedSolutionAsync(solutionChecksum, updatePrimaryBranch, refCountedLazySolution, cancellationToken).ConfigureAwait(false);
+            await _anyBranchSolutionCache.SetLastRequestedSolutionAsync(solutionChecksum, refCountedLazySolution, cancellationToken).ConfigureAwait(false);
+            if (updatePrimaryBranch)
+                await _primaryBranchSolutionCache.SetLastRequestedSolutionAsync(solutionChecksum, refCountedLazySolution, cancellationToken).ConfigureAwait(false);
 
             // Actually get the solution, computing it ourselves, or getting the result that another caller was
             // computing. In the event of cancellation, we do not wait here for the refCountedLazySolution to clean up,
@@ -154,22 +155,6 @@ namespace Microsoft.CodeAnalysis.Remote
             var result = await implementation(newSolution).ConfigureAwait(false);
 
             return (newSolution, result);
-        }
-
-        /// <summary>
-        /// Sets our quick caches of the last solutions we computed.  That way if return all the way out and something
-        /// else calls back in, we have a likely chance of a cache hit.
-        /// </summary>
-        private async ValueTask SetLastRequestedSolutionAsync(
-            Checksum solutionChecksum,
-            bool updatePrimaryBranch,
-            ReferenceCountedDisposable<LazySolution> solution,
-            CancellationToken cancellationToken)
-        {
-            await _anyBranchSolutionCache.SetLastRequestedSolutionAsync(solutionChecksum, solution, cancellationToken).ConfigureAwait(false);
-
-            if (updatePrimaryBranch)
-                await _primaryBranchSolutionCache.SetLastRequestedSolutionAsync(solutionChecksum, solution, cancellationToken).ConfigureAwait(false);
         }
 
         private async ValueTask<ReferenceCountedDisposable<LazySolution>> GetOrCreateSolutionAsync(
