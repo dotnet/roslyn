@@ -837,10 +837,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             if (_codeElementTable.TryGetValue(globalNodeKey.NodeKey, out var element))
             {
                 var keyedElement = ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(element);
-                if (keyedElement != null)
-                {
-                    keyedElement.ReacquireNodeKey(globalNodeKey.Path, default);
-                }
+                keyedElement?.ReacquireNodeKey(globalNodeKey.Path, default);
             }
         }
     }

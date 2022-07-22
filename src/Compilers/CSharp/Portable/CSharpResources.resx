@@ -4515,9 +4515,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="InvalidGetDeclarationNameMultipleDeclarators" xml:space="preserve">
     <value>Called GetDeclarationName for a declaration node that can possibly contain multiple variable declarators.</value>
   </data>
-  <data name="TreeNotPartOfCompilation" xml:space="preserve">
-    <value>tree not part of compilation</value>
-  </data>
   <data name="PositionIsNotWithinSyntax" xml:space="preserve">
     <value>Position is not within syntax tree with full span {0}</value>
   </data>
@@ -6436,6 +6433,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion10" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureNotAvailableInVersion11" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</value>
+  </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>
   </data>
@@ -6637,6 +6637,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_AnalyzerReferencesFramework_Title" xml:space="preserve">
     <value>The loaded assembly references .NET Framework, which is not supported.</value>
   </data>
+  <data name="WRN_AnalyzerReferencesNewerCompiler" xml:space="preserve">
+    <value>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
+  </data>
+  <data name="WRN_AnalyzerReferencesNewerCompiler_Title" xml:space="preserve">
+    <value>The analyzer assembly references a newer version of the compiler than the currently running version.</value>
+  </data>
   <data name="ERR_BadFieldTypeInRecord" xml:space="preserve">
     <value>The type '{0}' may not be used for a field of a record.</value>
   </data>
@@ -6768,6 +6774,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RefFieldCannotReferToRefStruct" xml:space="preserve">
     <value>A ref field cannot refer to a ref struct.</value>
+  </data>
+  <data name="ERR_RefFieldInNonRefStruct" xml:space="preserve">
+    <value>A ref field can only be declared in a ref struct.</value>
   </data>
 
   <data name="WRN_UseDefViolationPropertySupportedVersion" xml:space="preserve">
@@ -7124,6 +7133,24 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NewConstraintCannotHaveRequiredMembers" xml:space="preserve">
     <value>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</value>
   </data>
+  <data name="ERR_FileTypeDisallowedInSignature" xml:space="preserve">
+    <value>File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</value>
+  </data>
+  <data name="ERR_FileTypeNoExplicitAccessibility" xml:space="preserve">
+    <value>File-local type '{0}' cannot use accessibility modifiers.</value>
+  </data>
+  <data name="ERR_FileTypeBase" xml:space="preserve">
+    <value>File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</value>
+  </data>
+  <data name="ERR_FileTypeNested" xml:space="preserve">
+    <value>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</value>
+  </data>
+  <data name="ERR_GlobalUsingStaticFileType" xml:space="preserve">
+    <value>File-local type '{0}' cannot be used in a 'global using static' directive.</value>
+  </data>
+  <data name="ERR_FileTypeNameDisallowed" xml:space="preserve">
+    <value>Types and aliases cannot be named 'file'.</value>
+  </data>
   <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
     <value>unsigned right shift</value>
   </data>
@@ -7156,5 +7183,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_BadBinaryReadOnlySpanConcatenation" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</value>
+  </data>
+  <data name="IDS_FeatureFileTypes" xml:space="preserve">
+    <value>file types</value>
+  </data>
+  <data name="IDS_ArrayAccess" xml:space="preserve">
+    <value>array access</value>
+  </data>
+  <data name="IDS_PointerElementAccess" xml:space="preserve">
+    <value>pointer element access</value>
   </data>
 </root>

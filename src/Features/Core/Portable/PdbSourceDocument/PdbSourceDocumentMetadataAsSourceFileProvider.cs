@@ -117,11 +117,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
                     var tmpCompilation = compilationFactory
                         .CreateCompilation("tmp", compilationFactory.GetDefaultCompilationOptions())
-                        .AddReferences(project.MetadataReferences)
                         .AddReferences(dllReference);
 
                     var key = SymbolKey.Create(symbolToFind, cancellationToken);
-                    var newSymbol = key.Resolve(tmpCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                    var resolution = key.Resolve(tmpCompilation, ignoreAssemblyKey: true, cancellationToken);
+                    var newSymbol = resolution.Symbol;
                     if (newSymbol is null)
                     {
                         _logger?.Log(FeaturesResources.Could_not_find_implementation_of_symbol_0, symbolToFind.MetadataName);

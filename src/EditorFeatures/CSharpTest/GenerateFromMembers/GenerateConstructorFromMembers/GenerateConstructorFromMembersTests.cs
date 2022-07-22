@@ -798,6 +798,49 @@ class Z
 }");
         }
 
+        [WorkItem(62162, "https://github.com/dotnet/roslyn/issues/62162")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestUnderscoreInName_KeepIfNameWithoutUnderscoreIsInvalid()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    [|int _0;|]
+}",
+@"class Program
+{
+    int _0;
+
+    public Program(int _0{|Navigation:)|}
+    {
+        this._0 = _0;
+    }
+}");
+        }
+
+        [WorkItem(62162, "https://github.com/dotnet/roslyn/issues/62162")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [InlineData('m')]
+        [InlineData('s')]
+        [InlineData('t')]
+        public async Task TestCommonPatternInName_KeepUnderscoreIfNameWithoutItIsInvalid(char commonPatternChar)
+        {
+            await TestInRegularAndScriptAsync(
+$@"class Program
+{{
+    [|int {commonPatternChar}_0;|]
+}}",
+$@"class Program
+{{
+    int {commonPatternChar}_0;
+
+    public Program(int _0{{|Navigation:)|}}
+    {{
+        {commonPatternChar}_0 = _0;
+    }}
+}}");
+        }
+
         [WorkItem(14219, "https://github.com/dotnet/roslyn/issues/14219")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestUnderscoreInName_PreferThis()

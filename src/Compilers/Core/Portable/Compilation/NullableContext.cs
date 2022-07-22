@@ -37,35 +37,35 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The nullable warning state is inherited from the project default.
-        /// </summary>
-        /// <remarks>
+        /// <para>
         /// The project default can change depending on the file type. Generated
         /// files have nullable off by default, regardless of the project-level
         /// default setting.
-        /// </remarks>
+        /// </para>
+        /// </summary>
         WarningsContextInherited = 1 << 2,
 
         /// <summary>
         /// The nullable annotation state is inherited from the project default.
-        /// </summary>
-        /// <remarks>
+        /// <para>
         /// The project default can change depending on the file type. Generated
         /// files have nullable off by default, regardless of the project-level
         /// default setting.
-        /// </remarks>
+        /// </para>
+        /// </summary>
         AnnotationsContextInherited = 1 << 3,
 
         /// <summary>
         /// The current state of both warnings and annotations are inherited from
         /// the project default.
-        /// </summary>
-        /// <remarks>
+        /// <para>
         /// This flag is set by default at the start of all files.
         ///
         /// The project default can change depending on the file type. Generated
         /// files have nullable off by default, regardless of the project-level
         /// default setting.
-        /// </remarks>
+        /// </para>
+        /// </summary>        
         ContextInherited = WarningsContextInherited | AnnotationsContextInherited
     }
 

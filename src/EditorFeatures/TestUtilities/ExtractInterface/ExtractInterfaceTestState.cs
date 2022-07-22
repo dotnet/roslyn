@@ -130,10 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 
         public void Dispose()
         {
-            if (Workspace != null)
-            {
-                Workspace.Dispose();
-            }
+            Workspace?.Dispose();
         }
     }
 }

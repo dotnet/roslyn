@@ -23,10 +23,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 {
     internal static class ConvertNamespaceTransform
@@ -39,69 +35,93 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                     return await ConvertFileScopedNamespaceAsync(document, fileScopedNamespace, cancellationToken).ConfigureAwait(false);
 
                 case NamespaceDeclarationSyntax namespaceDeclaration:
-                    var (doc, _) = await ConvertNamespaceDeclarationAsync(document, namespaceDeclaration, options, cancellationToken).ConfigureAwait(false);
-                    return doc;
+                    return await ConvertNamespaceDeclarationAsync(document, namespaceDeclaration, options, cancellationToken).ConfigureAwait(false);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(baseNamespace.Kind());
             }
         }
 
-        public static async Task<(Document document, TextSpan semicolonSpan)> ConvertNamespaceDeclarationAsync(Document document, NamespaceDeclarationSyntax namespaceDeclaration, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+        /// <summary>
+        /// Asynchrounous implementation for code fixes.
+        /// </summary>
+        public static async ValueTask<Document> ConvertNamespaceDeclarationAsync(Document document, NamespaceDeclarationSyntax namespaceDeclaration, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         {
-            // First, determine how much indentation we had inside the original block namespace. We'll attempt to remove
+            var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
+            // Replace the block namespace with the file scoped namespace.
+            var annotation = new SyntaxAnnotation();
+            var (updatedRoot, _) = ReplaceWithFileScopedNamespace(parsedDocument, namespaceDeclaration, annotation);
+            var updatedDocument = document.WithSyntaxRoot(updatedRoot);
+
+            // Determine how much indentation we had inside the original block namespace. We'll attempt to remove
+            // that much indentation from each applicable line after we conver the block namespace to a file scoped
+            // namespace.
+            var indentation = GetIndentation(parsedDocument, namespaceDeclaration, options, cancellationToken);
+            if (indentation == null)
+                return updatedDocument;
+
+            // Now, find the file scoped namespace in the updated doc and go and dedent every line if applicable.
+            var updatedParsedDocument = await ParsedDocument.CreateAsync(updatedDocument, cancellationToken).ConfigureAwait(false);
+            var (dedentedText, _) = DedentNamespace(updatedParsedDocument, indentation, annotation, cancellationToken);
+            return document.WithText(dedentedText);
+        }
+
+        /// <summary>
+        /// Synchronous implementation for a command handler.
+        /// </summary>
+        public static (SourceText text, TextSpan semicolonSpan) ConvertNamespaceDeclaration(ParsedDocument document, NamespaceDeclarationSyntax namespaceDeclaration, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+        {
+            // Replace the block namespace with the file scoped namespace.
+            var annotation = new SyntaxAnnotation();
+            var (updatedRoot, semicolonSpan) = ReplaceWithFileScopedNamespace(document, namespaceDeclaration, annotation);
+            var updatedDocument = document.WithChangedRoot(updatedRoot, cancellationToken);
+
+            // Determine how much indentation we had inside the original block namespace. We'll attempt to remove
             // that much indentation from each applicable line after we conver the block namespace to a file scoped
             // namespace.
 
-            var indentation = await GetIndentationAsync(document, namespaceDeclaration, options, cancellationToken).ConfigureAwait(false);
-
-            // Next, actually replace the block namespace with the file scoped namespace.
-            var annotation = new SyntaxAnnotation();
-            var (updatedDocument, semicolonSpan) = await ReplaceWithFileScopedNamespaceAsync(document, namespaceDeclaration, annotation, cancellationToken).ConfigureAwait(false);
+            var indentation = GetIndentation(document, namespaceDeclaration, options, cancellationToken);
+            if (indentation == null)
+                return (updatedDocument.Text, semicolonSpan);
 
             // Now, find the file scoped namespace in the updated doc and go and dedent every line if applicable.
-            if (indentation == null)
-                return (updatedDocument, semicolonSpan);
-
-            return await DedentNamespaceAsync(updatedDocument, indentation, annotation, cancellationToken).ConfigureAwait(false);
+            return DedentNamespace(updatedDocument, indentation, annotation, cancellationToken);
         }
 
-        private static async Task<(Document document, TextSpan semicolonSpan)> ReplaceWithFileScopedNamespaceAsync(
-            Document document, NamespaceDeclarationSyntax namespaceDeclaration, SyntaxAnnotation annotation, CancellationToken cancellationToken)
+        private static (SyntaxNode root, TextSpan semicolonSpan) ReplaceWithFileScopedNamespace(
+            ParsedDocument document, NamespaceDeclarationSyntax namespaceDeclaration, SyntaxAnnotation annotation)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var converted = ConvertNamespaceDeclaration(namespaceDeclaration);
-            var updatedRoot = root.ReplaceNode(
+            var updatedRoot = document.Root.ReplaceNode(
                 namespaceDeclaration,
                 converted.WithAdditionalAnnotations(annotation));
             var fileScopedNamespace = (FileScopedNamespaceDeclarationSyntax)updatedRoot.GetAnnotatedNodes(annotation).Single();
-            return (document.WithSyntaxRoot(updatedRoot), fileScopedNamespace.SemicolonToken.Span);
+            return (updatedRoot, fileScopedNamespace.SemicolonToken.Span);
         }
 
-        private static async Task<string?> GetIndentationAsync(Document document, NamespaceDeclarationSyntax namespaceDeclaration, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+        private static string? GetIndentation(ParsedDocument document, NamespaceDeclarationSyntax namespaceDeclaration, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         {
-            var indentationService = document.GetRequiredLanguageService<IIndentationService>();
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            var openBraceLine = sourceText.Lines.GetLineFromPosition(namespaceDeclaration.OpenBraceToken.SpanStart).LineNumber;
-            var closeBraceLine = sourceText.Lines.GetLineFromPosition(namespaceDeclaration.CloseBraceToken.SpanStart).LineNumber;
+            var openBraceLine = document.Text.Lines.GetLineFromPosition(namespaceDeclaration.OpenBraceToken.SpanStart).LineNumber;
+            var closeBraceLine = document.Text.Lines.GetLineFromPosition(namespaceDeclaration.CloseBraceToken.SpanStart).LineNumber;
             if (openBraceLine == closeBraceLine)
                 return null;
 
             // Auto-formatting options are not relevant since they only control behavior on typing.
             var indentationOptions = new IndentationOptions(options);
 
+            var indentationService = document.LanguageServices.GetRequiredService<IIndentationService>();
             var indentation = indentationService.GetIndentation(document, openBraceLine + 1, indentationOptions, cancellationToken);
 
-            return indentation.GetIndentationString(sourceText, options.UseTabs, options.TabSize);
+            return indentation.GetIndentationString(document.Text, options.UseTabs, options.TabSize);
         }
 
-        private static async Task<(Document document, TextSpan semicolonSpan)> DedentNamespaceAsync(
-            Document document, string indentation, SyntaxAnnotation annotation, CancellationToken cancellationToken)
+        private static (SourceText text, TextSpan semicolonSpan) DedentNamespace(
+            ParsedDocument document, string indentation, SyntaxAnnotation annotation, CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var text = await root.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = document.SyntaxTree;
+            var text = document.Text;
+            var root = document.Root;
 
             var fileScopedNamespace = (FileScopedNamespaceDeclarationSyntax)root.GetAnnotatedNodes(annotation).Single();
             var semicolonLine = text.Lines.GetLineFromPosition(fileScopedNamespace.SemicolonToken.SpanStart).LineNumber;
@@ -111,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 changes.AddIfNotNull(TryDedentLine(syntaxTree, text, indentation, text.Lines[line], cancellationToken));
 
             var dedentedText = text.WithChanges(changes);
-            return (document.WithText(dedentedText), fileScopedNamespace.SemicolonToken.Span);
+            return (dedentedText, fileScopedNamespace.SemicolonToken.Span);
         }
 
         private static TextChange? TryDedentLine(
