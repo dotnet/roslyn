@@ -62,10 +62,10 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             isUnnecessary: true);
 
         protected SimplifyTypeNamesDiagnosticAnalyzerBase()
-            : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
-                  .Add(s_descriptorSimplifyNames, null!)
-                  .Add(s_descriptorSimplifyMemberAccess, null!)
-                  .Add(s_descriptorPreferBuiltinOrFrameworkType, null!)) // PROTOTYPE: TODO: This was already broken. We have no ctor that matches what this analyzer has (ie, multiple descriptors, with one descriptor having more than one option).
+            : base(ImmutableDictionary<DiagnosticDescriptor, ImmutableHashSet<IOption2>>.Empty
+                  .Add(s_descriptorSimplifyNames, ImmutableHashSet<IOption2>.Empty)
+                  .Add(s_descriptorSimplifyMemberAccess, ImmutableHashSet<IOption2>.Empty)
+                  .Add(s_descriptorPreferBuiltinOrFrameworkType, ImmutableHashSet.Create<IOption2>(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
         {
         }
 
