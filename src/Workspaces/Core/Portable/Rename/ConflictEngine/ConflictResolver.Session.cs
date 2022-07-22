@@ -759,7 +759,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 Solution originalSolution,
                 Solution partiallyRenamedSolution,
                 HashSet<DocumentId> documentIdsToRename,
-                ISet<RenameLocation> renameLocations,
+                ImmutableArray<RenameLocation> renameLocations,
                 RenamedSpansTracker renameSpansTracker,
                 bool replacementTextValid)
             {
@@ -839,14 +839,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             /// one location it must be the correct one (the symbol is ambiguous to something else)
             /// and we always try to rewrite it.  If there are multiple locations, we only allow it
             /// if the candidate reason allows for it).
-            private static bool ShouldIncludeLocation(ISet<RenameLocation> renameLocations, RenameLocation location)
+            private static bool ShouldIncludeLocation(ImmutableArray<RenameLocation> renameLocations, RenameLocation location)
             {
                 if (location.IsRenameInStringOrComment)
                 {
                     return false;
                 }
 
-                if (renameLocations.Count == 1)
+                if (renameLocations.Length == 1)
                 {
                     return true;
                 }
