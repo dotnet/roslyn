@@ -193,11 +193,12 @@ namespace Microsoft.CodeAnalysis.Remote
             // Ensure we release the ref count on this solution once we're done.
             await using var _ = anyBranchRefCountedSolution.ConfigureAwait(false);
 
+            var anyBranchSolution = await anyBranchRefCountedSolution.Target.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
+
             return await _primaryBranchSolutionCache.SlowGetOrCreateSolutionAsync(
                 solutionChecksum,
                 async cancellationToken =>
                 {
-                    var anyBranchSolution = await anyBranchRefCountedSolution.Target.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
                     var (primaryBranchSolution, _) = await this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, anyBranchSolution, cancellationToken).ConfigureAwait(false);
                     return primaryBranchSolution;
                 },
