@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
@@ -23,12 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             bool configurable)
         {
             // 'isUnnecessary' should be true only for sub-types of AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer.
-            // NOTE: AbstractParenthesesDiagnosticAnalyzer is an exception as it is a common sub-type for
-            // AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer (unnecessary code analyzer) and
-            // AbstractAddRequiredParenthesesDiagnosticAnalyzer (non-unnecessary code analyzer).
-            Debug.Assert(!isUnnecessary
-                || this is AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
-                || this is AbstractParenthesesDiagnosticAnalyzer);
+            Debug.Assert(!isUnnecessary || this is AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer);
 
             Descriptor = CreateDescriptorWithId(descriptorId, enforceOnBuild, title, messageFormat ?? title, isUnnecessary: isUnnecessary, isConfigurable: configurable);
             SupportedDiagnostics = ImmutableArray.Create(Descriptor);

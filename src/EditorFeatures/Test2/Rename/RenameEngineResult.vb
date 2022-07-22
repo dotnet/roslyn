@@ -127,14 +127,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Dim locations = Renamer.FindRenameLocationsAsync(
                     solution, symbol, renameOptions, CodeActionOptions.DefaultProvider, CancellationToken.None).GetAwaiter().GetResult()
 
-                Return locations.ResolveConflictsAsync(renameTo, nonConflictSymbols:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
+                Return locations.ResolveConflictsAsync(symbol, renameTo, nonConflictSymbolKeys:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
             Else
                 ' This tests that rename properly works when the entire call is remoted to OOP and the final result is
                 ' marshaled back.
 
                 Return Renamer.RenameSymbolAsync(
                     solution, symbol, renameTo, renameOptions, CodeActionOptions.DefaultProvider,
-                    nonConflictSymbols:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
+                    nonConflictSymbolKeys:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
             End If
         End Function
 
