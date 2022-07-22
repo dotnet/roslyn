@@ -26,9 +26,10 @@ namespace Microsoft.CodeAnalysis.Rename
     internal interface IRemoteRenamerService
     {
         // TODO https://github.com/microsoft/vs-streamjsonrpc/issues/789 
-        internal interface ICallback // : IRemoteOptionsCallback<CodeCleanupOptions>
+        internal interface ICallback
         {
             ValueTask<CodeCleanupOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken);
+            ValueTask KeepAliveAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
         }
 
         /// <summary>
@@ -38,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// </summary>
         ValueTask KeepAliveAsync(
             Checksum solutionChecksum,
+            RemoteServiceCallbackId callbackId,
             CancellationToken cancellationToken);
 
         /// <summary>
@@ -82,6 +84,9 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public ValueTask<CodeCleanupOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
             => ((RemoteOptionsProvider<CodeCleanupOptions>)GetCallback(callbackId)).GetOptionsAsync(language, cancellationToken);
+
+        public ValueTask KeepAliveAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+            => ((LightweightRenameLocations.IKeepAliveConnection)GetCallback(callbackId)).KeepAliveAsync();
     }
 
     [DataContract]

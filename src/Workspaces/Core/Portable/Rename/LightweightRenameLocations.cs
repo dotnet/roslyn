@@ -23,16 +23,33 @@ namespace Microsoft.CodeAnalysis.Rename
     /// </summary>
     internal sealed partial class LightweightRenameLocations
     {
-        private sealed class KeepAliveConnection : IDisposable
+        internal interface IKeepAliveConnection
+        {
+            ValueTask KeepAliveAsync();
+        }
+
+        private sealed class KeepAliveConnection : IDisposable, IKeepAliveConnection
         {
             private readonly CancellationTokenSource _cancellationTokenSource = new();
 
+            /// <summary>
+            /// Used to keep track if <see cref="KeepAliveAsync"/> has been called by the oop server.
+            /// </summary>
+            private readonly TaskCompletionSource<bool> _keepAliveCalledSource = new();
+
             public CancellationToken CancellationToken => _cancellationTokenSource.Token;
+            public Task KeepAliveCalledTask => _keepAliveCalledSource.Task;
 
             public void Dispose()
             {
                 _cancellationTokenSource.Cancel();
                 _cancellationTokenSource.Dispose();
+            }
+
+            public ValueTask KeepAliveAsync()
+            {
+                _keepAliveCalledSource.TrySetResult(false);
+                return default;
             }
         }
 
@@ -140,13 +157,18 @@ namespace Microsoft.CodeAnalysis.Rename
 
             // Create an initial connection with a ref-count of 1.  This ensures that if we fail on any step below,
             // we'll dispose of the connection.
-            using var keepAliveConnection = new ReferenceCountedDisposable<KeepAliveConnection>(new KeepAliveConnection());
+            var keepAliveConnection = new KeepAliveConnection();
+            using var keepAliveConnectionDisposable = new ReferenceCountedDisposable<KeepAliveConnection>(keepAliveConnection);
 
             // Kick off the keep alive task.  It will terminate when the above connection is finally disposed.
             var keepAliveTask = client.TryInvokeAsync<IRemoteRenamerService>(
                 solution,
-                (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, cancellationToken),
-                keepAliveConnection.Target.CancellationToken);
+                (service, solutionInfo, callbackId, cancellationToken) => service.KeepAliveAsync(solutionInfo, callbackId, cancellationToken),
+                callbackTarget: keepAliveConnection,
+                keepAliveConnection.CancellationToken);
+
+            // wait for OOP to call back into us.  Once they do, we'll know they've pinned this solution.
+            await keepAliveConnection.KeepAliveCalledTask.ConfigureAwait(false);
 
             var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableRenameLocations?>(
                 solution,
@@ -165,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Rename
             // We successfully retrieved locations.  Pass the keep-alive connection to it.  It will up the ref-count to
             // 2, which will then go back to 1 when we dispose it here.
             return new LightweightRenameLocations(
-                keepAliveConnection,
+                keepAliveConnectionDisposable,
                 solution,
                 serializableLocations.Options,
                 fallbackOptions,
