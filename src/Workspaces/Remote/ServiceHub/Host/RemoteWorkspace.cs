@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 using static Microsoft.VisualStudio.Threading.ThreadingTools;
@@ -139,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // Actually get the solution, computing it ourselves, or getting the result that another caller was
             // computing. In the event of cancellation, we do not wait here for the refCountedLazySolution to clean up,
             // even if this was the last use of this solution.
-            var newSolution = await refCountedLazySolution.Target.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
+            var newSolution = await refCountedLazySolution.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
 
             // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
             // using this same solution as well
@@ -148,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return (newSolution, result);
         }
 
-        private async ValueTask<ReferenceCountedDisposable<LazySolution>> GetOrCreateSolutionAsync(
+        private async ValueTask<LazyRefCountedSolution> GetOrCreateSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             int workspaceVersion,
@@ -183,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // Ensure we release the ref count on this solution once we're done.
             await using var _ = anyBranchRefCountedSolution.ConfigureAwait(false);
 
-            var anyBranchSolution = await anyBranchRefCountedSolution.Target.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
+            var anyBranchSolution = await anyBranchRefCountedSolution.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
 
             return await _primaryBranchSolutionCache.SlowGetOrCreateSolutionAsync(
                 solutionChecksum,
@@ -342,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Remote
             /// updates, we can cache and keep the solution around instead of having to recompute it.
             /// </summary>
             private Checksum? _lastRequestedChecksum;
-            private ReferenceCountedDisposable<LazySolution>? _lastRequestedSolution;
+            private LazyRefCountedSolution? _lastRequestedSolution;
 
             /// <summary>
             /// Mapping from solution-checksum to the solution computed for it.  This is used so that we can hold a
@@ -350,14 +349,14 @@ namespace Microsoft.CodeAnalysis.Remote
             /// classification).  As long as we're holding onto it, concurrent feature requests for the same solution
             /// checksum can share the computation of that particular solution and avoid duplicated concurrent work.
             /// </summary>
-            private readonly Dictionary<Checksum, ReferenceCountedDisposable<LazySolution>> _solutionChecksumToLazySolution = new();
+            private readonly Dictionary<Checksum, LazyRefCountedSolution> _solutionChecksumToLazySolution = new();
 
             public ChecksumToSolutionCache(SemaphoreSlim gate)
             {
                 _gate = gate;
             }
 
-            public async ValueTask<ReferenceCountedDisposable<LazySolution>?> TryFastGetSolutionAsync(
+            public async ValueTask<LazyRefCountedSolution?> TryFastGetSolutionAsync(
                 Checksum solutionChecksum,
                 CancellationToken cancellationToken)
             {
@@ -385,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            public async ValueTask<ReferenceCountedDisposable<LazySolution>> SlowGetOrCreateSolutionAsync(
+            public async ValueTask<LazyRefCountedSolution> SlowGetOrCreateSolutionAsync(
                 Checksum solutionChecksum, Func<CancellationToken, Task<Solution>> getSolutionAsync, CancellationToken cancellationToken)
             {
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
@@ -403,8 +402,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
                     // refcount of 1 (for 'us').
-                    refCountedLazySolution = null;
-                    var lazySolution = new LazySolution(
+                    refCountedLazySolution = new LazyRefCountedSolution(
                         getSolutionAsync,
                         cleanupAsync: async () =>
                         {
@@ -421,18 +419,17 @@ namespace Microsoft.CodeAnalysis.Remote
                                 _solutionChecksumToLazySolution.Remove(solutionChecksum);
                             }
                         });
-                    refCountedLazySolution = new ReferenceCountedDisposable<LazySolution>(lazySolution);
                     _solutionChecksumToLazySolution.Add(solutionChecksum, refCountedLazySolution);
                     return refCountedLazySolution;
                 }
             }
 
-            public async Task SetLastRequestedSolutionAsync(Checksum solutionChecksum, ReferenceCountedDisposable<LazySolution> solution, CancellationToken cancellationToken)
+            public async Task SetLastRequestedSolutionAsync(Checksum solutionChecksum, LazyRefCountedSolution solution, CancellationToken cancellationToken)
             {
                 // Collect the existing solution we're pointing at so we can decrease its ref count.  Do this out of the
                 // lock to prevent deadlocks when DisposeAsync runs and potentally calls back to remove the item from
                 // the dictionary.
-                ReferenceCountedDisposable<LazySolution>? solutionToDispose;
+                LazyRefCountedSolution? solutionToDispose;
 
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -465,28 +462,50 @@ namespace Microsoft.CodeAnalysis.Remote
         /// scenarios.</description></item>
         /// </list>
         /// </summary>
-        private sealed class LazySolution : IAsyncDisposable, IDisposable
+        private sealed class LazyRefCountedSolution : IAsyncDisposable
         {
             private readonly CancellationTokenSource _cancellationTokenSource = new();
             private readonly Func<Task> _cleanupAsync;
             private readonly Task<Solution> _task;
 
-            public LazySolution(Func<CancellationToken, Task<Solution>> getSolutionAsync, Func<Task> cleanupAsync)
+            private int _refCount;
+
+            public LazyRefCountedSolution(Func<CancellationToken, Task<Solution>> getSolutionAsync, Func<Task> cleanupAsync)
             {
                 _cleanupAsync = cleanupAsync;
                 _task = getSolutionAsync(_cancellationTokenSource.Token);
+                _refCount = 1;
             }
 
             public Task<Solution> Task => _task;
 
-            void IDisposable.Dispose()
+            public LazyRefCountedSolution? TryAddReference()
             {
-                // This type is only used as IAsyncDisposable, but needs to implement IDisposable for wrapping within
-                // ReferenceCountedDisposable<T>.
-                throw ExceptionUtilities.Unreachable;
+                lock (this)
+                {
+                    if (_refCount == 0)
+                        return null;
+
+                    _refCount++;
+                    return this;
+                }
             }
 
             public async ValueTask DisposeAsync()
+            {
+                var dispose = false;
+                lock (this)
+                {
+                    Contract.ThrowIfTrue(_refCount == 0);
+                    _refCount--;
+                    dispose = _refCount == 0;
+                }
+
+                if (dispose)
+                    await this.ReleaseResourcesAsync().ConfigureAwait(false);
+            }
+
+            private async ValueTask ReleaseResourcesAsync()
             {
                 _cancellationTokenSource.Cancel();
                 _cancellationTokenSource.Dispose();
