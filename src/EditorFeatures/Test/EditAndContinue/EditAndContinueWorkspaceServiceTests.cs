@@ -1836,6 +1836,7 @@ class C { int Y => 2; }
             EnterBreakState(debuggingSession);
 
             Assert.Equal(1, generatorExecutionCount);
+            var changedOrAddedDocuments = new PooledObjects.ArrayBuilder<Document>();
 
             //
             // Add document
@@ -1863,6 +1864,9 @@ class C { int Y => 2; }
             AssertEx.Equal(new[] { generatedDocumentId },
                 await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
+            await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, CancellationToken.None);
+            AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId, generatedDocumentId } : new[] { generatedDocumentId }, changedOrAddedDocuments.Select(d => d.Id));
+
             Assert.Equal(1, generatorExecutionCount);
 
             // 
@@ -1888,6 +1892,9 @@ class C { int Y => 2; }
             AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId } : Array.Empty<DocumentId>(),
                 await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
+            await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, CancellationToken.None);
+            Assert.Empty(changedOrAddedDocuments);
+
             Assert.Equal(1, generatorExecutionCount);
 
             //
@@ -1908,6 +1915,9 @@ class C { int Y => 2; }
 
             AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId, generatedDocumentId } : new[] { generatedDocumentId },
                 await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
+
+            await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, CancellationToken.None);
+            AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId, generatedDocumentId } : new[] { generatedDocumentId }, changedOrAddedDocuments.Select(d => d.Id));
 
             Assert.Equal(1, generatorExecutionCount);
 
@@ -1931,6 +1941,9 @@ class C { int Y => 2; }
 
             AssertEx.Equal(new[] { generatedDocumentId },
                 await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
+
+            await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, CancellationToken.None);
+            AssertEx.Equal(new[] { generatedDocumentId }, changedOrAddedDocuments.Select(d => d.Id));
 
             Assert.Equal(1, generatorExecutionCount);
         }
