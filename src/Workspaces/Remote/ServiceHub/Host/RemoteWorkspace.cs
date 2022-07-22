@@ -121,16 +121,6 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
-            // Trivial case.  See if the checksum being asked for actually corresponds to this workspace's current
-            // solution.  If so, just use that directly:
-
-            var currentSolution = this.CurrentSolution;
-            var currentSolutionChecksum = await currentSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-            if (currentSolutionChecksum == solutionChecksum)
-                return (currentSolution, await implementation(currentSolution).ConfigureAwait(false));
-
-            // Next, look in our caches to see if we can find the item.
-
             // !!!CRITICAL!!! Ensure we immediately place the refCountedLazySolution in a using-block.  That way if
             // anything causes us to abort/cancel, we'll reduce the incremented ref-count that GetOrCreateSolutionAsync
             // caused.  Do NOT add anything between this line and the next.
