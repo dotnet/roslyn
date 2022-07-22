@@ -15,24 +15,11 @@ namespace Microsoft.CodeAnalysis
     /// A small struct that holds the values that define the identity of a source generated document, and don't change
     /// as new generations happen. This is mostly for convenience as we are reguarly working with this combination of values.
     /// </summary>
-    internal readonly struct SourceGeneratedDocumentIdentity : IObjectWritable, IEquatable<SourceGeneratedDocumentIdentity>
+    internal readonly record struct SourceGeneratedDocumentIdentity
+        (DocumentId DocumentId, string HintName, string GeneratorAssemblyName, string GeneratorTypeName, string FilePath)
+        : IObjectWritable, IEquatable<SourceGeneratedDocumentIdentity>
     {
-        public DocumentId DocumentId { get; }
-        public string HintName { get; }
-        public string GeneratorAssemblyName { get; }
-        public string GeneratorTypeName { get; }
-        public string FilePath { get; }
-
         public bool ShouldReuseInSerialization => true;
-
-        public SourceGeneratedDocumentIdentity(DocumentId documentId, string hintName, string generatorAssemblyName, string generatorTypeName, string filePath)
-        {
-            DocumentId = documentId;
-            HintName = hintName;
-            GeneratorAssemblyName = generatorAssemblyName;
-            GeneratorTypeName = generatorTypeName;
-            FilePath = filePath;
-        }
 
         public static string GetGeneratorTypeName(ISourceGenerator generator)
         {
@@ -99,39 +86,6 @@ namespace Microsoft.CodeAnalysis
             var filePath = reader.ReadString();
 
             return new SourceGeneratedDocumentIdentity(documentId, hintName, generatorAssemblyName, generatorTypeName, filePath);
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is SourceGeneratedDocumentIdentity identity && Equals(identity);
-        }
-
-        public bool Equals(SourceGeneratedDocumentIdentity other)
-        {
-            return EqualityComparer<DocumentId>.Default.Equals(DocumentId, other.DocumentId) &&
-                   HintName == other.HintName &&
-                   GeneratorAssemblyName == other.GeneratorAssemblyName &&
-                   GeneratorTypeName == other.GeneratorTypeName &&
-                   FilePath == other.FilePath;
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(DocumentId,
-                   Hash.Combine(HintName,
-                   Hash.Combine(GeneratorAssemblyName,
-                   Hash.Combine(GeneratorTypeName,
-                   Hash.Combine(FilePath, 0)))));
-        }
-
-        public static bool operator ==(SourceGeneratedDocumentIdentity left, SourceGeneratedDocumentIdentity right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(SourceGeneratedDocumentIdentity left, SourceGeneratedDocumentIdentity right)
-        {
-            return !(left == right);
         }
     }
 }
