@@ -164,14 +164,15 @@ namespace Microsoft.CodeAnalysis.Remote
             bool updatePrimaryBranch,
             CancellationToken cancellationToken)
         {
-            // Always return from the primary branch first, so we can use the solutions that were the real solutions of
-            // this Workspace, and not ones forked off from that.  This gives the highest likelihood of sharing data and
-            // being able to reuse caches and services shared among all components.
+            // Always try to retrieve cached solutions from the primary branch first.  That way we can use the solutions
+            // that were the real solutions of this Workspace, and not ones forked off from that.  This gives the
+            // highest likelihood of sharing data and being able to reuse caches and services shared among all
+            // components.
             var primaryBranchRefCountedSolution = await _primaryBranchSolutionCache.TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
             if (primaryBranchRefCountedSolution != null)
                 return primaryBranchRefCountedSolution;
 
-            // Otherwise, have the any-branch solution try to find or create the solution.
+            // Otherwise, have the any-branch solution try to retrieve or create the solution.
             var anyBranchRefCountedSolution =
                 await _anyBranchSolutionCache.TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false) ??
                 await _anyBranchSolutionCache.SlowGetOrCreateSolutionAsync(
@@ -181,18 +182,16 @@ namespace Microsoft.CodeAnalysis.Remote
 
             if (!updatePrimaryBranch)
             {
-                // if we aren't updating the primary branch we're done and can just return the any branch solution
+                // if we aren't updating the primary branch we're done and can just return the any-branch solution
                 return anyBranchRefCountedSolution;
             }
 
-            // We were asked to update the primary branch solution.  So take the any-branch solution and promote it to
+            // We were asked to update the primary-branch solution.  So take the any-branch solution and promote it to
             // the primary-branch-level.
-
+            //
             // Ensure we release the ref count on this solution once we're done.
             await using var _ = anyBranchRefCountedSolution.ConfigureAwait(false);
 
-            // Now, actually have the primary branch cache attempt to realize its primary-branch-solution equivalent of
-            // the any-branch-solution above.
             return await _primaryBranchSolutionCache.SlowGetOrCreateSolutionAsync(
                 solutionChecksum,
                 async cancellationToken =>
