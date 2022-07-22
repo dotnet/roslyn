@@ -133,16 +133,17 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
-            // Attempt to quickly get the solution from our caches, or fallback to computing it more slowly and then
-            // storing in the caches.
-
             // !!!CRITICAL!!! Ensure the moment we get the refCountedLazySolution we put it in a using-block.  That way
             // if anything causes us to abort/cancel, we'll reduce the incremented ref-count that GetLazySolutionAsync
             // caused.  Do NOT add anything between this line and the next.
-            var refCountedLazySolution = await GetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            var refCountedLazySolution = await GetSolutionAsync(
+                assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, cancellationToken).ConfigureAwait(false);
+            await using var configuredAsyncDisposable = refCountedLazySolution.ConfigureAwait(false);
 
             // Store this around so that if another call comes through for this same checksum, they will see the
-            // solution we just computed, even if we have returned.
+            // solution we just computed, even if we have returned.  This also ensures that if we promoted a
+            // non-primary-solution to a primary-solution that it will now take precedence in all our caches for this
+            // particular checksum.
             await SetLastRequestedSolutionAsync(solutionChecksum, fromPrimaryBranch, refCountedLazySolution, cancellationToken).ConfigureAwait(false);
 
             // Actually get the solution, computing it ourselves, or getting the result that another caller was
@@ -172,31 +173,24 @@ namespace Microsoft.CodeAnalysis.Remote
             // caused.  Do NOT add anything between this line and the next.
             var refCountedLazySolution =
                 await TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false) ??
-                await SlowGetSolutionAsync(
-                    assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, cancellationToken).ConfigureAwait(false);
+                await SlowGetSolutionAsync(assetProvider, solutionChecksum, cancellationToken).ConfigureAwait(false);
             await using var configuredAsyncDisposable = refCountedLazySolution.ConfigureAwait(false);
 
-            // Note: we may have found a solution instance corresponding to this checksum, but which does not match on
-            // the 'primary branch' data information.  in other words, we may have first synced a solution over *not* a
-            // the primary branch, but the later gotten a request to synchronize that same solution, now as the primary
-            // branch.  in this case, we want to take the previously synchronized solution, make it into a
-            // primary-brnach solution, and have this checksum now point at that instead.
-
+            // If this checksum is for a primary-branch-solution, then attempt to promote the solution we found (which
+            // might not be a primary-branch-solution) to that status.  Note: this may produce a *new* solution instance.
+            // Our caller is responsible for updating all caches to then point at this new solution instance.
             if (!fromPrimaryBranch)
             {
                 // Wasn't from the primary branch, don't need to do anything.
                 return refCountedLazySolution.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
             }
 
-            // Was from the primary branch, attempt to promise this solution if possible.
             var solution = await refCountedLazySolution.Target.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
-            var (newSolution, _) = await this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, solution, cancellationToken).ConfigureAwait(false);
+            var (newSolution, updated) = await TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, solution, cancellationToken).ConfigureAwait(false);
 
-            // We didn't actually do the promotion.  So can just return this solution instance directly.
-            if (solution == newSolution)
-                return refCountedLazySolution.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
 
-            // The solution was promoted.
+            return await PromoteSolutionToPrimaryBranchAsync(refCountedLazySolution, workspaceVersion, cancellationToken).ConfigureAwait(false);
+
         }
 
         private async ValueTask<ReferenceCountedDisposable<LazySolution>?> TryFastGetSolutionAsync(
@@ -246,8 +240,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                // TryAddReference must succeed as we're called from a caller that is pinning solution anyways with
-                // it's own refcount of at least 1.
+                // All the TryAddReference calls below must succeed as we're called from a caller that is pinning
+                // solution anyways with it's own refcount of at least 1.
 
                 solutionsToDispose.Add(_lastRequestedAnyBranchSolution.refCountedSolution);
                 _lastRequestedAnyBranchSolution = (solutionChecksum, solution.TryAddReference() ?? throw ExceptionUtilities.Unreachable);
@@ -257,6 +251,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     solutionsToDispose.Add(_lastRequestedPrimaryBranchSolution.refCountedSolution);
                     _lastRequestedPrimaryBranchSolution = (solutionChecksum, solution.TryAddReference() ?? throw ExceptionUtilities.Unreachable);
                 }
+
+                if (_solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out var existingSolution))
+                    solutionsToDispose.Add(existingSolution);
+
+                _solutionChecksumToLazySolution[solutionChecksum] = solution.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
             }
 
             foreach (var solutionToDispose in solutionsToDispose)
@@ -269,8 +268,6 @@ namespace Microsoft.CodeAnalysis.Remote
         private async ValueTask<ReferenceCountedDisposable<LazySolution>> SlowGetSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
-            int workspaceVersion,
-            bool fromPrimaryBranch,
             CancellationToken cancellationToken)
         {
             var currentSolution = this.CurrentSolution;
@@ -295,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 refCountedLazySolution = null;
                 var lazySolution = new LazySolution(
                     getSolutionAsync: cancellationToken => ComputeSolutionAsync(
-                        assetProvider, solutionChecksum, currentSolution, fromPrimaryBranch, workspaceVersion, cancellationToken),
+                        assetProvider, solutionChecksum, currentSolution, cancellationToken),
                     cleanupAsync: async () =>
                     {
                         // We use CancellationToken.None here as we have to ensure the lazy solution is removed from the
@@ -343,8 +340,6 @@ namespace Microsoft.CodeAnalysis.Remote
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             Solution currentSolution,
-            bool fromPrimaryBranch,
-            int workspaceVersion,
             CancellationToken cancellationToken)
         {
             try
@@ -387,14 +382,10 @@ namespace Microsoft.CodeAnalysis.Remote
         /// cref="_currentRemoteWorkspaceVersion"/> backwards.
         /// </summary>
         private async ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceCurrentSolutionAsync(
-            Checksum solutionChecksum,
             int workspaceVersion,
             Solution newSolution,
             CancellationToken cancellationToken)
         {
-            (Solution solution, bool updated) result;
-            ReferenceCountedDisposable<LazySolution>? instanceToDispose = null;
-
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 // Never move workspace backward
@@ -420,10 +411,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 _ = RaiseWorkspaceChangedEventAsync(
                     addingSolution ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
-
-                _solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out instanceToDispose);
-                _solutionChecksumToLazySolution[solutionChecksum] = new ReferenceCountedDisposable<LazySolution>(new LazySolution())
-                    cachedSolution.DisposeAsync
 
                 return (newSolution, updated: true);
             }
