@@ -14,19 +14,24 @@ Get-ChildItem "$ArtifactStagingFolder\*.pdb" -Recurse |% {
         $BinaryImagePath = $dllPath
     } elseif (Test-Path $exePath) {
         $BinaryImagePath = $exePath
+    } else {
+        Write-Warning "`"$_`" found with no matching binary file."
+        $BinaryImagePath = $null
     }
 
-    # Convert the PDB to legacy Windows PDBs
-    Write-Host "Converting PDB for $_" -ForegroundColor DarkGray
-    $WindowsPdbDir = "$($_.Directory.FullName)\$WindowsPdbSubDirName"
-    if (!(Test-Path $WindowsPdbDir)) { mkdir $WindowsPdbDir | Out-Null }
-    $legacyPdbPath = "$WindowsPdbDir\$($_.BaseName).pdb"
-    & "$PSScriptRoot\Convert-PDB.ps1" -DllPath $BinaryImagePath -PdbPath $_ -OutputPath $legacyPdbPath
-    if ($LASTEXITCODE -ne 0) {
-        Write-Warning "PDB conversion of `"$_`" failed."
-    }
+    if ($BinaryImagePath) {
+        # Convert the PDB to legacy Windows PDBs
+        Write-Host "Converting PDB for $_" -ForegroundColor DarkGray
+        $WindowsPdbDir = "$($_.Directory.FullName)\$WindowsPdbSubDirName"
+        if (!(Test-Path $WindowsPdbDir)) { mkdir $WindowsPdbDir | Out-Null }
+        $legacyPdbPath = "$WindowsPdbDir\$($_.BaseName).pdb"
+        & "$PSScriptRoot\Convert-PDB.ps1" -DllPath $BinaryImagePath -PdbPath $_ -OutputPath $legacyPdbPath
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "PDB conversion of `"$_`" failed."
+        }
 
-    Move-Item $legacyPdbPath $_ -Force
+        Move-Item $legacyPdbPath $_ -Force
+    }
 }
 
 Write-Host "##vso[artifact.upload containerfolder=symbols-legacy;artifactname=symbols-legacy;]$ArtifactStagingFolder"
