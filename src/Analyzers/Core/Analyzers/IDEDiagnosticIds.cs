@@ -69,7 +69,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseDeconstructionDiagnosticId = "IDE0042";
 
-        public const string ValidateFormatStringDiagnosticID = "IDE0043";
+        // Deprecated in favor of CA2241
+        //public const string ValidateFormatStringDiagnosticID = "IDE0043";
 
         public const string MakeFieldReadonlyDiagnosticId = "IDE0044";
 
