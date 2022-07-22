@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // same solutionChecksum would then not find the item either there, or in the
                 // _solutionChecksumToLazySolution map.
 
-                var refCountedLazySolution = await GetLazySolutionAsync(
+                var refCountedLazySolution = await GetAndCacheLazySolutionAsync(
                     solutionChecksum,
                     _ => Task.FromResult(solutionTemp),
                     cancellationToken).ConfigureAwait(false);
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // We use a reference-counted solution that implements IAsyncDisposable. The computation of 'newSolution'
             // uses eager cancellation, but the asynchronous disposable applies lazy cancellation to the final task that
             // causes cancellation to propagate to the backing lazy operation.
-            var refCountedLazySolution = await GetLazySolutionAsync(
+            var refCountedLazySolution = await GetAndCacheLazySolutionAsync(
                 solutionChecksum,
                 cancellationToken => ComputeSolutionAsync(assetProvider, solutionChecksum, currentSolution, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async ValueTask<ReferenceCountedDisposable<LazySolution>> GetLazySolutionAsync(
+        private async ValueTask<ReferenceCountedDisposable<LazySolution>> GetAndCacheLazySolutionAsync(
             Checksum solutionChecksum,
             Func<CancellationToken, Task<Solution>> getSolutionAsync,
             CancellationToken cancellationToken)
