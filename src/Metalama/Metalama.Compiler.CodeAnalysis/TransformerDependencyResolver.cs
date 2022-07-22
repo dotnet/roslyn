@@ -5,143 +5,172 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Metalama.Compiler.Graphs;
 
-namespace Metalama.Compiler
+namespace Metalama.Compiler;
+
+/// <summary>
+/// Compares and sorts dependency objects.
+/// </summary>
+internal static class TransformerDependencyResolver
 {
-    /// <summary>
-    /// Compares and sorts dependency objects.
-    /// </summary>
-    internal static class TransformerDependencyResolver
+    public static bool Sort(ref ImmutableArray<ISourceTransformer>.Builder transformers,
+        IReadOnlyList<ImmutableArray<string?>> transformerOrders, List<DiagnosticInfo> diagnostics)
     {
-        public static void Sort(ref ImmutableArray<ISourceTransformer>.Builder transformers, IReadOnlyList<ImmutableArray<string?>> transformerOrders, List<DiagnosticInfo> diagnostics)
+        // HACK: The proper way to report an error would be to switch from List<DiagnosticInfo> to DiagnosticBag here and several levels in the call graph above this method.
+        // But using MetalamaCompilerMessageProvider requires less changes to Roslyn code, hopefully making future maintenance of the fork easier.
+
+        // Build a graph of dependencies between unorderedTransformations.
+        var n = transformers.Count;
+
+        // Check that transformers are unique by full name.
+        var transformersByName = transformers.Select(t => (Name: t.GetType().FullName!, Transformer: t))
+            .GroupBy(t => t.Name)
+            .ToList();
+
+        foreach (var transformerGroup in transformersByName.Where(g => g.Count() > 1))
         {
-            // Build a graph of dependencies between unorderedTransformations.
-            int n = transformers.Count;
+            diagnostics.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance,
+                (int)MetalamaErrorCode.ERR_TransformerNotFound, transformerGroup.Key,
+                string.Join(", ", transformerGroup.Select(t => $"'{t.GetType().AssemblyQualifiedName}'"))));
+            return false;
+        }
 
-            Dictionary<string, int> nameToIndexMapping = transformers.Select((t, i) => (t.GetType().FullName, i)).ToDictionary(x => x.FullName!, x => x.i);
+        var nameToIndexMapping = transformers.Select((t, i) => (t.GetType().FullName, i))
+            .ToDictionary(x => x.FullName!, x => x.i);
 
-            Graph graph = new Graph(n);
-            bool[] hasPredecessor = new bool[n];
+        var graph = new Graph(n);
+        var hasPredecessor = new bool[n];
 
-            foreach (var order in transformerOrders)
+        foreach (var order in transformerOrders)
+        {
+            int? previousIndex = null;
+
+            foreach (var transformerName in order)
             {
-                int? previousIndex = null;
-
-                foreach (var transformerName in order)
+                if (transformerName == null)
                 {
-                    if (transformerName == null)
-                    {
-                        continue;
-                    }
-                    
-                    int? currentIndex = nameToIndexMapping.TryGetValue(transformerName, out int index) ? index : null;
-                    if (currentIndex == null)
-                    {
-                        // HACK: The proper way to do this would be to switch from List<DiagnosticInfo> to DiagnosticBag here and several levels in the call graph above this method.
-                        // But using MetalamaCompilerMessageProvider requires less changes to Roslyn code, hopefully making future maintanance of the fork easier.
-                        diagnostics.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_TransformerNotFound, transformerName));
-                    }
-                    else
-                    {
-                        if (previousIndex != null)
-                        {
-                            graph.AddEdge(previousIndex.Value, currentIndex.Value);
-                            hasPredecessor[currentIndex.Value] = true;
-                        }
-
-                        previousIndex = currentIndex;
-                    }
-                }
-            }
-
-            // Perform a breadth-first search on the graph.
-            int[] distances = graph.GetInitialVector();
-            int[] predecessors = graph.GetInitialVector();
-
-            int cycle = -1;
-            for (int i = 0; i < n; i++)
-            {
-                if (!hasPredecessor[i])
-                {
-                    cycle = graph.DoBreadthFirstSearch(i, distances, predecessors);
-                    if (cycle >= 0) break;
-                }
-            }
-
-            // If did not manage to find a cycle, we need to check that we have ordered the whole graph.
-            if (cycle < 0)
-            {
-                for (int i = 0; i < n; i++)
-                {
-                    if (distances[i] == AbstractGraph.NotDiscovered)
-                    {
-                        // There is a node that we haven't ordered, which means that there is a cycle.
-                        // Force the detection on the node to find the cycle.
-                        cycle = graph.DoBreadthFirstSearch(0, distances, predecessors);
-                        break;
-                    }
-                }
-            }
-
-            // Detect cycles.
-            if (cycle >= 0)
-            {
-                // Build a string containing the unorderedTransformations of the cycle.
-                Stack<int> cycleStack = new Stack<int>(transformers.Count);
-
-                int cursor = cycle;
-                do
-                {
-                    cycleStack.Push(cursor);
-                    cursor = predecessors[cursor];
-                } while (cursor != cycle && /* Workaround PostSharp bug 25438 */ cursor != AbstractGraph.NotDiscovered);
-
-                var transformersCopy = transformers;
-                var cycleNodes = cycleStack.Select(cursor => transformersCopy[cursor].GetDisplayName());
-                var cycleNodesString = string.Join(", ", cycleNodes);
-
-                diagnostics.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_TransformerCycleFound, cycleNodesString));
-
-                return;
-            }
-
-            // Sort the distances vector.
-            int[] sortedIndexes = new int[n];
-            for (int i = 0; i < n; i++)
-                sortedIndexes[i] = i;
-            Array.Sort(sortedIndexes, (i, j) => distances[i].CompareTo(distances[j]));
-
-            // Build the ordered list of transformations.
-            var orderedTransformers = ImmutableArray.CreateBuilder<ISourceTransformer>(n);
-            for (int i = 0; i < n; i++)
-            {
-                orderedTransformers.Add(transformers[sortedIndexes[i]]);
-            }
-            transformers = orderedTransformers;
-
-            // Check that all the constraints are respected.
-            int lastDistance = -1;
-
-            for (int i = 0; i < n; i++)
-            {
-                var transformer = orderedTransformers[i];
-
-                // Check that all transformers are strongly ordered.
-                int currentDistance = distances[sortedIndexes[i]];
-                if (currentDistance == lastDistance)
-                {
-                    // We discovered a group without strong ordering.
-
-                    // Transformers "{1}" and "{2}" are not strongly ordered. 
-                    // Their order of execution is nondeterministic.
-                    diagnostics.Add(new DiagnosticInfo(
-                        MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_TransformersNotOrdered,
-                        orderedTransformers[i - 1].GetDisplayName(), orderedTransformers[i].GetDisplayName()));
+                    continue;
                 }
 
-                lastDistance = currentDistance;
+                int? currentIndex = nameToIndexMapping.TryGetValue(transformerName, out var index) ? index : null;
+                if (currentIndex == null)
+                {
+                      diagnostics.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance,
+                        (int)MetalamaErrorCode.ERR_TransformerNotFound, transformerName));
+                    return false;
+                }
+                else
+                {
+                    if (previousIndex != null)
+                    {
+                        graph.AddEdge(previousIndex.Value, currentIndex.Value);
+                        hasPredecessor[currentIndex.Value] = true;
+                    }
+
+                    previousIndex = currentIndex;
+                }
             }
         }
 
-        private static string GetDisplayName(this ISourceTransformer transformer) => transformer.GetType().FullName!;
+        // Perform a breadth-first search on the graph.
+        var distances = graph.GetInitialVector();
+        var predecessors = graph.GetInitialVector();
+
+        var cycle = -1;
+        for (var i = 0; i < n; i++)
+        {
+            if (!hasPredecessor[i])
+            {
+                cycle = graph.DoBreadthFirstSearch(i, distances, predecessors);
+                if (cycle >= 0)
+                {
+                    break;
+                }
+            }
+        }
+
+        // If did not manage to find a cycle, we need to check that we have ordered the whole graph.
+        if (cycle < 0)
+        {
+            for (var i = 0; i < n; i++)
+            {
+                if (distances[i] == AbstractGraph.NotDiscovered)
+                {
+                    // There is a node that we haven't ordered, which means that there is a cycle.
+                    // Force the detection on the node to find the cycle.
+                    cycle = graph.DoBreadthFirstSearch(0, distances, predecessors);
+                    break;
+                }
+            }
+        }
+
+        // Detect cycles.
+        if (cycle >= 0)
+        {
+            // Build a string containing the unorderedTransformations of the cycle.
+            var cycleStack = new Stack<int>(transformers.Count);
+
+            var cursor = cycle;
+            do
+            {
+                cycleStack.Push(cursor);
+                cursor = predecessors[cursor];
+            } while (cursor != cycle && /* Workaround PostSharp bug 25438 */ cursor != AbstractGraph.NotDiscovered);
+
+            var transformersCopy = transformers;
+            var cycleNodes = cycleStack.Select(i => transformersCopy[i].GetDisplayName());
+            var cycleNodesString = string.Join(", ", cycleNodes);
+
+            diagnostics.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance,
+                (int)MetalamaErrorCode.ERR_TransformerCycleFound, cycleNodesString));
+
+            return true;
+        }
+
+        // Sort the distances vector.
+        var sortedIndexes = new int[n];
+        for (var i = 0; i < n; i++)
+        {
+            sortedIndexes[i] = i;
+        }
+
+        Array.Sort(sortedIndexes, (i, j) => distances[i].CompareTo(distances[j]));
+
+        // Build the ordered list of transformations.
+        var orderedTransformers = ImmutableArray.CreateBuilder<ISourceTransformer>(n);
+        for (var i = 0; i < n; i++)
+        {
+            orderedTransformers.Add(transformers[sortedIndexes[i]]);
+        }
+
+        transformers = orderedTransformers;
+
+        // Check that all the constraints are respected.
+        var lastDistance = -1;
+
+        for (var i = 0; i < n; i++)
+        {
+            // Check that all transformers are strongly ordered.
+            var currentDistance = distances[sortedIndexes[i]];
+            if (currentDistance == lastDistance)
+            {
+                // We discovered a group without strong ordering.
+
+                // Transformers "{1}" and "{2}" are not strongly ordered. 
+                // Their order of execution is nondeterministic.
+                diagnostics.Add(new DiagnosticInfo(
+                    MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_TransformersNotOrdered,
+                    orderedTransformers[i - 1].GetDisplayName(), orderedTransformers[i].GetDisplayName()));
+                return false;
+            }
+
+            lastDistance = currentDistance;
+        }
+
+        return true;
+    }
+
+    private static string GetDisplayName(this ISourceTransformer transformer)
+    {
+        return transformer.GetType().FullName!;
     }
 }
