@@ -337,21 +337,24 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private sealed class ChecksumToSolutionCache
         {
+            /// <summary>
+            /// Pointer to <see cref="RemoteWorkspace._gate"/>.
+            /// </summary>
             private readonly SemaphoreSlim _gate;
 
             /// <summary>
-            /// The last solution requested by a service. This effectively adds an additional ref count to one of the items
-            /// in _solutionChecksumToLazySolution ensuring that the very last solution requested stays around in it, even
-            /// if there are no active requests currently in progress for that solution.  That way if we have two
-            /// non-concurrent requests for that same solution, with no intervening updates, we can cache and keep the
-            /// solution around instead of having to recompute it.
+            /// The last checksum and solution requested by a service. This effectively adds an additional ref count to
+            /// one of the items in <see cref="_solutionChecksumToLazySolution"/> ensuring that the very last solution
+            /// requested is kept alive by us, even if there are no active requests currently in progress for that
+            /// solution.  That way if we have two non-concurrent requests for that same solution, with no intervening
+            /// updates, we can cache and keep the solution around instead of having to recompute it.
             /// </summary>
             private Checksum? _lastRequestedChecksum;
             private ReferenceCountedDisposable<LazySolution>? _lastRequestedSolution;
 
             /// <summary>
-            /// Mapping from solution-checksum to the solution computed for it.  This is used so that we can hold a solution
-            /// around as long as the checksum for it is being used in service of some feature operation (e.g.
+            /// Mapping from solution-checksum to the solution computed for it.  This is used so that we can hold a
+            /// solution around as long as the checksum for it is being used in service of some feature operation (e.g.
             /// classification).  As long as we're holding onto it, concurrent feature requests for the same solution
             /// checksum can share the computation of that particular solution and avoid duplicated concurrent work.
             /// </summary>
@@ -366,15 +369,16 @@ namespace Microsoft.CodeAnalysis.Remote
                 Checksum solutionChecksum,
                 CancellationToken cancellationToken)
             {
+                Contract.ThrowIfNull(solutionChecksum);
+
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    // First check our direct caches of the last accessed and last primary solution.
-
                     // Adding refcounts in the cases where we see we have a direct reference to the solution cannot
-                    // fail.  We only have a matching item in .refCountedSolution if it had a positive refcount already
-                    // added to it when it was placed in this cache.  And the only thing that releases that refcount
-                    // item is code that runs while holding the same gate that we are holding, and then clears out the
-                    // item.  So it's not possible for us to race with anything on this, and so we must succeed.
+                    // fail.  We only have a matching item in _lastRequestedChecksum if it had a positive refcount
+                    // already added to it when it was placed in this cache.  And the only thing that releases that
+                    // refcount item is code that runs while holding the same _gate that we are holding, and then
+                    // overwrites the item.  So it's not possible for us to race with anything on this, and so we must
+                    // succeed.
 
                     if (_lastRequestedChecksum == solutionChecksum)
                         return _lastRequestedSolution!.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
@@ -392,8 +396,6 @@ namespace Microsoft.CodeAnalysis.Remote
             public async ValueTask<ReferenceCountedDisposable<LazySolution>> SlowGetOrCreateSolutionAsync(
                 Checksum solutionChecksum, Func<CancellationToken, Task<Solution>> getSolutionAsync, CancellationToken cancellationToken)
             {
-                // See if anyone else is computing this solution for this checksum.  If so, just piggy-back on that.  No
-                // need for us to force the same computation to happen ourselves.
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     if (_solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out var refCountedLazySolution))
@@ -435,26 +437,24 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public async Task SetLastRequestedSolutionAsync(Checksum solutionChecksum, ReferenceCountedDisposable<LazySolution> solution, CancellationToken cancellationToken)
             {
-                // Collect any existing solutions we're pointing at so we can decrease their ref count.  Do this out of
-                // the lock to prevent deadlocks.
-                using var solutionsToDispose = TemporaryArray<ReferenceCountedDisposable<LazySolution>?>.Empty;
+                // Collect the existing solution we're pointing at so we can decrease its ref count.  Do this out of the
+                // lock to prevent deadlocks when DisposeAsync runs and potentally calls back to remove the item from
+                // the dictionary.
+                ReferenceCountedDisposable<LazySolution>? solutionToDispose;
 
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     // All the TryAddReference calls below must succeed as we're called from a caller that is pinning
                     // solution anyways with it's own refcount of at least 1.
 
-                    solutionsToDispose.Add(_lastRequestedSolution);
+                    solutionToDispose = _lastRequestedSolution;
 
                     _lastRequestedChecksum = solutionChecksum;
                     _lastRequestedSolution = solution.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
                 }
 
-                foreach (var solutionToDispose in solutionsToDispose)
-                {
-                    if (solutionToDispose != null)
-                        await solutionToDispose.DisposeAsync().ConfigureAwait(false);
-                }
+                if (solutionToDispose != null)
+                    await solutionToDispose.DisposeAsync().ConfigureAwait(false);
             }
         }
 
