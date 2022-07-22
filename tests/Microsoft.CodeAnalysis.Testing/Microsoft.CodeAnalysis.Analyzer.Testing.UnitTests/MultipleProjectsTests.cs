@@ -4,6 +4,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing.TestAnalyzers;
 using Xunit;
 using CSharpTest = Microsoft.CodeAnalysis.Testing.TestAnalyzers.CSharpAnalyzerTest<
@@ -444,6 +445,44 @@ namespace Microsoft.CodeAnalysis.Testing
                 + Environment.NewLine;
 
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
+        }
+
+        [Fact]
+        public async Task TwoProjectsWithAdditionalReferences()
+        {
+            MetadataReference additionalReference = CSharpCompilation
+                .Create("ExtraAssembly", references: await ReferenceAssemblies.Default.ResolveAsync(LanguageNames.CSharp, cancellationToken: default))
+                .AddSyntaxTrees(CSharpSyntaxTree.ParseText(@"public class Base {}"))
+                .ToMetadataReference();
+
+            await new CSharpAnalyzerTest<EmptyDiagnosticAnalyzer>
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"public class Derived1 : Base { }",
+                    },
+                    AdditionalReferences =
+                    {
+                        additionalReference,
+                    },
+                    AdditionalProjects =
+                    {
+                        ["Secondary"] =
+                        {
+                            Sources =
+                            {
+                                @"public class Derived2 : Base { }",
+                            },
+                            AdditionalReferences =
+                            {
+                                additionalReference,
+                            },
+                        },
+                    },
+                },
+            }.RunAsync();
         }
     }
 }
