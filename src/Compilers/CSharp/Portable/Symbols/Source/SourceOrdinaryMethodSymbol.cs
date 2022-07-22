@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
-            return ModifierUtils.MakeAndCheckNontypeMemberModifiers(isForTypeDeclaration: false, isForInterfaceMember: ContainingType.IsInterface,
+            return ModifierUtils.MakeAndCheckNontypeMemberModifiers(isOrdinaryMethod: true, isForInterfaceMember: ContainingType.IsInterface,
                                                                     syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, Locations[0], diagnostics, out _);
         }
 

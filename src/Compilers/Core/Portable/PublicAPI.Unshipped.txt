@@ -8,6 +8,7 @@ Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.GeneratorAttributeSyntaxC
 Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel!
 Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetNode.get -> Microsoft.CodeAnalysis.SyntaxNode!
 Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetSymbol.get -> Microsoft.CodeAnalysis.ISymbol!
+Microsoft.CodeAnalysis.GeneratorDriver.ReplaceGenerators(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!> generators) -> Microsoft.CodeAnalysis.GeneratorDriver!
 Microsoft.CodeAnalysis.IFieldSymbol.IsRequired.get -> bool
 Microsoft.CodeAnalysis.IFieldSymbol.RefCustomModifiers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomModifier!>
 Microsoft.CodeAnalysis.IFieldSymbol.RefKind.get -> Microsoft.CodeAnalysis.RefKind

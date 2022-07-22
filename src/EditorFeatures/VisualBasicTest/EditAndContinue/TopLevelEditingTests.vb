@@ -3943,7 +3943,8 @@ End Class
                         {
                             SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F1"))
                         })
-                })
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -4683,7 +4684,8 @@ Imports System.Runtime.InteropServices
                 {
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.Goo"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.Bar"))
-                })
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -7957,7 +7959,8 @@ End Class"
                 {
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.get_Q"))
-                })
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -7974,7 +7977,8 @@ End Class"
                 {
                     SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
                     SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.get_Q"))
-                })
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -10196,7 +10200,8 @@ End Class
                     SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.add_F")),
                     SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.remove_F")),
                     SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.raise_F"))
-                })
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -10274,7 +10279,8 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemantics(
-                semanticEdits:={SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("E"))})
+                semanticEdits:={SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("E"))},
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>

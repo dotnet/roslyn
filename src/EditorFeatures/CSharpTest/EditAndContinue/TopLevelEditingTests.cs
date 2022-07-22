@@ -7730,7 +7730,7 @@ class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
-                new[] { Diagnostic(RudeEditKind.Renamed, "static void EntryPoint(string[] args)", FeaturesResources.method)},
+                new[] { Diagnostic(RudeEditKind.Renamed, "static void EntryPoint(string[] args)", FeaturesResources.method) },
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
@@ -13760,7 +13760,7 @@ class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
 
             edits.VerifySemanticDiagnostics(
-                new[] { Diagnostic(RudeEditKind.Renamed, "int Q", FeaturesResources.property_)},
+                new[] { Diagnostic(RudeEditKind.Renamed, "int Q", FeaturesResources.property_) },
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 

@@ -622,9 +622,6 @@ partial enum E { }
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // partial enum E { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
                 // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(2, 14));
@@ -639,9 +636,6 @@ partial delegate E { }
 
             // Extra errors
             CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // partial delegate E { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
                 // (2,20): error CS1001: Identifier expected
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 20),
@@ -672,11 +666,7 @@ partial delegate E { }
 partial delegate void E();
 ";
 
-            // Extra errors
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // partial delegate void E();
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
                 // (2,23): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial delegate void E();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(2, 23));
