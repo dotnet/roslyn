@@ -8,13 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
 using static Microsoft.VisualStudio.Threading.ThreadingTools;
 using static Microsoft.VisualStudio.Threading.TplExtensions;
@@ -37,9 +33,10 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly ChecksumToSolutionCache _anyBranchSolutionCache;
 
         /// <summary>
-        /// Cache of checksums/solutions for requests to update the primary-solution (e.g. the solution this workspace
-        /// should actually point at).  When requests come through, we should always try to service them from this cache
-        /// if possible, or fallback to the _anySolutionCache otherwise.
+        /// Cache of checksums/solutions for requests to update the primary-solution (e.g. the solution this <see
+        /// cref="RemoteWorkspace"/> should actually use as its <see cref="Workspace.CurrentSolution"/>).  When requests
+        /// come through, we should always try to service them from this cache if possible, or fallback to the
+        /// _anySolutionCache otherwise.
         /// </summary>
         private readonly ChecksumToSolutionCache _primaryBranchSolutionCache;
 
@@ -53,8 +50,8 @@ namespace Microsoft.CodeAnalysis.Remote
         internal RemoteWorkspace(HostServices hostServices, string? workspaceKind)
             : base(hostServices, workspaceKind)
         {
-            _anyBranchSolutionCache = new ChecksumToSolutionCache(this);
-            _primaryBranchSolutionCache = new ChecksumToSolutionCache(this);
+            _anyBranchSolutionCache = new ChecksumToSolutionCache(_gate);
+            _primaryBranchSolutionCache = new ChecksumToSolutionCache(_gate);
         }
 
         protected override void Dispose(bool finalize)
@@ -209,6 +206,8 @@ namespace Microsoft.CodeAnalysis.Remote
             // Ensure we release the ref count on this solution once we're done.
             await using var _ = anyBranchRefCountedSolution.ConfigureAwait(false);
 
+            // Now, actually have the primary branch cache attempt to realize its primary-branch-solution equivalent of
+            // the any-branch-solution above.
             return await _primaryBranchSolutionCache.SlowGetOrCreateSolutionAsync(
                 solutionChecksum,
                 async cancellationToken =>
@@ -354,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private sealed class ChecksumToSolutionCache
         {
-            private readonly RemoteWorkspace _workspace;
+            private readonly SemaphoreSlim _gate;
 
             /// <summary>
             /// The last solution requested by a service. This effectively adds an additional ref count to one of the items
@@ -374,16 +373,16 @@ namespace Microsoft.CodeAnalysis.Remote
             /// </summary>
             private readonly Dictionary<Checksum, ReferenceCountedDisposable<LazySolution>> _solutionChecksumToLazySolution = new();
 
-            public ChecksumToSolutionCache(RemoteWorkspace workspace)
+            public ChecksumToSolutionCache(SemaphoreSlim gate)
             {
-                _workspace = workspace;
+                _gate = gate;
             }
 
             public async ValueTask<ReferenceCountedDisposable<LazySolution>?> TryFastGetSolutionAsync(
                 Checksum solutionChecksum,
                 CancellationToken cancellationToken)
             {
-                using (await _workspace._gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     // First check our direct caches of the last accessed and last primary solution.
 
@@ -411,7 +410,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 // See if anyone else is computing this solution for this checksum.  If so, just piggy-back on that.  No
                 // need for us to force the same computation to happen ourselves.
-                using (await _workspace._gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     if (_solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out var refCountedLazySolution))
                     {
@@ -435,7 +434,7 @@ namespace Microsoft.CodeAnalysis.Remote
                             // checksum map, or else we will have a memory leak.  This should hopefully not ever be an issue as we
                             // only ever hold this gate for very short periods of time in order to set do basic operations on our
                             // state.
-                            using var _ = await _workspace._gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false);
+                            using var _ = await _gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false);
 
                             // Only remove a value from the map if it still exists and holds the same expected instance
                             if (_solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out var remainingRefCountedLazySolution)
@@ -456,7 +455,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // the lock to prevent deadlocks.
                 using var solutionsToDispose = TemporaryArray<ReferenceCountedDisposable<LazySolution>?>.Empty;
 
-                using (await _workspace._gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     // All the TryAddReference calls below must succeed as we're called from a caller that is pinning
                     // solution anyways with it's own refcount of at least 1.
