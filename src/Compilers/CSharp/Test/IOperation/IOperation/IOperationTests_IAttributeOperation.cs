@@ -474,7 +474,7 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(0.0f)')
         }
 
         [Fact]
-        public void TargetTypedSwitch_Attribute()
+        public void SwitchExpression_Attribute()
         {
             string source = @"
 using System;
