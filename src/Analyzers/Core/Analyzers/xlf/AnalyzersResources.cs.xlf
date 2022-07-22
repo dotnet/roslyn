@@ -168,8 +168,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified.</source>
-        <target state="new">Name can be simplified.</target>
+        <source>Name can be simplified</source>
+        <target state="new">Name can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
