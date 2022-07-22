@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 // First check our direct caches of the last accessed and last primary solution.
 
-                // Adding references in the cases where we see we have a direct reference to the solution (the two
+                // Adding refcounts in the cases where we see we have a direct reference to the solution (the two
                 // if-blocks below) cannot fail.  We only have a matching item in .refCountedSolution if it had a
                 // positive refcount already added to it when it was placed in this cache.  And the only thing that
                 // releases that refcount item is code that runs while holding the same gate that we are holding, and
