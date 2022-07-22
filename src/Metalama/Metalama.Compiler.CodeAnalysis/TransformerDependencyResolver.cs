@@ -15,6 +15,9 @@ internal static class TransformerDependencyResolver
     public static bool Sort(ref ImmutableArray<ISourceTransformer>.Builder transformers,
         IReadOnlyList<ImmutableArray<string?>> transformerOrders, List<DiagnosticInfo> diagnostics)
     {
+        // HACK: The proper way to report an error would be to switch from List<DiagnosticInfo> to DiagnosticBag here and several levels in the call graph above this method.
+        // But using MetalamaCompilerMessageProvider requires less changes to Roslyn code, hopefully making future maintenance of the fork easier.
+
         // Build a graph of dependencies between unorderedTransformations.
         var n = transformers.Count;
 
@@ -51,9 +54,7 @@ internal static class TransformerDependencyResolver
                 int? currentIndex = nameToIndexMapping.TryGetValue(transformerName, out var index) ? index : null;
                 if (currentIndex == null)
                 {
-                    // HACK: The proper way to do this would be to switch from List<DiagnosticInfo> to DiagnosticBag here and several levels in the call graph above this method.
-                    // But using MetalamaCompilerMessageProvider requires less changes to Roslyn code, hopefully making future maintenance of the fork easier.
-                    diagnostics.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance,
+                      diagnostics.Add(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance,
                         (int)MetalamaErrorCode.ERR_TransformerNotFound, transformerName));
                     return false;
                 }
