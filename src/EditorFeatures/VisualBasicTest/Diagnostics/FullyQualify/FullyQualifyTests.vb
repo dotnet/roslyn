@@ -849,7 +849,7 @@ End Namespace</Text>.Value.Replace(vbLf, vbCrLf))
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
             Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-                Return (New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
+                Return (Nothing,
                         New VisualBasicFullyQualifyCodeFixProvider())
             End Function
 

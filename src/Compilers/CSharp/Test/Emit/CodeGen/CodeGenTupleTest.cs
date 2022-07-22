@@ -10956,6 +10956,9 @@ CS0151ERR_IntegralTypeValueExpected}
                 // (6,24): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         (int, int) x = (1, 1);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 1)").WithArguments("tuples", "7.0").WithLocation(6, 24),
+                // (8,1): error CS0246: The type or namespace name 'CS0151ERR_IntegralTypeValueExpected' could not be found (are you missing a using directive or an assembly reference?)
+                // CS0151ERR_IntegralTypeValueExpected}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CS0151ERR_IntegralTypeValueExpected").WithArguments("CS0151ERR_IntegralTypeValueExpected").WithLocation(8, 1),
                 // (8,36): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 // CS0151ERR_IntegralTypeValueExpected}
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(8, 36)

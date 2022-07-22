@@ -1001,6 +1001,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         anyNonTypeMembers = true;
                     }
                     break;
+                case SyntaxKind.IncompleteMember:
+                    // Assume that an incomplete member is non-type member.
+                    // Without this, we won't bind `X` in `public class C { X }`
+                    anyNonTypeMembers = true;
+                    break;
             }
         }
     }

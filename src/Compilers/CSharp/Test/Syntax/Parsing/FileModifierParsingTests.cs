@@ -1318,12 +1318,27 @@ public class FileModifierParsingTests : ParsingTests
                 file async;
             }
             """,
-            // (3,15): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-            //     file async;
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 15),
-            // (3,15): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-            //     file async;
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 15));
+            expectedParsingDiagnostics: new[]
+            {
+                // (3,15): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     file async;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 15),
+                // (3,15): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     file async;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 15)
+            },
+            expectedBindingDiagnostics: new[]
+            {
+                // (3,10): error CS0246: The type or namespace name 'async' could not be found (are you missing a using directive or an assembly reference?)
+                //     file async;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "async").WithArguments("async").WithLocation(3, 10),
+                // (3,15): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     file async;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 15),
+                // (3,15): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     file async;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 15)
+            });
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1407,6 +1422,18 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedParsingDiagnostics: new[]
             {
+                // (3,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     file item;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 14),
+                // (3,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                //     file item;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 14)
+            },
+            expectedBindingDiagnostics: new[]
+            {
+                // (3,10): error CS0246: The type or namespace name 'item' could not be found (are you missing a using directive or an assembly reference?)
+                //     file item;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "item").WithArguments("item").WithLocation(3, 10),
                 // (3,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     file item;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 14),

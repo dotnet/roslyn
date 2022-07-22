@@ -2467,10 +2467,15 @@ class MultiDictionary<K, V> : Dictionary<K, HashSet<V>>
         [WorkItem(968303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968303")]
         public async Task TestMalformedUsingSection()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"[ class Class
 {
-    [|List<|] }");
+    [|List<|] }",
+@"using System.Collections.Generic;
+
+[ class Class
+{
+    List< }");
         }
 
         [Theory]

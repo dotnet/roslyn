@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return ImmutableArray.Create(BC30002, IDEDiagnosticIds.UnboundIdentifierId, BC30451, BC30561, BC40056, BC32045)
+                Return ImmutableArray.Create(BC30002, BC30451, BC30561, BC40056, BC32045)
             End Get
         End Property
 

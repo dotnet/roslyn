@@ -65,6 +65,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim diagnostics = <Diagnostics>
                                   <Error Code="1519" Id="CS1519" MappedFile="Test.cs" MappedLine="1" MappedColumn="64" OriginalFile="Test.cs" OriginalLine="1" OriginalColumn="64"
                                       Message=<%= String.Format(CSharpResources.ERR_InvalidMemberDecl, "}") %>/>
+                                  <Error Code="246" Id="CS0246" MappedFile="Test.cs" MappedLine="1" MappedColumn="52" OriginalFile="Test.cs" OriginalLine="1" OriginalColumn="52"
+                                      Message=<%= String.Format(CSharpResources.ERR_SingleTypeNameNotFound, "dontcompile") %>/>
                               </Diagnostics>
 
             VerifyAllAvailableDiagnostics(test, diagnostics)
@@ -90,6 +92,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                                       Message=<%= String.Format(CSharpResources.ERR_InvalidMemberDecl, "}") %>/>
                                   <Error Code="1519" Id="CS1519" MappedFile="Test.cs" MappedLine="5" MappedColumn="65" OriginalFile="Test.cs" OriginalLine="5" OriginalColumn="65"
                                       Message=<%= String.Format(CSharpResources.ERR_InvalidMemberDecl, "}") %>/>
+                                  <Error Code="246" Id="CS0246" MappedFile="Test.cs" MappedLine="1" MappedColumn="52" OriginalFile="Test.cs" OriginalLine="1" OriginalColumn="52"
+                                      Message=<%= String.Format(CSharpResources.ERR_SingleTypeNameNotFound, "dontcompile") %>/>
+                                  <Error Code="246" Id="CS0246" MappedFile="Test.cs" MappedLine="999" MappedColumn="53" OriginalFile="Test.cs" OriginalLine="3" OriginalColumn="53"
+                                      Message=<%= String.Format(CSharpResources.ERR_SingleTypeNameNotFound, "dontcompile") %>/>
+                                  <Error Code="246" Id="CS0246" MappedFile="Test.cs" MappedLine="5" MappedColumn="53" OriginalFile="Test.cs" OriginalLine="5" OriginalColumn="53"
+                                      Message=<%= String.Format(CSharpResources.ERR_SingleTypeNameNotFound, "dontcompile") %>/>
                               </Diagnostics>
 
             VerifyAllAvailableDiagnostics(test, diagnostics)
@@ -135,6 +143,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                                       Message=<%= CSharpResources.WRN_LowercaseEllSuffix %>/>
                                   <Warning Code="1633" Id="CS1633" MappedFile="Test.cs" MappedLine="4" MappedColumn="48" OriginalFile="Test.cs" OriginalLine="4" OriginalColumn="48"
                                       Message=<%= CSharpResources.WRN_IllegalPragma %>/>
+                                  <Error Code="246" Id="CS0246" MappedFile="Test.cs" MappedLine="1" MappedColumn="52" OriginalFile="Test.cs" OriginalLine="1" OriginalColumn="52"
+                                      Message=<%= String.Format(CSharpResources.ERR_SingleTypeNameNotFound, "gibberish") %>/>
                               </Diagnostics>
 
             ' Note: The below is removed because of bug # 550593.

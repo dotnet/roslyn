@@ -1886,7 +1886,7 @@ class C : IServiceProvider
 
 class Test : ITest
 {
-    p {|CS1585:public|} void Method()
+    {|CS0246:p|} {|CS1585:public|} void Method()
     {
         throw new System.NotImplementedException();
     }

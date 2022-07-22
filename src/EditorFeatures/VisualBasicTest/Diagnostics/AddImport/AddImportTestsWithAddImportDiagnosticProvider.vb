@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
         Inherits AbstractAddImportTests
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
+            Return (Nothing,
                         New VisualBasicAddImportCodeFixProvider())
         End Function
 

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
 
         public override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(CS0103, CS0104, CS0246, CS0305, CS0308, IDEDiagnosticIds.UnboundIdentifierId); }
+            get { return ImmutableArray.Create(CS0103, CS0104, CS0246, CS0305, CS0308); }
         }
 
         protected override bool IgnoreCase => false;

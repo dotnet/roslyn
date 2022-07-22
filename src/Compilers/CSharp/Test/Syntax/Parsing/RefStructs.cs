@@ -110,9 +110,15 @@ class Program
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
+                // (4,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     partial ref struct S {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(4, 5),
                 // (4,13): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     partial ref struct S {}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 13),
+                // (5,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     partial ref struct S {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 5),
                 // (5,13): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     partial ref struct S {}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13),
@@ -143,9 +149,15 @@ class C
     ref partial readonly struct S {}
 }");
             comp.VerifyDiagnostics(
+                // (4,9): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(4, 9),
                 // (4,17): error CS1585: Member modifier 'readonly' must precede the member type and name
                 //     ref partial readonly struct S {}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(4, 17),
+                // (5,9): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 9),
                 // (5,17): error CS1585: Member modifier 'readonly' must precede the member type and name
                 //     ref partial readonly struct S {}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(5, 17),
@@ -164,12 +176,18 @@ class C
     partial ref readonly struct S {}
 }");
             comp.VerifyDiagnostics(
+                // (4,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     partial ref readonly struct S {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(4, 5),
                 // (4,13): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     partial ref readonly struct S {}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 13),
                 // (4,26): error CS1031: Type expected
                 //     partial ref readonly struct S {}
                 Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(4, 26),
+                // (5,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     partial ref readonly struct S {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 5),
                 // (5,13): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     partial ref readonly struct S {}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13),
@@ -191,9 +209,15 @@ class C
     readonly partial ref struct S {}
 }");
             comp.VerifyDiagnostics(
+                // (4,14): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     readonly partial ref struct S {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(4, 14),
                 // (4,22): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     readonly partial ref struct S {}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 22),
+                // (5,14): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     readonly partial ref struct S {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 14),
                 // (5,22): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     readonly partial ref struct S {}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 22),

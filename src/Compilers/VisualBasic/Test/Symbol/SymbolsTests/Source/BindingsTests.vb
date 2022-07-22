@@ -714,6 +714,73 @@ End Class
             Assert.Null(info.Type)
         End Sub
 
+        <WorkItem(7536, "https://github.com/dotnet/roslyn/issues/7536")>
+        <Fact>
+        Public Sub BindingIncompleteMember_TypeNotFound()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb">
+    Class C
+        &lt;A&gt;
+    End Class
+    </file>
+</compilation>)
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC32035: Attribute specifier is not a complete statement. Use a line continuation to apply the attribute to the following statement.
+        &lt;A&gt;
+        ~~~
+BC30002: Type 'A' is not defined.
+        &lt;A&gt;
+         ~
+</expected>)
+        End Sub
+
+        <WorkItem(7536, "https://github.com/dotnet/roslyn/issues/7536")>
+        <Fact>
+        Public Sub BindingIncompleteMember_TypeFound_WithoutAttributeSuffix()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb">
+    Class C
+        &lt;A&gt;
+    End Class
+
+    Class AAttribute 
+        Inherits System.Attribute
+    End Class
+    </file>
+</compilation>)
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC32035: Attribute specifier is not a complete statement. Use a line continuation to apply the attribute to the following statement.
+        &lt;A&gt;
+        ~~~
+</expected>)
+        End Sub
+
+        <WorkItem(7536, "https://github.com/dotnet/roslyn/issues/7536")>
+        <Fact>
+        Public Sub BindingIncompleteMember_TypeFound_WithAttributeSuffix()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb">
+    Class C
+        &lt;AAttribute&gt;
+    End Class
+
+    Class AAttribute 
+        Inherits System.Attribute
+    End Class
+    </file>
+</compilation>)
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC32035: Attribute specifier is not a complete statement. Use a line continuation to apply the attribute to the following statement.
+        &lt;AAttribute&gt;
+        ~~~~~~~~~~~~
+</expected>)
+        End Sub
     End Class
 
 End Namespace

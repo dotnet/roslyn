@@ -2610,6 +2610,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim eventDecl = DirectCast(memberSyntax, EventBlockSyntax)
                     CreateEvent(eventDecl.EventStatement, eventDecl, binder, diagBag.DiagnosticBag, members)
 
+                Case SyntaxKind.IncompleteMember
+                    Dim incompleteMemberSyntax = DirectCast(memberSyntax, IncompleteMemberSyntax)
+                    For Each attributeList As AttributeListSyntax In incompleteMemberSyntax.AttributeLists
+                        For Each attribute As AttributeSyntax In attributeList.Attributes
+                            binder.BindTypeSyntax(attribute.Name, diagBag)
+                        Next
+                    Next
+
                 Case Else
                     If memberSyntax.Kind = SyntaxKind.EmptyStatement OrElse TypeOf memberSyntax Is ExecutableStatementSyntax Then
                         If binder.BindingTopLevelScriptCode Then

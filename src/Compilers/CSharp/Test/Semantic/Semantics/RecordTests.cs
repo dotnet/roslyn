@@ -2864,6 +2864,9 @@ class C
                 // (6,24): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(6, 24),
+                // (6,27): error CS0246: The type or namespace name 'r' could not be found (are you missing a using directive or an assembly reference?)
+                //     record M(record r) => r;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "r").WithArguments("r").WithLocation(6, 27),
                 // (6,28): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 28),
@@ -3283,6 +3286,9 @@ record C9 : System.ICloneable
                 // (9,12): error CS8859: Members named 'Clone' are disallowed in records.
                 //     string Clone { get; set; } // 3
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(9, 12),
+                // (13,5): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
+                //     data string Clone; // 4 not yet supported
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(13, 5),
                 // (13,10): error CS1519: Invalid token 'string' in class, record, struct, or interface member declaration
                 //     data string Clone; // 4 not yet supported
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "string").WithArguments("string").WithLocation(13, 10),

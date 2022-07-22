@@ -2769,19 +2769,21 @@ namespace ns1
 ";
             // TODO (tomat): EOFUnexpected shouldn't be reported if we enable parsing global statements in namespaces
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(test,
+                // (4,10): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // (4,5): error CS1022: Type or namespace definition, or end-of-file expected
-                // (4,10): error CS0116: A namespace does not directly contain members such as fields or methods
                 // (4,14): error CS1022: Type or namespace definition, or end-of-file expected
-                // (6,5): error CS0116: A namespace does not directly contain members such as fields or methods
+                // (6,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // (6,9): error CS1022: Type or namespace definition, or end-of-file expected
-                // (5,15): error CS0116: A namespace does not directly contain members such as fields or methods
-                // (7,15): error CS0116: A namespace does not directly contain members such as fields or methods
+                // (5,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (6,5): error CS0246: The type or namespace name 'Lab1' could not be found (are you missing a using directive or an assembly reference?)
+                // (7,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 new ErrorDescription { Code = (int)ErrorCode.ERR_EOFExpected, Line = 4, Column = 5 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 4, Column = 10 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_EOFExpected, Line = 4, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 6, Column = 5 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_EOFExpected, Line = 6, Column = 9 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 5, Column = 15 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_SingleTypeNameNotFound, Line = 6, Column = 5 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 7, Column = 15 });
         }
 

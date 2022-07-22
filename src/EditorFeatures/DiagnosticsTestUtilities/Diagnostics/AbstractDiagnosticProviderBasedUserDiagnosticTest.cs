@@ -132,9 +132,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     if (descriptor.Id == "IDE0043") // Intentionally undocumented. It will be removed in favor of CA2241
                         continue;
 
-                    if (descriptor.Id == "IDE1007")
-                        continue;
-
                     Assert.NotEqual("", descriptor.HelpLinkUri ?? "");
                 }
             }

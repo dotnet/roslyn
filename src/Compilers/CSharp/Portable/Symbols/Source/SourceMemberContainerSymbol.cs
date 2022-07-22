@@ -4764,12 +4764,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
 
+                    case SyntaxKind.IncompleteMember:
+                        {
+                            var incompleteMemberSyntax = (IncompleteMemberSyntax)m;
+                            if (incompleteMemberSyntax.Type is not null)
+                            {
+                                // We want to produce binding errors for incomplete members
+                                _ = bodyBinder.BindType(incompleteMemberSyntax.Type, diagnostics);
+                            }
+
+                            foreach (var attributeList in incompleteMemberSyntax.AttributeLists)
+                            {
+                                foreach (var attribute in attributeList.Attributes)
+                                {
+                                    bodyBinder.BindType(attribute.Name, diagnostics);
+                                }
+                            }
+                        }
+                        break;
+
                     default:
                         Debug.Assert(
                             SyntaxFacts.IsTypeDeclaration(m.Kind()) ||
                             m.Kind() is SyntaxKind.NamespaceDeclaration or
-                                        SyntaxKind.FileScopedNamespaceDeclaration or
-                                        SyntaxKind.IncompleteMember);
+                                        SyntaxKind.FileScopedNamespaceDeclaration);
                         break;
                 }
             }
