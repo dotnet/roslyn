@@ -10,7 +10,9 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 using static Microsoft.VisualStudio.Threading.ThreadingTools;
@@ -249,22 +251,33 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
+            // Quick caches of the last solutions we computed.  That way if return all the way out and something
+            // else calls back in, we have a likely chance of a cache hit.
             async ValueTask SetLastRequestedSolutionAsync(ReferenceCountedDisposable<LazySolution> solution)
             {
-                // Quick caches of the last solutions we computed.  That way if return all the way out and something
-                // else calls back in, we have a likely chance of a cache hit.
+                // Collect any existing solutions we're pointing at so we can decrease their ref count.  Do this out of
+                // the lock to prevent deadlocks.
+                using var solutionsToDispose = TemporaryArray<ReferenceCountedDisposable<LazySolution>>.Empty;
+
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     // TryAddReference must succeed as we're called from a caller that is pinning solution anyways with
                     // it's own refcount of at least 1.
-                    _lastRequestedAnyBranchSolution.refCountedSolution?.Dispose();
+
+                    solutionsToDispose.Add(_lastRequestedAnyBranchSolution.refCountedSolution);
                     _lastRequestedAnyBranchSolution = (solutionChecksum, solution.TryAddReference() ?? throw ExceptionUtilities.Unreachable);
 
                     if (fromPrimaryBranch)
                     {
-                        _lastRequestedPrimaryBranchSolution.refCountedSolution?.Dispose();
+                        solutionsToDispose.Add(_lastRequestedPrimaryBranchSolution.refCountedSolution);
                         _lastRequestedPrimaryBranchSolution = (solutionChecksum, solution.TryAddReference() ?? throw ExceptionUtilities.Unreachable);
                     }
+                }
+
+                foreach (var solutionToDispose in solutionsToDispose)
+                {
+                    if (solutionToDispose != null)
+                        await solutionToDispose.DisposeAsync().ConfigureAwait(false);
                 }
             }
         }
