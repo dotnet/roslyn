@@ -93,14 +93,13 @@ namespace Microsoft.CodeAnalysis.Remote
             if (currentSolutionChecksum == solutionChecksum)
                 return;
 
-            // Do a no-op run.  This will still ensure that we compute and cache this checksum/solution pair for future
-            // callers. note we call directly into SlowGetSolutionAndRunAsync (skipping TryFastGetSolutionAndRunAsync)
-            // as we always want to cache the primary workspace we are being told about here.
-            await SlowGetSolutionAsync(
+            // Do a no-op run.  This will still ensure that we compute and cache this checksum/solution pair for future callers.
+            await RunWithSolutionAsync(
                 assetProvider,
                 solutionChecksum,
                 workspaceVersion,
                 fromPrimaryBranch: true,
+                _ => new ValueTask<bool>(true),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -140,11 +139,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // !!!CRITICAL!!! Ensure the moment we get the refCountedLazySolution we put it in a using-block.  That way
             // if anything causes us to abort/cancel, we'll reduce the incremented ref-count that GetLazySolutionAsync
             // caused.  Do NOT add anything between this line and the next.
-            var refCountedLazySolution =
-                await TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false) ??
-                await SlowGetSolutionAsync(
-                    assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, cancellationToken).ConfigureAwait(false);
-            await using var configuredAsyncDisposable = refCountedLazySolution.ConfigureAwait(false);
+            var refCountedLazySolution = await GetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             // Store this around so that if another call comes through for this same checksum, they will see the
             // solution we just computed, even if we have returned.
@@ -160,6 +155,48 @@ namespace Microsoft.CodeAnalysis.Remote
             var result = await implementation(newSolution).ConfigureAwait(false);
 
             return (newSolution, result);
+        }
+
+        private async ValueTask<ReferenceCountedDisposable<LazySolution>> GetSolutionAsync(
+            AssetProvider assetProvider,
+            Checksum solutionChecksum,
+            int workspaceVersion,
+            bool fromPrimaryBranch,
+            CancellationToken cancellationToken)
+        {
+            // Attempt to quickly get the solution from our caches, or fallback to computing it more slowly and then
+            // storing in the caches.
+
+            // !!!CRITICAL!!! Ensure the moment we get the refCountedLazySolution we put it in a using-block.  That way
+            // if anything causes us to abort/cancel, we'll reduce the incremented ref-count that GetLazySolutionAsync
+            // caused.  Do NOT add anything between this line and the next.
+            var refCountedLazySolution =
+                await TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false) ??
+                await SlowGetSolutionAsync(
+                    assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, cancellationToken).ConfigureAwait(false);
+            await using var configuredAsyncDisposable = refCountedLazySolution.ConfigureAwait(false);
+
+            // Note: we may have found a solution instance corresponding to this checksum, but which does not match on
+            // the 'primary branch' data information.  in other words, we may have first synced a solution over *not* a
+            // the primary branch, but the later gotten a request to synchronize that same solution, now as the primary
+            // branch.  in this case, we want to take the previously synchronized solution, make it into a
+            // primary-brnach solution, and have this checksum now point at that instead.
+
+            if (!fromPrimaryBranch)
+            {
+                // Wasn't from the primary branch, don't need to do anything.
+                return refCountedLazySolution.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
+            }
+
+            // Was from the primary branch, attempt to promise this solution if possible.
+            var solution = await refCountedLazySolution.Target.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
+            var (newSolution, _) = await this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, solution, cancellationToken).ConfigureAwait(false);
+
+            // We didn't actually do the promotion.  So can just return this solution instance directly.
+            if (solution == newSolution)
+                return refCountedLazySolution.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
+
+            // The solution was promoted.
         }
 
         private async ValueTask<ReferenceCountedDisposable<LazySolution>?> TryFastGetSolutionAsync(
@@ -312,40 +349,26 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             try
             {
-                var solution = await ComputeSolutionWorkerAsync(
-                    assetProvider, solutionChecksum, currentSolution, cancellationToken).ConfigureAwait(false);
+                var updater = new SolutionCreator(Services.HostServices, assetProvider, currentSolution);
 
-                // We may have just done a lot of work to determine the up to date primary branch solution.  See if we
-                // can move the workspace forward to that solution snapshot.
-                if (fromPrimaryBranch)
-                    (solution, _) = await this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, solution, cancellationToken).ConfigureAwait(false);
+                // check whether solution is update to the given base solution
+                if (await updater.IsIncrementalUpdateAsync(solutionChecksum, cancellationToken).ConfigureAwait(false))
+                {
+                    // create updated solution off the baseSolution
+                    return await updater.CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                }
 
-                return solution;
+                // we need new solution. bulk sync all asset for the solution first.
+                await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+                // get new solution info and options
+                var solutionInfo = await assetProvider.CreateSolutionInfoAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                return CreateSolutionFromInfo(solutionInfo);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-        }
-
-        private async ValueTask<Solution> ComputeSolutionWorkerAsync(
-            AssetProvider assetProvider, Checksum solutionChecksum, Solution currentSolution, CancellationToken cancellationToken)
-        {
-            var updater = new SolutionCreator(Services.HostServices, assetProvider, currentSolution);
-
-            // check whether solution is update to the given base solution
-            if (await updater.IsIncrementalUpdateAsync(solutionChecksum, cancellationToken).ConfigureAwait(false))
-            {
-                // create updated solution off the baseSolution
-                return await updater.CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-            }
-
-            // we need new solution. bulk sync all asset for the solution first.
-            await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-            // get new solution info and options
-            var solutionInfo = await assetProvider.CreateSolutionInfoAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-            return CreateSolutionFromInfo(solutionInfo);
         }
 
         private Solution CreateSolutionFromInfo(SolutionInfo solutionInfo)
@@ -364,10 +387,14 @@ namespace Microsoft.CodeAnalysis.Remote
         /// cref="_currentRemoteWorkspaceVersion"/> backwards.
         /// </summary>
         private async ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceCurrentSolutionAsync(
+            Checksum solutionChecksum,
             int workspaceVersion,
             Solution newSolution,
             CancellationToken cancellationToken)
         {
+            (Solution solution, bool updated) result;
+            ReferenceCountedDisposable<LazySolution>? instanceToDispose = null;
+
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 // Never move workspace backward
@@ -393,6 +420,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 _ = RaiseWorkspaceChangedEventAsync(
                     addingSolution ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+
+                _solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out instanceToDispose);
+                _solutionChecksumToLazySolution[solutionChecksum] = new ReferenceCountedDisposable<LazySolution>(new LazySolution())
+                    cachedSolution.DisposeAsync
 
                 return (newSolution, updated: true);
             }
