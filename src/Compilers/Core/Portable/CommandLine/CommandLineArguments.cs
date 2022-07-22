@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis
             };
 
             var resolvedReferences = ArrayBuilder<AnalyzerFileReference>.GetInstance();
-            foreach (var reference in AnalyzerReferences)
+            foreach (var reference in AnalyzerReferences.Distinct()) // <Metalama />: add Distinct()
             {
                 var resolvedReference = ResolveAnalyzerReference(reference, analyzerLoader);
                 if (resolvedReference != null)
