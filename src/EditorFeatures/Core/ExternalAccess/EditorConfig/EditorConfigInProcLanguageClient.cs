@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
                 {
                     ResolveProvider = true,
                     TriggerCharacters = new string[] { " ", ":", ".", "=", "\"", "'", "{", "," },
-                    AllCommitCharacters = RoslynCompletion.CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray()
+                    AllCommitCharacters = new string[] { "=", " " },
                 },
             };
 
