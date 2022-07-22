@@ -1249,6 +1249,80 @@ Derived
 ]]>)
         End Sub
 
+        <Fact>
+        <WorkItem(62863, "https://github.com/dotnet/roslyn/issues/62863")>
+        Public Sub ExplicitInterfaceImplementations()
+            Dim sourcePIA =
+"Imports System.Runtime.InteropServices
+<assembly: PrimaryInteropAssembly(0, 0)>
+<assembly: Guid(""863D5BC0-46A1-49AC-97AA-A5F0D441A9DA"")>
+<ComImport>
+<Guid(""863D5BC0-46A1-49AD-97AA-A5F0D441A9DA"")>
+public interface I1
+    Function F1() As Integer
+end interface
+"
+            Dim sourceBase =
+"
+public class C
+    public Function F1() As Long
+        Return 0
+    End Function
+end class
+
+public class Base
+    Inherits C
+    Implements I1
+
+    Function I1F1() As Integer Implements I1.F1
+        throw new System.NotImplementedException()
+    end Function
+end class
+"
+            Dim verify = Sub(compilationDerived As VisualBasicCompilation)
+                             Dim i1F1 = compilationDerived.GetTypeByMetadataName("I1").GetMember(Of MethodSymbol)("F1")
+                             Dim baseI1F1 = compilationDerived.GetTypeByMetadataName("Base").GetMember(Of MethodSymbol)("I1F1")
+                             Assert.Same(i1F1, baseI1F1.ExplicitInterfaceImplementations.Single())
+                             compilationDerived.AssertNoDiagnostics()
+                         End Sub
+
+
+            Dim compilationPIA = CreateCompilation(sourcePIA, options:=TestOptions.DebugDll)
+            compilationPIA.AssertNoDiagnostics()
+
+            Dim referencePIAImage = compilationPIA.EmitToImageReference(embedInteropTypes:=true)
+            Dim referencePIASource = compilationPIA.ToMetadataReference(embedInteropTypes:=True)
+
+            Dim compilationBase = CreateCompilation(sourceBase, {referencePIASource}, TestOptions.DebugDll)
+            compilationBase.AssertNoDiagnostics()
+
+            Dim referenceBaseImage = compilationBase.EmitToImageReference()
+            Dim referenceBaseSource = compilationBase.ToMetadataReference()
+
+            Dim sourceDerived =
+"
+public interface I2
+    Inherits I1
+End Interface
+
+public class Derived
+    Inherits Base
+    Implements I2
+end class
+"
+            Dim compilationDerived1 = CreateCompilation(sourceDerived, {referencePIASource, referenceBaseSource}, TestOptions.DebugDll)
+            verify(compilationDerived1)
+
+            Dim compilationDerived2 = CreateCompilation(sourceDerived, {referencePIAImage, referenceBaseSource}, TestOptions.DebugDll)
+            verify(compilationDerived2)
+
+            Dim compilationDerived3 = CreateCompilation(sourceDerived, {referencePIASource, referenceBaseImage}, TestOptions.DebugDll)
+            verify(compilationDerived3)
+
+            Dim compilationDerived4 = CreateCompilation(sourceDerived, {referencePIAImage, referenceBaseImage}, TestOptions.DebugDll)
+            verify(compilationDerived4)
+        End Sub
+
     End Class
 
 End Namespace
