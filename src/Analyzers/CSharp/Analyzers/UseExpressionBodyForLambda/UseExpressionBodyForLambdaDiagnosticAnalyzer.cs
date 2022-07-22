@@ -21,10 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         private static readonly DiagnosticDescriptor s_useBlockBodyForLambda = CreateDescriptorWithId(UseExpressionBodyForLambdaHelpers.UseBlockBodyTitle, UseExpressionBodyForLambdaHelpers.UseBlockBodyTitle);
 
         public UseExpressionBodyForLambdaDiagnosticAnalyzer() : base(
-            ImmutableDictionary<DiagnosticDescriptor, Options.ISingleValuedOption>.Empty
+            ImmutableDictionary<DiagnosticDescriptor, Options.IOption2>.Empty
                 .Add(s_useExpressionBodyForLambda, CSharpCodeStyleOptions.PreferExpressionBodiedLambdas)
-                .Add(s_useBlockBodyForLambda, CSharpCodeStyleOptions.PreferExpressionBodiedLambdas),
-            LanguageNames.CSharp)
+                .Add(s_useBlockBodyForLambda, CSharpCodeStyleOptions.PreferExpressionBodiedLambdas))
         {
         }
 
