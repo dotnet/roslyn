@@ -122,7 +122,8 @@ namespace Microsoft.CodeAnalysis.Remote
             CancellationToken cancellationToken)
         {
             // Trivial case.  See if the checksum being asked for actually corresponds to this workspace's current
-            // solution.  If so, just use that directly.
+            // solution.  If so, just use that directly:
+
             var currentSolution = this.CurrentSolution;
             var currentSolutionChecksum = await currentSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
             if (currentSolutionChecksum == solutionChecksum)
