@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 solutionChecksum,
                 workspaceVersion,
                 fromPrimaryBranch: true,
-                _ => new ValueTask<bool>(true),
+                static _ => ValueTaskFactory.FromResult(false),
                 cancellationToken).ConfigureAwait(false);
         }
 
