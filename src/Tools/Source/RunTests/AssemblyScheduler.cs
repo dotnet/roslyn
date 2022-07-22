@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text.Json;
 using System.Threading;
@@ -151,13 +152,20 @@ namespace RunTests
 
             var updated = assemblyTypes.ToImmutableSortedDictionary(
                 kvp => kvp.Key,
-                kvp => kvp.Value.Select(typeInfo => typeInfo with { Tests = typeInfo.Tests.Select(method => WithExecutionTime(method)).ToImmutableArray() })
+                kvp => kvp.Value.Select(typeInfo => typeInfo with { Tests = typeInfo.Tests.Select(method => WithExecutionTime(method, typeInfo)).ToImmutableArray() })
                                 .ToImmutableArray());
             LogResults(matchedLocalTests, extraLocalTests);
             return updated;
 
-            MethodInfo WithExecutionTime(MethodInfo methodInfo)
+            MethodInfo WithExecutionTime(MethodInfo methodInfo, TypeInfo typeInfo)
             {
+                if (methodInfo.Name == "SRM_PLACEHOLDER")
+                {
+                    // SRM failed to find all the methods in this type so we need to lookup test history
+                    // by type name instead of test name.
+                    
+                }
+
                 // Match by fully qualified test method name to azure devops historical data.
                 // Note for combinatorial tests, azure devops helpfully groups all sub-runs under a top level method (with combined test run times) with the same fully qualified method name
                 //  that we'll get from looking at all the test methods in the assembly with SRM.
@@ -185,6 +193,12 @@ namespace RunTests
                 {
                     Logger.Log($"Found historical data for test {extraRemoteTest} that was not present in local assemblies");
                 }
+
+                var allTests = assemblyTypes.Values.SelectMany(v => v).SelectMany(v => v.Tests).Select(t => t.FullyQualifiedName).ToList();
+
+                Debugger.Launch();
+
+
 
                 var totalExpectedRunTime = TimeSpan.FromMilliseconds(updated.Values.SelectMany(types => types).SelectMany(type => type.Tests).Sum(test => test.ExecutionTime.TotalMilliseconds));
                 ConsoleUtil.WriteLine($"Matched {matchedLocalTests.Count} tests with historical data.  {extraLocalTests.Count} tests were missing historical data.  {extraRemoteTests.Count()} tests were missing in local assemblies.  Estimate of total execution time for tests is {totalExpectedRunTime}.");
@@ -295,11 +309,11 @@ namespace RunTests
                 foreach (var assembly in workItem.Filters)
                 {
                     var assemblyRuntime = TimeSpan.FromMilliseconds(assembly.Value.Sum(f => f.GetExecutionTime().TotalMilliseconds));
+                    var typeFilters = assembly.Value.Where(f => f is TypeTestFilter).Count();
+                    var testFilters = assembly.Value.Where(f => f is MethodTestFilter).Count();
                     Logger.Log($"    - {assembly.Key.AssemblyName} with runtime {assemblyRuntime}");
-                    foreach (var filter in assembly.Value)
-                    {
-                        Logger.Log($"        - {filter} with runtime {filter.GetExecutionTime()}");
-                    }
+                    Logger.Log($"        - {typeFilters} types to filter on");
+                    Logger.Log($"        - {testFilters} tests to filter on");
                 }
             }
         }
@@ -326,6 +340,12 @@ namespace RunTests
                 }
 
                 var (typeName, fullyQualifiedTypeName) = GetTypeName(reader, type);
+
+                if (fullyQualifiedTypeName.Contains("SegmentedHashSet_Generic_Tests_int_With_Comparer_AbsOfInt"))
+                {
+                    Debugger.Launch();
+                }
+
                 var methodCount = GetMethodCount(reader, type);
                 if (!ShouldIncludeType(reader, type, methodCount))
                 {
@@ -411,7 +431,9 @@ namespace RunTests
                 }
             }
 
+            // We might have a base type that defines test methods.
             var baseTypeHandle = type.BaseType;
+
             if (!baseTypeHandle.IsNil && baseTypeHandle.Kind is HandleKind.TypeDefinition)
             {
                 var baseType = reader.GetTypeDefinition((TypeDefinitionHandle)baseTypeHandle);
@@ -422,6 +444,54 @@ namespace RunTests
                     GetMethods(reader, baseType, methodList, originalFullyQualifiedTypeName);
                 }
             }
+            else if (!baseTypeHandle.IsNil)
+            {
+                // We have a base type in a different assembly.  We can't really figure out what types are in it
+                // so we'll just add a dummy test method.  Later when we lookup test data from ADO we'll group tests in this type.
+                var methodName = "SRM_PLACEHOLDER";
+                methodList.Add(new MethodInfo(methodName, $"{originalFullyQualifiedTypeName}.{methodName}", TimeSpan.Zero));
+            }
+        }
+
+        private class SignatureTypeEntityHandleProvider : ISignatureTypeProvider<EntityHandle, object?>
+        {
+            public static readonly SignatureTypeEntityHandleProvider Instance = new SignatureTypeEntityHandleProvider();
+
+            public EntityHandle GetTypeFromSpecification(MetadataReader reader, TypeSpecificationHandle handle)
+            {
+                // Create a decoder to process the type specification (which happens with
+                // instantiated generics).  It will call back into us to get the first handle
+                // for the type def or type ref that the specification starts with.
+                var sigReader = reader.GetBlobReader(reader.GetTypeSpecification(handle).Signature);
+                return new SignatureDecoder<EntityHandle, object?>(this, reader, genericContext: null).DecodeType(ref sigReader);
+            }
+
+            public EntityHandle GetTypeFromSpecification(MetadataReader reader, object? genericContext, TypeSpecificationHandle handle, byte rawTypeKind) =>
+                GetTypeFromSpecification(reader, handle);
+
+            public EntityHandle GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind) => handle;
+            public EntityHandle GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, byte rawTypeKind) => handle;
+
+            // We want the first handle as is, without any handles for the generic args.
+            public EntityHandle GetGenericInstantiation(EntityHandle genericType, ImmutableArray<EntityHandle> typeArguments) => genericType;
+
+            // All the signature elements that would normally augment the passed in type will
+            // just pass it along unchanged.
+            public EntityHandle GetModifiedType(EntityHandle modifier, EntityHandle unmodifiedType, bool isRequired) => unmodifiedType;
+            public EntityHandle GetPinnedType(EntityHandle elementType) => elementType;
+            public EntityHandle GetArrayType(EntityHandle elementType, ArrayShape shape) => elementType;
+            public EntityHandle GetByReferenceType(EntityHandle elementType) => elementType;
+            public EntityHandle GetPointerType(EntityHandle elementType) => elementType;
+            public EntityHandle GetSZArrayType(EntityHandle elementType) => elementType;
+
+            // We'll never get function pointer types in any types we care about, so we can
+            // just return the empty string.  Similarly, as we never construct generics,
+            // there is no need to provide anything for the generic parameter names.
+            public EntityHandle GetFunctionPointerType(MethodSignature<EntityHandle> signature) => default(EntityHandle);
+            public EntityHandle GetGenericMethodParameter(object? genericContext, int index) => default(EntityHandle);
+            public EntityHandle GetGenericTypeParameter(object? genericContext, int index) => default(EntityHandle);
+
+            public EntityHandle GetPrimitiveType(PrimitiveTypeCode typeCode) => default(EntityHandle);
         }
 
         private static bool ShouldIncludeMethod(MetadataReader reader, MethodDefinition method)
