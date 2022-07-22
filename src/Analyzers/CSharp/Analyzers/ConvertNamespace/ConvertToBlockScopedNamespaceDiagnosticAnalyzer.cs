@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             : base(IDEDiagnosticIds.UseBlockScopedNamespaceDiagnosticId,
                    EnforceOnBuildValues.UseBlockScopedNamespace,
                    CSharpCodeStyleOptions.NamespaceDeclarations,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_to_block_scoped_namespace), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }

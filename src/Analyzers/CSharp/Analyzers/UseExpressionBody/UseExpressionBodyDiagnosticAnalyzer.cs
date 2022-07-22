@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
         public UseExpressionBodyDiagnosticAnalyzer()
-            : base(GetSupportedDescriptorsWithOptions(), LanguageNames.CSharp)
+            : base(GetSupportedDescriptorsWithOptions())
         {
             _syntaxKinds = _helpers.SelectMany(h => h.SyntaxKinds).ToImmutableArray();
         }
 
-        private static ImmutableDictionary<DiagnosticDescriptor, ISingleValuedOption> GetSupportedDescriptorsWithOptions()
+        private static ImmutableDictionary<DiagnosticDescriptor, IOption2> GetSupportedDescriptorsWithOptions()
         {
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticDescriptor, ISingleValuedOption>();
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticDescriptor, IOption2>();
             foreach (var helper in _helpers)
             {
                 var descriptor = CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle);

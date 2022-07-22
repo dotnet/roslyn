@@ -10,11 +10,10 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 {
     internal abstract class AbstractConvertTypeOfToNameOfDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        protected AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(LocalizableString title, string language)
+        protected AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(LocalizableString title)
             : base(diagnosticId: IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId,
                   EnforceOnBuildValues.ConvertTypeOfToNameOf,
                   option: null,
-                  language: language,
                   title: title)
         {
         }
