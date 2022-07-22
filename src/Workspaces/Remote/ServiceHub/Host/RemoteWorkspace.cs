@@ -191,18 +191,13 @@ namespace Microsoft.CodeAnalysis.Remote
             var refCountedLazySolution = await GetLazySolutionAsync().ConfigureAwait(false);
             await using var configuredAsyncDisposable = refCountedLazySolution.ConfigureAwait(false);
 
+            // Store this around so that if another call comes through, they will see the solution we just computed.
+            await SetLastRequestedSolutionAsync(refCountedLazySolution).ConfigureAwait(false);
+
             // Actually get the solution, computing it ourselves, or getting the result that another caller was
             // computing. In the event of cancellation, we do not wait here for the refCountedLazySolution to clean up,
             // even if this was the last use of this solution.
             var newSolution = await refCountedLazySolution.Target.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
-
-            // We may have just done a lot of work to determine the up to date primary branch solution.  See if we
-            // can move the workspace forward to that solution snapshot.
-            if (fromPrimaryBranch)
-                (newSolution, _) = await this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, newSolution, cancellationToken).ConfigureAwait(false);
-
-            // Store this around so that if another call comes through, they will see the solution we just computed.
-            await SetLastRequestedSolutionAsync(refCountedLazySolution).ConfigureAwait(false);
 
             // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
             // using this same solution as well
@@ -229,7 +224,8 @@ namespace Microsoft.CodeAnalysis.Remote
                     // refcount of 1 (for 'us').
                     refCountedLazySolution = null;
                     var lazySolution = new LazySolution(
-                        getSolutionAsync: cancellationToken => ComputeSolutionAsync(assetProvider, solutionChecksum, currentSolution, cancellationToken),
+                        getSolutionAsync: cancellationToken => ComputeSolutionAsync(
+                            assetProvider, solutionChecksum, currentSolution, fromPrimaryBranch, workspaceVersion, cancellationToken),
                         cleanupAsync: async () =>
                         {
                             // We use CancellationToken.None here as we have to ensure the lazy solution is removed from the
@@ -308,30 +304,46 @@ namespace Microsoft.CodeAnalysis.Remote
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             Solution currentSolution,
+            bool fromPrimaryBranch,
+            int workspaceVersion,
             CancellationToken cancellationToken)
         {
             try
             {
-                var updater = new SolutionCreator(Services.HostServices, assetProvider, currentSolution);
+                var solution = await ComputeSolutionWorkerAsync(
+                    assetProvider, solutionChecksum, currentSolution, cancellationToken).ConfigureAwait(false);
 
-                // check whether solution is update to the given base solution
-                if (await updater.IsIncrementalUpdateAsync(solutionChecksum, cancellationToken).ConfigureAwait(false))
-                {
-                    // create updated solution off the baseSolution
-                    return await updater.CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-                }
+                // We may have just done a lot of work to determine the up to date primary branch solution.  See if we
+                // can move the workspace forward to that solution snapshot.
+                if (fromPrimaryBranch)
+                    (solution, _) = await this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, solution, cancellationToken).ConfigureAwait(false);
 
-                // we need new solution. bulk sync all asset for the solution first.
-                await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-                // get new solution info and options
-                var solutionInfo = await assetProvider.CreateSolutionInfoAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-                return CreateSolutionFromInfo(solutionInfo);
+                return solution;
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        private async ValueTask<Solution> ComputeSolutionWorkerAsync(
+            AssetProvider assetProvider, Checksum solutionChecksum, Solution currentSolution, CancellationToken cancellationToken)
+        {
+            var updater = new SolutionCreator(Services.HostServices, assetProvider, currentSolution);
+
+            // check whether solution is update to the given base solution
+            if (await updater.IsIncrementalUpdateAsync(solutionChecksum, cancellationToken).ConfigureAwait(false))
+            {
+                // create updated solution off the baseSolution
+                return await updater.CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            }
+
+            // we need new solution. bulk sync all asset for the solution first.
+            await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+            // get new solution info and options
+            var solutionInfo = await assetProvider.CreateSolutionInfoAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            return CreateSolutionFromInfo(solutionInfo);
         }
 
         private Solution CreateSolutionFromInfo(SolutionInfo solutionInfo)
