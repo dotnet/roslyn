@@ -49,8 +49,13 @@ $PDBs |% {
         $BinaryImagePath = $dllPath
     } elseif (Test-Path $exePath) {
         $BinaryImagePath = $exePath
+    } else {
+        Write-Warning "`"$_`" found with no matching binary file."
+        $BinaryImagePath = $null
     }
 
-    Write-Output $BinaryImagePath
-    Write-Output $_.FullName
+    if ($BinaryImagePath) {
+        Write-Output $BinaryImagePath
+        Write-Output $_.FullName
+    }
 }
