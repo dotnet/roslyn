@@ -194,8 +194,6 @@ namespace Microsoft.CodeAnalysis.Remote
             await using var _ = anyBranchRefCountedSolution.ConfigureAwait(false);
             var anyBranchSolution = await anyBranchRefCountedSolution.Target.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
 
-            var anyBranchSolution = await anyBranchRefCountedSolution.Target.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
-
             return await _primaryBranchSolutionCache.SlowGetOrCreateSolutionAsync(
                 solutionChecksum,
                 async cancellationToken =>
