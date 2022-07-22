@@ -123,9 +123,9 @@ namespace Microsoft.CodeAnalysis.Remote
             // !!!CRITICAL!!! Ensure we immediately place the refCountedLazySolution in a using-block.  That way if
             // anything causes us to abort/cancel, we'll reduce the incremented ref-count that GetOrCreateSolutionAsync
             // caused.  Do NOT add anything between this line and the next.
-            var refCountedLazySolution = await GetOrCreateSolutionAsync(
+            using var refCountedLazySolution = await GetOrCreateSolutionAsync(
                 assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch, cancellationToken).ConfigureAwait(false);
-            await using var _ = refCountedLazySolution.ConfigureAwait(false);
+            Contract.ThrowIfTrue(refCountedLazySolution.RefCount <= 0);
 
             // Store this around so that if another call comes through for this same checksum, they will see the
             // solution we just computed, even if we have returned.  This also ensures that if we promoted a
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return primaryBranchRefCountedSolution;
 
             // Otherwise, have the any-branch solution try to retrieve or create the solution.
-            var anyBranchRefCountedSolution =
+            using var anyBranchRefCountedSolution =
                 await _anyBranchSolutionCache.TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false) ??
                 await _anyBranchSolutionCache.SlowGetOrCreateSolutionAsync(
                     solutionChecksum,
@@ -173,14 +173,12 @@ namespace Microsoft.CodeAnalysis.Remote
             if (!updatePrimaryBranch)
             {
                 // if we aren't updating the primary branch we're done and can just return the any-branch solution
+                anyBranchRefCountedSolution.AddReference();
                 return anyBranchRefCountedSolution;
             }
 
             // We were asked to update the primary-branch solution.  So take the any-branch solution and promote it to
             // the primary-branch-level.
-            //
-            // Ensure we release the ref count on this solution once we're done.
-            await using var _ = anyBranchRefCountedSolution.ConfigureAwait(false);
 
             var anyBranchSolution = await anyBranchRefCountedSolution.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
 
@@ -364,21 +362,17 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    // Adding refcounts in the cases where we see we have a direct reference to the solution cannot
-                    // fail.  We only have a matching item in _lastRequestedChecksum if it had a positive refcount
-                    // already added to it when it was placed in this cache.  And the only thing that releases that
-                    // refcount item is code that runs while holding the same _gate that we are holding, and then
-                    // overwrites the item.  So it's not possible for us to race with anything on this, and so we must
-                    // succeed.
-
                     if (_lastRequestedChecksum == solutionChecksum)
-                        return _lastRequestedSolution!.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
+                    {
+                        _lastRequestedSolution!.AddReference();
+                        return _lastRequestedSolution;
+                    }
 
-                    // Next, see if it's the map of items being looked at by another request.  Note: this may fail to add
-                    // the ref count as we might see an item that is disposed of, but hasn't been cleaned from this cache
-                    // yet.
                     if (_solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out var refCountedLazySolution))
-                        return refCountedLazySolution.TryAddReference();
+                    {
+                        refCountedLazySolution.AddReference();
+                        return refCountedLazySolution;
+                    }
 
                     return null;
                 }
@@ -391,26 +385,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     if (_solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out var refCountedLazySolution))
                     {
-                        var lazySolutionInstance = refCountedLazySolution.TryAddReference();
-                        if (lazySolutionInstance is not null)
-                            return lazySolutionInstance;
-
-                        // Remove the value since it's clearly no longer usable. The cleanupAsync method would have
-                        // removed this value, but has not completed its execution yet.
-                        _solutionChecksumToLazySolution.Remove(solutionChecksum);
+                        refCountedLazySolution.AddReference();
+                        return refCountedLazySolution;
                     }
 
                     // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
                     // refcount of 1 (for 'us').
                     refCountedLazySolution = new LazyRefCountedSolution(
+                        _gate,
                         getSolutionAsync,
-                        cleanupAsync: async () =>
+                        cleanup: () =>
                         {
-                            // We use CancellationToken.None here as we have to ensure the lazy solution is removed from the
-                            // checksum map, or else we will have a memory leak.  This should hopefully not ever be an issue as we
-                            // only ever hold this gate for very short periods of time in order to set do basic operations on our
-                            // state.
-                            using var _ = await _gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false);
+                            // We must already be holding the lock when cleanup is called.
+                            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
                             // Only remove a value from the map if it still exists and holds the same expected instance
                             if (_solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out var remainingRefCountedLazySolution)
@@ -438,12 +425,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     solutionToDispose = _lastRequestedSolution;
 
+                    solution.AddReference();
+                    _lastRequestedSolution = solution;
                     _lastRequestedChecksum = solutionChecksum;
-                    _lastRequestedSolution = solution.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
                 }
 
-                if (solutionToDispose != null)
-                    await solutionToDispose.DisposeAsync().ConfigureAwait(false);
+                solutionToDispose?.Dispose();
             }
         }
 
@@ -462,60 +449,53 @@ namespace Microsoft.CodeAnalysis.Remote
         /// scenarios.</description></item>
         /// </list>
         /// </summary>
-        private sealed class LazyRefCountedSolution : IAsyncDisposable
+        private sealed class LazyRefCountedSolution : IDisposable
         {
+            /// <summary>
+            /// Pointer to <see cref="RemoteWorkspace._gate"/>.
+            /// </summary>
+            private readonly SemaphoreSlim _gate;
+
             private readonly CancellationTokenSource _cancellationTokenSource = new();
-            private readonly Func<Task> _cleanupAsync;
+            private readonly Action _cleanup;
             private readonly Task<Solution> _task;
 
             private int _refCount;
 
-            public LazyRefCountedSolution(Func<CancellationToken, Task<Solution>> getSolutionAsync, Func<Task> cleanupAsync)
+            // For assertion purposes.
+            public int RefCount => _refCount;
+
+            public LazyRefCountedSolution(SemaphoreSlim gate, Func<CancellationToken, Task<Solution>> getSolutionAsync, Action cleanup)
             {
-                _cleanupAsync = cleanupAsync;
+                _gate = gate;
+                _cleanup = cleanup;
                 _task = getSolutionAsync(_cancellationTokenSource.Token);
                 _refCount = 1;
             }
 
             public Task<Solution> Task => _task;
 
-            public LazyRefCountedSolution? TryAddReference()
+            public void AddReference()
             {
-                lock (this)
-                {
-                    if (_refCount == 0)
-                        return null;
-
-                    _refCount++;
-                    return this;
-                }
+                // We must be holding this gate when called.
+                Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+                Contract.ThrowIfTrue(_refCount == 0);
+                _refCount++;
             }
 
-            public async ValueTask DisposeAsync()
+            public void Dispose()
             {
-                var dispose = false;
-                lock (this)
+                // We must be holding this gate when called.
+                Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+                Contract.ThrowIfTrue(_refCount == 0);
+                _refCount--;
+                if (_refCount == 0)
                 {
-                    Contract.ThrowIfTrue(_refCount == 0);
-                    _refCount--;
-                    dispose = _refCount == 0;
+                    _cancellationTokenSource.Cancel();
+                    _cancellationTokenSource.Dispose();
+
+                    _cleanup();
                 }
-
-                if (dispose)
-                    await this.ReleaseResourcesAsync().ConfigureAwait(false);
-            }
-
-            private async ValueTask ReleaseResourcesAsync()
-            {
-                _cancellationTokenSource.Cancel();
-                _cancellationTokenSource.Dispose();
-
-                await _cleanupAsync().ConfigureAwait(false);
-
-                // Make sure to wait for the underlying asynchronous operation to complete before returning. Use a
-                // no-throw awaitable to avoid throwing an exception on cancellation or error (the inner operation is
-                // responsible for its own error reporting, if any).
-                await _task.NoThrowAwaitable(false);
             }
         }
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
