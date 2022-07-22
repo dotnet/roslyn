@@ -25,10 +25,6 @@ internal static class IdeAnalyzerOptionsStorage
         return new()
         {
             CrashOnAnalyzerException = globalOptions.GetOption(CrashOnAnalyzerException),
-            FadeOutUnusedImports = globalOptions.GetOption(FadeOutUnusedImports, language),
-            FadeOutUnreachableCode = globalOptions.GetOption(FadeOutUnreachableCode, language),
-            FadeOutComplexObjectInitialization = globalOptions.GetOption(FadeOutComplexObjectInitialization, language),
-            FadeOutComplexCollectionInitialization = globalOptions.GetOption(FadeOutComplexCollectionInitialization, language),
             ReportInvalidPlaceholdersInStringDotFormatCalls = globalOptions.GetOption(ReportInvalidPlaceholdersInStringDotFormatCalls, language),
             ReportInvalidRegexPatterns = globalOptions.GetOption(ReportInvalidRegexPatterns, language),
             ReportInvalidJsonPatterns = globalOptions.GetOption(ReportInvalidJsonPatterns, language),
@@ -42,22 +38,6 @@ internal static class IdeAnalyzerOptionsStorage
     public static readonly Option2<bool> CrashOnAnalyzerException = new(
         "InternalDiagnosticsOptions", "CrashOnAnalyzerException", IdeAnalyzerOptions.CommonDefault.CrashOnAnalyzerException,
         storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Diagnostics\CrashOnAnalyzerException"));
-
-    public static readonly PerLanguageOption2<bool> FadeOutUnusedImports = new(
-        "FadingOptions", "FadeOutUnusedImports", IdeAnalyzerOptions.CommonDefault.FadeOutUnusedImports,
-        storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.FadeOutUnusedImports"));
-
-    public static readonly PerLanguageOption2<bool> FadeOutUnreachableCode = new(
-        "FadingOptions", "FadeOutUnreachableCode", IdeAnalyzerOptions.CommonDefault.FadeOutUnreachableCode,
-        storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.FadeOutUnreachableCode"));
-
-    public static readonly PerLanguageOption2<bool> FadeOutComplexObjectInitialization = new(
-        "CodeStyleOptions", "PreferObjectInitializer_FadeOutCode", IdeAnalyzerOptions.CommonDefault.FadeOutComplexObjectInitialization,
-        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferObjectInitializer_FadeOutCode"));
-
-    internal static readonly PerLanguageOption2<bool> FadeOutComplexCollectionInitialization = new(
-        "CodeStyleOptions", "PreferCollectionInitializer_FadeOutCode", IdeAnalyzerOptions.CommonDefault.FadeOutComplexCollectionInitialization,
-        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer_FadeOutCode"));
 
     public static PerLanguageOption2<bool> ReportInvalidPlaceholdersInStringDotFormatCalls =
         new("ValidateFormatStringOption",

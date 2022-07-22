@@ -1638,10 +1638,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     SolutionState? currentPartialSolution = null;
-                    if (_latestSolutionWithPartialCompilation != null)
-                    {
-                        _latestSolutionWithPartialCompilation.TryGetTarget(out currentPartialSolution);
-                    }
+                    _latestSolutionWithPartialCompilation?.TryGetTarget(out currentPartialSolution);
 
                     var reuseExistingPartialSolution =
                         currentPartialSolution != null &&
@@ -1867,6 +1864,28 @@ namespace Microsoft.CodeAnalysis
             return this.Branch(
                 projectIdToTrackerMap: newTrackerMap,
                 frozenSourceGeneratedDocument: null);
+        }
+
+        /// <inheritdoc cref="Solution.WithCachedSourceGeneratorState(ProjectId, Project)"/>
+        public SolutionState WithCachedSourceGeneratorState(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
+        {
+            CheckContainsProject(projectToUpdate);
+
+            // First see if we have a generator driver that we can get from the other project.
+            if (!projectWithCachedGeneratorState.Solution.State.TryGetCompilationTracker(projectWithCachedGeneratorState.Id, out var tracker) ||
+                tracker.GeneratorDriver is null)
+            {
+                // We don't actually have any state at all, so no change.
+                return this;
+            }
+
+            var projectToUpdateState = GetRequiredProjectState(projectToUpdate);
+
+            return ForkProject(
+                projectToUpdateState,
+                translate: new CompilationAndGeneratorDriverTranslationAction.ReplaceGeneratorDriverAction(
+                    tracker.GeneratorDriver,
+                    newProjectState: projectToUpdateState));
         }
 
         /// <summary>

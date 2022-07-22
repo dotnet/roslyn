@@ -118,9 +118,9 @@ internal static partial class AnalyzerOptionsProviders
 {
     public static IdeAnalyzerOptions GetIdeOptions(this AnalyzerOptions options)
 #if CODE_STYLE
-        => IdeAnalyzerOptions.CodeStyleDefault;
+        => IdeAnalyzerOptions.CommonDefault;
 #else
-        => (options is WorkspaceAnalyzerOptions workspaceOptions) ? workspaceOptions.IdeOptions : IdeAnalyzerOptions.CodeStyleDefault;
+        => (options is WorkspaceAnalyzerOptions workspaceOptions) ? workspaceOptions.IdeOptions : IdeAnalyzerOptions.CommonDefault;
 #endif
 
     public static AnalyzerOptionsProvider GetAnalyzerOptions(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree)

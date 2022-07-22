@@ -31,21 +31,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             IContentTypeRegistryService contentTypeRegistryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             ICocoaTextEditorFactoryService textEditorFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             ITextDifferencingSelectorService differenceSelectorService,
             IDifferenceBufferFactoryService differenceBufferService,
-            ICocoaDifferenceViewerFactoryService differenceViewerService,
-            IGlobalOptionService globalOptions)
+            ICocoaDifferenceViewerFactoryService differenceViewerService)
             : base(threadingContext,
                   textBufferFactoryService,
                   contentTypeRegistryService,
                   projectionBufferFactoryService,
-                  editorOptionsFactoryService,
+                  editorOptionsService,
                   differenceSelectorService,
                   differenceBufferService,
                   textEditorFactoryService.CreateTextViewRoleSet(
-                      TextViewRoles.PreviewRole, PredefinedTextViewRoles.Analyzable),
-                  globalOptions)
+                      TextViewRoles.PreviewRole, PredefinedTextViewRoles.Analyzable))
         {
             _differenceViewerService = differenceViewerService;
         }

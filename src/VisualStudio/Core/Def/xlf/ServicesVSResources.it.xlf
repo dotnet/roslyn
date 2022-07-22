@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="Collapse_sourcelink_embedded_decompiled_files_on_open">
         <source>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</source>
-        <target state="translated">Comprimi collegamento di origine, origine incorporata e decompilata nelle definizioni all'apertura del file</target>
+        <target state="translated">Comprimi Source Link, origine incorporata e decompilata nelle definizioni all'apertura del file</target>
         <note />
       </trans-unit>
       <trans-unit id="Color_hints">
@@ -504,17 +504,17 @@
       </trans-unit>
       <trans-unit id="Fix_analyzer_warnings_and_errors">
         <source>Fix analyzer warnings and errors</source>
-        <target state="new">Fix analyzer warnings and errors</target>
+        <target state="translated">Correggi gli avvisi e gli errori dell'analizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_warnings_and_errors_set_in_EditorConfig">
         <source>Fix all warnings and errors set in EditorConfig</source>
-        <target state="new">Fix all warnings and errors set in EditorConfig</target>
+        <target state="translated">Correggi tutti gli avvisi e gli errori impostati in EditorConfig</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_analyzer_warnings_and_errors_set_in_EditorConfig">
         <source>Fix analyzer warnings and errors set in EditorConfig</source>
-        <target state="new">Fix analyzer warnings and errors set in EditorConfig</target>
+        <target state="translated">Correggi tutti gli avvisi e gli errori dell'analizzatore impostati in EditorConfig</target>
         <note />
       </trans-unit>
       <trans-unit id="For_non_interface_members">
@@ -1104,7 +1104,7 @@
       </trans-unit>
       <trans-unit id="Prefer_Utf8_string_literals">
         <source>Prefer UTF-8 string literals</source>
-        <target state="new">Prefer UTF-8 string literals</target>
+        <target state="translated">Preferisci valori letterali stringa UTF-8</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
@@ -1214,7 +1214,7 @@
       </trans-unit>
       <trans-unit id="Rename">
         <source>Rename</source>
-        <target state="new">Rename</target>
+        <target state="translated">Rinomina</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
@@ -1224,7 +1224,7 @@
       </trans-unit>
       <trans-unit id="Rename_asynchronously_experimental">
         <source>Rename asynchronously experimental</source>
-        <target state="new">Rename asynchronously experimental</target>
+        <target state="translated">Rinomina in modo asincrono (sperimentale)</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
@@ -1419,7 +1419,7 @@
       </trans-unit>
       <trans-unit id="Stack_Trace">
         <source>Stack Trace</source>
-        <target state="new">Stack Trace</target>
+        <target state="translated">Analisi dello stack</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace_Explorer">

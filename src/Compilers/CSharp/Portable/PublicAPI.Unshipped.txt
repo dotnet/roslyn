@@ -1,10 +1,13 @@
+*REMOVED*override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.GetHashCode() -> int
 Microsoft.CodeAnalysis.CSharp.Conversion.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
+Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp11 = 1100 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedMultiLineRawStringStartToken = 9073 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedRawStringEndToken = 9074 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedSingleLineRawStringStartToken = 9072 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.MultiLineRawStringLiteralToken = 8519 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RequiredKeyword = 8447 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ScopedKeyword = 8448 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.FileKeyword = 8449 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SingleLineRawStringLiteralToken = 8518 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ConstructorDeclaration(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax!> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax! parameterList, Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorInitializerSyntax? initializer, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax! body) -> Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorDeclarationSyntax!
 *REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ConstructorDeclaration(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax!> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax! parameterList, Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorInitializerSyntax! initializer, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax! body) -> Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorDeclarationSyntax!
@@ -61,7 +64,6 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.Utf8StringLiteralExpression = 8756 -> M
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.Utf8StringLiteralToken = 8520 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.Utf8SingleLineRawStringLiteralToken = 8521 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.Utf8MultiLineRawStringLiteralToken = 8522 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken = 8287 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.GreaterThanGreaterThanGreaterThanToken = 8286 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.UnsignedRightShiftAssignmentExpression = 8726 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind

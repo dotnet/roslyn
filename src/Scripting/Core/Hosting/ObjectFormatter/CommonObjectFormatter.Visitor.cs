@@ -601,10 +601,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     }
                     finally
                     {
-                        if (disposable != null)
-                        {
-                            disposable.Dispose();
-                        }
+                        disposable?.Dispose();
                     }
                 }
                 catch (Exception e)

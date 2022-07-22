@@ -7,6 +7,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -269,7 +270,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 -1
@@ -1482,7 +1483,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 { 0x63 0x61 0x74 }
@@ -1490,9 +1491,9 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (15,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (15,42): error CS8936: Feature 'UTF-8 string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static ReadOnlySpan<byte> Test3() => "cat"u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""cat""" + suffix).WithArguments("UTF-8 string literals").WithLocation(15, 42)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""cat""" + suffix).WithArguments("UTF-8 string literals", "11.0").WithLocation(15, 42)
                 );
         }
 
@@ -1535,7 +1536,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 { 0x63 0x61 0x74 }
@@ -1543,9 +1544,9 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (15,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static ReadOnlySpan<byte> Test3() => "cat"u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"@""cat""" + suffix).WithArguments("UTF-8 string literals").WithLocation(15, 42)
+                // (15,42): error CS8936: Feature 'UTF-8 string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static ReadOnlySpan<byte> Test3() => @"cat"u8;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"@""cat""" + suffix).WithArguments("UTF-8 string literals", "11.0").WithLocation(15, 42)
                 );
         }
 
@@ -1588,7 +1589,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 { 0x63 0x61 0x74 }
@@ -1596,12 +1597,12 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (15,42): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static ReadOnlySpan<byte> Test3() => """cat"""u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""cat""""""" + suffix).WithArguments("raw string literals").WithLocation(15, 42),
-                // (15,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static ReadOnlySpan<byte> Test3() => """cat"""u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""cat""""""" + suffix).WithArguments("UTF-8 string literals").WithLocation(15, 42)
+                // (15,42): error CS8936: Feature 'raw string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static ReadOnlySpan<byte> Test3() => """cat"""U8;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""""cat""""""" + suffix).WithArguments("raw string literals", "11.0").WithLocation(15, 42),
+                // (15,42): error CS8936: Feature 'UTF-8 string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static ReadOnlySpan<byte> Test3() => """cat"""U8;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""""cat""""""" + suffix).WithArguments("UTF-8 string literals", "11.0").WithLocation(15, 42)
                 );
         }
 
@@ -1650,7 +1651,7 @@ class C
 }
 ");
 
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular11);
 
             CompileAndVerify(comp, expectedOutput: @"
 { 0x63 0x61 0x74 }
@@ -1658,16 +1659,16 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (19,42): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (19,42): error CS8936: Feature 'raw string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static ReadOnlySpan<byte> Test3() => """
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""""
   cat
-  """"""" + suffix).WithArguments("raw string literals").WithLocation(19, 42),
-                // (19,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+  """"""" + suffix).WithArguments("raw string literals", "11.0").WithLocation(19, 42),
+                // (19,42): error CS8936: Feature 'UTF-8 string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static ReadOnlySpan<byte> Test3() => """
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"""""""
   cat
-  """"""" + suffix).WithArguments("UTF-8 string literals").WithLocation(19, 42)
+  """"""" + suffix).WithArguments("UTF-8 string literals", "11.0").WithLocation(19, 42)
                 );
         }
 
@@ -1859,17 +1860,18 @@ class C
 
             verifier.VerifyIL("C.Test3()", @"
 {
-  // Code size       25 (0x19)
+  // Code size       26 (0x1a)
   .maxstack  3
   IL_0000:  ldc.i4.4
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""int <PrivateImplementationDetails>.F3D4280708A6C4BEA1BAEB5AD5A4B659E705A90BDD448840276EA20CB151BE57""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  ldc.i4.0
-  IL_0012:  ldc.i4.3
-  IL_0013:  newobj     ""System.ReadOnlySpan<byte>..ctor(byte[], int, int)""
-  IL_0018:  ret
+  IL_0001:  ldc.i4.0
+  IL_0002:  call       ""byte[] System.GC.AllocateUninitializedArray<byte>(int, bool)""
+  IL_0007:  dup
+  IL_0008:  ldtoken    ""int <PrivateImplementationDetails>.F3D4280708A6C4BEA1BAEB5AD5A4B659E705A90BDD448840276EA20CB151BE57""
+  IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0012:  ldc.i4.0
+  IL_0013:  ldc.i4.3
+  IL_0014:  newobj     ""System.ReadOnlySpan<byte>..ctor(byte[], int, int)""
+  IL_0019:  ret
 }
 ");
         }
@@ -3217,22 +3219,23 @@ class C
 
             verifier.VerifyIL("C.Test3()", @"
 {
-  // Code size       30 (0x1e)
+  // Code size       31 (0x1f)
   .maxstack  3
   .locals init (System.ReadOnlySpan<byte> V_0)
   IL_0000:  nop
   IL_0001:  ldc.i4.3
-  IL_0002:  newarr     ""byte""
-  IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
-  IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0012:  " + startOpCode + @"
-  IL_0013:  " + lengthOpCode + @"
-  IL_0014:  newobj     ""System.ReadOnlySpan<byte>..ctor(byte[], int, int)""
-  IL_0019:  stloc.0
-  IL_001a:  br.s       IL_001c
-  IL_001c:  ldloc.0
-  IL_001d:  ret
+  IL_0002:  ldc.i4.0
+  IL_0003:  call       ""byte[] System.GC.AllocateUninitializedArray<byte>(int, bool)""
+  IL_0008:  dup
+  IL_0009:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
+  IL_000e:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0013:  " + startOpCode + @"
+  IL_0014:  " + lengthOpCode + @"
+  IL_0015:  newobj     ""System.ReadOnlySpan<byte>..ctor(byte[], int, int)""
+  IL_001a:  stloc.0
+  IL_001b:  br.s       IL_001d
+  IL_001d:  ldloc.0
+  IL_001e:  ret
 }
 ");
         }
@@ -3309,22 +3312,23 @@ class C
 
             verifier.VerifyIL("C.Test3()", @"
 {
-  // Code size       30 (0x1e)
+  // Code size       31 (0x1f)
   .maxstack  3
   .locals init (System.ReadOnlySpan<byte> V_0)
   IL_0000:  nop
   IL_0001:  ldc.i4.3
-  IL_0002:  newarr     ""byte""
-  IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
-  IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0012:  ldc.i4.1
+  IL_0002:  ldc.i4.0
+  IL_0003:  call       ""byte[] System.GC.AllocateUninitializedArray<byte>(int, bool)""
+  IL_0008:  dup
+  IL_0009:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
+  IL_000e:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0013:  ldc.i4.1
-  IL_0014:  newobj     ""System.ReadOnlySpan<byte>..ctor(byte[], int, int)""
-  IL_0019:  stloc.0
-  IL_001a:  br.s       IL_001c
-  IL_001c:  ldloc.0
-  IL_001d:  ret
+  IL_0014:  ldc.i4.1
+  IL_0015:  newobj     ""System.ReadOnlySpan<byte>..ctor(byte[], int, int)""
+  IL_001a:  stloc.0
+  IL_001b:  br.s       IL_001d
+  IL_001d:  ldloc.0
+  IL_001e:  ret
 }
 ");
         }
@@ -3358,22 +3362,23 @@ class C
 
             verifier.VerifyIL("C.Test3()", @"
 {
-  // Code size       34 (0x22)
+  // Code size       35 (0x23)
   .maxstack  3
   .locals init (System.ReadOnlySpan<byte> V_0)
   IL_0000:  nop
   IL_0001:  ldc.i4.3
-  IL_0002:  newarr     ""byte""
-  IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
-  IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0012:  ldsfld     ""int C.Start""
-  IL_0017:  ldc.i4.2
-  IL_0018:  newobj     ""System.ReadOnlySpan<byte>..ctor(byte[], int, int)""
-  IL_001d:  stloc.0
-  IL_001e:  br.s       IL_0020
-  IL_0020:  ldloc.0
-  IL_0021:  ret
+  IL_0002:  ldc.i4.0
+  IL_0003:  call       ""byte[] System.GC.AllocateUninitializedArray<byte>(int, bool)""
+  IL_0008:  dup
+  IL_0009:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
+  IL_000e:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0013:  ldsfld     ""int C.Start""
+  IL_0018:  ldc.i4.2
+  IL_0019:  newobj     ""System.ReadOnlySpan<byte>..ctor(byte[], int, int)""
+  IL_001e:  stloc.0
+  IL_001f:  br.s       IL_0021
+  IL_0021:  ldloc.0
+  IL_0022:  ret
 }
 ");
         }
@@ -3407,22 +3412,23 @@ class C
 
             verifier.VerifyIL("C.Test3()", @"
 {
-  // Code size       34 (0x22)
+  // Code size       35 (0x23)
   .maxstack  3
   .locals init (System.ReadOnlySpan<byte> V_0)
   IL_0000:  nop
   IL_0001:  ldc.i4.3
-  IL_0002:  newarr     ""byte""
-  IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
-  IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0012:  ldc.i4.0
-  IL_0013:  ldsfld     ""int C.Length""
-  IL_0018:  newobj     ""System.ReadOnlySpan<byte>..ctor(byte[], int, int)""
-  IL_001d:  stloc.0
-  IL_001e:  br.s       IL_0020
-  IL_0020:  ldloc.0
-  IL_0021:  ret
+  IL_0002:  ldc.i4.0
+  IL_0003:  call       ""byte[] System.GC.AllocateUninitializedArray<byte>(int, bool)""
+  IL_0008:  dup
+  IL_0009:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
+  IL_000e:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0013:  ldc.i4.0
+  IL_0014:  ldsfld     ""int C.Length""
+  IL_0019:  newobj     ""System.ReadOnlySpan<byte>..ctor(byte[], int, int)""
+  IL_001e:  stloc.0
+  IL_001f:  br.s       IL_0021
+  IL_0021:  ldloc.0
+  IL_0022:  ret
 }
 ");
         }
@@ -3457,22 +3463,23 @@ class C
 
             verifier.VerifyIL("C.Test3()", @"
 {
-  // Code size       38 (0x26)
+  // Code size       39 (0x27)
   .maxstack  3
   .locals init (System.ReadOnlySpan<byte> V_0)
   IL_0000:  nop
   IL_0001:  ldc.i4.3
-  IL_0002:  newarr     ""byte""
-  IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
-  IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0012:  ldsfld     ""int C.Start""
-  IL_0017:  ldsfld     ""int C.Length""
-  IL_001c:  newobj     ""System.ReadOnlySpan<byte>..ctor(byte[], int, int)""
-  IL_0021:  stloc.0
-  IL_0022:  br.s       IL_0024
-  IL_0024:  ldloc.0
-  IL_0025:  ret
+  IL_0002:  ldc.i4.0
+  IL_0003:  call       ""byte[] System.GC.AllocateUninitializedArray<byte>(int, bool)""
+  IL_0008:  dup
+  IL_0009:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
+  IL_000e:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0013:  ldsfld     ""int C.Start""
+  IL_0018:  ldsfld     ""int C.Length""
+  IL_001d:  newobj     ""System.ReadOnlySpan<byte>..ctor(byte[], int, int)""
+  IL_0022:  stloc.0
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.0
+  IL_0026:  ret
 }
 ");
         }
@@ -4042,6 +4049,27 @@ class C
                 //         _ = "b"u8 + new C();
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, expression).WithArguments("+", "System.ReadOnlySpan<byte>", "C").WithLocation(7, 13)
                 );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem(62361, "https://github.com/dotnet/roslyn/issues/62361")]
+        public void DeeplyNestedConcatenation()
+        {
+            var longConcat = new StringBuilder();
+            for (int i = 0; i < 800; i++)
+            {
+                longConcat.Append(""" "a"u8 + """);
+            }
+
+            var source = $$"""
+System.Console.Write(X.Y.Length);
+
+class X
+{
+    public static System.ReadOnlySpan<byte> Y => {{longConcat}} "a"u8;
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            CompileAndVerify(comp, expectedOutput: "801", verify: Verification.Fails).VerifyDiagnostics();
         }
     }
 }
