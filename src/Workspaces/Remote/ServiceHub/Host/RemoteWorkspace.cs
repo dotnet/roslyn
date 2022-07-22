@@ -31,28 +31,16 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
         /// <summary>
-        /// Mapping from solution-checksum to the solution computed for it.  This is used so that we can hold a solution
-        /// around as long as the checksum for it is being used in service of some feature operation (e.g.
-        /// classification).  As long as we're holding onto it, concurrent feature requests for the same solution
-        /// checksum can share the computation of that particular solution and avoid duplicated concurrent work.
+        /// Cache of checksums/solutions for any request that came through.
         /// </summary>
-        private readonly Dictionary<Checksum, ReferenceCountedDisposable<LazySolution>> _solutionChecksumToLazySolution = new();
+        private readonly ChecksumToSolutionCache _anySolutionCache;
 
         /// <summary>
-        /// The last solution for the primary branch fetched from the client.  This effectively adds an additional ref
-        /// count to one of the items in _solutionChecksumToLazySolution ensuring that the primary branch solution
-        /// always stays around in it, even if there are no active requests currently in progress for that solution.
+        /// Cache of checksums/solutions for requests to update the primary-solution (e.g. the solution this workspace
+        /// should actually point at).  When requests come through, we should always try to service them from this cache
+        /// if possible, or fallback to the _anySolutionCache otherwise.
         /// </summary>
-        private (Checksum checksum, ReferenceCountedDisposable<LazySolution> refCountedSolution) _lastRequestedPrimaryBranchSolution;
-
-        /// <summary>
-        /// The last solution requested by a service.This effectively adds an additional ref count to one of the items
-        /// in _solutionChecksumToLazySolution ensuring that the very last solution requested stays around in it, even
-        /// if there are no active requests currently in progress for that solution.  That way if we have two
-        /// non-concurrent requests for that same solution, with no intervening updates, we can cache and keep the
-        /// solution around instead of having to recompute it.
-        /// </summary>
-        private (Checksum checksum, ReferenceCountedDisposable<LazySolution> refCountedSolution) _lastRequestedAnyBranchSolution;
+        private readonly ChecksumToSolutionCache _primarySolutionCache;
 
         /// <summary>
         /// Used to make sure we never move remote workspace backward. this version is the WorkspaceVersion of primary
@@ -64,6 +52,8 @@ namespace Microsoft.CodeAnalysis.Remote
         internal RemoteWorkspace(HostServices hostServices, string? workspaceKind)
             : base(hostServices, workspaceKind)
         {
+            _anySolutionCache = new ChecksumToSolutionCache(this, fallbackCache: null);
+            _primarySolutionCache = new ChecksumToSolutionCache(this, fallbackCache: _anySolutionCache);
         }
 
         protected override void Dispose(bool finalize)
@@ -80,9 +70,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         /// <summary>
         /// Syncs over the solution corresponding to <paramref name="solutionChecksum"/> and sets it as the current
-        /// solution for <see langword="this"/> workspace.  This will also end up setting <see
-        /// cref="_lastRequestedAnyBranchSolution"/> and <see cref="_lastRequestedPrimaryBranchSolution"/>, allowing
-        /// them to be pre-populated for feature requests that come in soon after this call completes.
+        /// solution for <see langword="this"/> workspace.  This will also end up updating <see
+        /// cref="_anySolutionCache"/> and <see cref="_primarySolutionCache"/>, allowing them to be pre-populated for
+        /// feature requests that come in soon after this call completes.
         /// </summary>
         public async Task UpdatePrimaryBranchSolutionAsync(
             AssetProvider assetProvider, Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)
@@ -178,31 +168,8 @@ namespace Microsoft.CodeAnalysis.Remote
             Checksum solutionChecksum,
             CancellationToken cancellationToken)
         {
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                // First check our direct caches of the last accessed and last primary solution.
-
-                // Adding refcounts in the cases where we see we have a direct reference to the solution (the two
-                // if-blocks below) cannot fail.  We only have a matching item in .refCountedSolution if it had a
-                // positive refcount already added to it when it was placed in this cache.  And the only thing that
-                // releases that refcount item is code that runs while holding the same gate that we are holding, and
-                // then clears out the item.  So it's not possible for us to race with anything on this, and so we must
-                // succeed.
-
-                if (_lastRequestedPrimaryBranchSolution.checksum == solutionChecksum)
-                    return _lastRequestedPrimaryBranchSolution.refCountedSolution.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
-
-                if (_lastRequestedAnyBranchSolution.checksum == solutionChecksum)
-                    return _lastRequestedAnyBranchSolution.refCountedSolution.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
-
-                // Next, see if it's the map of items being looked at by another request.  Note: this may fail to add
-                // the ref count as we might see an item that is disposed of, but hasn't been cleaned from this cache
-                // yet.
-                if (_solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out var refCountedLazySolution))
-                    return refCountedLazySolution.TryAddReference();
-
-                return null;
-            }
+            return await _primarySolutionCache.TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false) ??
+                   await _anySolutionCache.TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -241,11 +208,17 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async ValueTask<ReferenceCountedDisposable<LazySolution>> SlowGetSolutionAsync(
+        private async ValueTask<ReferenceCountedDisposable<LazySolution>> SlowGetOrCreateSolutionAsync(
             AssetProvider assetProvider,
-            Checksum solutionChecksum,
+            Checksum solutionChecksum
+            int workspaceVersion,
+            bool fromPrimaryBranch,
             CancellationToken cancellationToken)
         {
+            return fromPrimaryBranch
+                ? await _primarySolutionCache.SlowGetOrCreateSolutionAsync(assetProvider, solutionChecksum, workspaceVersion, cancellationToken).ConfigureAwait(false)
+                : await _anySolutionCache.SlowGetOrCreateSolutionAsync(assetProvider, solutionChecksum, cancellationToken).ConfigureAwait(false);
+
             var currentSolution = this.CurrentSolution;
 
             // See if anyone else is computing this solution for this checksum.  If so, just piggy-back on that.  No
@@ -420,6 +393,63 @@ namespace Microsoft.CodeAnalysis.Remote
                 var tuple = await _remoteWorkspace.RunWithSolutionAsync(
                     assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, _ => ValueTaskFactory.FromResult(false), cancellationToken).ConfigureAwait(false);
                 return tuple.solution;
+            }
+        }
+
+        private sealed class ChecksumToSolutionCache
+        {
+            private readonly RemoteWorkspace _workspace;
+
+            private readonly ChecksumToSolutionCache? _fallbackCache;
+
+            /// <summary>
+            /// The last solution requested by a service. This effectively adds an additional ref count to one of the items
+            /// in _solutionChecksumToLazySolution ensuring that the very last solution requested stays around in it, even
+            /// if there are no active requests currently in progress for that solution.  That way if we have two
+            /// non-concurrent requests for that same solution, with no intervening updates, we can cache and keep the
+            /// solution around instead of having to recompute it.
+            /// </summary>
+            private (Checksum checksum, ReferenceCountedDisposable<LazySolution> refCountedSolution) _lastRequestedSolution;
+
+            /// <summary>
+            /// Mapping from solution-checksum to the solution computed for it.  This is used so that we can hold a solution
+            /// around as long as the checksum for it is being used in service of some feature operation (e.g.
+            /// classification).  As long as we're holding onto it, concurrent feature requests for the same solution
+            /// checksum can share the computation of that particular solution and avoid duplicated concurrent work.
+            /// </summary>
+            private readonly Dictionary<Checksum, ReferenceCountedDisposable<LazySolution>> _solutionChecksumToLazySolution = new();
+
+            public ChecksumToSolutionCache(RemoteWorkspace workspace, ChecksumToSolutionCache? fallbackCache)
+            {
+                _workspace = workspace;
+                _fallbackCache = fallbackCache;
+            }
+
+            public async ValueTask<ReferenceCountedDisposable<LazySolution>?> TryFastGetSolutionAsync(
+                Checksum solutionChecksum,
+                CancellationToken cancellationToken)
+            {
+                using (await _workspace._gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    // First check our direct caches of the last accessed and last primary solution.
+
+                    // Adding refcounts in the cases where we see we have a direct reference to the solution cannot
+                    // fail.  We only have a matching item in .refCountedSolution if it had a positive refcount already
+                    // added to it when it was placed in this cache.  And the only thing that releases that refcount
+                    // item is code that runs while holding the same gate that we are holding, and then clears out the
+                    // item.  So it's not possible for us to race with anything on this, and so we must succeed.
+
+                    if (_lastRequestedSolution.checksum == solutionChecksum)
+                        return _lastRequestedSolution.refCountedSolution.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
+
+                    // Next, see if it's the map of items being looked at by another request.  Note: this may fail to add
+                    // the ref count as we might see an item that is disposed of, but hasn't been cleaned from this cache
+                    // yet.
+                    if (_solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out var refCountedLazySolution))
+                        return refCountedLazySolution.TryAddReference();
+
+                    return null;
+                }
             }
         }
 
