@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 using static Microsoft.VisualStudio.Threading.ThreadingTools;
-using static Microsoft.VisualStudio.Threading.TplExtensions;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -120,6 +119,8 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
+            // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will
+            // increment the ref count of that solution until we release it at the end of our using block.
             using var refCountedSolution = await GetOrCreateSolutionAsync(
                 assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfTrue(refCountedSolution.RefCount <= 0);
@@ -157,7 +158,10 @@ namespace Microsoft.CodeAnalysis.Remote
             // components.
             var primaryBranchRefCountedSolution = await _primaryBranchSolutionCache.TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
             if (primaryBranchRefCountedSolution != null)
+            {
+                Contract.ThrowIfTrue(primaryBranchRefCountedSolution.RefCount <= 0);
                 return primaryBranchRefCountedSolution;
+            }
 
             // Otherwise, have the any-branch solution try to retrieve or create the solution.  Ensure we release this
             // solution once done with it.
@@ -167,10 +171,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     solutionChecksum,
                     cancellationToken => ComputeSolutionAsync(assetProvider, solutionChecksum, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfTrue(anyBranchRefCountedSolution.RefCount <= 0);
 
             if (!updatePrimaryBranch)
             {
-                // if we aren't updating the primary branch we're done and can just return the any-branch solution
+                // if we aren't updating the primary branch we're done and can just return the any-branch solution. Add
+                // an explicit ref here as this solution is in a using block above which will be decreasing its ref count.
                 anyBranchRefCountedSolution.AddReference_TakeLock();
                 return anyBranchRefCountedSolution;
             }
@@ -362,12 +368,16 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     if (_lastRequestedChecksum == solutionChecksum)
                     {
+                        // Increase the ref count as our caller now owns a ref to this solution as well.
+                        Contract.ThrowIfTrue(_lastRequestedSolution!.RefCount <= 0);
                         _lastRequestedSolution!.AddReference_WhileAlreadyHoldingLock();
                         return _lastRequestedSolution;
                     }
 
                     if (_solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out var refCountedLazySolution))
                     {
+                        // Increase the ref count as our caller now owns a ref to this solution as well.
+                        Contract.ThrowIfTrue(refCountedLazySolution.RefCount <= 0);
                         refCountedLazySolution.AddReference_WhileAlreadyHoldingLock();
                         return refCountedLazySolution;
                     }
@@ -383,6 +393,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     if (_solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out var refCountedLazySolution))
                     {
+                        // Increase the ref count as our caller now owns a ref to this solution as well.
+                        Contract.ThrowIfTrue(refCountedLazySolution.RefCount <= 0);
                         refCountedLazySolution.AddReference_WhileAlreadyHoldingLock();
                         return refCountedLazySolution;
                     }
@@ -402,20 +414,26 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var solutionToRelease = _lastRequestedSolution;
 
+                    // Increase the ref count as we now are owning this solution as well.
                     solution.AddReference_WhileAlreadyHoldingLock();
                     _lastRequestedSolution = solution;
                     _lastRequestedChecksum = solutionChecksum;
 
+                    // Release the ref count on the last solution we were pointing at.
                     solutionToRelease?.Release_WhileAlreadyHoldingLock();
                 }
             }
 
+            /// <summary>
+            /// Ref counted wrapper around asynchronously produced solution.  The computation for producing the solution
+            /// will be canceled when the ref-count goes to 0.
+            /// </summary>
             public sealed class RefCountedSolution : IDisposable
             {
                 private readonly ChecksumToSolutionCache _cache;
                 private readonly Checksum _solutionChecksum;
+
                 private readonly CancellationTokenSource _cancellationTokenSource = new();
-                private readonly Task<Solution> _task;
 
                 private int _refCount = 1;
 
@@ -429,10 +447,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     _cache = cache;
                     _solutionChecksum = solutionChecksum;
-                    _task = getSolutionAsync(_cancellationTokenSource.Token);
+                    Task = getSolutionAsync(_cancellationTokenSource.Token);
                 }
 
-                public Task<Solution> Task => _task;
+                public Task<Solution> Task { get; }
 
                 public void AddReference_TakeLock()
                 {
