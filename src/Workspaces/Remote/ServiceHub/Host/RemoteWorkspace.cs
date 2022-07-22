@@ -31,12 +31,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// The last solution for the primary branch fetched from the client.
         /// </summary>
-        private (Checksum checksum, Solution solution) _lastRequestedPrimaryBranchSolution;
+        private (Checksum checksum, ReferenceCountedDisposable<LazySolution> refCountedSolution) _lastRequestedPrimaryBranchSolution;
 
         /// <summary>
         /// The last solution requested by a service.
         /// </summary>
-        private (Checksum checksum, Solution solution) _lastRequestedAnyBranchSolution;
+        private (Checksum checksum, ReferenceCountedDisposable<LazySolution> refCountedSolution) _lastRequestedAnyBranchSolution;
 
         /// <summary>
         /// Used to make sure we never move remote workspace backward. this version is the WorkspaceVersion of primary
@@ -141,22 +141,30 @@ namespace Microsoft.CodeAnalysis.Remote
 
             async ValueTask<(Solution? solution, T result)> TryFastGetSolutionAndRunAsync()
             {
-                Solution solution;
+                // Ensure we keep this lazy-solution around (and alive in _solutionChecksumToLazySolution as well) as
+                // long as we're processing.
+                ReferenceCountedDisposable<LazySolution>? refCountedLazySolution;
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     if (_lastRequestedPrimaryBranchSolution.checksum == solutionChecksum)
                     {
-                        solution = _lastRequestedPrimaryBranchSolution.solution;
+                        refCountedLazySolution = _lastRequestedPrimaryBranchSolution.refCountedSolution.TryAddReference();
                     }
                     else if (_lastRequestedAnyBranchSolution.checksum == solutionChecksum)
                     {
-                        solution = _lastRequestedAnyBranchSolution.solution;
+                        refCountedLazySolution = _lastRequestedAnyBranchSolution.refCountedSolution.TryAddReference();
                     }
                     else
                     {
                         return default;
                     }
                 }
+
+                if (refCountedLazySolution == null)
+                    return default;
+
+                await using var configuredAsyncDisposable = refCountedLazySolution.ConfigureAwait(false);
+                var solution = await refCountedLazySolution.Target.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
 
                 var result = await implementation(solution).ConfigureAwait(false);
                 return (solution, result);
@@ -192,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 (newSolution, _) = await this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, newSolution, cancellationToken).ConfigureAwait(false);
 
             // Store this around so that if another call comes through, they will see the solution we just computed.
-            await SetLastRequestedSolutionAsync(newSolution).ConfigureAwait(false);
+            await SetLastRequestedSolutionAsync(refCountedLazySolution).ConfigureAwait(false);
 
             // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
             // using this same solution as well
@@ -241,15 +249,22 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            async ValueTask SetLastRequestedSolutionAsync(Solution solution)
+            async ValueTask SetLastRequestedSolutionAsync(ReferenceCountedDisposable<LazySolution> solution)
             {
+                // Quick caches of the last solutions we computed.  That way if return all the way out and something
+                // else calls back in, we have a likely chance of a cache hit.
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    // Quick caches of the last solutions we computed.  That way if return all the way out and something
-                    // else calls back in, we have a likely chance of a cache hit.
-                    _lastRequestedAnyBranchSolution = (solutionChecksum, solution);
+                    // TryAddReference must succeed as we're called from a caller that is pinning solution anyways with
+                    // it's own refcount of at least 1.
+                    _lastRequestedAnyBranchSolution.refCountedSolution?.Dispose();
+                    _lastRequestedAnyBranchSolution = (solutionChecksum, solution.TryAddReference() ?? throw ExceptionUtilities.Unreachable);
+
                     if (fromPrimaryBranch)
-                        _lastRequestedPrimaryBranchSolution = (solutionChecksum, solution);
+                    {
+                        _lastRequestedPrimaryBranchSolution.refCountedSolution?.Dispose();
+                        _lastRequestedPrimaryBranchSolution = (solutionChecksum, solution.TryAddReference() ?? throw ExceptionUtilities.Unreachable);
+                    }
                 }
             }
         }
