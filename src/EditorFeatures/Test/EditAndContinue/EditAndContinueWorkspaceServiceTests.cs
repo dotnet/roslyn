@@ -12,6 +12,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1794,64 +1795,144 @@ class C { int Y => 2; }
         {
             using var _ = CreateWorkspace(out var solution, out var service);
 
+            var pathX = Path.Combine(TempRoot.Root, "X.cs");
             var pathA = Path.Combine(TempRoot.Root, "A.cs");
-            var pathX = Path.Combine(TempRoot.Root, "X");
 
-            var project = solution.AddProject("A", "A", "C#");
-            solution = project.Solution;
+            var generatorExecutionCount = 0;
+            var generator = new TestSourceGenerator()
+            {
+                ExecuteImpl = context =>
+                {
+                    switch (documentKind)
+                    {
+                        case DocumentKind.Source:
+                            context.AddSource("Generated.cs", context.Compilation.SyntaxTrees.SingleOrDefault(t => t.FilePath.EndsWith("X.cs"))?.ToString() ?? "none");
+                            break;
+
+                        case DocumentKind.Additional:
+                            context.AddSource("Generated.cs", context.AdditionalFiles.FirstOrDefault()?.GetText().ToString() ?? "none");
+                            break;
+
+                        case DocumentKind.AnalyzerConfig:
+                            var syntaxTree = context.Compilation.SyntaxTrees.Single(t => t.FilePath.EndsWith("A.cs"));
+                            var content = context.AnalyzerConfigOptions.GetOptions(syntaxTree).TryGetValue("x", out var optionValue) ? optionValue.ToString() : "none";
+
+                            context.AddSource("Generated.cs", content);
+                            break;
+                    }
+
+                    generatorExecutionCount++;
+                }
+            };
+
+            var project = solution.AddProject("A", "A", "C#").AddDocument("A.cs", "", filePath: pathA).Project;
+            var projectId = project.Id;
+            solution = project.Solution.AddAnalyzerReference(projectId, new TestGeneratorReference(generator));
+            project = solution.GetRequiredProject(projectId);
+            var generatedDocument = (await project.GetSourceGeneratedDocumentsAsync()).Single();
+            var generatedDocumentId = generatedDocument.Id;
 
             var debuggingSession = await StartDebuggingSessionAsync(service, solution);
             EnterBreakState(debuggingSession);
 
-            // add document:
+            Assert.Equal(1, generatorExecutionCount);
+
+            //
+            // Add document
+            //
+
+            generatorExecutionCount = 0;
             var oldSolution = solution;
-            var documentXId = DocumentId.CreateNewId(project.Id);
+            var documentId = DocumentId.CreateNewId(projectId);
             solution = documentKind switch
             {
-                DocumentKind.Source => solution.AddDocument(documentXId, "X", SourceText.From("xxx", Encoding.UTF8, SourceHashAlgorithm.Sha256), filePath: pathX),
-                DocumentKind.Additional => solution.AddAdditionalDocument(documentXId, "X", SourceText.From("xxx", Encoding.UTF8, SourceHashAlgorithm.Sha256), filePath: pathX),
-                DocumentKind.AnalyzerConfig => solution.AddAnalyzerConfigDocument(documentXId, "X", SourceText.From("xxx", Encoding.UTF8, SourceHashAlgorithm.Sha256), filePath: pathX),
+                DocumentKind.Source => solution.AddDocument(documentId, "X", SourceText.From("xxx", Encoding.UTF8, SourceHashAlgorithm.Sha256), filePath: pathX),
+                DocumentKind.Additional => solution.AddAdditionalDocument(documentId, "X", SourceText.From("xxx", Encoding.UTF8, SourceHashAlgorithm.Sha256), filePath: pathX),
+                DocumentKind.AnalyzerConfig => solution.AddAnalyzerConfigDocument(documentId, "X", GetAnalyzerConfigText(new[] { ("x", "1") }), filePath: pathX),
                 _ => throw ExceptionUtilities.Unreachable,
             };
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, pathX, CancellationToken.None));
 
-            // update document to a different document snapshot but the same content:
+            // always returns false for source generated files:
+            Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, generatedDocument.FilePath, CancellationToken.None));
+
+            // generator is not executed since we already know the solution changed without inspecting generated files:
+            Assert.Equal(0, generatorExecutionCount);
+
+            AssertEx.Equal(new[] { generatedDocumentId },
+                await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
+
+            Assert.Equal(1, generatorExecutionCount);
+
+            // 
+            // Update document to a different document snapshot but the same content
+            //
+
+            generatorExecutionCount = 0;
             oldSolution = solution;
 
             solution = documentKind switch
             {
-                DocumentKind.Source => solution.WithDocumentText(documentXId, SourceText.From("xxx", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
-                DocumentKind.Additional => solution.WithAdditionalDocumentText(documentXId, SourceText.From("xxx", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
-                DocumentKind.AnalyzerConfig => solution.WithAnalyzerConfigDocumentText(documentXId, SourceText.From("xxx", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
+                DocumentKind.Source => solution.WithDocumentText(documentId, SourceText.From("xxx", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
+                DocumentKind.Additional => solution.WithAdditionalDocumentText(documentId, SourceText.From("xxx", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
+                DocumentKind.AnalyzerConfig => solution.WithAnalyzerConfigDocumentText(documentId, GetAnalyzerConfigText(new[] { ("x", "1") })),
                 _ => throw ExceptionUtilities.Unreachable,
             };
             Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
             Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, pathX, CancellationToken.None));
 
-            // update document content:
+            Assert.Equal(0, generatorExecutionCount);
+
+            // source generator infrastructure compares content and reuses state if it matches (SourceGeneratedDocumentState.WithUpdatedGeneratedContent):
+            AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId } : Array.Empty<DocumentId>(),
+                await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
+
+            Assert.Equal(1, generatorExecutionCount);
+
+            //
+            // Update document content
+            //
+
+            generatorExecutionCount = 0;
             oldSolution = solution;
             solution = documentKind switch
             {
-                DocumentKind.Source => solution.WithDocumentText(documentXId, SourceText.From("xxx-changed", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
-                DocumentKind.Additional => solution.WithAdditionalDocumentText(documentXId, SourceText.From("xxx-changed", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
-                DocumentKind.AnalyzerConfig => solution.WithAnalyzerConfigDocumentText(documentXId, SourceText.From("xxx-changed", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
+                DocumentKind.Source => solution.WithDocumentText(documentId, SourceText.From("xxx-changed", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
+                DocumentKind.Additional => solution.WithAdditionalDocumentText(documentId, SourceText.From("xxx-changed", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
+                DocumentKind.AnalyzerConfig => solution.WithAnalyzerConfigDocumentText(documentId, GetAnalyzerConfigText(new[] { ("x", "2") })),
                 _ => throw ExceptionUtilities.Unreachable,
             };
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, pathX, CancellationToken.None));
 
-            // remove document:
+            AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId, generatedDocumentId } : new[] { generatedDocumentId },
+                await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
+
+            Assert.Equal(1, generatorExecutionCount);
+
+            //
+            // Remove document
+            //
+
+            generatorExecutionCount = 0;
             oldSolution = solution;
             solution = documentKind switch
             {
-                DocumentKind.Source => solution.RemoveDocument(documentXId),
-                DocumentKind.Additional => solution.RemoveAdditionalDocument(documentXId),
-                DocumentKind.AnalyzerConfig => solution.RemoveAnalyzerConfigDocument(documentXId),
+                DocumentKind.Source => solution.RemoveDocument(documentId),
+                DocumentKind.Additional => solution.RemoveAdditionalDocument(documentId),
+                DocumentKind.AnalyzerConfig => solution.RemoveAnalyzerConfigDocument(documentId),
                 _ => throw ExceptionUtilities.Unreachable,
             };
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, pathX, CancellationToken.None));
+
+            Assert.Equal(0, generatorExecutionCount);
+
+            AssertEx.Equal(new[] { generatedDocumentId },
+                await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
+
+            Assert.Equal(1, generatorExecutionCount);
         }
 
         [Fact]

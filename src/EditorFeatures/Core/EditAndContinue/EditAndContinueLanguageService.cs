@@ -265,6 +265,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// will disappear once the debuggee is resumed - if they are caused by presence of active statements around the change.
         /// If the result is a false positive the debugger attempts to apply the changes, which will result in a delay but will correctly end up
         /// with no actual deltas to be applied.
+        /// 
+        /// If <paramref name="sourceFilePath"/> is specified checks for changes only in a document of the given path.
+        /// This is not supported (returns false) for source-generated documents.
         /// </summary>
         public async ValueTask<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
         {

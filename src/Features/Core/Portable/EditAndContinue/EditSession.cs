@@ -263,6 +263,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public static async ValueTask<bool> HasChangesAsync(Solution oldSolution, Solution newSolution, string sourceFilePath, CancellationToken cancellationToken)
         {
+            // Note that this path look up does not work for source-generated files:
             var newDocumentIds = newSolution.GetDocumentIdsWithFilePath(sourceFilePath);
             if (newDocumentIds.IsEmpty)
             {
@@ -272,14 +273,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // it suffices to check the content of one of the document if there are multiple linked ones:
             var documentId = newDocumentIds.First();
-            var oldDocument = await oldSolution.GetTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+            var oldDocument = oldSolution.GetTextDocument(documentId);
             if (oldDocument == null)
             {
                 // file has been added
                 return true;
             }
 
-            var newDocument = await newSolution.GetRequiredTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+            var newDocument = newSolution.GetRequiredTextDocument(documentId);
             return oldDocument != newDocument && !await ContentEqualsAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
         }
 
@@ -472,6 +473,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        /// <summary>
+        /// Enumerates <see cref="DocumentId"/>s of changed (not added or removed) <see cref="Document"/>s (not additional nor analyzer config).
+        /// </summary>
         internal static async IAsyncEnumerable<DocumentId> GetChangedDocumentsAsync(Project oldProject, Project newProject, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             Debug.Assert(oldProject.Id == newProject.Id);
@@ -494,7 +498,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // - analyzer config documents have not changed,
             // the outputs of source generators will not change.
 
-            if (!newProject.State.AdditionalDocumentStates.HasAnyStateChanges(oldProject.State.AdditionalDocumentStates) &&
+            if (!newProject.State.DocumentStates.HasAnyStateChanges(oldProject.State.DocumentStates) &&
+                !newProject.State.AdditionalDocumentStates.HasAnyStateChanges(oldProject.State.AdditionalDocumentStates) &&
                 !newProject.State.AnalyzerConfigDocumentStates.HasAnyStateChanges(oldProject.State.AnalyzerConfigDocumentStates))
             {
                 // Based on the above assumption there are no changes in source generated files.
