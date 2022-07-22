@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public async Task SetLastRequestedSolutionAsync(Checksum solutionChecksum, ReferenceCountedDisposable<LazySolution> solution, CancellationToken cancellationToken)
             {
                 // Collect the existing solution we're pointing at so we can decrease its ref count.  Do this out of the
-                // lock to prevent deadlocks when DisposeAsync runs and potentally calls back to remove the item from
+                // lock to prevent deadlocks when DisposeAsync runs and potentially calls back to remove the item from
                 // the dictionary.
                 ReferenceCountedDisposable<LazySolution>? solutionToDispose;
 
