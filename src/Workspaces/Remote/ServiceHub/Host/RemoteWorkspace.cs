@@ -141,22 +141,36 @@ namespace Microsoft.CodeAnalysis.Remote
 
             async ValueTask<(Solution? solution, T result)> TryFastGetSolutionAndRunAsync()
             {
-                Solution solution;
+                Solution solutionTemp;
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     if (_lastRequestedPrimaryBranchSolution.checksum == solutionChecksum)
                     {
-                        solution = _lastRequestedPrimaryBranchSolution.solution;
+                        solutionTemp = _lastRequestedPrimaryBranchSolution.solution;
                     }
                     else if (_lastRequestedAnyBranchSolution.checksum == solutionChecksum)
                     {
-                        solution = _lastRequestedAnyBranchSolution.solution;
+                        solutionTemp = _lastRequestedAnyBranchSolution.solution;
                     }
                     else
                     {
                         return default;
                     }
                 }
+
+                // We successfully found the solution.  However, we still want to ensure it's in the
+                // _solutionChecksumToLazySolution map.  This ensures that as long as the call to `implementation` is in
+                // progress subsequent calls with this same checksum will be able to reuse this solution. If we did not
+                // do this, an intervening edit might cause _lastRequestedXXX to change, and subsequence calls to this
+                // same solutionChecksum would then not find the item either there, or in the
+                // _solutionChecksumToLazySolution map.
+
+                var refCountedLazySolution = await GetLazySolutionAsync(
+                    solutionChecksum,
+                    _ => Task.FromResult(solutionTemp),
+                    cancellationToken).ConfigureAwait(false);
+                await using var configuredAsyncDisposable = refCountedLazySolution.ConfigureAwait(false);
+                var solution = await refCountedLazySolution.Target.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
 
                 var result = await implementation(solution).ConfigureAwait(false);
                 return (solution, result);
@@ -178,7 +192,10 @@ namespace Microsoft.CodeAnalysis.Remote
             // We use a reference-counted solution that implements IAsyncDisposable. The computation of 'newSolution'
             // uses eager cancellation, but the asynchronous disposable applies lazy cancellation to the final task that
             // causes cancellation to propagate to the backing lazy operation.
-            var refCountedLazySolution = await GetLazySolutionAsync().ConfigureAwait(false);
+            var refCountedLazySolution = await GetLazySolutionAsync(
+                solutionChecksum,
+                cancellationToken => ComputeSolutionAsync(assetProvider, solutionChecksum, currentSolution, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
             await using var configuredAsyncDisposable = refCountedLazySolution.ConfigureAwait(false);
 
             // Actually get the solution, computing it ourselves, or getting the result that another caller was
@@ -200,47 +217,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             return (newSolution, result);
 
-            async ValueTask<ReferenceCountedDisposable<LazySolution>> GetLazySolutionAsync()
-            {
-                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    if (_solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out var refCountedLazySolution))
-                    {
-                        var lazySolutionInstance = refCountedLazySolution.TryAddReference();
-                        if (lazySolutionInstance is not null)
-                            return lazySolutionInstance;
-
-                        // Remove the value since it's clearly no longer usable. The cleanupAsync method would have
-                        // removed this value, but has not completed its execution yet.
-                        _solutionChecksumToLazySolution.Remove(solutionChecksum);
-                    }
-
-                    // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
-                    // refcount of 1 (for 'us').
-                    refCountedLazySolution = null;
-                    var lazySolution = new LazySolution(
-                        getSolutionAsync: cancellationToken => ComputeSolutionAsync(assetProvider, solutionChecksum, currentSolution, cancellationToken),
-                        cleanupAsync: async () =>
-                        {
-                            // We use CancellationToken.None here as we have to ensure the lazy solution is removed from the
-                            // checksum map, or else we will have a memory leak.  This should hopefully not ever be an issue as we
-                            // only ever hold this gate for very short periods of time in order to set do basic operations on our
-                            // state.
-                            using var _ = await _gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false);
-
-                            // Only remove a value from the map if it still exists and holds the same expected instance
-                            if (_solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out var remainingRefCountedLazySolution)
-                                && remainingRefCountedLazySolution == refCountedLazySolution)
-                            {
-                                _solutionChecksumToLazySolution.Remove(solutionChecksum);
-                            }
-                        });
-                    refCountedLazySolution = new ReferenceCountedDisposable<LazySolution>(lazySolution);
-                    _solutionChecksumToLazySolution.Add(solutionChecksum, refCountedLazySolution);
-                    return refCountedLazySolution;
-                }
-            }
-
             async ValueTask SetLastRequestedSolutionAsync(Solution solution)
             {
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
@@ -251,6 +227,50 @@ namespace Microsoft.CodeAnalysis.Remote
                     if (fromPrimaryBranch)
                         _lastRequestedPrimaryBranchSolution = (solutionChecksum, solution);
                 }
+            }
+        }
+
+        private async ValueTask<ReferenceCountedDisposable<LazySolution>> GetLazySolutionAsync(
+            Checksum solutionChecksum,
+            Func<CancellationToken, Task<Solution>> getSolutionAsync,
+            CancellationToken cancellationToken)
+        {
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (_solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out var refCountedLazySolution))
+                {
+                    var lazySolutionInstance = refCountedLazySolution.TryAddReference();
+                    if (lazySolutionInstance is not null)
+                        return lazySolutionInstance;
+
+                    // Remove the value since it's clearly no longer usable. The cleanupAsync method would have
+                    // removed this value, but has not completed its execution yet.
+                    _solutionChecksumToLazySolution.Remove(solutionChecksum);
+                }
+
+                // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
+                // refcount of 1 (for 'us').
+                refCountedLazySolution = null;
+                var lazySolution = new LazySolution(
+                    getSolutionAsync,
+                    cleanupAsync: async () =>
+                    {
+                        // We use CancellationToken.None here as we have to ensure the lazy solution is removed from the
+                        // checksum map, or else we will have a memory leak.  This should hopefully not ever be an issue as we
+                        // only ever hold this gate for very short periods of time in order to set do basic operations on our
+                        // state.
+                        using var _ = await _gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false);
+
+                        // Only remove a value from the map if it still exists and holds the same expected instance
+                        if (_solutionChecksumToLazySolution.TryGetValue(solutionChecksum, out var remainingRefCountedLazySolution)
+                            && remainingRefCountedLazySolution == refCountedLazySolution)
+                        {
+                            _solutionChecksumToLazySolution.Remove(solutionChecksum);
+                        }
+                    });
+                refCountedLazySolution = new ReferenceCountedDisposable<LazySolution>(lazySolution);
+                _solutionChecksumToLazySolution.Add(solutionChecksum, refCountedLazySolution);
+                return refCountedLazySolution;
             }
         }
 
