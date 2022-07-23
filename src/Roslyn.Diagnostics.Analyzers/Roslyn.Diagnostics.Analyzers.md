@@ -96,7 +96,7 @@ Importing constructor should be marked with 'ObsoleteAttribute'.
 |CodeFix|True|
 ---
 
-## RS0034: Exported parts should be marked with 'ImportingConstructorAttribute'
+## RS0034: Exported parts should have a public constructor marked with 'ImportingConstructorAttribute'
 
 Exported parts should be marked with 'ImportingConstructorAttribute'.
 
