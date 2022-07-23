@@ -10,17 +10,15 @@ namespace RunTests
     internal readonly struct TestExecutionOptions
     {
         internal string DotnetFilePath { get; }
-        internal ProcDumpInfo? ProcDumpInfo { get; }
         internal string TestResultsDirectory { get; }
         internal string? TestFilter { get; }
         internal bool IncludeHtml { get; }
         internal bool Retry { get; }
         internal bool CollectDumps { get; }
 
-        internal TestExecutionOptions(string dotnetFilePath, ProcDumpInfo? procDumpInfo, string testResultsDirectory, string? testFilter, bool includeHtml, bool retry, bool collectDumps)
+        internal TestExecutionOptions(string dotnetFilePath, string testResultsDirectory, string? testFilter, bool includeHtml, bool retry, bool collectDumps)
         {
             DotnetFilePath = dotnetFilePath;
-            ProcDumpInfo = procDumpInfo;
             TestResultsDirectory = testResultsDirectory;
             TestFilter = testFilter;
             IncludeHtml = includeHtml;

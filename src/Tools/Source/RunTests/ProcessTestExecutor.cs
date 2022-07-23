@@ -20,13 +20,6 @@ namespace RunTests
 {
     internal sealed class ProcessTestExecutor
     {
-        public TestExecutionOptions Options { get; }
-
-        internal ProcessTestExecutor(TestExecutionOptions options)
-        {
-            Options = options;
-        }
-
         public string GetCommandLineArguments(WorkItemInfo workItem, bool useSingleQuotes, Options options)
         {
             // http://www.gnu.org/software/bash/manual/html_node/Single-Quotes.html
@@ -42,7 +35,7 @@ namespace RunTests
             builder.Append($@" {string.Join(" ", escapedAssemblyPaths)}");
 
             var filters = workItem.Filters.Values.SelectMany(filter => filter).Where(filter => !string.IsNullOrEmpty(filter.GetFilterString())).ToImmutableArray();
-            if (filters.Length > 0 || !string.IsNullOrWhiteSpace(Options.TestFilter))
+            if (filters.Length > 0 || !string.IsNullOrWhiteSpace(options.TestFilter))
             {
                 builder.Append($@" --filter {sep}");
                 var any = false;
@@ -53,10 +46,10 @@ namespace RunTests
                 }
                 builder.Append(sep);
 
-                if (Options.TestFilter is object)
+                if (options.TestFilter is object)
                 {
                     MaybeAddSeparator();
-                    builder.Append(Options.TestFilter);
+                    builder.Append(options.TestFilter);
                 }
 
                 void MaybeAddSeparator(char separator = '|')
@@ -73,12 +66,12 @@ namespace RunTests
             builder.Append($@" --arch {options.Architecture}");
             builder.Append($@" --logger {sep}xunit;LogFilePath={GetResultsFilePath(workItem, options, "xml")}{sep}");
 
-            if (Options.IncludeHtml)
+            if (options.IncludeHtml)
             {
                 builder.AppendFormat($@" --logger {sep}html;LogFileName={GetResultsFilePath(workItem, options, "html")}{sep}");
             }
 
-            if (!Options.CollectDumps)
+            if (!options.CollectDumps)
             {
                 // The 'CollectDumps' option uses operating system features to collect dumps when a process crashes. We
                 // only enable the test executor blame feature in remaining cases, as the latter relies on ProcDump and
@@ -103,7 +96,7 @@ namespace RunTests
         private string GetResultsFilePath(WorkItemInfo workItemInfo, Options options, string suffix = "xml")
         {
             var fileName = $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}_test_results.{suffix}";
-            return Path.Combine(Options.TestResultsDirectory, fileName);
+            return Path.Combine(options.TestResultsDirectory, fileName);
         }
 
         public async Task<TestResult> RunTestAsync(WorkItemInfo workItemInfo, Options options, CancellationToken cancellationToken)
@@ -111,7 +104,7 @@ namespace RunTests
             var result = await RunTestAsyncInternal(workItemInfo, options, isRetry: false, cancellationToken);
 
             // For integration tests (TestVsi), we make one more attempt to re-run failed tests.
-            if (Options.Retry && !HasBuiltInRetry(workItemInfo) && !Options.IncludeHtml && !result.Succeeded)
+            if (options.Retry && !HasBuiltInRetry(workItemInfo) && !options.IncludeHtml && !result.Succeeded)
             {
                 return await RunTestAsyncInternal(workItemInfo, options, isRetry: true, cancellationToken);
             }
@@ -132,16 +125,14 @@ namespace RunTests
                 var commandLineArguments = GetCommandLineArguments(workItemInfo, useSingleQuotes: false, options);
                 var resultsFilePath = GetResultsFilePath(workItemInfo, options);
                 var resultsDir = Path.GetDirectoryName(resultsFilePath);
-                var htmlResultsFilePath = Options.IncludeHtml ? GetResultsFilePath(workItemInfo, options, "html") : null;
+                var htmlResultsFilePath = options.IncludeHtml ? GetResultsFilePath(workItemInfo, options, "html") : null;
                 var processResultList = new List<ProcessResult>();
-                ProcessInfo? procDumpProcessInfo = null;
 
                 // NOTE: xUnit doesn't always create the log directory
                 Directory.CreateDirectory(resultsDir!);
 
                 // Define environment variables for processes started via ProcessRunner.
                 var environmentVariables = new Dictionary<string, string>();
-                Options.ProcDumpInfo?.WriteEnvironmentVariables(environmentVariables);
 
                 if (isRetry && File.Exists(resultsFilePath))
                 {
@@ -175,7 +166,7 @@ namespace RunTests
                 var start = DateTime.UtcNow;
                 var dotnetProcessInfo = ProcessRunner.CreateProcess(
                     ProcessRunner.CreateProcessStartInfo(
-                        Options.DotnetFilePath,
+                        options.DotnetFilePath,
                         commandLineArguments,
                         displayWindow: false,
                         captureOutput: true,
@@ -189,12 +180,6 @@ namespace RunTests
 
                 Logger.Log($"Exit xunit process with id {dotnetProcessInfo.Id} for test {workItemInfo.DisplayName} with code {xunitProcessResult.ExitCode}");
                 processResultList.Add(xunitProcessResult);
-                if (procDumpProcessInfo != null)
-                {
-                    var procDumpProcessResult = await procDumpProcessInfo.Value.Result;
-                    Logger.Log($"Exit procdump process with id {procDumpProcessInfo.Value.Id} for {dotnetProcessInfo.Id} for test {workItemInfo.DisplayName} with code {procDumpProcessResult.ExitCode}");
-                    processResultList.Add(procDumpProcessResult);
-                }
 
                 if (xunitProcessResult.ExitCode != 0)
                 {
@@ -221,7 +206,7 @@ namespace RunTests
                     }
                 }
 
-                Logger.Log($"Command line {workItemInfo.DisplayName} completed in {span.TotalSeconds} seconds: {Options.DotnetFilePath} {commandLineArguments}");
+                Logger.Log($"Command line {workItemInfo.DisplayName} completed in {span.TotalSeconds} seconds: {options.DotnetFilePath} {commandLineArguments}");
                 var standardOutput = string.Join(Environment.NewLine, xunitProcessResult.OutputLines) ?? "";
                 var errorOutput = string.Join(Environment.NewLine, xunitProcessResult.ErrorLines) ?? "";
 
@@ -241,7 +226,7 @@ namespace RunTests
             }
             catch (Exception ex)
             {
-                throw new Exception($"Unable to run {workItemInfo.DisplayName} with {Options.DotnetFilePath}. {ex}");
+                throw new Exception($"Unable to run {workItemInfo.DisplayName} with {options.DotnetFilePath}. {ex}");
             }
         }
     }

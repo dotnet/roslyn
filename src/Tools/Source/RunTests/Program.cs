@@ -129,7 +129,7 @@ namespace RunTests
 
         private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken)
         {
-            var testExecutor = CreateTestExecutor(options);
+            var testExecutor = new ProcessTestExecutor();
             var testRunner = new TestRunner(options, testExecutor);
             var start = DateTime.Now;
             var workItems = await GetWorkItemsAsync(options, cancellationToken);
@@ -256,31 +256,21 @@ namespace RunTests
                 }
             }
 
-            if (options.CollectDumps && GetProcDumpInfo(options) is { } procDumpInfo)
+            if (options.CollectDumps && !string.IsNullOrEmpty(options.ProcDumpFilePath))
             {
                 ConsoleUtil.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
 
                 var counter = 0;
                 foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
                 {
-                    var dumpDir = procDumpInfo.DumpDirectory;
+                    var dumpDir = options.LogFilesDirectory;
                     var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
-                    await DumpProcess(proc, procDumpInfo.ProcDumpFilePath, dumpFilePath);
+                    await DumpProcess(proc, options.ProcDumpFilePath, dumpFilePath);
                     counter++;
                 }
             }
 
             WriteLogFile(options);
-        }
-
-        private static ProcDumpInfo? GetProcDumpInfo(Options options)
-        {
-            if (!string.IsNullOrEmpty(options.ProcDumpFilePath))
-            {
-                return new ProcDumpInfo(options.ProcDumpFilePath, options.LogFilesDirectory);
-            }
-
-            return null;
         }
 
         private static async Task<ImmutableArray<WorkItemInfo>> GetWorkItemsAsync(Options options, CancellationToken cancellationToken)
@@ -388,19 +378,6 @@ namespace RunTests
                     ProcessRunner.OpenFile(cur.ResultsDisplayFilePath);
                 }
             }
-        }
-
-        private static ProcessTestExecutor CreateTestExecutor(Options options)
-        {
-            var testExecutionOptions = new TestExecutionOptions(
-                dotnetFilePath: options.DotnetFilePath,
-                procDumpInfo: options.CollectDumps ? GetProcDumpInfo(options) : null,
-                testResultsDirectory: options.TestResultsDirectory,
-                testFilter: options.TestFilter,
-                includeHtml: options.IncludeHtml,
-                retry: options.Retry,
-                collectDumps: options.CollectDumps);
-            return new ProcessTestExecutor(testExecutionOptions);
         }
 
         /// <summary>
