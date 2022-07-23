@@ -106,7 +106,6 @@ public static class ProcessRunner
         };
 
         process.Exited += (s, e) =>
-        {
             // We must call WaitForExit to make sure we've received all OutputDataReceived/ErrorDataReceived calls
             // or else we'll be returning a list we're still modifying. For paranoia, we'll start a task here rather
             // than enter right back into the Process type and start a wait which isn't guaranteed to be safe.
@@ -120,7 +119,6 @@ public static class ProcessRunner
                     new ReadOnlyCollection<string>(errorLines));
                 tcs.TrySetResult(result);
             }, cancellationToken);
-        };
 
         var registration = cancellationToken.Register(() =>
         {

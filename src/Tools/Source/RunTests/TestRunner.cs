@@ -12,10 +12,13 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.TeamFoundation.Common;
 using Mono.Options;
 using Newtonsoft.Json;
+using TestExecutor;
 
 namespace RunTests
 {
@@ -23,24 +26,20 @@ namespace RunTests
     {
         internal bool Succeeded { get; }
         internal ImmutableArray<TestResult> TestResults { get; }
-        internal ImmutableArray<ProcessResult> ProcessResults { get; }
 
-        internal RunAllResult(bool succeeded, ImmutableArray<TestResult> testResults, ImmutableArray<ProcessResult> processResults)
+        internal RunAllResult(bool succeeded, ImmutableArray<TestResult> testResults)
         {
             Succeeded = succeeded;
             TestResults = testResults;
-            ProcessResults = processResults;
         }
     }
 
     internal sealed class TestRunner
     {
-        private readonly ProcessTestExecutor _testExecutor;
         private readonly Options _options;
 
-        internal TestRunner(Options options, ProcessTestExecutor testExecutor)
+        internal TestRunner(Options options)
         {
-            _testExecutor = testExecutor;
             _options = options;
         }
 
@@ -132,7 +131,15 @@ namespace RunTests
                 cancellationToken: cancellationToken);
             var result = await process.Result;
 
-            return new RunAllResult(result.ExitCode == 0, ImmutableArray<TestResult>.Empty, ImmutableArray.Create(result));
+            if (result.ExitCode != 0)
+            {
+                foreach (var line in result.ErrorLines)
+                {
+                    ConsoleUtil.WriteLine(ConsoleColor.Red, line);
+                }
+            }
+
+            return new RunAllResult(result.ExitCode == 0, ImmutableArray<TestResult>.Empty);
 
             static string getGlobalJsonPath()
             {
@@ -208,11 +215,21 @@ namespace RunTests
 
                 AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);
 
-                var commandLineArguments = _testExecutor.GetCommandLineArguments(workItemInfo, isUnix, options);
-                // XML escape the arguments as the commands are output into the helix project xml file.
-                commandLineArguments = SecurityElement.Escape(commandLineArguments);
-                var dotnetTestCommand = $"dotnet {commandLineArguments}";
-                command.AppendLine(dotnetTestCommand);
+                // TODO - need different names per work item, otherwise stuff just gets overwritten
+                var runsettings = ProcessTestExecutor.GetRunSettings(workItemInfo, options);
+                var runsettingsFileName = "roslyn.runsettings";
+                var runsettingsPath = Path.Combine(payloadDirectory, runsettingsFileName);
+                File.WriteAllText(runsettingsPath, runsettings);
+
+                var filterString = ProcessTestExecutor.GetFilterString(workItemInfo, options);
+                var testExecutorInfoFileName = "assembly_filter.txt";
+                var testExecutorInfo = new TestExecutorInfo(workItemInfo.Filters.Keys.Select(a => a.AssemblyPath).ToList(), filterString);
+                var testExecutorInfoPath = Path.Combine(payloadDirectory, testExecutorInfoFileName);
+                File.WriteAllText(testExecutorInfoPath, JsonConvert.SerializeObject(testExecutorInfo));
+
+                var testExecutorPath = Path.Combine("TestExecutor", options.Configuration, "net6.0", "TestExecutor.dll");
+                var dotnetPath = isUnix ? "${DOTNET_ROOT}/dotnet" : "%DOTNET_ROOT%\\dotnet";
+                command.AppendLine($"dotnet exec \"{testExecutorPath}\" --dotnetPath \"{dotnetPath}\" --workItemInfoPath \"{testExecutorInfoFileName}\" --runsettingsPath {runsettingsFileName}");
 
                 // We want to collect any dumps during the post command step here; these commands are ran after the
                 // return value of the main command is captured; a Helix Job is considered to fail if the main command returns a
@@ -281,13 +298,7 @@ namespace RunTests
                                 }
                                 else
                                 {
-                                    foreach (var result in testResult.ProcessResults)
-                                    {
-                                        foreach (var line in result.ErrorLines)
-                                        {
-                                            ConsoleUtil.WriteLine(ConsoleColor.Red, line);
-                                        }
-                                    }
+                                    ConsoleUtil.WriteLine(ConsoleColor.Red, testResult.ErrorOutput);
                                 }
                             }
 
@@ -309,7 +320,7 @@ namespace RunTests
 
                 while (running.Count < max && waiting.Count > 0)
                 {
-                    var task = _testExecutor.RunTestAsync(waiting.Pop(), _options, cancellationToken);
+                    var task = ProcessTestExecutor.RunTestAsync(waiting.Pop(), _options, cancellationToken);
                     running.Add(task);
                 }
 
@@ -330,13 +341,7 @@ namespace RunTests
 
             Print(completed);
 
-            var processResults = ImmutableArray.CreateBuilder<ProcessResult>();
-            foreach (var c in completed)
-            {
-                processResults.AddRange(c.ProcessResults);
-            }
-
-            return new RunAllResult((failures == 0), completed.ToImmutableArray(), processResults.ToImmutable());
+            return new RunAllResult((failures == 0), completed.ToImmutableArray());
         }
 
         private void Print(List<TestResult> testResults)
@@ -357,19 +362,11 @@ namespace RunTests
                 line.Append($"{testResult.DisplayName,-75}");
                 line.Append($" {(testResult.Succeeded ? "PASSED" : "FAILED")}");
                 line.Append($" {testResult.Elapsed}");
-                line.Append($" {(!string.IsNullOrEmpty(testResult.Diagnostics) ? "?" : "")}");
 
                 var message = line.ToString();
                 ConsoleUtil.WriteLine(color, message);
             }
             ConsoleUtil.WriteLine("================");
-
-            // Print diagnostics out last so they are cleanly visible at the end of the test summary
-            ConsoleUtil.WriteLine("Extra run diagnostics for logging, did not impact run results");
-            foreach (var testResult in testResults.Where(x => !string.IsNullOrEmpty(x.Diagnostics)))
-            {
-                ConsoleUtil.WriteLine(testResult.Diagnostics!);
-            }
         }
 
         private void PrintFailedTestResult(TestResult testResult)
@@ -378,10 +375,9 @@ namespace RunTests
             var outputLogPath = Path.Combine(_options.LogFilesDirectory, $"xUnitFailure-{testResult.DisplayName}.log");
 
             ConsoleUtil.WriteLine($"Errors {testResult.DisplayName}");
-            ConsoleUtil.WriteLine(testResult.ErrorOutput);
+            ConsoleUtil.WriteLine(testResult.ErrorOutput ?? string.Empty);
 
             // TODO: Put this in the log and take it off the ConsoleUtil output to keep it simple?
-            ConsoleUtil.WriteLine($"Command: {testResult.CommandLine}");
             ConsoleUtil.WriteLine($"xUnit output log: {outputLogPath}");
 
             File.WriteAllText(outputLogPath, testResult.StandardOutput ?? "");
@@ -397,10 +393,9 @@ namespace RunTests
             }
 
             // If the results are html, use Process.Start to open in the browser.
-            var htmlResultsFilePath = testResult.TestResultInfo.HtmlResultsFilePath;
-            if (!string.IsNullOrEmpty(htmlResultsFilePath))
+            if (Path.GetExtension(testResult.ResultsDisplayFilePath) == "html")
             {
-                var startInfo = new ProcessStartInfo() { FileName = htmlResultsFilePath, UseShellExecute = true };
+                var startInfo = new ProcessStartInfo() { FileName = testResult.ResultsDisplayFilePath, UseShellExecute = true };
                 Process.Start(startInfo);
             }
         }

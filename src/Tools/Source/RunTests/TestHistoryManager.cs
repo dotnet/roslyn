@@ -26,7 +26,7 @@ internal class TestHistoryManager
     private const int MaxTestsReturnedPerRequest = 10000;
 
     /// <summary>
-    /// The pipeline id for roslyn-ci, see https://dev.azure.com/dnceng/public/_build?definitionId=15&_a=summary
+    /// The pipeline id for roslyn-ci, see https://dev.azure.com/dnceng/public/_build?definitionId=15
     /// </summary>
     private const int RoslynCiBuildDefinitionId = 15;
 
@@ -61,7 +61,7 @@ internal class TestHistoryManager
         if (lastSuccessfulBuild == null)
         {
             // If this is a new branch we may not have any historical data for it.
-            ConsoleUtil.WriteLine($"##[warning]Unable to get the last successful build for definition {RoslynCiBuildDefinitionId} and branch {adoBranchName}");
+            ConsoleUtil.WriteLine($"Unable to get the last successful build for definition {RoslynCiBuildDefinitionId} and branch {adoBranchName}");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
@@ -76,7 +76,7 @@ internal class TestHistoryManager
         if (runForThisStage == null)
         {
             // If this is a new stage, historical runs will not have any data for it.
-            ConsoleUtil.WriteLine($"##[warning]Unable to get a run with name {stageName} from build {lastSuccessfulBuild.Url}.");
+            ConsoleUtil.WriteLine($"Unable to get a run with name {stageName} from build {lastSuccessfulBuild.Url}.");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 

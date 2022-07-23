@@ -14,6 +14,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -88,23 +89,24 @@ namespace RunTests
         {
             Logger.Log($"Scheduling {assemblies.Length} assemblies");
 
+            if (_options.Sequential || !_options.UseHelix)
+            {
+                Logger.Log("Building work items with one assembly each.");
+                // return individual work items per assembly that contain all the tests in that assembly.
+                return CreateWorkItemsForFullAssemblies(assemblies);
+            }
+
             var orderedTypeInfos = assemblies.ToImmutableSortedDictionary(assembly => assembly, GetTypeInfoList);
 
             ConsoleUtil.WriteLine($"Found {orderedTypeInfos.Values.SelectMany(t => t).SelectMany(t => t.Tests).Count()} tests to run in {orderedTypeInfos.Keys.Count()} assemblies");
-
-            if (_options.Sequential)
-            {
-                Logger.Log("Building sequential work items");
-                // return individual work items per assembly that contain all the tests in that assembly.
-                return CreateWorkItemsForFullAssemblies(orderedTypeInfos);
-            }
 
             // Retrieve test runtimes from azure devops historical data.
             var testHistory = await TestHistoryManager.GetTestHistoryAsync(cancellationToken);
             if (testHistory.IsEmpty)
             {
                 // We didn't have any test history from azure devops, just partition by assembly.
-                return CreateWorkItemsForFullAssemblies(orderedTypeInfos);
+                ConsoleUtil.WriteLine($"##[warning]Could not look up test history - building a single work item per assembly");
+                return CreateWorkItemsForFullAssemblies(assemblies);
             }
 
             // Now for our current set of test methods we got from the assemblies we built, match them to tests from our test run history
@@ -120,13 +122,13 @@ namespace RunTests
             LogWorkItems(workItems);
             return workItems;
 
-            static ImmutableArray<WorkItemInfo> CreateWorkItemsForFullAssemblies(ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> orderedTypeInfos)
+            static ImmutableArray<WorkItemInfo> CreateWorkItemsForFullAssemblies(ImmutableArray<AssemblyInfo> assemblies)
             {
                 var workItems = new List<WorkItemInfo>();
                 var partitionIndex = 0;
-                foreach (var orderedTypeInfo in orderedTypeInfos)
+                foreach (var assembly in assemblies)
                 {
-                    var currentWorkItem = ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<ITestFilter>>.Empty.Add(orderedTypeInfo.Key, ImmutableArray.Create((ITestFilter)new AssemblyTestFilter(orderedTypeInfo.Value)));
+                    var currentWorkItem = ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<ITestFilter>>.Empty.Add(assembly, ImmutableArray<ITestFilter>.Empty);
                     workItems.Add(new WorkItemInfo(currentWorkItem, partitionIndex++));
                 }
 
@@ -327,6 +329,8 @@ namespace RunTests
         {
             var assemblyDirectory = Path.GetDirectoryName(assemblyInfo.AssemblyPath);
             var testListPath = Path.Combine(assemblyDirectory!, "testlist.json");
+            Contract.Assert(File.Exists(testListPath));
+
             var deserialized = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(testListPath));
 
             Contract.Assert(deserialized != null);

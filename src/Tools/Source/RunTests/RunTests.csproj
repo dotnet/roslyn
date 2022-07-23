@@ -16,6 +16,9 @@
     <PackageReference Include="Mono.Options" Version="$(MonoOptionsVersion)" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="$(MicrosoftWin32RegistryVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="16.170.0"/>
+    <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="16.170.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\TestExecutor\TestExecutor.csproj" />
   </ItemGroup>
 </Project>

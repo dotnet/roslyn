@@ -13,38 +13,27 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
+using TestExecutor;
 
 namespace RunTests
 {
     internal sealed class ProcessTestExecutor
     {
-        public string GetCommandLineArguments(WorkItemInfo workItem, bool useSingleQuotes, Options options)
+        public static string GetFilterString(WorkItemInfo workItemInfo, Options options)
         {
-            // http://www.gnu.org/software/bash/manual/html_node/Single-Quotes.html
-            // Single quotes are needed in bash to avoid the need to escape characters such as backtick (`) which are found in metadata names.
-            // Batch scripts don't need to worry about escaping backticks, but they don't support single quoted strings, so we have to use double quotes.
-            // We also need double quotes when building an arguments string for Process.Start in .NET Core so that splitting/unquoting works as expected.
-            var sep = useSingleQuotes ? "'" : @"""";
-
             var builder = new StringBuilder();
-            builder.Append($@"test");
-
-            var escapedAssemblyPaths = workItem.Filters.Keys.Select(assembly => $"{sep}{assembly.AssemblyPath}{sep}");
-            builder.Append($@" {string.Join(" ", escapedAssemblyPaths)}");
-
-            var filters = workItem.Filters.Values.SelectMany(filter => filter).Where(filter => !string.IsNullOrEmpty(filter.GetFilterString())).ToImmutableArray();
-            if (filters.Length > 0 || !string.IsNullOrWhiteSpace(options.TestFilter))
+            var filters = workItemInfo.Filters.Values.SelectMany(filter => filter);
+            if (filters.Any() || !string.IsNullOrWhiteSpace(options.TestFilter))
             {
-                builder.Append($@" --filter {sep}");
                 var any = false;
                 foreach (var filter in filters)
                 {
                     MaybeAddSeparator();
                     builder.Append(filter.GetFilterString());
                 }
-                builder.Append(sep);
 
                 if (options.TestFilter is object)
                 {
@@ -63,21 +52,12 @@ namespace RunTests
                 }
             }
 
-            builder.Append($@" --arch {options.Architecture}");
-            builder.Append($@" --logger {sep}xunit;LogFilePath={GetResultsFilePath(workItem, options, "xml")}{sep}");
+            return builder.ToString();
+        }
 
-            if (options.IncludeHtml)
-            {
-                builder.AppendFormat($@" --logger {sep}html;LogFileName={GetResultsFilePath(workItem, options, "html")}{sep}");
-            }
-
-            if (!options.CollectDumps)
-            {
-                // The 'CollectDumps' option uses operating system features to collect dumps when a process crashes. We
-                // only enable the test executor blame feature in remaining cases, as the latter relies on ProcDump and
-                // interferes with automatic crash dump collection on Windows.
-                builder.Append(" --blame-crash");
-            }
+        public static string GetRunSettings(WorkItemInfo workItemInfo, Options options)
+        {
+            var blameCrashSetting = !options.CollectDumps ? "<CollectDump CollectAlways=\"false\" DumpType=\"full\" />" : string.Empty;
 
             // The 25 minute timeout in integration tests accounts for the fact that VSIX deployment and/or experimental hive reset and
             // configuration can take significant time (seems to vary from ~10 seconds to ~15 minutes), and the blame
@@ -86,20 +66,56 @@ namespace RunTests
             //
             // Helix timeout is 15 minutes as helix jobs fully timeout in 30minutes.  So in order to capture dumps we need the timeout
             // to be 2x shorter than the expected test run time (15min) in case only the last test hangs.
-            var timeout = options.UseHelix ? "15minutes" : "25minutes";
+            var timeout = options.UseHelix ? TimeSpan.FromMinutes(15) : TimeSpan.FromMinutes(25);
 
-            builder.Append($" --blame-hang-dump-type full --blame-hang-timeout {timeout}");
+            var xunitResultsFilePath = GetResultsFilePath(workItemInfo, options, "xml");
+            var htmlResultsFilePath = GetResultsFilePath(workItemInfo, options, "html");
+            var includeHtmlLogger = options.IncludeHtml ? "True" : "False";
 
-            return builder.ToString();
+            var runsettingsDocument = $@"<?xml version=""1.0"" encoding=""utf-8""?>
+<RunSettings>
+  <!-- Configurations that affect the Test Framework -->
+  <RunConfiguration>
+    <MaxCpuCount>0</MaxCpuCount>
+    <TargetPlatform>{options.Architecture}</TargetPlatform>
+  </RunConfiguration>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName=""blame"" enabled=""True"">
+        <Configuration>
+          <CollectDumpOnTestSessionHang TestTimeout=""{timeout.TotalMilliseconds}"" DumpType=""full"" />
+          {blameCrashSetting}
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+  <LoggerRunSettings>
+    <Loggers>
+      <Logger friendlyName=""blame"" enabled=""True"" />
+      <Logger friendlyName=""xunit"" enabled=""True"">
+        <Configuration>
+          <LogFilePath>{xunitResultsFilePath}</LogFilePath>
+        </Configuration>
+      </Logger>
+      <Logger friendlyName=""html"" enabled=""{includeHtmlLogger}"">
+        <Configuration>
+          <LogFilePath>{htmlResultsFilePath}</LogFilePath>
+        </Configuration>
+      </Logger>
+    </Loggers>
+  </LoggerRunSettings>
+</RunSettings>";
+
+            return runsettingsDocument;
         }
 
-        private string GetResultsFilePath(WorkItemInfo workItemInfo, Options options, string suffix = "xml")
+        private static string GetResultsFilePath(WorkItemInfo workItemInfo, Options options, string suffix = "xml")
         {
             var fileName = $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}_test_results.{suffix}";
             return Path.Combine(options.TestResultsDirectory, fileName);
         }
 
-        public async Task<TestResult> RunTestAsync(WorkItemInfo workItemInfo, Options options, CancellationToken cancellationToken)
+        public static async Task<TestResult> RunTestAsync(WorkItemInfo workItemInfo, Options options, CancellationToken cancellationToken)
         {
             var result = await RunTestAsyncInternal(workItemInfo, options, isRetry: false, cancellationToken);
 
@@ -118,15 +134,16 @@ namespace RunTests
             }
         }
 
-        private async Task<TestResult> RunTestAsyncInternal(WorkItemInfo workItemInfo, Options options, bool isRetry, CancellationToken cancellationToken)
+        private static async Task<TestResult> RunTestAsyncInternal(WorkItemInfo workItemInfo, Options options, bool isRetry, CancellationToken cancellationToken)
         {
             try
             {
-                var commandLineArguments = GetCommandLineArguments(workItemInfo, useSingleQuotes: false, options);
+                var runsettingsContents = GetRunSettings(workItemInfo, options);
+                var filterString = GetFilterString(workItemInfo, options);
+
                 var resultsFilePath = GetResultsFilePath(workItemInfo, options);
                 var resultsDir = Path.GetDirectoryName(resultsFilePath);
                 var htmlResultsFilePath = options.IncludeHtml ? GetResultsFilePath(workItemInfo, options, "html") : null;
-                var processResultList = new List<ProcessResult>();
 
                 // NOTE: xUnit doesn't always create the log directory
                 Directory.CreateDirectory(resultsDir!);
@@ -163,25 +180,13 @@ namespace RunTests
                 // an empty log just in case, so our runner will still fail.
                 File.Create(resultsFilePath).Close();
 
-                var start = DateTime.UtcNow;
-                var dotnetProcessInfo = ProcessRunner.CreateProcess(
-                    ProcessRunner.CreateProcessStartInfo(
-                        options.DotnetFilePath,
-                        commandLineArguments,
-                        displayWindow: false,
-                        captureOutput: true,
-                        environmentVariables: environmentVariables),
-                    lowPriority: false,
-                    cancellationToken: cancellationToken);
-                Logger.Log($"Create xunit process with id {dotnetProcessInfo.Id} for test {workItemInfo.DisplayName}");
+                Logger.Log($"Running tests in work item {workItemInfo.DisplayName}");
+                var testResult = TestPlatformWrapper.RunTests(workItemInfo.Filters.Keys.Select(a => a.AssemblyPath), filterString, runsettingsContents, options.DotnetFilePath);
 
-                var xunitProcessResult = await dotnetProcessInfo.Result;
-                var span = DateTime.UtcNow - start;
+                Logger.Log($"Test run finished with code {testResult.ExitCode}, ran to completion: {testResult.RanToCompletion}");
+                Logger.Log($"Took {testResult.Elapsed}");
 
-                Logger.Log($"Exit xunit process with id {dotnetProcessInfo.Id} for test {workItemInfo.DisplayName} with code {xunitProcessResult.ExitCode}");
-                processResultList.Add(xunitProcessResult);
-
-                if (xunitProcessResult.ExitCode != 0)
+                if (testResult.ExitCode != 0)
                 {
                     // On occasion we get a non-0 output but no actual data in the result file.  The could happen
                     // if xunit manages to crash when running a unit test (a stack overflow could cause this, for instance).
@@ -206,23 +211,11 @@ namespace RunTests
                     }
                 }
 
-                Logger.Log($"Command line {workItemInfo.DisplayName} completed in {span.TotalSeconds} seconds: {options.DotnetFilePath} {commandLineArguments}");
-                var standardOutput = string.Join(Environment.NewLine, xunitProcessResult.OutputLines) ?? "";
-                var errorOutput = string.Join(Environment.NewLine, xunitProcessResult.ErrorLines) ?? "";
-
-                var testResultInfo = new TestResultInfo(
-                    exitCode: xunitProcessResult.ExitCode,
-                    resultsFilePath: resultsFilePath,
-                    htmlResultsFilePath: htmlResultsFilePath,
-                    elapsed: span,
-                    standardOutput: standardOutput,
-                    errorOutput: errorOutput);
-
                 return new TestResult(
                     workItemInfo,
-                    testResultInfo,
-                    commandLineArguments,
-                    processResults: ImmutableArray.CreateRange(processResultList));
+                    testResult,
+                    resultsFilePath,
+                    htmlResultsFilePath);
             }
             catch (Exception ex)
             {

@@ -129,8 +129,7 @@ namespace RunTests
 
         private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken)
         {
-            var testExecutor = new ProcessTestExecutor();
-            var testRunner = new TestRunner(options, testExecutor);
+            var testRunner = new TestRunner(options);
             var start = DateTime.Now;
             var workItems = await GetWorkItemsAsync(options, cancellationToken);
             if (workItems.Length == 0)
@@ -150,7 +149,7 @@ namespace RunTests
 
             ConsoleUtil.WriteLine($"Test execution time: {elapsed}");
 
-            LogProcessResultDetails(result.ProcessResults);
+            LogTestResultDetails(result.TestResults);
             WriteLogFile(options);
             DisplayResults(options.Display, result.TestResults);
 
@@ -164,30 +163,21 @@ namespace RunTests
             return ExitSuccess;
         }
 
-        private static void LogProcessResultDetails(ImmutableArray<ProcessResult> processResults)
+        private static void LogTestResultDetails(ImmutableArray<TestResult> testResults)
         {
             Logger.Log("### Begin logging executed process details");
-            foreach (var processResult in processResults)
+            foreach (var testResult in testResults)
             {
-                var process = processResult.Process;
-                var startInfo = process.StartInfo;
-                Logger.Log($"### Begin {process.Id}");
-                Logger.Log($"### {startInfo.FileName} {startInfo.Arguments}");
-                Logger.Log($"### Exit code {process.ExitCode}");
+                Logger.Log($"### Start {testResult.DisplayName}");
+                Logger.Log($"### Exit code {testResult.ExitCode}");
                 Logger.Log("### Standard Output");
-                foreach (var line in processResult.OutputLines)
-                {
-                    Logger.Log(line);
-                }
+                Logger.Log(testResult.StandardOutput);
                 Logger.Log("### Standard Error");
-                foreach (var line in processResult.ErrorLines)
-                {
-                    Logger.Log(line);
-                }
-                Logger.Log($"### End {process.Id}");
+                Logger.Log(testResult.ErrorOutput);
+                Logger.Log($"### End {testResult.DisplayName}");
             }
 
-            Logger.Log("End logging executed process details");
+            Logger.Log("End logging test result details");
         }
 
         private static void WriteLogFile(Options options)
