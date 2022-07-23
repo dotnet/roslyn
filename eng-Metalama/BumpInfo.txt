@@ -1,1 +1,1 @@
-Metalama.Backstage=0.5.9-preview;PostSharp.Engineering=1.0.70-preview
+Metalama.Backstage=0.5.10-preview;PostSharp.Engineering=1.0.70-preview
