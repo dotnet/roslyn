@@ -13,7 +13,7 @@ internal static class Program
     internal const int ExitFailure = 1;
     internal const int ExitSuccess = 0;
 
-    public static async Task<int> Main(string[] args)
+    public static int Main(string[] args)
     {
         string? source = null;
         string? destination = null;

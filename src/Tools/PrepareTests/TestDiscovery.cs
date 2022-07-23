@@ -11,6 +11,7 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.TestPlatform.VsTestConsole.TranslationLayer;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
@@ -22,50 +23,57 @@ internal class TestDiscovery
 {
     public static void RunDiscovery(string sourceDirectory, string dotnetPath, bool isUnix)
     {
-        var binDirectory = Path.Combine("artifacts", "bin");
+        var binDirectory = Path.Combine(sourceDirectory, "artifacts", "bin");
         var assemblies = GetAssemblies(binDirectory, isUnix);
 
-        Console.WriteLine($"Found {assemblies} test assemblies");
+        Console.WriteLine($"Found {assemblies.Count} test assemblies");
 
-        var vsTestConsole = Directory.EnumerateFiles(Path.Combine(Path.GetDirectoryName(dotnetPath), "sdk"), "vstest.console.dll", SearchOption.AllDirectories).Last();
+        var vsTestConsole = Directory.EnumerateFiles(Path.Combine(Path.GetDirectoryName(dotnetPath)!, "sdk"), "vstest.console.dll", SearchOption.AllDirectories).Last();
 
         var vstestConsoleWrapper = new VsTestConsoleWrapper(vsTestConsole, new ConsoleParameters
         {
-            LogFilePath = Path.Combine(AppContext.BaseDirectory, "logs", "vstestconsolelogs.txt"),
-            TraceLevel = TraceLevel.Verbose,
+            LogFilePath = Path.Combine(sourceDirectory, "logs", "test_discovery_logs.txt"),
+            TraceLevel = TraceLevel.Error,
         });
 
-        var tests = new ConcurrentBag<string>();
+        var discoveryHandler = new DiscoveryHandler();
 
         var stopwatch = new Stopwatch();
         stopwatch.Start();
-        Parallel.ForEach(assemblies, (assembly) =>
-        {
-            Console.WriteLine($"Discovering {assembly}");
-            vstestConsoleWrapper.DiscoverTests(assemblies, @"<RunSettings><RunConfiguration></RunConfiguration></RunSettings>", new DiscoveryHandler((test) => tests.Add(test)));
-        });
-
+        vstestConsoleWrapper.DiscoverTests(assemblies, @"<RunSettings><RunConfiguration><MaxCpuCount>0</MaxCpuCount></RunConfiguration></RunSettings>", discoveryHandler);
         stopwatch.Stop();
-        Console.WriteLine($"Discovered {tests.ToList()} in {stopwatch.Elapsed}");
+
+        var tests = discoveryHandler.GetTests();
+
+        Console.WriteLine($"Discovered {tests.Length} tests in {stopwatch.Elapsed}");
+
+        stopwatch.Restart();
+        var testGroupedByAssembly = tests.GroupBy(test => test.Source);
+        foreach (var assemblyGroup in testGroupedByAssembly)
+        {
+            var directory = Path.GetDirectoryName(assemblyGroup.Key);
+
+            // Tests with combinatorial data are output multiple times with the same fully qualified test name.
+            // We only need to include it once as run all combinations under the same filter.
+            var testToWrite = assemblyGroup.Select(test => test.FullyQualifiedName).Distinct().ToList();
+
+            using var fileStream = File.Create(Path.Combine(directory!, "testlist.json"));
+            JsonSerializer.Serialize(fileStream, testToWrite);
+        }
+        stopwatch.Stop();
+        Console.WriteLine($"Serialized tests in {stopwatch.Elapsed}");
     }
 
     private class DiscoveryHandler : ITestDiscoveryEventsHandler
     {
-        private List<TestCase> _tests = new();
+        private readonly ConcurrentBag<TestCase> _tests = new();
         private bool _isComplete = false;
-
-        private readonly Action<string> _addTestsAction;
-
-        public DiscoveryHandler(Action<string> addTestsAction)
-        {
-            _addTestsAction = addTestsAction;
-        }
 
         public void HandleDiscoveredTests(IEnumerable<TestCase> discoveredTestCases)
         {
             foreach (var test in discoveredTestCases)
             {
-                _addTestsAction(test.FullyQualifiedName);
+                _tests.Add(test);
             }
         }
 
@@ -83,10 +91,10 @@ internal class TestDiscovery
         {
         }
 
-        public ImmutableArray<string> GetTests()
+        public ImmutableArray<TestCase> GetTests()
         {
             Contract.Assert(_isComplete);
-            return _tests.Select(t => t.FullyQualifiedName).ToImmutableArray();
+            return _tests.ToImmutableArray();
         }
     }
 

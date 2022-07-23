@@ -26,12 +26,12 @@ public readonly record struct AssemblyInfo(string AssemblyPath) : IComparable
     }
 }
 
-public readonly record struct TypeInfo(string Name, string FullyQualifiedName, ImmutableArray<MethodInfo> Tests)
+public readonly record struct TypeInfo(string Name, string FullyQualifiedName, ImmutableArray<TestMethodInfo> Tests)
 {
     public override string ToString() => $"[Type]{FullyQualifiedName}";
 }
 
-public readonly record struct MethodInfo(string Name, string FullyQualifiedName, TimeSpan ExecutionTime)
+public readonly record struct TestMethodInfo(string Name, string FullyQualifiedName, TimeSpan ExecutionTime)
 {
     public override string ToString() => $"[Method]{FullyQualifiedName}";
 }

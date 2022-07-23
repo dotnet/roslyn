@@ -26,19 +26,26 @@ internal class TestHistoryManager
     private const int MaxTestsReturnedPerRequest = 10000;
 
     /// <summary>
+    /// The pipeline id for roslyn-ci, see https://dev.azure.com/dnceng/public/_build?definitionId=15&_a=summary
+    /// </summary>
+    private const int RoslynCiBuildDefinitionId = 15;
+
+    /// <summary>
+    /// The Azure devops project that the build pipeline is located in.
+    /// </summary>
+    private static readonly Uri s_projectUri = new(@"https://dev.azure.com/dnceng");
+
+    /// <summary>
     /// Todo - build definition comes from System.DefinitionId
     /// Todo - stageName comes from System.StageName to identify which test runs to get from the build.
     /// </summary>
     public static async Task<ImmutableDictionary<string, TimeSpan>> GetTestHistoryAsync(/*int buildDefinitionId, string stageName, string branchName*/CancellationToken cancellationToken)
     {
-        Debugger.Launch();
         var pat = Environment.GetEnvironmentVariable("TEST_PAT");
         var credentials = new Microsoft.VisualStudio.Services.Common.VssBasicCredential(string.Empty, pat);
-        var adoUri = new Uri(@"https://dev.azure.com/dnceng");
 
-        var connection = new VssConnection(adoUri, credentials);
+        var connection = new VssConnection(s_projectUri, credentials);
 
-        var buildDefinitionId = 15;
         var stageName = "Test_Windows_Desktop_Release_64";
         var targetBranchName = "main";
 
@@ -48,15 +55,13 @@ internal class TestHistoryManager
         Logger.Log($"Branch name: {targetBranchName}");
         Logger.Log($"Stage name: {stageName}");
 
-        ConsoleUtil.WriteLine($"Looking up test execution data from last successful run on branch {targetBranchName} and stage {stageName}");
-
         var adoBranchName = $"refs/heads/{targetBranchName}";
-        var builds = await buildClient.GetBuildsAsync2(project: "public", new int[] { buildDefinitionId }, resultFilter: BuildResult.Succeeded, queryOrder: BuildQueryOrder.FinishTimeDescending, maxBuildsPerDefinition: 1, reasonFilter: BuildReason.IndividualCI, branchName: adoBranchName, cancellationToken: cancellationToken);
+        var builds = await buildClient.GetBuildsAsync2(project: "public", new int[] { RoslynCiBuildDefinitionId }, resultFilter: BuildResult.Succeeded, queryOrder: BuildQueryOrder.FinishTimeDescending, maxBuildsPerDefinition: 1, reasonFilter: BuildReason.IndividualCI, branchName: adoBranchName, cancellationToken: cancellationToken);
         var lastSuccessfulBuild = builds?.FirstOrDefault();
         if (lastSuccessfulBuild == null)
         {
             // If this is a new branch we may not have any historical data for it.
-            ConsoleUtil.WriteLine($"##[warning]Unable to get the last successful build for definition {buildDefinitionId} and branch {adoBranchName}");
+            ConsoleUtil.WriteLine($"##[warning]Unable to get the last successful build for definition {RoslynCiBuildDefinitionId} and branch {adoBranchName}");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
@@ -75,10 +80,12 @@ internal class TestHistoryManager
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
+        ConsoleUtil.WriteLine($"Looking up test execution data from last successful build {lastSuccessfulBuild.Id} on branch {targetBranchName} and stage {stageName}");
+
         var totalTests = runForThisStage.TotalTests;
-        Logger.Log($"Expecting {totalTests} tests from build {lastSuccessfulBuild.Id} and run {runForThisStage.Name}");
 
         Dictionary<string, TimeSpan> testInfos = new();
+        var duplicateCount = 0;
 
         // Get runtimes for all tests.
         var timer = new Stopwatch();
@@ -95,22 +102,27 @@ internal class TestHistoryManager
                     continue;
                 }
 
-                //var testName = CleanTestName(testResult.AutomatedTestName);
+                var testName = CleanTestName(testResult.AutomatedTestName);
 
-                if (!testInfos.TryAdd(testResult.AutomatedTestName, TimeSpan.FromMilliseconds(testResult.DurationInMs)))
+                if (!testInfos.TryAdd(testName, TimeSpan.FromMilliseconds(testResult.DurationInMs)))
                 {
                     // We can get duplicate tests if a test file is included in multiple assemblies (e.g. analyzer codestyle tests).
-                    // This is fine, we'll just use capture one of the run times since it is the same test being run in both cases.
+                    // This is fine, we'll just use capture one of the run times since it is the same test being run in both cases and unlikely to have different run times.
                     //
                     // Another case that can happen is if a test is incorrectly authored to have the same name and namespace as a test in another assembly.  For example
                     // a test that applies to both VB and C#, but the tests in both the C# and VB assembly accidentally use the C# namespace.
                     // It may have a different run time, but ADO does not let us differentiate by assembly name, so we just have to pick one.
-                    Logger.Log($"Found tests with duplicate fully qualified name {testResult.AutomatedTestName}.");
+                    duplicateCount++;
                 }
             }
         }
 
         timer.Stop();
+
+        if (duplicateCount > 0)
+        {
+            Logger.Log($"Found {duplicateCount} duplicate tests in run {runForThisStage.Name}.");
+        }
 
         var totalTestRuntime = TimeSpan.FromMilliseconds(testInfos.Values.Sum(t => t.TotalMilliseconds));
         ConsoleUtil.WriteLine($"Retrieved {testInfos.Keys.Count} tests from AzureDevops in {timer.Elapsed}.  Total runtime of all tests is {totalTestRuntime}");
@@ -119,7 +131,7 @@ internal class TestHistoryManager
 
     private static string CleanTestName(string fullyQualifiedTestName)
     {
-        // Some test names contain test arguments, so take everything before the first paren (since they are not valid in identifiers).
+        // Some test names contain test arguments, so take everything before the first paren (since they are not valid in the fully qualified test name).
         var beforeMethodArgs = fullyQualifiedTestName.Split('(')[0];
         return beforeMethodArgs;
     }
