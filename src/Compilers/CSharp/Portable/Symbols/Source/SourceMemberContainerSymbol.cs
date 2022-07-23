@@ -202,6 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ThreeState _lazyContainsExtensionMethods;
         private ThreeState _lazyAnyMemberHasAttributes;
+        private bool _isBindingAttribute;
 
         #region Construction
 
@@ -4773,13 +4774,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 _ = bodyBinder.BindType(incompleteMemberSyntax.Type, diagnostics);
                             }
 
+                            // Breaks a possible cycle when attribute arguments binding wants to get members.
+                            if (_isBindingAttribute)
+                            {
+                                break;
+                            }
+
+                            var incompleteMemberDiagnostics = BindingDiagnosticBag.GetInstance();
                             foreach (var attributeList in incompleteMemberSyntax.AttributeLists)
                             {
                                 foreach (var attribute in attributeList.Attributes)
                                 {
-                                    bodyBinder.BindType(attribute.Name, diagnostics);
+                                    var attributeType = bodyBinder.BindType(attribute.Name, incompleteMemberDiagnostics).Type;
+                                    Debug.Assert(attributeType is NamedTypeSymbol);
+                                    if (attributeType is NamedTypeSymbol attributeNamedType)
+                                    {
+                                        _isBindingAttribute = true;
+                                        bodyBinder.GetAttribute(attribute, attributeNamedType, beforeAttributePartBound: null, afterAttributePartBound: null, incompleteMemberDiagnostics);
+                                        _isBindingAttribute = false;
+                                    }
                                 }
                             }
+
+                            AddDeclarationDiagnostics(incompleteMemberDiagnostics);
+                            incompleteMemberDiagnostics.Free();
                         }
                         break;
 
