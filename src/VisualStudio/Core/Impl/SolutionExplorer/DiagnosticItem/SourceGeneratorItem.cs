@@ -12,19 +12,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     internal sealed partial class SourceGeneratorItem : BaseItem
     {
         public ProjectId ProjectId { get; }
-
-        public string GeneratorAssemblyName { get; }
-
-        // Since the type name is also used for the display text, we can just reuse that. We'll still have an explicit
-        // property so the assembly name/type name pair that is used in other places is also used here.
-        public string GeneratorTypeName => base.Text;
+        public SourceGeneratorIdentity Identity { get; }
         public AnalyzerReference AnalyzerReference { get; }
 
         public SourceGeneratorItem(ProjectId projectId, ISourceGenerator generator, AnalyzerReference analyzerReference)
-            : base(name: SourceGeneratedDocumentIdentity.GetGeneratorTypeName(generator))
+            : base(name: SourceGeneratorIdentity.GetGeneratorTypeName(generator))
         {
             ProjectId = projectId;
-            GeneratorAssemblyName = SourceGeneratedDocumentIdentity.GetGeneratorAssemblyName(generator);
+            Identity = new SourceGeneratorIdentity(generator);
             AnalyzerReference = analyzerReference;
         }
 

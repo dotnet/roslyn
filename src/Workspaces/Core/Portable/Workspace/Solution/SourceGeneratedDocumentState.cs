@@ -13,8 +13,6 @@ namespace Microsoft.CodeAnalysis
     {
         public SourceGeneratedDocumentIdentity Identity { get; }
         public string HintName => Identity.HintName;
-        public string SourceGeneratorAssemblyName => Identity.GeneratorAssemblyName;
-        public string SourceGeneratorTypeName => Identity.GeneratorTypeName;
 
         public static SourceGeneratedDocumentState Create(
             SourceGeneratedDocumentIdentity documentIdentity,

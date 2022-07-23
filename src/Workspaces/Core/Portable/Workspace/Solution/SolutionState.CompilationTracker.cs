@@ -984,15 +984,11 @@ namespace Microsoft.CodeAnalysis
                     ISourceGenerator generator,
                     string hintName)
                 {
-                    var generatorAssemblyName = SourceGeneratedDocumentIdentity.GetGeneratorAssemblyName(generator);
-                    var generatorTypeName = SourceGeneratedDocumentIdentity.GetGeneratorTypeName(generator);
+                    var generatorIdentity = new SourceGeneratorIdentity(generator);
 
                     foreach (var (_, state) in states.States)
                     {
-                        if (state.SourceGeneratorAssemblyName != generatorAssemblyName)
-                            continue;
-
-                        if (state.SourceGeneratorTypeName != generatorTypeName)
+                        if (state.Identity.Generator != generatorIdentity)
                             continue;
 
                         if (state.HintName != hintName)
