@@ -3785,5 +3785,29 @@ class X
                 // }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(9, 1));
         }
+
+        [Fact, WorkItem(7536, "https://github.com/dotnet/roslyn/issues/7536")]
+        public void BindingIncompleteMember_AttributeArgument()
+        {
+            var compilation = CreateCompilation("""
+                class C
+                {
+                    [My(List)]
+                }
+                """);
+            compilation.VerifyDiagnostics(
+                    // (3,6): error CS0246: The type or namespace name 'MyAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [My(List)]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "My").WithArguments("MyAttribute").WithLocation(3, 6),
+                    // (3,6): error CS0246: The type or namespace name 'My' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [My(List)]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "My").WithArguments("My").WithLocation(3, 6),
+                    // (3,9): error CS0103: The name 'List' does not exist in the current context
+                    //     [My(List)]
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "List").WithArguments("List").WithLocation(3, 9),
+                    // (4,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                    // }
+                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(4, 1));
+        }
     }
 }

@@ -202,7 +202,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ThreeState _lazyContainsExtensionMethods;
         private ThreeState _lazyAnyMemberHasAttributes;
-        private bool _isBindingAttribute;
 
         #region Construction
 
@@ -4768,36 +4767,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.IncompleteMember:
                         {
                             var incompleteMemberSyntax = (IncompleteMemberSyntax)m;
-                            if (incompleteMemberSyntax.Type is not null)
+                            TypeWithAnnotations type;
+                            RefKind refKind;
+                            if (incompleteMemberSyntax.Type is null)
                             {
-                                // We want to produce binding errors for incomplete members
-                                _ = bodyBinder.BindType(incompleteMemberSyntax.Type, diagnostics);
+                                type = TypeWithAnnotations.Create(bodyBinder.CreateErrorType());
+                                refKind = RefKind.None;
+                            }
+                            else
+                            {
+                                type = bodyBinder.BindType(incompleteMemberSyntax.Type, diagnostics);
+                                refKind = incompleteMemberSyntax.Type.GetRefKind();
                             }
 
-                            // Breaks a possible cycle when attribute arguments binding wants to get members.
-                            if (_isBindingAttribute)
-                            {
-                                break;
-                            }
-
-                            var incompleteMemberDiagnostics = BindingDiagnosticBag.GetInstance();
-                            foreach (var attributeList in incompleteMemberSyntax.AttributeLists)
-                            {
-                                foreach (var attribute in attributeList.Attributes)
-                                {
-                                    var attributeType = bodyBinder.BindType(attribute.Name, incompleteMemberDiagnostics).Type;
-                                    Debug.Assert(attributeType is NamedTypeSymbol);
-                                    if (attributeType is NamedTypeSymbol attributeNamedType)
-                                    {
-                                        _isBindingAttribute = true;
-                                        bodyBinder.GetAttribute(attribute, attributeNamedType, beforeAttributePartBound: null, afterAttributePartBound: null, incompleteMemberDiagnostics);
-                                        _isBindingAttribute = false;
-                                    }
-                                }
-                            }
-
-                            AddDeclarationDiagnostics(incompleteMemberDiagnostics);
-                            incompleteMemberDiagnostics.Free();
+                            var incompleteMemberSymbol = new SourceIncompleteMemberFieldSymbol(this, incompleteMemberSyntax, type, refKind);
+                            builder.NonTypeMembers.Add(incompleteMemberSymbol);
                         }
                         break;
 
