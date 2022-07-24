@@ -1900,7 +1900,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (symbol.Kind != SymbolKind.Field || !symbol.IsImplicitlyDeclared)
                             {
                                 // The type '{0}' already contains a definition for '{1}'
-                                if (Locations.Length == 1 || IsPartial)
+                                if ((Locations.Length == 1 || IsPartial) && symbol is not SourceIncompleteMemberFieldSymbol)
                                 {
                                     diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, symbol.Locations[0], this, symbol.Name);
                                 }
