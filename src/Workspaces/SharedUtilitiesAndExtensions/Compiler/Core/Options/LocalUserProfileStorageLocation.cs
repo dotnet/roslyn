@@ -5,7 +5,7 @@
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
-    /// Specifies that the option should be stored into the user's local Roslyn specific registry hive.
+    /// Specifies that the option should be stored into the user's local registry hive.
     /// </summary>
     internal sealed class LocalUserProfileStorageLocation : OptionStorageLocation2
     {

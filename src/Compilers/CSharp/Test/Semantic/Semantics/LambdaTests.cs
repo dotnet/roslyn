@@ -6782,5 +6782,117 @@ class Program
             Assert.Equal(RefKind.In, lambdas[1].Parameters[0].RefKind);
             Assert.Equal(RefKind.Out, lambdas[2].Parameters[0].RefKind);
         }
+
+        [Fact]
+        public void StaticPartialLambda()
+        {
+            CreateCompilation("""
+                class C
+                {
+                    void M()
+                    {
+                        System.Action x = static partial () => { };
+                    }
+                }
+                """).VerifyDiagnostics(
+                // (5,27): error CS8934: Cannot convert lambda expression to type 'Action' because the return type does not match the delegate return type
+                //         System.Action x = static partial () => { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "static partial () => { }").WithArguments("lambda expression", "System.Action").WithLocation(5, 27),
+                // (5,34): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //         System.Action x = static partial () => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 34));
+        }
+
+        [Fact]
+        public void PartialStaticLambda()
+        {
+            CreateCompilation("""
+                class C
+                {
+                    void M()
+                    {
+                        System.Action x = partial static () => { };
+                    }
+                }
+                """).VerifyDiagnostics(
+                // (5,27): error CS0103: The name 'partial' does not exist in the current context
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "partial").WithArguments("partial").WithLocation(5, 27),
+                // (5,35): error CS1002: ; expected
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 35),
+                // (5,35): error CS0106: The modifier 'static' is not valid for this item
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(5, 35),
+                // (5,43): error CS8124: Tuple must contain at least two elements.
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 43),
+                // (5,45): error CS1001: Identifier expected
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(5, 45),
+                // (5,45): error CS1003: Syntax error, ',' expected
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(5, 45),
+                // (5,48): error CS1002: ; expected
+                //         System.Action x = partial static () => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(5, 48));
+        }
+
+        [Fact]
+        public void PartialLambda()
+        {
+            CreateCompilation("""
+                class C
+                {
+                    void M()
+                    {
+                        System.Action x = partial () => { };
+                    }
+                }
+                """).VerifyDiagnostics(
+                // (5,27): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //         System.Action x = partial () => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 27),
+                // (5,27): error CS8934: Cannot convert lambda expression to type 'Action' because the return type does not match the delegate return type
+                //         System.Action x = partial () => { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "partial () => { }").WithArguments("lambda expression", "System.Action").WithLocation(5, 27));
+        }
+
+        [WorkItem(61013, "https://github.com/dotnet/roslyn/issues/61013")]
+        [Fact]
+        public void InvalidCast()
+        {
+            var source = """
+                using System;
+                #nullable enable
+                internal class Program
+                {
+                    void Main(string[] args)
+                    {
+                        Choice(args.Length > 0
+                            ? (Action)(() => DS1()
+                            : () => DS2(args[0]));
+                    }
+
+                    void DS1()
+                    { }
+
+                    void DS2(string a)
+                    { }
+
+                    void Choice(Action a)
+                    {
+                        a();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var action = syntaxTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().First(id => id.Identifier.ValueText == "Action");
+            var model = comp.GetSemanticModel(syntaxTree);
+            AssertEx.Equal("System.Action", model.GetTypeInfo(action).Type.ToTestDisplayString());
+        }
     }
 }
