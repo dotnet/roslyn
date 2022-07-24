@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -28,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Bind switch expression and set the switch governing type.
             var boundInputExpression = BindSwitchGoverningExpression(diagnostics);
             ImmutableArray<BoundSwitchExpressionArm> switchArms = BindSwitchExpressionArms(node, originalBinder, boundInputExpression, diagnostics);
-            TypeSymbol? naturalType = InferResultType(switchArms, diagnostics);
+            TypeSymbol? naturalType = InferResultType(boundInputExpression, switchArms, diagnostics);
             bool reportedNotExhaustive = CheckSwitchExpressionExhaustive(node, boundInputExpression, switchArms, out BoundDecisionDag decisionDag, out LabelSymbol? defaultLabel, diagnostics);
 
             // When the input is constant, we use that to reshape the decision dag that is returned
@@ -126,14 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        /// <summary>
-        /// Infer the result type of the switch expression by looking for a common type
-        /// to which every arm's expression can be converted.
-        /// </summary>
-        private TypeSymbol? InferResultType(ImmutableArray<BoundSwitchExpressionArm> switchCases, BindingDiagnosticBag diagnostics)
+        private static void InferNonTupleResultType(ImmutableArray<BoundSwitchExpressionArm> switchCases, ArrayBuilder<TypeSymbol> typesInOrder)
         {
-            var seenTypes = Symbols.SpecializedSymbolCollections.GetPooledSymbolHashSetInstance<TypeSymbol>();
-            var typesInOrder = ArrayBuilder<TypeSymbol>.GetInstance();
+            var seenTypes = SpecializedSymbolCollections.GetPooledSymbolHashSetInstance<TypeSymbol>();
             foreach (var @case in switchCases)
             {
                 var type = @case.Value.Type;
@@ -142,8 +140,205 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typesInOrder.Add(type);
                 }
             }
+            seenTypes.Free();
+        }
+
+        /// <summary>
+        /// Infer the result type of the tuple expressions returned by the switch expression arms.
+        /// This method is called upon noticing a single arm with a tuple type.
+        /// Binding will result in trying to deconstruct the non-tuple expressions in the expression.
+        /// </summary>
+        private void InferTupleResultType(BoundExpression boundInputExpression, ImmutableArray<BoundSwitchExpressionArm> switchCases, BoundSwitchExpressionArm tupleHintingArm, ArrayBuilder<TypeSymbol> typesInOrder, BindingDiagnosticBag diagnostics)
+        {
+            var hintingTupleExpression = tupleHintingArm.Value as BoundTupleExpression;
+            int cardinality = hintingTupleExpression!.Arguments.Length;
+
+            var tupleArgumentsWithNullLiteral = ArrayPool<bool>.Shared.Rent(cardinality);
+            var tupleArgumentTypesInOrder = ArrayPool<ArrayBuilder<TypeSymbol>>.Shared.Rent(cardinality);
+            for (int i = 0; i < cardinality; i++)
+            {
+                tupleArgumentTypesInOrder[i] = ArrayBuilder<TypeSymbol>.GetInstance();
+            }
+
+            var seenTupleArgumentTypes = ArrayPool<PooledHashSet<TypeSymbol>>.Shared.Rent(cardinality);
+            for (int i = 0; i < cardinality; i++)
+            {
+                seenTupleArgumentTypes[i] = SpecializedSymbolCollections.GetPooledSymbolHashSetInstance<TypeSymbol>();
+            }
+
+            bool hasCardinalityMismatch = false;
+            var seenTypes = SpecializedSymbolCollections.GetPooledSymbolHashSetInstance<TypeSymbol>();
+            foreach (var arm in switchCases)
+            {
+                var tupleExpression = arm.Value as BoundTupleExpression;
+                if (tupleExpression is null)
+                {
+                    if (arm.Value.Type is null)
+                    {
+                        // Non-tuple expressions without a valid type are ignored
+                        // This includes default literals and throw expressions
+                        continue;
+                    }
+                }
+                else
+                {
+                    // Attempt to match cardinality
+                    if (tupleExpression.Arguments.Length != cardinality)
+                    {
+                        // Only report the error once in the entire switch
+                        if (hasCardinalityMismatch)
+                        {
+                            continue;
+                        }
+
+                        hasCardinalityMismatch = true;
+                        diagnostics.Add(ErrorCode.ERR_SwitchExpressionInferTupleTypeElementCountMismatch, boundInputExpression.Syntax.Location);
+                        continue;
+                    }
+                }
+
+                var type = arm.Value.Type;
+                if (type is not null)
+                {
+                    // The expression is a tuple with a bound type
+                    if (seenTypes.Add(type))
+                    {
+                        typesInOrder.Add(type);
+                    }
+                    continue;
+                }
+                else
+                {
+                    // The expression has no bound type
+                    RoslynDebug.AssertNotNull(tupleExpression);
+                }
+
+                // Only process the tuple expression's types if no bound type was found
+                // TODO: Evaluate whether this ignores valid conversions, in which case the check should be removed
+                if (!typesInOrder.Any())
+                {
+                    for (int tupleArgumentIndex = 0; tupleArgumentIndex < tupleExpression.Arguments.Length; tupleArgumentIndex++)
+                    {
+                        var argument = tupleExpression.Arguments[tupleArgumentIndex];
+                        var argumentType = argument.Type;
+
+                        if (argumentType is null)
+                        {
+                            tupleArgumentsWithNullLiteral[tupleArgumentIndex] |= argument.IsLiteralNull();
+                            continue;
+                        }
+
+                        if (seenTupleArgumentTypes[tupleArgumentIndex].Add(argumentType))
+                        {
+                            tupleArgumentTypesInOrder[tupleArgumentIndex].Add(argumentType);
+                        }
+                    }
+                }
+            }
+
+            foreach (var set in seenTupleArgumentTypes)
+            {
+                set?.Free();
+            }
+            ArrayPool<PooledHashSet<TypeSymbol>>.Shared.Return(seenTupleArgumentTypes);
+
+            if (!typesInOrder.Any())
+            {
+                // Iterate through all the possible combinations of inferred types
+                // since we didn't find any exact match
+
+                var tupleNestedTypes = ArrayPool<TypeSymbol>.Shared.Rent(cardinality);
+                recurseForTypes(0);
+                ArrayPool<TypeSymbol>.Shared.Return(tupleNestedTypes);
+
+                // There won't be tuples with too large cardinalities, so recursion should be fine
+                void recurseForTypes(int tupleArgumentIndex)
+                {
+                    if (tupleArgumentIndex == cardinality)
+                    {
+                        var createdTupleType = createTupleType();
+                        bool added = seenTypes.Add(createdTupleType);
+                        if (added)
+                        {
+                            typesInOrder.Add(createdTupleType);
+                        }
+                        return;
+                    }
+
+                    foreach (var orderedType in tupleArgumentTypesInOrder[tupleArgumentIndex])
+                    {
+                        tupleNestedTypes[tupleArgumentIndex] = orderedType;
+                        recurseForTypes(tupleArgumentIndex + 1);
+
+                        if (!orderedType.CanBeAssignedNull())
+                        {
+                            // We found null assigned to the value,
+                            // so we might try recursing for the type's nullable counterpart
+                            // There is the possibility this could be handled from the conversions
+
+                            if (tupleArgumentsWithNullLiteral[tupleArgumentIndex])
+                            {
+                                var nullableOrderedType = Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(orderedType);
+                                tupleNestedTypes[tupleArgumentIndex] = nullableOrderedType;
+                                recurseForTypes(tupleArgumentIndex + 1);
+                            }
+                        }
+                    }
+                }
+                NamedTypeSymbol createTupleType()
+                {
+                    return createTupleTypeImpl(tupleNestedTypes, cardinality, Compilation);
+                }
+                static NamedTypeSymbol createTupleTypeImpl(TypeSymbol[] nestedTypes, int cardinality, CSharpCompilation compilation)
+                {
+                    var builder = ArrayBuilder<ITypeSymbol>.GetInstance(cardinality);
+                    for (int i = 0; i < cardinality; i++)
+                    {
+                        builder.Add(nestedTypes[i].GetPublicSymbol());
+                    }
+
+                    var elementTypes = builder.ToImmutableAndFree();
+                    var type = compilation.CreateTupleTypeSymbol(elementTypes).GetSymbol();
+                    return type!;
+                }
+            }
+
+            foreach (var prderedArgumentTypes in tupleArgumentTypesInOrder)
+            {
+                prderedArgumentTypes?.Free();
+            }
+            ArrayPool<ArrayBuilder<TypeSymbol>>.Shared.Return(tupleArgumentTypesInOrder);
 
             seenTypes.Free();
+        }
+
+        /// <summary>
+        /// Infer the result type of the switch expression by looking for a common type
+        /// to which every arm's expression can be converted.
+        /// </summary>
+        private TypeSymbol? InferResultType(BoundExpression boundInputExpression, ImmutableArray<BoundSwitchExpressionArm> switchCases, BindingDiagnosticBag diagnostics)
+        {
+            var typesInOrder = ArrayBuilder<TypeSymbol>.GetInstance();
+
+            BoundSwitchExpressionArm? tupleHintingArm = null;
+            foreach (var arm in switchCases)
+            {
+                if (arm.Value is BoundTupleExpression)
+                {
+                    tupleHintingArm = arm;
+                    break;
+                }
+            }
+
+            if (tupleHintingArm is not null)
+            {
+                InferTupleResultType(boundInputExpression, switchCases, tupleHintingArm, typesInOrder, diagnostics);
+            }
+            else
+            {
+                InferNonTupleResultType(switchCases, typesInOrder);
+            }
+
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var commonType = BestTypeInferrer.GetBestType(typesInOrder, Conversions, ref useSiteInfo);
             typesInOrder.Free();

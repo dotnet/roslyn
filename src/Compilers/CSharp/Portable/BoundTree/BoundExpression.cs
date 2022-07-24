@@ -671,4 +671,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
     }
+
+    internal partial class BoundTupleLiteral
+    {
+        internal BoundTupleLiteral WithArguments(ImmutableArray<BoundExpression> arguments)
+        {
+            return new BoundTupleLiteral(Syntax, arguments, ArgumentNamesOpt, InferredNamesOpt, Type, HasErrors);
+        }
+    }
 }

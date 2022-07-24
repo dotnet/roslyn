@@ -9401,6 +9401,401 @@ class C
             CompileAndVerify(comp, expectedOutput: "44 42 43");
         }
 
+        [Fact, WorkItem(1394, "https://github.com/dotnet/csharplang/issues/1394")]
+        public void TestDeconstructSwitchTargetTyping()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        int expr = 1;
+        var (i, d) = (1, ""example"");
+        
+        (i, d) = expr switch
+        {
+            1 => (1, null),
+            2 => (default, ""another""),
+            _ => throw null,
+        };
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var switchExpression = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().First();
+
+            var resultingType = model.GetTypeInfo(switchExpression);
+            Assert.Equal("(System.Int32, System.String)", resultingType.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.String)", resultingType.ConvertedType.ToTestDisplayString());
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       41 (0x29)
+  .maxstack  2
+  .locals init (int V_0, //expr
+                System.ValueTuple<int, string> V_1,
+                System.ValueTuple<int, string> V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  beq.s      IL_000c
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.2
+  IL_0008:  beq.s      IL_0016
+  IL_000a:  br.s       IL_0024
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldnull
+  IL_000e:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_0013:  stloc.1
+  IL_0014:  br.s       IL_0026
+  IL_0016:  ldc.i4.0
+  IL_0017:  ldstr      ""another""
+  IL_001c:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_0021:  stloc.1
+  IL_0022:  br.s       IL_0026
+  IL_0024:  ldnull
+  IL_0025:  throw
+  IL_0026:  ldloc.1
+  IL_0027:  pop
+  IL_0028:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(1394, "https://github.com/dotnet/csharplang/issues/1394")]
+        public void TestDeconstructSwitchInferredTarget()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        int expr = 1;
+        
+        var (i, d) = expr switch
+        {
+            1 => (1, null),
+            2 => (default, ""another""),
+            _ => throw null,
+        };
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var switchExpression = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().First();
+
+            var resultingType = model.GetTypeInfo(switchExpression);
+            Assert.Equal("(System.Int32, System.String)", resultingType.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.String)", resultingType.ConvertedType.ToTestDisplayString());
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       41 (0x29)
+  .maxstack  2
+  .locals init (int V_0, //expr
+                System.ValueTuple<int, string> V_1,
+                System.ValueTuple<int, string> V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  beq.s      IL_000c
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.2
+  IL_0008:  beq.s      IL_0016
+  IL_000a:  br.s       IL_0024
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldnull
+  IL_000e:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_0013:  stloc.1
+  IL_0014:  br.s       IL_0026
+  IL_0016:  ldc.i4.0
+  IL_0017:  ldstr      ""another""
+  IL_001c:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_0021:  stloc.1
+  IL_0022:  br.s       IL_0026
+  IL_0024:  ldnull
+  IL_0025:  throw
+  IL_0026:  ldloc.1
+  IL_0027:  pop
+  IL_0028:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(1394, "https://github.com/dotnet/csharplang/issues/1394")]
+        public void TestDeconstructSwitchInferredNullableIntTarget()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        int expr = 1;
+        
+        var (i, d) = expr switch
+        {
+            1 => (1, null),
+            2 => (default, ""another""),
+            3 => (null, default),
+            4 => (default, null),
+            5 => (null, null),
+            6 => default,
+            _ => throw null,
+        };
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var switchExpression = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().First();
+
+            var resultingType = model.GetTypeInfo(switchExpression);
+            Assert.Equal("(System.Int32?, System.String)", resultingType.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32?, System.String)", resultingType.ConvertedType.ToTestDisplayString());
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size      144 (0x90)
+  .maxstack  2
+  .locals init (int V_0, //expr
+                System.ValueTuple<int?, string> V_1,
+                int? V_2,
+                System.ValueTuple<int?, string> V_3)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  sub
+  IL_0005:  switch    (
+        IL_0024,
+        IL_0033,
+        IL_0049,
+        IL_005b,
+        IL_006d,
+        IL_007f)
+  IL_0022:  br.s       IL_008b
+  IL_0024:  ldc.i4.1
+  IL_0025:  newobj     ""int?..ctor(int)""
+  IL_002a:  ldnull
+  IL_002b:  newobj     ""System.ValueTuple<int?, string>..ctor(int?, string)""
+  IL_0030:  stloc.1
+  IL_0031:  br.s       IL_008d
+  IL_0033:  ldloca.s   V_2
+  IL_0035:  initobj    ""int?""
+  IL_003b:  ldloc.2
+  IL_003c:  ldstr      ""another""
+  IL_0041:  newobj     ""System.ValueTuple<int?, string>..ctor(int?, string)""
+  IL_0046:  stloc.1
+  IL_0047:  br.s       IL_008d
+  IL_0049:  ldloca.s   V_2
+  IL_004b:  initobj    ""int?""
+  IL_0051:  ldloc.2
+  IL_0052:  ldnull
+  IL_0053:  newobj     ""System.ValueTuple<int?, string>..ctor(int?, string)""
+  IL_0058:  stloc.1
+  IL_0059:  br.s       IL_008d
+  IL_005b:  ldloca.s   V_2
+  IL_005d:  initobj    ""int?""
+  IL_0063:  ldloc.2
+  IL_0064:  ldnull
+  IL_0065:  newobj     ""System.ValueTuple<int?, string>..ctor(int?, string)""
+  IL_006a:  stloc.1
+  IL_006b:  br.s       IL_008d
+  IL_006d:  ldloca.s   V_2
+  IL_006f:  initobj    ""int?""
+  IL_0075:  ldloc.2
+  IL_0076:  ldnull
+  IL_0077:  newobj     ""System.ValueTuple<int?, string>..ctor(int?, string)""
+  IL_007c:  stloc.1
+  IL_007d:  br.s       IL_008d
+  IL_007f:  ldloca.s   V_3
+  IL_0081:  initobj    ""System.ValueTuple<int?, string>""
+  IL_0087:  ldloc.3
+  IL_0088:  stloc.1
+  IL_0089:  br.s       IL_008d
+  IL_008b:  ldnull
+  IL_008c:  throw
+  IL_008d:  ldloc.1
+  IL_008e:  pop
+  IL_008f:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(1394, "https://github.com/dotnet/csharplang/issues/1394")]
+        public void TestDeconstructNestedSwitchInferred()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        int i = 0;
+        string s = ""extern"";
+        int value = 2;
+        (i, s) = value switch
+        {
+            1 => (1, default),
+            2 => i switch
+            {
+                1 => (2, null),
+                2 => (default, ""ex""),
+                3 => (default, default),
+                4 => default,
+                _ => throw null,
+            },
+            _ => throw null,
+        };
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var switches = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().ToArray();
+
+            const string targetType = "(System.Int32, System.String)";
+
+            var firstResultingType = model.GetTypeInfo(switches[0]);
+            var secondResultingType = model.GetTypeInfo(switches[1]);
+            Assert.Equal(targetType, firstResultingType.Type.ToTestDisplayString());
+            Assert.Equal(targetType, firstResultingType.ConvertedType.ToTestDisplayString());
+            Assert.Equal(targetType, secondResultingType.Type.ToTestDisplayString());
+            Assert.Equal(targetType, secondResultingType.ConvertedType.ToTestDisplayString());
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size      115 (0x73)
+  .maxstack  2
+  .locals init (int V_0, //i
+                int V_1, //value
+                System.ValueTuple<int, string> V_2,
+                System.ValueTuple<int, string> V_3,
+                System.ValueTuple<int, string> V_4)
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.2
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.1
+  IL_0005:  ldc.i4.1
+  IL_0006:  beq.s      IL_000e
+  IL_0008:  ldloc.1
+  IL_0009:  ldc.i4.2
+  IL_000a:  beq.s      IL_0018
+  IL_000c:  br.s       IL_0067
+  IL_000e:  ldc.i4.1
+  IL_000f:  ldnull
+  IL_0010:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_0015:  stloc.2
+  IL_0016:  br.s       IL_0069
+  IL_0018:  ldloc.0
+  IL_0019:  ldc.i4.1
+  IL_001a:  sub
+  IL_001b:  switch    (
+        IL_0032,
+        IL_003c,
+        IL_004a,
+        IL_0054)
+  IL_0030:  br.s       IL_0061
+  IL_0032:  ldc.i4.2
+  IL_0033:  ldnull
+  IL_0034:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_0039:  stloc.3
+  IL_003a:  br.s       IL_0063
+  IL_003c:  ldc.i4.0
+  IL_003d:  ldstr      ""ex""
+  IL_0042:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_0047:  stloc.3
+  IL_0048:  br.s       IL_0063
+  IL_004a:  ldc.i4.0
+  IL_004b:  ldnull
+  IL_004c:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_0051:  stloc.3
+  IL_0052:  br.s       IL_0063
+  IL_0054:  ldloca.s   V_4
+  IL_0056:  initobj    ""System.ValueTuple<int, string>""
+  IL_005c:  ldloc.s    V_4
+  IL_005e:  stloc.3
+  IL_005f:  br.s       IL_0063
+  IL_0061:  ldnull
+  IL_0062:  throw
+  IL_0063:  ldloc.3
+  IL_0064:  stloc.2
+  IL_0065:  br.s       IL_0069
+  IL_0067:  ldnull
+  IL_0068:  throw
+  IL_0069:  ldloc.2
+  IL_006a:  dup
+  IL_006b:  ldfld      ""int System.ValueTuple<int, string>.Item1""
+  IL_0070:  stloc.0
+  IL_0071:  pop
+  IL_0072:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(1394, "https://github.com/dotnet/csharplang/issues/1394")]
+        public void TestDeconstructSwitchMismatchingCardinality()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        int expr = 1;
+        
+        var (i, d) = expr switch
+        {
+            1 => (1, null),
+            2 => (default, ""another"", ""using wrong cardinality""),
+            _ => throw null,
+        };
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (8,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'i'.
+                //         var (i, d) = expr switch
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "i").WithArguments("i").WithLocation(8, 14),
+                // (8,17): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'd'.
+                //         var (i, d) = expr switch
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "d").WithArguments("d").WithLocation(8, 17),
+                // (8,22): error CS9100: Failed to infer the correct tuple type in the switch expression; inconsistent tuple element counts returned from different arms.
+                //         var (i, d) = expr switch
+                Diagnostic(ErrorCode.ERR_SwitchExpressionInferTupleTypeElementCountMismatch, "expr").WithLocation(8, 22),
+                // (8,22): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         var (i, d) = expr switch
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, @"expr switch
+        {
+            1 => (1, null),
+            2 => (default, ""another"", ""using wrong cardinality""),
+            _ => throw null,
+        }").WithLocation(8, 22),
+                // (8,27): error CS8506: No best type was found for the switch expression.
+                //         var (i, d) = expr switch
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(8, 27));
+        }
+
         [Fact]
         public void AssigningConditional_OutParams()
         {

@@ -1984,6 +1984,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
+        #region diagnostics introduced for C# 11.0
+
+        ERR_SwitchExpressionInferTupleTypeElementCountMismatch = 9100,
+
+        #endregion
+
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }
