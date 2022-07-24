@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -147,35 +148,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method is called upon noticing a single arm with a tuple type.
         /// Binding will result in trying to deconstruct the non-tuple expressions in the expression.
         /// </summary>
-        /// <param name="boundInputExpression"></param>
-        /// <param name="switchCases"></param>
-        /// <param name="tupleHintingArm"></param>
-        /// <param name="typesInOrder"></param>
-        /// <param name="diagnostics"></param>
         private void InferTupleResultType(BoundExpression boundInputExpression, ImmutableArray<BoundSwitchExpressionArm> switchCases, BoundSwitchExpressionArm tupleHintingArm, ArrayBuilder<TypeSymbol> typesInOrder, BindingDiagnosticBag diagnostics)
         {
-            // This will be very funny when nested tuples get to the mix
-            // Idea: break down expression arms into tuple arguments
-
-            // TODO: Test with nested tuple-returning switch expressions:
-            /*
-             * int i = 0;
-             * string s = "";
-             * int value = 2;
-             * (i, s) = value switch
-             * {
-             *     1 => (1, default),
-             *     2 => i switch
-             *          {
-             *              1 => (2, null),
-             *              2 => (default, ""),
-             *              3 => (default, default),
-             *              4 => default,
-             *              5 => throw null,
-             *          },
-             * };
-             */
-
             var hintingTupleExpression = tupleHintingArm.Value as BoundTupleExpression;
             int cardinality = hintingTupleExpression!.Arguments.Length;
 
@@ -192,10 +166,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 seenTupleArgumentTypes[i] = SpecializedSymbolCollections.GetPooledSymbolHashSetInstance<TypeSymbol>();
             }
 
+            bool hasCardinalityMismatch = false;
             var seenTypes = SpecializedSymbolCollections.GetPooledSymbolHashSetInstance<TypeSymbol>();
             foreach (var arm in switchCases)
             {
-                if (arm.Value is not BoundTupleExpression tupleExpression)
+                var tupleExpression = arm.Value as BoundTupleExpression;
+                if (tupleExpression is null)
                 {
                     if (arm.Value.Type is null)
                     {
@@ -203,17 +179,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // This includes default literals and throw expressions
                         continue;
                     }
+                }
+                else
+                {
+                    // Attempt to match cardinality
+                    if (tupleExpression.Arguments.Length != cardinality)
+                    {
+                        // Only report the error once in the entire switch
+                        if (hasCardinalityMismatch)
+                        {
+                            continue;
+                        }
 
-                    DeclarationExpressionSyntax? declaration = null;
-                    ExpressionSyntax? expression = null;
-                    var armExpressionSyntax = (arm.Value.Syntax as ExpressionSyntax)!;
-                    var assignedExpressionSyntax = (boundInputExpression.Syntax as ExpressionSyntax)!;
-                    // TODO: Debug this case; figure out the correct deconstruction approach
-                    BindDeconstruction(armExpressionSyntax, assignedExpressionSyntax, armExpressionSyntax, diagnostics, ref declaration, ref expression, false, null);
-                    continue;
+                        hasCardinalityMismatch = true;
+                        diagnostics.Add(ErrorCode.ERR_SwitchExpressionInferTupleTypeElementCountMismatch, boundInputExpression.Syntax.Location);
+                        continue;
+                    }
                 }
 
-                var type = tupleExpression.Type;
+                var type = arm.Value.Type;
                 if (type is not null)
                 {
                     // The expression is a tuple with a bound type
@@ -221,10 +205,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         typesInOrder.Add(type);
                     }
+                    continue;
                 }
                 else
                 {
                     // The expression has no bound type
+                    RoslynDebug.AssertNotNull(tupleExpression);
                 }
 
                 // Only process the tuple expression's types if no bound type was found
