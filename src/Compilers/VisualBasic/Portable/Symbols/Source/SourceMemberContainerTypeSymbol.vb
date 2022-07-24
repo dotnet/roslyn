@@ -2613,7 +2613,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim incompleteMemberSyntax As IncompleteMemberSyntax = DirectCast(memberSyntax, IncompleteMemberSyntax)
 
                     ' Don't produce modifier diagnostics for incomplete members.
-                    Dim modifiers = binder.DecodeModifiers(incompleteMemberSyntax.Modifiers, SourceMemberFlags.None, ERRID.ERR_BadDimFlags1, If(IsValueType, Accessibility.Public, Accessibility.Private), BindingDiagnosticBag.Discarded.DiagnosticBag)
+                    Dim modifiers = binder.DecodeModifiers(incompleteMemberSyntax.Modifiers, SourceMemberFlags.None, ERRID.ERR_BadDimFlags1, If(IsValueType, Accessibility.Public, Accessibility.Private), New DiagnosticBag())
 
                     AddMember(New SourceIncompleteMemberFieldSymbol(Me, modifiers.AllFlags, incompleteMemberSyntax), binder, members, omitDiagnostics:=True)
 
