@@ -781,6 +781,31 @@ BC32035: Attribute specifier is not a complete statement. Use a line continuatio
         ~~~~~~~~~~~~
 </expected>)
         End Sub
+
+        <WorkItem(7536, "https://github.com/dotnet/roslyn/issues/7536")>
+        <Fact>
+        Public Sub BindingIncompleteMember_AttributeArgument()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb">
+    Class C
+        &lt;AAttribute(List)&gt;
+    End Class
+    </file>
+</compilation>)
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC32035: Attribute specifier is not a complete statement. Use a line continuation to apply the attribute to the following statement.
+        &lt;AAttribute(List)&gt;
+        ~~~~~~~~~~~~~~~~~~
+BC30002: Type 'AAttribute' is not defined.
+        &lt;AAttribute(List)&gt;
+         ~~~~~~~~~~
+BC30451: 'List' is not declared. It may be inaccessible due to its protection level.
+        &lt;AAttribute(List)&gt;
+                    ~~~~
+</expected>)
+        End Sub
     End Class
 
 End Namespace

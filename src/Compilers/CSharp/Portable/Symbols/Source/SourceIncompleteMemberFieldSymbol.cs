@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly RefKind _refKind;
 
         public SourceIncompleteMemberFieldSymbol(SourceMemberContainerTypeSymbol containingType, IncompleteMemberSyntax node, TypeWithAnnotations fieldType, RefKind refKind)
-            : base(containingType, MakeModifiers(containingType, node.GetFirstToken(), node.Modifiers, isRefField: refKind != RefKind.None, BindingDiagnosticBag.Discarded, out  _) ,"", node.GetReference(), node.Location)
+            : base(containingType, MakeModifiers(containingType, node.GetFirstToken(), node.Modifiers, isRefField: refKind != RefKind.None, BindingDiagnosticBag.Discarded, out _), "", node.GetReference(), node.Location)
         {
             _node = node;
             _fieldType = fieldType;

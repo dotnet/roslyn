@@ -30,14 +30,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             PrivateProtected = CUShort(Accessibility.ProtectedAndFriend)
             [Public] = CUShort(Accessibility.Public)
             AccessibilityMask = &H7
-
-            [Class] = CUShort(TYPEKIND.Class) << TypeKindShift
-            [Structure] = CUShort(TYPEKIND.Structure) << TypeKindShift
-            [Interface] = CUShort(TYPEKIND.Interface) << TypeKindShift
-            [Enum] = CUShort(TYPEKIND.Enum) << TypeKindShift
-            [Delegate] = CUShort(TYPEKIND.Delegate) << TypeKindShift
-            [Module] = CUShort(TYPEKIND.Module) << TypeKindShift
-            Submission = CUShort(TYPEKIND.Submission) << TypeKindShift
+            [Class] = CUShort(TypeKind.Class) << TypeKindShift
+            [Structure] = CUShort(TypeKind.Structure) << TypeKindShift
+            [Interface] = CUShort(TypeKind.Interface) << TypeKindShift
+            [Enum] = CUShort(TypeKind.Enum) << TypeKindShift
+            [Delegate] = CUShort(TypeKind.Delegate) << TypeKindShift
+            [Module] = CUShort(TypeKind.Module) << TypeKindShift
+            Submission = CUShort(TypeKind.Submission) << TypeKindShift
             TypeKindMask = &HF0
             TypeKindShift = 4
 
@@ -239,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' In case Vb Core Runtime is being embedded, we should mark attribute 
                     ' 'Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute'
                     ' as being referenced if the named type just created is a module
-                    If type.TypeKind = TYPEKIND.Module Then
+                    If type.TypeKind = TypeKind.Module Then
                         type.DeclaringCompilation.EmbeddedSymbolManager.RegisterModuleDeclaration()
                     End If
 
@@ -1264,9 +1263,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TypeKind As TYPEKIND
+        Public Overrides ReadOnly Property TypeKind As TypeKind
             Get
-                Return CType((_flags And SourceTypeFlags.TypeKindMask) >> CUInt(SourceTypeFlags.TypeKindShift), TYPEKIND)
+                Return CType((_flags And SourceTypeFlags.TypeKindMask) >> CUInt(SourceTypeFlags.TypeKindShift), TypeKind)
             End Get
         End Property
 
@@ -2611,12 +2610,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     CreateEvent(eventDecl.EventStatement, eventDecl, binder, diagBag.DiagnosticBag, members)
 
                 Case SyntaxKind.IncompleteMember
-                    Dim incompleteMemberSyntax = DirectCast(memberSyntax, IncompleteMemberSyntax)
-                    For Each attributeList As AttributeListSyntax In incompleteMemberSyntax.AttributeLists
-                        For Each attribute As AttributeSyntax In attributeList.Attributes
-                            binder.BindTypeSyntax(attribute.Name, diagBag)
-                        Next
-                    Next
+                    Dim incompleteMemberSyntax As IncompleteMemberSyntax = DirectCast(memberSyntax, IncompleteMemberSyntax)
+
+                    ' Don't produce modifier diagnostics for incomplete members.
+                    Dim modifiers = binder.DecodeModifiers(incompleteMemberSyntax.Modifiers, SourceMemberFlags.None, ERRID.ERR_BadDimFlags1, If(IsValueType, Accessibility.Public, Accessibility.Private), BindingDiagnosticBag.Discarded.DiagnosticBag)
+
+                    AddMember(New SourceIncompleteMemberFieldSymbol(Me, modifiers.AllFlags, incompleteMemberSyntax), binder, members, omitDiagnostics:=True)
 
                 Case Else
                     If memberSyntax.Kind = SyntaxKind.EmptyStatement OrElse TypeOf memberSyntax Is ExecutableStatementSyntax Then
@@ -2670,7 +2669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If propertySymbol.IsAutoProperty AndAlso
                         propertySymbol.ContainingType.TypeKind = TypeKind.Structure Then
 
-                        binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_AutoPropertyInitializedInStructure)
+                        Binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_AutoPropertyInitializedInStructure)
                     End If
 
                     AddInitializer(instanceInitializers, initializer, members.InstanceSyntaxLength)
