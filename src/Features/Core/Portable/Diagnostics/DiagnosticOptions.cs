@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal sealed class DiagnosticOptionsStorage
+    internal sealed class DiagnosticOptions
     {
         private const string FeatureName = "DiagnosticOptions";
 
