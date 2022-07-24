@@ -268,6 +268,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (id == RemoveUnnecessaryImports.AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.DiagnosticFixableId)
                 return null;
 
+            if (id == "IDE0005_gen")
+                id = "IDE0005";
+
             Debug.Assert(id.StartsWith("IDE", StringComparison.Ordinal));
             return $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{id.ToLowerInvariant()}";
         }
