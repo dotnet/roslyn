@@ -265,6 +265,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (id.StartsWith("JSON", StringComparison.Ordinal))
                 return null;
 
+            if (id == RemoveUnnecessaryImports.AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.DiagnosticFixableId)
+                return null;
+
             Debug.Assert(id.StartsWith("IDE", StringComparison.Ordinal));
             return $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{id.ToLowerInvariant()}";
         }
