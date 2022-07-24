@@ -9534,6 +9534,110 @@ public class C
 ");
         }
 
+        [Fact, WorkItem(1394, "https://github.com/dotnet/csharplang/issues/1394")]
+        public void TestDeconstructSwitchInferredNullableIntTarget()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        int expr = 1;
+        
+        var (i, d) = expr switch
+        {
+            1 => (1, null),
+            2 => (default, ""another""),
+            3 => (null, default),
+            4 => (default, null),
+            5 => (null, null),
+            6 => default,
+            _ => throw null,
+        };
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var switchExpression = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().First();
+
+            var resultingType = model.GetTypeInfo(switchExpression);
+            Assert.Equal("(System.Int32?, System.String)", resultingType.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32?, System.String)", resultingType.ConvertedType.ToTestDisplayString());
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size      144 (0x90)
+  .maxstack  2
+  .locals init (int V_0, //expr
+                System.ValueTuple<int?, string> V_1,
+                int? V_2,
+                System.ValueTuple<int?, string> V_3)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  sub
+  IL_0005:  switch    (
+        IL_0024,
+        IL_0033,
+        IL_0049,
+        IL_005b,
+        IL_006d,
+        IL_007f)
+  IL_0022:  br.s       IL_008b
+  IL_0024:  ldc.i4.1
+  IL_0025:  newobj     ""int?..ctor(int)""
+  IL_002a:  ldnull
+  IL_002b:  newobj     ""System.ValueTuple<int?, string>..ctor(int?, string)""
+  IL_0030:  stloc.1
+  IL_0031:  br.s       IL_008d
+  IL_0033:  ldloca.s   V_2
+  IL_0035:  initobj    ""int?""
+  IL_003b:  ldloc.2
+  IL_003c:  ldstr      ""another""
+  IL_0041:  newobj     ""System.ValueTuple<int?, string>..ctor(int?, string)""
+  IL_0046:  stloc.1
+  IL_0047:  br.s       IL_008d
+  IL_0049:  ldloca.s   V_2
+  IL_004b:  initobj    ""int?""
+  IL_0051:  ldloc.2
+  IL_0052:  ldnull
+  IL_0053:  newobj     ""System.ValueTuple<int?, string>..ctor(int?, string)""
+  IL_0058:  stloc.1
+  IL_0059:  br.s       IL_008d
+  IL_005b:  ldloca.s   V_2
+  IL_005d:  initobj    ""int?""
+  IL_0063:  ldloc.2
+  IL_0064:  ldnull
+  IL_0065:  newobj     ""System.ValueTuple<int?, string>..ctor(int?, string)""
+  IL_006a:  stloc.1
+  IL_006b:  br.s       IL_008d
+  IL_006d:  ldloca.s   V_2
+  IL_006f:  initobj    ""int?""
+  IL_0075:  ldloc.2
+  IL_0076:  ldnull
+  IL_0077:  newobj     ""System.ValueTuple<int?, string>..ctor(int?, string)""
+  IL_007c:  stloc.1
+  IL_007d:  br.s       IL_008d
+  IL_007f:  ldloca.s   V_3
+  IL_0081:  initobj    ""System.ValueTuple<int?, string>""
+  IL_0087:  ldloc.3
+  IL_0088:  stloc.1
+  IL_0089:  br.s       IL_008d
+  IL_008b:  ldnull
+  IL_008c:  throw
+  IL_008d:  ldloc.1
+  IL_008e:  pop
+  IL_008f:  ret
+}
+");
+        }
+
         [Fact]
         public void AssigningConditional_OutParams()
         {

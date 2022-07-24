@@ -288,18 +288,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // We found null assigned to the value,
                             // so we might try recursing for the type's nullable counterpart
-                            //       Ideally this should be handled from the conversions part, so
-                            // TODO: toggle the lines if need be
-                            //if (tupleArgumentsWithNullLiteral[tupleArgumentIndex])
-                            //{
-                            //    var nullableType = Compilation.GetTypeByMetadataName("System.Nullable`1");
-                            //    //nullableType.TypeSubstitution.SubstituteType()
-                            //    //{
-                            //    //    types
-                            //    //}
-                            //    tupleNestedTypes[tupleArgumentIndex] = orderedType;
-                            //    recurseForTypes(tupleArgumentIndex + 1);
-                            //}
+                            // There is the possibility this could be handled from the conversions
+
+                            if (tupleArgumentsWithNullLiteral[tupleArgumentIndex])
+                            {
+                                var nullableOrderedType = Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(orderedType);
+                                tupleNestedTypes[tupleArgumentIndex] = nullableOrderedType;
+                                recurseForTypes(tupleArgumentIndex + 1);
+                            }
                         }
                     }
                 }
