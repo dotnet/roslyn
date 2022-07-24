@@ -1117,6 +1117,16 @@
         <target state="translated">switch ケースに到達できません。以前のケースで既に処理されたか、一致させることができません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SwitchExpressionInferTupleTypeElementCountMismatch">
+        <source>Failed to infer the correct tuple type in the switch expression; inconsistent tuple element counts returned from different arms.</source>
+        <target state="new">Failed to infer the correct tuple type in the switch expression; inconsistent tuple element counts returned from different arms.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SwitchExpressionInferTupleTypeElementCountMismatch_Title">
+        <source>Inconsistent tuple element counts returned in the switch expression.</source>
+        <target state="new">Inconsistent tuple element counts returned in the switch expression.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SwitchExpressionNoBestType">
         <source>No best type was found for the switch expression.</source>
         <target state="translated">switch 式に最適な型が見つかりませんでした。</target>

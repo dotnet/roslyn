@@ -9638,7 +9638,6 @@ public class C
 ");
         }
 
-
         [Fact, WorkItem(1394, "https://github.com/dotnet/csharplang/issues/1394")]
         public void TestDeconstructNestedSwitchInferred()
         {
@@ -9752,6 +9751,49 @@ public class C
   IL_0072:  ret
 }
 ");
+        }
+
+        [Fact, WorkItem(1394, "https://github.com/dotnet/csharplang/issues/1394")]
+        public void TestDeconstructSwitchMismatchingCardinality()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        int expr = 1;
+        
+        var (i, d) = expr switch
+        {
+            1 => (1, null),
+            2 => (default, ""another"", ""using wrong cardinality""),
+            _ => throw null,
+        };
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (8,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'i'.
+                //         var (i, d) = expr switch
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "i").WithArguments("i").WithLocation(8, 14),
+                // (8,17): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'd'.
+                //         var (i, d) = expr switch
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "d").WithArguments("d").WithLocation(8, 17),
+                // (8,22): error CS9100: Failed to infer the correct tuple type in the switch expression; inconsistent tuple element counts returned from different arms.
+                //         var (i, d) = expr switch
+                Diagnostic(ErrorCode.ERR_SwitchExpressionInferTupleTypeElementCountMismatch, "expr").WithLocation(8, 22),
+                // (8,22): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         var (i, d) = expr switch
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, @"expr switch
+        {
+            1 => (1, null),
+            2 => (default, ""another"", ""using wrong cardinality""),
+            _ => throw null,
+        }").WithLocation(8, 22),
+                // (8,27): error CS8506: No best type was found for the switch expression.
+                //         var (i, d) = expr switch
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(8, 27));
         }
 
         [Fact]

@@ -1117,6 +1117,16 @@
         <target state="translated">Блок выражения switch case является недоступным. Он уже был обработан в предыдущем блоке или условие для него не может быть выполнено.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SwitchExpressionInferTupleTypeElementCountMismatch">
+        <source>Failed to infer the correct tuple type in the switch expression; inconsistent tuple element counts returned from different arms.</source>
+        <target state="new">Failed to infer the correct tuple type in the switch expression; inconsistent tuple element counts returned from different arms.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SwitchExpressionInferTupleTypeElementCountMismatch_Title">
+        <source>Inconsistent tuple element counts returned in the switch expression.</source>
+        <target state="new">Inconsistent tuple element counts returned in the switch expression.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SwitchExpressionNoBestType">
         <source>No best type was found for the switch expression.</source>
         <target state="translated">Не удалось найти лучший тип для выражения switch.</target>
