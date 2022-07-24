@@ -2615,7 +2615,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' Don't produce modifier diagnostics for incomplete members.
                     Dim modifiers = binder.DecodeModifiers(incompleteMemberSyntax.Modifiers, SourceMemberFlags.None, ERRID.ERR_BadDimFlags1, If(IsValueType, Accessibility.Public, Accessibility.Private), New DiagnosticBag())
 
-                    AddMember(New SourceIncompleteMemberFieldSymbol(Me, modifiers.AllFlags, incompleteMemberSyntax), binder, members, omitDiagnostics:=True)
+                    AddMember(New SourceIncompleteFieldSymbol(Me, modifiers.AllFlags, incompleteMemberSyntax), binder, members, omitDiagnostics:=True)
 
                 Case Else
                     If memberSyntax.Kind = SyntaxKind.EmptyStatement OrElse TypeOf memberSyntax Is ExecutableStatementSyntax Then
