@@ -9401,6 +9401,139 @@ class C
             CompileAndVerify(comp, expectedOutput: "44 42 43");
         }
 
+        [Fact, WorkItem(1394, "https://github.com/dotnet/csharplang/issues/1394")]
+        public void TestDeconstructSwitchTargetTyping()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        int expr = 1;
+        var (i, d) = (1, ""example"");
+        
+        (i, d) = expr switch
+        {
+            1 => (1, null),
+            2 => (default, ""another""),
+            _ => throw null,
+        };
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var switchExpression = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().First();
+
+            var resultingType = model.GetTypeInfo(switchExpression);
+            Assert.Equal("(System.Int32, System.String)", resultingType.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.String)", resultingType.ConvertedType.ToTestDisplayString());
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       41 (0x29)
+  .maxstack  2
+  .locals init (int V_0, //expr
+                System.ValueTuple<int, string> V_1,
+                System.ValueTuple<int, string> V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  beq.s      IL_000c
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.2
+  IL_0008:  beq.s      IL_0016
+  IL_000a:  br.s       IL_0024
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldnull
+  IL_000e:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_0013:  stloc.1
+  IL_0014:  br.s       IL_0026
+  IL_0016:  ldc.i4.0
+  IL_0017:  ldstr      ""another""
+  IL_001c:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_0021:  stloc.1
+  IL_0022:  br.s       IL_0026
+  IL_0024:  ldnull
+  IL_0025:  throw
+  IL_0026:  ldloc.1
+  IL_0027:  pop
+  IL_0028:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(1394, "https://github.com/dotnet/csharplang/issues/1394")]
+        public void TestDeconstructSwitchInferredTarget()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        int expr = 1;
+        
+        var (i, d) = expr switch
+        {
+            1 => (1, null),
+            2 => (default, ""another""),
+            _ => throw null,
+        };
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var switchExpression = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().First();
+
+            var resultingType = model.GetTypeInfo(switchExpression);
+            Assert.Equal("(System.Int32, System.String)", resultingType.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.String)", resultingType.ConvertedType.ToTestDisplayString());
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       41 (0x29)
+  .maxstack  2
+  .locals init (int V_0, //expr
+                System.ValueTuple<int, string> V_1,
+                System.ValueTuple<int, string> V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  beq.s      IL_000c
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.2
+  IL_0008:  beq.s      IL_0016
+  IL_000a:  br.s       IL_0024
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldnull
+  IL_000e:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_0013:  stloc.1
+  IL_0014:  br.s       IL_0026
+  IL_0016:  ldc.i4.0
+  IL_0017:  ldstr      ""another""
+  IL_001c:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_0021:  stloc.1
+  IL_0022:  br.s       IL_0026
+  IL_0024:  ldnull
+  IL_0025:  throw
+  IL_0026:  ldloc.1
+  IL_0027:  pop
+  IL_0028:  ret
+}
+");
+        }
+
         [Fact]
         public void AssigningConditional_OutParams()
         {
