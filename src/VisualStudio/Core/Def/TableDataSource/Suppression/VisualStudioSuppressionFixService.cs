@@ -254,6 +254,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             try
             {
                 using var token = _listener.BeginAsyncOperation(nameof(ApplySuppressionFix));
+
+                var originalSolution = _workspace.CurrentSolution;
                 var title = GetFixTitle(isAddSuppression);
                 var waitDialogMessage = GetWaitDialogMessage(isAddSuppression);
 
@@ -389,6 +391,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     using var scope = context.AddScope(allowCancellation: true, description: waitDialogMessage);
                     await _editHandlerService.ApplyAsync(
                         _workspace,
+                        originalSolution,
                         fromDocument: null,
                         operations: operations,
                         title: title,
