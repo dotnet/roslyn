@@ -5709,7 +5709,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
             var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
             Assert.Equal("var", x123Var.Type.ToString());
             Assert.Equal("System.Byte", model.GetTypeInfo(x123Var.Type).Type.ToTestDisplayString());
-            Assert.Equal("(System.Byte x1, (System.Byte x2, System.Byte x3))", model.GetSymbolInfo(x123Var.Type).Symbol.ToTestDisplayString());
+            Assert.Equal("System.Byte", model.GetSymbolInfo(x123Var.Type).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -5751,7 +5751,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
             var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
             Assert.Equal("var", x123Var.Type.ToString());
             Assert.Equal("Script.var", model.GetTypeInfo(x123Var.Type).Type.ToTestDisplayString());
-            Assert.Equal("(Script.var x1, (Script.var x2, Script.var x3))", model.GetSymbolInfo(x123Var.Type).Symbol.ToTestDisplayString());
+            Assert.Equal("Script.var", model.GetSymbolInfo(x123Var.Type).Symbol.ToTestDisplayString());
         }
 
         [Fact]

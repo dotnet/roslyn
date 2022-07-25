@@ -4682,7 +4682,7 @@ class C
             Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.True(model.GetConversion(declarations[0].Type).IsIdentity);
             symbolInfo = model.GetSymbolInfo(declarations[0].Type);
-            Assert.Equal("(System.Int32 a, System.Int32 b)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal("var=System.Int32", model.GetAliasInfo(declarations[0].Type).ToTestDisplayString());
@@ -4776,7 +4776,7 @@ using var = System.Int32;
             Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.True(model.GetConversion(declarations[0].Type).IsIdentity);
             symbolInfo = model.GetSymbolInfo(declarations[0].Type);
-            Assert.Equal("(System.Int32 a, System.Int32 b)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal("var=System.Int32", model.GetAliasInfo(declarations[0].Type).ToTestDisplayString());
@@ -4854,7 +4854,7 @@ class C
             Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.True(model.GetConversion(declarations[0].Type).IsIdentity);
             symbolInfo = model.GetSymbolInfo(declarations[0].Type);
-            Assert.Equal("(System.Int32, System.Int32)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal("var=System.Int32", model.GetAliasInfo(declarations[0].Type).ToTestDisplayString());

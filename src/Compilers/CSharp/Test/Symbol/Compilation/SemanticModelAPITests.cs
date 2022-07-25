@@ -4578,7 +4578,7 @@ public partial class C
                 Assert.False(symbolInfo.IsEmpty);
                 Assert.Empty(symbolInfo.CandidateSymbols);
                 Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
-                Assert.Equal("(var a1, var b1)", symbolInfo.Symbol.ToTestDisplayString());
+                Assert.Equal("var", symbolInfo.Symbol.ToTestDisplayString());
             }
         }
 
