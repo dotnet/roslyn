@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// <summary>
         /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
         /// </summary>
-        [Obsolete($"Use overload of {nameof(Expand)} that takes {nameof(HostWorkspaceServices)} instead.", error: true)]
         public static TNode Expand<TNode>(TNode node, SemanticModel semanticModel, Workspace workspace, Func<SyntaxNode, bool>? expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default) where TNode : SyntaxNode
         {
             if (workspace == null)
@@ -90,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// <summary>
         /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
         /// </summary>
-        public static TNode Expand<TNode>(TNode node, SemanticModel semanticModel, HostWorkspaceServices services, Func<SyntaxNode, bool>? expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default) where TNode : SyntaxNode
+        internal static TNode Expand<TNode>(TNode node, SemanticModel semanticModel, HostWorkspaceServices services, Func<SyntaxNode, bool>? expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default) where TNode : SyntaxNode
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
@@ -118,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return Expand(token, semanticModel, document.Project.Solution.Workspace, expandInsideNode, cancellationToken);
+            return Expand(token, semanticModel, document.Project.Solution.Services, expandInsideNode, cancellationToken);
         }
 
         /// <summary>
