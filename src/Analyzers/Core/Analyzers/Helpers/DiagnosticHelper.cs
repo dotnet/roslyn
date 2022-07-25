@@ -265,11 +265,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (id.StartsWith("JSON", StringComparison.Ordinal))
                 return null;
 
-            if (id == RemoveUnnecessaryImports.AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.DiagnosticFixableId)
-                return null;
 
-            if (id == "IDE0005_gen")
-                id = "IDE0005";
+            // These diagnostics are hidden and not configurable, so help link can never be shown and is not applicable.
+            if (id == RemoveUnnecessaryImports.AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.DiagnosticFixableId ||
+                id == "IDE0005_gen")
+                return null;
 
             Debug.Assert(id.StartsWith("IDE", StringComparison.Ordinal));
             return $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{id.ToLowerInvariant()}";
