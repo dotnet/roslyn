@@ -185,8 +185,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             {
                 var renameRewriterService =
-                    conflictResolution.CurrentSolution.Workspace.Services.GetLanguageServices(renamedSymbol.Language)
-                                                                         .GetRequiredService<IRenameRewriterLanguageService>();
+                    conflictResolution.CurrentSolution.Services.GetLanguageServices(renamedSymbol.Language)
+                                                               .GetRequiredService<IRenameRewriterLanguageService>();
                 var implicitUsageConflicts = renameRewriterService.ComputePossibleImplicitUsageConflicts(renamedSymbol, semanticModel, originalDeclarationLocation, newDeclarationLocationStartingPosition, cancellationToken);
                 foreach (var implicitUsageConflict in implicitUsageConflicts)
                 {

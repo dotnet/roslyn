@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IdeOptions = ideOptions;
         }
 
-        public HostWorkspaceServices Services => _solution.Workspace.Services;
+        public HostWorkspaceServices Services => _solution.Services;
 
         public override bool Equals(object obj)
         {
