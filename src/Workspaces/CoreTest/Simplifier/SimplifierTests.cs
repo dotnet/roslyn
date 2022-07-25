@@ -52,7 +52,7 @@ public class SimplifierTests
         Assert.Throws<ArgumentNullException>("semanticModel", () => Simplifier.Expand(node, semanticModel: null!, services: null!));
         Assert.Throws<ArgumentNullException>("services", () => Simplifier.Expand(node, semanticModel, services: null!));
         Assert.Throws<ArgumentNullException>("workspace", () => Simplifier.Expand(node, semanticModel, workspace: null!));
-        Assert.Throws<ArgumentNullException>("semanticModel", () => Simplifier.Expand(token: default, semanticModel: null!, workspace: null!));
+        Assert.Throws<ArgumentNullException>("workspace", () => Simplifier.Expand(token: default, semanticModel: null!, workspace: null!));
         Assert.Throws<ArgumentNullException>("workspace", () => Simplifier.Expand(token: default, semanticModel, workspace: null!));
     }
 
