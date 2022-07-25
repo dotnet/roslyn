@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             ImmutableArray<ReferenceUpdate> referenceUpdates,
             CancellationToken cancellationToken)
         {
-            var referenceCleanupService = solution.Workspace.Services.GetRequiredService<IReferenceCleanupService>();
+            var referenceCleanupService = solution.Services.GetRequiredService<IReferenceCleanupService>();
 
             await ApplyReferenceUpdatesAsync(referenceCleanupService, projectFilePath, referenceUpdates, cancellationToken).ConfigureAwait(true);
 

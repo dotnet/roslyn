@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _registration = registration;
 
                 _listener = listener;
-                _documentTrackingService = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+                _documentTrackingService = _registration.Services.GetRequiredService<IDocumentTrackingService>();
                 _workspaceConfigurationService = _registration.Workspace.Services.GetService<IWorkspaceConfigurationService>();
 
                 // event and worker queues

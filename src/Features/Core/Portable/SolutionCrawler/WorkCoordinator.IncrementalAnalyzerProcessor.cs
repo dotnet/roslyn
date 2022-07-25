@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     // event and worker queues
-                    _documentTracker = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+                    _documentTracker = _registration.Services.GetRequiredService<IDocumentTrackingService>();
 
-                    var globalNotificationService = _registration.Workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
+                    var globalNotificationService = _registration.Services.GetRequiredService<IGlobalOperationNotificationService>();
 
                     _highPriorityProcessor = new HighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpan, shutdownToken);
                     _normalPriorityProcessor = new NormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpan, shutdownToken);

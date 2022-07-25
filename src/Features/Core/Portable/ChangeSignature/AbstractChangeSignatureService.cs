@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return null;
             }
 
-            var changeSignatureOptionsService = succeededContext.Solution.Workspace.Services.GetRequiredService<IChangeSignatureOptionsService>();
+            var changeSignatureOptionsService = succeededContext.Solution.Services.GetRequiredService<IChangeSignatureOptionsService>();
 
             return changeSignatureOptionsService.GetChangeSignatureOptions(
                 succeededContext.Document, succeededContext.PositionForTypeBinding, succeededContext.Symbol, succeededContext.ParameterConfiguration);
