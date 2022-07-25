@@ -183,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             updatedDocument = Await updatedDocument.ReplaceNodesAsync(
                 topMostStatements,
                 Function(o, n)
-                    Return Simplifier.Expand(DirectCast(n, StatementSyntax), semanticModel, document.Project.Solution.Workspace, cancellationToken:=cancellationToken)
+                    Return Simplifier.Expand(DirectCast(n, StatementSyntax), semanticModel, document.Project.Solution.Services, cancellationToken:=cancellationToken)
                 End Function,
                 cancellationToken).ConfigureAwait(False)
 
