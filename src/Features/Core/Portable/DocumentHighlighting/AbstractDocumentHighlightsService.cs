@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                             // Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
                             if (document == null)
                             {
-                                Debug.Assert(solution.Workspace.Kind is WorkspaceKind.Interactive or WorkspaceKind.MiscellaneousFiles);
+                                Debug.Assert(solution.WorkspaceKind is WorkspaceKind.Interactive or WorkspaceKind.MiscellaneousFiles);
                                 continue;
                             }
 

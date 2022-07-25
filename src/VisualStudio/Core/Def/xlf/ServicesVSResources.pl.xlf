@@ -1188,8 +1188,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Rename_asynchronously_experimental">
-        <source>Rename asynchronously experimental</source>
-        <target state="translated">Zmienianie nazwy asynchronicznie eksperymentalnej</target>
+        <source>Rename asynchronously (experimental)</source>
+        <target state="needs-review-translation">Zmienianie nazwy asynchronicznie eksperymentalnej</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
