@@ -2677,7 +2677,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                                 continue;
                                             }
 
-                                            if (!hasActiveStatement && AllowsDeletion(oldSymbol, willInsertNewMember: false, capabilities))
+                                            if (!hasActiveStatement && AllowsDeletion(oldSymbol))
                                             {
                                                 AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Delete, oldSymbol, containingSymbolKey, syntaxMap, partialType: null, cancellationToken);
                                                 continue;
@@ -3035,7 +3035,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             // when members are moved between documents in partial classes, they can appear as renames, so
                             // we also check that the old symbol can't be resolved in the new compilation
                             if (oldSymbol.Name != newSymbol.Name &&
-                                AllowsDeletion(oldSymbol, willInsertNewMember: true, capabilities) &&
+                                AllowsDeletion(oldSymbol) &&
+                                CanAddNewMember(oldSymbol, capabilities) &&
                                 SymbolKey.Create(oldSymbol, cancellationToken).Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol is null)
                             {
                                 Contract.ThrowIfNull(oldDeclaration);
@@ -3222,7 +3223,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// but for some kinds of symbols we allow deletes, and synthesize an update to an empty method body during
         /// emit.
         /// </summary>
-        private static bool AllowsDeletion(ISymbol symbol, bool willInsertNewMember, EditAndContinueCapabilitiesGrantor capabilities)
+        private static bool AllowsDeletion(ISymbol symbol)
         {
             // We don't currently allow deleting virtual or abstract methods, because if those are in the middle of
             // an inheritance chain then throwing a missing method exception is not expected
@@ -3235,10 +3236,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // We don't allow deleting members from interfaces etc. only normal classes and structs
             if (symbol.ContainingType is not { TypeKind: TypeKind.Class or TypeKind.Struct })
-                return false;
-
-            // If this delete will result in a new member being added, then we have to check capabilities too
-            if (willInsertNewMember && !CanAddNewMember(symbol, capabilities))
                 return false;
 
             // We store the containing symbol in NewSymbol of the edit for later use.
@@ -3472,9 +3469,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // Can't change from explicit to implicit interface implementation, or one interface to another
                         rudeEdit = RudeEditKind.Renamed;
                     }
-                    else if (!AllowsDeletion(oldSymbol, willInsertNewMember: true, capabilities))
+                    else if (!AllowsDeletion(oldSymbol))
                     {
                         rudeEdit = RudeEditKind.Renamed;
+                    }
+                    else if (!CanAddNewMember(oldSymbol, capabilities))
+                    {
+                        rudeEdit = RudeEditKind.RenamingNotSupportedByRuntime;
                     }
                 }
                 else if (oldSymbol is IPropertySymbol oldProperty && newSymbol is IPropertySymbol newProperty)
@@ -3484,9 +3485,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // Can't change from explicit to implicit interface implementation, or one interface to another
                         rudeEdit = RudeEditKind.Renamed;
                     }
-                    else if (!AllowsDeletion(oldSymbol, willInsertNewMember: true, capabilities))
+                    else if (!AllowsDeletion(oldSymbol))
                     {
                         rudeEdit = RudeEditKind.Renamed;
+                    }
+                    else if (!CanAddNewMember(oldSymbol, capabilities))
+                    {
+                        rudeEdit = RudeEditKind.RenamingNotSupportedByRuntime;
                     }
                 }
                 else if (oldSymbol is IEventSymbol oldEvent && newSymbol is IEventSymbol newEvent)
@@ -3496,9 +3501,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // Can't change from explicit to implicit interface implementation, or one interface to another
                         rudeEdit = RudeEditKind.Renamed;
                     }
-                    else if (!AllowsDeletion(oldSymbol, willInsertNewMember: true, capabilities))
+                    else if (!AllowsDeletion(oldSymbol))
                     {
                         rudeEdit = RudeEditKind.Renamed;
+                    }
+                    else if (!CanAddNewMember(oldSymbol, capabilities))
+                    {
+                        rudeEdit = RudeEditKind.RenamingNotSupportedByRuntime;
                     }
                 }
                 else
@@ -3761,13 +3770,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // We don't allow changing parameter types in delegates
                     rudeEdit = RudeEditKind.TypeUpdate;
                 }
-                else if (AllowsDeletion(newParameter.ContainingSymbol, willInsertNewMember: true, capabilities))
+                else if (AllowsDeletion(newParameter.ContainingSymbol))
                 {
-                    hasParameterTypeChange = true;
+                    if (CanAddNewMember(newParameter.ContainingSymbol, capabilities))
+                    {
+                        hasParameterTypeChange = true;
+                    }
+                    else
+                    {
+                        rudeEdit = RudeEditKind.ChangingTypeNotSupportedByRuntime;
+                    }
                 }
                 else
                 {
-                    rudeEdit = RudeEditKind.InsertNotSupportedByRuntime;
+                    rudeEdit = RudeEditKind.TypeUpdate;
                 }
             }
         }
