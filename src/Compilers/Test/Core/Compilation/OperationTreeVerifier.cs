@@ -817,6 +817,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var spacing = !operation.IsVirtual && operation.Instance != null ? " " : string.Empty;
             LogString($" ({isVirtualStr}{spacing}");
             LogSymbol(operation.TargetMethod, header: string.Empty);
+
+            if (operation.ConstrainedToType is not null)
+            {
+                LogType(operation.ConstrainedToType, header: " ConstrainedToType");
+            }
+
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
@@ -1046,6 +1052,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 LogString($" (IsDeclaration: {operation.IsDeclaration})");
             }
 
+            Assert.Null(operation.ConstrainedToType);
+
             VisitMemberReferenceExpressionCommon(operation);
         }
 
@@ -1053,6 +1061,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IMethodReferenceOperation));
             LogString($": {operation.Method.ToTestDisplayString()}");
+
+            if (operation.ConstrainedToType is not null)
+            {
+                LogType(operation.ConstrainedToType, header: " (ConstrainedToType");
+                LogString(")");
+            }
 
             if (operation.IsVirtual)
             {
@@ -1069,6 +1083,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IPropertyReferenceOperation));
             LogString($": {operation.Property.ToTestDisplayString()}");
 
+            if (operation.ConstrainedToType is not null)
+            {
+                LogType(operation.ConstrainedToType, header: " (ConstrainedToType");
+                LogString(")");
+            }
+
             VisitMemberReferenceExpressionCommon(operation);
 
             if (operation.Arguments.Length > 0)
@@ -1081,6 +1101,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IEventReferenceOperation));
             LogString($": {operation.Event.ToTestDisplayString()}");
+
+            if (operation.ConstrainedToType is not null)
+            {
+                LogType(operation.ConstrainedToType, header: " (ConstrainedToType");
+                LogString(")");
+            }
 
             VisitMemberReferenceExpressionCommon(operation);
         }
@@ -1135,7 +1161,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             LogString($" ({kindStr})");
-            LogHasOperatorMethodExpressionCommon(operation.OperatorMethod);
+            LogHasOperatorMethodExpressionCommon(operation.OperatorMethod, operation.ConstrainedToType);
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Operand, "Operand");
@@ -1162,7 +1188,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             LogString($" ({kindStr})");
-            LogHasOperatorMethodExpressionCommon(operation.OperatorMethod);
+            LogHasOperatorMethodExpressionCommon(operation.OperatorMethod, operation.ConstrainedToType);
             var unaryOperatorMethod = ((BinaryOperation)operation).UnaryOperatorMethod;
             LogCommonPropertiesAndNewLine(operation);
 
@@ -1182,12 +1208,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.RightOperand, "Right");
         }
 
-        private void LogHasOperatorMethodExpressionCommon(IMethodSymbol operatorMethodOpt)
+        private void LogHasOperatorMethodExpressionCommon(IMethodSymbol operatorMethodOpt, ITypeSymbol constrainedToTypeOpt)
         {
             if (operatorMethodOpt != null)
             {
                 LogSymbol(operatorMethodOpt, header: " (OperatorMethod");
+
+                if (constrainedToTypeOpt is not null)
+                {
+                    LogType(constrainedToTypeOpt, header: " ConstrainedToType");
+                }
+
                 LogString(")");
+            }
+            else
+            {
+                Assert.Null(constrainedToTypeOpt);
             }
         }
 
@@ -1199,7 +1235,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var isChecked = operation.IsChecked ? "Checked" : "Unchecked";
             LogString($" ({isTryCast}, {isChecked})");
 
-            LogHasOperatorMethodExpressionCommon(operation.OperatorMethod);
+            LogHasOperatorMethodExpressionCommon(operation.OperatorMethod, operation.ConstrainedToType);
             LogCommonPropertiesAndNewLine(operation);
             Indent();
             LogConversion(operation.Conversion);
@@ -1343,9 +1379,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
         }
 
-        public override void VisitUTF8String(IUTF8StringOperation operation)
+        public override void VisitUtf8String(IUtf8StringOperation operation)
         {
-            LogString(nameof(IUTF8StringOperation));
+            LogString(nameof(IUtf8StringOperation));
             LogString(" (");
             LogString(operation.Value);
             LogString(")");
@@ -1621,7 +1657,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             LogString($" ({kindStr})");
-            LogHasOperatorMethodExpressionCommon(operation.OperatorMethod);
+            LogHasOperatorMethodExpressionCommon(operation.OperatorMethod, operation.ConstrainedToType);
             LogCommonPropertiesAndNewLine(operation);
             Indent();
             LogConversion(operation.InConversion, "InConversion");
@@ -1650,7 +1686,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             LogString($" ({kindStr})");
-            LogHasOperatorMethodExpressionCommon(operation.OperatorMethod);
+            LogHasOperatorMethodExpressionCommon(operation.OperatorMethod, operation.ConstrainedToType);
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Target, "Target");

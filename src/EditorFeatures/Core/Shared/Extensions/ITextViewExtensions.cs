@@ -133,10 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             {
                 var outliningManager = outliningManagerService.GetOutliningManager(textView);
 
-                if (outliningManager != null)
-                {
-                    outliningManager.ExpandAll(new SnapshotSpan(pointInView.Value, length: 0), match: _ => true);
-                }
+                outliningManager?.ExpandAll(new SnapshotSpan(pointInView.Value, length: 0), match: _ => true);
             }
 
             var newPosition = textView.Caret.MoveTo(new VirtualSnapshotPoint(pointInView.Value, point.VirtualSpaces));

@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected bool? ForceExpandedCompletionIndexCreation { get; set; }
         protected bool? HideAdvancedMembers { get; set; }
         protected bool? ShowNameSuggestions { get; set; }
+        protected bool? ShowNewSnippetExperience { get; set; }
 
         protected AbstractCompletionProviderTests()
         {
@@ -84,6 +85,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             if (ShowNameSuggestions.HasValue)
                 options = options with { ShowNameSuggestions = ShowNameSuggestions.Value };
 
+            if (ShowNewSnippetExperience.HasValue)
+                options = options with { ShowNewSnippetExperience = ShowNewSnippetExperience.Value };
+
             return options;
         }
 
@@ -104,17 +108,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
         }
 
-        internal virtual CompletionServiceWithProviders GetCompletionService(Project project)
+        internal virtual CompletionService GetCompletionService(Project project)
         {
             var completionService = project.LanguageServices.GetRequiredService<CompletionService>();
-
-            var completionServiceWithProviders = Assert.IsAssignableFrom<CompletionServiceWithProviders>(completionService);
-
-            var completionProviders = ((IMefHostExportProvider)project.Solution.Workspace.Services.HostServices).GetExports<CompletionProvider>();
-            var completionProvider = Assert.Single(completionProviders).Value;
+            var completionProviders = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet<string>.Empty, project);
+            var completionProvider = Assert.Single(completionProviders);
             Assert.IsType(GetCompletionProviderType(), completionProvider);
 
-            return completionServiceWithProviders;
+            return completionService;
         }
 
         internal static ImmutableHashSet<string> GetRoles(Document document)
@@ -474,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             Assert.Contains(itemToCommit, items.Select(x => x.DisplayText), GetStringComparer());
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
-            if (service.GetProvider(firstItem) is ICustomCommitCompletionProvider customCommitCompletionProvider)
+            if (service.GetProvider(firstItem, document.Project) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
                 VerifyCustomCommitWorker(service, customCommitCompletionProvider, firstItem, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
@@ -485,7 +486,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         private async Task VerifyCustomCommitWorkerAsync(
-            CompletionServiceWithProviders service,
+            CompletionService service,
             Document document,
             RoslynCompletion.CompletionItem completionItem,
             string codeBeforeCommit,

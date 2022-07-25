@@ -7875,12 +7875,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _ => (null, ImmutableArray<ParameterSymbol>.Empty),
                         };
 
+#nullable enable
                 case ConversionKind.AnonymousFunction:
                     if (conversionOperand is BoundLambda lambda)
                     {
                         var delegateType = targetType.GetDelegateType();
                         VisitLambda(lambda, delegateType, stateForLambda);
-                        if (reportRemainingWarnings)
+                        if (reportRemainingWarnings && delegateType is not null)
                         {
                             ReportNullabilityMismatchWithTargetDelegate(diagnosticLocationOpt, delegateType, lambda);
                         }
@@ -7890,6 +7891,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return TypeWithState.Create(targetType, NullableFlowState.NotNull);
                     }
                     break;
+#nullable disable
 
                 case ConversionKind.FunctionType:
                     resultState = NullableFlowState.NotNull;
@@ -10544,10 +10546,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override BoundNode? VisitUTF8String(BoundUTF8String node)
+        public override BoundNode? VisitUtf8String(BoundUtf8String node)
         {
             Debug.Assert(!IsConditionalState);
-            var result = base.VisitUTF8String(node);
+            var result = base.VisitUtf8String(node);
             SetNotNullResult(node);
             return result;
         }

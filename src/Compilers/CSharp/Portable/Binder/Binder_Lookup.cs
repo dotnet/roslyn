@@ -1306,6 +1306,38 @@ symIsHidden:;
             }
         }
 
+        private bool IsInScopeOfAssociatedSyntaxTree(Symbol symbol)
+        {
+            while (symbol is not null and not SourceMemberContainerTypeSymbol { IsFileLocal: true })
+            {
+                symbol = symbol.ContainingType;
+            }
+
+            if (symbol is null)
+            {
+                // the passed-in symbol was not contained in a file-local type.
+                return true;
+            }
+
+            var tree = getSyntaxTreeForFileTypes();
+            return symbol.IsDefinedInSourceTree(tree, definedWithinSpan: null);
+
+            SyntaxTree getSyntaxTreeForFileTypes()
+            {
+                for (var binder = this; binder != null; binder = binder.Next)
+                {
+                    if (binder is BuckStopsHereBinder lastBinder)
+                    {
+                        Debug.Assert(lastBinder.AssociatedSyntaxTree is not null);
+                        return lastBinder.AssociatedSyntaxTree;
+                    }
+                }
+
+                Debug.Assert(false);
+                return null;
+            }
+        }
+
         /// <remarks>
         /// Distinguish from <see cref="CanAddLookupSymbolInfo"/>, which performs an analogous task for Add*LookupSymbolsInfo*.
         /// </remarks>
@@ -1322,8 +1354,12 @@ symIsHidden:;
                 ? ((AliasSymbol)symbol).GetAliasTarget(basesBeingResolved)
                 : symbol;
 
+            if (!IsInScopeOfAssociatedSyntaxTree(unwrappedSymbol))
+            {
+                return LookupResult.Empty();
+            }
             // Check for symbols marked with 'Microsoft.CodeAnalysis.Embedded' attribute
-            if (!this.Compilation.SourceModule.Equals(unwrappedSymbol.ContainingModule) && unwrappedSymbol.IsHiddenByCodeAnalysisEmbeddedAttribute())
+            else if (!this.Compilation.SourceModule.Equals(unwrappedSymbol.ContainingModule) && unwrappedSymbol.IsHiddenByCodeAnalysisEmbeddedAttribute())
             {
                 return LookupResult.Empty();
             }
@@ -1519,6 +1555,10 @@ symIsHidden:;
             }
             else if (InCref ? !this.IsCrefAccessible(symbol)
                             : !this.IsAccessible(symbol, ref discardedUseSiteInfo, RefineAccessThroughType(options, accessThroughType)))
+            {
+                return false;
+            }
+            else if (!IsInScopeOfAssociatedSyntaxTree(symbol))
             {
                 return false;
             }

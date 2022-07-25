@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int Ordinal { get; }
         public override Symbol ContainingSymbol => _containingSymbol;
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
+        internal override DeclarationScope Scope => RefKind == RefKind.Out ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
 
         public override bool Equals(Symbol other, TypeCompareKind compareKind)
         {

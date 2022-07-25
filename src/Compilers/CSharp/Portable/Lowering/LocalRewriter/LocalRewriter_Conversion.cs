@@ -74,12 +74,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override BoundNode VisitUTF8String(BoundUTF8String node)
+        public override BoundNode VisitUtf8String(BoundUtf8String node)
         {
-            return MakeUTF8Span(node, GetUTF8ByteRepresentation(node));
+            return MakeUtf8Span(node, GetUtf8ByteRepresentation(node));
         }
 
-        private BoundExpression MakeUTF8Span(BoundExpression node, IReadOnlyList<byte>? bytes)
+        private BoundExpression MakeUtf8Span(BoundExpression node, IReadOnlyList<byte>? bytes)
         {
             Debug.Assert(node.Type is not null);
             Debug.Assert(_compilation.IsReadOnlySpanType(node.Type));
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var byteArray = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, TypeWithAnnotations.Create(byteType));
             BoundExpression utf8Bytes = bytes is null ?
                                             BadExpression(node.Syntax, byteArray, ImmutableArray<BoundExpression>.Empty) :
-                                            MakeUnderlyingArrayForUTF8Span(node.Syntax, byteArray, bytes, out length);
+                                            MakeUnderlyingArrayForUtf8Span(node.Syntax, byteArray, bytes, out length);
 
             if (!TryGetWellKnownTypeMember<MethodSymbol>(node.Syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length, out MethodSymbol ctor))
             {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private byte[]? GetUTF8ByteRepresentation(BoundUTF8String node)
+        private byte[]? GetUtf8ByteRepresentation(BoundUtf8String node)
         {
             var utf8 = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             catch (Exception ex)
             {
                 _diagnostics.Add(
-                    ErrorCode.ERR_CannotBeConvertedToUTF8,
+                    ErrorCode.ERR_CannotBeConvertedToUtf8,
                     node.Syntax.Location,
                     ex.Message);
 
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundArrayCreation MakeUnderlyingArrayForUTF8Span(SyntaxNode syntax, ArrayTypeSymbol byteArray, IReadOnlyList<byte> bytes, out int length)
+        private BoundArrayCreation MakeUnderlyingArrayForUtf8Span(SyntaxNode syntax, ArrayTypeSymbol byteArray, IReadOnlyList<byte> bytes, out int length)
         {
             Debug.Assert(byteArray.IsSZArray);
             Debug.Assert(byteArray.ElementType.SpecialType == SpecialType.System_Byte);
@@ -153,9 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return utf8Bytes;
         }
 
-        private BoundExpression VisitUTF8Addition(BoundBinaryOperator node)
+        private BoundExpression VisitUtf8Addition(BoundBinaryOperator node)
         {
-            Debug.Assert(node.OperatorKind is BinaryOperatorKind.UTF8Addition);
+            Debug.Assert(node.OperatorKind is BinaryOperatorKind.Utf8Addition);
 
             var bytesBuilder = ArrayBuilder<byte>.GetInstance();
             bool haveRepresentationError = false;
@@ -169,8 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (current)
                 {
-                    case BoundUTF8String literal:
-                        byte[]? bytes = GetUTF8ByteRepresentation(literal);
+                    case BoundUtf8String literal:
+                        byte[]? bytes = GetUtf8ByteRepresentation(literal);
 
                         if (bytes is null)
                         {
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case BoundBinaryOperator utf8Addition:
-                        Debug.Assert(utf8Addition.OperatorKind is BinaryOperatorKind.UTF8Addition);
+                        Debug.Assert(utf8Addition.OperatorKind is BinaryOperatorKind.Utf8Addition);
                         stack.Push(utf8Addition.Right);
                         stack.Push(utf8Addition.Left);
                         break;
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             stack.Free();
 
-            BoundExpression result = MakeUTF8Span(node, haveRepresentationError ? null : bytesBuilder);
+            BoundExpression result = MakeUtf8Span(node, haveRepresentationError ? null : bytesBuilder);
 
             bytesBuilder.Free();
             return result;

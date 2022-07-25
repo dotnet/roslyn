@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // On load focus the first tab target
             Loaded += (s, e) =>
             {
-                Focus();
-                MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+                IdentifierTextBox.Focus();
+                IdentifierTextBox.Select(_viewModel.StartingSelection.Start, _viewModel.StartingSelection.Length);
             };
 
             InitializeComponent();

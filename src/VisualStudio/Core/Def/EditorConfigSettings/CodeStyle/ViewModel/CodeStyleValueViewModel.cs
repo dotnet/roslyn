@@ -18,10 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
         {
             get
             {
-                if (_selectedValue is null)
-                {
-                    _selectedValue = _setting.GetCurrentValue();
-                }
+                _selectedValue ??= _setting.GetCurrentValue();
 
                 return _selectedValue;
             }

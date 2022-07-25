@@ -119,12 +119,12 @@
       </trans-unit>
       <trans-unit id="Nullable_directive_is_redundant">
         <source>Nullable directive is redundant</source>
-        <target state="new">Nullable directive is redundant</target>
+        <target state="translated">Diretiva que permite valor nulo é redundante</target>
         <note />
       </trans-unit>
       <trans-unit id="Nullable_directive_is_unnecessary">
         <source>Nullable directive is unnecessary</source>
-        <target state="new">Nullable directive is unnecessary</target>
+        <target state="translated">Diretiva que permite valor nulo é desnecessária</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="Remove_redundant_nullable_directive">
         <source>Remove redundant nullable directive</source>
-        <target state="new">Remove redundant nullable directive</target>
+        <target state="translated">Remover diretiva que permite valor nulo redundante</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_suppression_operators">
@@ -159,7 +159,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_nullable_directive">
         <source>Remove unnecessary nullable directive</source>
-        <target state="new">Remove unnecessary nullable directive</target>
+        <target state="translated">Remover diretiva anulável desnecessária</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
@@ -202,7 +202,7 @@
         <target state="translated">Código inacessível detectado</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_UTF8_string_literal">
+      <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
         <target state="translated">Usar literal de cadeia de caracteres UTF-8</target>
         <note />
@@ -225,6 +225,11 @@
       <trans-unit id="Use_block_body_for_indexers">
         <source>Use block body for indexers</source>
         <target state="translated">Usar o corpo do bloco para indexadores</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_lambda_expressions">
+        <source>Use block body for lambda expressions</source>
+        <target state="new">Use block body for lambda expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
@@ -275,6 +280,11 @@
       <trans-unit id="Use_expression_body_for_indexers">
         <source>Use expression body for indexers</source>
         <target state="translated">Usar o corpo da expressão para indexadores</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambda_expressions">
+        <source>Use expression body for lambda expressions</source>
+        <target state="new">Use expression body for lambda expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">

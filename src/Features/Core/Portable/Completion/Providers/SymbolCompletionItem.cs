@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal static partial class SymbolCompletionItem
+    internal static class SymbolCompletionItem
     {
         private const string InsertionTextProperty = "InsertionText";
 

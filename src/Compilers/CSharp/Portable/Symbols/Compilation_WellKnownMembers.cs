@@ -544,6 +544,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NativeIntegerAttribute, diagnostics, location, modifyCompilation);
         }
 
+        internal void EnsureLifetimeAnnotationAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.LifetimeAnnotationAttribute, diagnostics, location, modifyCompilation);
+        }
+
         internal bool CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes attribute, BindingDiagnosticBag? diagnosticsOpt, Location locationOpt)
         {
             switch (attribute)
@@ -601,6 +606,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
                         WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags);
+
+                case EmbeddableAttributes.LifetimeAnnotationAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_LifetimeAnnotationAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_LifetimeAnnotationAttribute__ctor);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attribute);

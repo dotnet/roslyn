@@ -17,7 +17,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
                 diagnosticId:=IDEDiagnosticIds.SimplifyObjectCreationDiagnosticId,
                 enforceOnBuild:=EnforceOnBuildValues.SimplifyObjectCreation,
                 [option]:=VisualBasicCodeStyleOptions.PreferSimplifiedObjectCreation,
-                language:=LanguageNames.VisualBasic,
                 title:=New LocalizableResourceString(NameOf(VisualBasicAnalyzersResources.Object_creation_can_be_simplified), VisualBasicAnalyzersResources.ResourceManager, GetType(VisualBasicAnalyzersResources)))
         End Sub
 

@@ -587,7 +587,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Could_not_find_implementation_of_symbol_0">
         <source>Could not find implementation of symbol '{0}'</source>
-        <target state="new">Could not find implementation of symbol '{0}'</target>
+        <target state="translated">'{0}' 기호의 구현을 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
@@ -737,7 +737,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Fixing_0">
         <source>Fixing '{0}'</source>
-        <target state="new">Fixing '{0}'</target>
+        <target state="translated">'{0}' 수정 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -958,6 +958,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
         <target state="translated">'{0}'을(를) 인라인으로 지정 및 유지</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_an_if_statement">
+        <source>Insert an 'if' statement</source>
+        <target state="new">Insert an 'if' statement</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -1313,6 +1318,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
         <target state="translated">기본 형식까지 멤버를 풀...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_selected_members_up">
+        <source>Pull selected members up</source>
+        <target state="new">Pull selected members up</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_selected_members_up_to_0">
+        <source>Pull selected members up to {0}</source>
+        <target state="new">Pull selected members up to {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -2522,8 +2537,13 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Replace_conditional_expression_with_statements">
         <source>Replace conditional expression with statements</source>
-        <target state="new">Replace conditional expression with statements</target>
+        <target state="translated">조건식을 명령문으로 바꾸기</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Required">
+        <source>required</source>
+        <target state="new">required</target>
+        <note>Used in the object initializer completion.</note>
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
         <source>Resolve conflict markers</source>
@@ -2628,6 +2648,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="The_assembly_0_containing_type_1_references_NET_Framework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">'{1}' 형식을 포함하는 '{0}' 어셈블리가 지원되지 않는 .NET Framework를 참조합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="new">The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2875,16 +2900,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">{0}의 분산을 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_lambda_expressions">
-        <source>Use block body for lambda expressions</source>
-        <target state="translated">람다 식에 블록 본문 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_lambda_expressions">
-        <source>Use expression body for lambda expressions</source>
-        <target state="translated">람다 식에 식 본문 사용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
         <target state="translated">값:</target>
@@ -2968,6 +2983,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
         <target state="translated">래핑</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Write_to_the_console">
+        <source>Write to the console</source>
+        <target state="new">Write to the console</target>
         <note />
       </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">

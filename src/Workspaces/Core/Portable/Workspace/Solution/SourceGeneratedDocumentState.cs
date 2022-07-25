@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
             SourceText generatedSourceText,
             ParseOptions parseOptions,
             HostLanguageServices languageServices,
-            SolutionServices solutionServices)
+            HostWorkspaceServices solutionServices)
         {
             var textAndVersion = TextAndVersion.Create(generatedSourceText, VersionStamp.Create());
             var textSource = new ConstantValueSource<TextAndVersion>(textAndVersion);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis
         private SourceGeneratedDocumentState(
             SourceGeneratedDocumentIdentity documentIdentity,
             HostLanguageServices languageServices,
-            SolutionServices solutionServices,
+            HostWorkspaceServices solutionServices,
             IDocumentServiceProvider? documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             ParseOptions options,

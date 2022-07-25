@@ -278,6 +278,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(Locations[0], useSiteInfo);
         }
 
+        protected void CheckFileTypeUsage(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
+        {
+            if (ContainingType.HasFileLocalTypes())
+            {
+                return;
+            }
+
+            if (returnType.Type.HasFileLocalTypes())
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Locations[0], returnType.Type, ContainingType);
+            }
+
+            foreach (var param in parameters)
+            {
+                if (param.Type.HasFileLocalTypes())
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Locations[0], param.Type, ContainingType);
+                }
+            }
+        }
+
         protected void MakeFlags(
             MethodKind methodKind,
             DeclarationModifiers declarationModifiers,

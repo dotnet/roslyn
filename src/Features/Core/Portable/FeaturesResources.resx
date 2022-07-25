@@ -1151,12 +1151,6 @@ This version used in: {2}</value>
   <data name="Add_member_name" xml:space="preserve">
     <value>Add member name</value>
   </data>
-  <data name="Use_block_body_for_lambda_expressions" xml:space="preserve">
-    <value>Use block body for lambda expressions</value>
-  </data>
-  <data name="Use_expression_body_for_lambda_expressions" xml:space="preserve">
-    <value>Use expression body for lambda expressions</value>
-  </data>
   <data name="Convert_to_linq_call_form" xml:space="preserve">
     <value>Convert to LINQ (call form)</value>
   </data>
@@ -2729,6 +2723,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="The_assembly_0_containing_type_1_references_NET_Framework" xml:space="preserve">
     <value>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</value>
   </data>
+  <data name="The_assembly_0_references_compiler_version_1_newer_than_2" xml:space="preserve">
+    <value>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
+  </data>
   <data name="Apply_file_header_preferences" xml:space="preserve">
     <value>Apply file header preferences</value>
   </data>
@@ -2868,6 +2865,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Silent" xml:space="preserve">
     <value>Silent</value>
+  </data>
+  <data name="Write_to_the_console" xml:space="preserve">
+    <value>Write to the console</value>
   </data>
   <data name="embedded" xml:space="preserve">
     <value>embedded</value>
@@ -3132,6 +3132,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Sort_Imports_or_usings" xml:space="preserve">
     <value>Sort Imports or usings</value>
   </data>
+  <data name="Insert_an_if_statement" xml:space="preserve">
+    <value>Insert an 'if' statement</value>
+  </data>
   <data name="Directives_from_0" xml:space="preserve">
     <value>Directives from '{0}'</value>
   </data>
@@ -3146,5 +3149,15 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Fixing_0" xml:space="preserve">
     <value>Fixing '{0}'</value>
+  </data>
+  <data name="Pull_selected_members_up_to_0" xml:space="preserve">
+    <value>Pull selected members up to {0}</value>
+  </data>
+  <data name="Pull_selected_members_up" xml:space="preserve">
+    <value>Pull selected members up</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>required</value>
+    <comment>Used in the object initializer completion.</comment>
   </data>
 </root>

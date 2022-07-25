@@ -836,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case LookupResultKind.OverloadResolutionFailure when operatorToken.Kind() is SyntaxKind.PlusToken && isReadOnlySpanOfByte(left.Type) && isReadOnlySpanOfByte(right.Type):
-                    errorCode = ErrorCode.ERR_BadBinaryReadOnlySpanConcatenation; // Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF8 byte representations
+                    errorCode = ErrorCode.ERR_BadBinaryReadOnlySpanConcatenation; // Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations
                     break;
 
                 default:
@@ -3187,7 +3187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 bool hasErrors = node.Right.HasErrors;
-                var convertedExpression = BindExpressionForPattern(operand.Type, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression);
+                var convertedExpression = BindExpressionForPattern(operand.Type, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression, out _);
                 if (wasExpression)
                 {
                     hasErrors |= constantValueOpt is null;

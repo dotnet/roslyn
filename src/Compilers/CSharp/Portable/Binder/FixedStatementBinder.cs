@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (VariableDeclaratorSyntax declarator in _syntax.Declaration.Variables)
                 {
-                    locals.Add(MakeLocal(_syntax.Declaration, declarator, LocalDeclarationKind.FixedVariable));
+                    locals.Add(MakeLocal(_syntax.Declaration, declarator, LocalDeclarationKind.FixedVariable, hasScopedModifier: false));
 
                     // also gather expression-declared variables from the bracketed argument lists and the initializers
                     ExpressionVariableFinder.FindExpressionVariables(this, locals, declarator);

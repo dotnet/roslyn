@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int StringLiteralToken => (int)SyntaxKind.StringLiteralToken;
         public int? SingleLineRawStringLiteralToken => (int)SyntaxKind.SingleLineRawStringLiteralToken;
         public int? MultiLineRawStringLiteralToken => (int)SyntaxKind.MultiLineRawStringLiteralToken;
-        public int? UTF8StringLiteralToken => (int)SyntaxKind.UTF8StringLiteralToken;
-        public int? UTF8SingleLineRawStringLiteralToken => (int)SyntaxKind.UTF8SingleLineRawStringLiteralToken;
-        public int? UTF8MultiLineRawStringLiteralToken => (int)SyntaxKind.UTF8MultiLineRawStringLiteralToken;
+        public int? Utf8StringLiteralToken => (int)SyntaxKind.Utf8StringLiteralToken;
+        public int? Utf8SingleLineRawStringLiteralToken => (int)SyntaxKind.Utf8SingleLineRawStringLiteralToken;
+        public int? Utf8MultiLineRawStringLiteralToken => (int)SyntaxKind.Utf8MultiLineRawStringLiteralToken;
 
         public int XmlTextLiteralToken => (int)SyntaxKind.XmlTextLiteralToken;
 
@@ -100,6 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public int ExpressionStatement => (int)SyntaxKind.ExpressionStatement;
         public int ForEachStatement => (int)SyntaxKind.ForEachStatement;
+        public int IfStatement => (int)SyntaxKind.IfStatement;
         public int LocalDeclarationStatement => (int)SyntaxKind.LocalDeclarationStatement;
         public int? LocalFunctionStatement => (int)SyntaxKind.LocalFunctionStatement;
         public int LockStatement => (int)SyntaxKind.LockStatement;

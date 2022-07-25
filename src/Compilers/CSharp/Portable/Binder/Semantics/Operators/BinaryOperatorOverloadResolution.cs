@@ -732,10 +732,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GetPointerOperators(kind, left, right, operators);
 
                 if (kind.Operator() is BinaryOperatorKind.Addition &&
-                    isUTF8ByteRepresentation(left) &&
-                    isUTF8ByteRepresentation(right))
+                    isUtf8ByteRepresentation(left) &&
+                    isUtf8ByteRepresentation(right))
                 {
-                    this.Compilation.builtInOperators.GetUTF8ConcatenationBuiltInOperator(left.Type, operators);
+                    this.Compilation.builtInOperators.GetUtf8ConcatenationBuiltInOperator(left.Type, operators);
                 }
             }
 
@@ -751,9 +751,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ((object)right.Type == null || (!right.Type.IsDelegateType() && right.Type.SpecialType != SpecialType.System_String && right.Type.SpecialType != SpecialType.System_Delegate));
             }
 
-            static bool isUTF8ByteRepresentation(BoundExpression value)
+            static bool isUtf8ByteRepresentation(BoundExpression value)
             {
-                return value is BoundUTF8String or BoundBinaryOperator { OperatorKind: BinaryOperatorKind.UTF8Addition };
+                return value is BoundUtf8String or BoundBinaryOperator { OperatorKind: BinaryOperatorKind.Utf8Addition };
             }
         }
 

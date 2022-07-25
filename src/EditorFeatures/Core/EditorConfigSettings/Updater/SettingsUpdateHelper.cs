@@ -87,7 +87,26 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                     optionValue = $"{optionValue}:{severity}";
                 }
 
-                var language = option.IsPerLanguage ? Language.CSharp | Language.VisualBasic : Language.CSharp;
+                Language language;
+                if (option is ISingleValuedOption singleValuedOption)
+                {
+                    language = singleValuedOption.LanguageName switch
+                    {
+                        LanguageNames.CSharp => Language.CSharp,
+                        LanguageNames.VisualBasic => Language.VisualBasic,
+                        null => Language.CSharp | Language.VisualBasic,
+                        _ => throw ExceptionUtilities.UnexpectedValue(singleValuedOption.LanguageName),
+                    };
+                }
+                else if (option is IPerLanguageValuedOption perLanguageValuedOption)
+                {
+                    language = Language.CSharp | Language.VisualBasic;
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(option);
+                }
+
                 return (true, optionName, optionValue, language);
             }
         }

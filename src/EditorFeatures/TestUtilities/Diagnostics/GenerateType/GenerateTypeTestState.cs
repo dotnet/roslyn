@@ -80,10 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
 
         public void Dispose()
         {
-            if (Workspace != null)
-            {
-                Workspace.Dispose();
-            }
+            Workspace?.Dispose();
         }
     }
 }

@@ -59,6 +59,40 @@ class C
         }
 
         [Fact]
+        public void Method_Rename_Leaf1()
+        {
+            var src1 = @"
+class C
+{
+    static void Goo(int a)
+    {
+        <AS:0>Console.WriteLine(a);</AS:0>
+    }
+}";
+            var src2 = @"
+class C
+{
+    static void Boo(int a)
+    {
+        <AS:0>Console.WriteLine(a);</AS:0>
+    }
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { edits },
+                new[]
+                {
+                    DocumentResults(
+                        active,
+                        diagnostics: new[] {Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "static void Boo(int a)", FeaturesResources.method) })
+                });
+        }
+
+        [Fact]
         public void Method_Body_Delete1()
         {
             var src1 = "class C { int M() { <AS:0>return 1;</AS:0> } }";
@@ -608,8 +642,13 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "int P", DeletedSymbolDisplay(CSharpFeaturesResources.property_setter, "P.set")));
+            edits.VerifySemantics(
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -689,8 +728,13 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "int this[int a]", DeletedSymbolDisplay(CSharpFeaturesResources.indexer_setter, "this[int a].set")));
+            edits.VerifySemantics(
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]

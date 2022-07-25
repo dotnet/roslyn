@@ -760,12 +760,12 @@ class A
         {
             var textUndoHistoryRegistry = exportProvider.GetExportedValue<ITextUndoHistoryRegistry>();
             var editorOperationsFactory = exportProvider.GetExportedValue<IEditorOperationsFactoryService>();
-            var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
-            var commandHandler = new CommentUncommentSelectionCommandHandler(textUndoHistoryRegistry, editorOperationsFactory, globalOptions);
+            var editorOptionsService = exportProvider.GetExportedValue<EditorOptionsService>();
+            var commandHandler = new CommentUncommentSelectionCommandHandler(textUndoHistoryRegistry, editorOperationsFactory, editorOptionsService);
             var service = new MockCommentSelectionService(supportBlockComments);
 
-            var edits = commandHandler.CollectEditsAsync(
-                null, service, textView.TextBuffer, textView.Selection.GetSnapshotSpansOnBuffer(textView.TextBuffer), operation, CancellationToken.None).GetAwaiter().GetResult();
+            var edits = commandHandler.CollectEdits(
+                null, service, textView.TextBuffer, textView.Selection.GetSnapshotSpansOnBuffer(textView.TextBuffer), operation, CancellationToken.None);
 
             AssertEx.SetEqual(expectedChanges, edits.TextChanges);
 

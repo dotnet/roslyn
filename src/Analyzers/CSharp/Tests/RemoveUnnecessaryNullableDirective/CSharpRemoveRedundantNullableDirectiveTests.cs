@@ -189,6 +189,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 """);
         }
 
+        [Fact]
+        public async Task TestRedundantDirectiveWithNamespaceAndDerivedType()
+        {
+            await VerifyCodeFixAsync(
+                NullableContextOptions.Enable,
+                """
+                [|#nullable enable|]
+
+                using System;
+
+                namespace X.Y
+                {
+                    class ProgramException : Exception
+                    {
+                    }
+                }
+                """,
+                """
+
+                using System;
+
+                namespace X.Y
+                {
+                    class ProgramException : Exception
+                    {
+                    }
+                }
+                """);
+        }
+
         private static string GetDisableDirectiveContext(NullableContextOptions options)
         {
             return options switch

@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 
             SyntaxTokenKinds.AddIfNotNull(syntaxKinds.SingleLineRawStringLiteralToken);
             SyntaxTokenKinds.AddIfNotNull(syntaxKinds.MultiLineRawStringLiteralToken);
-            SyntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8StringLiteralToken);
-            SyntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8SingleLineRawStringLiteralToken);
-            SyntaxTokenKinds.AddIfNotNull(syntaxKinds.UTF8MultiLineRawStringLiteralToken);
+            SyntaxTokenKinds.AddIfNotNull(syntaxKinds.Utf8StringLiteralToken);
+            SyntaxTokenKinds.AddIfNotNull(syntaxKinds.Utf8SingleLineRawStringLiteralToken);
+            SyntaxTokenKinds.AddIfNotNull(syntaxKinds.Utf8MultiLineRawStringLiteralToken);
         }
 
         protected ImmutableArray<Lazy<TService, EmbeddedLanguageMetadata>> GetServices(

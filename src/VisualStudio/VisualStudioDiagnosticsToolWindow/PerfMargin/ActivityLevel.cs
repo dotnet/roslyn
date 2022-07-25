@@ -56,10 +56,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
                 ActivityLevelChanged();
             }
 
-            if (_parent != null)
-            {
-                _parent.Start();
-            }
+            _parent?.Start();
         }
 
         public void Stop()
@@ -70,10 +67,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
                 ActivityLevelChanged();
             }
 
-            if (_parent != null)
-            {
-                _parent.Stop();
-            }
+            _parent?.Stop();
         }
 
         internal void SortChildren()

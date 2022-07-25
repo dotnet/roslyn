@@ -389,6 +389,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
+            if (this.RefKind == RefKind.RefReadOnly)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+            }
+
             var compilation = this.DeclaringCompilation;
             var type = this.TypeWithAnnotations;
 

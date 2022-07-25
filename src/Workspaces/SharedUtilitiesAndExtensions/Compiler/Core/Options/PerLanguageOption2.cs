@@ -8,16 +8,15 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
-    /// Marker interface for <see cref="PerLanguageOption2{T}"/>
+    /// Marker interface for <see cref="PerLanguageOption2{T}"/>.
+    /// This option may apply to multiple languages, such that the option can have a different value for each language.
     /// </summary>
-    internal interface IPerLanguageOption : IOptionWithGroup
+    internal interface IPerLanguageValuedOption : IOptionWithGroup
     {
     }
 
-    /// <summary>
-    /// Marker interface for <see cref="PerLanguageOption2{T}"/>
-    /// </summary>
-    internal interface IPerLanguageOption<T> : IPerLanguageOption
+    /// <inheritdoc cref="IPerLanguageValuedOption"/>
+    internal interface IPerLanguageValuedOption<T> : IPerLanguageValuedOption
     {
     }
 
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// An option that can be specified once per language.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal partial class PerLanguageOption2<T> : IPerLanguageOption<T>
+    internal partial class PerLanguageOption2<T> : IPerLanguageValuedOption<T>
     {
         public OptionDefinition OptionDefinition { get; }
 
@@ -78,26 +77,26 @@ namespace Microsoft.CodeAnalysis.Options
         {
         }
 
-        internal PerLanguageOption2(string feature, OptionGroup group, string name, T defaultValue)
+        public PerLanguageOption2(string feature, OptionGroup group, string name, T defaultValue)
             : this(feature, group, name, defaultValue, ImmutableArray<OptionStorageLocation2>.Empty)
         {
         }
 
-        internal PerLanguageOption2(
+        public PerLanguageOption2(
             string feature, OptionGroup group, string name, T defaultValue,
             OptionStorageLocation2 storageLocation)
             : this(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation))
         {
         }
 
-        internal PerLanguageOption2(
+        public PerLanguageOption2(
             string feature, OptionGroup group, string name, T defaultValue,
             OptionStorageLocation2 storageLocation1, OptionStorageLocation2 storageLocation2)
             : this(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation1, storageLocation2))
         {
         }
 
-        internal PerLanguageOption2(
+        public PerLanguageOption2(
             string feature, OptionGroup group, string name, T defaultValue,
             ImmutableArray<OptionStorageLocation2> storageLocations)
         {
@@ -111,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Options
                 throw new ArgumentException(nameof(name));
             }
 
-            OptionDefinition = new OptionDefinition(feature, group, name, defaultValue, typeof(T), isPerLanguage: true);
+            OptionDefinition = new OptionDefinition(feature, group, name, defaultValue, typeof(T));
             this.StorageLocations = storageLocations;
         }
 

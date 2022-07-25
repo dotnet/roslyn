@@ -174,8 +174,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             RoslynDebug.AssertNotNull(previousGeneration.Compilation);
             RoslynDebug.AssertNotNull(previousGeneration.PEModuleBuilder);
+            RoslynDebug.AssertNotNull(moduleBeingBuilt.EncSymbolChanges);
 
             var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
+            var currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMethods();
 
             // Mapping from previous compilation to the current.
             var anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap();
@@ -193,9 +195,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 sourceContext,
                 compilation.SourceAssembly,
                 otherContext,
-                currentSynthesizedMembers);
+                currentSynthesizedMembers,
+                currentDeletedMembers);
 
-            var mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers);
+            var mappedSynthesizedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers, isDeletedMemberMapping: false);
+
+            // Deleted members are mapped the same way as synthesized members, so we can just call the same method.
+            var mappedDeletedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.DeletedMembers, currentDeletedMembers, isDeletedMemberMapping: true);
 
             // TODO: can we reuse some data from the previous matcher?
             var matcherWithAllSynthesizedMembers = new CSharpSymbolMatcher(
@@ -206,13 +212,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 sourceContext,
                 compilation.SourceAssembly,
                 otherContext,
-                mappedSynthesizedMembers);
+                mappedSynthesizedMembers,
+                mappedDeletedMembers);
 
             return matcherWithAllSynthesizedMembers.MapBaselineToCompilation(
                 previousGeneration,
                 compilation,
                 moduleBeingBuilt,
-                mappedSynthesizedMembers);
+                mappedSynthesizedMembers,
+                mappedDeletedMembers);
         }
     }
 }
