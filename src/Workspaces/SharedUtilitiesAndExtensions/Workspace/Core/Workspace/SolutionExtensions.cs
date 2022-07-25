@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         }
 #else
         public static HostWorkspaceServices GetServices(this Solution solution)
-            => solution.Services
+            => solution.Services;
 #endif
     }
 }
