@@ -3187,7 +3187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 bool hasErrors = node.Right.HasErrors;
-                var convertedExpression = BindExpressionForPattern(operand.Type, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression);
+                var convertedExpression = BindExpressionForPattern(operand.Type, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression, out _);
                 if (wasExpression)
                 {
                     hasErrors |= constantValueOpt is null;
