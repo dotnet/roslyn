@@ -39,19 +39,37 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <param name="position">The character position within the document.</param>
         /// <param name="workspace">A workspace to provide context.</param>
         /// <param name="cancellationToken">A CancellationToken.</param>
-        public static async Task<ISymbol> FindSymbolAtPositionAsync(
+        public static Task<ISymbol> FindSymbolAtPositionAsync(
             SemanticModel semanticModel,
             int position,
             Workspace workspace,
             CancellationToken cancellationToken = default)
         {
-            if (semanticModel is null)
-                throw new ArgumentNullException(nameof(semanticModel));
             if (workspace is null)
                 throw new ArgumentNullException(nameof(workspace));
 
+            return FindSymbolAtPositionAsync(semanticModel, position, workspace.Services, cancellationToken);
+        }
+
+        /// <summary>
+        /// Finds the symbol that is associated with a position in the text of a document.
+        /// </summary>
+        /// <param name="semanticModel">The semantic model associated with the document.</param>
+        /// <param name="position">The character position within the document.</param>
+        /// <param name="cancellationToken">A CancellationToken.</param>
+        internal static async Task<ISymbol> FindSymbolAtPositionAsync(
+            SemanticModel semanticModel,
+            int position,
+            HostWorkspaceServices services,
+            CancellationToken cancellationToken = default)
+        {
+            if (semanticModel is null)
+                throw new ArgumentNullException(nameof(semanticModel));
+            if (services is null)
+                throw new ArgumentNullException(nameof(services));
+
             var semanticInfo = await GetSemanticInfoAtPositionAsync(
-                semanticModel, position, workspace.Services, cancellationToken: cancellationToken).ConfigureAwait(false);
+                semanticModel, position, services, cancellationToken: cancellationToken).ConfigureAwait(false);
             return semanticInfo.GetAnySymbol(includeType: false);
         }
 
@@ -93,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(document));
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return await FindSymbolAtPositionAsync(semanticModel, position, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
+            return await FindSymbolAtPositionAsync(semanticModel, position, document.Project.Solution.Services, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

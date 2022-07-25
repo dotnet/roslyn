@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return Expand(node, semanticModel, document.Project.Solution.Workspace, expandInsideNode, expandParameter, cancellationToken);
+            return Expand(node, semanticModel, document.Project.Solution.Services, expandInsideNode, expandParameter, cancellationToken);
         }
 
         /// <summary>
@@ -80,22 +80,27 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// </summary>
         public static TNode Expand<TNode>(TNode node, SemanticModel semanticModel, Workspace workspace, Func<SyntaxNode, bool>? expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default) where TNode : SyntaxNode
         {
+            if (workspace == null)
+                throw new ArgumentNullException(nameof(workspace));
+
+            return Expand(node, semanticModel, workspace.Services, expandInsideNode, expandParameter, cancellationToken);
+        }
+
+        /// <summary>
+        /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
+        /// </summary>
+        internal static TNode Expand<TNode>(TNode node, SemanticModel semanticModel, HostWorkspaceServices services, Func<SyntaxNode, bool>? expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default) where TNode : SyntaxNode
+        {
             if (node == null)
-            {
                 throw new ArgumentNullException(nameof(node));
-            }
 
             if (semanticModel == null)
-            {
                 throw new ArgumentNullException(nameof(semanticModel));
-            }
 
-            if (workspace == null)
-            {
-                throw new ArgumentNullException(nameof(workspace));
-            }
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
 
-            var result = workspace.Services.GetLanguageServices(node.Language).GetRequiredService<ISimplificationService>()
+            var result = services.GetLanguageServices(node.Language).GetRequiredService<ISimplificationService>()
                 .Expand(node, semanticModel, annotationForReplacedAliasIdentifier: null, expandInsideNode: expandInsideNode, expandParameter: expandParameter, cancellationToken: cancellationToken);
 
             return (TNode)result;
@@ -112,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return Expand(token, semanticModel, document.Project.Solution.Workspace, expandInsideNode, cancellationToken);
+            return Expand(token, semanticModel, document.Project.Solution.Services, expandInsideNode, cancellationToken);
         }
 
         /// <summary>
@@ -120,17 +125,24 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// </summary>
         public static SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, Workspace workspace, Func<SyntaxNode, bool>? expandInsideNode = null, CancellationToken cancellationToken = default)
         {
-            if (semanticModel == null)
-            {
-                throw new ArgumentNullException(nameof(semanticModel));
-            }
-
             if (workspace == null)
-            {
                 throw new ArgumentNullException(nameof(workspace));
-            }
 
-            return workspace.Services.GetLanguageServices(token.Language).GetRequiredService<ISimplificationService>()
+            return Expand(token, semanticModel, workspace.Services, expandInsideNode, cancellationToken);
+        }
+
+            /// <summary>
+            /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
+            /// </summary>
+        internal static SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, HostWorkspaceServices services, Func<SyntaxNode, bool>? expandInsideNode = null, CancellationToken cancellationToken = default)
+        {
+            if (semanticModel == null)
+                throw new ArgumentNullException(nameof(semanticModel));
+
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+
+            return services.GetLanguageServices(token.Language).GetRequiredService<ISimplificationService>()
                 .Expand(token, semanticModel, expandInsideNode, cancellationToken);
         }
 
