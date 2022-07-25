@@ -417,11 +417,7 @@ language: LanguageNames.CSharp);
         public class WorkspaceWithPartialSemantics : Workspace
         {
             public WorkspaceWithPartialSemantics(Solution solution)
-<<<<<<< Updated upstream
                 : base(solution.Workspace.Services.HostServices, solution.Workspace.Kind)
-=======
-                : base(solution.Services.HostServices, solution.WorkspaceKind)
->>>>>>> Stashed changes
             {
                 this.SetCurrentSolution(solution);
             }
