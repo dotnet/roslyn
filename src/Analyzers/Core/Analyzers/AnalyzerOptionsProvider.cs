@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -96,10 +97,16 @@ internal readonly struct AnalyzerOptionsProvider
     public string FileHeaderTemplate => GetOption(CodeStyleOptions2.FileHeaderTemplate, defaultValue: string.Empty); // no fallback IDE option
 
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
-        => _options.GetEditorConfigOption(option, defaultValue);
+    {
+        Debug.Assert(option.DefaultValue == defaultValue);
+        return _options.GetEditorConfigOption(option, defaultValue);
+    }
 
     private TValue GetOption<TValue>(PerLanguageOption2<TValue> option, TValue defaultValue)
-        => _options.GetEditorConfigOption(option, defaultValue);
+    {
+        Debug.Assert(option.DefaultValue == defaultValue);
+        return _options.GetEditorConfigOption(option, defaultValue);
+    }
 
     private IdeCodeStyleOptions.CommonOptions FallbackCodeStyleOptions
         => _fallbackOptions.CodeStyleOptions?.Common ?? IdeCodeStyleOptions.CommonOptions.Default;
