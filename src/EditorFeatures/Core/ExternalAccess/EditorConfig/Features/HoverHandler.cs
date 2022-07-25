@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                 return null;
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             return new Hover
             {
                 Contents = new MarkupContent
                 {
                     Kind = MarkupKind.Markdown,
-                    Value = "Hover works! " + position,
+                    Value = "Hover works!",
                 },
             };
         }
