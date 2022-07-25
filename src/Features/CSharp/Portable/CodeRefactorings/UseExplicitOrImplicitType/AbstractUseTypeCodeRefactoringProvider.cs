@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
         private async Task<Document> UpdateDocumentAsync(Document document, TypeSyntax type, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
             await HandleDeclarationAsync(document, editor, type, cancellationToken).ConfigureAwait(false);
 
