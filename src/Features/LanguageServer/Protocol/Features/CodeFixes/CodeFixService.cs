@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
-            if (document.Project.Solution.Workspace.Kind != WorkspaceKind.Interactive && includeSuppressionFixes)
+            if (document.Project.Solution.WorkspaceKind != WorkspaceKind.Interactive && includeSuppressionFixes)
             {
                 // Ensure that we do not register duplicate configuration fixes.
                 using var _2 = PooledHashSet<string>.GetInstance(out var registeredConfigurationFixTitles);
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 yield break;
 
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
-            var isInteractive = document.Project.Solution.Workspace.Kind == WorkspaceKind.Interactive;
+            var isInteractive = document.Project.Solution.WorkspaceKind == WorkspaceKind.Interactive;
 
             // gather CodeFixProviders for all distinct diagnostics found for current span
             using var _1 = PooledDictionary<CodeFixProvider, List<(TextSpan range, List<DiagnosticData> diagnostics)>>.GetInstance(out var fixerToRangesAndDiagnostics);
@@ -883,7 +883,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>> GetProjectFixers(Project project)
         {
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
-            return project.Solution.Workspace.Kind == WorkspaceKind.Interactive
+            return project.Solution.WorkspaceKind == WorkspaceKind.Interactive
                 ? ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>.Empty
                 : _projectFixersMap.GetValue(project.AnalyzerReferences, _ => ComputeProjectFixers(project));
         }

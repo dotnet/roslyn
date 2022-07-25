@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            : this(new SolutionState(workspace.PrimaryBranchId, workspace.Services, solutionAttributes, options, analyzerReferences))
+            : this(new SolutionState(workspace.PrimaryBranchId, workspace.Kind, workspace.Services, solutionAttributes, options, analyzerReferences))
         {
         }
 
@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis
         internal int WorkspaceVersion => _state.WorkspaceVersion;
 
         public HostWorkspaceServices Services => _state.Services;
+
+        internal string? WorkspaceKind => _state.WorkspaceKind;
 
         internal BranchId BranchId => _state.BranchId;
 
