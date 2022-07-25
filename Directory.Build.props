@@ -31,7 +31,7 @@
     <IncludeSymbols Condition=" '$(DebugType)' != 'embedded' ">true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
 
-    <MicroBuildVersion>2.0.68</MicroBuildVersion>
+    <MicroBuildVersion>2.0.72</MicroBuildVersion>
   </PropertyGroup>
 
   <ItemGroup>
