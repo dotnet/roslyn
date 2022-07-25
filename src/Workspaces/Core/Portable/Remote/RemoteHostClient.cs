@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return SpecializedTasks.Null<RemoteHostClient>();
             }
 
-            return TryGetClientAsync(project.Solution.Workspace, cancellationToken);
+            return TryGetClientAsync(project.Solution.Services, cancellationToken);
         }
 
         public static Task<RemoteHostClient?> TryGetClientAsync(Workspace workspace, CancellationToken cancellationToken)
