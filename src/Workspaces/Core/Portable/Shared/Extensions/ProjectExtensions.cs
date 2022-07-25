@@ -45,6 +45,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return document;
         }
 
+        public static TextDocument GetRequiredAdditionalDocument(this Project project, DocumentId documentId)
+            => project.GetAdditionalDocument(documentId) ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+
+        public static TextDocument GetRequiredAnalyzerConfigDocument(this Project project, DocumentId documentId)
+            => project.GetAnalyzerConfigDocument(documentId) ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+
         public static TextDocument GetRequiredTextDocument(this Project project, DocumentId documentId)
         {
             var document = project.GetTextDocument(documentId);

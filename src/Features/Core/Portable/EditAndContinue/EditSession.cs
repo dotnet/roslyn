@@ -263,6 +263,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public static async ValueTask<bool> HasChangesAsync(Solution oldSolution, Solution newSolution, string sourceFilePath, CancellationToken cancellationToken)
         {
+            // Note that this path look up does not work for source-generated files:
             var newDocumentIds = newSolution.GetDocumentIdsWithFilePath(sourceFilePath);
             if (newDocumentIds.IsEmpty)
             {
@@ -272,14 +273,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // it suffices to check the content of one of the document if there are multiple linked ones:
             var documentId = newDocumentIds.First();
-            var oldDocument = oldSolution.GetDocument(documentId);
+            var oldDocument = oldSolution.GetTextDocument(documentId);
             if (oldDocument == null)
             {
                 // file has been added
                 return true;
             }
 
-            var newDocument = newSolution.GetRequiredDocument(documentId);
+            var newDocument = newSolution.GetRequiredTextDocument(documentId);
             return oldDocument != newDocument && !await ContentEqualsAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
         }
 
@@ -309,7 +310,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return false;
         }
 
-        private static async ValueTask<bool> ContentEqualsAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        private static async ValueTask<bool> ContentEqualsAsync(TextDocument oldDocument, TextDocument newDocument, CancellationToken cancellationToken)
         {
             // Check if the currently observed document content has changed compared to the base document content.
             // This is an important optimization that aims to avoid IO while stepping in sources that have not changed.
@@ -325,7 +326,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return oldSource.ContentEquals(newSource);
         }
 
-        private static async ValueTask<bool> HasChangedOrAddedDocumentsAsync(Project oldProject, Project newProject, ArrayBuilder<Document>? changedOrAddedDocuments, CancellationToken cancellationToken)
+        internal static async ValueTask<bool> HasChangedOrAddedDocumentsAsync(Project oldProject, Project newProject, ArrayBuilder<Document>? changedOrAddedDocuments, CancellationToken cancellationToken)
         {
             if (!newProject.SupportsEditAndContinue())
             {
@@ -374,34 +375,48 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 changedOrAddedDocuments.Add(document);
             }
 
-            // Any changes in non-generated documents might affect source generated documents as well,
+            // Any changes in non-generated document content might affect source generated documents as well,
             // no need to check further in that case.
-            return changedOrAddedDocuments is { Count: > 0 } ||
-                   HasChangesThatMayAffectSourceGenerators(oldProject.State, newProject.State);
+
+            if (changedOrAddedDocuments is { Count: > 0 })
+            {
+                return true;
+            }
+
+            foreach (var documentId in newProject.State.AdditionalDocumentStates.GetChangedStateIds(oldProject.State.AdditionalDocumentStates, ignoreUnchangedContent: true))
+            {
+                var document = newProject.GetRequiredAdditionalDocument(documentId);
+                if (!await ContentEqualsAsync(oldProject.GetRequiredAdditionalDocument(documentId), document, cancellationToken).ConfigureAwait(false))
+                {
+                    return true;
+                }
+            }
+
+            foreach (var documentId in newProject.State.AnalyzerConfigDocumentStates.GetChangedStateIds(oldProject.State.AnalyzerConfigDocumentStates, ignoreUnchangedContent: true))
+            {
+                var document = newProject.GetRequiredAnalyzerConfigDocument(documentId);
+                if (!await ContentEqualsAsync(oldProject.GetRequiredAnalyzerConfigDocument(documentId), document, cancellationToken).ConfigureAwait(false))
+                {
+                    return true;
+                }
+            }
+
+            // TODO: should handle removed documents above (detect them as edits) https://github.com/dotnet/roslyn/issues/62848
+            if (newProject.State.DocumentStates.GetRemovedStateIds(oldProject.State.DocumentStates).Any() ||
+                newProject.State.AdditionalDocumentStates.GetRemovedStateIds(oldProject.State.AdditionalDocumentStates).Any() ||
+                newProject.State.AdditionalDocumentStates.GetAddedStateIds(oldProject.State.AdditionalDocumentStates).Any() ||
+                newProject.State.AnalyzerConfigDocumentStates.GetRemovedStateIds(oldProject.State.AnalyzerConfigDocumentStates).Any() ||
+                newProject.State.AnalyzerConfigDocumentStates.GetAddedStateIds(oldProject.State.AnalyzerConfigDocumentStates).Any())
+            {
+                return true;
+            }
+
+            return false;
         }
 
-        private static async Task PopulateChangedAndAddedDocumentsAsync(CommittedSolution oldSolution, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, CancellationToken cancellationToken)
+        internal static async Task PopulateChangedAndAddedDocumentsAsync(Project oldProject, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, CancellationToken cancellationToken)
         {
             changedOrAddedDocuments.Clear();
-
-            var oldProject = oldSolution.GetProject(newProject.Id);
-            if (oldProject == null)
-            {
-                EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not loaded", newProject.Id.DebugName, newProject.Id);
-
-                // TODO (https://github.com/dotnet/roslyn/issues/1204):
-                //
-                // When debugging session is started some projects might not have been loaded to the workspace yet (may be explicitly unloaded by the user).
-                // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
-                // and will result in source mismatch when the user steps into them.
-                //
-                // We can allow project to be added by including all its documents here.
-                // When we analyze these documents later on we'll check if they match the PDB.
-                // If so we can add them to the committed solution and detect further changes.
-                // It might be more efficient though to track added projects separately.
-
-                return;
-            }
 
             if (!await HasChangedOrAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false))
             {
@@ -439,6 +454,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        /// <summary>
+        /// Enumerates <see cref="DocumentId"/>s of changed (not added or removed) <see cref="Document"/>s (not additional nor analyzer config).
+        /// </summary>
         internal static async IAsyncEnumerable<DocumentId> GetChangedDocumentsAsync(Project oldProject, Project newProject, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             Debug.Assert(oldProject.Id == newProject.Id);
@@ -453,7 +471,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 yield return documentId;
             }
 
-            if (!HasChangesThatMayAffectSourceGenerators(oldProject.State, newProject.State))
+            // Given the following assumptions:
+            // - source generators are deterministic,
+            // - metadata references and compilation options have not changed (TODO -- need to check),
+            // - source documents have not changed,
+            // - additional documents have not changed,
+            // - analyzer config documents have not changed,
+            // the outputs of source generators will not change.
+
+            if (!newProject.State.DocumentStates.HasAnyStateChanges(oldProject.State.DocumentStates) &&
+                !newProject.State.AdditionalDocumentStates.HasAnyStateChanges(oldProject.State.AdditionalDocumentStates) &&
+                !newProject.State.AnalyzerConfigDocumentStates.HasAnyStateChanges(oldProject.State.AnalyzerConfigDocumentStates))
             {
                 // Based on the above assumption there are no changes in source generated files.
                 yield break;
@@ -472,21 +500,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 yield return documentId;
             }
         }
-
-        /// <summary>
-        /// Given the following assumptions:
-        /// - source generators are deterministic,
-        /// - source documents, metadata references and compilation options have not changed,
-        /// - additional documents have not changed,
-        /// - analyzer config documents have not changed,
-        /// the outputs of source generators will not change.
-        /// 
-        /// Currently it's not possible to change compilation options (Project System is readonly during debugging).
-        /// </summary>
-        private static bool HasChangesThatMayAffectSourceGenerators(ProjectState oldProject, ProjectState newProject)
-            => newProject.DocumentStates.HasAnyStateChanges(oldProject.DocumentStates) ||
-               newProject.AdditionalDocumentStates.HasAnyStateChanges(oldProject.AdditionalDocumentStates) ||
-               newProject.AnalyzerConfigDocumentStates.HasAnyStateChanges(oldProject.AnalyzerConfigDocumentStates);
 
         private async Task<(ImmutableArray<DocumentAnalysisResults> results, ImmutableArray<Diagnostic> diagnostics)> AnalyzeDocumentsAsync(
             ArrayBuilder<Document> changedOrAddedDocuments,
@@ -796,7 +809,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var hasEmitErrors = false;
                 foreach (var newProject in solution.Projects)
                 {
-                    await PopulateChangedAndAddedDocumentsAsync(oldSolution, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
+                    var oldProject = oldSolution.GetProject(newProject.Id);
+                    if (oldProject == null)
+                    {
+                        EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not loaded", newProject.Id.DebugName, newProject.Id);
+
+                        // TODO (https://github.com/dotnet/roslyn/issues/1204):
+                        //
+                        // When debugging session is started some projects might not have been loaded to the workspace yet (may be explicitly unloaded by the user).
+                        // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
+                        // and will result in source mismatch when the user steps into them.
+                        //
+                        // We can allow project to be added by including all its documents here.
+                        // When we analyze these documents later on we'll check if they match the PDB.
+                        // If so we can add them to the committed solution and detect further changes.
+                        // It might be more efficient though to track added projects separately.
+
+                        continue;
+                    }
+
+                    await PopulateChangedAndAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
                     if (changedOrAddedDocuments.IsEmpty())
                     {
                         continue;
@@ -851,10 +883,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         continue;
                     }
-
-                    // PopulateChangedAndAddedDocumentsAsync returns no changes if base project does not exist
-                    var oldProject = oldSolution.GetProject(newProject.Id);
-                    Contract.ThrowIfNull(oldProject);
 
                     // The capability of a module to apply edits may change during edit session if the user attaches debugger to 
                     // an additional process that doesn't support EnC (or detaches from such process). Before we apply edits 
