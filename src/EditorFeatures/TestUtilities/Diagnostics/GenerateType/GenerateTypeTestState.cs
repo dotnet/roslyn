@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
         {
             get
             {
-                return (TestProjectManagementService)InvocationDocument.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
+                return (TestProjectManagementService)InvocationDocument.Project.Solution.Services.GetService<IProjectManagementService>();
             }
         }
 

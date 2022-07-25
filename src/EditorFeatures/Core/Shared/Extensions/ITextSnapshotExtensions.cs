@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             // partial mode is always cancellable
             using (operationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Waiting_for_background_work_to_finish))
             {
-                var service = document.Project.Solution.Workspace.Services.GetService<IWorkspaceStatusService>();
+                var service = document.Project.Solution.Services.GetService<IWorkspaceStatusService>();
                 if (service != null)
                 {
                     // TODO: decide for prototype, we don't do anything complex and just ask workspace whether it is fully loaded

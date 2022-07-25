@@ -272,11 +272,11 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var candidateInterfaceName = type.TypeKind == TypeKind.Interface ? type.Name : "I" + type.Name;
             var defaultInterfaceName = NameGenerator.GenerateUniqueName(candidateInterfaceName, name => !conflictingTypeNames.Contains(name));
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-            var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+            var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
             var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, formattingOptions, type, extractableMembers, cancellationToken);
 
-            var service = document.Project.Solution.Workspace.Services.GetService<IExtractInterfaceOptionsService>();
+            var service = document.Project.Solution.Services.GetService<IExtractInterfaceOptionsService>();
             return await service.GetExtractInterfaceOptionsAsync(
                 syntaxFactsService,
                 notificationService,

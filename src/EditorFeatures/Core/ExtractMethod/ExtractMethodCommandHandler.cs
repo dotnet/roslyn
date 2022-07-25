@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     document, span, result, options, cancellationToken).ConfigureAwait(false);
                 if (newResult != null)
                 {
-                    var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+                    var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
                     if (notificationService != null)
                     {
                         // We are about to show a modal UI dialog so we should take over the command execution
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             // and also will take it into consideration when measuring command handling duration.
             var project = document.Project;
             var solution = project.Solution;
-            var notificationService = solution.Workspace.Services.GetService<INotificationService>();
+            var notificationService = solution.Services.GetService<INotificationService>();
 
             // see whether we will allow best effort extraction and if it is possible.
             if (!_globalOptions.GetOption(ExtractMethodPresentationOptionsStorage.AllowBestEffort, document.Project.Language) ||
