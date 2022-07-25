@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                         s_remoteHostHydrateTask = Task.Run(async () =>
                         {
-                            var client = await RemoteHostClient.TryGetClientAsync(_solution.Workspace, _disposalToken).ConfigureAwait(false);
+                            var client = await RemoteHostClient.TryGetClientAsync(_solution.Services, _disposalToken).ConfigureAwait(false);
                             if (client != null)
                             {
                                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
