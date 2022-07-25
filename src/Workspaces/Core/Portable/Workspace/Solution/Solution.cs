@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
 
         internal int WorkspaceVersion => _state.WorkspaceVersion;
 
-        internal HostWorkspaceServices Services => _state.Services;
+        public HostWorkspaceServices Services => _state.Services;
 
         internal BranchId BranchId => _state.BranchId;
 

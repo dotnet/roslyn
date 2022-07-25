@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     {
                         var definitionLocations = _renameLocationSet.Symbol.Locations;
                         var definitionDocuments = definitionLocations
-                            .Select(l => conflictResolution.OldSolution.GetRequiredDocument(l.SourceTree))
+                            .Select(l => conflictResolution.OldSolution.GetRequiredDocument(l.SourceTree!))
                             .Distinct();
 
                         if (definitionDocuments.Count() == 1 && _replacementTextValid)
