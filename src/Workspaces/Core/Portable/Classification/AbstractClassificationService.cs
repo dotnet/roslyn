@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
         private static bool IsFullyLoaded(Document document, CancellationToken cancellationToken)
         {
-            var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+            var workspaceStatusService = document.Project.Solution.Services.GetRequiredService<IWorkspaceStatusService>();
 
             // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
             // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,

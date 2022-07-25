@@ -2790,7 +2790,7 @@ class C1
             Assert.NotNull(compilation);
 
             // MSBuildWorkspace doesn't have a cache service
-            Assert.Null(workspace.UseReference(static w => w.CurrentSolution.Services.CacheService));
+            Assert.Null(workspace.UseReference(static w => w.CurrentSolution.Services.GetService<IProjectCacheHostService>()));
 
             document.ReleaseStrongReference();
             project.ReleaseStrongReference();
