@@ -131,9 +131,9 @@ namespace Microsoft.CodeAnalysis.Simplification
             return Expand(token, semanticModel, workspace.Services, expandInsideNode, cancellationToken);
         }
 
-            /// <summary>
-            /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
-            /// </summary>
+        /// <summary>
+        /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
+        /// </summary>
         internal static SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, HostWorkspaceServices services, Func<SyntaxNode, bool>? expandInsideNode = null, CancellationToken cancellationToken = default)
         {
             if (semanticModel == null)
