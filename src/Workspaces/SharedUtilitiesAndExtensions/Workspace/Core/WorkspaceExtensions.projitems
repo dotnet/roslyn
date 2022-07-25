@@ -92,7 +92,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\OrderableMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\WorkspaceKindMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\WorkspaceServiceMetadata.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Workspace\SolutionExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)WorkspaceExtensionsResources.resx" GenerateSource="true" Link="WorkspaceExtensionsResources.resx" />
