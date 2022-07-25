@@ -417,7 +417,7 @@ language: LanguageNames.CSharp);
         public class WorkspaceWithPartialSemantics : Workspace
         {
             public WorkspaceWithPartialSemantics(Solution solution)
-                : base(solution.Workspace.Services.HostServices, solution.Workspace.Kind)
+                : base(solution.Services.HostServices, solution.Workspace.Kind)
             {
                 this.SetCurrentSolution(solution);
             }

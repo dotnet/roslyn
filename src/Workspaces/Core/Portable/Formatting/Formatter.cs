@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         internal static async Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
             return document.WithSyntaxRoot(Format(root, spans, services, options, rules, cancellationToken));
         }
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         internal static async Task<Document> FormatAsync(Document document, SyntaxAnnotation annotation, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
             return document.WithSyntaxRoot(Format(root, annotation, services, options, rules, cancellationToken));
         }
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
 
             // must have syntax formatting options since we require the document to have a syntax tree:
             var (formattingOptions, _) = await GetFormattingOptionsAsync(document, optionSet, cancellationToken).ConfigureAwait(false);

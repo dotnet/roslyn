@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// Gets extended host language services, which includes language services from <see cref="Project.LanguageServices"/>.
         /// </summary>
         public static HostLanguageServices GetExtendedLanguageServices(this Project project)
-            => project.Solution.Workspace.Services.GetExtendedLanguageServices(project.Language);
+            => project.Solution.Services.GetExtendedLanguageServices(project.Language);
 #pragma warning restore RS0030 // Do not used banned APIs
 
         public static string? TryGetAnalyzerConfigPathForProjectConfiguration(this Project project)

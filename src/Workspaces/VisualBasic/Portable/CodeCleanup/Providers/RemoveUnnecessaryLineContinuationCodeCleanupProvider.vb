@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End If
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = Await CleanupAsync(root, spans, options.FormattingOptions, document.Project.Solution.Workspace.Services, cancellationToken).ConfigureAwait(False)
+            Dim newRoot = Await CleanupAsync(root, spans, options.FormattingOptions, document.Project.Solution.Services, cancellationToken).ConfigureAwait(False)
 
             Return If(newRoot Is root, document, document.WithSyntaxRoot(newRoot))
         End Function

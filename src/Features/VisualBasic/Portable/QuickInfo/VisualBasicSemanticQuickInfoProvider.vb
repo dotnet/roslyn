@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                 context As QuickInfoContext,
                 token As SyntaxToken) As Task(Of QuickInfoItem)
             Dim semanticModel = Await context.Document.GetRequiredSemanticModelAsync(context.CancellationToken).ConfigureAwait(False)
-            Dim services = context.Document.Project.Solution.Workspace.Services
+            Dim services = context.Document.Project.Solution.Services
             Dim info = Await BuildQuickInfoAsync(services, semanticModel, token, context.Options, context.CancellationToken).ConfigureAwait(False)
             If info IsNot Nothing Then
                 Return info

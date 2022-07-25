@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                         root,
                         ImmutableArray.Create(textSpanToFormat),
                         formattingOptions,
-                        document.Project.Solution.Workspace.Services,
+                        document.Project.Solution.Services,
                         codeCleanups,
                         cancellationToken).WaitAndGetResult(cancellationToken)
 
