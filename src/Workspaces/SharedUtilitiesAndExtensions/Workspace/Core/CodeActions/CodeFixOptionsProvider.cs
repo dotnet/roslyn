@@ -56,7 +56,7 @@ internal readonly struct CodeFixOptionsProvider
     public SyntaxFormattingOptions GetFormattingOptions(ISyntaxFormatting formatting)
         => formatting.GetFormattingOptions(_options, FallbackSyntaxFormattingOptions);
 
-    public AccessibilityModifiersRequired AccessibilityModifiersRequired => _options.GetEditorConfigOption(CodeStyleOptions2.AccessibilityModifiersRequired, FallbackCommonSyntaxFormattingOptions.AccessibilityModifiersRequired);
+    public AccessibilityModifiersRequired AccessibilityModifiersRequired => _options.GetEditorConfigOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, FallbackCommonSyntaxFormattingOptions.AccessibilityModifiersRequired);
 
     private TValue GetOption<TValue>(PerLanguageOption2<TValue> option, TValue defaultValue)
         => _options.GetEditorConfigOption(option, defaultValue);
