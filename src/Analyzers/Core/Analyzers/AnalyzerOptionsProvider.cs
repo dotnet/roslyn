@@ -98,13 +98,13 @@ internal readonly struct AnalyzerOptionsProvider
 
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
     {
-        Debug.Assert(option.DefaultValue.Equals(defaultValue));
+        Debug.Assert((option.DefaultValue is null && defaultValue is null) || option.DefaultValue!.Equals(defaultValue));
         return _options.GetEditorConfigOption(option, defaultValue);
     }
 
     private TValue GetOption<TValue>(PerLanguageOption2<TValue> option, TValue defaultValue)
     {
-        Debug.Assert(option.DefaultValue.Equals(defaultValue));
+        Debug.Assert((option.DefaultValue is null && defaultValue is null) || option.DefaultValue!.Equals(defaultValue));
         return _options.GetEditorConfigOption(option, defaultValue);
     }
 
