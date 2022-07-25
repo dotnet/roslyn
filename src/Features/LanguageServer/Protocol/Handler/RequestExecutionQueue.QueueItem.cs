@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// A task completion source representing the result of this queue item's work.
         /// This is the task that the client is waiting on.
         /// </summary>
-        private readonly TaskCompletionSource<TResponseType?> _completionSource = new();
+        private readonly TaskCompletionSource<TResponseType> _completionSource = new();
 
         public bool RequiresLSPSolution { get; }
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             TextDocument = textDocument;
         }
 
-        public static (IQueueItem<RequestContext>, Task<TResponseType?>) Create(
+        public static (IQueueItem<RequestContext>, Task<TResponseType>) Create(
             bool mutatesSolutionState,
             bool requiresLSPSolution,
             ClientCapabilities clientCapabilities,
@@ -114,7 +114,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                TResponseType? result;
                 if (context is null)
                 {
                     // If we weren't able to get a corresponding context for this request (for example, we
@@ -126,15 +125,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // what to do.
                     _logger.TraceWarning($"Could not get request context for {MethodName}");
                     this.Metrics.RecordFailure();
-                    result = default;
+                    _completionSource.TrySetException(new InvalidOperationException($"Unable to create request context for {MethodName}"));
                 }
                 else
                 {
-                    result = await _handler.HandleRequestAsync(_request, context.Value, cancellationToken).ConfigureAwait(false);
+                    var result = await _handler.HandleRequestAsync(_request, context.Value, cancellationToken).ConfigureAwait(false);
                     this.Metrics.RecordSuccess();
+                    _completionSource.TrySetResult(result);
                 }
-
-                _completionSource.TrySetResult(result);
             }
             catch (OperationCanceledException ex)
             {

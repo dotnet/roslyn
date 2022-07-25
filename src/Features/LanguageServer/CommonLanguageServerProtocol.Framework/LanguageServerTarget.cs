@@ -30,9 +30,9 @@ public interface IRequestExecutionQueue<RequestContextType> where RequestContext
 
     event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 
-    Task<TResponseType?> ExecuteAsync<TRequestType, TResponseType>(
+    Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(
         bool mutatesSolutionState,
-        bool requiresLSPSolution, 
+        bool requiresLSPSolution,
         IRequestHandler<TRequestType, TResponseType, RequestContextType> handler,
         TRequestType request,
         ClientCapabilities clientCapabilities,
@@ -137,7 +137,6 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
         _jsonRpc = jsonRpc;
         _jsonRpc.AddLocalRpcTarget(this);
         _jsonRpc.Disconnected += JsonRpc_Disconnected;
-
 
         _lspServices = GetLspServiceProvider(lspServiceProvider, serverKind);
 

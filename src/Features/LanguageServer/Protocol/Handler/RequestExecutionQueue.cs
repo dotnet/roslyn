@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <param name="requestCancellationToken">A cancellation token that will cancel the handing of this request.
         /// The request could also be cancelled by the queue shutting down.</param>
         /// <returns>A task that can be awaited to observe the results of the handing of this request.</returns>
-        public Task<TResponseType?> ExecuteAsync<TRequestType, TResponseType>(
+        public Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(
             bool mutatesSolutionState,
             bool requiresLSPSolution,
             IRequestHandler<TRequestType, TResponseType, RequestContextType> handler,
@@ -212,13 +212,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // The queue itself is threadsafe (_queue.TryEnqueue and _queue.Complete use the same lock).
             if (!didEnqueue)
             {
-                return Task.FromException<TResponseType?>(new InvalidOperationException($"{_serverKind} was requested to shut down."));
+                return Task.FromException<TResponseType>(new InvalidOperationException($"{_serverKind} was requested to shut down."));
             }
 
             return resultTask;
         }
 
-        public abstract (IQueueItem<RequestContextType>, Task<TResponseType?>) CreateQueueItem<TRequestType, TResponseType>(
+        public abstract (IQueueItem<RequestContextType>, Task<TResponseType>) CreateQueueItem<TRequestType, TResponseType>(
             bool mutatesSolutionState,
             bool requiresLSPSolution,
             ClientCapabilities clientCapabilities,

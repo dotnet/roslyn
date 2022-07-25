@@ -11,10 +11,4 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 public interface IClientLanguageServerManager : ILspService
 {
     ValueTask SendNotificationAsync(string methodName, CancellationToken cancellationToken);
-
-    ValueTask SendNotificationAsync<TParams>(string methodName, TParams @params, CancellationToken cancellationToken);
-
-    Task<TResponse> SendRequestAsync<TParams, TResponse>(string methodName, TParams @params, CancellationToken cancellationToken);
-
-    InitializeParams ClientSettings { get; }
 }

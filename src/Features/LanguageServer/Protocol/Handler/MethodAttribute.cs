@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {

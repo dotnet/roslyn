@@ -68,7 +68,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 throw new NotImplementedException("Roslyn types are not ILspServices");
             }
 
-
             // Add services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
             return lspServiceProvider.CreateServices(serverKind);
         }
@@ -135,5 +134,4 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return _clientCapabilities is not null;
         }
     }
-
 }
