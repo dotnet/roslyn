@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(root, document.Project.Solution.GetServices());
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
             var crossesMeaningfulBlock = CrossesMeaningfulBlock(state);
             var warningAnnotation = crossesMeaningfulBlock
