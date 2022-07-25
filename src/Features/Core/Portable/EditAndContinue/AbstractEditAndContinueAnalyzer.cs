@@ -3446,14 +3446,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 if (oldSymbol is IParameterSymbol && newSymbol is IParameterSymbol)
                 {
-                    if (capabilities.Grant(EditAndContinueCapabilities.UpdateParameters))
-                    {
-                        hasParameterRename = true;
-                    }
-                    else
-                    {
-                        rudeEdit = RudeEditKind.RenamingNotSupportedByRuntime;
-                    }
+                    // We defer checking parameter renames until later, because if their types have also changed
+                    // then we'll be emitting a new method, so it won't be a rename any more
                 }
                 else if (oldSymbol is IMethodSymbol oldMethod && newSymbol is IMethodSymbol newMethod)
                 {
@@ -3674,7 +3668,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 else
                 {
-                    AnalyzeParameterType(oldParameter, newParameter, ref rudeEdit, ref hasGeneratedAttributeChange, ref hasParameterTypeChange);
+                    AnalyzeParameterType(oldParameter, newParameter, capabilities, ref rudeEdit, ref hasGeneratedAttributeChange, ref hasParameterTypeChange);
+
+                    if (!hasParameterTypeChange && oldParameter.Name != newParameter.Name)
+                    {
+                        if (capabilities.Grant(EditAndContinueCapabilities.UpdateParameters))
+                        {
+                            hasParameterRename = true;
+                        }
+                        else
+                        {
+                            rudeEdit = RudeEditKind.RenamingNotSupportedByRuntime;
+                        }
+                    }
                 }
             }
             else if (oldSymbol is ITypeParameterSymbol oldTypeParameter && newSymbol is ITypeParameterSymbol newTypeParameter)
@@ -3742,7 +3748,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static void AnalyzeParameterType(IParameterSymbol oldParameter, IParameterSymbol newParameter, ref RudeEditKind rudeEdit, ref bool hasGeneratedAttributeChange, ref bool hasParameterTypeChange)
+        private static void AnalyzeParameterType(IParameterSymbol oldParameter, IParameterSymbol newParameter, EditAndContinueCapabilitiesGrantor capabilities, ref RudeEditKind rudeEdit, ref bool hasGeneratedAttributeChange, ref bool hasParameterTypeChange)
         {
             if (!ParameterTypesEquivalent(oldParameter, newParameter, exact: true))
             {
@@ -3755,9 +3761,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // We don't allow changing parameter types in delegates
                     rudeEdit = RudeEditKind.TypeUpdate;
                 }
-                else
+                else if (AllowsDeletion(newParameter.ContainingSymbol, willInsertNewMember: true, capabilities))
                 {
                     hasParameterTypeChange = true;
+                }
+                else
+                {
+                    rudeEdit = RudeEditKind.InsertNotSupportedByRuntime;
                 }
             }
         }
