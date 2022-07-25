@@ -1487,7 +1487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         )
         {
 #if DEBUG
-            Debug.Assert(AllParametersHaveArguments(argsOpt, parameters, argsToParamsOpt));
+            Debug.Assert(AllParametersConsideredInEscapeAnalysisHaveArguments(argsOpt, parameters, argsToParamsOpt));
 #endif
 
             // SPEC: (also applies to the CheckInvocationEscape counterpart)
@@ -1595,7 +1595,7 @@ moreArguments:
         )
         {
 #if DEBUG
-            Debug.Assert(AllParametersHaveArguments(argsOpt, parameters, argsToParamsOpt));
+            Debug.Assert(AllParametersConsideredInEscapeAnalysisHaveArguments(argsOpt, parameters, argsToParamsOpt));
 #endif
 
             // SPEC: 
@@ -1800,9 +1800,6 @@ moreArguments:
                 }
             }
 
-            //NB: we do not care about unmatched "in" parameters here. 
-            //    They have "outer" val escape, so cannot be worse than escapeTo.
-
             // check val escape of receiver if ref-like
             if (receiverOpt?.Type?.IsRefLikeType == true)
             {
@@ -1854,7 +1851,7 @@ moreArguments:
         }
 
 #if DEBUG
-        private static bool AllParametersHaveArguments(
+        private static bool AllParametersConsideredInEscapeAnalysisHaveArguments(
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<int> argsToParamsOpt)
@@ -1869,7 +1866,16 @@ moreArguments:
             }
             for (int paramIndex = 0; paramIndex < parameters.Length; paramIndex++)
             {
-                if (!paramsMatched[paramIndex]) return false;
+                if (!paramsMatched[paramIndex])
+                {
+                    // Default arguments for params arrays are not created during
+                    // binding (see https://github.com/dotnet/roslyn/issues/49602),
+                    // but a params array cannot contain references or ref structs.
+                    if (parameters[paramIndex] is not { IsParams: true, Type.TypeKind: TypeKind.Array })
+                    {
+                        return false;
+                    }
+                }
             }
             return true;
         }
