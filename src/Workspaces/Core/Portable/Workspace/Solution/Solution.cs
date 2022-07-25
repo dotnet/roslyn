@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            : this(new SolutionState(workspace.PrimaryBranchId, workspace.Kind, new SolutionServices(workspace), solutionAttributes, options, analyzerReferences))
+            : this(new SolutionState(workspace.PrimaryBranchId, workspace.Kind, workspace.Services, solutionAttributes, options, analyzerReferences))
         {
         }
 
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis
 
         internal int WorkspaceVersion => _state.WorkspaceVersion;
 
-        internal SolutionServices Services => _state.Services;
+        internal HostWorkspaceServices Services => _state.Services;
 
         internal string? WorkspaceKind => _state.WorkspaceKind;
 
@@ -1767,6 +1768,25 @@ namespace Microsoft.CodeAnalysis
         internal Solution WithoutFrozenSourceGeneratedDocuments()
         {
             var newState = _state.WithoutFrozenSourceGeneratedDocuments();
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Returns a new Solution which represents the same state as before, but with the cached generator driver state from the given project updated to match.
+        /// </summary>
+        /// <remarks>
+        /// When generators are ran in a Solution snapshot, they may cache state to speed up future runs. For Razor, we only run their generator on forked
+        /// solutions that are thrown away; this API gives us a way to reuse that cached state in other forked solutions, since otherwise there's no way to reuse
+        /// the cached state.
+        /// </remarks>
+        internal Solution WithCachedSourceGeneratorState(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
+        {
+            var newState = _state.WithCachedSourceGeneratorState(projectToUpdate, projectWithCachedGeneratorState);
             if (newState == _state)
             {
                 return this;

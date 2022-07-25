@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
         public CSharpOrderModifiersDiagnosticAnalyzer()
             : base(CSharpSyntaxFacts.Instance,
                    CSharpCodeStyleOptions.PreferredModifierOrder,
-                   CSharpOrderModifiersHelper.Instance,
-                   LanguageNames.CSharp)
+                   CSharpOrderModifiersHelper.Instance)
         {
         }
 

@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Options;
@@ -40,7 +41,6 @@ namespace Microsoft.CodeAnalysis
         private readonly int _workspaceVersion;
 
         private readonly SolutionInfo.SolutionAttributes _solutionAttributes;
-        private readonly SolutionServices _solutionServices;
         private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
         private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _filePathToDocumentIdsMap;
         private readonly ProjectDependencyGraph _dependencyGraph;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
             BranchId branchId,
             string? workspaceKind,
             int workspaceVersion,
-            SolutionServices solutionServices,
+            HostWorkspaceServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
             IReadOnlyList<ProjectId> projectIds,
             SolutionOptionSet options,
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis
             WorkspaceKind = workspaceKind;
             _workspaceVersion = workspaceVersion;
             _solutionAttributes = solutionAttributes;
-            _solutionServices = solutionServices;
+            Services = solutionServices;
             ProjectIds = projectIds;
             Options = options;
             AnalyzerReferences = analyzerReferences;
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis
         public SolutionState(
             BranchId primaryBranchId,
             string? workspaceKind,
-            SolutionServices solutionServices,
+            HostWorkspaceServices services,
             SolutionInfo.SolutionAttributes solutionAttributes,
             SolutionOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences)
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis
                 primaryBranchId,
                 workspaceKind,
                 workspaceVersion: 0,
-                solutionServices,
+                services,
                 solutionAttributes,
                 projectIds: SpecializedCollections.EmptyBoxedImmutableArray<ProjectId>(),
                 options,
@@ -141,13 +141,9 @@ namespace Microsoft.CodeAnalysis
 
         public SolutionState WithNewWorkspace(Workspace workspace, int workspaceVersion)
         {
-            var services = workspace != _solutionServices.Workspace
-                ? new SolutionServices(workspace)
-                : _solutionServices;
-
             // Note: this will potentially have problems if the workspace services are different, as some services
             // get locked-in by document states and project states when first constructed.
-            return CreatePrimarySolution(workspace.PrimaryBranchId, workspace.Kind, workspaceVersion, services);
+            return CreatePrimarySolution(workspace.PrimaryBranchId, workspace.Kind, workspaceVersion, workspace.Services);
         }
 
         public HostDiagnosticAnalyzers Analyzers => _lazyAnalyzers.Value;
@@ -162,7 +158,7 @@ namespace Microsoft.CodeAnalysis
 
         public int WorkspaceVersion => _workspaceVersion;
 
-        public SolutionServices Services => _solutionServices;
+        public HostWorkspaceServices Services { get; }
 
         public SolutionOptionSet Options { get; }
 
@@ -182,7 +178,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The Workspace this solution is associated with.
         /// </summary>
-        public Workspace Workspace => _solutionServices.Workspace;
+        public Workspace Workspace => Services.Workspace;
 
         /// <summary>
         /// The Id of the solution. Multiple solution instances may share the same Id.
@@ -264,7 +260,7 @@ namespace Microsoft.CodeAnalysis
                 branchId,
                 WorkspaceKind,
                 _workspaceVersion,
-                _solutionServices,
+                Services,
                 solutionAttributes,
                 projectIds,
                 options,
@@ -281,12 +277,12 @@ namespace Microsoft.CodeAnalysis
             BranchId branchId,
             string? workspaceKind,
             int workspaceVersion,
-            SolutionServices services)
+            HostWorkspaceServices services)
         {
             if (branchId == _branchId &&
                 workspaceKind == WorkspaceKind &&
                 workspaceVersion == _workspaceVersion &&
-                services == _solutionServices)
+                services == Services)
             {
                 return this;
             }
@@ -550,7 +546,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(string.Format(WorkspacesResources.The_language_0_is_not_supported, language));
             }
 
-            var newProject = new ProjectState(projectInfo, languageServices, _solutionServices);
+            var newProject = new ProjectState(projectInfo, languageServices, Services);
 
             return this.AddProject(newProject.Id, newProject);
         }
@@ -1137,7 +1133,7 @@ namespace Microsoft.CodeAnalysis
         public SolutionState AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
             return AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => new AdditionalDocumentState(documentInfo, _solutionServices),
+                (documentInfo, project) => new AdditionalDocumentState(documentInfo, Services),
                 (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
         }
 
@@ -1145,7 +1141,7 @@ namespace Microsoft.CodeAnalysis
         {
             // Adding a new analyzer config potentially modifies the compilation options
             return AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => new AnalyzerConfigDocumentState(documentInfo, _solutionServices),
+                (documentInfo, project) => new AnalyzerConfigDocumentState(documentInfo, Services),
                 (oldProject, documents) =>
                 {
                     var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
@@ -1512,7 +1508,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (forkTracker)
                 {
-                    newTrackerMap = newTrackerMap.Add(projectId, tracker.Fork(_solutionServices, newProjectState, translate));
+                    newTrackerMap = newTrackerMap.Add(projectId, tracker.Fork(Services, newProjectState, translate));
                 }
             }
 
@@ -1556,7 +1552,7 @@ namespace Microsoft.CodeAnalysis
             var builder = ImmutableDictionary.CreateBuilder<ProjectId, ICompilationTracker>();
 
             foreach (var (id, tracker) in _projectIdToTrackerMap)
-                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(_solutionServices, tracker.ProjectState));
+                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(Services, tracker.ProjectState));
 
             return builder.ToImmutable();
 
@@ -1828,7 +1824,7 @@ namespace Microsoft.CodeAnalysis
                     sourceText,
                     projectState.ParseOptions!,
                     projectState.LanguageServices,
-                    _solutionServices);
+                    Services);
             }
 
             var projectId = documentIdentity.DocumentId.ProjectId;
@@ -1874,6 +1870,28 @@ namespace Microsoft.CodeAnalysis
             return this.Branch(
                 projectIdToTrackerMap: newTrackerMap,
                 frozenSourceGeneratedDocument: null);
+        }
+
+        /// <inheritdoc cref="Solution.WithCachedSourceGeneratorState(ProjectId, Project)"/>
+        public SolutionState WithCachedSourceGeneratorState(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
+        {
+            CheckContainsProject(projectToUpdate);
+
+            // First see if we have a generator driver that we can get from the other project.
+            if (!projectWithCachedGeneratorState.Solution.State.TryGetCompilationTracker(projectWithCachedGeneratorState.Id, out var tracker) ||
+                tracker.GeneratorDriver is null)
+            {
+                // We don't actually have any state at all, so no change.
+                return this;
+            }
+
+            var projectToUpdateState = GetRequiredProjectState(projectToUpdate);
+
+            return ForkProject(
+                projectToUpdateState,
+                translate: new CompilationAndGeneratorDriverTranslationAction.ReplaceGeneratorDriverAction(
+                    tracker.GeneratorDriver,
+                    newProjectState: projectToUpdateState));
         }
 
         /// <summary>
