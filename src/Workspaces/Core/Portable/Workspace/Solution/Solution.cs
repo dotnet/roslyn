@@ -48,6 +48,9 @@ namespace Microsoft.CodeAnalysis
 
         internal SolutionServices Services => _state.Services;
 
+        // TODO(cyrusn): Get this without going through the workspace.
+        internal string? WorkspaceKind => _state.Workspace.Kind;
+
         internal BranchId BranchId => _state.BranchId;
 
         internal ProjectState? GetProjectState(ProjectId projectId) => _state.GetProjectState(projectId);
