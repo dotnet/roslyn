@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis
 
         public static T GetEditorConfigOptionValue<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, T defaultValue)
             => TryGetEditorConfigOption(analyzerConfigOptions, option, new Optional<CodeStyleOption2<T>?>(new CodeStyleOption2<T>(defaultValue, NotificationOption2.None)), out var style) ? style!.Value : throw ExceptionUtilities.Unreachable;
+
         private static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, Optional<T?> defaultValue, out T? value)
         {
             var hasEditorConfigStorage = false;
