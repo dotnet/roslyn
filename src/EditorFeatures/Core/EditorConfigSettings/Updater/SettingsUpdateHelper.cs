@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -69,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             {
                 if (option.StorageLocations.FirstOrDefault(x => x is IEditorConfigStorageLocation2) is not IEditorConfigStorageLocation2 storageLocation)
                 {
+                    Debug.Fail($"Option '{option.Name}' has no editorconfig location");
                     return (false, null!, null!, default);
                 }
 
