@@ -185,16 +185,16 @@ namespace Microsoft.CodeAnalysis.Classification
         public async Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            AddSyntacticClassifications(document.Project.Solution.Workspace, root, textSpan, result, cancellationToken);
+            AddSyntacticClassifications(document.Project.Solution.Services, root, textSpan, result, cancellationToken);
         }
 
         public void AddSyntacticClassifications(
-            Workspace workspace, SyntaxNode? root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            HostWorkspaceServices services, SyntaxNode? root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (root == null)
                 return;
 
-            var classificationService = workspace.Services.GetLanguageServices(root.Language).GetService<ISyntaxClassificationService>();
+            var classificationService = services.GetLanguageServices(root.Language).GetService<ISyntaxClassificationService>();
             if (classificationService == null)
                 return;
 
@@ -216,9 +216,9 @@ namespace Microsoft.CodeAnalysis.Classification
         public ValueTask<TextChangeRange?> ComputeSyntacticChangeRangeAsync(Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken)
             => default;
 
-        public TextChangeRange? ComputeSyntacticChangeRange(Workspace workspace, SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken)
+        public TextChangeRange? ComputeSyntacticChangeRange(HostWorkspaceServices services, SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            var classificationService = workspace.Services.GetLanguageServices(oldRoot.Language).GetService<ISyntaxClassificationService>();
+            var classificationService = services.GetLanguageServices(oldRoot.Language).GetService<ISyntaxClassificationService>();
             return classificationService?.ComputeSyntacticChangeRange(oldRoot, newRoot, timeout, cancellationToken);
         }
     }
