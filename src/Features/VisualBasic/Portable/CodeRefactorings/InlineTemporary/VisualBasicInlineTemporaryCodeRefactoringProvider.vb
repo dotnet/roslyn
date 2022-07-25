@@ -30,8 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Dim document = context.Document
             Dim cancellationToken = context.CancellationToken
 
-            Dim workspace = document.Project.Solution.Workspace
-            If workspace.Kind = WorkspaceKind.MiscellaneousFiles Then
+            If document.Project.Solution.WOrkspaceKind = WorkspaceKind.MiscellaneousFiles Then
                 Return
             End If
 
