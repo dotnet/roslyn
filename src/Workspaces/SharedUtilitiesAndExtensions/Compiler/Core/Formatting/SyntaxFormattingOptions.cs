@@ -62,7 +62,7 @@ internal static partial class SyntaxFormattingOptionsProviders
         {
             LineFormatting = options.GetLineFormattingOptions(fallbackOptions.LineFormatting),
             SeparateImportDirectiveGroups = options.GetEditorConfigOption(GenerationOptions.SeparateImportDirectiveGroups, fallbackOptions.SeparateImportDirectiveGroups),
-            AccessibilityModifiersRequired = options.GetEditorConfigOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, fallbackOptions.AccessibilityModifiersRequired),
+            AccessibilityModifiersRequired = options.GetEditorConfigOption(CodeStyleOptions2.AccessibilityModifiersRequired, fallbackOptions.AccessibilityModifiersRequired),
         };
     }
 
