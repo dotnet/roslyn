@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
         protected static bool GeneratedTypesMustBePublic(Project project)
         {
-            var projectInfoService = project.Solution.Workspace.Services.GetService<IProjectInfoService>();
+            var projectInfoService = project.Solution.Services.GetService<IProjectInfoService>();
             if (projectInfoService != null)
             {
                 return projectInfoService.GeneratedTypesMustBePublic(project);

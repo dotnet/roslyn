@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 var classificationService = document.GetRequiredLanguageService<ISyntaxClassificationService>();
                 var reassignedVariableService = document.GetRequiredLanguageService<IReassignedVariableService>();
 
-                var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+                var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
                 var classifiers = classificationService.GetDefaultSyntaxClassifiers();
 
                 var getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes);

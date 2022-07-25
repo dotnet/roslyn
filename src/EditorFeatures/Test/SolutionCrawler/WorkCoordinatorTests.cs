@@ -1603,7 +1603,7 @@ class C
 
         private static void MakeDocumentActive(Document document)
         {
-            var documentTrackingService = (TestDocumentTrackingService)document.Project.Solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            var documentTrackingService = (TestDocumentTrackingService)document.Project.Solution.Services.GetRequiredService<IDocumentTrackingService>();
             documentTrackingService.SetActiveDocument(document.Id);
         }
 

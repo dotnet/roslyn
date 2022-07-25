@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             _analyzerInfoCache = analyzerInfoCache;
 
             // We only track performance from primary branch. All forked branch we don't care such as preview.
-            _performanceTracker = project.IsFromPrimaryBranch() ? project.Solution.Workspace.Services.GetService<IPerformanceTrackerService>() : null;
+            _performanceTracker = project.IsFromPrimaryBranch() ? project.Solution.Services.GetService<IPerformanceTrackerService>() : null;
         }
 
         public async Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 compilationWithAnalyzers = compilationWithAnalyzers.Compilation.WithAnalyzers(analyzers, compilationWithAnalyzers.AnalysisOptions);
             }
 
-            var cacheService = _project.Solution.Workspace.Services.GetRequiredService<IProjectCacheService>();
+            var cacheService = _project.Solution.Services.GetRequiredService<IProjectCacheService>();
             using var cache = cacheService.EnableCaching(_project.Id);
             var skippedAnalyzersInfo = _project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
 
