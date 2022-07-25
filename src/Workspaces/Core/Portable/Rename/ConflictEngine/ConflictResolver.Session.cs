@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// </summary>
         private class Session
         {
+            private readonly SolutionRenameInfo _solutionRenameInfo;
+
             // Set of All Locations that will be renamed (does not include non-reference locations that need to be checked for conflicts)
             private readonly SymbolicRenameLocations _renameLocationSet;
 
