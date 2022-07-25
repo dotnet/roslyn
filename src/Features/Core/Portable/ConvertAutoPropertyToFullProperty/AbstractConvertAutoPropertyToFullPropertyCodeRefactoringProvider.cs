@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
 
             var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var info = (TCodeGenerationContextInfo)options.GetInfo(CodeGenerationContext.Default, document.Project);

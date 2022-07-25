@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             var cancellationToken = context.CancellationToken;
             var semanticModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var services = context.Document.Project.Solution.Workspace.Services;
+            var services = context.Document.Project.Solution.Services;
             return await CreateContentAsync(
                 services, semanticModel, token, tokenInformation, supportedPlatforms, context.Options, cancellationToken).ConfigureAwait(false);
         }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 return await ComputeFromLinkedDocumentsAsync(context, token, linkedDocumentIds).ConfigureAwait(false);
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
             var tokenInformation = BindToken(services, semanticModel, token, cancellationToken);
             return (tokenInformation, supportedPlatforms: null);
         }
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
             var solution = document.Project.Solution;
-            var services = solution.Workspace.Services;
+            var services = solution.Services;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var mainTokenInformation = BindToken(services, semanticModel, token, cancellationToken);

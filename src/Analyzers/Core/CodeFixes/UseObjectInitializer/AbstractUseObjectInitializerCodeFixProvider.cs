@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             // feature to keep track of all the object creation nodes as we make edits to
             // the tree.  If we didn't do this, then we wouldn't be able to find the 
             // second object-creation-node after we make the edit for the first one.
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             var originalRoot = editor.OriginalRoot;

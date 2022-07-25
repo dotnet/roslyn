@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             return editor.ApplyMethodBodySemanticEditsAsync(
                 document, nodesToProcess,
                 (semanticModel, node) => true,
-                (semanticModel, currentRoot, node) => UpdateRoot(semanticModel, currentRoot, node, document.Project.Solution.Workspace.Services, cancellationToken),
+                (semanticModel, currentRoot, node) => UpdateRoot(semanticModel, currentRoot, node, document.Project.Solution.Services, cancellationToken),
                 cancellationToken);
         }
 
