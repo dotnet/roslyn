@@ -12,6 +12,7 @@
 
     <!-- Publishing (only precompile binaries when building on CI to avoid slowing down dev builds by ~10s) -->
     <PublishReadyToRun Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</PublishReadyToRun>
+    <PublishReadyToRunCrossgen2ExtraArgs Condition="'$(DebugDeterminism)' == 'true' and '$(PublishReadyToRun)' == 'true'">--parallelism:1</PublishReadyToRunCrossgen2ExtraArgs>
     <SelfContained>false</SelfContained>    
     <PublishDocumentationFiles>false</PublishDocumentationFiles>
   </PropertyGroup>
