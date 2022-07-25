@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             using (Logger.LogBlock(FunctionId.Renamer_ResolveConflictsAsync, cancellationToken))
             {
                 var solution = lightweightRenameLocations.Solution;
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
                     var serializableSymbol = SerializableSymbolAndProjectId.Dehydrate(lightweightRenameLocations.Solution, symbol, cancellationToken);
