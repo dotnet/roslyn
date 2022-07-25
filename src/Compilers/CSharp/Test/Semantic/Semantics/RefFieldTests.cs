@@ -8289,30 +8289,27 @@ class B2 : A<string>
 {
     public void M1(scoped R<string> r) { } // 1
     public void M2(R<string> r) { } // 2
-    public void M3(ref scoped R<string> r) { } // 3
+    public void M3(scoped ref R<string> r) { } // 3
     public object this[scoped R<string> r] { get { return null; } set { } } // 4
     public object this[int x, R<string> y] => null; // 5
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
-                // (11,17): warning CS0108: 'B2.M1(R<string>)' hides inherited member 'A<string>.M1(R<string>)'. Use the new keyword if hiding was intended.
-                //     public void M1(scoped R<string> r) { } // 1
-                Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("B2.M1(R<string>)", "A<string>.M1(R<string>)").WithLocation(11, 17),
-                // (12,17): warning CS0108: 'B2.M2(R<string>)' hides inherited member 'A<string>.M2(R<string>)'. Use the new keyword if hiding was intended.
-                //     public void M2(R<string> r) { } // 2
-                Diagnostic(ErrorCode.WRN_NewRequired, "M2").WithArguments("B2.M2(R<string>)", "A<string>.M2(R<string>)").WithLocation(12, 17),
-                // (13,17): warning CS0108: 'B2.M4(ref R<string>)' hides inherited member 'A<string>.M4(ref R<string>)'. Use the new keyword if hiding was intended.
-                //     public void M3(ref scoped R<string> r) { } // 3
-                Diagnostic(ErrorCode.WRN_NewRequired, "M3").WithArguments("B2.M3(ref R<string>)", "A<string>.M3(ref R<string>)").WithLocation(13, 17),
-                // (13,24): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
-                //     public void M4(ref scoped R<string> r) { } // 3
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(13, 24),
-                // (14,19): warning CS0108: 'B2.this[R<string>]' hides inherited member 'A<string>.this[R<string>]'. Use the new keyword if hiding was intended.
-                //     public object this[scoped R<string> r] { get { return null; } set { } } // 4
-                Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[R<string>]", "A<string>.this[R<string>]").WithLocation(14, 19),
-                // (15,19): warning CS0108: 'B2.this[int, R<string>]' hides inherited member 'A<string>.this[int, R<string>]'. Use the new keyword if hiding was intended.
-                //     public object this[int x, R<string> y] => null; // 5
-                Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[int, R<string>]", "A<string>.this[int, R<string>]").WithLocation(15, 19));
+                    // (11,17): warning CS0108: 'B2.M1(R<string>)' hides inherited member 'A<string>.M1(R<string>)'. Use the new keyword if hiding was intended.
+                    //     public void M1(scoped R<string> r) { } // 1
+                    Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("B2.M1(R<string>)", "A<string>.M1(R<string>)").WithLocation(11, 17),
+                    // (12,17): warning CS0108: 'B2.M2(R<string>)' hides inherited member 'A<string>.M2(R<string>)'. Use the new keyword if hiding was intended.
+                    //     public void M2(R<string> r) { } // 2
+                    Diagnostic(ErrorCode.WRN_NewRequired, "M2").WithArguments("B2.M2(R<string>)", "A<string>.M2(R<string>)").WithLocation(12, 17),
+                    // (13,17): warning CS0108: 'B2.M3(ref R<string>)' hides inherited member 'A<string>.M3(ref R<string>)'. Use the new keyword if hiding was intended.
+                    //     public void M3(scoped ref R<string> r) { } // 3
+                    Diagnostic(ErrorCode.WRN_NewRequired, "M3").WithArguments("B2.M3(ref R<string>)", "A<string>.M3(ref R<string>)").WithLocation(13, 17),
+                    // (14,19): warning CS0108: 'B2.this[R<string>]' hides inherited member 'A<string>.this[R<string>]'. Use the new keyword if hiding was intended.
+                    //     public object this[scoped R<string> r] { get { return null; } set { } } // 4
+                    Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[R<string>]", "A<string>.this[R<string>]").WithLocation(14, 19),
+                    // (15,19): warning CS0108: 'B2.this[int, R<string>]' hides inherited member 'A<string>.this[int, R<string>]'. Use the new keyword if hiding was intended.
+                    //     public object this[int x, R<string> y] => null; // 5
+                    Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[int, R<string>]", "A<string>.this[int, R<string>]").WithLocation(15, 19));
         }
 
         [CombinatorialData]
@@ -8348,8 +8345,8 @@ class B2 : A<string>
 {
     public override R<string> F1(scoped R<string> r) => default; // 1
     public override R<string> F2(R<string> r) => default; // 2
-    public override R<string> F3(ref scoped R<string> r) => default; // 3
-    public override R<string> F4(ref scoped R<string> r) => default; // 4
+    public override R<string> F3(scoped ref R<string> r) => default; // 3
+    public override R<string> F4(ref R<string> r) => default; // 4
     public override object this[scoped R<string> r] { get { return null; } set { } } // 5
     public override object this[int x, R<string> y] => null; // 6
 }";
@@ -8361,15 +8358,12 @@ class B2 : A<string>
                 // (13,31): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     public override R<string> F2(R<string> r) => default; // 2
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(13, 31),
-                // (14,38): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
-                //     public override R<string> F3(ref scoped R<string> r) => default; // 3
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(14, 38),
+                // (14,31): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public override R<string> F3(scoped ref R<string> r) => default; // 3
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r").WithLocation(14, 31),
                 // (15,31): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     public override R<string> F4(ref scoped R<string> r) => default; // 4
+                //     public override R<string> F4(ref R<string> r) => default; // 4
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r").WithLocation(15, 31),
-                // (15,38): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
-                //     public override R<string> F4(ref scoped R<string> r) => default; // 4
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(15, 38),
                 // (16,76): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     public override object this[scoped R<string> r] { get { return null; } set { } } // 5
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 76),
