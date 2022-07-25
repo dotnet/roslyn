@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            : this(new SolutionState(workspace.PrimaryBranchId, new SolutionServices(workspace), solutionAttributes, options, analyzerReferences))
+            : this(new SolutionState(workspace.PrimaryBranchId, workspace.Kind, new SolutionServices(workspace), solutionAttributes, options, analyzerReferences))
         {
         }
 
@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis
 
         internal SolutionServices Services => _state.Services;
 
-        // TODO(cyrusn): Get this without going through the workspace.
-        internal string? WorkspaceKind => _state.Workspace.Kind;
+        internal string? WorkspaceKind => _state.WorkspaceKind;
 
         internal BranchId BranchId => _state.BranchId;
 
