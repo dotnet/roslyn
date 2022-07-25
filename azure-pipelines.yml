@@ -275,7 +275,7 @@ jobs:
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 35
   steps:
-    - template: eng/pipelines/checkout-task.yml
+    - template: eng/pipelines/checkout-windows-task.yml
 
     - task: PowerShell@2 
       displayName: Build with analyzers
