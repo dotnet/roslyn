@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Classification
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // public options do not affect classification:
-            return GetClassifiedSpans(document.Project.Solution.Workspace.Services, document.Project, semanticModel, textSpan, ClassificationOptions.Default, cancellationToken);
+            return GetClassifiedSpans(document.Project.Solution.Services, document.Project, semanticModel, textSpan, ClassificationOptions.Default, cancellationToken);
         }
 
         /// <summary>
