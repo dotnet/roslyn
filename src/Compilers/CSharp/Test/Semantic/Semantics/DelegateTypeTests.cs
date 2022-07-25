@@ -10088,6 +10088,7 @@ class Program
 {
     static R F1(ref R r) { Console.WriteLine(r._i); return new R(); }
     static R F2(scoped ref R r) { Console.WriteLine(r._i); return new R(); }
+    static R F4(scoped ref R r) { Console.WriteLine(r._i); return new R(); }
     static void Main()
     {
         var d1 = F1;
@@ -10098,6 +10099,10 @@ class Program
         var r2 = new R(2);
         d2(ref r2);
         Report(d2);
+        var d4 = F4;
+        var r4 = new R(4);
+        d4(ref r4);
+        Report(d4);
     }
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
@@ -10105,6 +10110,8 @@ class Program
 @"1
 <>f__AnonymousDelegate0
 2
+<>f__AnonymousDelegate1
+4
 <>f__AnonymousDelegate1
 ");
         }

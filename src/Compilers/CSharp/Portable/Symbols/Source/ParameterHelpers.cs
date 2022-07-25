@@ -539,29 +539,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case SyntaxKind.ScopedKeyword when !parsingFunctionPointerParams:
                         ModifierUtils.CheckScopedModifierAvailability(parameter, modifier, diagnostics);
+                        if (seenIn)
                         {
-                            if (seenIn)
+                            addERR_BadParameterModifiersOrder(diagnostics, modifier, SyntaxKind.InKeyword);
+                        }
+                        else if (seenOut)
+                        {
+                            addERR_BadParameterModifiersOrder(diagnostics, modifier, SyntaxKind.OutKeyword);
+                        }
+                        else if (seenRef)
+                        {
+                            addERR_BadParameterModifiersOrder(diagnostics, modifier, SyntaxKind.RefKeyword);
+                        }
+                        else
+                        {
+                            if (scopedBeforeRef)
                             {
-                                addERR_BadParameterModifiersOrder(diagnostics, modifier, SyntaxKind.InKeyword);
-                            }
-                            else if (seenOut)
-                            {
-                                addERR_BadParameterModifiersOrder(diagnostics, modifier, SyntaxKind.OutKeyword);
-                            }
-                            else if (seenRef)
-                            {
-                                addERR_BadParameterModifiersOrder(diagnostics, modifier, SyntaxKind.RefKeyword);
+                                addERR_DupParamMod(diagnostics, modifier);
                             }
                             else
                             {
-                                if (scopedBeforeRef)
-                                {
-                                    addERR_DupParamMod(diagnostics, modifier);
-                                }
-                                else
-                                {
-                                    scopedBeforeRef = true;
-                                }
+                                scopedBeforeRef = true;
                             }
                         }
                         break;

@@ -8323,7 +8323,7 @@ class Program
     static void M(R r0)
     {
         scoped R r1 = r0;
-        scoped ref R r3 = ref r0;
+        scoped ref readonly R r3 = ref r0;
     }
 }";
 
@@ -8354,7 +8354,9 @@ class Program
                 SymbolDisplayPartKind.LocalName);
 
             Verify(locals[1].ToDisplayParts(formatTypeAndRef),
-                "ref R r3",
+                "ref readonly R r3",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
@@ -8362,7 +8364,9 @@ class Program
                 SymbolDisplayPartKind.LocalName);
 
             Verify(locals[1].ToDisplayParts(formatTypeRefAndScoped),
-                "scoped ref R r3",
+                "scoped ref readonly R r3",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,

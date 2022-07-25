@@ -5377,7 +5377,7 @@ class Program
     static void M(R r0)
     {
         scoped R r1 = r0;
-        scoped ref R r3 = ref r0;
+        scoped ref readonly R r3 = ref r0;
     }
 }"
             Dim comp = CreateCSharpCompilation(GetUniqueName(), source, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.Preview))

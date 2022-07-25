@@ -6418,6 +6418,7 @@ public static class A
 {
     A(scoped ref T t) { }
     T this[scoped in object o] => default;
+    public static implicit operator B<T>(scoped in A<T> a) => default;
 }
 struct B<T>
 {
@@ -6429,7 +6430,10 @@ struct B<T>
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(3, 7),
                 // (4,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     T this[scoped in object o] => default;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 12),
+                // (5,42): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public static implicit operator B<T>(scoped in A<T> a) => default;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(5, 42));
             verify(comp);
 
             comp = CreateCompilation(source);
@@ -8264,6 +8268,7 @@ public class A<T>
 {
     public void M1(R<T> r) { }
     public void M2(scoped R<T> r) { }
+    public void M3(ref R<T> r) { }
     public object this[R<T> r] { get { return null; } set { } }
     public object this[int x, scoped R<T> y] => null;
 }";
@@ -8276,6 +8281,7 @@ public class A<T>
 {
     public new void M1(scoped R<int> r) { }
     public new void M2(R<int> r) { }
+    public new void M3(ref R<int> r) { }
     public new object this[scoped R<int> r] { get { return null; } set { } }
     public new object this[int x, R<int> y] => null;
 }
@@ -8283,23 +8289,30 @@ class B2 : A<string>
 {
     public void M1(scoped R<string> r) { } // 1
     public void M2(R<string> r) { } // 2
-    public object this[scoped R<string> r] { get { return null; } set { } } // 3
-    public object this[int x, R<string> y] => null; // 4
+    public void M3(ref scoped R<string> r) { } // 3
+    public object this[scoped R<string> r] { get { return null; } set { } } // 4
+    public object this[int x, R<string> y] => null; // 5
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
-                // (10,17): warning CS0108: 'B2.M1(R<string>)' hides inherited member 'A<string>.M1(R<string>)'. Use the new keyword if hiding was intended.
+                // (11,17): warning CS0108: 'B2.M1(R<string>)' hides inherited member 'A<string>.M1(R<string>)'. Use the new keyword if hiding was intended.
                 //     public void M1(scoped R<string> r) { } // 1
-                Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("B2.M1(R<string>)", "A<string>.M1(R<string>)").WithLocation(10, 17),
-                // (11,17): warning CS0108: 'B2.M2(R<string>)' hides inherited member 'A<string>.M2(R<string>)'. Use the new keyword if hiding was intended.
+                Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("B2.M1(R<string>)", "A<string>.M1(R<string>)").WithLocation(11, 17),
+                // (12,17): warning CS0108: 'B2.M2(R<string>)' hides inherited member 'A<string>.M2(R<string>)'. Use the new keyword if hiding was intended.
                 //     public void M2(R<string> r) { } // 2
-                Diagnostic(ErrorCode.WRN_NewRequired, "M2").WithArguments("B2.M2(R<string>)", "A<string>.M2(R<string>)").WithLocation(11, 17),
-                // (12,19): warning CS0108: 'B2.this[R<string>]' hides inherited member 'A<string>.this[R<string>]'. Use the new keyword if hiding was intended.
-                //     public object this[scoped R<string> r] { get { return null; } set { } } // 3
-                Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[R<string>]", "A<string>.this[R<string>]").WithLocation(12, 19),
-                // (13,19): warning CS0108: 'B2.this[int, R<string>]' hides inherited member 'A<string>.this[int, R<string>]'. Use the new keyword if hiding was intended.
-                //     public object this[int x, R<string> y] => null; // 4
-                Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[int, R<string>]", "A<string>.this[int, R<string>]").WithLocation(13, 19));
+                Diagnostic(ErrorCode.WRN_NewRequired, "M2").WithArguments("B2.M2(R<string>)", "A<string>.M2(R<string>)").WithLocation(12, 17),
+                // (13,17): warning CS0108: 'B2.M4(ref R<string>)' hides inherited member 'A<string>.M4(ref R<string>)'. Use the new keyword if hiding was intended.
+                //     public void M3(ref scoped R<string> r) { } // 3
+                Diagnostic(ErrorCode.WRN_NewRequired, "M3").WithArguments("B2.M3(ref R<string>)", "A<string>.M3(ref R<string>)").WithLocation(13, 17),
+                // (13,24): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
+                //     public void M4(ref scoped R<string> r) { } // 3
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(13, 24),
+                // (14,19): warning CS0108: 'B2.this[R<string>]' hides inherited member 'A<string>.this[R<string>]'. Use the new keyword if hiding was intended.
+                //     public object this[scoped R<string> r] { get { return null; } set { } } // 4
+                Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[R<string>]", "A<string>.this[R<string>]").WithLocation(14, 19),
+                // (15,19): warning CS0108: 'B2.this[int, R<string>]' hides inherited member 'A<string>.this[int, R<string>]'. Use the new keyword if hiding was intended.
+                //     public object this[int x, R<string> y] => null; // 5
+                Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[int, R<string>]", "A<string>.this[int, R<string>]").WithLocation(15, 19));
         }
 
         [CombinatorialData]
@@ -8312,6 +8325,7 @@ public abstract class A<T>
 {
     public abstract R<T> F1(R<T> r);
     public abstract R<T> F2(scoped R<T> r);
+    public abstract R<T> F3(ref R<T> r);
     public abstract R<T> F4(scoped ref R<T> r);
     public abstract object this[R<T> r] { get; set; }
     public abstract object this[int x, scoped R<T> y] { get; }
@@ -8325,6 +8339,7 @@ public abstract class A<T>
 {
     public override R<int> F1(R<int> r) => default;
     public override R<int> F2(scoped R<int> r) => default;
+    public override R<int> F3(ref R<int> r) => default;
     public override R<int> F4(scoped ref R<int> r) => default;
     public override object this[R<int> r] { get { return null; } set { } }
     public override object this[int x, scoped R<int> y] => null;
@@ -8333,30 +8348,34 @@ class B2 : A<string>
 {
     public override R<string> F1(scoped R<string> r) => default; // 1
     public override R<string> F2(R<string> r) => default; // 2
-    public override R<string> F4(ref scoped R<string> r) => default; // 3
-    public override object this[scoped R<string> r] { get { return null; } set { } } // 4
-    public override object this[int x, R<string> y] => null; // 5
+    public override R<string> F3(ref scoped R<string> r) => default; // 3
+    public override R<string> F4(ref scoped R<string> r) => default; // 4
+    public override object this[scoped R<string> r] { get { return null; } set { } } // 5
+    public override object this[int x, R<string> y] => null; // 6
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
-                // (11,31): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     public override R<string> F1(scoped R<string> r) => default; // 1
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(11, 31),
                 // (12,31): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     public override R<string> F2(R<string> r) => default; // 2
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(12, 31),
+                //     public override R<string> F1(scoped R<string> r) => default; // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(12, 31),
                 // (13,31): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     public override R<string> F4(ref scoped R<string> r) => default; // 3
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r").WithLocation(13, 31),
-                // (13,38): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
-                //     public override R<string> F4(ref scoped R<string> r) => default; // 3
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(13, 38),
-                // (14,76): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     public override object this[scoped R<string> r] { get { return null; } set { } } // 4
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(14, 76),
-                // (15,56): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
-                //     public override object this[int x, R<string> y] => null; // 5
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(15, 56));
+                //     public override R<string> F2(R<string> r) => default; // 2
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(13, 31),
+                // (14,38): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
+                //     public override R<string> F3(ref scoped R<string> r) => default; // 3
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(14, 38),
+                // (15,31): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public override R<string> F4(ref scoped R<string> r) => default; // 4
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r").WithLocation(15, 31),
+                // (15,38): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
+                //     public override R<string> F4(ref scoped R<string> r) => default; // 4
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(15, 38),
+                // (16,76): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public override object this[scoped R<string> r] { get { return null; } set { } } // 5
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 76),
+                // (17,56): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
+                //     public override object this[int x, R<string> y] => null; // 6
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 56));
         }
 
         [CombinatorialData]
@@ -8369,6 +8388,7 @@ public interface I<T>
 {
     R<T> F1(R<T> r);
     R<T> F2(scoped R<T> r);
+    R<T> F3(ref R<T> r);
     R<T> F4(scoped ref R<T> r);
     object this[R<T> r] { get; set; }
     object this[int x, scoped R<T> y] { get; }
@@ -8382,6 +8402,7 @@ public interface I<T>
 {
     public R<int> F1(R<int> r) => default;
     public R<int> F2(scoped R<int> r) => default;
+    public R<int> F3(ref R<int> r) => default;
     public R<int> F4(scoped ref R<int> r) => default;
     public object this[R<int> r] { get { return null; } set { } }
     public object this[int x, scoped R<int> y] => null;
@@ -8390,30 +8411,35 @@ class C2 : I<string>
 {
     public R<string> F1(scoped R<string> r) => default; // 1
     public R<string> F2(R<string> r) => default; // 2
+    public R<string> F3(scoped ref R<string> r) => default; // 3
     public R<string> F4(scoped ref R<string> r) => default;
-    public object this[scoped R<string> r] { get { return null; } set { } } // 3
-    public object this[int x, R<string> y] => null; // 4
+    public object this[scoped R<string> r] { get { return null; } set { } } // 4
+    public object this[int x, R<string> y] => null; // 5
 }";
             comp = CreateCompilation(sourceB1, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
-                // (11,22): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     public R<string> F1(scoped R<string> r) => default; // 1
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(11, 22),
                 // (12,22): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public R<string> F1(scoped R<string> r) => default; // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(12, 22),
+                // (13,22): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     public R<string> F2(R<string> r) => default; // 2
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(12, 22),
-                // (14,67): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     public object this[scoped R<string> r] { get { return null; } set { } } // 3
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(14, 67),
-                // (15,47): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
-                //     public object this[int x, R<string> y] => null; // 4
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(15, 47));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(13, 22),
+                // (14,22): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public R<string> F3(scoped ref R<string> r) => default; // 3
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r").WithLocation(14, 22),
+                // (16,67): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public object this[scoped R<string> r] { get { return null; } set { } } // 4
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 67),
+                // (17,47): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
+                //     public object this[int x, R<string> y] => null; // 5
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 47));
 
             var sourceB2 =
 @"class C3 : I<int>
 {
     R<int> I<int>.F1(R<int> r) => default;
     R<int> I<int>.F2(scoped R<int> r) => default;
+    R<int> I<int>.F3(ref R<int> r) => default;
     R<int> I<int>.F4(scoped ref R<int> r) => default;
     object I<int>.this[R<int> r] { get { return null; } set { } }
     object I<int>.this[int x, scoped R<int> y] => null;
@@ -8422,24 +8448,28 @@ class C4 : I<string>
 {
     R<string> I<string>.F1(scoped R<string> r) => default; // 1
     R<string> I<string>.F2(R<string> r) => default; // 2
+    R<string> I<string>.F3(scoped ref R<string> r) => default; // 3
     R<string> I<string>.F4(scoped ref R<string> r) => default;
-    object I<string>.this[scoped R<string> r] { get { return null; } set { } } // 3
-    object I<string>.this[int x, R<string> y] => null; // 4
+    object I<string>.this[scoped R<string> r] { get { return null; } set { } } // 4
+    object I<string>.this[int x, R<string> y] => null; // 5
 }";
             comp = CreateCompilation(sourceB2, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
-                // (11,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     R<string> I<string>.F1(scoped R<string> r) => default; // 1
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(11, 25),
                 // (12,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     R<string> I<string>.F1(scoped R<string> r) => default; // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(12, 25),
+                // (13,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     R<string> I<string>.F2(R<string> r) => default; // 2
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(12, 25),
-                // (14,70): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     object I<string>.this[scoped R<string> r] { get { return null; } set { } } // 3
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(14, 70),
-                // (15,50): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
-                //     object I<string>.this[int x, R<string> y] => null; // 4
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(15, 50));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(13, 25),
+                // (14,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     R<string> I<string>.F3(scoped ref R<string> r) => default; // 3
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r").WithLocation(14, 25),
+                // (16,70): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     object I<string>.this[scoped R<string> r] { get { return null; } set { } } // 4
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 70),
+                // (17,50): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
+                //     object I<string>.this[int x, R<string> y] => null; // 5
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 50));
         }
 
         [CombinatorialData]
@@ -8965,7 +8995,7 @@ class Program
 {
     static void F1(scoped Unknown x, scoped R<Unknown> y)
     {
-        var f = (ref scoped Unknown u) => { };
+        var f = (scoped ref Unknown u) => { };
         scoped R<Unknown> z = y;
         scoped var v = F2();
     }
@@ -8978,11 +9008,8 @@ class Program
                 // (4,47): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 //     static void F1(scoped Unknown x, scoped R<Unknown> y)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(4, 47),
-                // (6,22): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
-                //         var f = (ref scoped Unknown u) => { };
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(6, 22),
                 // (6,29): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
-                //         var f = (ref scoped Unknown u) => { };
+                //         var f = (scoped ref Unknown u) => { };
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(6, 29),
                 // (7,18): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 //         scoped R<Unknown> z = y;
@@ -12298,7 +12325,6 @@ public ref struct R
                 );
         }
 
-
         [Fact]
         public void RefScoped()
         {
@@ -12307,7 +12333,7 @@ public ref struct R
 {
     ref scoped R field;
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (3,9): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //     ref scoped R field;
@@ -12334,7 +12360,7 @@ public ref struct R
 {
     ref scoped R Property { get => throw null; }
 }";
-            comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (3,9): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //     ref scoped R Property { get => throw null; }
@@ -12372,7 +12398,7 @@ public ref struct R
     { 
     }
 }";
-            comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (3,16): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
                 //     void M(ref scoped R parameter) 
@@ -12386,7 +12412,7 @@ public ref struct R
     { 
     }
 }";
-            comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (3,15): error CS8339:  The parameter modifier 'scoped' cannot follow 'in'
                 //     void M(in scoped R parameter) 
@@ -12400,7 +12426,7 @@ public ref struct R
     { 
     }
 }";
-            comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (3,16): error CS8339:  The parameter modifier 'scoped' cannot follow 'out'
                 //     void M(out scoped R parameter) 
@@ -12414,7 +12440,7 @@ public ref struct R
     { 
     }
 }";
-            comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (3,16): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
                 //     void M(ref scoped scoped R parameter) 
@@ -12432,7 +12458,7 @@ public ref struct R
         ref scoped R local;
     }
 }";
-            comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,13): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //         ref scoped R local;
@@ -12462,7 +12488,7 @@ public ref struct R
         scoped ref scoped R local;
     }
 }";
-            comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,20): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //         scoped ref scoped R local;
@@ -12489,7 +12515,7 @@ public ref struct R
 {
     ref scoped R M() => throw null;
 }";
-            comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (3,9): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //     ref scoped R M() => throw null;
@@ -12515,7 +12541,7 @@ public ref struct R
 delegate void M(ref scoped R parameter);
 ref struct R { }
 ";
-            comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,21): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
                 // delegate void M(ref scoped R parameter);
@@ -12531,7 +12557,7 @@ ref struct R
     }
 }
 ";
-            comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         _ = void (ref scoped R parameter) => throw null;
