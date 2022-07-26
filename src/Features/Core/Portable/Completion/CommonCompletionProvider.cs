@@ -76,8 +76,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Document document, CompletionItem item,
             ImmutableArray<TaggedText> parts, CancellationToken cancellationToken)
         {
-            var languageServices = document.Project.LanguageServices;
-            var snippetService = languageServices.GetService<ISnippetInfoService>();
+            var snippetService = document.Project.Services.GetService<ISnippetInfoService>();
             if (snippetService != null)
             {
                 var change = await GetTextChangeAsync(document, item, ch: '\t', cancellationToken: cancellationToken).ConfigureAwait(false) ??
