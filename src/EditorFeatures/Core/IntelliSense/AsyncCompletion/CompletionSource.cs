@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             // The completion service decides that user may want a completion.
             return completionService.ShouldTriggerCompletion(
-                document.Project, document.Project.LanguageServices, sourceText, triggerLocation.Position, roslynTrigger, options, document.Project.Solution.Options, _roles);
+                document.Project, document.Project.Services, sourceText, triggerLocation.Position, roslynTrigger, options, document.Project.Solution.Options, _roles);
         }
 
         private bool TryInvokeSnippetCompletion(

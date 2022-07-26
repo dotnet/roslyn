@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var completionOptions = CompletionOptions.Default;
             var passThroughOptions = options ?? document?.Project.Solution.Options ?? OptionValueSet.Empty;
 
-            return ShouldTriggerCompletion(document?.Project, languageServices, text, caretPosition, trigger, completionOptions, passThroughOptions, roles);
+            return ShouldTriggerCompletion(document?.Project, languageServices.ProjectServices, text, caretPosition, trigger, completionOptions, passThroughOptions, roles);
         }
 
         internal virtual bool SupportsTriggerOnDeletion(CompletionOptions options)
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </remarks>
         internal virtual bool ShouldTriggerCompletion(
             Project? project,
-            HostLanguageServices languageServices,
+            HostProjectServices languageServices,
             SourceText text,
             int caretPosition,
             CompletionTrigger trigger,
