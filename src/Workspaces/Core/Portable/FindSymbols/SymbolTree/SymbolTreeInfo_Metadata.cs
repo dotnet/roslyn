@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return null;
 
             return await GetInfoForMetadataReferenceSlowAsync(
-                solution.Workspace.Services, SolutionKey.ToSolutionKey(solution), reference, checksum, metadata, cancellationToken).ConfigureAwait(false);
+                solution.Services, SolutionKey.ToSolutionKey(solution), reference, checksum, metadata, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<SymbolTreeInfo?> TryGetCachedInfoForMetadataReferenceIgnoreChecksumAsync(PortableExecutableReference reference, CancellationToken cancellationToken)
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceSlowAsync(
-            HostWorkspaceServices services,
+            HostSolutionServices services,
             SolutionKey solutionKey,
             PortableExecutableReference reference,
             Checksum checksum,
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static Task<SymbolTreeInfo> CreateMetadataSymbolTreeInfoAsync(
-            HostWorkspaceServices services,
+            HostSolutionServices services,
             SolutionKey solutionKey,
             PortableExecutableReference reference,
             Checksum checksum,
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static Task<SymbolTreeInfo> CreateMetadataSymbolTreeInfoAsync(
-            HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum, PortableExecutableReference reference)
+            HostSolutionServices services, SolutionKey solutionKey, Checksum checksum, PortableExecutableReference reference)
         {
             var creator = new MetadataInfoCreator(services, solutionKey, checksum, reference);
             return Task.FromResult(creator.Create());
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private static readonly Predicate<string> s_isNotNullOrEmpty = s => !string.IsNullOrEmpty(s);
             private static readonly ObjectPool<List<string>> s_stringListPool = SharedPools.Default<List<string>>();
 
-            private readonly HostWorkspaceServices _services;
+            private readonly HostSolutionServices _services;
             private readonly SolutionKey _solutionKey;
             private readonly Checksum _checksum;
             private readonly PortableExecutableReference _reference;
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private bool _containsExtensionsMethod;
 
             public MetadataInfoCreator(
-                HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum, PortableExecutableReference reference)
+                HostSolutionServices services, SolutionKey solutionKey, Checksum checksum, PortableExecutableReference reference)
             {
                 _services = services;
                 _solutionKey = solutionKey;

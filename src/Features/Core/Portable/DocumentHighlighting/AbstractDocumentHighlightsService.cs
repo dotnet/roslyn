@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var solution = document.Project.Solution;
 
             var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
-                semanticModel, position, solution.Workspace, cancellationToken).ConfigureAwait(false);
+                semanticModel, position, solution.Services, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
                 return ImmutableArray<DocumentHighlights>.Empty;
 

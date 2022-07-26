@@ -146,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
 
         private Task<bool> FixSolutionAsync(Solution solution, ICodeCleanUpExecutionContext context)
         {
-            return FixAsync(solution.Workspace, ApplyFixAsync, context);
+            return FixAsync(_workspace, ApplyFixAsync, context);
 
             // Local function
             Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken cancellationToken)
@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
 
         private Task<bool> FixProjectAsync(Project project, ICodeCleanUpExecutionContext context)
         {
-            return FixAsync(project.Solution.Workspace, ApplyFixAsync, context);
+            return FixAsync(_workspace, ApplyFixAsync, context);
 
             // Local function
             async Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken cancellationToken)

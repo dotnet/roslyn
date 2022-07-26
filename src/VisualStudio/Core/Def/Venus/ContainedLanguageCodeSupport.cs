@@ -234,7 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             newRoot = Formatter.Format(
                 newRoot,
                 Formatter.Annotation,
-                targetDocument.Project.Solution.Workspace.Services,
+                targetDocument.Project.Solution.Services,
                 options.CleanupOptions.FormattingOptions,
                 formattingRules,
                 cancellationToken);
