@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// <summary>
         /// Constructor for a code style analyzer with a multiple diagnostic descriptors such that all the descriptors have no unique code style option to configure the descriptors.
         /// </summary>
-        private AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableArray<DiagnosticDescriptor> supportedDiagnostics)
+        protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableArray<DiagnosticDescriptor> supportedDiagnostics)
         {
             SupportedDiagnostics = supportedDiagnostics;
 
@@ -61,15 +61,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 #pragma warning restore RS0030 // Do not used banned APIs
 
         /// <summary>
-        /// Flag indicating whether or not analyzer should receive analysis callbacks for generated code.
-        /// By default, code style analyzers should not run on generated code, so the value is false.
+        /// Flags to configure the analysis of generated code.
+        /// By default, code style analyzers should not analyze or report diagnostics on generated code, so the value is false.
         /// </summary>
-        protected virtual bool ReceiveAnalysisCallbacksForGeneratedCode => false;
+        protected virtual GeneratedCodeAnalysisFlags GeneratedCodeAnalysisFlags => GeneratedCodeAnalysisFlags.None;
 
         public sealed override void Initialize(AnalysisContext context)
         {
-            var flags = ReceiveAnalysisCallbacksForGeneratedCode ? GeneratedCodeAnalysisFlags.Analyze : GeneratedCodeAnalysisFlags.None;
-            context.ConfigureGeneratedCodeAnalysis(flags);
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags);
             context.EnableConcurrentExecution();
 
             InitializeWorker(context);

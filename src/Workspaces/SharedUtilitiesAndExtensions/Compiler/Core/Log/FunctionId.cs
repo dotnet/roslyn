@@ -549,6 +549,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         LSP_UsedForkedSolution = 571,
 
+        DocumentOutline_WindowOpen = 572,
+        DocumentOutline_SortByName = 573,
+        DocumentOutline_SortByOrder = 574,
+        DocumentOutline_SortByType = 575,
+
         ApplyChangesOperation_WorkspaceVersionMatch_ApplicationSucceeded = 580,
         ApplyChangesOperation_WorkspaceVersionMatch_ApplicationFailed = 581,
         ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationSucceeded = 582,

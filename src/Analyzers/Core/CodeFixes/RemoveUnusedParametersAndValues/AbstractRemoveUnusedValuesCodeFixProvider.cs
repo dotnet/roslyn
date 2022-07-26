@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+            var editor = document.GetSyntaxEditor(root);
 
             // We compute the code fix in two passes:
             //   1. The first pass groups the diagnostics to fix by containing member declaration and
