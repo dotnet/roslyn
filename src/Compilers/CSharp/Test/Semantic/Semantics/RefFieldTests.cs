@@ -2337,6 +2337,49 @@ class Program
         }
 
         [Fact]
+        public void MethodInvocation_Params()
+        {
+            var source =
+@"ref struct R
+{
+    public R(ref int i) { }
+}
+class Program
+{
+    static R M1(R input, params object[] array)
+    {
+        return input;
+    }
+    static R M2()
+    {
+        int i = 42;
+        var r = new R(ref i);
+        return M1(r);
+    }
+    static R M3()
+    {
+        int i = 42;
+        var r = new R(ref i);
+        return M1(r, 0, 1, 2);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (15,16): error CS8347: Cannot use a result of 'Program.M1(R, params object[])' in this context because it may expose variables referenced by parameter 'input' outside of their declaration scope
+                //         return M1(r);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M1(r)").WithArguments("Program.M1(R, params object[])", "input").WithLocation(15, 16),
+                // (15,19): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return M1(r);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(15, 19),
+                // (21,16): error CS8347: Cannot use a result of 'Program.M1(R, params object[])' in this context because it may expose variables referenced by parameter 'input' outside of their declaration scope
+                //         return M1(r, 0, 1, 2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M1(r, 0, 1, 2)").WithArguments("Program.M1(R, params object[])", "input").WithLocation(21, 16),
+                // (21,19): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return M1(r, 0, 1, 2);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(21, 19));
+        }
+
+        [Fact]
         public void MethodArgumentsMustMatch_01()
         {
             var source =
