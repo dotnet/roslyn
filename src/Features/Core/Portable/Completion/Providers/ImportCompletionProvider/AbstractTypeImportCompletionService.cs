@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract string Language { get; }
 
-        internal AbstractTypeImportCompletionService(HostWorkspaceServices services)
+        internal AbstractTypeImportCompletionService(HostSolutionServices services)
         {
             CacheService = services.GetRequiredService<IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry>>();
         }
