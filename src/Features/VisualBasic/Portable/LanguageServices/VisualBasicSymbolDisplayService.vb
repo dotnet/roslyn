@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
     Friend Class VisualBasicSymbolDisplayService
         Inherits AbstractSymbolDisplayService
 
-        Public Sub New(provider As HostLanguageServices)
+        Public Sub New(provider As HostProjectServices)
             MyBase.New(provider)
         End Sub
 
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                                                               position As Integer,
                                                               options As SymbolDescriptionOptions,
                                                               cancellationToken As CancellationToken) As AbstractSymbolDescriptionBuilder
-            Return New SymbolDescriptionBuilder(semanticModel, position, Services.ProjectServices.SolutionServices, AnonymousTypeDisplayService, options, cancellationToken)
+            Return New SymbolDescriptionBuilder(semanticModel, position, Services.SolutionServices, AnonymousTypeDisplayService, options, cancellationToken)
         End Function
     End Class
 End Namespace
