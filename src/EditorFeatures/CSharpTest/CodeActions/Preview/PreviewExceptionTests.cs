@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             var context = new CodeRefactoringContext(document, span, (a) => codeActions.Add(a), CancellationToken.None);
             provider.ComputeRefactoringsAsync(context).Wait();
             var action = codeActions.Single();
-            extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>() as EditorLayerExtensionManager.ExtensionManager;
+            extensionManager = document.Project.Solution.Services.GetService<IExtensionManager>() as EditorLayerExtensionManager.ExtensionManager;
         }
     }
 }

@@ -841,7 +841,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var provider = GetSyntaxFormatting();
             rootWithTrackedNodes = FormatterHelper.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), provider, options, rules: null, cancellationToken);
 #else
-            var provider = document.Project.Solution.Workspace.Services;
+            var provider = document.Project.Solution.Services;
             rootWithTrackedNodes = Formatter.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), provider, options, rules: null, cancellationToken);
 #endif
 

@@ -47,7 +47,7 @@ namespace IdeBenchmarks
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
             var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
             var options = workspace.GlobalOptions.GetSyntaxFormattingOptions(document.Project.LanguageServices);
-            return Formatter.GetFormattedTextChanges(root, workspace.Services, options, CancellationToken.None);
+            return Formatter.GetFormattedTextChanges(root, workspace.Services.SolutionServices, options, CancellationToken.None);
         }
 
         [Benchmark]
@@ -60,7 +60,7 @@ namespace IdeBenchmarks
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
             var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
             var options = workspace.GlobalOptions.GetSyntaxFormattingOptions(document.Project.LanguageServices);
-            return Formatter.GetFormattedTextChanges(root, workspace.Services, options, CancellationToken.None);
+            return Formatter.GetFormattedTextChanges(root, workspace.Services.SolutionServices, options, CancellationToken.None);
         }
     }
 }

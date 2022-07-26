@@ -131,7 +131,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using var listener = new TodoCommentsListener(
                 workspace.GlobalOptions,
-                workspace.Services,
+                workspace.Services.SolutionServices,
                 workspace.GetService<IAsynchronousOperationListenerProvider>(),
                 onTodoCommentsUpdated: (documentId, _, newComments) => resultSource.SetResult((documentId, newComments)),
                 disposalToken: cancellationTokenSource.Token);

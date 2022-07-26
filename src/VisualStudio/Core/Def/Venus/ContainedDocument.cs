@@ -797,7 +797,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var formattingRules = venusFormattingRules.Concat(Formatter.GetDefaultFormattingRules(document));
 
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
             var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
             var changes = formatter.GetFormattingResult(
                 root, new TextSpan[] { CommonFormattingHelpers.GetFormattingSpan(root, visibleSpan) },

@@ -46,4 +46,10 @@ namespace Microsoft.CodeAnalysis.Host
         public HostProjectServices GetProjectServices(string languageName)
             => _services.GetLanguageServices(languageName).ProjectServices;
     }
+
+    internal static class HostSolutionServicesExtensions
+    {
+        public static TLanguageService GetRequiredLanguageService<TLanguageService>(this HostSolutionServices services, string language) where TLanguageService : ILanguageService
+            => services.GetProjectServices(language).GetRequiredService<TLanguageService>();
+    }
 }

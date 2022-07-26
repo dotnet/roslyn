@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             if (CanImplementIEquatable(semanticModel, containingType, out var equatableTypeOpt))
             {
-                var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+                var globalOptions = document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
                 var value = globalOptions.GetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(document.Project.Language);
 
                 var displayName = equatableTypeOpt.ToDisplayString(new SymbolDisplayFormat(
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             if (!HasOperators(containingType))
             {
-                var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+                var globalOptions = document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
                 var value = globalOptions.GetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(document.Project.Language);
 
                 pickMembersOptions.Add(new PickMembersOption(

@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             private ImmutableArray<ISymbol> GetSymbolsInNewSolution(Document newDocument, SemanticModel newDocumentSemanticModel, RenameActionAnnotation conflictAnnotation, SyntaxNodeOrToken tokenOrNode)
             {
-                var newReferencedSymbols = RenameUtilities.GetSymbolsTouchingPosition(tokenOrNode.Span.Start, newDocumentSemanticModel, newDocument.Project.Solution.Workspace.Services, _cancellationToken);
+                var newReferencedSymbols = RenameUtilities.GetSymbolsTouchingPosition(tokenOrNode.Span.Start, newDocumentSemanticModel, newDocument.Project.Solution.Services, _cancellationToken);
 
                 if (conflictAnnotation.IsInvocationExpression)
                 {
@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var documentsFromAffectedProjects = RenameUtilities.GetDocumentsAffectedByRename(symbol, solution, _renameLocationSet.Locations);
                     foreach (var language in documentsFromAffectedProjects.Select(d => d.Project.Language).Distinct())
                     {
-                        solution.Workspace.Services.GetLanguageServices(language).GetService<IRenameRewriterLanguageService>()
+                        solution.Services.GetProjectServices(language).GetService<IRenameRewriterLanguageService>()
                             ?.TryAddPossibleNameConflicts(symbol, _replacementText, _possibleNameConflicts);
                     }
 

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public Checksum GetParseOptionsChecksum()
-            => GetParseOptionsChecksum(_solutionServices.Workspace.Services.GetService<ISerializerService>());
+            => GetParseOptionsChecksum(_solutionServices.GetService<ISerializerService>());
 
         private Checksum GetParseOptionsChecksum(ISerializerService serializer)
             => this.SupportsCompilation
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
                     var additionalDocumentChecksumTasks = AdditionalDocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
                     var analyzerConfigDocumentChecksumTasks = AnalyzerConfigDocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
 
-                    var serializer = _solutionServices.Workspace.Services.GetService<ISerializerService>();
+                    var serializer = _solutionServices.GetService<ISerializerService>();
 
                     var infoChecksum = serializer.CreateChecksum(ProjectInfo.Attributes, cancellationToken);
 

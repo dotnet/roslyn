@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return document;
             }
 
-            var fixAllService = document.Project.Solution.Workspace.Services.GetRequiredService<IFixAllGetFixesService>();
+            var fixAllService = document.Project.Solution.Services.GetRequiredService<IFixAllGetFixesService>();
 
             var solution = await fixAllService.GetFixAllChangedSolutionAsync(
                 new FixAllContext(fixCollection.FixAllState, progressTracker, cancellationToken)).ConfigureAwait(false);
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (TryGetWorkspaceFixersPriorityMap(document, out var fixersForLanguage))
                 allFixers = allFixers.Sort(new FixerComparer(allFixers, fixersForLanguage.Value));
 
-            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
+            var extensionManager = document.Project.Solution.Services.GetService<IExtensionManager>();
 
             // Run each CodeFixProvider to gather individual CodeFixes for reported diagnostics.
             // Ensure that no diagnostic has registered code actions from different code fix providers with same equivalance key.
@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return null;
             }
 
-            var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+            var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
             var fixes = await extensionManager.PerformFunctionAsync(fixer,
                  () => getFixes(diagnostics),
                 defaultValue: ImmutableArray<CodeFix>.Empty).ConfigureAwait(false);
@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>> ComputeProjectFixers(Project project)
         {
-            var extensionManager = project.Solution.Workspace.Services.GetService<IExtensionManager>();
+            var extensionManager = project.Solution.Services.GetService<IExtensionManager>();
 
             using var _ = PooledDictionary<DiagnosticId, ArrayBuilder<CodeFixProvider>>.GetInstance(out var builder);
             var codeFixProviders = ProjectCodeFixProvider.GetExtensions(project);

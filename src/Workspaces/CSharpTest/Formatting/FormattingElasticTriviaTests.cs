@@ -91,7 +91,7 @@ class B
             Assert.NotNull(compilation);
 
             using var workspace = new AdhocWorkspace();
-            var newCompilation = Formatter.Format(compilation, workspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
+            var newCompilation = Formatter.Format(compilation, workspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
             Assert.Equal(expected, newCompilation.ToFullString());
         }
 
@@ -133,13 +133,13 @@ public class C
 public class SomeAttribute : System.Attribute { }
 ";
 
-            var formatted = Formatter.Format(newRoot, workspace.Services, options, CancellationToken.None).ToFullString();
+            var formatted = Formatter.Format(newRoot, workspace.Services.SolutionServices, options, CancellationToken.None).ToFullString();
             Assert.Equal(expected, formatted);
 
-            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, workspace.Services, options, CancellationToken.None).ToFullString();
+            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, workspace.Services.SolutionServices, options, CancellationToken.None).ToFullString();
             Assert.Equal(expected, elasticOnlyFormatted);
 
-            var annotationFormatted = Formatter.Format(newRoot, Formatter.Annotation, workspace.Services, options, CancellationToken.None).ToFullString();
+            var annotationFormatted = Formatter.Format(newRoot, Formatter.Annotation, workspace.Services.SolutionServices, options, CancellationToken.None).ToFullString();
             Assert.Equal(expected, annotationFormatted);
         }
 
@@ -196,7 +196,7 @@ public class SomeAttribute : System.Attribute { }
             Assert.NotNull(compilation);
 
             using var workspace = new AdhocWorkspace();
-            var newCompilation = Formatter.Format(compilation, workspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
+            var newCompilation = Formatter.Format(compilation, workspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
             Assert.Equal(expected, newCompilation.ToFullString());
         }
     }
