@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis;
 internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, SyntaxNode Root, HostLanguageServices LanguageServices)
 {
     public SyntaxTree SyntaxTree => Root.SyntaxTree;
+    public HostProjectServices ProjectServices => LanguageServices.ProjectServices;
+    public HostSolutionServices SolutionServices => ProjectServices.SolutionServices;
 
     public static async ValueTask<ParsedDocument> CreateAsync(Document document, CancellationToken cancellationToken)
     {
