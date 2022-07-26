@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Contract.ThrowIfNull(document);
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
-            var quickInfoService = document.Project.LanguageServices.GetRequiredService<QuickInfoService>();
+            var quickInfoService = document.Project.Services.GetRequiredService<QuickInfoService>();
             var options = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
             var info = await quickInfoService.GetQuickInfoAsync(document, position, options, cancellationToken).ConfigureAwait(false);
             if (info == null)
