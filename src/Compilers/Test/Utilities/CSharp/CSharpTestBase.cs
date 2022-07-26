@@ -1107,6 +1107,22 @@ namespace System.Diagnostics.CodeAnalysis
             return comp;
         }
 
+
+        internal static CSharpCompilation CreateByRefFieldsCompilation(
+              CSharpTestSource source,
+              IEnumerable<MetadataReference> references = null,
+              CSharpCompilationOptions options = null,
+              CSharpParseOptions parseOptions = null,
+              string assemblyName = "",
+              string sourceFileName = "")
+        {
+            // Note: we use skipUsesIsNullable and skipExtraValidation so that nobody pulls
+            // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
+            var comp = CreateCompilationCore(source, references, options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable: true, experimentalFeature: null, skipExtraValidation: true);
+            comp.Assembly.RuntimeSupportsByRefFields = true;
+            return comp;
+        }
+
         public static CSharpCompilation CreateCompilationWithWinRT(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,

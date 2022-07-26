@@ -5283,7 +5283,11 @@ ref struct S<T>
     ref readonly T F2;
 }"
             Dim comp = CreateCSharpCompilation(GetUniqueName(), source, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.Preview))
-            comp.VerifyDiagnostics()
+            comp.VerifyDiagnostics(
+                {
+                   Diagnostic(9063, "F1").WithLocation(4, 11),
+                   Diagnostic(9063, "F2").WithLocation(5, 20)
+                })
 
             Dim type = comp.GlobalNamespace.GetTypeMembers("S").Single()
 
