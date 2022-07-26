@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 var project = group.Key;
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                var generator = project.LanguageServices.GetRequiredService<SyntaxGenerator>();
+                var generator = project.Services.GetRequiredService<SyntaxGenerator>();
 
                 // Get the fully qualified name for the new type we're creating.  We'll use this
                 // at replacement points so that we can find the right type even if we're in a 

@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             foreach (var docId in nodesToUpdate.Keys)
             {
                 var doc = currentSolution.GetRequiredDocument(docId);
-                var updater = doc.Project.LanguageServices.GetRequiredService<AbstractChangeSignatureService>();
+                var updater = doc.Project.Services.GetRequiredService<AbstractChangeSignatureService>();
                 var root = await doc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 if (root is null)
                 {
