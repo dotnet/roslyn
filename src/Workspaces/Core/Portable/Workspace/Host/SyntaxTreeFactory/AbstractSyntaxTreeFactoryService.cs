@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -18,13 +17,13 @@ namespace Microsoft.CodeAnalysis.Host
     {
         private readonly int _minimumLengthForRecoverableTree;
 
-        internal HostLanguageServices LanguageServices { get; }
+        internal HostSolutionServices SolutionServices { get; }
 
-        public AbstractSyntaxTreeFactoryService(HostLanguageServices languageServices)
+        public AbstractSyntaxTreeFactoryService(HostSolutionServices services)
         {
-            LanguageServices = languageServices;
+            SolutionServices = services;
 
-            var cacheService = languageServices.WorkspaceServices.GetService<IProjectCacheHostService>();
+            var cacheService = services.GetService<IProjectCacheHostService>();
             _minimumLengthForRecoverableTree = (cacheService != null) ? cacheService.MinimumLengthForRecoverableTree : int.MaxValue;
         }
 
