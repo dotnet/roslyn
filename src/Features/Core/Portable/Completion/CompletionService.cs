@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="cancellationToken"></param>
         internal virtual async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken = default)
         {
-            var provider = GetProvider(item);
+            var provider = GetProvider(item, document.Project);
             if (provider is null)
                 return CompletionDescription.Empty;
 
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Completion
             char? commitCharacter = null,
             CancellationToken cancellationToken = default)
         {
-            var provider = GetProvider(item);
+            var provider = GetProvider(item, document.Project);
             if (provider != null)
             {
                 // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
@@ -392,17 +392,17 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Don't call. Used for pre-populating MEF providers only.
         /// </summary>
-        internal IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> GetImportedProviders()
-            => _providerManager.GetImportedProviders();
+        internal IReadOnlyList<Lazy<CompletionProvider, CompletionProviderMetadata>> GetLazyImportedProviders()
+            => _providerManager.GetLazyImportedProviders();
 
         /// <summary>
         /// Don't call. Used for pre-populating NuGet providers only.
         /// </summary>
-        internal static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
+        internal static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project project)
             => ProviderManager.GetProjectCompletionProviders(project);
 
-        internal CompletionProvider? GetProvider(CompletionItem item)
-            => _providerManager.GetProvider(item);
+        internal CompletionProvider? GetProvider(CompletionItem item, Project? project)
+            => _providerManager.GetProvider(item, project);
 
         internal TestAccessor GetTestAccessor()
             => new(this);
@@ -414,8 +414,8 @@ namespace Microsoft.CodeAnalysis.Completion
             public TestAccessor(CompletionService completionServiceWithProviders)
                 => _completionServiceWithProviders = completionServiceWithProviders;
 
-            internal ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles)
-                => _completionServiceWithProviders._providerManager.GetAllProviders(roles);
+            internal ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles, Project? project = null)
+                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetProviders(roles, project);
 
             internal async Task<CompletionContext> GetContextAsync(
                 CompletionProvider provider,

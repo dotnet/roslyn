@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -780,9 +781,9 @@ partial class Bar
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
             var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
-                CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
-                new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent))));
+            workspace.GlobalOptions.SetGlobalOption(
+                new OptionKey(CSharpCodeStyleOptions.PreferExpressionBodiedMethods),
+                new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent));
 
             var text = @"using System;
 partial class Bar
@@ -811,9 +812,9 @@ partial class Bar
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
             var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
-                CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
-                new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent))));
+            workspace.GlobalOptions.SetGlobalOption(
+                new OptionKey(CSharpCodeStyleOptions.PreferExpressionBodiedMethods),
+                new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent));
 
             var text = @"using System;
 partial class Bar

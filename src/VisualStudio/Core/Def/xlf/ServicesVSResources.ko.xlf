@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="Collapse_sourcelink_embedded_decompiled_files_on_open">
         <source>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</source>
-        <target state="translated">원본 축소 파일을 열 때 정의에 대한 링크, 포함 및 디컴파일된 원본</target>
+        <target state="translated">파일을 열 때 소스 링크, 포함 및 디컴파일된 소스를 정의로 축소</target>
         <note />
       </trans-unit>
       <trans-unit id="Color_hints">

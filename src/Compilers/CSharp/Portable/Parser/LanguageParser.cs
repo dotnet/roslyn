@@ -1212,10 +1212,8 @@ tryAgain:
                             nextToken.Kind == SyntaxKind.DelegateKeyword ||
                             (IsPossibleStartOfTypeDeclaration(nextToken.Kind) && GetModifier(nextToken) != DeclarationModifiers.None))
                         {
-                            // Misplaced partial
-                            // TODO(https://github.com/dotnet/roslyn/issues/22439):
-                            // We should consider moving this check into binding, but avoid holding on to trees
-                            modTok = AddError(ConvertToKeyword(this.EatToken()), ErrorCode.ERR_PartialMisplaced);
+                            // Error reported in ModifierUtils.
+                            modTok = ConvertToKeyword(this.EatToken());
                         }
                         else
                         {
@@ -12753,10 +12751,14 @@ tryAgain:
         {
             if (this.IsComplexElementInitializer())
             {
+                // { ... }
                 return this.ParseComplexElementInitializer();
             }
             else if (IsDictionaryInitializer())
             {
+                // [...] = { ... }
+                // [...] = ref <expr>
+                // [...] = <expr>
                 isObjectInitializer = true;
                 var initializer = this.ParseDictionaryInitializer();
                 initializer = CheckFeatureAvailability(initializer, MessageID.IDS_FeatureDictionaryInitializer);
@@ -12764,12 +12766,17 @@ tryAgain:
             }
             else if (this.IsNamedAssignment())
             {
+                // Name = { ... }
+                // Name = ref <expr>
+                // Name =  <expr>
                 isObjectInitializer = true;
                 return this.ParseObjectInitializerNamedAssignment();
             }
             else
             {
-                return this.ParseExpressionCore();
+                // <expr>
+                // ref <expr>
+                return this.ParsePossibleRefExpression();
             }
         }
 
@@ -12793,7 +12800,7 @@ tryAgain:
             }
             else
             {
-                expression = this.ParseExpressionCore();
+                expression = this.ParsePossibleRefExpression();
             }
 
             return _syntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, identifier, equal, expression);
@@ -12805,7 +12812,7 @@ tryAgain:
             var equal = this.EatToken(SyntaxKind.EqualsToken);
             var expression = this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
                 ? this.ParseObjectOrCollectionInitializer()
-                : this.ParseExpressionCore();
+                : this.ParsePossibleRefExpression();
 
             var elementAccess = _syntaxFactory.ImplicitElementAccess(arguments);
             return _syntaxFactory.AssignmentExpression(

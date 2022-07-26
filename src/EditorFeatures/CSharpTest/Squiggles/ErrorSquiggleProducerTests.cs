@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
@@ -111,13 +112,11 @@ class Program
 </Workspace>";
 
             using var workspace = TestWorkspace.Create(workspaceXml, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
-            var options = new Dictionary<OptionKey2, object>();
             var language = workspace.Projects.Single().Language;
-            var preferIntrinsicPredefinedTypeOption = new OptionKey2(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language);
-            var preferIntrinsicPredefinedTypeOptionValue = new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Error);
-            options.Add(preferIntrinsicPredefinedTypeOption, preferIntrinsicPredefinedTypeOptionValue);
 
-            workspace.ApplyOptions(options);
+            workspace.GlobalOptions.SetGlobalOption(
+                new OptionKey(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language),
+                new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Error));
 
             var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>
                 {

@@ -72,20 +72,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 foreach (var tr in token.LeadingTrivia)
                 {
-                    if (next)
+                    if (tr.IsDirective)
                     {
-                        if (tr.IsDirective)
+                        var d = (DirectiveTriviaSyntax)tr.GetStructure()!;
+                        if (next)
                         {
-                            var d = (DirectiveTriviaSyntax)tr.GetStructure()!;
                             if (predicate == null || predicate(d))
                             {
                                 return d;
                             }
                         }
-                    }
-                    else if (tr.UnderlyingNode == this.Green)
-                    {
-                        next = true;
+                        else if (tr.UnderlyingNode == this.Green && tr.SpanStart == this.SpanStart && (object)d == this)
+                        {
+                            next = true;
+                        }
                     }
                 }
 
@@ -103,20 +103,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 foreach (var tr in token.LeadingTrivia.Reverse())
                 {
-                    if (next)
+                    if (tr.IsDirective)
                     {
-                        if (tr.IsDirective)
+                        var d = (DirectiveTriviaSyntax)tr.GetStructure()!;
+                        if (next)
                         {
-                            var d = (DirectiveTriviaSyntax)tr.GetStructure()!;
                             if (predicate == null || predicate(d))
                             {
                                 return d;
                             }
                         }
-                    }
-                    else if (tr.UnderlyingNode == this.Green)
-                    {
-                        next = true;
+                        else if (tr.UnderlyingNode == this.Green && tr.SpanStart == this.SpanStart && (object)d == this)
+                        {
+                            next = true;
+                        }
                     }
                 }
 
