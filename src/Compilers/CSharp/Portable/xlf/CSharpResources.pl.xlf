@@ -922,6 +922,11 @@
         <target state="translated">Nieoczekiwane słowo kluczowe „record”. Czy chodziło o „record struct” lub „record class”?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MisplacedScoped">
+        <source>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</source>
+        <target state="new">Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">Wzorce wycinków mogą być używane tylko raz i bezpośrednio wewnątrz wzorca listy.</target>

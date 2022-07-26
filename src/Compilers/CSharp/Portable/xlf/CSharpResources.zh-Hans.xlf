@@ -922,6 +922,11 @@
         <target state="translated">意外的关键字 \"record\"。你的意思是 \"record struct\" 还是 \"record class\"?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MisplacedScoped">
+        <source>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</source>
+        <target state="new">Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">切片模式只能使用一次，并且直接在列表模式内使用。</target>

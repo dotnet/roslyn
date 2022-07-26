@@ -922,6 +922,11 @@
         <target state="translated">予期しないキーワード 'record' です。'record struct' または 'record class' のつもりでしたか?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MisplacedScoped">
+        <source>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</source>
+        <target state="new">Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">スライス パターンは、1 回限り、リスト パターン内で直接使用される可能性があります。</target>

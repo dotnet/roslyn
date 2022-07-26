@@ -922,6 +922,11 @@
         <target state="translated">Palavra-chave inesperada “record”. Você quis dizer “record struct” or “record class”?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MisplacedScoped">
+        <source>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</source>
+        <target state="new">Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">Os padrões de fatia somente podem ser usados uma vez e diretamente dentro de um padrão de lista.</target>

@@ -7076,33 +7076,9 @@ delegate ref scoped R D();
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
             comp.VerifyEmitDiagnostics(
-                // (2,14): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (2,14): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
                 // delegate ref scoped R D();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(2, 14),
-                // (2,21): error CS0101: The namespace '<global namespace>' already contains a definition for 'R'
-                // delegate ref scoped R D();
-                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "R").WithArguments("R", "<global namespace>").WithLocation(2, 21),
-                // (2,23): error CS1003: Syntax error, '(' expected
-                // delegate ref scoped R D();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "D").WithArguments("(").WithLocation(2, 23),
-                // (2,23): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
-                // delegate ref scoped R D();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(2, 23),
-                // (2,24): error CS1001: Identifier expected
-                // delegate ref scoped R D();
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 24),
-                // (2,24): error CS1003: Syntax error, ',' expected
-                // delegate ref scoped R D();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",").WithLocation(2, 24),
-                // (2,25): error CS8124: Tuple must contain at least two elements.
-                // delegate ref scoped R D();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(2, 25),
-                // (2,26): error CS1001: Identifier expected
-                // delegate ref scoped R D();
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(2, 26),
-                // (2,26): error CS1026: ) expected
-                // delegate ref scoped R D();
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(2, 26));
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(2, 14));
         }
 
         [Theory]
@@ -7415,35 +7391,61 @@ ref struct R { }
         {
             var source =
 @"scoped s1 = default;
-ref scoped s2 = ref s1;
-scoped scoped s3 = default;
-scoped ref scoped s4 = ref s1;
-ref struct scoped { }
+ref scoped s2 = ref s1; // 1
+ref @scoped s3 = ref s1;
+scoped scoped s4 = default; // 2
+scoped ref scoped s5 = ref s1; // 3
+scoped ref @scoped s6 = ref s1; // 4
+ref struct scoped { } // 5
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (3,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // scoped scoped s3 = default;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(3, 1),
-                // (3,15): warning CS0219: The variable 's3' is assigned but its value is never used
-                // scoped scoped s3 = default;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s3").WithArguments("s3").WithLocation(3, 15),
+                // (2,5): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
+                // ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(2, 5),
+                // (2,15): error CS1525: Invalid expression term '='
+                // ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 15),
                 // (4,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // scoped ref scoped s4 = ref s1;
+                // scoped scoped s4 = default; // 2
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 1),
-                // (5,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                // ref struct scoped { }
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(5, 12));
+                // (4,15): warning CS0219: The variable 's4' is assigned but its value is never used
+                // scoped scoped s4 = default; // 2
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s4").WithArguments("s4").WithLocation(4, 15),
+                // (5,12): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(5, 12),
+                // (5,22): error CS1525: Invalid expression term '='
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(5, 22),
+                // (6,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // scoped ref @scoped s6 = ref s1; // 4
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 1),
+                // (7,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // ref struct scoped { } // 5
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(7, 12));
             verify(comp);
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,15): warning CS0219: The variable 's3' is assigned but its value is never used
-                // scoped scoped s3 = default;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s3").WithArguments("s3").WithLocation(3, 15),
-                // (5,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                // ref struct scoped { }
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(5, 12));
+                // (2,5): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
+                // ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(2, 5),
+                // (2,15): error CS1525: Invalid expression term '='
+                // ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 15),
+                // (4,15): warning CS0219: The variable 's4' is assigned but its value is never used
+                // scoped scoped s4 = default; // 2
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s4").WithArguments("s4").WithLocation(4, 15),
+                // (5,12): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(5, 12),
+                // (5,22): error CS1525: Invalid expression term '='
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(5, 22),
+                // (7,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // ref struct scoped { } // 5
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(7, 12));
             verify(comp);
 
             static void verify(CSharpCompilation comp)
@@ -7454,9 +7456,9 @@ ref struct scoped { }
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
                 VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[2], "scoped scoped s3", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[3], "scoped ref scoped s4", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[1], "ref scoped s3", RefKind.Ref, DeclarationScope.Unscoped);
+                VerifyLocalSymbol(locals[2], "scoped scoped s4", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[3], "scoped ref scoped s6", RefKind.Ref, DeclarationScope.RefScoped);
             }
         }
 
@@ -8919,39 +8921,12 @@ class Program
 }}";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,22): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                //         ref readonly scoped S s1 = ref s;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(6, 22),
-                // (6,29): error CS8174: A declaration of a by-reference variable must have an initializer
-                //         ref readonly scoped S s1 = ref s;
-                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "S").WithLocation(6, 29),
-                // (6,29): warning CS0168: The variable 'S' is declared but never used
-                //         ref readonly scoped S s1 = ref s;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "S").WithArguments("S").WithLocation(6, 29),
-                // (6,31): error CS1002: ; expected
-                //         ref readonly scoped S s1 = ref s;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "s1").WithLocation(6, 31),
-                // (6,31): error CS0103: The name 's1' does not exist in the current context
-                //         ref readonly scoped S s1 = ref s;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "s1").WithArguments("s1").WithLocation(6, 31),
-                // (7,29): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                //         scoped ref readonly scoped S s3 = ref s;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(7, 29),
-                // (7,36): error CS0128: A local variable or function named 'S' is already defined in this scope
-                //         scoped ref readonly scoped S s3 = ref s;
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "S").WithArguments("S").WithLocation(7, 36),
-                // (7,36): error CS8174: A declaration of a by-reference variable must have an initializer
-                //         scoped ref readonly scoped S s3 = ref s;
-                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "S").WithLocation(7, 36),
-                // (7,36): warning CS0168: The variable 'S' is declared but never used
-                //         scoped ref readonly scoped S s3 = ref s;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "S").WithArguments("S").WithLocation(7, 36),
-                // (7,38): error CS1002: ; expected
-                //         scoped ref readonly scoped S s3 = ref s;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "s3").WithLocation(7, 38),
-                // (7,38): error CS0103: The name 's3' does not exist in the current context
-                //         scoped ref readonly scoped S s3 = ref s;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "s3").WithArguments("s3").WithLocation(7, 38));
+                // (6,22): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
+                //         ref          scoped S s1 = ref s;
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(6, 22),
+                // (7,29): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
+                //         scoped ref          scoped S s3 = ref s;
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(7, 29));
         }
 
         [Fact]
@@ -12329,24 +12304,18 @@ public ref struct R
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,9): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (3,5): error CS9050: A ref field cannot refer to a ref struct.
                 //     ref scoped R field;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 9),
-                // (3,16): error CS0542: 'R': member names cannot be the same as their enclosing type
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref scoped R").WithLocation(3, 5),
+                // (3,9): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
                 //     ref scoped R field;
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "R").WithArguments("R").WithLocation(3, 16),
-                // (3,16): warning CS0169: The field 'R.R' is never used
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(3, 9),
+                // (3,18): error CS0523: Struct member 'R.field' of type 'R' causes a cycle in the struct layout
                 //     ref scoped R field;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "R").WithArguments("R.R").WithLocation(3, 16),
-                // (3,18): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("R.field", "R").WithLocation(3, 18),
+                // (3,18): warning CS0169: The field 'R.field' is never used
                 //     ref scoped R field;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "field").WithLocation(3, 18),
-                // (3,23): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                //     ref scoped R field;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 23),
-                // (3,23): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
-                //     ref scoped R field;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 23)
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("R.field").WithLocation(3, 18)
                 );
 
             source =
@@ -12356,33 +12325,9 @@ public ref struct R
 }";
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,9): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (3,9): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
                 //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 9),
-                // (3,16): error CS0542: 'R': member names cannot be the same as their enclosing type
-                //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "R").WithArguments("R").WithLocation(3, 16),
-                // (3,16): warning CS0169: The field 'R.R' is never used
-                //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "R").WithArguments("R.R").WithLocation(3, 16),
-                // (3,18): error CS1002: ; expected
-                //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Property").WithLocation(3, 18),
-                // (3,27): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
-                //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 27),
-                // (3,27): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
-                //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 27),
-                // (3,33): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
-                //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(3, 33),
-                // (3,33): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
-                //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(3, 33),
-                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(3, 9)
                 );
 
             source =
@@ -12454,24 +12399,15 @@ public ref struct R
 }";
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,13): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (5,13): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
                 //         ref scoped R local;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(5, 13),
-                // (5,20): error CS8174: A declaration of a by-reference variable must have an initializer
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(5, 13),
+                // (5,22): error CS8174: A declaration of a by-reference variable must have an initializer
                 //         ref scoped R local;
-                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "R").WithLocation(5, 20),
-                // (5,20): warning CS0168: The variable 'R' is declared but never used
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "local").WithLocation(5, 22),
+                // (5,22): warning CS0168: The variable 'local' is declared but never used
                 //         ref scoped R local;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "R").WithArguments("R").WithLocation(5, 20),
-                // (5,22): error CS1002: ; expected
-                //         ref scoped R local;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "local").WithLocation(5, 22),
-                // (5,22): error CS0103: The name 'local' does not exist in the current context
-                //         ref scoped R local;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(5, 22),
-                // (5,22): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                //         ref scoped R local;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "local").WithLocation(5, 22)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local").WithArguments("local").WithLocation(5, 22)
                 );
 
             source =
@@ -12484,24 +12420,15 @@ public ref struct R
 }";
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,20): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (5,20): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
                 //         scoped ref scoped R local;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(5, 20),
-                // (5,27): error CS8174: A declaration of a by-reference variable must have an initializer
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(5, 20),
+                // (5,29): error CS8174: A declaration of a by-reference variable must have an initializer
                 //         scoped ref scoped R local;
-                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "R").WithLocation(5, 27),
-                // (5,27): warning CS0168: The variable 'R' is declared but never used
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "local").WithLocation(5, 29),
+                // (5,29): warning CS0168: The variable 'local' is declared but never used
                 //         scoped ref scoped R local;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "R").WithArguments("R").WithLocation(5, 27),
-                // (5,29): error CS1002: ; expected
-                //         scoped ref scoped R local;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "local").WithLocation(5, 29),
-                // (5,29): error CS0103: The name 'local' does not exist in the current context
-                //         scoped ref scoped R local;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(5, 29),
-                // (5,29): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                //         scoped ref scoped R local;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "local").WithLocation(5, 29)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local").WithArguments("local").WithLocation(5, 29)
                 );
 
             source =
@@ -12511,24 +12438,9 @@ public ref struct R
 }";
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,9): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (3,9): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
                 //     ref scoped R M() => throw null;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 9),
-                // (3,16): error CS0542: 'R': member names cannot be the same as their enclosing type
-                //     ref scoped R M() => throw null;
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "R").WithArguments("R").WithLocation(3, 16),
-                // (3,16): warning CS0169: The field 'R.R' is never used
-                //     ref scoped R M() => throw null;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "R").WithArguments("R.R").WithLocation(3, 16),
-                // (3,18): error CS1002: ; expected
-                //     ref scoped R M() => throw null;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "M").WithLocation(3, 18),
-                // (3,18): error CS1520: Method must have a return type
-                //     ref scoped R M() => throw null;
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(3, 18),
-                // (3,18): error CS8958: The parameterless struct constructor must be 'public'.
-                //     ref scoped R M() => throw null;
-                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "M").WithLocation(3, 18)
+                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(3, 9)
                 );
 
             source = @"

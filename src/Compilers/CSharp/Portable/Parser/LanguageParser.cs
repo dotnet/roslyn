@@ -7302,7 +7302,18 @@ done:
                     readonlyKeyword = this.CheckFeatureAvailability(readonlyKeyword, MessageID.IDS_FeatureReadOnlyReferences);
                 }
 
+                SyntaxToken misplacedScoped = null;
+                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword && mode == ParseTypeMode.Normal)
+                {
+                    misplacedScoped = this.AddError(this.EatContextualToken(SyntaxKind.ScopedKeyword), ErrorCode.ERR_MisplacedScoped);
+                }
+
                 var type = ParseTypeCore(ParseTypeMode.AfterRef);
+                if (misplacedScoped is not null)
+                {
+                    type = AddLeadingSkippedSyntax(type, misplacedScoped);
+                }
+
                 return _syntaxFactory.RefType(refKeyword, readonlyKeyword, type);
             }
 

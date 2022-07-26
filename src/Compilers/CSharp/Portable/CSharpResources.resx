@@ -7196,4 +7196,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_PointerElementAccess" xml:space="preserve">
     <value>pointer element access</value>
   </data>
+  <data name="ERR_MisplacedScoped" xml:space="preserve">
+    <value>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</value>
+  </data>
 </root>

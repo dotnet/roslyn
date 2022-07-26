@@ -922,6 +922,11 @@
         <target state="translated">Palabra clave \"record\" inesperada. ¿Quería decir \"record struct\" o \"record class\"?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MisplacedScoped">
+        <source>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</source>
+        <target state="new">Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">Los patrones de segmento solo se pueden utilizar una vez directamente dentro de un patrón de lista.</target>

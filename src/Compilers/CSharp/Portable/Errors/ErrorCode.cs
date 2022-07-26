@@ -2108,6 +2108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_AnalyzerReferencesNewerCompiler = 9057,
         ERR_FeatureNotAvailableInVersion11 = 9058,
         ERR_RefFieldInNonRefStruct = 9059,
+        ERR_MisplacedScoped = 9061,
 
         #endregion
 
