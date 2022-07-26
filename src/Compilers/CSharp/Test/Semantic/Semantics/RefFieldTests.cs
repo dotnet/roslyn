@@ -844,15 +844,10 @@ class Program
             Assert.False(comp.Assembly.RuntimeSupportsByRefFields);
 
             comp = CreateEmptyCompilation(source, references: new[] { refAB }, parseOptions: TestOptions.Regular10);
-            // https://github.com/dotnet/roslyn/issues/62131: Enable updated escape rules if
-            // System.Runtime.CompilerServices.RuntimeFeature.ByRefFields exists.
             comp.VerifyDiagnostics(
                 // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref T F;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12),
-                // (10,20): error CS8167: Cannot return by reference a member of parameter 'r' because it is not a ref or out parameter
-                //         return ref r.F;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r").WithArguments("r").WithLocation(10, 20));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12));
             Assert.True(comp.Assembly.RuntimeSupportsByRefFields);
 
             comp = CreateEmptyCompilation(source, references: new[] { refA });
