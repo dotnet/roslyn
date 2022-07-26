@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             // TODO: Move this to ArgumentProviderService: https://github.com/dotnet/roslyn/issues/50897
             if (_argumentProviders.IsDefault)
             {
-                _argumentProviders = workspace.Services
+                _argumentProviders = workspace.Services.SolutionServices
                     .SelectMatchingExtensionValues(ExtensionOrderer.Order(_allArgumentProviders), SubjectBuffer.ContentType)
                     .ToImmutableArray();
             }
