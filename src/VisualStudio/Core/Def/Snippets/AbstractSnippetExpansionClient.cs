@@ -1064,7 +1064,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            var languageServices = documentWithImports.Project.LanguageServices;
+            var languageServices = documentWithImports.Project.Services;
             var addImportOptions = SubjectBuffer.GetAddImportPlacementOptions(EditorOptionsService, languageServices, documentWithImports.AllowImportsInHiddenRegions());
             var formattingOptions = SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, languageServices, explicitFormat: false);
 

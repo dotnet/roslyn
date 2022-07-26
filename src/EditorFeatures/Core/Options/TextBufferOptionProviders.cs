@@ -42,20 +42,20 @@ internal static class TextBufferOptionProviders
         };
     }
 
-    public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, HostLanguageServices languageServices, bool explicitFormat)
+    public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, HostProjectServices languageServices, bool explicitFormat)
         => GetSyntaxFormattingOptionsImpl(textBuffer, optionsProvider.Factory.GetOptions(textBuffer), optionsProvider.IndentationManager, optionsProvider.GlobalOptions, languageServices, explicitFormat);
 
-    private static SyntaxFormattingOptions GetSyntaxFormattingOptionsImpl(ITextBuffer textBuffer, IEditorOptions editorOptions, IIndentationManagerService indentationManager, IGlobalOptionService globalOptions, HostLanguageServices languageServices, bool explicitFormat)
+    private static SyntaxFormattingOptions GetSyntaxFormattingOptionsImpl(ITextBuffer textBuffer, IEditorOptions editorOptions, IIndentationManagerService indentationManager, IGlobalOptionService globalOptions, HostProjectServices languageServices, bool explicitFormat)
     {
         var configOptions = new EditorAnalyzerConfigOptions(editorOptions);
-        var fallbackOptions = globalOptions.GetSyntaxFormattingOptions(languageServices.ProjectServices);
+        var fallbackOptions = globalOptions.GetSyntaxFormattingOptions(languageServices);
         var options = configOptions.GetSyntaxFormattingOptions(fallbackOptions, languageServices);
         var lineFormattingOptions = GetLineFormattingOptionsImpl(textBuffer, editorOptions, indentationManager, explicitFormat);
 
         return options.With(lineFormattingOptions);
     }
 
-    public static IndentationOptions GetIndentationOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, HostLanguageServices languageServices, bool explicitFormat)
+    public static IndentationOptions GetIndentationOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, HostProjectServices languageServices, bool explicitFormat)
     {
         var editorOptions = optionsProvider.Factory.GetOptions(textBuffer);
         var formattingOptions = GetSyntaxFormattingOptionsImpl(textBuffer, editorOptions, optionsProvider.IndentationManager, optionsProvider.GlobalOptions, languageServices, explicitFormat);
@@ -68,11 +68,11 @@ internal static class TextBufferOptionProviders
         };
     }
 
-    public static AddImportPlacementOptions GetAddImportPlacementOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, HostLanguageServices languageServices, bool allowInHiddenRegions)
+    public static AddImportPlacementOptions GetAddImportPlacementOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, HostProjectServices languageServices, bool allowInHiddenRegions)
     {
         var editorOptions = optionsProvider.Factory.GetOptions(textBuffer);
         var configOptions = new EditorAnalyzerConfigOptions(editorOptions);
-        var fallbackOptions = optionsProvider.GlobalOptions.GetAddImportPlacementOptions(languageServices.ProjectServices);
+        var fallbackOptions = optionsProvider.GlobalOptions.GetAddImportPlacementOptions(languageServices);
         return configOptions.GetAddImportPlacementOptions(allowInHiddenRegions, fallbackOptions, languageServices);
     }
 
