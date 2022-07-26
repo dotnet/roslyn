@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 #pragma warning disable RS0030 // Do not used banned APIs (backwards compatibility)
         internal static async ValueTask<(SyntaxFormattingOptions? Syntax, LineFormattingOptions Line)> GetFormattingOptionsAsync(Document document, OptionSet? optionSet, CancellationToken cancellationToken)
         {
-            var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IEditorConfigOptionMappingService>();
+            var optionService = document.Project.Solution.Services.GetRequiredService<IEditorConfigOptionMappingService>();
             var configOptionSet = (optionSet ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).AsAnalyzerConfigOptions(optionService, document.Project.Language);
 
             LineFormattingOptions lineFormattingOptions;
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 #pragma warning disable RS0030 // Do not used banned APIs (backwards compatibility)
         internal static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(Document document, CancellationToken cancellationToken)
         {
-            var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IEditorConfigOptionMappingService>();
+            var optionService = document.Project.Solution.Services.GetRequiredService<IEditorConfigOptionMappingService>();
             var configOptionSet = (await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).AsAnalyzerConfigOptions(optionService, document.Project.Language);
             return configOptionSet.GetOrganizeImportsOptions(fallbackOptions: null);
         }

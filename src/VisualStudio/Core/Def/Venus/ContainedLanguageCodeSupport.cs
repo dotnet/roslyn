@@ -218,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 throw new InvalidOperationException(ServicesVSResources.Can_t_find_where_to_insert_member);
             }
 
-            var fallbackOptions = targetDocument.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>().CleanCodeGenerationOptionsProvider;
+            var fallbackOptions = targetDocument.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>().CleanCodeGenerationOptionsProvider;
 
             var options = targetDocument.GetCleanCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
 

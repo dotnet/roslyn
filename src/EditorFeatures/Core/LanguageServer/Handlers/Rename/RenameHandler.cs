@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
                 .GroupBy(docId => renamedSolution.GetRequiredDocument(docId).FilePath, StringComparer.OrdinalIgnoreCase).Select(group => group.First());
 
-            var textDiffService = renamedSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
+            var textDiffService = renamedSolution.Services.GetRequiredService<IDocumentTextDifferencingService>();
 
             var documentEdits = await ProtocolConversions.ChangedDocumentsToTextDocumentEditsAsync(changedDocuments, renamedSolution.GetRequiredDocument, oldSolution.GetRequiredDocument,
                 textDiffService, cancellationToken).ConfigureAwait(false);

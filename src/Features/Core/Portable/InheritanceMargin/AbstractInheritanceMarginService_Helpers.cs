@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                var mappingService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolMappingService>();
+                var mappingService = document.Project.Solution.Services.GetRequiredService<ISymbolMappingService>();
                 using var _ = ArrayBuilder<(ISymbol symbol, int lineNumber)>.GetInstance(out var builder);
 
                 Project? project = null;
