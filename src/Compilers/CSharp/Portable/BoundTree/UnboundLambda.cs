@@ -393,6 +393,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax.IsAnonymousFunction());
             bool hasErrors = !types.IsDefault && types.Any(static t => t.Type?.Kind == SymbolKind.ErrorType);
 
+            // If we have a parenthesized lambda or anonymous method expression,
+            // we could have default parameters and thus we include the parameter list syntax
+            // to re-use existing binder code for type-checking default params
             var paramSyntaxList = syntax switch
             {
                 ParenthesizedLambdaExpressionSyntax parenLam => parenLam.ParameterList,
@@ -467,9 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public TypeWithAnnotations ParameterTypeWithAnnotations(int index) { return Data.ParameterTypeWithAnnotations(index); }
         public TypeSymbol ParameterType(int index) { return ParameterTypeWithAnnotations(index).Type; }
         public EqualsValueClauseSyntax? ParameterDefaultValue(int index) => Data.DefaultValue(index);
-
         public ParameterListSyntax? ParamSyntax => Data.ParamSyntax;
-
         public bool ParameterHasDefault(int index) => ParameterDefaultValue(index) != null;
         public Location ParameterLocation(int index) { return Data.ParameterLocation(index); }
         public string ParameterName(int index) { return Data.ParameterName(index); }
@@ -546,9 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract RefKind RefKind(int index);
         public abstract DeclarationScope Scope(int index);
         public abstract EqualsValueClauseSyntax? DefaultValue(int index);
-
         public abstract ParameterListSyntax? ParamSyntax { get; }
-
         protected abstract BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics);
 
         /// <summary>
@@ -907,7 +906,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 block,
                 diagnostics.ToReadOnlyAndFree(),
                 lambdaBodyBinder,
-
                 delegateType,
                 inferredReturnType)
             { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
