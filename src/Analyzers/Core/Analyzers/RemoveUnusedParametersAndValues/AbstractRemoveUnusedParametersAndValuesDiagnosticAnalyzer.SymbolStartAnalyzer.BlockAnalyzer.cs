@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {
-    internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
         private sealed partial class SymbolStartAnalyzer
         {

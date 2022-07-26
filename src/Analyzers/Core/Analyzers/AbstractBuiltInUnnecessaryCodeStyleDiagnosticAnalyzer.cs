@@ -96,6 +96,24 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             }
         }
 
+        /// <summary>
+        /// Constructor for a code style analyzer with a multiple diagnostic descriptors with a code style options that can be used to configure each descriptor.
+        /// </summary>
+        protected AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(ImmutableDictionary<DiagnosticDescriptor, IOption2> supportedDiagnosticsWithOptions, PerLanguageOption2<bool>? fadingOption)
+            : base(supportedDiagnosticsWithOptions)
+        {
+            if (fadingOption != null)
+            {
+                foreach (var descriptor in supportedDiagnosticsWithOptions.Keys)
+                {
+                    if (descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.Unnecessary))
+                    {
+                        IDEDiagnosticIdToOptionMappingHelper.AddFadingOptionMapping(descriptor.Id, fadingOption);
+                    }
+                }
+            }
+        }
+
         private static void AddDiagnosticIdToFadingOptionMapping(string diagnosticId, PerLanguageOption2<bool>? fadingOption)
         {
             if (fadingOption != null)

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
     ///        though this may change in future.
     ///        This diagnostic configuration is controlled by <see cref="CodeStyleOptions2.UnusedParameters"/> option.
     /// </summary>
-    internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
     {
         public const string DiscardVariableName = "_";
 
@@ -95,7 +95,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
                         .Add(s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption)
                         .Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption)
-                        .Add(s_unusedParameterRule, CodeStyleOptions2.UnusedParameters))
+                        .Add(s_unusedParameterRule, CodeStyleOptions2.UnusedParameters),
+                   fadingOption: null)
         {
         }
 
