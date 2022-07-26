@@ -5897,7 +5897,7 @@ namespace PushUpTest
             await TestWithPullMemberDialogAsync(testText, expected);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestRefactoringSelectionFieldKeyword1_NoAction()
         {
             var text = @"
@@ -5912,7 +5912,7 @@ public class Bar : BaseClass
             await TestQuickActionNotProvidedAsync(text);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestRefactoringSelectionFieldKeyword2()
         {
             var text = @"
@@ -5936,7 +5936,7 @@ public class Bar : BaseClass
             await TestWithPullMemberDialogAsync(text, expected);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestRefactoringSelectionFieldAfterSemicolon()
         {
             var text = @"
@@ -5960,7 +5960,7 @@ public class Bar : BaseClass
             await TestWithPullMemberDialogAsync(text, expected);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestRefactoringSelectionFieldEntireDeclaration()
         {
             var text = @"
@@ -5984,7 +5984,7 @@ public class Bar : BaseClass
             await TestWithPullMemberDialogAsync(text, expected);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestRefactoringSelectionMultipleFieldsInDeclaration1()
         {
             var text = @"
@@ -6009,7 +6009,7 @@ public class Bar : BaseClass
             await TestWithPullMemberDialogAsync(text, expected);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestRefactoringSelectionMultipleFieldsInDeclaration2()
         {
             var text = @"
@@ -6034,7 +6034,7 @@ public class Bar : BaseClass
             await TestWithPullMemberDialogAsync(text, expected);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestRefactoringSelectionMultipleFieldsInDeclaration3()
         {
             var text = @"
@@ -6059,7 +6059,7 @@ public class Bar : BaseClass
             await TestWithPullMemberDialogAsync(text, expected);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestRefactoringSelectionMultipleMembers1()
         {
             var text = @"
@@ -6095,7 +6095,7 @@ public class Bar : BaseClass
         }
 
         // Some of these have weird whitespace spacing that might suggest a bug
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestRefactoringSelectionMultipleMembers2()
         {
             var text = @"
@@ -6134,7 +6134,7 @@ public class Bar : BaseClass
             await TestWithPullMemberDialogAsync(text, expected);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestRefactoringSelectionMultipleMembers3()
         {
             var text = @"
@@ -6171,7 +6171,7 @@ public class Bar : BaseClass
             await TestWithPullMemberDialogAsync(text, expected);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestRefactoringSelectionMultipleMembers4()
         {
             var text = @"
@@ -6208,6 +6208,56 @@ public class Bar : BaseClass
     }
 }";
             await TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestRefactoringSelectionIncompleteField_NoAction1()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    publ[||] int Goo = 10;
+}";
+            // we expect a diagnostic/error, but also we shouldn't provide the refactoring
+            await TestQuickActionNotProvidedAsync(text);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestRefactoringSelectionIncompleteField_NoAction2()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    [|publicc int Goo = 10;|]
+}";
+            // we expect a diagnostic/error, but also we shouldn't provide the refactoring
+            await TestQuickActionNotProvidedAsync(text);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestRefactoringSelectionIncompleteMethod_NoAction()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    publ[||] int DoSomething() {
+        return 5;
+    }
+}";
+            // we expect a diagnostic/error, but also we shouldn't provide the refactoring
+            await TestQuickActionNotProvidedAsync(text);
         }
         #endregion
     }

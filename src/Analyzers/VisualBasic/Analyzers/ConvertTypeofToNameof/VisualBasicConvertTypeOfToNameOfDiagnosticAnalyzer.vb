@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
         Private Shared ReadOnly s_title As String = VisualBasicAnalyzersResources.GetType_can_be_converted_to_NameOf
 
         Public Sub New()
-            MyBase.New(s_title, LanguageNames.VisualBasic)
+            MyBase.New(s_title)
         End Sub
 
         Protected Overrides Function IsValidTypeofAction(context As OperationAnalysisContext) As Boolean

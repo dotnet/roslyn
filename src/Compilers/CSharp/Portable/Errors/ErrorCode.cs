@@ -2105,6 +2105,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FileTypeNested = 9054,
         ERR_GlobalUsingStaticFileType = 9055,
         ERR_FileTypeNameDisallowed = 9056,
+        WRN_AnalyzerReferencesNewerCompiler = 9057,
+        ERR_FeatureNotAvailableInVersion11 = 9058,
+        ERR_RefFieldInNonRefStruct = 9059,
 
         #endregion
 

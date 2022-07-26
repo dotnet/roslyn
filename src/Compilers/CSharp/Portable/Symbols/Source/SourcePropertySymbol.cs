@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             allowedModifiers |= DeclarationModifiers.Extern;
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(isForTypeDeclaration: false, isForInterfaceMember: isInterface,
+            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
                                                                         modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, isExplicitInterfaceImplementation, location, diagnostics);
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add((this.IsIndexer ? ErrorCode.ERR_BadVisIndexerReturn : ErrorCode.ERR_BadVisPropertyType), Location, this, type.Type);
             }
 
-            if (type.Type.IsFileTypeOrUsesFileTypes() && !ContainingType.IsFileTypeOrUsesFileTypes())
+            if (type.Type.HasFileLocalTypes() && !ContainingType.HasFileLocalTypes())
             {
                 diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Location, type.Type, ContainingType);
             }
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, Location, this, param.Type);
                 }
-                else if (param.Type.IsFileTypeOrUsesFileTypes() && !this.ContainingType.IsFileTypeOrUsesFileTypes())
+                else if (param.Type.HasFileLocalTypes() && !this.ContainingType.HasFileLocalTypes())
                 {
                     diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Location, param.Type, this.ContainingType);
                 }

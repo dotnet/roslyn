@@ -18,7 +18,6 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.VisualStudio.RemoteControl;
 using static System.FormattableString;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         // mock behavior during tests.
         private readonly IDelayService _delayService;
         private readonly IIOService _ioService;
-        private readonly IRemoteControlService _remoteControlService;
+        private readonly IFileDownloaderFactory _fileDownloaderFactory;
         private readonly IPatchService _patchService;
         private readonly IDatabaseFactoryService _databaseFactoryService;
         private readonly Func<Exception, CancellationToken, bool> _reportAndSwallowExceptionUnlessCanceled;
@@ -502,7 +501,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 //         minutes ago, then the client will attempt to download the file.
                 //         In the interim period null will be returned from client.ReadFile.
                 var pollingMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
-                using var client = _service._remoteControlService.CreateClient(HostId, serverPath, pollingMinutes);
+                using var client = _service._fileDownloaderFactory.CreateClient(HostId, serverPath, pollingMinutes);
 
                 await LogInfoAsync("Creating download client completed", cancellationToken).ConfigureAwait(false);
 
@@ -527,11 +526,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             }
 
             /// <summary>Returns 'null' if download is not available and caller should keep polling.</summary>
-            private async Task<XElement> TryDownloadFileAsync(IRemoteControlClient client, CancellationToken cancellationToken)
+            private async Task<XElement> TryDownloadFileAsync(IFileDownloader fileDownloader, CancellationToken cancellationToken)
             {
                 await LogInfoAsync("Read file from client", cancellationToken).ConfigureAwait(false);
 
-                using var stream = await client.ReadFileAsync(BehaviorOnStale.ReturnStale).ConfigureAwait(false);
+                using var stream = await fileDownloader.ReadFileAsync().ConfigureAwait(false);
 
                 if (stream == null)
                 {

@@ -35,7 +35,7 @@ jobs:
 
     ${{ if ne(parameters.vmImageName, '') }}:
       vmImage: ${{ parameters.vmImageName }}
-  timeoutInMinutes: 40
+  timeoutInMinutes: 50
   variables:
     DOTNET_ROLL_FORWARD: LatestMajor
     DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1

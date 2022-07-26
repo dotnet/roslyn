@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     {
                         foreach (var span in spans)
                         {
-                            var renameSymbol = await RenameLocations.ReferenceProcessing.TryGetRenamableSymbolAsync(document, span.Start, cancellationToken).ConfigureAwait(false);
+                            var renameSymbol = await RenameUtilities.TryGetRenamableSymbolAsync(document, span.Start, cancellationToken).ConfigureAwait(false);
                             if (renameSymbol == null)
                             {
                                 Assert.False(true, $"Can't find symbol at tagged place, tag: {tag}.");

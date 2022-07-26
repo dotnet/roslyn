@@ -92,12 +92,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
             var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (3,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref T F1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 12),
-                // (4,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12),
+                // (4,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref readonly T F2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref readonly T").WithArguments("ref fields").WithLocation(4, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref readonly T").WithArguments("ref fields", "11.0").WithLocation(4, 12));
 
             comp = CreateCompilation(sourceA);
             comp.VerifyEmitDiagnostics();
@@ -130,26 +130,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (8,25): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,25): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         s1 = new S<T> { F1 = t };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("ref fields").WithLocation(8, 25),
-                // (14,25): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "F1").WithArguments("ref fields", "11.0").WithLocation(8, 25),
+                // (14,25): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         s2 = new S<T> { F1 = t };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("ref fields").WithLocation(14, 25),
-                // (19,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "F1").WithArguments("ref fields", "11.0").WithLocation(14, 25),
+                // (19,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         M1(s.F1);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F1").WithArguments("ref fields").WithLocation(19, 12),
-                // (20,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F1").WithArguments("ref fields", "11.0").WithLocation(19, 12),
+                // (20,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         M1(s.F2);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F2").WithArguments("ref fields").WithLocation(20, 12),
-                // (21,16): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F2").WithArguments("ref fields", "11.0").WithLocation(20, 12),
+                // (21,16): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         M2(ref s.F1);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F1").WithArguments("ref fields").WithLocation(21, 16));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F1").WithArguments("ref fields", "11.0").WithLocation(21, 16));
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F1"), "ref T S<T>.F1", RefKind.Ref, new string[0]);
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F2"), "ref readonly T S<T>.F2", RefKind.RefReadOnly, new string[0]);
 
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F1"), "ref T S<T>.F1", RefKind.Ref, new string[0]);
@@ -168,9 +168,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
             var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (3,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref T F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12));
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref T S<T>.F", RefKind.Ref, new string[0]);
 
@@ -198,19 +198,19 @@ class Program
 
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (8,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         s.F = 2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(8, 9),
-                // (9,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F").WithArguments("ref fields", "11.0").WithLocation(8, 9),
+                // (9,27): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         Console.WriteLine(s.F);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(9, 27),
-                // (12,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F").WithArguments("ref fields", "11.0").WithLocation(9, 27),
+                // (12,27): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         Console.WriteLine(s.F);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(12, 27));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F").WithArguments("ref fields", "11.0").WithLocation(12, 27));
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref T S<T>.F", RefKind.Ref, new string[0]);
 
-            var verifier = CompileAndVerify(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularNext, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+            var verifier = CompileAndVerify(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular11, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
 3
@@ -235,9 +235,9 @@ class Program
 }";
             var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (3,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref readonly T F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref readonly T").WithArguments("ref fields").WithLocation(3, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref readonly T").WithArguments("ref fields", "11.0").WithLocation(3, 12));
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref readonly T S<T>.F", RefKind.RefReadOnly, new string[0]);
 
@@ -270,19 +270,19 @@ class Program
 
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (13,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         s.F.G = 2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(13, 9),
-                // (14,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F").WithArguments("ref fields", "11.0").WithLocation(13, 9),
+                // (14,27): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         Console.WriteLine(s.F.G);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(14, 27),
-                // (17,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F").WithArguments("ref fields", "11.0").WithLocation(14, 27),
+                // (17,27): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         Console.WriteLine(s.F.G);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s.F").WithArguments("ref fields").WithLocation(17, 27));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "s.F").WithArguments("ref fields", "11.0").WithLocation(17, 27));
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref readonly T S<T>.F", RefKind.RefReadOnly, new string[0]);
 
-            var verifier = CompileAndVerify(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularNext, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+            var verifier = CompileAndVerify(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular11, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
 3
@@ -716,6 +716,37 @@ class Program
             AssertEx.Equal(expectedReferences, fieldReferences.ToTestDisplayStrings());
         }
 
+        [WorkItem(62596, "https://github.com/dotnet/roslyn/issues/62596")]
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void NonRefStructContainer(string type)
+        {
+            var source =
+$@"#pragma warning disable 169
+{type} R
+{{
+    ref int F;
+}}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (4,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     ref int F;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(4, 5),
+                // (4,13): error CS9059: A ref field can only be declared in a ref struct.
+                //     ref int F;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "F").WithLocation(4, 13));
+
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,13): error CS9059: A ref field can only be declared in a ref struct.
+                //     ref int F;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "F").WithLocation(4, 13));
+        }
+
         /// <summary>
         /// Determination of enum underlying type should ignore ref fields
         /// and fields with required custom modifiers.
@@ -804,9 +835,9 @@ class Program
 
             comp = CreateEmptyCompilation(source, references: new[] { refA }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (3,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref T F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 12),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12),
                 // (10,20): error CS8167: Cannot return by reference a member of parameter 'r' because it is not a ref or out parameter
                 //         return ref r.F;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r").WithArguments("r").WithLocation(10, 20));
@@ -816,9 +847,9 @@ class Program
             // https://github.com/dotnet/roslyn/issues/62131: Enable updated escape rules if
             // System.Runtime.CompilerServices.RuntimeFeature.ByRefFields exists.
             comp.VerifyDiagnostics(
-                // (3,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref T F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 12),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12),
                 // (10,20): error CS8167: Cannot return by reference a member of parameter 'r' because it is not a ref or out parameter
                 //         return ref r.F;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r").WithArguments("r").WithLocation(10, 20));
@@ -920,9 +951,9 @@ class Program
 
             var expectedLegacyDiagnostics = new DiagnosticDescription[]
             {
-                // (3,5): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     ref T F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 5),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 5),
                 // (5,23): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     ref T F0() => ref this.F;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this.F").WithLocation(5, 23),
@@ -976,9 +1007,9 @@ class Program
 
             var expectedLegacyDiagnostics = new DiagnosticDescription[]
             {
-                // (3,5): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     ref T F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref T").WithArguments("ref fields").WithLocation(3, 5),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 5)
             };
 
             var expectedUpdatedDiagnostics = new DiagnosticDescription[]
@@ -6470,7 +6501,7 @@ class Program
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Span(LanguageVersion languageVersion)
         {
             var source =
@@ -6578,27 +6609,27 @@ public static class A
 }";
             var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (7,33): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,33): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static void F1(R x1, scoped R y1) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 33),
-                // (8,37): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 33),
+                // (8,37): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static void F2(ref R x2, scoped ref R y2, ref scoped R z2) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 37),
-                // (8,58): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 37),
+                // (8,58): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static void F2(ref R x2, scoped ref R y2, ref scoped R z2) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 58),
-                // (9,36): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 58),
+                // (9,36): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static void F3(in R x3, scoped in R y3, in scoped R z3) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 36),
-                // (9,55): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 36),
+                // (9,55): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static void F3(in R x3, scoped in R y3, in scoped R z3) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 55),
-                // (10,37): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 55),
+                // (10,37): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static void F4(out R x4, scoped out R y4, out scoped R z4) { x4 = default; y4 = default; z4 = default; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 37),
-                // (10,58): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 37),
+                // (10,58): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static void F4(out R x4, scoped out R y4, out scoped R z4) { x4 = default; y4 = default; z4 = default; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 58));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 58));
 
             verify(comp);
 
@@ -6665,15 +6696,15 @@ struct B<T>
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (3,7): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,7): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     A(scoped ref T t) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(3, 7),
-                // (4,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(3, 7),
+                // (4,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     T this[scoped in object o] => default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(4, 12),
-                // (5,45): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 12),
+                // (5,45): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public static implicit operator B<T>(in scoped A<T> a) => default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(5, 45));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(5, 45));
             verify(comp);
 
             comp = CreateCompilation(source);
@@ -6707,21 +6738,21 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (7,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,24): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         static void L1(scoped R x1) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 24),
-                // (8,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 24),
+                // (8,24): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         static void L2(scoped ref int x2) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 24),
-                // (9,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 24),
+                // (9,24): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         static void L3(scoped in int x3) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 24),
-                // (10,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 24),
+                // (10,24): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         static void L4(scoped out int x4) { x4 = 0; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 24),
-                // (11,38): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 24),
+                // (11,38): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         static void L5(object o, ref scoped R x5) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(11, 38));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(11, 38));
             verify(comp);
 
             comp = CreateCompilation(source);
@@ -6761,21 +6792,21 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (6,19): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,19): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         var f1 = (scoped R x1) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(6, 19),
-                // (7,19): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 19),
+                // (7,19): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         var f2 = (scoped ref int x2) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 19),
-                // (8,19): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 19),
+                // (8,19): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         var f3 = (scoped in int x3) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 19),
-                // (9,19): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 19),
+                // (9,19): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         var f4 = (scoped out int x4) => { x4 = 0; };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 19),
-                // (10,33): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 19),
+                // (10,33): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         var f5 = (object o, ref scoped R x5) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 33));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 33));
             verify(comp);
 
             comp = CreateCompilation(source);
@@ -6822,15 +6853,15 @@ delegate void D3(object o, ref scoped R r3);
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (2,18): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,18): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // delegate void D1(scoped R r1);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(2, 18),
-                // (3,18): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(2, 18),
+                // (3,18): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // delegate void D2(scoped ref R r2);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(3, 18),
-                // (4,32): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(3, 18),
+                // (4,32): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // delegate void D3(object o, ref scoped R r3);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(4, 32));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 32));
             verify(comp);
 
             comp = CreateCompilation(source);
@@ -6862,15 +6893,15 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (4,20): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static void F1(scoped R r1) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(4, 20),
-                // (5,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 20),
+                // (5,24): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static void F2(ref scoped R x, scoped ref int y) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(5, 24),
-                // (5,36): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(5, 24),
+                // (5,36): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     static void F2(ref scoped R x, scoped ref int y) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(5, 36),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(5, 36),
                 // (8,19): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
                 //         delegate*<scoped R, void> f1 = &F1;
                 Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(8, 19),
@@ -7261,7 +7292,7 @@ static class Extensions
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void ReturnTypeScope(LanguageVersion langVersion)
         {
             var source =
@@ -7303,7 +7334,7 @@ class Program
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void DelegateReturnTypeScope(LanguageVersion langVersion)
         {
             var source =
@@ -7319,7 +7350,7 @@ delegate ref scoped R D();
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void TypeScopeModifier_01(LanguageVersion langVersion)
         {
             var source =
@@ -7342,7 +7373,7 @@ scoped readonly ref struct C { }
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void TypeScopeModifier_02(LanguageVersion langVersion)
         {
             var source =
@@ -7381,18 +7412,18 @@ ref struct R2
                 // (5,15): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped R1 F1;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("scoped").WithLocation(5, 15),
-                // (6,5): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     ref scoped R1 F2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref scoped R1").WithArguments("ref fields").WithLocation(6, 5),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref scoped R1").WithArguments("ref fields", "11.0").WithLocation(6, 5),
                 // (6,5): error CS9050: A ref field cannot refer to a ref struct.
                 //     ref scoped R1 F2;
                 Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref scoped R1").WithLocation(6, 5),
                 // (6,9): error CS0106: The modifier 'scoped' is not valid for this item
                 //     ref scoped R1 F2;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(6, 9),
-                // (7,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     scoped ref int F3;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref int").WithArguments("ref fields").WithLocation(7, 12),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(7, 12),
                 // (7,20): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped ref int F3;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "F3").WithArguments("scoped").WithLocation(7, 20));
@@ -7415,7 +7446,7 @@ ref struct R2
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void PropertyTypeScope(LanguageVersion langVersion)
         {
             var source =
@@ -7560,33 +7591,33 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (7,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped R r1 = default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 9),
-                // (8,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 9),
+                // (8,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped ref R r2 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 9),
-                // (9,13): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 9),
+                // (9,13): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         ref scoped R r3 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 13),
-                // (10,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 13),
+                // (10,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped ref scoped R r4 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 9),
-                // (10,20): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 9),
+                // (10,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped ref scoped R r4 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 20),
-                // (11,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 20),
+                // (11,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped ref readonly R r5 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(11, 9),
-                // (12,22): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(11, 9),
+                // (12,22): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         ref readonly scoped R r6 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(12, 22),
-                // (13,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(12, 22),
+                // (13,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped ref readonly scoped R r7 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(13, 9),
-                // (13,29): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(13, 9),
+                // (13,29): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped ref readonly scoped R r7 = ref r;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(13, 29));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(13, 29));
             verify(comp, useUpdatedEscapeRules: false);
 
             comp = CreateCompilation(source);
@@ -7709,15 +7740,15 @@ ref struct scoped { }
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (3,1): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // scoped scoped s3 = default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(3, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(3, 1),
                 // (3,15): warning CS0219: The variable 's3' is assigned but its value is never used
                 // scoped scoped s3 = default;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s3").WithArguments("s3").WithLocation(3, 15),
-                // (4,1): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // scoped ref scoped s4 = ref s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(4, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 1),
                 // (5,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // ref struct scoped { }
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(5, 12));
@@ -7749,7 +7780,7 @@ ref struct scoped { }
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void LocalScope_05(LanguageVersion langVersion)
         {
             var source =
@@ -11587,7 +11618,7 @@ class Program
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void InstanceMethodWithOutVar_01(LanguageVersion languageVersion)
         {
             var source =
@@ -11641,7 +11672,7 @@ class Program
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void InstanceMethodWithOutVar_03(LanguageVersion languageVersion)
         {
             var source =
@@ -11671,7 +11702,7 @@ class Program
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void ReturnThis_01(LanguageVersion languageVersion)
         {
             var source =
@@ -11693,7 +11724,7 @@ class Program
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void ReturnThis_02(LanguageVersion languageVersion)
         {
             var source =
@@ -11711,6 +11742,1565 @@ class Program
                 // (5,32): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     ref readonly R F3() => ref this;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(5, 32));
+        }
+
+        [Fact]
+        public void RefInitializer_LangVer()
+        {
+            var source = @"
+int x = 42;
+var r = new R() { field = ref x };
+
+ref struct R
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (7,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public ref int field;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(7, 12)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefInitializer_LangVer_FromMetadata()
+        {
+            var lib_cs = @"
+public ref struct R
+{
+    public ref int field;
+}
+";
+            var source = @"
+int x = 42;
+var r1 = new R() { field = ref x }; // 1
+var r2 = new R() { field = x }; // 2
+
+R r3 = default;
+_ = r3 with { field = ref x }; // 3
+";
+            var lib = CreateCompilation(lib_cs, parseOptions: TestOptions.Regular11);
+
+            var comp = CreateCompilation(source, references: new[] { lib.EmitToImageReference() }, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // var r1 = new R() { field = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(3, 20),
+                // (4,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // var r2 = new R() { field = x }; // 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(4, 20),
+                // (7,15): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // _ = r3 with { field = ref x }; // 3
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "field").WithArguments("ref fields", "11.0").WithLocation(7, 15)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        int x = 42;
+        var r = new R() { field = ref x };
+        System.Console.Write(r.ToString());
+    }
+}
+
+ref struct R
+{
+    public ref int field;
+    public override string ToString()
+    {
+        return field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
+            verifier.VerifyIL("C.Main",
+"""
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (int V_0, //x
+                R V_1, //r
+                R V_2)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_2
+  IL_0005:  initobj    "R"
+  IL_000b:  ldloc.2
+  IL_000c:  ldfld      "ref int R.field"
+  IL_0011:  ldloc.0
+  IL_0012:  stind.i4
+  IL_0013:  ldloc.2
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  constrained. "R"
+  IL_001d:  callvirt   "string object.ToString()"
+  IL_0022:  call       "void System.Console.Write(string)"
+  IL_0027:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void RefInitializer_RHSMustBeDefinitelyAssigned()
+        {
+            // The right operand must be definitely assigned at the point of the ref assignment.
+            var source = @"
+int x;
+var r = new R() { field = ref x };
+
+ref struct R
+{
+    public ref int field;
+    public override string ToString()
+    {
+        return field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,31): error CS0165: Use of unassigned local variable 'x'
+                // var r = new R() { field = ref x };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(3, 31)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RHSTypeMustMatch()
+        {
+            // The right operand must be an expression that yields an lvalue designating a value of the same type as the left operand.
+            var source = @"
+object x = null;
+var r = new R() { field = ref x };
+
+ref struct R
+{
+    public ref int field;
+    public override string ToString()
+    {
+        return field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,31): error CS8173: The expression must be of type 'int' because it is being assigned by reference
+                // var r = new R() { field = ref x };
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "x").WithArguments("int").WithLocation(3, 31)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RHSTypeMustMatch_ImplicitConversionExists()
+        {
+            // The right operand must be an expression that yields an lvalue designating a value of the same type as the left operand.
+            var source = @"
+S1 x = default;
+var r = new R() { field = ref x };
+
+struct S1 { }
+struct S2
+{
+    public static implicit operator S2(S1 s1) => throw null;
+}
+ref struct R
+{
+    public ref S2 field;
+    public override string ToString()
+    {
+        return field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,31): error CS8173: The expression must be of type 'S2' because it is being assigned by reference
+                // var r = new R() { field = ref x };
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "x").WithArguments("S2").WithLocation(3, 31)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_StaticRefField()
+        {
+            var source = @"
+int x = 0;
+var r = new R() { field = ref x };
+
+ref struct R
+{
+    public static ref int field;
+    public override string ToString()
+    {
+        return field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS1914: Static field or property 'R.field' cannot be assigned in an object initializer
+                // var r = new R() { field = ref x };
+                Diagnostic(ErrorCode.ERR_StaticMemberInObjectInitializer, "field").WithArguments("R.field").WithLocation(3, 19),
+                // (7,27): error CS0106: The modifier 'static' is not valid for this item
+                //     public static ref int field;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "field").WithArguments("static").WithLocation(7, 27)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_VarInvocationReserved()
+        {
+            var source = @"
+var r = new R() { field = ref var() };
+
+ref struct R
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,31): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                // var r = new R() { field = ref var() };
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var()").WithLocation(2, 31),
+                // (2,31): error CS0103: The name 'var' does not exist in the current context
+                // var r = new R() { field = ref var() };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(2, 31)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_ReadonlyRefField()
+        {
+            var source = @"
+int x = 42;
+var r = new R() { field = ref x };
+
+ref struct R
+{
+    public readonly ref int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                // var r = new R() { field = ref x };
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(3, 19)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RefReadonlyField()
+        {
+            var source = @"
+int x = 42;
+var r = new R() { field = ref x };
+
+ref struct R
+{
+    public ref readonly int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefInitializer_RefReadonlyValue_Field()
+        {
+            // If the left operand is a writeable ref (i.e. it designates anything other than a `ref readonly` local or  `in` parameter), then the right operand must be a writeable lvalue.
+            var source = @"
+class C
+{
+    ref readonly int Value() => throw null;
+
+    void M()
+    {
+        var r = new R() { field = ref Value() };
+    }
+}
+
+ref struct R
+{
+    public ref int field;
+}
+";
+            // Confusing error message
+            // Tracked by https://github.com/dotnet/roslyn/issues/62756
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,39): error CS8331: Cannot assign to method 'C.Value()' because it is a readonly variable
+                //         var r = new R() { field = ref Value() };
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "Value()").WithArguments("method", "C.Value()").WithLocation(8, 39)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_AssignInParameter()
+        {
+            var source = @"
+class C
+{
+    static void F(in int i)
+    {
+        _ = new R1 { _f = ref i };
+        _ = new R2 { _f = ref i }; // 1
+    }
+}
+
+ref struct R1
+{
+    public ref readonly int _f;
+}
+
+ref struct R2
+{
+    public ref int _f;
+}
+";
+            // Diagnostic is missing parameter name
+            // Tracked by https://github.com/dotnet/roslyn/issues/62096
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,31): error CS8331: Cannot assign to variable 'in int' because it is a readonly variable
+                //         _ = new R2 { _f = ref i }; // 1
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "i").WithArguments("variable", "in int").WithLocation(7, 31)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RefReadonlyValue_GetOnlyProperty()
+        {
+            var source = @"
+class C
+{
+    ref readonly int Value() => throw null;
+
+    void M()
+    {
+        var r = new R() { Property = ref Value() };
+    }
+}
+
+ref struct R
+{
+    public ref int Property { get => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,27): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         var r = new R() { Property = ref Value() };
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "Property").WithLocation(8, 27)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RefReadonlyValue_Property()
+        {
+            var source = @"
+class C
+{
+    ref readonly int Value() => throw null;
+
+    void M()
+    {
+        var r = new R() { Property = ref Value() };
+    }
+}
+
+ref struct R
+{
+    public ref int Property { get => throw null; set => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,27): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         var r = new R() { Property = ref Value() };
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "Property").WithLocation(8, 27),
+                // (14,50): error CS8147: Properties which return by reference cannot have set accessors
+                //     public ref int Property { get => throw null; set => throw null; }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(14, 50)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RefReadonlyValue_Indexer()
+        {
+            var source = @"
+var r = new R() { [0] = ref Value() }; // 1
+
+R r2 = default;
+r2[0] = ref Value(); // 2
+
+ref readonly int Value() => throw null;
+
+ref struct R
+{
+    public ref int this[int i] { get => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,19): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new R() { [0] = ref Value() }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[0]").WithLocation(2, 19),
+                // (5,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // r2[0] = ref Value(); // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "r2[0]").WithLocation(5, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_Indexer()
+        {
+            var source = @"
+var r = new R() { [0] = ref Value() }; // 1
+
+R r2 = default;
+r2[0] = ref Value(); // 2
+
+ref int Value() => throw null;
+
+ref struct R
+{
+    public ref int this[int i] { get => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,19): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new R() { [0] = ref Value() }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[0]").WithLocation(2, 19),
+                // (5,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // r2[0] = ref Value(); // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "r2[0]").WithLocation(5, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_ValueMustReferToLocation()
+        {
+            var source = @"
+class C
+{
+    int Value() => throw null;
+
+    void M()
+    {
+        var r = new R() { field = ref Value() };
+    }
+}
+
+ref struct R
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,39): error CS1510: A ref or out value must be an assignable variable
+                //         var r = new R() { field = ref Value() };
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Value()").WithLocation(8, 39)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RefReadonlyField_RefReadonlyValue()
+        {
+            var source = @"
+class C
+{
+    ref readonly int Value() => throw null;
+
+    void M()
+    {
+        var r = new R() { field = ref Value() };
+    }
+}
+
+ref struct R
+{
+    public ref readonly int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefInitializer_OnInterface_Field()
+        {
+            var source = @"
+class C
+{
+    void M<T>() where T : I, new()
+    {
+        int x = 42;
+        var t = new T() { field = ref x };
+    }
+}
+interface I
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,20): error CS0525: Interfaces cannot contain instance fields
+                //     public ref int field;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(12, 20),
+                // (12,20): error CS9059: A ref field can only be declared in a ref struct.
+                //     public ref int field;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "field").WithLocation(12, 20)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnInterface_Property()
+        {
+            var source = @"
+class C
+{
+    void M<T>() where T : I, new()
+    {
+        int x = 42;
+        var t = new T() { Property = ref x };
+    }
+}
+
+interface I
+{
+    public ref int Property { get; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,27): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         var t = new T() { Property = ref x };
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "Property").WithLocation(7, 27)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_Collection()
+        {
+            var source = @"
+using System.Collections;
+
+int x = 42;
+int y = 43;
+var r = new R() { ref x, ref y };
+
+struct R : IEnumerable
+{
+    public void Add(ref int x) => throw null;
+    public IEnumerator GetEnumerator() => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,5): warning CS0219: The variable 'x' is assigned but its value is never used
+                // int x = 42;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(4, 5),
+                // (5,5): warning CS0219: The variable 'y' is assigned but its value is never used
+                // int y = 43;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(5, 5),
+                // (6,19): error CS1073: Unexpected token 'ref'
+                // var r = new R() { ref x, ref y };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 19),
+                // (6,26): error CS1073: Unexpected token 'ref'
+                // var r = new R() { ref x, ref y };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 26)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnNonRefField()
+        {
+            var source = @"
+int x = 42;
+var r = new R() { field = ref x }; // 1
+
+R r2 = default;
+r2.field = ref x; // 2
+
+ref struct R
+{
+    public int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new R() { field = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "field").WithLocation(3, 19),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // r2.field = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "r2.field").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnNonRefProperty()
+        {
+            var source = @"
+int x = 42;
+var r = new R() { Property = ref x }; // 1
+
+R r2 = default;
+r2.Property = ref x; // 2
+
+ref struct R
+{
+    public int Property { get; set; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new R() { Property = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "Property").WithLocation(3, 19),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // r2.Property = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "r2.Property").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnNonRefIndexer()
+        {
+            var source = @"
+int x = 42;
+var r = new R() { [0] = ref x }; // 1
+
+R r2 = default;
+r2[0] = ref x; // 2
+
+ref struct R
+{
+    public int this[int i] { get => throw null; set => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new R() { [0] = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[0]").WithLocation(3, 19),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // r2[0] = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "r2[0]").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnArray()
+        {
+            var source = @"
+public ref struct C
+{
+    C M()
+    {
+        int x = 0;
+        var c = new C { array = { [0] = ref x } }; // 1
+        return c;
+    }
+
+    void M2()
+    {
+        int x = 0;
+        C c2 = new C();
+        c2.array[0] = ref x; // 2
+    }
+
+    public int[] array;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,35): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         var c = new C { array = { [0] = ref x } }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[0]").WithLocation(7, 35),
+                // (15,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         c2.array[0] = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "c2.array[0]").WithLocation(15, 9)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnPointer()
+        {
+            var source = @"
+public unsafe class C
+{
+    public int* pointer;
+
+    C M()
+    {
+        int x = 0;
+        var c = new C { pointer = { [0] = ref x } }; // 1
+        return c;
+    }
+
+    void M2()
+    {
+        int x = 0;
+        C c2 = new C();
+        c2.pointer[0] = ref x; // 2
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (9,37): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         var c = new C { pointer = { [0] = ref x } }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[0]").WithLocation(9, 37),
+                // (17,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         c2.pointer[0] = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "c2.pointer[0]").WithLocation(17, 9)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnEvent()
+        {
+            var source = @"
+int x = 42;
+var r = new C { a = ref x }; // 1
+
+C c = default;
+c.a = ref x; // 2
+
+class C
+{
+    public event System.Action a;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,17): error CS0070: The event 'C.a' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+                // var r = new C { a = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "a").WithArguments("C.a", "C").WithLocation(3, 17),
+                // (6,3): error CS0070: The event 'C.a' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+                // c.a = ref x; // 2
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "a").WithArguments("C.a", "C").WithLocation(6, 3)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnEvent_ThisMemberAccess()
+        {
+            var source = @"
+int x = 42;
+var r1 = new C { this.a = ref x }; // 1
+
+class C
+{
+    public event System.Action a;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,16): error CS1922: Cannot initialize type 'C' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                // var r1 = new C { this.a = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ this.a = ref x }").WithArguments("C").WithLocation(3, 16),
+                // (3,18): error CS0747: Invalid initializer member declarator
+                // var r1 = new C { this.a = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "this.a = ref x").WithLocation(3, 18),
+                // (3,18): error CS0026: Keyword 'this' is not valid in a static property, static method, or static field initializer
+                // var r1 = new C { this.a = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_ThisInStaticMeth, "this").WithLocation(3, 18),
+                // (7,32): warning CS0067: The event 'C.a' is never used
+                //     public event System.Action a;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "a").WithArguments("C.a").WithLocation(7, 32)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_OnMethodGroup()
+        {
+            var source = @"
+int x = 42;
+var r = new C { F = ref x }; // 1
+
+C c = default;
+c.F = ref x; // 2
+
+class C
+{
+    public void F() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,17): error CS1913: Member 'F' cannot be initialized. It is not a field or property.
+                // var r = new C { F = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "F").WithArguments("F").WithLocation(3, 17),
+                // (6,1): error CS1656: Cannot assign to 'F' because it is a 'method group'
+                // c.F = ref x; // 2
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "c.F").WithArguments("F", "method group").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_Nested()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int x = 42;
+        var r = new Container { item = { field = ref x } };
+        System.Console.Write(r.item.field);
+    }
+}
+ref struct Container
+{
+    public Item item;
+}
+ref struct Item
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  2
+  .locals init (int V_0, //x
+                Container V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  initobj    ""Container""
+  IL_000b:  ldloc.1
+  IL_000c:  ldfld      ""Item Container.item""
+  IL_0011:  ldfld      ""ref int Item.field""
+  IL_0016:  ldloc.0
+  IL_0017:  stind.i4
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      ""Item Container.item""
+  IL_001e:  ldfld      ""ref int Item.field""
+  IL_0023:  ldind.i4
+  IL_0024:  call       ""void System.Console.Write(int)""
+  IL_0029:  ret
+}
+");
+        }
+
+        [Fact]
+        public void RefInitializer_Nullability()
+        {
+            var source = @"
+#nullable enable
+
+S<object> x1 = default;
+S<object?> x2 = default;
+
+_ = new R<object> { field = ref x1 };
+_ = new R<object> { field = ref x2 }; // 1
+_ = new R<object?> { field = ref x1 }; // 2
+_ = new R<object?> { field = ref x2 };
+
+_ = new R<object>() with { field = ref x1 };
+_ = new R<object>() with { field = ref x2 }; // 3
+_ = new R<object?>() with { field = ref x1 }; // 4
+_ = new R<object?>() with { field = ref x2 };
+
+struct S<T> { }
+ref struct R<T>
+{
+    public ref S<T> field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,33): warning CS8619: Nullability of reference types in value of type 'S<object?>' doesn't match target type 'S<object>'.
+                // _ = new R<object> { field = ref x2 }; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("S<object?>", "S<object>").WithLocation(8, 33),
+                // (9,34): warning CS8619: Nullability of reference types in value of type 'S<object>' doesn't match target type 'S<object?>'.
+                // _ = new R<object?> { field = ref x1 }; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("S<object>", "S<object?>").WithLocation(9, 34),
+                // (13,40): warning CS8619: Nullability of reference types in value of type 'S<object?>' doesn't match target type 'S<object>'.
+                // _ = new R<object>() with { field = ref x2 }; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("S<object?>", "S<object>").WithLocation(13, 40),
+                // (14,41): warning CS8619: Nullability of reference types in value of type 'S<object>' doesn't match target type 'S<object?>'.
+                // _ = new R<object?>() with { field = ref x1 }; // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("S<object>", "S<object?>").WithLocation(14, 41)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_RefOnNestedInitializer()
+        {
+            var source = @"
+int x = 42;
+var r = new R { field = ref { item = 42 } }; // 1
+
+struct S
+{
+    public int item;
+}
+ref struct R
+{
+    public ref S field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,5): warning CS0219: The variable 'x' is assigned but its value is never used
+                // int x = 42;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(2, 5),
+                // (3,29): error CS1525: Invalid expression term '{'
+                // var r = new R { field = ref { item = 42 } }; // 1
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(3, 29),
+                // (3,29): error CS1003: Syntax error, ',' expected
+                // var r = new R { field = ref { item = 42 } }; // 1
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(3, 29),
+                // (3,29): error CS0747: Invalid initializer member declarator
+                // var r = new R { field = ref { item = 42 } }; // 1
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "{ item = 42 }").WithLocation(3, 29),
+                // (3,31): error CS0103: The name 'item' does not exist in the current context
+                // var r = new R { field = ref { item = 42 } }; // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "item").WithArguments("item").WithLocation(3, 31)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_FieldOnDynamic()
+        {
+            var source = @"
+int x = 42;
+var r = new S { D = { field = ref x } }; // 1
+
+S s = default;
+s.D.field = ref x; // 2
+
+struct S
+{
+    public dynamic D;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,23): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new S { D = { field = ref x } }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "field").WithLocation(3, 23),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // s.D.field = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "s.D.field").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_DynamicField()
+        {
+            var source = @"
+int i = 42;
+var r = new R<dynamic> { F = ref i }; // 1
+
+ref struct R<T>
+{
+    public ref T F;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,34): error CS8173: The expression must be of type 'dynamic' because it is being assigned by reference
+                // var r = new R<dynamic> { F = ref i }; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "i").WithArguments("dynamic").WithLocation(3, 34)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_DynamicField_DynamicValue()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        dynamic i = 42;
+        var r = new R<dynamic> { F = ref i };
+        System.Console.Write(r.F);
+
+        var r2 = new R<dynamic>(ref i);
+        System.Console.Write(r2.F);
+    }
+}
+
+ref struct R<T>
+{
+    public R(ref T f) { F = ref f; }
+    public ref T F;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreAppAndCSharp);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("4242"));
+            verifier.VerifyIL("C.Main", """
+{
+  // Code size      256 (0x100)
+  .maxstack  9
+  .locals init (object V_0, //i
+                R<dynamic> V_1, //r
+                R<dynamic> V_2, //r2
+                R<dynamic> V_3)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   42
+  IL_0003:  box        "int"
+  IL_0008:  stloc.0
+  IL_0009:  ldloca.s   V_3
+  IL_000b:  initobj    "R<dynamic>"
+  IL_0011:  ldloc.3
+  IL_0012:  ldfld      "ref dynamic R<dynamic>.F"
+  IL_0017:  ldloc.0
+  IL_0018:  stind.ref
+  IL_0019:  ldloc.3
+  IL_001a:  stloc.1
+  IL_001b:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
+  IL_0020:  brfalse.s  IL_0024
+  IL_0022:  br.s       IL_0063
+  IL_0024:  ldc.i4     0x100
+  IL_0029:  ldstr      "Write"
+  IL_002e:  ldnull
+  IL_002f:  ldtoken    "C"
+  IL_0034:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_0039:  ldc.i4.2
+  IL_003a:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+  IL_003f:  dup
+  IL_0040:  ldc.i4.0
+  IL_0041:  ldc.i4.s   33
+  IL_0043:  ldnull
+  IL_0044:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+  IL_0049:  stelem.ref
+  IL_004a:  dup
+  IL_004b:  ldc.i4.1
+  IL_004c:  ldc.i4.0
+  IL_004d:  ldnull
+  IL_004e:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+  IL_0053:  stelem.ref
+  IL_0054:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+  IL_0059:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+  IL_005e:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
+  IL_0063:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
+  IL_0068:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Target"
+  IL_006d:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__0"
+  IL_0072:  ldtoken    "System.Console"
+  IL_0077:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_007c:  ldloc.1
+  IL_007d:  ldfld      "ref dynamic R<dynamic>.F"
+  IL_0082:  ldind.ref
+  IL_0083:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)"
+  IL_0088:  nop
+  IL_0089:  ldloca.s   V_0
+  IL_008b:  newobj     "R<dynamic>..ctor(ref dynamic)"
+  IL_0090:  stloc.2
+  IL_0091:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
+  IL_0096:  brfalse.s  IL_009a
+  IL_0098:  br.s       IL_00d9
+  IL_009a:  ldc.i4     0x100
+  IL_009f:  ldstr      "Write"
+  IL_00a4:  ldnull
+  IL_00a5:  ldtoken    "C"
+  IL_00aa:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_00af:  ldc.i4.2
+  IL_00b0:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+  IL_00b5:  dup
+  IL_00b6:  ldc.i4.0
+  IL_00b7:  ldc.i4.s   33
+  IL_00b9:  ldnull
+  IL_00ba:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+  IL_00bf:  stelem.ref
+  IL_00c0:  dup
+  IL_00c1:  ldc.i4.1
+  IL_00c2:  ldc.i4.0
+  IL_00c3:  ldnull
+  IL_00c4:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+  IL_00c9:  stelem.ref
+  IL_00ca:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+  IL_00cf:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+  IL_00d4:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
+  IL_00d9:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
+  IL_00de:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Target"
+  IL_00e3:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> C.<>o__0.<>p__1"
+  IL_00e8:  ldtoken    "System.Console"
+  IL_00ed:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+  IL_00f2:  ldloc.2
+  IL_00f3:  ldfld      "ref dynamic R<dynamic>.F"
+  IL_00f8:  ldind.ref
+  IL_00f9:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)"
+  IL_00fe:  nop
+  IL_00ff:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void RefInitializer_SubstitutedObjectField()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        object i = 42;
+        var r = new R<object> { F = ref i };
+        System.Console.Write(r.F);
+
+        var r2 = new R<object>(ref i);
+        System.Console.Write(r2.F);
+    }
+}
+
+ref struct R<T>
+{
+    public R(ref T f) { F = ref f; }
+    public ref T F;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("4242"));
+            verifier.VerifyIL("C.Main", """
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (object V_0, //i
+                R<object> V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  box        "int"
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  initobj    "R<object>"
+  IL_0010:  ldloc.1
+  IL_0011:  ldfld      "ref object R<object>.F"
+  IL_0016:  ldloc.0
+  IL_0017:  stind.ref
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      "ref object R<object>.F"
+  IL_001e:  ldind.ref
+  IL_001f:  call       "void System.Console.Write(object)"
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  newobj     "R<object>..ctor(ref object)"
+  IL_002b:  ldfld      "ref object R<object>.F"
+  IL_0030:  ldind.ref
+  IL_0031:  call       "void System.Console.Write(object)"
+  IL_0036:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void RefInitializer_DynamicInstance()
+        {
+            var source = @"
+int x = 42;
+var r = new dynamic { field = ref x }; // 1
+
+dynamic r2 = null;
+r2.field = ref x; // 2
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,13): error CS8386: Invalid object creation
+                // var r = new dynamic { field = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithLocation(3, 13),
+                // (3,23): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new dynamic { field = ref x }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "field").WithLocation(3, 23),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // r2.field = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "r2.field").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_DynamicIndexer()
+        {
+            var source = @"
+int x = 42;
+var r = new S { D = { [0] = ref x } }; // 1
+
+S s = default;
+s.D[0] = ref x; // 2
+
+struct S
+{
+    public dynamic D;
+}
+ref struct R
+{
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,23): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var r = new S { D = { [0] = ref x } }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[0]").WithLocation(3, 23),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // s.D[0] = ref x; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "s.D[0]").WithLocation(6, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_DynamicIndexer_Nested()
+        {
+            var source = @"
+dynamic x = 1;
+int i = 42;
+var a = new A() { [y: x, x: x] = { X = ref i } }; // 1
+
+A a2 = null;
+a2[y: x, x: x].X = ref i; // 2
+
+public class A
+{
+    public dynamic this[int x, int y] { get => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,36): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // var a = new A() { [y: x, x: x] = { X = ref i } }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "X").WithLocation(4, 36),
+                // (7,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // a2[y: x, x: x].X = ref i; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "a2[y: x, x: x].X").WithLocation(7, 1)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_Escape()
+        {
+            var source = @"
+public class C
+{
+    public static R M1()
+    {
+        int x = 42;
+        var r = new R { field = ref x };
+        return r; // 1
+    }
+    public static R M2(ref int x)
+    {
+        var r = new R { field = ref x };
+        return r;
+    }
+    public static R M3()
+    {
+        R r = default;
+        {
+            int x = 42;
+            r = new R { field = ref x }; // 2
+        }
+        return r;
+    }
+    public static R M4()
+    {
+        R r = default;
+        int x = 42;
+        {
+            r = new R { field = ref x }; // 3
+        }
+        return r;
+    }
+    public static void M5(ref R r)
+    {
+        int x = 42;
+        r = new R { field = ref x }; // 4
+    }
+}
+
+public ref struct R
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(8, 16),
+                // (20,25): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new R { field = ref x }; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(20, 25),
+                // (29,25): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new R { field = ref x }; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(29, 25),
+                // (36,21): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         r = new R { field = ref x }; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(36, 21)
+                );
+
+            // Initializer values behave like constructor parameters for purpose of escape analysis
+            source = @"
+public class C
+{
+    public static R M1()
+    {
+        int x = 42;
+        var r = new R(ref x);
+        return r; // 1
+    }
+    public static R M2(ref int x)
+    {
+        var r = new R(ref x);
+        return r;
+    }
+    public static R M3()
+    {
+        R r = default;
+        {
+            int x = 42;
+            r = new R(ref x); // 2
+        }
+        return r;
+    }
+    public static R M4()
+    {
+        R r = default;
+        int x = 42;
+        {
+            r = new R(ref x); // 3
+        }
+        return r;
+    }
+    public static void M5(ref R r)
+    {
+        int x = 42;
+        r = new R(ref x); // 4
+    }
+}
+
+public ref struct R
+{
+    public ref int field;
+    public R(ref int i) { }
+}
+";
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(8, 16),
+                // (20,17): error CS8347: Cannot use a result of 'R.R(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //             r = new R(ref x); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref x)").WithArguments("R.R(ref int)", "i").WithLocation(20, 17),
+                // (20,27): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new R(ref x); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(20, 27),
+                // (29,17): error CS8347: Cannot use a result of 'R.R(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //             r = new R(ref x); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref x)").WithArguments("R.R(ref int)", "i").WithLocation(29, 17),
+                // (29,27): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new R(ref x); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(29, 27),
+                // (36,13): error CS8347: Cannot use a result of 'R.R(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         r = new R(ref x); // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref x)").WithArguments("R.R(ref int)", "i").WithLocation(36, 13),
+                // (36,23): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         r = new R(ref x); // 4
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(36, 23)
+                );
+        }
+
+        [Fact]
+        public void RefInitializer_Escape_Nested()
+        {
+            var source = @"
+class C
+{
+    public static Container M3()
+    {
+        Container r = default;
+        {
+            int x = 42;
+            var r = new Container { item = { field = ref x } }; // 1
+        }
+        return r;
+    }
+    public static Container M4()
+    {
+        Container r = default;
+        int x = 42;
+        {
+            r = new Container { item = { field = ref x } }; // 2
+        }
+        return r;
+    }
+    public static void M5(ref Container r)
+    {
+        int x = 42;
+        r = new Container { item = { field = ref x } }; // 3
+    }
+    public static Container M6()
+    {
+        int x = 42;
+        var r = new Container { item = { field = ref x } };
+        return r; // 4
+    }
+ }
+ref struct Container
+{
+    public Item item;
+}
+ref struct Item
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,17): error CS0136: A local or parameter named 'r' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             var r = new Container { item = { field = ref x } }; // 1
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "r").WithArguments("r").WithLocation(9, 17),
+                // (18,42): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new Container { item = { field = ref x } }; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(18, 42),
+                // (25,38): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         r = new Container { item = { field = ref x } }; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(25, 38),
+                // (31,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(31, 16)
+                );
+        }
+
+        [Fact]
+        public void RefWith()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        int x = 42;
+        var r = new R() with { field = ref x };
+        System.Console.Write(r.ToString());
+    }
+}
+
+ref struct R
+{
+    public ref int field;
+    public override string ToString()
+    {
+        return field.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
+            verifier.VerifyIL("C.Main",
+"""
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (int V_0, //x
+                R V_1, //r
+                R V_2)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_2
+  IL_0005:  initobj    "R"
+  IL_000b:  ldloc.2
+  IL_000c:  ldfld      "ref int R.field"
+  IL_0011:  ldloc.0
+  IL_0012:  stind.i4
+  IL_0013:  ldloc.2
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  constrained. "R"
+  IL_001d:  callvirt   "string object.ToString()"
+  IL_0022:  call       "void System.Console.Write(string)"
+  IL_0027:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void RefWith_Escape()
+        {
+            var source = @"
+public class C
+{
+    public static R M1()
+    {
+        int x = 42;
+        var r = new R() with { field = ref x };
+        return r; // 1
+    }
+    public static R M2(ref int x)
+    {
+        var r = new R() with { field = ref x };
+        return r;
+    }
+    public static R M3()
+    {
+        R r = default;
+        {
+            int x = 42;
+            r = new R() with { field = ref x }; // 2
+        }
+        return r;
+    }
+    public static R M4()
+    {
+        R r = default;
+        int x = 42;
+        {
+            r = new R() with { field = ref x }; // 3
+        }
+        return r;
+    }
+    public static void M5(ref R r)
+    {
+        int x = 42;
+        r = new R() with { field = ref x }; // 4
+    }
+}
+
+public ref struct R
+{
+    public ref int field;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(8, 16),
+                // (20,32): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new R() with { field = ref x }; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(20, 32),
+                // (29,32): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             r = new R() with { field = ref x }; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(29, 32),
+                // (36,28): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         r = new R() with { field = ref x }; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "field = ref x").WithArguments("x").WithLocation(36, 28)
+                );
         }
     }
 }

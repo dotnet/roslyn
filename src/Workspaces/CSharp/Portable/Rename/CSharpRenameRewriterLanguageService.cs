@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 Func<SyntaxTriviaList, string, string, SyntaxTriviaList, SyntaxToken> createNewStringLiteral)
             {
                 var originalString = newToken.ToString();
-                var replacedString = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(
+                var replacedString = RenameUtilities.ReplaceMatchingSubStrings(
                     originalString,
                     subSpanToReplacementString);
                 if (replacedString != originalString)
@@ -678,7 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 else if (newToken.IsKind(SyntaxKind.IdentifierToken) && newToken.Parent.IsKind(SyntaxKind.XmlName))
                 {
                     var originalText = newToken.ToString();
-                    var replacementText = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(
+                    var replacementText = RenameUtilities.ReplaceMatchingSubStrings(
                         originalText,
                         subSpanToReplacementTextInfo);
                     if (replacementText != originalText)
@@ -808,7 +808,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 ImmutableSortedDictionary<TextSpan, (string replacementText, string matchText)> subSpanToReplacementString)
             {
                 var originalString = trivia.ToString();
-                var replacedString = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(
+                var replacedString = RenameUtilities.ReplaceMatchingSubStrings(
                     originalString,
                     subSpanToReplacementString);
 
@@ -939,7 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     var properties = new List<ISymbol>();
                     foreach (var referencedSymbol in referencedSymbols)
                     {
-                        var property = await RenameLocations.ReferenceProcessing.TryGetPropertyFromAccessorOrAnOverrideAsync(
+                        var property = await RenameUtilities.TryGetPropertyFromAccessorOrAnOverrideAsync(
                             referencedSymbol, baseSolution, cancellationToken).ConfigureAwait(false);
                         if (property != null)
                             properties.Add(property);

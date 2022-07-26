@@ -552,6 +552,11 @@
         <target state="translated">Функция "{0}" недоступна в C# 10.0. Используйте версию языка {1} или более позднюю.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion11">
+        <source>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">Функция "{0}" недоступна в C# 8.0. Используйте версию языка {1} или более позднюю.</target>
@@ -583,13 +588,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeBase">
-        <source>File type '{0}' cannot be used as a base type of non-file type '{1}'.</source>
-        <target state="new">File type '{0}' cannot be used as a base type of non-file type '{1}'.</target>
+        <source>File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</source>
+        <target state="new">File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeDisallowedInSignature">
-        <source>File type '{0}' cannot be used in a member signature in non-file type '{1}'.</source>
-        <target state="new">File type '{0}' cannot be used in a member signature in non-file type '{1}'.</target>
+        <source>File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</source>
+        <target state="new">File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNameDisallowed">
@@ -598,13 +603,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNested">
-        <source>File type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
-        <target state="new">File type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <source>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
+        <target state="new">File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
-        <source>File type '{0}' cannot use accessibility modifiers.</source>
-        <target state="new">File type '{0}' cannot use accessibility modifiers.</target>
+        <source>File-local type '{0}' cannot use accessibility modifiers.</source>
+        <target state="new">File-local type '{0}' cannot use accessibility modifiers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
@@ -653,8 +658,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingStaticFileType">
-        <source>File type '{0}' cannot be used in a 'global using static' directive.</source>
-        <target state="new">File type '{0}' cannot be used in a 'global using static' directive.</target>
+        <source>File-local type '{0}' cannot be used in a 'global using static' directive.</source>
+        <target state="new">File-local type '{0}' cannot be used in a 'global using static' directive.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -1257,6 +1262,11 @@
         <target state="translated">Поле ref не должно ссылаться на ref struct.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefFieldInNonRefStruct">
+        <source>A ref field can only be declared in a ref struct.</source>
+        <target state="new">A ref field can only be declared in a ref struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="translated">Левая сторона назначения ref должна быть переменной ref.</target>
@@ -1592,6 +1602,11 @@
         <target state="translated">Директива using ранее использовалась в качестве глобальной</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_ArrayAccess">
+        <source>array access</source>
+        <target state="new">array access</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_AsyncMethodBuilderOverride">
         <source>async method builder override</source>
         <target state="translated">переопределение построителя методов async</target>
@@ -1757,6 +1772,11 @@
         <target state="translated">сопоставление шаблонов ReadOnly/Span&lt;char&gt; в строке константы</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_PointerElementAccess">
+        <source>pointer element access</source>
+        <target state="new">pointer element access</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">Сборка "{0}", содержащая тип "{1}", ссылается на платформу .NET Framework, которая не поддерживается.</target>
@@ -1765,6 +1785,16 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">Загруженная сборка ссылается на платформу .NET Framework, которая не поддерживается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="new">The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
+        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
+        <target state="new">The analyzer assembly references a newer version of the compiler than the currently running version.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttrDependentTypeNotAllowed">
