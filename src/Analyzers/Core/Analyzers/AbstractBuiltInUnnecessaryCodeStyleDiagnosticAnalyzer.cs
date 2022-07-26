@@ -3,12 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
@@ -80,6 +77,23 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             : base(diagnosticId, enforceOnBuild, options, title, messageFormat, isUnnecessary: true, configurable)
         {
             AddDiagnosticIdToFadingOptionMapping(diagnosticId, fadingOption);
+        }
+
+        /// <summary>
+        /// Constructor for an unnecessary code style analyzer with multiple descriptors. All unnecessary descriptors will share the same <paramref name="fadingOption"/>
+        /// </summary>
+        /// <param name="descriptors">Descriptors supported by this analyzer</param>
+        /// <param name="fadingOption">The fading option used to control descriptors that are unnecessary.</param>
+        protected AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(ImmutableArray<DiagnosticDescriptor> descriptors, PerLanguageOption2<bool> fadingOption)
+            : base(descriptors)
+        {
+            foreach (var descriptor in descriptors)
+            {
+                if (descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.Unnecessary))
+                {
+                    AddDiagnosticIdToFadingOptionMapping(descriptor.Id, fadingOption);
+                }
+            }
         }
 
         private static void AddDiagnosticIdToFadingOptionMapping(string diagnosticId, PerLanguageOption2<bool>? fadingOption)

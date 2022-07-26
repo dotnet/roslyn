@@ -11,10 +11,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#endif
-
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer
