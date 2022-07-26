@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
             var (formattingChanges, finalCurlyBraceEnd) = FormatTrackingSpan(
                 context.Document,
-                context.Document.LanguageServices,
+                context.Document.LanguageServices.ProjectServices,
                 context.OpeningPoint,
                 context.ClosingPoint,
                 // We're not trying to format the indented block here, so no need to pass in additional rules.
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // Format the text that contains the newly inserted line.
             var (formattingChanges, newClosingPoint) = FormatTrackingSpan(
                 documentToFormat,
-                document.LanguageServices,
+                document.LanguageServices.ProjectServices,
                 openingPoint,
                 closingPoint,
                 braceFormattingIndentationRules: GetBraceFormattingIndentationRulesAfterReturn(options),
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         /// </summary>
         private (ImmutableArray<TextChange> textChanges, int finalBraceEnd) FormatTrackingSpan(
             ParsedDocument document,
-            HostLanguageServices languageServices,
+            HostProjectServices languageServices,
             int openingPoint,
             int closingPoint,
             ImmutableArray<AbstractFormattingRule> braceFormattingIndentationRules,
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             var annotatedRoot = GetSyntaxRootWithAnnotatedClosingBrace(document.Root, closingPoint);
 
             var result = Formatter.GetFormattingResult(
-                annotatedRoot, SpecializedCollections.SingletonEnumerable(spanToFormat), languageServices.WorkspaceServices, options.FormattingOptions, rules, cancellationToken);
+                annotatedRoot, SpecializedCollections.SingletonEnumerable(spanToFormat), languageServices.SolutionServices, options.FormattingOptions, rules, cancellationToken);
 
             if (result == null)
             {

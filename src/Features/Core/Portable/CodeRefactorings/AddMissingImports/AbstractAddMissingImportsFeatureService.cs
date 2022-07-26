@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
 
             var textChanges = Formatter.GetFormattedTextChanges(
                 root,

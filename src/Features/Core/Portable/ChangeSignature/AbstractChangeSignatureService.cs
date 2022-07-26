@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var formattedRoot = Formatter.Format(
                     newRoot,
                     changeSignatureFormattingAnnotation,
-                    doc.Project.Solution.Workspace.Services,
+                    doc.Project.Solution.Services,
                     options: formattingOptions,
                     rules: GetFormattingRules(doc),
                     cancellationToken: CancellationToken.None);

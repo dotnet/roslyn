@@ -59,11 +59,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     return true;
                 }
 
-                var workspace = document.Project.Solution.Workspace;
                 var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
                 var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
-                var symbolUnderCaret = SymbolFinder.FindSymbolAtPositionAsync(semanticModel, caretPosition, workspace, cancellationToken)
+                var symbolUnderCaret = SymbolFinder.FindSymbolAtPositionAsync(
+                    semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken)
                     .WaitAndGetResult(cancellationToken);
 
                 if (symbolUnderCaret != null)
