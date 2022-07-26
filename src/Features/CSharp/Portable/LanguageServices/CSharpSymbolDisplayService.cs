@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
 {
     internal partial class CSharpSymbolDisplayService : AbstractSymbolDisplayService
     {
-        public CSharpSymbolDisplayService(HostLanguageServices services)
+        public CSharpSymbolDisplayService(HostProjectServices services)
             : base(services)
         {
         }
