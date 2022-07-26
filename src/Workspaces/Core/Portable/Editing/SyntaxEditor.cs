@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         [Obsolete("Use SyntaxEditor(SyntaxNode, HostWorkspaceServices)")]
         public SyntaxEditor(SyntaxNode root, Workspace workspace)
-            : this(root, (workspace ?? throw new ArgumentNullException(nameof(workspace))).Services)
+            : this(root, (workspace ?? throw new ArgumentNullException(nameof(workspace))).Services.SolutionServices)
         {
         }
 
