@@ -129,7 +129,7 @@
     <MicrosoftVisualStudioCacheVersion>17.2.41-alpha</MicrosoftVisualStudioCacheVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.8.27812-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.8.27812-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
-    <MicrosoftVisualStudioComponentModelHostVersion>17.2.3194</MicrosoftVisualStudioComponentModelHostVersion>
+    <MicrosoftVisualStudioComponentModelHostVersion>17.3.37-preview</MicrosoftVisualStudioComponentModelHostVersion>
     <MicrosoftVisualStudioCompositionVersion>16.9.20</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioCoreUtilityVersion>
     <MicrosoftVisualStudioDebuggerUIInterfacesVersion>17.3.0-beta.22253.1</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
