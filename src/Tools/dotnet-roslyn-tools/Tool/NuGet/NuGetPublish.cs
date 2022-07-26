@@ -109,7 +109,7 @@ namespace Microsoft.RoslynTools.NuGet
                     var result = await PublishPackageAsync(packageId, version);
                     if (result.ExitCode != 0)
                     {
-                        logger.LogInformation($"Failed to publish '{packageId}'");
+                        logger.LogError($"Failed to publish '{packageId}'");
                         throw new InvalidOperationException(result.Output);
                     }
                     else
