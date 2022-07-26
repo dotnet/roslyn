@@ -137,5 +137,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ChangingNonCustomAttribute = 108,
         ChangingNamespace = 109,
         ChangingTypeNotSupportedByRuntime = 110,
+        DeleteNotSupportedByRuntime = 111,
     }
 }

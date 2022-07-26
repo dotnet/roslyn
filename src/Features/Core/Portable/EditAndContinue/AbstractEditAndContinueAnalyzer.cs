@@ -2651,6 +2651,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             continue;
                                         }
 
+                                        var rudeEditKind = RudeEditKind.Delete;
+
                                         // If the associated member declaration (parameter/type parameter -> method) has also been deleted skip
                                         // the delete of the symbol as it will be deleted by the delete of the associated member. We pass the edit kind
                                         // in here to avoid property/event accessors from being caught up in this, because those deletes we want to process
@@ -2664,6 +2666,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             if (HasEdit(editMap, oldAssociatedMemberDeclaration, EditKind.Delete))
                                             {
                                                 continue;
+                                            }
+
+                                            // We allow deleting parameters, by issuing delete and insert edits for the old and new method
+                                            if (oldSymbol is IParameterSymbol)
+                                            {
+                                                if (TryAddParameterInsertOrDeleteEdits(semanticEdits, oldSymbol.ContainingSymbol, newModel, capabilities, syntaxMap, editScript, cancellationToken, out var notSupportedByRuntime))
+                                                {
+                                                    continue;
+                                                }
+
+                                                if (notSupportedByRuntime)
+                                                {
+                                                    rudeEditKind = RudeEditKind.DeleteNotSupportedByRuntime;
+                                                }
                                             }
                                         }
                                         else if (oldSymbol.ContainingType != null)
@@ -2687,7 +2703,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         // deleting symbol is not allowed
 
                                         diagnostics.Add(new RudeEditDiagnostic(
-                                            RudeEditKind.Delete,
+                                            rudeEditKind,
                                             diagnosticSpan,
                                             oldDeclaration,
                                             new[]
@@ -2847,56 +2863,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     }
                                     else if (newSymbol is IParameterSymbol)
                                     {
-                                        var newContainingSymbol = newSymbol.ContainingSymbol;
-
-                                        // Since we're inserting a parameter node, oldSymbol is null, and a symbolkey for newSymbol won't map to the old compilation
-                                        // because the parameters are different, so we have to go back to the edit map
-                                        if (newContainingSymbol.ContainingType.IsDelegateType() ||
-                                            oldModel is null ||
-                                            newContainingSymbol.DeclaringSyntaxReferences.Length != 1)
-                                        {
-                                            ReportInsertRudeEdit(RudeEditKind.Insert);
-                                            continue;
-                                        }
-
-                                        var newContainingNode = newContainingSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-                                        if (!editScript.Match.TryGetOldNode(newContainingNode, out var oldContianingNode))
-                                        {
-                                            ReportInsertRudeEdit(RudeEditKind.Insert);
-                                            continue;
-                                        }
-
-                                        var oldContainingSymbol = oldModel.GetDeclaredSymbol(oldContianingNode, cancellationToken);
-                                        if (oldContainingSymbol is null || !AllowsDeletion(oldContainingSymbol))
-                                        {
-                                            ReportInsertRudeEdit(RudeEditKind.Insert);
-                                            continue;
-                                        }
-
-                                        if (CanAddNewMember(oldContainingSymbol, capabilities))
-                                        {
-                                            var containingSymbolKey = SymbolKey.Create(oldContainingSymbol.ContainingType, cancellationToken);
-
-                                            AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Delete, oldContainingSymbol, containingSymbolKey, syntaxMap, partialType: null, cancellationToken);
-
-                                            AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Insert, newContainingSymbol, containingSymbolKey: null, syntaxMap,
-                                                partialType: IsPartialEdit(oldContainingSymbol, newContainingSymbol, editScript.Match.OldRoot.SyntaxTree, editScript.Match.NewRoot.SyntaxTree) ? symbolKey : null,
-                                                cancellationToken);
-
-                                            continue;
-                                        }
-
-                                        ReportInsertRudeEdit(RudeEditKind.InsertNotSupportedByRuntime);
-                                        continue;
-
-                                        void ReportInsertRudeEdit(RudeEditKind rudeEditKind)
+                                        if (!TryAddParameterInsertOrDeleteEdits(semanticEdits, newSymbol.ContainingSymbol, oldModel, capabilities, syntaxMap, editScript, cancellationToken, out var notSupportedByRuntime))
                                         {
                                             diagnostics.Add(new RudeEditDiagnostic(
-                                               rudeEditKind,
+                                               notSupportedByRuntime ? RudeEditKind.InsertNotSupportedByRuntime : RudeEditKind.Insert,
                                                GetDiagnosticSpan(newDeclaration, EditKind.Insert),
                                                newDeclaration,
                                                arguments: new[] { GetDisplayName(newDeclaration, EditKind.Insert) }));
                                         }
+
+                                        continue;
                                     }
                                     else if (newContainingType != null && !IsGlobalMain(newSymbol))
                                     {
@@ -3269,6 +3245,72 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     (newSymbol != null && newSymbol.DeclaringSyntaxReferences.Length == 1) ?
                         GetSymbolDeclarationSyntax(newSymbol.DeclaringSyntaxReferences.Single(), cancellationToken) : newNode);
             }
+        }
+
+        private static bool TryAddParameterInsertOrDeleteEdits(ArrayBuilder<SemanticEditInfo> semanticEdits, ISymbol containingSymbol, SemanticModel? otherModel, EditAndContinueCapabilitiesGrantor capabilities, Func<SyntaxNode, SyntaxNode?>? syntaxMap, EditScript<SyntaxNode> editScript, CancellationToken cancellationToken, out bool notSupportedByRuntime)
+        {
+            notSupportedByRuntime = false;
+
+            // Since we're inserting (or deleting) a parameter node, oldSymbol (or newSymbol) would have been null,
+            // and a symbolkey won't map to the other compilation because the parameters are different, so we have to go back to the edit map
+            // to find the declaration that contains the parameter, and its partner
+
+            // Some sanity checks
+            if (otherModel is null ||
+                containingSymbol.DeclaringSyntaxReferences.Length != 1)
+            {
+                return false;
+            }
+
+            // We don't support delegate parameters
+            if (containingSymbol.ContainingType.IsDelegateType())
+            {
+                return false;
+            }
+
+            // Find the node that matches this declaration
+            SyntaxNode otherContainingNode;
+            var containingNode = containingSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+            if (editScript.Match.TryGetOldNode(containingNode, out var oldNode))
+            {
+                otherContainingNode = oldNode;
+            }
+            else if (editScript.Match.TryGetNewNode(containingNode, out var newNode))
+            {
+                otherContainingNode = newNode;
+            }
+            else
+            {
+                return false;
+            }
+
+            var otherContainingSymbol = otherModel.GetDeclaredSymbol(otherContainingNode, cancellationToken);
+            if (otherContainingSymbol is null || !AllowsDeletion(otherContainingSymbol))
+            {
+                return false;
+            }
+
+            // Now we can work out which is the old and which is the new, depending on which map we found
+            // the match in
+            var oldSymbol = (otherContainingNode == oldNode) ? otherContainingSymbol : containingSymbol;
+            var newSymbol = (otherContainingNode == oldNode) ? containingSymbol : otherContainingSymbol;
+
+            if (CanAddNewMember(oldSymbol, capabilities))
+            {
+                var containingSymbolKey = SymbolKey.Create(oldSymbol.ContainingType, cancellationToken);
+
+                AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Delete, oldSymbol, containingSymbolKey, syntaxMap, partialType: null, cancellationToken);
+
+                var symbolKey = SymbolKey.Create(newSymbol, cancellationToken);
+                AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Insert, newSymbol, containingSymbolKey: null, syntaxMap,
+                    partialType: IsPartialEdit(oldSymbol, newSymbol, editScript.Match.OldRoot.SyntaxTree, editScript.Match.NewRoot.SyntaxTree) ? symbolKey : null,
+                    cancellationToken);
+
+                return true;
+            }
+
+            notSupportedByRuntime = true;
+            return false;
         }
 
         /// <summary>
