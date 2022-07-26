@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis
 
         internal int WorkspaceVersion => _state.WorkspaceVersion;
 
-        public HostWorkspaceServices Services => _state.Services;
+        // TODO(cyrusn): Make public.  Tracked through https://github.com/dotnet/roslyn/issues/62914
+        internal HostSolutionServices Services => _state.Services.SolutionServices;
 
         internal BranchId BranchId => _state.BranchId;
 
