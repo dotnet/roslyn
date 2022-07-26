@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Options;
 
 internal static class TextBufferOptionProviders
 {
-    public static DocumentationCommentOptions GetDocumentationCommentOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, HostLanguageServices languageServices)
+    public static DocumentationCommentOptions GetDocumentationCommentOptions(this ITextBuffer textBuffer, EditorOptionsService optionsProvider, HostProjectServices languageServices)
     {
         var editorOptions = optionsProvider.Factory.GetOptions(textBuffer);
         var lineFormattingOptions = GetLineFormattingOptionsImpl(textBuffer, editorOptions, optionsProvider.IndentationManager, explicitFormat: false);
