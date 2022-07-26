@@ -259,17 +259,27 @@ namespace RunTests
                 Logger.Log($"- Work Item {workItem.PartitionIndex} (Execution time {totalExecutionTime})");
                 if (totalExecutionTime > s_maxExecutionTime)
                 {
-                    ConsoleUtil.WriteLine($"##[warning]Work item {workItem.PartitionIndex} estimated execution {totalExecutionTime} time exceeds max execution time {s_maxExecutionTime}.  See runtests.log for details.");
+                    // Log a warning to the console with work item details when we were not able to partition in under our limit.
+                    // This can happen when a single specific test exceeds our execution time limit.
+                    ConsoleUtil.WriteLine($"##[warning]Work item {workItem.PartitionIndex} estimated execution {totalExecutionTime} time exceeds max execution time {s_maxExecutionTime}.");
+                    LogFilters(workItem, ConsoleUtil.WriteLine);
                 }
+                else
+                {
+                    LogFilters(workItem, Logger.Log);
+                }
+            }
 
+            static void LogFilters(WorkItemInfo workItem, Action<string> logger)
+            {
                 foreach (var assembly in workItem.Filters)
                 {
                     var assemblyRuntime = TimeSpan.FromMilliseconds(assembly.Value.Sum(f => f.ExecutionTime.TotalMilliseconds));
-                    Logger.Log($"    - {assembly.Key.AssemblyName} with execution time {assemblyRuntime}");
+                    logger($"    - {assembly.Key.AssemblyName} with execution time {assemblyRuntime}");
                     var testFilters = assembly.Value;
-                    if (testFilters.Count() > 0)
+                    if (testFilters.Length > 0)
                     {
-                        Logger.Log($"        - {testFilters.Length} tests: {string.Join(",", testFilters.Select(t => t.FullyQualifiedName))}");
+                        logger($"        - {testFilters.Length} tests: {string.Join(",", testFilters.Select(t => t.FullyQualifiedName))}");
                     }
                 }
             }

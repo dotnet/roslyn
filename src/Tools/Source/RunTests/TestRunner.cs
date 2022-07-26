@@ -238,9 +238,6 @@ namespace RunTests
                     command.AppendLine($"dotnet exec \"%vstestConsolePath%\" @{rspFileName}");
                 }
 
-                // TODO remove false exit code, setting to get test run logs.....
-                command.AppendLine(isUnix ? "false" : "cd invaliddir");
-
                 // The command string contains characters like % which are not valid XML to pass into the helix csproj.
                 var escapedCommand = SecurityElement.Escape(command.ToString());
 

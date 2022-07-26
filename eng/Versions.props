@@ -43,6 +43,7 @@
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
     <MicrosoftServiceHubVersion>3.1.4097</MicrosoftServiceHubVersion>
     <MicrosoftVisualStudioThreadingPackagesVersion>17.2.32</MicrosoftVisualStudioThreadingPackagesVersion>
+    <MicrosoftTestPlatformVersion>17.4.0-preview-20220707-01</MicrosoftTestPlatformVersion>
   </PropertyGroup>
   <!--
     Dependency versions
@@ -125,7 +126,8 @@
     <MicrosoftServiceHubClientVersion>$(MicrosoftServiceHubVersion)</MicrosoftServiceHubClientVersion>
     <MicrosoftServiceHubFrameworkVersion>$(MicrosoftServiceHubVersion)</MicrosoftServiceHubFrameworkVersion>
     <MicrosoftSourceLinkToolsVersion>1.1.1-beta-21566-01</MicrosoftSourceLinkToolsVersion>
-    <MicrosoftTestPlatformVersion>17.4.0-preview-20220707-01</MicrosoftTestPlatformVersion>
+    <MicrosoftTestPlatformTranslationLayerVersion>$(MicrosoftTestPlatformVersion)</MicrosoftTestPlatformTranslationLayerVersion>
+    <MicrosoftTestPlatformObjectModelVersion>$(MicrosoftTestPlatformVersion)</MicrosoftTestPlatformObjectModelVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
     <MicrosoftVisualStudioCacheVersion>17.2.41-alpha</MicrosoftVisualStudioCacheVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.8.27812-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
