@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Gets the <see cref="SyntaxGenerator"/> for the language corresponding to the project.
         /// </summary>
         public static SyntaxGenerator GetGenerator(Project project)
-            => project.LanguageServices.GetRequiredService<SyntaxGenerator>();
+            => project.Services.GetRequiredService<SyntaxGenerator>();
 
         #region Declarations
 

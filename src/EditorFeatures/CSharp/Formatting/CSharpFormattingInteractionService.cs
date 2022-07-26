@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
             var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, parsedDocument.ProjectServices, explicitFormat: true);
-            var service = parsedDocument.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
+            var service = parsedDocument.ProjectServices.GetRequiredService<ISyntaxFormattingService>();
             return Task.FromResult(service.GetFormattingChangesOnPaste(parsedDocument, textSpan, options, cancellationToken));
         }
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, ITextBuffer textBuffer, char typedChar, int position, CancellationToken cancellationToken)
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var service = parsedDocument.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
+            var service = parsedDocument.ProjectServices.GetRequiredService<ISyntaxFormattingService>();
 
             if (service.ShouldFormatOnTypedCharacter(parsedDocument, typedChar, position, cancellationToken))
             {

@@ -314,7 +314,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         }
 
         private static bool CanCleanupProject(Project project)
-            => project.LanguageServices.GetService<ICodeCleanupService>() != null;
+            => project.Services.GetService<ICodeCleanupService>() != null;
 
         private static async Task<Document> FixDocumentAsync(
             Document document,

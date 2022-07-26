@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     // Now that we have the right DLL, we need to look up the symbol in this DLL, because the one
                     // we have is from the reference assembly. To do this we create an empty compilation,
                     // add our DLL as a reference, and use SymbolKey to map the type across.
-                    var compilationFactory = project.LanguageServices.GetRequiredService<ICompilationFactoryService>();
+                    var compilationFactory = project.Services.GetRequiredService<ICompilationFactoryService>();
                     var dllReference = IOUtilities.PerformIO(() => MetadataReference.CreateFromFile(dllPath));
                     if (dllReference is null)
                     {
