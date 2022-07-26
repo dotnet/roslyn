@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         public bool IsEmpty => _map.IsEmpty;
 
+        public void Clear() => _map.Clear();
+
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
             => _map.GetEnumerator();
 
