@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -384,6 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> types,
             ImmutableArray<string> names,
             ImmutableArray<bool> discardsOpt,
+            ImmutableArray<EqualsValueClauseSyntax?> defaultValues,
             bool isAsync,
             bool isStatic)
         {
@@ -391,8 +393,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax.IsAnonymousFunction());
             bool hasErrors = !types.IsDefault && types.Any(static t => t.Type?.Kind == SymbolKind.ErrorType);
 
+            var paramSyntaxList = syntax switch
+            {
+                ParenthesizedLambdaExpressionSyntax parenLam => parenLam.ParameterList,
+                AnonymousMethodExpressionSyntax anonMethod => anonMethod.ParameterList,
+                _ => null
+            };
+
             var functionType = FunctionTypeSymbol.CreateIfFeatureEnabled(syntax, binder, static (binder, expr) => ((UnboundLambda)expr).Data.InferDelegateType());
-            var data = new PlainUnboundLambdaState(binder, returnRefKind, returnType, parameterAttributes, names, discardsOpt, types, refKinds, scopes, isAsync, isStatic, includeCache: true);
+            var data = new PlainUnboundLambdaState(binder, returnRefKind, returnType, parameterAttributes, names, discardsOpt, types, refKinds, scopes, defaultValues, paramSyntaxList, isAsync, isStatic, includeCache: true);
             var lambda = new UnboundLambda(syntax, data, functionType, withDependencies, hasErrors: hasErrors);
             data.SetUnboundLambda(lambda);
             functionType?.SetExpression(lambda.WithNoCache());
@@ -457,6 +466,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxList<AttributeListSyntax> ParameterAttributes(int index) { return Data.ParameterAttributes(index); }
         public TypeWithAnnotations ParameterTypeWithAnnotations(int index) { return Data.ParameterTypeWithAnnotations(index); }
         public TypeSymbol ParameterType(int index) { return ParameterTypeWithAnnotations(index).Type; }
+        public EqualsValueClauseSyntax? ParameterDefaultValue(int index) => Data.DefaultValue(index);
+
+        public ParameterListSyntax? ParamSyntax => Data.ParamSyntax;
+
+        public bool ParameterHasDefault(int index) => ParameterDefaultValue(index) != null;
         public Location ParameterLocation(int index) { return Data.ParameterLocation(index); }
         public string ParameterName(int index) { return Data.ParameterName(index); }
         public bool ParameterIsDiscard(int index) { return Data.ParameterIsDiscard(index); }
@@ -526,10 +540,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract int ParameterCount { get; }
         public abstract bool IsAsync { get; }
         public abstract bool IsStatic { get; }
+
         public abstract Location ParameterLocation(int index);
         public abstract TypeWithAnnotations ParameterTypeWithAnnotations(int index);
         public abstract RefKind RefKind(int index);
         public abstract DeclarationScope Scope(int index);
+        public abstract EqualsValueClauseSyntax? DefaultValue(int index);
+
+        public abstract ParameterListSyntax? ParamSyntax { get; }
+
         protected abstract BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics);
 
         /// <summary>
@@ -585,6 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+
         private static MethodSymbol? DelegateInvokeMethod(NamedTypeSymbol? delegateType)
         {
             return delegateType.GetDelegateType()?.DelegateInvokeMethod;
@@ -613,6 +633,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterRefKindsBuilder = ArrayBuilder<RefKind>.GetInstance(ParameterCount);
             var parameterScopesBuilder = ArrayBuilder<DeclarationScope>.GetInstance(ParameterCount);
             var parameterTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(ParameterCount);
+            var parameterDefaultValueBuilder = ArrayBuilder<ConstantValue?>.GetInstance(ParameterCount);
+
             for (int i = 0; i < ParameterCount; i++)
             {
                 var refKind = RefKind(i);
@@ -625,21 +647,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterScopesBuilder.Add(scope);
                 parameterTypesBuilder.Add(ParameterTypeWithAnnotations(i));
             }
+
             var parameterRefKinds = parameterRefKindsBuilder.ToImmutableAndFree();
             var parameterScopes = parameterScopesBuilder.ToImmutableAndFree();
             var parameterTypes = parameterTypesBuilder.ToImmutableAndFree();
 
+            var lambdaSymbol = new LambdaSymbol(
+                Binder,
+                Binder.Compilation,
+                Binder.ContainingMemberOrLambda,
+                _unboundLambda,
+                parameterTypes,
+                parameterRefKinds,
+                refKind: default,
+                returnType: default);
+
+            foreach (var param in lambdaSymbol.Parameters)
+            {
+                parameterDefaultValueBuilder.Add(param.ExplicitDefaultConstantValue);
+            }
+            var parameterDefaultValues = parameterDefaultValueBuilder.ToImmutableAndFree();
+
             if (!HasExplicitReturnType(out var returnRefKind, out var returnType))
             {
-                var lambdaSymbol = new LambdaSymbol(
-                    Binder,
-                    Binder.Compilation,
-                    Binder.ContainingMemberOrLambda,
-                    _unboundLambda,
-                    parameterTypes,
-                    parameterRefKinds,
-                    refKind: default,
-                    returnType: default);
                 var lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, GetWithParametersBinder(lambdaSymbol, Binder));
                 var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, BindingDiagnosticBag.Discarded);
                 var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>.GetInstance();
@@ -877,6 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 block,
                 diagnostics.ToReadOnlyAndFree(),
                 lambdaBodyBinder,
+
                 delegateType,
                 inferredReturnType)
             { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
@@ -1337,6 +1368,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<TypeWithAnnotations> _parameterTypesWithAnnotations;
         private readonly ImmutableArray<RefKind> _parameterRefKinds;
         private readonly ImmutableArray<DeclarationScope> _parameterScopes;
+        private readonly ImmutableArray<EqualsValueClauseSyntax?> _defaultValues;
+        private readonly ParameterListSyntax? _parameterListSyntax;
         private readonly bool _isAsync;
         private readonly bool _isStatic;
 
@@ -1350,6 +1383,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> parameterTypesWithAnnotations,
             ImmutableArray<RefKind> parameterRefKinds,
             ImmutableArray<DeclarationScope> parameterScopes,
+            ImmutableArray<EqualsValueClauseSyntax?> defaultValues,
+            ParameterListSyntax? parameterListSyntax,
             bool isAsync,
             bool isStatic,
             bool includeCache)
@@ -1363,6 +1398,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _parameterTypesWithAnnotations = parameterTypesWithAnnotations;
             _parameterRefKinds = parameterRefKinds;
             _parameterScopes = parameterScopes;
+            _defaultValues = defaultValues;
+            _parameterListSyntax = parameterListSyntax;
             _isAsync = isAsync;
             _isStatic = isStatic;
         }
@@ -1440,6 +1477,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _parameterScopes.IsDefault ? DeclarationScope.Unscoped : _parameterScopes[index];
         }
 
+        public override EqualsValueClauseSyntax? DefaultValue(int index)
+        {
+            Debug.Assert(_defaultValues.IsDefault || (0 <= index && index <= _defaultValues.Length));
+            return _defaultValues.IsDefault ? null : _defaultValues[index];
+        }
+
+        public override ParameterListSyntax? ParamSyntax { get { return _parameterListSyntax; } }
+
         public override TypeWithAnnotations ParameterTypeWithAnnotations(int index)
         {
             Debug.Assert(this.HasExplicitlyTypedParameterList);
@@ -1449,7 +1494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override UnboundLambdaState WithCachingCore(bool includeCache)
         {
-            return new PlainUnboundLambdaState(Binder, _returnRefKind, _returnType, _parameterAttributes, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _parameterScopes, _isAsync, _isStatic, includeCache);
+            return new PlainUnboundLambdaState(Binder, _returnRefKind, _returnType, _parameterAttributes, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _parameterScopes, _defaultValues, _parameterListSyntax, _isAsync, _isStatic, includeCache);
         }
 
         protected override BoundExpression? GetLambdaExpressionBody(BoundBlock body)

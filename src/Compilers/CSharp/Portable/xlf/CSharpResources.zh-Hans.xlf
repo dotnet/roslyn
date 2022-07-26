@@ -732,6 +732,11 @@
         <target state="translated">无法通过对隐式范围索引器的调用为参数命名。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
+        <source> Default not allowed for implicitly typed lambda parameter '{0}' </source>
+        <target state="new"> Default not allowed for implicitly typed lambda parameter '{0}' </target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">带有 "in" 修饰符的参数不能用于动态调度的表达式。</target>

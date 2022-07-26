@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> refKinds = default;
             ImmutableArray<DeclarationScope> scopes = default;
             ImmutableArray<TypeWithAnnotations> types = default;
+            ImmutableArray<EqualsValueClauseSyntax?> defaultValues = default;
             RefKind returnRefKind = RefKind.None;
             TypeWithAnnotations returnType = default;
             ImmutableArray<SyntaxList<AttributeListSyntax>> parameterAttributes = default;
@@ -100,6 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance();
                 var scopesBuilder = ArrayBuilder<DeclarationScope>.GetInstance();
                 var attributesBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
+                var defaultValueBuilder = ArrayBuilder<EqualsValueClauseSyntax?>.GetInstance();
 
                 // In the batch compiler case we probably should have given a syntax error if the
                 // user did something like (int x, y)=>x+y -- but in the IDE scenario we might be in
@@ -118,11 +120,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     checkAttributes(syntax, p.AttributeLists, diagnostics);
-
-                    if (p.Default != null)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_DefaultValueNotAllowed, p.Default.EqualsToken);
-                    }
 
                     if (p.IsArgList)
                     {
@@ -151,6 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKindsBuilder.Add(refKind);
                     scopesBuilder.Add(scope);
                     attributesBuilder.Add(syntax.Kind() == SyntaxKind.ParenthesizedLambdaExpression ? p.AttributeLists : default);
+                    defaultValueBuilder.Add(p.Default);
                 }
 
                 discardsOpt = computeDiscards(parameterSyntaxList.Value, underscoresCount);
@@ -170,15 +168,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     scopes = scopesBuilder.ToImmutable();
                 }
 
+
                 if (attributesBuilder.Any(a => a.Count > 0))
                 {
                     parameterAttributes = attributesBuilder.ToImmutable();
+                }
+
+                if (defaultValueBuilder.Any(v => v != null))
+                {
+                    defaultValues = defaultValueBuilder.ToImmutable();
                 }
 
                 typesBuilder.Free();
                 scopesBuilder.Free();
                 refKindsBuilder.Free();
                 attributesBuilder.Free();
+                defaultValueBuilder.Free();
             }
 
             if (hasSignature)
@@ -188,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, isAsync, isStatic);
+            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, defaultValues, isAsync, isStatic);
 
             static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
             {
@@ -255,6 +260,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var hasTypes = parameterSyntaxList[0].Type != null;
 
+                // Implicitly Typed Default Parameters are not allowed
+                if (!hasTypes && parameterSyntaxList[0].Default != null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedDefaultParameter,
+                        parameterSyntaxList[0].Identifier.GetLocation(), parameterSyntaxList[0].Identifier.Text);
+                }
+
                 for (int i = 1, n = parameterSyntaxList.Count; i < n; i++)
                 {
                     var parameter = parameterSyntaxList[i];
@@ -264,10 +276,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!parameter.Identifier.IsMissing)
                     {
                         var thisParameterHasType = parameter.Type != null;
+                        var thisParameterHasDefault = parameter.Default != null;
+
                         if (hasTypes != thisParameterHasType)
                         {
                             diagnostics.Add(ErrorCode.ERR_InconsistentLambdaParameterUsage,
                                 parameter.Type?.GetLocation() ?? parameter.Identifier.GetLocation());
+                        }
+
+                        // Implicitly Typed Default Parameters are not allowed
+                        if (!thisParameterHasType && thisParameterHasDefault)
+                        {
+                            // Error here.
+                            diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedDefaultParameter,
+                                parameter.Identifier.GetLocation(), parameter.Identifier.Text);
                         }
                     }
                 }
@@ -345,6 +367,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else if (!allowShadowingNames)
                     {
                         binder.ValidateLambdaParameterNameConflictsInScope(lambda.ParameterLocation(i), name, diagnostics);
+                    }
+
+                    // An optional parameter cannot come before a required parameter
+                    if (i > 0 && lambda.ParameterHasDefault(i - 1) && !lambda.ParameterHasDefault(i))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_DefaultValueBeforeRequiredValue,
+                            lambda.ParameterDefaultValue(i - 1)!.GetLocation());
                     }
                 }
                 pNames.Free();

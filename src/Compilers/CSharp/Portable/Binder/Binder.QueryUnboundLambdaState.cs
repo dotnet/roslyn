@@ -50,6 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override DeclarationScope Scope(int index) => DeclarationScope.Unscoped;
             public override MessageID MessageID { get { return MessageID.IDS_FeatureQueryExpression; } } // TODO: what is the correct ID here?
             public override Location ParameterLocation(int index) { return _parameters[index].Locations[0]; }
+
+            // Query lambdas don't have default values as part of their syntax
+            public override EqualsValueClauseSyntax DefaultValue(int index) => null;
+
+            // Query unbound lambdas don't have associated parameter list syntax
+            public override ParameterListSyntax ParamSyntax => null;
+
             public override TypeWithAnnotations ParameterTypeWithAnnotations(int index) { throw new ArgumentException(); } // implicitly typed
 
             public override void GenerateAnonymousFunctionConversionError(BindingDiagnosticBag diagnostics, TypeSymbol targetType)
