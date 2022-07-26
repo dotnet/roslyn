@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         private static ImmutableArray<CodeRefactoringProvider> GetProjectRefactorings(Project project)
         {
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict refactorings in Interactive
-            if (project.Solution.Workspace.Kind == WorkspaceKind.Interactive)
+            if (project.Solution.WorkspaceKind == WorkspaceKind.Interactive)
                 return ImmutableArray<CodeRefactoringProvider>.Empty;
 
             return ProjectCodeRefactoringProvider.GetExtensions(project);

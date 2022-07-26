@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis
 
         private SolutionState(
             BranchId branchId,
+            string? workspaceKind,
             int workspaceVersion,
             HostWorkspaceServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
@@ -88,6 +89,7 @@ namespace Microsoft.CodeAnalysis
             SourceGeneratedDocumentState? frozenSourceGeneratedDocument)
         {
             _branchId = branchId;
+            WorkspaceKind = workspaceKind;
             _workspaceVersion = workspaceVersion;
             _solutionAttributes = solutionAttributes;
             Services = solutionServices;
@@ -114,12 +116,14 @@ namespace Microsoft.CodeAnalysis
 
         public SolutionState(
             BranchId primaryBranchId,
+            string? workspaceKind,
             HostWorkspaceServices services,
             SolutionInfo.SolutionAttributes solutionAttributes,
             SolutionOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences)
             : this(
                 primaryBranchId,
+                workspaceKind,
                 workspaceVersion: 0,
                 services,
                 solutionAttributes,
@@ -139,7 +143,7 @@ namespace Microsoft.CodeAnalysis
         {
             // Note: this will potentially have problems if the workspace services are different, as some services
             // get locked-in by document states and project states when first constructed.
-            return CreatePrimarySolution(branchId: workspace.PrimaryBranchId, workspaceVersion: workspaceVersion, services: workspace.Services);
+            return CreatePrimarySolution(workspace.PrimaryBranchId, workspace.Kind, workspaceVersion, workspace.Services);
         }
 
         public HostDiagnosticAnalyzers Analyzers => _lazyAnalyzers.Value;
@@ -149,6 +153,8 @@ namespace Microsoft.CodeAnalysis
         public SourceGeneratedDocumentState? FrozenSourceGeneratedDocumentState => _frozenSourceGeneratedDocumentState;
 
         public ImmutableDictionary<ProjectId, ProjectState> ProjectStates => _projectIdToProjectStateMap;
+
+        public string? WorkspaceKind { get; }
 
         public int WorkspaceVersion => _workspaceVersion;
 
@@ -252,6 +258,7 @@ namespace Microsoft.CodeAnalysis
 
             return new SolutionState(
                 branchId,
+                WorkspaceKind,
                 _workspaceVersion,
                 Services,
                 solutionAttributes,
@@ -268,10 +275,12 @@ namespace Microsoft.CodeAnalysis
 
         private SolutionState CreatePrimarySolution(
             BranchId branchId,
+            string? workspaceKind,
             int workspaceVersion,
             HostWorkspaceServices services)
         {
             if (branchId == _branchId &&
+                workspaceKind == WorkspaceKind &&
                 workspaceVersion == _workspaceVersion &&
                 services == Services)
             {
@@ -280,6 +289,7 @@ namespace Microsoft.CodeAnalysis
 
             return new SolutionState(
                 branchId,
+                workspaceKind,
                 workspaceVersion,
                 services,
                 _solutionAttributes,

@@ -181,7 +181,7 @@ class B : A
 
             var selectedItem = CodeAnalysis.Completion.CompletionItem.Create(displayText: "M");
             var textEdit = await CompletionResolveHandler.GenerateTextEditAsync(
-                document, new TestCaretOutOfScopeCompletionService(document.Project.Solution.Workspace), selectedItem, snippetsSupported: true, CancellationToken.None).ConfigureAwait(false);
+                document, new TestCaretOutOfScopeCompletionService(testLspServer.TestWorkspace.Services), selectedItem, snippetsSupported: true, CancellationToken.None).ConfigureAwait(false);
 
             Assert.Equal(@"public override void M()
     {
@@ -431,7 +431,7 @@ link text";
 
         private class TestCaretOutOfScopeCompletionService : CompletionService
         {
-            public TestCaretOutOfScopeCompletionService(Workspace workspace) : base(workspace)
+            public TestCaretOutOfScopeCompletionService(HostWorkspaceServices services) : base(services)
             {
             }
 

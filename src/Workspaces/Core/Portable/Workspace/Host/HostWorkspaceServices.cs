@@ -25,11 +25,20 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         public abstract Workspace Workspace { get; }
 
+        internal HostSolutionServices SolutionServices { get; }
+
         /// <summary>
         /// Gets a workspace specific service provided by the host identified by the service type. 
         /// If the host does not provide the service, this method returns null.
         /// </summary>
         public abstract TWorkspaceService? GetService<TWorkspaceService>() where TWorkspaceService : IWorkspaceService;
+
+        protected HostWorkspaceServices()
+        {
+#pragma warning disable 618 // 'HostProjectServices.HostSolutionServices(HostLanguageServices)' is obsolete: 'Do not call directly.
+            SolutionServices = new HostSolutionServices(this);
+#pragma warning restore
+        }
 
         /// <summary>
         /// Gets a workspace specific service provided by the host identified by the service type. 
