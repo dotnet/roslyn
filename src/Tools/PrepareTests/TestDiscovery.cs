@@ -79,6 +79,14 @@ internal class TestDiscovery
 
         public void HandleDiscoveryComplete(long totalTests, IEnumerable<TestCase> lastChunk, bool isAborted)
         {
+            if (lastChunk != null)
+            {
+                foreach (var test in lastChunk)
+                {
+                    _tests.Add(test);
+                }
+            }
+
             _isComplete = true;
         }
 

@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -26,7 +28,7 @@ internal class TestHistoryManager
     private const int MaxTestsReturnedPerRequest = 10000;
 
     /// <summary>
-    /// The pipeline id for roslyn-ci, see https://dev.azure.com/dnceng/public/_build?definitionId=15&_a=summary
+    /// The pipeline id for roslyn-ci, see https://dev.azure.com/dnceng/public/_build?definitionId=15
     /// </summary>
     private const int RoslynCiBuildDefinitionId = 15;
 
@@ -36,32 +38,42 @@ internal class TestHistoryManager
     private static readonly Uri s_projectUri = new(@"https://dev.azure.com/dnceng");
 
     /// <summary>
-    /// Todo - build definition comes from System.DefinitionId
-    /// Todo - stageName comes from System.StageName to identify which test runs to get from the build.
+    /// Looks up the last passing test run for the current build and stage to estimate execution times for each test.
     /// </summary>
-    public static async Task<ImmutableDictionary<string, TimeSpan>> GetTestHistoryAsync(/*int buildDefinitionId, string stageName, string branchName*/CancellationToken cancellationToken)
+    public static async Task<ImmutableDictionary<string, TimeSpan>> GetTestHistoryAsync(CancellationToken cancellationToken)
     {
-        var pat = Environment.GetEnvironmentVariable("TEST_PAT");
-        var credentials = new Microsoft.VisualStudio.Services.Common.VssBasicCredential(string.Empty, pat);
+        // Gets environment variables set by our test yaml templates.
+        // The access token is required to lookup test histories.
+        // We use the target branch of the current build to lookup the last successful build for the same branch.
+        // The stage name is used to filter the tests on the last passing build to only those that apply to the currently running stage.
+        if (!TryGetEnvironmentVariable("SYSTEM_ACCESSTOKEN", out var accessToken)
+            || !TryGetEnvironmentVariable("SYSTEM_STAGENAME", out var stageName))
+        {
+            Console.WriteLine("Missing required environment variables - skipping test history lookup");
+            return ImmutableDictionary<string, TimeSpan>.Empty;
+        }
+
+        // Use the target branch (in the case of PRs) or source branch to find the last successful build.
+        var targetBranch = Environment.GetEnvironmentVariable("SYSTEM_PULLREQUESTTARGETBRANCH") ?? Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCH");
+        if (string.IsNullOrEmpty(targetBranch))
+        {
+            Console.WriteLine("Missing both PR target branch and build source branch environment variables - skipping test history lookup");
+            return ImmutableDictionary<string, TimeSpan>.Empty;
+        }
+
+        var credentials = new Microsoft.VisualStudio.Services.Common.VssBasicCredential(string.Empty, accessToken);
 
         var connection = new VssConnection(s_projectUri, credentials);
 
-        var stageName = "Test_Windows_Desktop_Release_64";
-        var targetBranchName = "main";
-
         using var buildClient = connection.GetClient<BuildHttpClient>();
 
-        // Tries to get the latest succeeded build from the input build definition (pipeline) from dnceng/public with the specified branch.
-        Logger.Log($"Branch name: {targetBranchName}");
-        Logger.Log($"Stage name: {stageName}");
-
-        var adoBranchName = $"refs/heads/{targetBranchName}";
-        var builds = await buildClient.GetBuildsAsync2(project: "public", new int[] { RoslynCiBuildDefinitionId }, resultFilter: BuildResult.Succeeded, queryOrder: BuildQueryOrder.FinishTimeDescending, maxBuildsPerDefinition: 1, reasonFilter: BuildReason.IndividualCI, branchName: adoBranchName, cancellationToken: cancellationToken);
+        Console.WriteLine($"Getting last successful build for branch {targetBranch} and stage {stageName}");
+        var builds = await buildClient.GetBuildsAsync2(project: "public", new int[] { RoslynCiBuildDefinitionId }, resultFilter: BuildResult.Succeeded, queryOrder: BuildQueryOrder.FinishTimeDescending, maxBuildsPerDefinition: 1, reasonFilter: BuildReason.IndividualCI, branchName: targetBranch, cancellationToken: cancellationToken);
         var lastSuccessfulBuild = builds?.FirstOrDefault();
         if (lastSuccessfulBuild == null)
         {
             // If this is a new branch we may not have any historical data for it.
-            ConsoleUtil.WriteLine($"##[warning]Unable to get the last successful build for definition {RoslynCiBuildDefinitionId} and branch {adoBranchName}");
+            ConsoleUtil.WriteLine($"Unable to get the last successful build for definition {RoslynCiBuildDefinitionId} and branch {targetBranch}");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
@@ -76,11 +88,11 @@ internal class TestHistoryManager
         if (runForThisStage == null)
         {
             // If this is a new stage, historical runs will not have any data for it.
-            ConsoleUtil.WriteLine($"##[warning]Unable to get a run with name {stageName} from build {lastSuccessfulBuild.Url}.");
+            ConsoleUtil.WriteLine($"Unable to get a run with name {stageName} from build {lastSuccessfulBuild.Url}.");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
-        ConsoleUtil.WriteLine($"Looking up test execution data from last successful build {lastSuccessfulBuild.Id} on branch {targetBranchName} and stage {stageName}");
+        ConsoleUtil.WriteLine($"Looking up test execution data from last successful build {lastSuccessfulBuild.Id} on branch {targetBranch} and stage {stageName}");
 
         var totalTests = runForThisStage.TotalTests;
 
@@ -134,6 +146,18 @@ internal class TestHistoryManager
         // Some test names contain test arguments, so take everything before the first paren (since they are not valid in the fully qualified test name).
         var beforeMethodArgs = fullyQualifiedTestName.Split('(')[0];
         return beforeMethodArgs;
+    }
+
+    private static bool TryGetEnvironmentVariable(string envVarName, [NotNullWhen(true)] out string? envVar)
+    {
+        envVar = Environment.GetEnvironmentVariable(envVarName);
+        if (string.IsNullOrEmpty(envVar))
+        {
+            Console.WriteLine($"Required environment variable {envVarName} is not set");
+            return false;
+        }
+
+        return true;
     }
 
 }

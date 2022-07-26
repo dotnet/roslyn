@@ -20,63 +20,31 @@ namespace RunTests
 {
     internal sealed class ProcessTestExecutor
     {
-        public string GetCommandLineArguments(WorkItemInfo workItem, bool useSingleQuotes, Options options)
+        public static string BuildRspFileContents(WorkItemInfo workItem, Options options)
         {
-            // http://www.gnu.org/software/bash/manual/html_node/Single-Quotes.html
-            // Single quotes are needed in bash to avoid the need to escape characters such as backtick (`) which are found in metadata names.
-            // Batch scripts don't need to worry about escaping backticks, but they don't support single quoted strings, so we have to use double quotes.
-            // We also need double quotes when building an arguments string for Process.Start in .NET Core so that splitting/unquoting works as expected.
-            var sep = useSingleQuotes ? "'" : @"""";
+            var fileContentsBuilder = new StringBuilder();
 
-            var builder = new StringBuilder();
-            builder.Append($@"test");
-
-            var escapedAssemblyPaths = workItem.Filters.Keys.Select(assembly => $"{sep}{assembly.AssemblyPath}{sep}");
-            builder.Append($@" {string.Join(" ", escapedAssemblyPaths)}");
-
-            var filters = workItem.Filters.Values.SelectMany(filter => filter).Where(filter => !string.IsNullOrEmpty(filter.GetFilterString())).ToImmutableArray();
-            if (filters.Length > 0 || !string.IsNullOrWhiteSpace(options.TestFilter))
+            // Add each assembly we want to test on a new line.
+            var assemblyPaths = workItem.Filters.Keys.Select(assembly => assembly.AssemblyPath);
+            foreach (var path in assemblyPaths)
             {
-                builder.Append($@" --filter {sep}");
-                var any = false;
-                foreach (var filter in filters)
-                {
-                    MaybeAddSeparator();
-                    builder.Append(filter.GetFilterString());
-                }
-                builder.Append(sep);
-
-                if (options.TestFilter is object)
-                {
-                    MaybeAddSeparator();
-                    builder.Append(options.TestFilter);
-                }
-
-                void MaybeAddSeparator(char separator = '|')
-                {
-                    if (any)
-                    {
-                        builder.Append(separator);
-                    }
-
-                    any = true;
-                }
+                fileContentsBuilder.AppendLine($"\"{path}\"");
             }
 
-            builder.Append($@" --arch {options.Architecture}");
-            builder.Append($@" --logger {sep}xunit;LogFilePath={GetResultsFilePath(workItem, options, "xml")}{sep}");
-
+            fileContentsBuilder.AppendLine($@"/Platform:{options.Architecture}");
+            fileContentsBuilder.AppendLine($@"/Logger:xunit;LogFilePath={GetResultsFilePath(workItem, options, "xml")}");
             if (options.IncludeHtml)
             {
-                builder.AppendFormat($@" --logger {sep}html;LogFileName={GetResultsFilePath(workItem, options, "html")}{sep}");
+                fileContentsBuilder.AppendLine($@"/Logger:html;LogFileName={GetResultsFilePath(workItem, options, "html")}");
             }
 
+            var blameOption = "CollectHangDump";
             if (!options.CollectDumps)
             {
                 // The 'CollectDumps' option uses operating system features to collect dumps when a process crashes. We
                 // only enable the test executor blame feature in remaining cases, as the latter relies on ProcDump and
                 // interferes with automatic crash dump collection on Windows.
-                builder.Append(" --blame-crash");
+                blameOption = "CollectDump;CollectHangDump";
             }
 
             // The 25 minute timeout in integration tests accounts for the fact that VSIX deployment and/or experimental hive reset and
@@ -87,13 +55,51 @@ namespace RunTests
             // Helix timeout is 15 minutes as helix jobs fully timeout in 30minutes.  So in order to capture dumps we need the timeout
             // to be 2x shorter than the expected test run time (15min) in case only the last test hangs.
             var timeout = options.UseHelix ? "15minutes" : "25minutes";
+            fileContentsBuilder.AppendLine($"/Blame:{blameOption};TestTimeout=15minutes;DumpType=full");
 
-            builder.Append($" --blame-hang-dump-type full --blame-hang-timeout {timeout}");
+            // Build the filter string
+            var filterStringBuilder = new StringBuilder();
+            var filters = workItem.Filters.Values.SelectMany(filter => filter).Where(filter => !string.IsNullOrEmpty(filter.FullyQualifiedName)).ToImmutableArray();
+            if (filters.Length > 0 || !string.IsNullOrWhiteSpace(options.TestFilter))
+            {
+                filterStringBuilder.Append("/TestCaseFilter:\"");
+                var any = false;
+                foreach (var filter in filters)
+                {
+                    MaybeAddSeparator();
+                    filterStringBuilder.Append(filter.FullyQualifiedName);
+                }
 
-            return builder.ToString();
+                if (options.TestFilter is not null)
+                {
+                    MaybeAddSeparator();
+                    filterStringBuilder.Append(options.TestFilter);
+                }
+
+                void MaybeAddSeparator(char separator = '|')
+                {
+                    if (any)
+                    {
+                        filterStringBuilder.Append(separator);
+                    }
+
+                    any = true;
+                }
+            }
+
+            fileContentsBuilder.AppendLine(filterStringBuilder.ToString());
+            return fileContentsBuilder.ToString();
         }
 
-        private string GetResultsFilePath(WorkItemInfo workItemInfo, Options options, string suffix = "xml")
+        private static string GetVsTestConsolePath(string dotnetPath)
+        {
+            var dotnetDir = Path.GetDirectoryName(dotnetPath)!;
+            var sdkDir = Path.Combine(dotnetDir, "sdk");
+            var vsTestConsolePath = Directory.EnumerateFiles(sdkDir, "vstest.console.dll", SearchOption.AllDirectories).Last();
+            return vsTestConsolePath;
+        }
+
+        private static string GetResultsFilePath(WorkItemInfo workItemInfo, Options options, string suffix = "xml")
         {
             var fileName = $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}_test_results.{suffix}";
             return Path.Combine(options.TestResultsDirectory, fileName);
@@ -122,7 +128,14 @@ namespace RunTests
         {
             try
             {
-                var commandLineArguments = GetCommandLineArguments(workItemInfo, useSingleQuotes: false, options);
+                var rspFileContents = BuildRspFileContents(workItemInfo, options);
+                var rspFilePath = Path.Combine(Directory.GetCurrentDirectory(), $"vstest_{workItemInfo.PartitionIndex}.rsp");
+                File.WriteAllText(rspFilePath, rspFileContents);
+
+                var vsTestConsolePath = GetVsTestConsolePath(options.DotnetFilePath);
+
+                var commandLineArguments = $"exec \"{vsTestConsolePath}\" @\"{rspFilePath}\"";
+
                 var resultsFilePath = GetResultsFilePath(workItemInfo, options);
                 var resultsDir = Path.GetDirectoryName(resultsFilePath);
                 var htmlResultsFilePath = options.IncludeHtml ? GetResultsFilePath(workItemInfo, options, "html") : null;
