@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// Gets the formatting rules that would be applied if left unspecified.
         /// </summary>
         internal static ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules(Document document)
-            => GetDefaultFormattingRules(document.Project.LanguageServices);
+            => GetDefaultFormattingRules(document.Project.Services);
 
-        internal static ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules(HostLanguageServices languageServices)
+        internal static ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules(HostProjectServices languageServices)
             => languageServices.GetService<ISyntaxFormattingService>()?.GetDefaultFormattingRules() ?? ImmutableArray<AbstractFormattingRule>.Empty;
 
         /// <summary>

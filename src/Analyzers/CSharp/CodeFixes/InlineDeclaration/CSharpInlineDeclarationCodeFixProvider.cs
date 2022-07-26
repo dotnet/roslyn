@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 (semanticModel, currentRoot, t, currentNode)
                     => ReplaceIdentifierWithInlineDeclaration(
                         options, semanticModel, currentRoot, t.declarator,
-                        t.identifier, currentNode, declarationsToRemove, document.Project.Solution.Services,
+                        t.identifier, currentNode, declarationsToRemove, document.Project.Solution.Workspace.Services,
                         cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
