@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Rename
                                 options,
                                 nonConflictSymbolKeys,
                                 cancellationToken),
-                            callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Services, fallbackOptions),
+                            callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, fallbackOptions),
                             cancellationToken).ConfigureAwait(false);
 
                         if (result.HasValue && result.Value != null)

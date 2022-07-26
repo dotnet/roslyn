@@ -51,14 +51,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(workspace));
 
             var semanticInfo = await GetSemanticInfoAtPositionAsync(
-                semanticModel, position, workspace.Services, cancellationToken: cancellationToken).ConfigureAwait(false);
+                semanticModel, position, workspace.Services.SolutionServices, cancellationToken: cancellationToken).ConfigureAwait(false);
             return semanticInfo.GetAnySymbol(includeType: false);
         }
 
         internal static async Task<TokenSemanticInfo> GetSemanticInfoAtPositionAsync(
             SemanticModel semanticModel,
             int position,
-            HostWorkspaceServices services,
+            HostSolutionServices services,
             CancellationToken cancellationToken)
         {
             var token = await GetTokenAtPositionAsync(semanticModel, position, services, cancellationToken).ConfigureAwait(false);
@@ -75,11 +75,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static Task<SyntaxToken> GetTokenAtPositionAsync(
             SemanticModel semanticModel,
             int position,
-            HostWorkspaceServices services,
+            HostSolutionServices services,
             CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
-            var syntaxFacts = services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxFactsService>();
+            var syntaxFacts = services.GetRequiredLanguageService<ISyntaxFactsService>(semanticModel.Language);
 
             return syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true);
         }
