@@ -45,16 +45,19 @@ internal class TestHistoryManager
         // Gets environment variables set by our test yaml templates.
         // The access token is required to lookup test histories.
         // We use the target branch of the current build to lookup the last successful build for the same branch.
-        // The stage name is used to filter the tests on the last passing build to only those that apply to the currently running stage.
+        //
+        // The phase name is used to filter the tests on the last passing build to only those that apply to the currently running phase.
+        //   Note here that 'phaseName' corresponds to the 'jobName' defined in our pipeline yaml file and the job name env var is not correct.
+        //   See https://developercommunity.visualstudio.com/t/systemjobname-seems-to-be-incorrectly-assigned-and/1209736
         if (!TryGetEnvironmentVariable("SYSTEM_ACCESSTOKEN", out var accessToken)
-            || !TryGetEnvironmentVariable("SYSTEM_STAGENAME", out var stageName))
+            || !TryGetEnvironmentVariable("SYSTEM_PHASENAME", out var phaseName))
         {
             Console.WriteLine("Missing required environment variables - skipping test history lookup");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
         // Use the target branch (in the case of PRs) or source branch to find the last successful build.
-        var targetBranch = Environment.GetEnvironmentVariable("SYSTEM_PULLREQUESTTARGETBRANCH") ?? Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCH");
+        var targetBranch = Environment.GetEnvironmentVariable("SYSTEM_PULLREQUEST_TARGETBRANCH") ?? Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCHNAME");
         if (string.IsNullOrEmpty(targetBranch))
         {
             Console.WriteLine("Missing both PR target branch and build source branch environment variables - skipping test history lookup");
@@ -67,8 +70,9 @@ internal class TestHistoryManager
 
         using var buildClient = connection.GetClient<BuildHttpClient>();
 
-        Console.WriteLine($"Getting last successful build for branch {targetBranch} and stage {stageName}");
-        var builds = await buildClient.GetBuildsAsync2(project: "public", new int[] { RoslynCiBuildDefinitionId }, resultFilter: BuildResult.Succeeded, queryOrder: BuildQueryOrder.FinishTimeDescending, maxBuildsPerDefinition: 1, reasonFilter: BuildReason.IndividualCI, branchName: targetBranch, cancellationToken: cancellationToken);
+        Console.WriteLine($"Getting last successful build for branch {targetBranch}");
+        var adoBranch = $"refs/heads/{targetBranch}";
+        var builds = await buildClient.GetBuildsAsync2(project: "public", new int[] { RoslynCiBuildDefinitionId }, resultFilter: BuildResult.Succeeded, queryOrder: BuildQueryOrder.FinishTimeDescending, maxBuildsPerDefinition: 1, reasonFilter: BuildReason.IndividualCI, branchName: adoBranch, cancellationToken: cancellationToken);
         var lastSuccessfulBuild = builds?.FirstOrDefault();
         if (lastSuccessfulBuild == null)
         {
@@ -84,15 +88,15 @@ internal class TestHistoryManager
         var maxTime = lastSuccessfulBuild.FinishTime!.Value;
         var runsInBuild = await testClient.QueryTestRunsAsync2("public", minTime, maxTime, buildIds: new int[] { lastSuccessfulBuild.Id }, cancellationToken: cancellationToken);
 
-        var runForThisStage = runsInBuild.SingleOrDefault(r => r.Name.Contains(stageName));
+        var runForThisStage = runsInBuild.SingleOrDefault(r => r.Name.Contains(phaseName));
         if (runForThisStage == null)
         {
             // If this is a new stage, historical runs will not have any data for it.
-            ConsoleUtil.WriteLine($"Unable to get a run with name {stageName} from build {lastSuccessfulBuild.Url}.");
+            ConsoleUtil.WriteLine($"Unable to get a run with name {phaseName} from build {lastSuccessfulBuild.Url}.");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
-        ConsoleUtil.WriteLine($"Looking up test execution data from last successful build {lastSuccessfulBuild.Id} on branch {targetBranch} and stage {stageName}");
+        ConsoleUtil.WriteLine($"Looking up test execution data for build {lastSuccessfulBuild.Id} on branch {targetBranch} and stage {phaseName}");
 
         var totalTests = runForThisStage.TotalTests;
 

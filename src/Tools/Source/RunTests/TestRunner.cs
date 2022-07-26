@@ -222,9 +222,11 @@ namespace RunTests
                 // DOTNET_ROOT environment variable set by helix.
                 if (isUnix)
                 {
-                    command.AppendLine("vstestConsolePath=$(find ${DOTNET_ROOT} -name \"vstest.console.dll\")");
-                    command.AppendLine("echo ${vstestConsolePath}");
-                    command.AppendLine($"dotnet exec \"${{vstestConsolePath}}\" @{rspFileName}");
+                    // $ is a special character in msbuild so we replace it with %24 in the helix project.
+                    // https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild-special-characters?view=vs-2022
+                    command.AppendLine("vstestConsolePath=%24(find %24{DOTNET_ROOT} -name \"vstest.console.dll\")");
+                    command.AppendLine("echo %24{vstestConsolePath}");
+                    command.AppendLine($"dotnet exec \"%24{{vstestConsolePath}}\" @{rspFileName}");
                 }
                 else
                 {
@@ -235,6 +237,9 @@ namespace RunTests
                     command.AppendLine("echo %vstestConsolePath%");
                     command.AppendLine($"dotnet exec \"%vstestConsolePath%\" @{rspFileName}");
                 }
+
+                // TODO remove false exit code, setting to get test run logs.....
+                command.AppendLine(isUnix ? "false" : "cd invaliddir");
 
                 // The command string contains characters like % which are not valid XML to pass into the helix csproj.
                 var escapedCommand = SecurityElement.Escape(command.ToString());

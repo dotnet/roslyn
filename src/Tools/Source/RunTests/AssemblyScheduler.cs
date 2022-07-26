@@ -30,13 +30,18 @@ namespace RunTests
     internal sealed class AssemblyScheduler
     {
         /// <summary>
-        /// Our execution time limit is 3 minutes.  We really want to run tests under 5 minutes, but we need to limit test execution time
-        /// to 3 minutes to account for overhead elsewhere in setting up the test run, for example
+        /// Our execution time limit is 2m30s.  We really want to run tests under 5 minutes, but we need to limit test execution time
+        /// to 2m30s to account for overhead elsewhere in setting up the test run, for example
         ///   1.  Test discovery.
         ///   2.  Downloading assets to the helix machine.
         ///   3.  Setting up the test host for each assembly.
         /// </summary>
-        private static readonly TimeSpan s_maxExecutionTime = TimeSpan.FromMinutes(3);
+        private static readonly TimeSpan s_maxExecutionTime = TimeSpan.FromSeconds(150);
+
+        /// <summary>
+        /// If we were unable to find the test execution history, we fall back to partitioning by just method count.
+        /// </summary>
+        private static readonly int s_maxMethodCount = 500;
 
         private readonly Options _options;
 
@@ -64,9 +69,15 @@ namespace RunTests
             var testHistory = await TestHistoryManager.GetTestHistoryAsync(cancellationToken);
             if (testHistory.IsEmpty)
             {
-                // We didn't have any test history from azure devops, just partition by assembly.
-                ConsoleUtil.WriteLine($"##[warning]Could not look up test history - building a single work item per assembly");
-                return CreateWorkItemsForFullAssemblies(assemblies);
+                // We didn't have any test history from azure devops, just partition by test count.
+                ConsoleUtil.WriteLine($"##[warning]Could not look up test history - partitioning based on test count instead");
+                var workItemsByMethodCount = BuildWorkItems<int>(
+                    orderedTypeInfos,
+                    isOverLimitFunc: (accumulatedMethodCount) => accumulatedMethodCount >= s_maxMethodCount,
+                    addFunc: (currentTest, accumulatedMethodCount) => accumulatedMethodCount + 1);
+
+                LogWorkItems(workItemsByMethodCount);
+                return workItemsByMethodCount;
             }
 
             // Now for our current set of test methods we got from the assemblies we built, match them to tests from our test run history
@@ -76,9 +87,10 @@ namespace RunTests
             // Create work items by partitioning tests by historical execution time with the goal of running under our time limit.
             // While we do our best to run tests from the same assembly together (by building work items in assembly order) it is expected
             // that some work items will run tests from multiple assemblies due to large variances in test execution time.
-            var workItems = BuildWorkItems(orderedTypeInfos, s_maxExecutionTime);
-
-            ConsoleUtil.WriteLine($"Built {workItems.Length} work items");
+            var workItems = BuildWorkItems<TimeSpan>(
+                orderedTypeInfos,
+                isOverLimitFunc: (accumulatedExecutionTime) => accumulatedExecutionTime >= s_maxExecutionTime,
+                addFunc: (currentTest, accumulatedExecutionTime) => currentTest.ExecutionTime + accumulatedExecutionTime);
             LogWorkItems(workItems);
             return workItems;
 
@@ -159,29 +171,36 @@ namespace RunTests
             }
         }
 
-        private static ImmutableArray<WorkItemInfo> BuildWorkItems(ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> typeInfos, TimeSpan executionTimeLimit)
+        private static ImmutableArray<WorkItemInfo> BuildWorkItems<T>(
+            ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> typeInfos,
+            Func<T, bool> isOverLimitFunc,
+            Func<TestMethodInfo, T, T> addFunc) where T : struct
         {
             var workItems = new List<WorkItemInfo>();
 
             // Keep track of which work item we are creating - used to identify work items in names.
             var workItemIndex = 0;
 
-            // Keep track of the execution time of the current work item we are adding to.
-            var currentExecutionTime = TimeSpan.Zero;
+            // Keep track of the limit of the current work item we are adding to.
+            var accumulatedValue = default(T);
 
             // Keep track of the types we're planning to add to the current work item.
             var currentFilters = new SortedDictionary<AssemblyInfo, List<TestMethodInfo>>();
 
             // Iterate through each assembly and type and build up the work items to run.
-            // We add types from assemblies one by one until we hit our execution time limit,
-            // at which point we create a new work item with the current types and start a new one.
+            // We add types from assemblies one by one until we hit our limit,
+            // at which point we create a work item with the current types and start a new one.
             foreach (var (assembly, types) in typeInfos)
             {
                 foreach (var type in types)
                 {
                     foreach (var test in type.Tests)
                     {
-                        if (test.ExecutionTime + currentExecutionTime >= executionTimeLimit)
+                        // Get a new value representing the value from the test plus the accumulated value in the work item.
+                        var newAccumulatedValue = addFunc(test, accumulatedValue);
+
+                        // If the new accumulated value is greater than the limit
+                        if (isOverLimitFunc(newAccumulatedValue))
                         {
                             // Adding this type would put us over the time limit for this partition.
                             // Add the current work item to our list and start a new one.
@@ -190,7 +209,6 @@ namespace RunTests
 
                         // Update the current group in the work item with this new type.
                         AddFilter(assembly, test);
-                        currentExecutionTime += test.ExecutionTime;
                     }
                 }
             }
@@ -208,7 +226,7 @@ namespace RunTests
                 }
 
                 currentFilters = new();
-                currentExecutionTime = TimeSpan.Zero;
+                accumulatedValue = default;
             }
 
             void AddFilter(AssemblyInfo assembly, TestMethodInfo test)
@@ -225,12 +243,15 @@ namespace RunTests
                     };
                     currentFilters.Add(assembly, filterList);
                 }
+
+                accumulatedValue = addFunc(test, accumulatedValue);
             }
         }
 
 
         private static void LogWorkItems(ImmutableArray<WorkItemInfo> workItems)
         {
+            ConsoleUtil.WriteLine($"Built {workItems.Length} work items");
             Logger.Log("==== Work Item List ====");
             foreach (var workItem in workItems)
             {

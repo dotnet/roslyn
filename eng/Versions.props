@@ -125,6 +125,7 @@
     <MicrosoftServiceHubClientVersion>$(MicrosoftServiceHubVersion)</MicrosoftServiceHubClientVersion>
     <MicrosoftServiceHubFrameworkVersion>$(MicrosoftServiceHubVersion)</MicrosoftServiceHubFrameworkVersion>
     <MicrosoftSourceLinkToolsVersion>1.1.1-beta-21566-01</MicrosoftSourceLinkToolsVersion>
+    <MicrosoftTestPlatformVersion>17.4.0-preview-20220707-01</MicrosoftTestPlatformVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
     <MicrosoftVisualStudioCacheVersion>17.2.41-alpha</MicrosoftVisualStudioCacheVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.8.27812-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>

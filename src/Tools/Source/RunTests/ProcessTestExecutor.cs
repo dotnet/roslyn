@@ -76,6 +76,8 @@ namespace RunTests
                     filterStringBuilder.Append(options.TestFilter);
                 }
 
+                filterStringBuilder.Append('"');
+
                 void MaybeAddSeparator(char separator = '|')
                 {
                     if (any)

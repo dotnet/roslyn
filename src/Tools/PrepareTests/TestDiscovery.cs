@@ -69,15 +69,18 @@ internal class TestDiscovery
         private readonly ConcurrentBag<TestCase> _tests = new();
         private bool _isComplete = false;
 
-        public void HandleDiscoveredTests(IEnumerable<TestCase> discoveredTestCases)
+        public void HandleDiscoveredTests(IEnumerable<TestCase>? discoveredTestCases)
         {
-            foreach (var test in discoveredTestCases)
+            if (discoveredTestCases != null)
             {
-                _tests.Add(test);
+                foreach (var test in discoveredTestCases)
+                {
+                    _tests.Add(test);
+                }
             }
         }
 
-        public void HandleDiscoveryComplete(long totalTests, IEnumerable<TestCase> lastChunk, bool isAborted)
+        public void HandleDiscoveryComplete(long totalTests, IEnumerable<TestCase>? lastChunk, bool isAborted)
         {
             if (lastChunk != null)
             {
@@ -90,7 +93,7 @@ internal class TestDiscovery
             _isComplete = true;
         }
 
-        public void HandleLogMessage(TestMessageLevel level, string message)
+        public void HandleLogMessage(TestMessageLevel level, string? message)
         {
             Console.WriteLine(message);
         }
