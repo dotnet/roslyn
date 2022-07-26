@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SemanticModelReuse;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editing;
 
 #if DEBUG
 using System.Collections.Immutable;
@@ -212,5 +213,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
         }
 #endif
+
+        public static SyntaxEditor GetSyntaxEditor(this Document document, SyntaxNode root)
+        {
+#if CODE_STYLE
+            // Remove once Solution.Services becomes public: https://github.com/dotnet/roslyn/issues/62914
+            return new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+#else
+            return new SyntaxEditor(root, document.Project.Solution.Services);
+#endif
+        }
     }
 }
