@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -1920,7 +1921,7 @@ class @scoped { }
             EOF();
         }
 
-        [Theory]
+        [Theory, WorkItem(62950, "https://github.com/dotnet/roslyn/issues/62950")]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
         public void Local_06(LanguageVersion langVersion)
@@ -2225,6 +2226,50 @@ scoped ref readonly scoped c;
                 {
                     N(SyntaxKind.EmptyStatement);
                     {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem(62950, "https://github.com/dotnet/roslyn/issues/62950")]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Local_07_WithInitializer(LanguageVersion langVersion)
+        {
+            string source =
+@"scoped scoped a = default;
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.DefaultLiteralExpression);
+                                    {
+                                        N(SyntaxKind.DefaultKeyword);
+                                    }
+                                }
+                            }
+                        }
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
@@ -3295,7 +3340,6 @@ scoped = true;
             string source =
 @"using scoped s;
 using ref scoped r;
-using ref scoped r r2;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
                 // (2,11): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
@@ -3303,10 +3347,7 @@ using ref scoped r r2;
                 Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(2, 11),
                 // (2,19): error CS1001: Identifier expected
                 // using ref scoped r;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(2, 19),
-                // (3,11): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
-                // using ref scoped r r2;
-                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(3, 11)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(2, 19)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -3348,29 +3389,6 @@ using ref scoped r r2;
                             M(SyntaxKind.VariableDeclarator);
                             {
                                 M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        N(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.UsingKeyword);
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.RefType);
-                            {
-                                N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "r");
-                                }
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "r2");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -3471,7 +3489,6 @@ using ref scoped R r2;
 @"await using scoped s;
 await using ref scoped;
 await using ref scoped r;
-await using ref scoped r r2;
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
                 // (2,17): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
@@ -3488,10 +3505,7 @@ await using ref scoped r r2;
                 Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(3, 17),
                 // (3,25): error CS1001: Identifier expected
                 // await using ref scoped r;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(3, 25),
-                // (4,17): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
-                // await using ref scoped r r2;
-                Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(4, 17));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(3, 25));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3558,30 +3572,6 @@ await using ref scoped r r2;
                             M(SyntaxKind.VariableDeclarator);
                             {
                                 M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        N(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.AwaitKeyword);
-                        N(SyntaxKind.UsingKeyword);
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.RefType);
-                            {
-                                N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "r");
-                                }
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "r2");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);

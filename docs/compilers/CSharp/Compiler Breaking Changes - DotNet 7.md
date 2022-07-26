@@ -1,6 +1,6 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
-## `scoped` treated as a contextual keyword
+## Types cannot be named `scoped`
 
 ***Introduced in Visual Studio 2022 version 17.4.*** Starting in C# 11, types cannot be named `scoped`. The compiler will report an error on all such type names. To work around this, the type name and all usages must be escaped with an `@`:
 
