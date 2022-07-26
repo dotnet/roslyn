@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             // if we rename an identifier and it now binds to a symbol from metadata this should be treated as
             // an invalid rename.
-            return conflictResolution.ReplacementTextValid && renamedSymbol != null && renamedSymbol.Locations.Any(static loc => loc.IsInSource);
+            return renamedSymbol != null && conflictResolution.SymbolToReplacementTextValid[renamedSymbol] && renamedSymbol.Locations.Any(static loc => loc.IsInSource);
         }
 
         private static async Task AddImplicitConflictsAsync(

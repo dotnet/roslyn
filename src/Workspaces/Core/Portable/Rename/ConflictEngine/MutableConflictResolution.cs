@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// Whether the text that was resolved with was even valid. This may be false if the
         /// identifier was not valid in some language that was involved in the rename.
         /// </summary>
-        public readonly bool ReplacementTextValid;
+        public readonly ImmutableDictionary<ISymbol, bool> SymbolToReplacementTextValid;
 
         /// <summary>
         /// The original text that is the rename replacement.
@@ -43,23 +43,26 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         public readonly string ReplacementText;
 
         /// <summary>
+        /// The mapping from DocumentId of renamed document to the newName.
+        /// </summary>
+        private readonly Dictionary<DocumentId, string> RenamedDocuments = new();
+
+        /// <summary>
         /// The solution snapshot as it is being updated with specific rename steps.
         /// </summary>
         public Solution CurrentSolution { get; private set; }
-
-        private (DocumentId documentId, string newName) _renamedDocument;
 
         public MutableConflictResolution(
             Solution oldSolution,
             RenamedSpansTracker renamedSpansTracker,
             string replacementText,
-            bool replacementTextValid)
+            ImmutableDictionary<ISymbol, bool> symbolToReplacementTextValid)
         {
             OldSolution = oldSolution;
             CurrentSolution = oldSolution;
             _renamedSpansTracker = renamedSpansTracker;
             ReplacementText = replacementText;
-            ReplacementTextValid = replacementTextValid;
+            SymbolToReplacementTextValid = symbolToReplacementTextValid;
             RelatedLocations = new List<RelatedLocation>();
         }
 
@@ -134,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
             });
 
-            _renamedDocument = (document.Id, newName);
+            RenamedDocuments.Add(document.Id, newName);
         }
 
         public int GetAdjustedTokenStartingPosition(int startingPosition, DocumentId documentId)
@@ -167,8 +170,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return new ConflictResolution(
                 OldSolution,
                 CurrentSolution,
-                ReplacementTextValid,
-                _renamedDocument,
+                SymbolToReplacementTextValid,
+                RenamedDocuments.ToImmutableDictionaryOrEmpty(),
                 documentIds,
                 relatedLocations,
                 documentToModifiedSpansMap,

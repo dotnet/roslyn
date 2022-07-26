@@ -187,8 +187,7 @@ namespace Microsoft.CodeAnalysis.Rename
         [DataMember(Order = 3)]
         public readonly ImmutableArray<SerializableSymbolAndProjectId> ReferencedSymbols;
 
-        public SerializableRenameLocations(
-            SymbolRenameOptions options,
+        public SerializableRenameLocations(SymbolRenameOptions options,
             ImmutableArray<SerializableRenameLocation> locations,
             ImmutableArray<SerializableReferenceLocation> implicitLocations,
             ImmutableArray<SerializableSymbolAndProjectId> referencedSymbols)
@@ -225,16 +224,39 @@ namespace Microsoft.CodeAnalysis.Rename
             var newSolutionWithoutRenamedDocument = await RemoteUtilities.UpdateSolutionAsync(
                 oldSolution, Resolution.DocumentTextChanges, cancellationToken).ConfigureAwait(false);
 
+            var symbolToReplacementValidMap = await DehydrateSymbolToReplacementMapAsync(
+                oldSolution,
+                Resolution.SymbolToReplacementTextValid,
+                cancellationToken).ConfigureAwait(false);
+
             return new ConflictResolution(
                 oldSolution,
                 newSolutionWithoutRenamedDocument,
-                Resolution.ReplacementTextValid,
-                Resolution.RenamedDocument,
+                symbolToReplacementValidMap,
+                Resolution.RenamedDocuments,
                 Resolution.DocumentIds,
                 Resolution.RelatedLocations,
                 Resolution.DocumentToModifiedSpansMap,
                 Resolution.DocumentToComplexifiedSpansMap,
                 Resolution.DocumentToRelatedLocationsMap);
+        }
+
+        private static async Task<ImmutableDictionary<ISymbol, bool>> DehydrateSymbolToReplacementMapAsync(
+            Solution solution,
+            ImmutableDictionary<SerializableSymbolAndProjectId, bool> symbolToReplacementMap,
+            CancellationToken cancellationToken)
+        {
+            using var _ = PooledDictionary<ISymbol, bool>.GetInstance(out var builder);
+            foreach (var (serializableSymbolAndProjectId, replacementTextValid) in symbolToReplacementMap)
+            {
+                var symbol = await serializableSymbolAndProjectId.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                if (symbol is not null)
+                {
+                    builder.Add(symbol, replacementTextValid);
+                }
+            }
+
+            return builder.ToImmutableDictionary();
         }
     }
 
@@ -242,10 +264,10 @@ namespace Microsoft.CodeAnalysis.Rename
     internal sealed class SuccessfulConflictResolution
     {
         [DataMember(Order = 0)]
-        public readonly bool ReplacementTextValid;
+        public readonly ImmutableDictionary<SerializableSymbolAndProjectId, bool> SymbolToReplacementTextValid;
 
         [DataMember(Order = 1)]
-        public readonly (DocumentId documentId, string newName) RenamedDocument;
+        public readonly ImmutableDictionary<DocumentId, string> RenamedDocuments;
 
         [DataMember(Order = 2)]
         public readonly ImmutableArray<DocumentId> DocumentIds;
@@ -266,8 +288,8 @@ namespace Microsoft.CodeAnalysis.Rename
         public readonly ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>> DocumentToRelatedLocationsMap;
 
         public SuccessfulConflictResolution(
-            bool replacementTextValid,
-            (DocumentId documentId, string newName) renamedDocument,
+            ImmutableDictionary<SerializableSymbolAndProjectId, bool> symbolToReplacementTextValid,
+            ImmutableDictionary<DocumentId, string> renamedDocuments,
             ImmutableArray<DocumentId> documentIds,
             ImmutableArray<RelatedLocation> relatedLocations,
             ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> documentTextChanges,
@@ -275,8 +297,8 @@ namespace Microsoft.CodeAnalysis.Rename
             ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>> documentToComplexifiedSpansMap,
             ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>> documentToRelatedLocationsMap)
         {
-            ReplacementTextValid = replacementTextValid;
-            RenamedDocument = renamedDocument;
+            SymbolToReplacementTextValid = symbolToReplacementTextValid;
+            RenamedDocuments = renamedDocuments;
             DocumentIds = documentIds;
             RelatedLocations = relatedLocations;
             DocumentTextChanges = documentTextChanges;
@@ -294,17 +316,35 @@ namespace Microsoft.CodeAnalysis.Rename
                 return new SerializableConflictResolution(ErrorMessage, resolution: null);
 
             var documentTextChanges = await RemoteUtilities.GetDocumentTextChangesAsync(OldSolution, _newSolutionWithoutRenamedDocument, cancellationToken).ConfigureAwait(false);
+
             return new SerializableConflictResolution(
                 errorMessage: null,
                 new SuccessfulConflictResolution(
-                    ReplacementTextValid.Value,
-                    _renamedDocument.Value,
+                    DehydrateSymbolToReplacementMap(OldSolution, SymbolToReplacementTextValid, cancellationToken),
+                    _renamedDocuments,
                     DocumentIds,
                     RelatedLocations,
                     documentTextChanges,
                     _documentToModifiedSpansMap,
                     _documentToComplexifiedSpansMap,
                     _documentToRelatedLocationsMap));
+        }
+
+        private static ImmutableDictionary<SerializableSymbolAndProjectId, bool> DehydrateSymbolToReplacementMap(
+            Solution solution,
+            ImmutableDictionary<ISymbol, bool> symbolToReplacementValid,
+            CancellationToken cancellationToken)
+        {
+            using var _ = PooledDictionary<SerializableSymbolAndProjectId, bool>.GetInstance(out var builder);
+            foreach (var (symbol, replacementTextValid) in symbolToReplacementValid)
+            {
+                if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var result))
+                {
+                    builder.Add(result, replacementTextValid);
+                }
+            }
+
+            return builder.ToImmutableDictionary();
         }
     }
 }
