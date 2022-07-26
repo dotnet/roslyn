@@ -6917,6 +6917,27 @@ class Program
         }
 
         [Fact]
+        public void AnonymousMethodWithExplicitDefaultParam()
+        {
+            var source = """
+class Program
+{
+    public void M()
+    {
+        var lam = delegate(int x = 7) { return x; };
+        lam();
+    }
+}
+
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'arg' of 'Func<int, int>'
+                //         lam();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("arg", "System.Func<int, int>").WithLocation(6, 9));
+        }
+
+        [Fact]
         public void LambdaWithImplicitDefaultParam1()
         {
             var source =
@@ -6984,6 +7005,27 @@ class Program
                     Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, "= 3").WithLocation(5, 26));
         }
 
+
+        [Fact]
+        public void AnonymousMethodDefaultBeforeRequired1()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        var lam = delegate(int a = 3, int b) { return a + b; };
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,34): error CS1737: Optional parameters must appear after all required parameters
+                //         var lam = delegate(int a = 3, int b) { return a + b; };
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, "= 3").WithLocation(5, 34));
+        }
+
         [Fact]
         public void LambdaWithDefaultBeforeRequired2()
         {
@@ -7001,6 +7043,26 @@ class Program
                 // (5,33): error CS1737: Optional parameters must appear after all required parameters
                 //         var lam = (int x, int y = 3, int z) => x + y + z;
                 Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, "= 3").WithLocation(5, 33));
+        }
+
+
+        [Fact]
+        public void AnonymousMethodDefaultBeforeRequired2()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        var lam = delegate(int x, int y = 3, int z) { return x + y + z; };
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,41): error CS1737: Optional parameters must appear after all required parameters
+                //         var lam = delegate(int x, int y = 3, int z) { return x + y + z; };
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, "= 3").WithLocation(5, 41));
         }
 
         [Fact]
@@ -7023,6 +7085,25 @@ class Program
         }
 
         [Fact]
+        public void AnonymousMethodWithDefaultTypeMismatchLiteral()
+        {
+            var source = """
+class Program
+{
+    public static void Main()
+    {
+        var lam = delegate(int x = "abcdef") { return x; };
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS1750: A value of type 'string' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         var lam = delegate(int x = "abcdef") { return x; };
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "x").WithArguments("string", "int").WithLocation(5, 32));
+        }
+
+        [Fact]
         public void LambdaWithDefaultTypeMismatchConstantExpression()
         {
             var source = """
@@ -7039,6 +7120,25 @@ class Program
                     // (5,27): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'string'
                     //         var lam = (string s = 7*9) => s.Split(' ');
                     Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "string").WithLocation(5, 27));
+        }
+
+        [Fact]
+        public void AnonymousMethodWithDefaultTypeMismatchConstantExpression()
+        {
+            var source = """
+class Program
+{
+    public static void Main()
+    {
+        var lam = delegate(string s = 7*9) { return s.Split(' '); };
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,35): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'string'
+                //         var lam = delegate(string s = 7*9) { return s.Split(' '); };
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "string").WithLocation(5, 35));
         }
 
         [Fact]
@@ -7071,6 +7171,35 @@ class Program
         }
 
         [Fact]
+        public void AnonymousMethodWithNonConstantDefault()
+        {
+            var source = """
+class C
+{
+    object field;
+    public object Field => field;
+
+    public C(object f) { field = f; }
+
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var lam = delegate(C c = new C(null)) { return c.Field; };
+    }
+
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (14,34): error CS1736: Default parameter value for 'c' must be a compile-time constant
+                //         var lam = delegate(C c = new C(null)) { return c.Field; };
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new C(null)").WithArguments("c").WithLocation(14, 34));
+        }
+
+        [Fact]
         public void LambdaWithNonConstantDefaultTypeMismatch()
         {
             var source = """
@@ -7089,6 +7218,28 @@ class Program
                                    //         var lam = (string s = add(1, 2)) => s;
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "add(1, 2)").WithArguments("s").WithLocation(7, 31));
         }
+
+        [Fact]
+        public void AnonymousMethodWithNonConstantDefaultTypeMismatch()
+        {
+            var source = """
+class Program
+{
+    static int add(int x, int y) => x + y;
+    
+    public static void Main(string[] args)
+    {
+        var lam = delegate(string s = add(1, 2)) { return s; };
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,39): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //         var lam = delegate(string s = add(1, 2)) { return s; };
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "add(1, 2)").WithArguments("s").WithLocation(7, 39));
+        }
+
 
         [Fact]
         public void LambdaWithComplexConstantExpression()
@@ -7114,6 +7265,29 @@ class Program
         }
 
         [Fact]
+        public void AnonymousMethodWithComplexConstantExpression()
+        {
+            var source = """
+class Program
+{
+    const bool b1 = false;
+    const bool b2 = true;
+
+    const int num1 = 1;
+    const int num2 = 2;
+    const int num3 = 3;
+
+    public static void Main(string[] args)
+    {
+        var fn = delegate(int arg = b1 ? num1 : b2 ? num2 : num3) { return arg; };
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void LambdaDefaultLocalConstantExpression()
         {
             var source = """
@@ -7128,7 +7302,31 @@ class Program
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics( 
+            comp.VerifyDiagnostics(
+                // (5,19): warning CS0219: The variable 'i1' is assigned but its value is never used
+                //         const int i1 = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i1").WithArguments("i1").WithLocation(5, 19),
+                // (6,19): warning CS0219: The variable 'i2' is assigned but its value is never used
+                //         const int i2 = 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(6, 19));
+        }
+
+        [Fact]
+        public void AnonymousMethodDefaultLocalConstantExpression()
+        {
+            var source = """
+class Program
+{
+    public static void Main(string[] args)
+    {
+        const int i1 = 1;
+        const int i2 = 2;
+        var func = delegate(int arg = i1 + i2) { return arg + 1; };
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
                 // (5,19): warning CS0219: The variable 'i1' is assigned but its value is never used
                 //         const int i1 = 1;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i1").WithArguments("i1").WithLocation(5, 19),
@@ -7187,6 +7385,22 @@ class Program
         }
 
         [Fact]
+        public void AnonymousMethodWithDefaultParamsAndRefOutModifiers()
+        {
+            var source = """
+class Program
+{
+    public static void Main()
+    {
+        var lam = delegate(ref int x, out object y, double c = 4.59) { y = c + (double) x; };
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void LambdaDefaultParamUsageAnalysis()
         {
             var source = """
@@ -7205,6 +7419,27 @@ class Program
                 // (5,25): error CS1736: Default parameter value for 'i' must be a compile-time constant
                 //        var _ = (int i = M2(a)) => { }; // parameter 'a' should be considered read/used
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2(a)").WithArguments("i").WithLocation(5, 25));
+        }
+
+        [Fact]
+        public void AnonymousMethodDefaultParamUsageAnalysis()
+        {
+            var source = """
+class Program
+{
+    void M(int a)
+    {
+       var _ = delegate(int i = M2(a)) { }; // parameter 'a' should be considered read/used
+    }
+
+    static int M2(int j) => j;
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,33): error CS1736: Default parameter value for 'i' must be a compile-time constant
+                //        var _ = delegate(int i = M2(a)) { }; // parameter 'a' should be considered read/used
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2(a)").WithArguments("i").WithLocation(5, 33));
         }
 
     }
