@@ -31,6 +31,6 @@ internal readonly record struct MetadataAsSourceOptions(
     [DataMember]
     public bool AlwaysUseDefaultSymbolServers { get; init; } = true;
 
-    public static MetadataAsSourceOptions GetDefault(HostLanguageServices languageServices)
+    public static MetadataAsSourceOptions GetDefault(HostProjectServices languageServices)
         => new(GenerationOptions: CleanCodeGenerationOptions.GetDefault(languageServices));
 }

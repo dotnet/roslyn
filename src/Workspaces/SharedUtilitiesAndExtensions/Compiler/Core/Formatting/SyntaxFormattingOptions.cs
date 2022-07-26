@@ -39,7 +39,7 @@ internal abstract class SyntaxFormattingOptions
     public AccessibilityModifiersRequired AccessibilityModifiersRequired => Common.AccessibilityModifiersRequired;
 
 #if !CODE_STYLE
-    public static SyntaxFormattingOptions GetDefault(HostLanguageServices languageServices)
+    public static SyntaxFormattingOptions GetDefault(HostProjectServices languageServices)
         => languageServices.GetRequiredService<ISyntaxFormattingService>().DefaultOptions;
 #endif
 }
