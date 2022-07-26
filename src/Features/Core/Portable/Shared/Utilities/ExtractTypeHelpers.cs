@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             var originalRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var typeDeclaration = originalRoot.GetAnnotatedNodes(symbolMapping.TypeNodeAnnotation).Single();
-            var editor = new SyntaxEditor(originalRoot, symbolMapping.AnnotatedSolution.Workspace.Services);
+            var editor = new SyntaxEditor(originalRoot, symbolMapping.AnnotatedSolution.Services);
 
             var context = new CodeGenerationContext(generateMethodBodies: true);
             var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
