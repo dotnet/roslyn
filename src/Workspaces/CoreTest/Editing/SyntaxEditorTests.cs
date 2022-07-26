@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         }
 
         private SyntaxEditor GetEditor(SyntaxNode root)
-            => new SyntaxEditor(root, EmptyWorkspace.Services);
+            => new SyntaxEditor(root, EmptyWorkspace.Services.SolutionServices);
 
         [Fact]
         public void TestReplaceNode()
