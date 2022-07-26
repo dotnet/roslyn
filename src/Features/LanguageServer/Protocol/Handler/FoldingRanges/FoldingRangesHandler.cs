@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public static FoldingRange[] GetFoldingRanges(
             SyntaxTree syntaxTree,
-            HostLanguageServices languageServices,
+            HostProjectServices languageServices,
             in BlockStructureOptions options,
             CancellationToken cancellationToken)
         {

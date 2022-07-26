@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             SemanticModel semanticModel,
             int position,
             SymbolDescriptionOptions options,
-            HostLanguageServices languageServices,
+            HostProjectServices languageServices,
             CancellationToken cancellationToken)
         {
             Debug.Assert(semanticModel.Language is LanguageNames.CSharp or LanguageNames.VisualBasic);
