@@ -6782,5 +6782,51 @@ class Program
             Assert.Equal(RefKind.In, lambdas[1].Parameters[0].RefKind);
             Assert.Equal(RefKind.Out, lambdas[2].Parameters[0].RefKind);
         }
+
+        [Fact]
+        public void LambdaWithExplicitDefaultParam()
+        {
+            var source =
+@"class Program 
+{
+    public static void Main(string[] args)
+    {
+        var lam1 = (int x = 7) => x;
+        lam1();
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,27): error CS1065: Default values are not valid in this context.
+                //         var lam1 = (int x = 7) => x;
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 27),
+                // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'arg' of 'Func<int, int>'
+                //         lam1();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam1").WithArguments("arg", "System.Func<int, int>").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void LambdaWithImplicitDefaultParam()
+        {
+            var source =
+@"class Program 
+{
+    public static void Main(string[] args)
+    {
+        var lam1 = (x = 7) => x;
+        lam1();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS8917: The delegate type could not be inferred.
+                //         var lam1 = (x = 7) => x;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(x = 7) => x").WithLocation(5, 20),
+                // (5,23): error CS1065: Default values are not valid in this context.
+                //         var lam1 = (x = 7) => x;
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 23));
+        }
     }
 }
