@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static class SolutionExtensions
+    internal static class IObjectWritableExtensions
     {
         public static void WriteTo(this IObjectWritable @object, ObjectWriter writer)
             => @object.WriteTo(writer);
