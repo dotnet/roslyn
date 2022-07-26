@@ -48,7 +48,7 @@ internal static class TextBufferOptionProviders
     private static SyntaxFormattingOptions GetSyntaxFormattingOptionsImpl(ITextBuffer textBuffer, IEditorOptions editorOptions, IIndentationManagerService indentationManager, IGlobalOptionService globalOptions, HostLanguageServices languageServices, bool explicitFormat)
     {
         var configOptions = new EditorAnalyzerConfigOptions(editorOptions);
-        var fallbackOptions = globalOptions.GetSyntaxFormattingOptions(languageServices);
+        var fallbackOptions = globalOptions.GetSyntaxFormattingOptions(languageServices.ProjectServices);
         var options = configOptions.GetSyntaxFormattingOptions(fallbackOptions, languageServices);
         var lineFormattingOptions = GetLineFormattingOptionsImpl(textBuffer, editorOptions, indentationManager, explicitFormat);
 
@@ -72,7 +72,7 @@ internal static class TextBufferOptionProviders
     {
         var editorOptions = optionsProvider.Factory.GetOptions(textBuffer);
         var configOptions = new EditorAnalyzerConfigOptions(editorOptions);
-        var fallbackOptions = optionsProvider.GlobalOptions.GetAddImportPlacementOptions(languageServices);
+        var fallbackOptions = optionsProvider.GlobalOptions.GetAddImportPlacementOptions(languageServices.ProjectServices);
         return configOptions.GetAddImportPlacementOptions(allowInHiddenRegions, fallbackOptions, languageServices);
     }
 
