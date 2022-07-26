@@ -4511,7 +4511,7 @@ class innerClass
 {
     public innerClass()
     {
-        myDelegate x = (int y=1) => { return; };
+        myDelegate x = (int y = 1) => { return; };
     }
 }";
 
