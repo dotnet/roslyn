@@ -109,7 +109,8 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                         : new SyntaxNode[] { newGetAccessor, newSetAccessor })
                 .WithLeadingTrivia(property.GetLeadingTrivia());
             fullProperty = ConvertPropertyToExpressionBodyIfDesired(info, fullProperty);
-            var editor = new SyntaxEditor(root, services);
+
+            var editor = document.GetSyntaxEditor(root);
             editor.ReplaceNode(property, fullProperty.WithAdditionalAnnotations(Formatter.Annotation));
 
             // add backing field, plus initializer if it exists 
