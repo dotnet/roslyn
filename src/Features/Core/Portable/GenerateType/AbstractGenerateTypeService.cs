@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.LanguageServices.ProjectInfoService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -289,17 +288,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 {
                     return true;
                 }
-            }
-
-            return false;
-        }
-
-        protected static bool GeneratedTypesMustBePublic(Project project)
-        {
-            var projectInfoService = project.Solution.Services.GetService<IProjectInfoService>();
-            if (projectInfoService != null)
-            {
-                return projectInfoService.GeneratedTypesMustBePublic(project);
             }
 
             return false;

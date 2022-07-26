@@ -189,12 +189,12 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         public void AddSyntacticClassifications(
-            HostWorkspaceServices services, SyntaxNode? root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            HostSolutionServices services, SyntaxNode? root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (root == null)
                 return;
 
-            var classificationService = services.GetLanguageServices(root.Language).GetService<ISyntaxClassificationService>();
+            var classificationService = services.GetProjectServices(root.Language).GetService<ISyntaxClassificationService>();
             if (classificationService == null)
                 return;
 
@@ -216,9 +216,9 @@ namespace Microsoft.CodeAnalysis.Classification
         public ValueTask<TextChangeRange?> ComputeSyntacticChangeRangeAsync(Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken)
             => default;
 
-        public TextChangeRange? ComputeSyntacticChangeRange(HostWorkspaceServices services, SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken)
+        public TextChangeRange? ComputeSyntacticChangeRange(HostSolutionServices services, SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            var classificationService = services.GetLanguageServices(oldRoot.Language).GetService<ISyntaxClassificationService>();
+            var classificationService = services.GetProjectServices(oldRoot.Language).GetService<ISyntaxClassificationService>();
             return classificationService?.ComputeSyntacticChangeRange(oldRoot, newRoot, timeout, cancellationToken);
         }
     }

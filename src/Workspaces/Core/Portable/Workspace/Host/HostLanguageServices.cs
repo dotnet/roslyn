@@ -21,6 +21,15 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         public abstract string Language { get; }
 
+        internal HostProjectServices ProjectServices { get; }
+
+        protected HostLanguageServices()
+        {
+#pragma warning disable 618 // 'HostProjectServices.HostProjectServices(HostLanguageServices)' is obsolete: 'Do not call directly.
+            ProjectServices = new HostProjectServices(this);
+#pragma warning restore
+        }
+
         /// <summary>
         /// Gets a language specific service provided by the host identified by the service type. 
         /// If the host does not provide the service, this method returns null.

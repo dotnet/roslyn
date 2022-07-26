@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis.Simplification
             if (workspace == null)
                 throw new ArgumentNullException(nameof(workspace));
 
-            return Expand(node, semanticModel, workspace.Services, expandInsideNode, expandParameter, cancellationToken);
+            return Expand(node, semanticModel, workspace.Services.SolutionServices, expandInsideNode, expandParameter, cancellationToken);
         }
 
         /// <summary>
         /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
         /// </summary>
-        internal static TNode Expand<TNode>(TNode node, SemanticModel semanticModel, HostWorkspaceServices services, Func<SyntaxNode, bool>? expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default) where TNode : SyntaxNode
+        internal static TNode Expand<TNode>(TNode node, SemanticModel semanticModel, HostSolutionServices services, Func<SyntaxNode, bool>? expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default) where TNode : SyntaxNode
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
 
-            var result = services.GetLanguageServices(node.Language).GetRequiredService<ISimplificationService>()
+            var result = services.GetRequiredLanguageService<ISimplificationService>(node.Language)
                 .Expand(node, semanticModel, annotationForReplacedAliasIdentifier: null, expandInsideNode: expandInsideNode, expandParameter: expandParameter, cancellationToken: cancellationToken);
 
             return (TNode)result;
@@ -128,13 +128,13 @@ namespace Microsoft.CodeAnalysis.Simplification
             if (workspace == null)
                 throw new ArgumentNullException(nameof(workspace));
 
-            return Expand(token, semanticModel, workspace.Services, expandInsideNode, cancellationToken);
+            return Expand(token, semanticModel, workspace.Services.SolutionServices, expandInsideNode, cancellationToken);
         }
 
         /// <summary>
         /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
         /// </summary>
-        internal static SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, HostWorkspaceServices services, Func<SyntaxNode, bool>? expandInsideNode = null, CancellationToken cancellationToken = default)
+        internal static SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, HostSolutionServices services, Func<SyntaxNode, bool>? expandInsideNode = null, CancellationToken cancellationToken = default)
         {
             if (semanticModel == null)
                 throw new ArgumentNullException(nameof(semanticModel));
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
 
-            return services.GetLanguageServices(token.Language).GetRequiredService<ISimplificationService>()
+            return services.GetRequiredLanguageService<ISimplificationService>(token.Language)
                 .Expand(token, semanticModel, expandInsideNode, cancellationToken);
         }
 

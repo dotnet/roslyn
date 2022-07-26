@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         }
 
         protected static Task<QuickInfoItem> CreateContentAsync(
-            HostWorkspaceServices services,
+            HostSolutionServices services,
             SemanticModel semanticModel,
             SyntaxToken token,
             TokenInformation tokenInformation,
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             SymbolDescriptionOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFactsService = services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxFactsService>();
+            var syntaxFactsService = services.GetRequiredLanguageService<ISyntaxFactsService>(semanticModel.Language);
 
             var symbols = tokenInformation.Symbols;
 
@@ -182,9 +182,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         protected virtual NullableFlowState GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => NullableFlowState.None;
 
         private TokenInformation BindToken(
-            HostWorkspaceServices services, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+            HostSolutionServices services, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         {
-            var languageServices = services.GetLanguageServices(semanticModel.Language);
+            var languageServices = services.GetProjectServices(semanticModel.Language);
             var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
             var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
 
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return new TokenInformation(ImmutableArray<ISymbol>.Empty);
         }
 
-        private ImmutableArray<ISymbol> GetSymbolsFromToken(SyntaxToken token, HostWorkspaceServices services, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private ImmutableArray<ISymbol> GetSymbolsFromToken(SyntaxToken token, HostSolutionServices services, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (GetBindableNodeForTokenIndicatingLambda(token, out var lambdaSyntax))
             {

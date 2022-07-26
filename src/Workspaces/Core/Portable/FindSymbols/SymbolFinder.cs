@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (workspace is null)
                 throw new ArgumentNullException(nameof(workspace));
 
-            return FindSymbolAtPositionAsync(semanticModel, position, workspace.Services, cancellationToken);
+            return FindSymbolAtPositionAsync(semanticModel, position, workspace.Services.SolutionServices, cancellationToken);
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ISymbol> FindSymbolAtPositionAsync(
             SemanticModel semanticModel,
             int position,
-            HostWorkspaceServices services,
+            HostSolutionServices services,
             CancellationToken cancellationToken = default)
         {
             if (semanticModel is null)
@@ -69,14 +69,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(services));
 
             var semanticInfo = await GetSemanticInfoAtPositionAsync(
-                semanticModel, position, services, cancellationToken: cancellationToken).ConfigureAwait(false);
+                semanticModel, position, services, cancellationToken).ConfigureAwait(false);
             return semanticInfo.GetAnySymbol(includeType: false);
         }
 
         internal static async Task<TokenSemanticInfo> GetSemanticInfoAtPositionAsync(
             SemanticModel semanticModel,
             int position,
-            HostWorkspaceServices services,
+            HostSolutionServices services,
             CancellationToken cancellationToken)
         {
             var token = await GetTokenAtPositionAsync(semanticModel, position, services, cancellationToken).ConfigureAwait(false);
@@ -93,11 +93,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static Task<SyntaxToken> GetTokenAtPositionAsync(
             SemanticModel semanticModel,
             int position,
-            HostWorkspaceServices services,
+            HostSolutionServices services,
             CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
-            var syntaxFacts = services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxFactsService>();
+            var syntaxFacts = services.GetRequiredLanguageService<ISyntaxFactsService>(semanticModel.Language);
 
             return syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true);
         }

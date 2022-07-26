@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var documentsFromAffectedProjects = RenameUtilities.GetDocumentsAffectedByRename(symbol, solution, _renameLocationSet.Locations);
                     foreach (var language in documentsFromAffectedProjects.Select(d => d.Project.Language).Distinct())
                     {
-                        solution.Services.GetLanguageServices(language).GetService<IRenameRewriterLanguageService>()
+                        solution.Services.GetProjectServices(language).GetService<IRenameRewriterLanguageService>()
                             ?.TryAddPossibleNameConflicts(symbol, _replacementText, _possibleNameConflicts);
                     }
 
