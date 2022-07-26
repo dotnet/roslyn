@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             SyntaxFormattingOptions formattingOptions,
             CancellationToken cancellationToken)
         {
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
             var rootEditor = new SyntaxEditor(root, services);
 
             // 1. Insert the node before anchor node
