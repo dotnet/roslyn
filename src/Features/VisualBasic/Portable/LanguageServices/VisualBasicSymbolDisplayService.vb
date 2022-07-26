@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                                                               position As Integer,
                                                               options As SymbolDescriptionOptions,
                                                               cancellationToken As CancellationToken) As AbstractSymbolDescriptionBuilder
-            Return New SymbolDescriptionBuilder(semanticModel, position, Services.WorkspaceServices, AnonymousTypeDisplayService, options, cancellationToken)
+            Return New SymbolDescriptionBuilder(semanticModel, position, Services.ProjectServices.SolutionServices, AnonymousTypeDisplayService, options, cancellationToken)
         End Function
     End Class
 End Namespace
