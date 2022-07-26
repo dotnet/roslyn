@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.Host
 {
