@@ -5691,8 +5691,13 @@ End Class
                 "Insert [b As Integer]@37",
                 "Insert [b]@37")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "b As Integer", FeaturesResources.parameter))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C..ctor").FirstOrDefault(Function(m) m.GetParameters().Length = 1), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMembers("C..ctor").FirstOrDefault(Function(m) m.GetParameters().Length = 2))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact, WorkItem(789577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789577")>
@@ -10567,8 +10572,13 @@ End Class
                 "Insert [a As Integer]@24",
                 "Insert [a]@24")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "a As Integer", FeaturesResources.parameter))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.M").FirstOrDefault(Function(m) m.GetParameters().Length = 0), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMembers("C.M").FirstOrDefault(Function(m) m.GetParameters().Length = 1))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -10582,8 +10592,13 @@ End Class
                 "Insert [ByRef b As Integer]@38",
                 "Insert [b]@44")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "ByRef b As Integer", FeaturesResources.parameter))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.M").FirstOrDefault(Function(m) m.GetParameters().Length = 1), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMembers("C.M").FirstOrDefault(Function(m) m.GetParameters().Length = 2))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -10609,8 +10624,13 @@ End Class
                 "Insert [a As Integer]@24",
                 "Insert [a]@24")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "a As Integer", FeaturesResources.parameter))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.M").FirstOrDefault(Function(m) m.GetParameters().Length = 0), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMembers("C.M").FirstOrDefault(Function(m) m.GetParameters().Length = 1))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>

@@ -2835,7 +2835,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         // the insert of the accessor as it will be inserted by the property/indexer/event.
                                         continue;
                                     }
-                                    else if (newSymbol is IParameterSymbol or ITypeParameterSymbol)
+                                    else if (newSymbol is ITypeParameterSymbol)
                                     {
                                         diagnostics.Add(new RudeEditDiagnostic(
                                             RudeEditKind.Insert,
@@ -2844,6 +2844,59 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             arguments: new[] { GetDisplayName(newDeclaration, EditKind.Insert) }));
 
                                         continue;
+                                    }
+                                    else if (newSymbol is IParameterSymbol)
+                                    {
+                                        var newContainingSymbol = newSymbol.ContainingSymbol;
+
+                                        // Since we're inserting a parameter node, oldSymbol is null, and a symbolkey for newSymbol won't map to the old compilation
+                                        // because the parameters are different, so we have to go back to the edit map
+                                        if (newContainingSymbol.ContainingType.IsDelegateType() ||
+                                            oldModel is null ||
+                                            newContainingSymbol.DeclaringSyntaxReferences.Length != 1)
+                                        {
+                                            ReportInsertRudeEdit(RudeEditKind.Insert);
+                                            continue;
+                                        }
+
+                                        var newContainingNode = newContainingSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                                        if (!editScript.Match.TryGetOldNode(newContainingNode, out var oldContianingNode))
+                                        {
+                                            ReportInsertRudeEdit(RudeEditKind.Insert);
+                                            continue;
+                                        }
+
+                                        var oldContainingSymbol = oldModel.GetDeclaredSymbol(oldContianingNode, cancellationToken);
+                                        if (oldContainingSymbol is null || !AllowsDeletion(oldContainingSymbol))
+                                        {
+                                            ReportInsertRudeEdit(RudeEditKind.Insert);
+                                            continue;
+                                        }
+
+                                        if (CanAddNewMember(oldContainingSymbol, capabilities))
+                                        {
+                                            var containingSymbolKey = SymbolKey.Create(oldContainingSymbol.ContainingType, cancellationToken);
+
+                                            AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Delete, oldContainingSymbol, containingSymbolKey, syntaxMap, partialType: null, cancellationToken);
+
+                                            AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Insert, newContainingSymbol, containingSymbolKey: null, syntaxMap,
+                                                partialType: IsPartialEdit(oldContainingSymbol, newContainingSymbol, editScript.Match.OldRoot.SyntaxTree, editScript.Match.NewRoot.SyntaxTree) ? symbolKey : null,
+                                                cancellationToken);
+
+                                            continue;
+                                        }
+
+                                        ReportInsertRudeEdit(RudeEditKind.InsertNotSupportedByRuntime);
+                                        continue;
+
+                                        void ReportInsertRudeEdit(RudeEditKind rudeEditKind)
+                                        {
+                                            diagnostics.Add(new RudeEditDiagnostic(
+                                               rudeEditKind,
+                                               GetDiagnosticSpan(newDeclaration, EditKind.Insert),
+                                               newDeclaration,
+                                               arguments: new[] { GetDisplayName(newDeclaration, EditKind.Insert) }));
+                                        }
                                     }
                                     else if (newContainingType != null && !IsGlobalMain(newSymbol))
                                     {
