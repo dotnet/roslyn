@@ -9,8 +9,8 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
@@ -110,8 +109,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 originalType.TypeKind == TypeKind.Class
                     ? default
                     : SyntaxFactory.Token(SyntaxKind.StructKeyword),
-                originalDeclarationNode.Identifier,
-                originalDeclarationNode.TypeParameterList,
+                // remove trailing trivia from places where we would want to insert the parameter list before a line break
+                originalDeclarationNode.Identifier.WithoutTrailingTrivia(),
+                originalDeclarationNode.TypeParameterList?.WithoutTrailingTrivia(),
                 SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(propertiesToAddAsParams)),
                 // TODO: inheritance
                 baseList: null,
@@ -196,47 +196,122 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             var modifiedClassTrivia = typeDeclaration.GetLeadingTrivia().Where(trivia => !trivia.IsDocComment())
                 .Concat(properties.SelectMany(p => p.GetLeadingTrivia().Where(trivia => !trivia.IsDocComment() && !trivia.IsWhitespace())));
 
-            var classDocComment = typeDeclaration.GetLeadingTrivia().FirstOrDefault(trivia => trivia.IsDocComment());
-            // explicit type args because we want to cast the results (XmlElementSyntax) up to base (XmlNodeSyntax) so we can add things later
-            var propertyParamComments = properties.SelectAsArray<PropertyDeclarationSyntax, XmlNodeSyntax>(property =>
-            {
-                // get the documentation comment
-                var potentialDocComment = property.GetLeadingTrivia().FirstOrDefault(trivia => trivia.IsDocComment());
-                if (potentialDocComment.GetStructure() is DocumentationCommentTriviaSyntax docComment)
-                {
-                    // get the summary node if there is one
-                    var summaryNode = docComment.Content.FirstOrDefault(node => node is XmlElementSyntax element && element.StartTag?.Name.LocalName.ToString() == "summary");
-                    if (summaryNode != null)
-                    {
-                        // construct a parameter element from the contents of the property summary
-                        // right now we throw away all other documentation parts of the property, because we don't really know where they should go
-                        return SyntaxFactory.XmlParamElement(property.Identifier.ToString(), ((XmlElementSyntax)summaryNode).Content);
-                    }
-                }
-                return SyntaxFactory.XmlParamElement(property.Identifier.ToString(), new SyntaxList<XmlNodeSyntax>());
-            });
+            var classDocComment = typeDeclaration.GetLeadingTrivia().FirstOrNull(trivia => trivia.IsDocComment());
 
-            // if we either have a class doc comment or any property has a doc comment
-            if (classDocComment != default || properties.Any(property => property.GetLeadingTrivia().Any(trivia => trivia.IsDocComment())))
+            // we use the class doc comment to see if we use single line doc comments or multi line doc comments
+            // if the class one isn't found, then we find the first property with a doc comment
+            // this variable doubles as a flag to see if we need to generate doc comments at all, as
+            // if it is still null, we found no doc comments anywhere
+            var isMultiLineDocComment = classDocComment?.IsMultiLineDocComment();
+            isMultiLineDocComment ??= properties.SelectAsArray(p =>
             {
+                var docComment = p.GetLeadingTrivia().FirstOrNull(trivia => trivia.IsDocComment());
+                return docComment?.IsMultiLineDocComment();
+            }).FirstOrDefault(b => b != null);
+
+            if (isMultiLineDocComment != null)
+            {
+                var propertyParamComments = CreateParamComments(properties, isMultiLineDocComment.Value);
                 DocumentationCommentTriviaSyntax newClassDocComments;
-                if (classDocComment != default && classDocComment.GetStructure() is DocumentationCommentTriviaSyntax originalClassDoc)
+                if (classDocComment?.GetStructure() is DocumentationCommentTriviaSyntax originalClassDoc)
                 {
                     // insert parameters after summary node and the extra newline or at start if no summary
-                    var summaryIndex = originalClassDoc.Content.IndexOf(node => node is XmlElementSyntax element && element.StartTag?.Name.LocalName.ToString() == "summary");
-                    // if not found, summaryIndex + 2 = -1 + 2 = 1, so our params go to the start (after a first text token)
-                    newClassDocComments = (DocumentationCommentTriviaSyntax)syntaxGenerator.DocumentationCommentTriviaWithUpdatedContent(classDocComment, originalClassDoc.Content.InsertRange(summaryIndex + 2, propertyParamComments))!;
+                    var summaryIndex = originalClassDoc.Content.IndexOf(node =>
+                        node is XmlElementSyntax element &&
+                        element.StartTag?.Name.LocalName.ToString() == DocumentationCommentXmlNames.SummaryElementName);
+
+                    // if not found, summaryIndex + 1 = -1 + 1 = 0, so our params go to the start
+                    newClassDocComments = (DocumentationCommentTriviaSyntax)syntaxGenerator.DocumentationCommentTriviaWithUpdatedContent(
+                        // not null because getstructure would give null in the if check above
+                        classDocComment.Value,
+                        originalClassDoc.Content/*.SelectAsArray(node => node.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker))*/.InsertRange(summaryIndex + 1, propertyParamComments))!;
                 }
                 else
                 {
                     // no class doc comment, create an empty summary and add params after it
-                    newClassDocComments = SyntaxFactory.DocumentationComment(propertyParamComments.Insert(0, SyntaxFactory.XmlSummaryElement()).AsArray<XmlNodeSyntax>());
+                    if (isMultiLineDocComment.Value)
+                    {
+                        // this adds the following trivia:
+                        // multiline doc header on its own line /**
+                        // end of doc comment on its own line */
+                        newClassDocComments = SyntaxFactory.DocumentationCommentTrivia(
+                            SyntaxKind.MultiLineDocumentationCommentTrivia,
+                            // remove the first newline to replace with the start of comment (then newline)
+                            SyntaxFactory.List(propertyParamComments.Skip(1)
+                                .Prepend(SyntaxFactory.XmlText(SyntaxFactory.XmlTextNewLine("\r\n", continueXmlDocumentationComment: false)
+                                    .WithLeadingTrivia(SyntaxFactory.DocumentationCommentExterior("/**"))))
+                                .Append(SyntaxFactory.XmlText(SyntaxFactory.XmlTextNewLine("\r\n", continueXmlDocumentationComment: false)))),
+                            SyntaxFactory.Token(SyntaxKind.EndOfDocumentationCommentToken)
+                                .WithLeadingTrivia(SyntaxFactory.ElasticMarker)
+                                .WithTrailingTrivia(SyntaxFactory.DocumentationCommentExterior("*/")))
+                            .WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
+                    }
+                    else
+                    {
+                        // since this is the start of the comment we can remove the first newline we put in the param comments
+                        newClassDocComments = SyntaxFactory.DocumentationCommentTrivia(
+                            SyntaxKind.SingleLineDocumentationCommentTrivia,
+                            SyntaxFactory.List(propertyParamComments.Skip(1)))
+                            .WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
+                    }
                 }
                 // TODO: Rearrange order if the comments were already in a different order
                 modifiedClassTrivia = modifiedClassTrivia.Concat(SyntaxFactory.Trivia(newClassDocComments));
             }
 
             return new SyntaxTriviaList(modifiedClassTrivia.SelectAsArray(trivia => trivia.AsElastic()));
+        }
+
+        private static IEnumerable<XmlNodeSyntax> CreateParamComments(ImmutableArray<PropertyDeclarationSyntax> properties, bool isMultiLineDocComment)
+        {
+            foreach (var property in properties)
+            {
+                // get the documentation comment
+                var potentialDocComment = property.GetLeadingTrivia().FirstOrDefault(trivia => trivia.IsDocComment());
+                var paramContent = ImmutableArray<XmlNodeSyntax>.Empty;
+                if (potentialDocComment.GetStructure() is DocumentationCommentTriviaSyntax docComment)
+                {
+                    // get the summary node if there is one
+                    var summaryNode = docComment.Content.FirstOrDefault(node =>
+                        node is XmlElementSyntax element &&
+                        element.StartTag?.Name.LocalName.ToString() == DocumentationCommentXmlNames.SummaryElementName);
+
+                    if (summaryNode != null)
+                    {
+                        // construct a parameter element from the contents of the property summary
+                        // right now we throw away all other documentation parts of the property, because we don't really know where they should go
+                        var summaryContent = ((XmlElementSyntax)summaryNode).Content;
+                        if (summaryContent.FirstOrDefault() is XmlTextSyntax firstText &&
+                            firstText.TextTokens.Count >= 2 &&
+                            firstText.TextTokens.First().IsKind(SyntaxKind.XmlTextLiteralNewLineToken))
+                        {
+                            // there is a newline right after summary tag, we remove it and the documentation exterior trivia on the next token
+                            var textTokens = firstText.TextTokens.RemoveAt(0);
+                            textTokens = textTokens.Replace(textTokens.First(), textTokens.First().WithoutLeadingTrivia());
+                            summaryContent = summaryContent.Replace(firstText, firstText.WithTextTokens(textTokens));
+                        }
+
+                        if (summaryContent.LastOrDefault() is XmlTextSyntax lastText &&
+                            lastText.TextTokens.Count >= 2 &&
+                            lastText.TextTokens.Last().Text.GetFirstNonWhitespaceIndexInString() == -1)
+                        {
+                            // there is a whitespace-only text before the summary close tag, which means there's also a newline before that
+                            var textTokens = lastText.TextTokens.RemoveAt(lastText.TextTokens.Count - 2);
+                            textTokens = textTokens.Replace(textTokens.Last(), textTokens.Last().WithoutLeadingTrivia());
+                            summaryContent = summaryContent.Replace(lastText, lastText.WithTextTokens(textTokens));
+                        }
+
+                        paramContent = summaryContent.AsImmutable();
+                    }
+                }
+
+                // the continueXmlDocumentationComment simply adds a single line comment exterior, but we might want a multi line one
+                yield return SyntaxFactory.XmlText(SyntaxFactory.XmlTextNewLine("\r\n", continueXmlDocumentationComment: false)
+                        .WithAppendedTrailingTrivia(
+                            SyntaxFactory.ElasticMarker,
+                            SyntaxFactory.DocumentationCommentExterior(isMultiLineDocComment ? " * " : "/// ")));
+                yield return SyntaxFactory.XmlParamElement(property.Identifier.ToString(), paramContent.AsArray());
+            }
         }
 
         private static ImmutableArray<MemberDeclarationSyntax> GetModifiedMembersForPositionalRecord(
