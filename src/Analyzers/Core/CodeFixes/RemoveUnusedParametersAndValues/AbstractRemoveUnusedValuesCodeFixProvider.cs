@@ -795,12 +795,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         {
             var service = document.GetLanguageService<IReplaceDiscardDeclarationsWithAssignmentsService>();
             if (service == null)
-            {
                 return memberDeclaration;
-            }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return await service.ReplaceAsync(memberDeclaration, semanticModel, document.Project.Solution.Workspace.Services, cancellationToken).ConfigureAwait(false);
+            return await service.ReplaceAsync(document, memberDeclaration, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
