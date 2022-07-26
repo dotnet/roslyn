@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="Collapse_sourcelink_embedded_decompiled_files_on_open">
         <source>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</source>
-        <target state="translated">Quellenverknüpfung, eingebettete und dekompilierte Quelle auf Definitionen beim Öffnen der Datei reduzieren</target>
+        <target state="translated">Quellverknüpfung, eingebettete und dekompilierte Quelle auf Definitionen beim Öffnen der Datei reduzieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Color_hints">
@@ -1188,8 +1188,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Rename_asynchronously_experimental">
-        <source>Rename asynchronously experimental</source>
-        <target state="translated">Experimentell asynchron umbenennen</target>
+        <source>Rename asynchronously (experimental)</source>
+        <target state="needs-review-translation">Experimentell asynchron umbenennen</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">

@@ -91,14 +91,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer(
             Option2<CodeStyleOption2<UnusedValuePreference>> unusedValueExpressionStatementOption,
-            Option2<CodeStyleOption2<UnusedValuePreference>> unusedValueAssignmentOption,
-            string language)
-            : base(ImmutableDictionary<DiagnosticDescriptor, ISingleValuedOption>.Empty
+            Option2<CodeStyleOption2<UnusedValuePreference>> unusedValueAssignmentOption)
+            : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
                         .Add(s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption)
-                        .Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption),
-                   ImmutableDictionary<DiagnosticDescriptor, IPerLanguageValuedOption>.Empty
-                        .Add(s_unusedParameterRule, CodeStyleOptions2.UnusedParameters),
-                   language)
+                        .Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption)
+                        .Add(s_unusedParameterRule, CodeStyleOptions2.UnusedParameters))
         {
         }
 

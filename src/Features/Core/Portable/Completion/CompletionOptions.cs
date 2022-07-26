@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// This takes into consideration the experiment we are running in addition to the value
         /// from user facing options.
         /// </summary>
-        public bool ShouldShowItemsFromUnimportNamspaces()
+        public bool ShouldShowItemsFromUnimportedNamespaces()
         {
             // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
             return ShowItemsFromUnimportedNamespaces ?? TypeImportCompletion;
