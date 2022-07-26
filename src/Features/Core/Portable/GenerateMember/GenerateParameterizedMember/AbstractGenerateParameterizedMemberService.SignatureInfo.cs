@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     methodKind: State.MethodKind);
 
                 // Ensure no conflicts between type parameter names and parameter names.
-                var languageServiceProvider = Document.Project.Solution.Workspace.Services.GetLanguageServices(State.TypeToGenerateIn.Language);
+                var languageServiceProvider = Document.Project.Solution.Services.GetProjectServices(State.TypeToGenerateIn.Language);
                 var syntaxFacts = languageServiceProvider.GetService<ISyntaxFactsService>();
 
                 var equalityComparer = syntaxFacts.StringComparer;
