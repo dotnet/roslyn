@@ -23,7 +23,7 @@ namespace RunTests;
 internal class TestHistoryManager
 {
     /// <summary>
-    /// Azure devops limits the number of tests returned per request to 1000.
+    /// Azure devops limits the number of tests returned per request to 10000.
     /// </summary>
     private const int MaxTestsReturnedPerRequest = 10000;
 

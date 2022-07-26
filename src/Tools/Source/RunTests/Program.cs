@@ -285,9 +285,7 @@ namespace RunTests
         {
             var list = new List<AssemblyInfo>();
             var binDirectory = Path.Combine(options.ArtifactsDirectory, "bin");
-
-            // Find all the project folders that fit our naming scheme for unit tests.
-            foreach (var project in Directory.EnumerateDirectories(binDirectory, "*.UnitTests", SearchOption.TopDirectoryOnly))
+            foreach (var project in Directory.EnumerateDirectories(binDirectory, "*", SearchOption.TopDirectoryOnly))
             {
                 var name = Path.GetFileName(project);
                 if (!shouldInclude(name, options) || shouldExclude(name, options))

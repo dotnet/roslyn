@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -60,6 +61,7 @@ namespace RunTests
             // Build the filter string
             var filterStringBuilder = new StringBuilder();
             var filters = workItem.Filters.Values.SelectMany(filter => filter).Where(filter => !string.IsNullOrEmpty(filter.FullyQualifiedName)).ToImmutableArray();
+
             if (filters.Length > 0 || !string.IsNullOrWhiteSpace(options.TestFilter))
             {
                 filterStringBuilder.Append("/TestCaseFilter:\"");
