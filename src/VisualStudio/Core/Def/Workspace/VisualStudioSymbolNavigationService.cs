@@ -99,10 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, project, compilation);
-                if (navInfo == null)
-                {
-                    navInfo = libraryService.NavInfoFactory.CreateForProject(project);
-                }
+                navInfo ??= libraryService.NavInfoFactory.CreateForProject(project);
 
                 if (navInfo != null)
                 {

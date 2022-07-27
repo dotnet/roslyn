@@ -23,11 +23,140 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnFileType_SameFile_NonQualified(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+namespace NS
+{
+    file class FC { }
+
+    class C
+    {
+        public static void M()
+        {
+            var x = new $$
+        }
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("F")
+                Await state.AssertSelectedCompletionItem(displayText:="FC", isHardSelected:=True)
+
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("var x = new FC", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnFileType_SameFile_NamespaceQualified(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+namespace NS
+{
+    file class FC { }
+
+    class C
+    {
+        public static void M()
+        {
+            var x = new NS.$$
+        }
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("F")
+                Await state.AssertSelectedCompletionItem(displayText:="FC", isHardSelected:=True)
+
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("var x = new NS.FC", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnFileType_DifferentFile_NonQualified(showCompletionInArgumentLists As Boolean) As Task
+            Using State = New TestState(<Workspace>
+                                            <Project Language="C#" CommonReferences="true" LanguageVersion=<%= LanguageVersion.Preview.ToDisplayString() %>>
+                                                <Document FilePath="a.cs">
+namespace NS
+{
+    file class FC { }
+}
+                                                </Document>
+                                                <Document FilePath="b.cs">
+namespace NS
+{
+    class C
+    {
+        public static void M()
+        {
+            var x = new $$
+        }
+    }
+}
+                                                </Document>
+                                            </Project>
+                                        </Workspace>,
+                                 excludedTypes:=Nothing, extraExportedTypes:=Nothing,
+                                 includeFormatCommandHandler:=False, workspaceKind:=Nothing)
+
+                State.Workspace.GlobalOptions.SetGlobalOption(
+                    New OptionKey(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp), showCompletionInArgumentLists)
+
+                State.SendTypeChars("F")
+                Await State.AssertCompletionItemsDoNotContainAny("FC")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnFileType_DifferentFile_NamespaceQualified(showCompletionInArgumentLists As Boolean) As Task
+            Using State = New TestState(<Workspace>
+                                            <Project Language="C#" CommonReferences="true" LanguageVersion=<%= LanguageVersion.Preview.ToDisplayString() %>>
+                                                <Document FilePath="a.cs">
+namespace NS
+{
+    file class FC { }
+}
+                                                </Document>
+                                                <Document FilePath="b.cs">
+namespace NS
+{
+    class C
+    {
+        public static void M()
+        {
+            var x = new NS.$$
+        }
+    }
+}
+                                                </Document>
+                                            </Project>
+                                        </Workspace>,
+                                 excludedTypes:=Nothing, extraExportedTypes:=Nothing,
+                                 includeFormatCommandHandler:=False, workspaceKind:=Nothing)
+
+                State.Workspace.GlobalOptions.SetGlobalOption(
+                    New OptionKey(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp), showCompletionInArgumentLists)
+
+                State.SendTypeChars("F")
+                Await State.AssertCompletionItemsDoNotContainAny("FC")
+            End Using
+        End Function
 
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>

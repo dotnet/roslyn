@@ -30,10 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
         {
             get
             {
-                if (_selectedSeverityValue is null)
-                {
-                    _selectedSeverityValue = Severities[_selectedSeverityIndex];
-                }
+                _selectedSeverityValue ??= Severities[_selectedSeverityIndex];
 
                 return _selectedSeverityValue;
             }

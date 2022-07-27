@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             diagnosticService.Reanalyze(_workspace, documentIds: documentsToReanalyze);
 
             // clear emit/apply diagnostics reported previously:
-            diagnosticUpdateSource.ClearDiagnostics();
+            diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: false);
         }
 
         public async ValueTask EndDebuggingSessionAsync(Solution compileTimeSolution, EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource, IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             diagnosticService.Reanalyze(_workspace, documentIds: designTimeDocumentsToReanalyze);
 
             // clear emit/apply diagnostics reported previously:
-            diagnosticUpdateSource.ClearDiagnostics();
+            diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: true);
 
             Dispose();
         }
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // clear emit/apply diagnostics reported previously:
-            diagnosticUpdateSource.ClearDiagnostics();
+            diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: false);
 
             // clear all reported rude edits:
             diagnosticService.Reanalyze(_workspace, documentIds: rudeEdits.Select(d => d.DocumentId));
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 return await GetLocalService().GetCurrentActiveStatementPositionAsync(_sessionId, solution, activeStatementSpanProvider, instructionId, cancellationToken).ConfigureAwait(false);
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 return await GetLocalService().IsActiveStatementInExceptionRegionAsync(_sessionId, solution, instructionId, cancellationToken).ConfigureAwait(false);

@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Remote.Testing
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
 #Region "FAR on generic methods"
+
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestMethodType_Parameter1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -90,6 +91,43 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(62744, "https://github.com/dotnet/roslyn/issues/62744")>
+        Public Async Function TestMethodTypeParameter_NewConstraint_CSharp(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+        class C
+        {
+            void Goo<{|Definition:$$T|}>() where [|T|] : new()
+            {
+                new [|T|]();
+            }
+        }]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(62744, "https://github.com/dotnet/roslyn/issues/62744")>
+        Public Async Function TestMethodTypeParameter_NewConstraint_VisualBasic(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+        class C
+            sub Goo(Of {|Definition:$$T|} As New)()
+                dim x = new [|T|]()
+            end sub
+        end class]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
 #End Region
 
 #Region "FAR on generic partial methods"

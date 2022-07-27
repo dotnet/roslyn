@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
-using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
         public ExtractClassViewModel(
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             INotificationService notificationService,
-            ImmutableArray<PullMemberUpSymbolViewModel> memberViewModels,
+            ImmutableArray<MemberSymbolViewModel> memberViewModels,
             ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> memberToDependentsMap,
             string defaultTypeName,
             string defaultNamespace,

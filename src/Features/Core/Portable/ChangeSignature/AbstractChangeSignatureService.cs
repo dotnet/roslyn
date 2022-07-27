@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return null;
             }
 
-            var changeSignatureOptionsService = succeededContext.Solution.Workspace.Services.GetRequiredService<IChangeSignatureOptionsService>();
+            var changeSignatureOptionsService = succeededContext.Solution.Services.GetRequiredService<IChangeSignatureOptionsService>();
 
             return changeSignatureOptionsService.GetChangeSignatureOptions(
                 succeededContext.Document, succeededContext.PositionForTypeBinding, succeededContext.Symbol, succeededContext.ParameterConfiguration);
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var formattedRoot = Formatter.Format(
                     newRoot,
                     changeSignatureFormattingAnnotation,
-                    doc.Project.Solution.Workspace.Services,
+                    doc.Project.Solution.Services,
                     options: formattingOptions,
                     rules: GetFormattingRules(doc),
                     cancellationToken: CancellationToken.None);
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             telemetryTimer.Stop();
-            ChangeSignatureLogger.LogCommitInformation(telemetryNumberOfDeclarationsToUpdate, telemetryNumberOfReferencesToUpdate, (int)telemetryTimer.ElapsedMilliseconds);
+            ChangeSignatureLogger.LogCommitInformation(telemetryNumberOfDeclarationsToUpdate, telemetryNumberOfReferencesToUpdate, telemetryTimer.Elapsed);
 
             return (currentSolution, confirmationMessage);
         }

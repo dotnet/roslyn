@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         {
             return LocalDeclarationStatement(
                 usingStatement.AwaitKeyword,
-                usingStatement.UsingKeyword,
+                usingStatement.UsingKeyword.WithAppendedTrailingTrivia(ElasticMarker),
                 modifiers: default,
                 usingStatement.Declaration,
                 Token(SyntaxKind.SemicolonToken)).WithTrailingTrivia(usingStatement.CloseParenToken.TrailingTrivia);

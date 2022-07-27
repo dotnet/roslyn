@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly Solution _baseSolution;
         private readonly Document _triggerDocument;
-        private readonly SnapshotSpan _triggerSpan;
         private readonly ITextView _triggerView;
         private readonly IDisposable _inlineRenameSessionDurationLogBlock;
         private readonly IThreadingContext _threadingContext;
@@ -58,6 +57,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private SymbolRenameOptions _options;
         private bool _previewChanges;
         private readonly Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = new Dictionary<ITextBuffer, OpenTextBufferManager>();
+
+        /// <summary>
+        /// The original <see cref="SnapshotSpan"/> for the identifier that rename was triggered on
+        /// </summary>
+        public SnapshotSpan TriggerSpan { get; }
 
         /// <summary>
         /// If non-null, the current text of the replacement. Linked spans added will automatically be updated with this
@@ -131,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _threadingContext = threadingContext;
             _renameInfo = renameInfo;
 
-            _triggerSpan = triggerSpan;
+            TriggerSpan = triggerSpan;
             _triggerDocument = triggerSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (_triggerDocument == null)
             {
@@ -244,8 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             this.UndoManager.CreateInitialState(this.ReplacementText, _triggerView.Selection, new SnapshotSpan(triggerSpan.Snapshot, startingSpan));
             _openTextBuffers[triggerSpan.Snapshot.TextBuffer].SetReferenceSpans(SpecializedCollections.SingletonEnumerable(startingSpan.ToTextSpan()));
 
-            UpdateReferenceLocationsTask(_threadingContext.JoinableTaskFactory.RunAsync(
-                () => _renameInfo.FindRenameLocationsAsync(_options, _cancellationTokenSource.Token)));
+            UpdateReferenceLocationsTask();
 
             RenameTrackingDismisser.DismissRenameTracking(_workspace, _workspace.GetOpenDocumentIds());
         }
@@ -289,20 +292,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        private void UpdateReferenceLocationsTask(JoinableTask<IInlineRenameLocationSet> findRenameLocationsTask)
+        private void UpdateReferenceLocationsTask()
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
             var asyncToken = _asyncListener.BeginAsyncOperation("UpdateReferencesTask");
+
+            var currentOptions = _options;
+            var currentRenameLocationsTask = _allRenameLocationsTask;
+            var cancellationToken = _cancellationTokenSource.Token;
+
             _allRenameLocationsTask = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                var inlineRenameLocations = await findRenameLocationsTask.JoinAsync().ConfigureAwaitRunInline();
+                // Join prior work before proceeding, since it performs a required state update.
+                // https://github.com/dotnet/roslyn/pull/34254#discussion_r267024593
+                if (currentRenameLocationsTask != null)
+                    await _allRenameLocationsTask.JoinAsync(cancellationToken).ConfigureAwait(false);
+
+                await TaskScheduler.Default;
+                var inlineRenameLocations = await _renameInfo.FindRenameLocationsAsync(currentOptions, cancellationToken).ConfigureAwait(false);
 
                 // It's unfortunate that _allRenameLocationsTask has a UI thread dependency (prevents continuations
                 // from running prior to the completion of the UI operation), but the implementation does not currently
                 // follow the originally-intended design.
                 // https://github.com/dotnet/roslyn/issues/40890
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationTokenSource.Token);
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
 
                 RaiseSessionSpansUpdated(inlineRenameLocations.Locations.ToImmutableArray());
 
@@ -344,21 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             VerifyNotDismissed();
 
             _options = newOptions;
-
-            var cancellationToken = _cancellationTokenSource.Token;
-
-            UpdateReferenceLocationsTask(_threadingContext.JoinableTaskFactory.RunAsync(async () =>
-            {
-                // Join prior work before proceeding, since it performs a required state update.
-                // https://github.com/dotnet/roslyn/pull/34254#discussion_r267024593
-                //
-                // The cancellation token is passed to the prior work when it starts, not when it's joined. This is
-                // the equivalent of TaskContinuationOptions.LazyCancellation.
-                await _allRenameLocationsTask.JoinAsync(CancellationToken.None).ConfigureAwait(false);
-                await TaskScheduler.Default;
-
-                return await _renameInfo.FindRenameLocationsAsync(_options, cancellationToken).ConfigureAwait(false);
-            }));
+            UpdateReferenceLocationsTask();
         }
 
         public void SetPreviewChanges(bool value)
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     // and applying the desired edits ourselves.
                     var factory = _workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
                     using var context = factory.Create(
-                        _triggerView, _triggerSpan, EditorFeaturesResources.Computing_Rename_information,
+                        _triggerView, TriggerSpan, EditorFeaturesResources.Computing_Rename_information,
                         cancelOnEdit: false, cancelOnFocusLost: false);
 
                     await CommitCoreAsync(context, previewChanges).ConfigureAwait(false);

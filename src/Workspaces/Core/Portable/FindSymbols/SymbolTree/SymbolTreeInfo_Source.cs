@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Project project, Checksum checksum, bool loadOnly, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-            var services = solution.Workspace.Services;
+            var services = solution.Services;
             var solutionKey = SolutionKey.ToSolutionKey(solution);
             var projectFilePath = project.FilePath ?? "";
 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, s_getMembersNoPrivate);
 
             var solution = project.Solution;
-            var services = solution.Workspace.Services;
+            var services = solution.Services;
             var solutionKey = SolutionKey.ToSolutionKey(solution);
 
             return CreateSymbolTreeInfo(

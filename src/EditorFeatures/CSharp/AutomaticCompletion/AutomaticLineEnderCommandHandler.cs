@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         public AutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperations,
-            IGlobalOptionService globalOptions)
-            : base(undoRegistry, editorOperations, globalOptions)
+            EditorOptionsService editorOptionsService)
+            : base(undoRegistry, editorOperations, editorOptionsService)
         {
         }
 
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             CancellationToken cancellationToken)
         {
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
-            var formattingOptions = document.GetSyntaxFormattingOptionsAsync(GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+            var formattingOptions = document.GetSyntaxFormattingOptionsAsync(EditorOptionsService.GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
 
             // Add braces for the selected node
             if (addBrace)

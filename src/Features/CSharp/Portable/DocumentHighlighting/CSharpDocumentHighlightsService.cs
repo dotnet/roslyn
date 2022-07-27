@@ -62,10 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
 
                     if (type.IsVar)
                     {
-                        if (semanticModel == null)
-                        {
-                            semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                        }
+                        semanticModel ??= await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                         var boundSymbol = semanticModel.GetSymbolInfo(type, cancellationToken).Symbol;
                         boundSymbol = boundSymbol?.OriginalDefinition;

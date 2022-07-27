@@ -144,7 +144,7 @@ internal static class Program
             Assert.Equal(isPreview, await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/60477"), Trait(Traits.Feature, Traits.Features.SourceGenerators)]
         public async Task InvokeNavigateToForGeneratedFile()
         {
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd12CmdID.NavigateTo, HangMitigatingCancellationToken);

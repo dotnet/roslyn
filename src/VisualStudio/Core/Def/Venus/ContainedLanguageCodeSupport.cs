@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public static string GetEventHandlerMemberId(Document document, string className, string objectTypeName, string nameOfEvent, string eventHandlerName, CancellationToken cancellationToken)
         {
             var nameAndId = GetCompatibleEventHandlers(document, className, objectTypeName, nameOfEvent, cancellationToken).SingleOrDefault(pair => pair.Item1 == eventHandlerName);
-            return nameAndId == null ? null : nameAndId.Item2;
+            return nameAndId?.Item2;
         }
 
         /// <summary>
@@ -218,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 throw new InvalidOperationException(ServicesVSResources.Can_t_find_where_to_insert_member);
             }
 
-            var fallbackOptions = targetDocument.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>().CleanCodeGenerationOptionsProvider;
+            var fallbackOptions = targetDocument.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>().CleanCodeGenerationOptionsProvider;
 
             var options = targetDocument.GetCleanCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
 
@@ -234,7 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             newRoot = Formatter.Format(
                 newRoot,
                 Formatter.Annotation,
-                targetDocument.Project.Solution.Workspace.Services,
+                targetDocument.Project.Solution.Services,
                 options.CleanupOptions.FormattingOptions,
                 formattingRules,
                 cancellationToken);

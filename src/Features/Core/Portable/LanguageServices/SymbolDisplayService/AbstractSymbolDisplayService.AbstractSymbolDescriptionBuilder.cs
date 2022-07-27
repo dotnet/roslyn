@@ -88,14 +88,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             private readonly Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> _documentationMap = new();
             private readonly Func<ISymbol, string> _getNavigationHint;
 
-            protected readonly HostWorkspaceServices Services;
+            protected readonly HostSolutionServices Services;
             protected readonly SymbolDescriptionOptions Options;
             protected readonly CancellationToken CancellationToken;
 
             protected AbstractSymbolDescriptionBuilder(
                 SemanticModel semanticModel,
                 int position,
-                HostWorkspaceServices services,
+                HostSolutionServices services,
                 IStructuralTypeDisplayService structuralTypeDisplayService,
                 SymbolDescriptionOptions options,
                 CancellationToken cancellationToken)
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private void AddDocumentationContent(ISymbol symbol)
             {
-                var formatter = Services.GetLanguageServices(_semanticModel.Language).GetRequiredService<IDocumentationCommentFormattingService>();
+                var formatter = Services.GetRequiredLanguageService<IDocumentationCommentFormattingService>(_semanticModel.Language);
 
                 if (symbol is IParameterSymbol or ITypeParameterSymbol)
                 {

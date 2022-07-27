@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.Shell;
@@ -229,6 +230,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public async Task SaveAllAsync(CancellationToken cancellationToken)
         {
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.SaveSolution, cancellationToken);
+
+            // Wait for async save operations to complete before proceeding
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, cancellationToken);
+
+            // Verify documents are truly saved after a Save Solution operation
+            await TestServices.SolutionExplorerVerifier.AllDocumentsAreSavedAsync(cancellationToken);
         }
 
         public async Task OpenFileAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)

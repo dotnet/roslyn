@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             // Bind the expression for error recovery, but discard all new diagnostics
-                            iterationErrorExpression = BindExpression(node.Variable, BindingDiagnosticBag.Discarded);
+                            iterationErrorExpression = BindToTypeForErrorRecovery(BindExpression(node.Variable, BindingDiagnosticBag.Discarded));
                             if (iterationErrorExpression.Kind == BoundKind.DiscardExpression)
                             {
                                 iterationErrorExpression = ((BoundDiscardExpression)iterationErrorExpression).FailInference(this, diagnosticsOpt: null);
