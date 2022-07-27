@@ -399,7 +399,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ParenthesizedLambdaExpressionSyntax parenLam => parenLam.ParameterList,
                 AnonymousMethodExpressionSyntax anonMethod => anonMethod.ParameterList,
-                _ => null
+                // Simple lambdas have no parameter list
+                SimpleLambdaExpressionSyntax simpleLam => null,
+                _ => throw ExceptionUtilities.UnexpectedValue(syntax)
             };
 
             var functionType = FunctionTypeSymbol.CreateIfFeatureEnabled(syntax, binder, static (binder, expr) => ((UnboundLambda)expr).Data.InferDelegateType());

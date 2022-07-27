@@ -7479,7 +7479,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaWithinNestedScope()
+        public void LambdaDefaultWithinNestedScope()
         {
             var source = """
 class Program
