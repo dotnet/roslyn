@@ -99,7 +99,10 @@ class C
 
             // Verify that suppression takes place even there are declaration errors
             var analyzers = new DiagnosticAnalyzer[] { new DiagnosticSuppressorForId("CS1522") };
-            VerifySuppressedDiagnostics(compilation, analyzers, Diagnostic("CS1522", "{", isSuppressed: true));
+            VerifySuppressedDiagnostics(compilation, analyzers,
+                // (9,25): warning CS1522: Empty switch block
+                //         {
+                Diagnostic("CS1522", "{", isSuppressed: true).WithLocation(line: 9, column: 25));
             VerifySuppressedAndFilteredDiagnostics(compilation, analyzers);
         }
 
@@ -132,7 +135,10 @@ class C
 
             // Verify that suppression takes place even there are declaration errors
             var analyzers = new DiagnosticAnalyzer[] { new DiagnosticSuppressorForId("CS1522") };
-            VerifySuppressedDiagnostics(compilation, analyzers, Diagnostic("CS1522", "{", isSuppressed: true));
+            VerifySuppressedDiagnostics(compilation, analyzers,
+                // (9,25): warning CS1522: Empty switch block
+                //         {
+                Diagnostic("CS1522", "{", isSuppressed: true).WithLocation(line: 9, column: 25));
             VerifySuppressedAndFilteredDiagnostics(compilation, analyzers);
         }
 
