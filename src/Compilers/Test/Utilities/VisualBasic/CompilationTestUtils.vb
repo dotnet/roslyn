@@ -621,7 +621,7 @@ Friend Module CompilationUtils
     ''' &lt;/file&gt;
     ''' </param>
     Public Function CreateParseTree(programElement As XElement) As SyntaxTree
-        Return VisualBasicSyntaxTree.ParseText(FilterString(programElement.Value), path:=If(programElement.@name, ""), encoding:=Encoding.UTF8)
+        Return VisualBasicSyntaxTree.ParseText(SourceText.From(FilterString(programElement.Value), Encoding.UTF8, SourceHashAlgorithm.Sha256), path:=If(programElement.@name, ""))
     End Function
 
     ''' <summary>
