@@ -53,33 +53,22 @@ namespace Microsoft.CodeAnalysis
 
         private protected void ClearOpenDocuments()
         {
-            List<DocumentId> docIds;
             using (_stateLock.DisposableWait())
             {
-                docIds = _projectToOpenDocumentsMap.Values.SelectMany(x => x).ToList();
-            }
-
-            foreach (var docId in docIds)
-            {
-                this.ClearOpenDocument(docId);
+                foreach (var docId in _projectToOpenDocumentsMap.Values.SelectMany(x => x).ToArray())
+                    this.ClearOpenDocument_NoLock(docId);
             }
         }
 
         private void ClearOpenDocuments(ProjectId projectId)
         {
-            HashSet<DocumentId>? openDocs;
             using (_stateLock.DisposableWait())
             {
-                _projectToOpenDocumentsMap.TryGetValue(projectId, out openDocs);
-            }
-
-            if (openDocs != null)
-            {
-                // ClearOpenDocument will remove the document from the original set.
-                var copyOfOpenDocs = openDocs.ToList();
-                foreach (var docId in copyOfOpenDocs)
+                if (_projectToOpenDocumentsMap.TryGetValue(projectId, out var openDocs))
                 {
-                    this.ClearOpenDocument(docId);
+                    // ClearOpenDocument will remove the document from the original set.
+                    foreach (var docId in openDocs.ToArray())
+                        this.ClearOpenDocument_NoLock(docId);
                 }
             }
         }
@@ -88,25 +77,31 @@ namespace Microsoft.CodeAnalysis
         {
             using (_stateLock.DisposableWait())
             {
-                _projectToOpenDocumentsMap.MultiRemove(documentId.ProjectId, documentId);
+                ClearOpenDocument_NoLock(documentId);
+            }
+        }
 
-                // Stop tracking the buffer or update the documentId associated with the buffer.
-                if (_documentToAssociatedBufferMap.TryGetValue(documentId, out var textContainer))
+        private void ClearOpenDocument_NoLock(DocumentId documentId)
+        {
+            _stateLock.AssertHasLock();
+            _projectToOpenDocumentsMap.MultiRemove(documentId.ProjectId, documentId);
+
+            // Stop tracking the buffer or update the documentId associated with the buffer.
+            if (_documentToAssociatedBufferMap.TryGetValue(documentId, out var textContainer))
+            {
+                _documentToAssociatedBufferMap.Remove(documentId);
+
+                if (_textTrackers.TryGetValue(documentId, out var tracker))
                 {
-                    _documentToAssociatedBufferMap.Remove(documentId);
+                    tracker.Disconnect();
+                    _textTrackers.Remove(documentId);
+                }
 
-                    if (_textTrackers.TryGetValue(documentId, out var tracker))
-                    {
-                        tracker.Disconnect();
-                        _textTrackers.Remove(documentId);
-                    }
-
-                    var currentContextDocumentId = RemoveDocumentFromCurrentContextMapping_NoLock(textContainer, documentId);
-                    if (currentContextDocumentId == null)
-                    {
-                        // No documentIds are attached to this buffer, so stop tracking it.
-                        this.UnregisterText(textContainer);
-                    }
+                var currentContextDocumentId = RemoveDocumentFromCurrentContextMapping_NoLock(textContainer, documentId);
+                if (currentContextDocumentId == null)
+                {
+                    // No documentIds are attached to this buffer, so stop tracking it.
+                    this.UnregisterText(textContainer);
                 }
             }
         }
