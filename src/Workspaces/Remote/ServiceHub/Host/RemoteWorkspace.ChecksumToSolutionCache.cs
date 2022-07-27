@@ -107,22 +107,25 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     // see if someone already raced with us and set the solution in the cache while we were waiting on the lock.
                     var solution = TryFastGetSolution_NoLock_NoInFlightCountChange(solutionChecksum);
-                    if (solution == null)
+                    if (solution != null)
+                    {
+                        // Increase the count as our caller now is keeping this solution in-flight
+                        Contract.ThrowIfFalse(solution.InFlightCount < 0);
+                        solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
+                        Contract.ThrowIfFalse(solution.InFlightCount < 1);
+
+                        return solution;
+                    }
+                    else
                     {
                         // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
-                        // in-flight count of 0.
+                        // in-flight count of 1 to represent our caller.
                         solution = new SolutionAndInFlightCount(this, solutionChecksum, getSolutionAsync);
-                        Contract.ThrowIfFalse(solution.InFlightCount == 0);
+                        Contract.ThrowIfFalse(solution.InFlightCount == 1);
 
                         _solutionChecksumToSolution.Add(solutionChecksum, solution);
+                        return solution;
                     }
-
-                    // Increase the count as our caller now is keeping this solution in-flight
-                    Contract.ThrowIfFalse(solution.InFlightCount < 0);
-                    solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
-                    Contract.ThrowIfFalse(solution.InFlightCount < 1);
-
-                    return solution;
                 }
             }
 
@@ -151,9 +154,15 @@ namespace Microsoft.CodeAnalysis.Remote
                     // on it then it will get removed from the cache.
                     if (solutionToRelease != null)
                     {
-                        // If were holding onto this solution, it must have a legal in-flight count..
+                        // If were holding onto this solution, it must have a legal in-flight count.
                         Contract.ThrowIfTrue(solutionToRelease.InFlightCount < 1);
                         solutionToRelease.DecrementInFlightCount_WhileAlreadyHoldingLock();
+
+                        // after releasing, if we went down to 0 in flight operations, then we better not still be in the cache.
+                        if (solutionToRelease.InFlightCount == 0)
+                        {
+                            Contract.ThrowIfTrue(_solutionChecksumToSolution.ContainsKey(solutionChecksum));
+                        }
                     }
                 }
             }

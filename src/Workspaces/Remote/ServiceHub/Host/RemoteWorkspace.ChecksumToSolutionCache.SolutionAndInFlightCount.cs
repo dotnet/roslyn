@@ -24,13 +24,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 private readonly CancellationTokenSource _cancellationTokenSource = new();
 
-                private int _inFlightCount = 0;
-
                 /// <summary>
-                /// True if our _inFlightCount went to 0 and we canceled <see cref="_cancellationTokenSource"/>.  At
-                /// this point this instance is no longer usable.
+                /// Initially set to 1 to represent the operation that requested and is using this solution.  This also
+                /// allows us to use 0 to represent a point that this solution computation is canceled and can not be
+                /// used again.
                 /// </summary>
-                private bool _discarded;
+                private int _inFlightCount = 1;
 
                 // For assertion purposes.
                 public int InFlightCount => _inFlightCount;
@@ -57,7 +56,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 public void IncrementInFlightCount_WhileAlreadyHoldingLock()
                 {
-                    Contract.ThrowIfTrue(_discarded);
                     Contract.ThrowIfFalse(_cache._gate.CurrentCount == 0);
                     Contract.ThrowIfTrue(_inFlightCount < 1);
                     _inFlightCount++;
@@ -67,7 +65,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     using (_cache._gate.DisposableWait(CancellationToken.None))
                     {
-                        Contract.ThrowIfTrue(_discarded);
                         DecrementInFlightCount_WhileAlreadyHoldingLock();
                     }
                 }
@@ -79,14 +76,18 @@ namespace Microsoft.CodeAnalysis.Remote
                     _inFlightCount--;
                     if (_inFlightCount == 0)
                     {
-                        _discarded = true;
                         _cancellationTokenSource.Cancel();
                         _cancellationTokenSource.Dispose();
 
+                        // If we're going away, then we absolutely must not be pointed at in the _lastRequestedSolution field.
                         Contract.ThrowIfTrue(_cache._lastRequestedSolution == this);
+
+                        // If we're going away, we better find ourself in the mapping for this checksum.
                         Contract.ThrowIfFalse(_cache._solutionChecksumToSolution.TryGetValue(_solutionChecksum, out var existingSolution));
                         Contract.ThrowIfFalse(existingSolution == this);
-                        _cache._solutionChecksumToSolution.Remove(_solutionChecksum);
+
+                        // And we better succeed at actually removing.
+                        Contract.ThrowIfFalse(_cache._solutionChecksumToSolution.Remove(_solutionChecksum));
                     }
                 }
             }
