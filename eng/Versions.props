@@ -126,6 +126,7 @@
     <MicrosoftServiceHubClientVersion>$(MicrosoftServiceHubVersion)</MicrosoftServiceHubClientVersion>
     <MicrosoftServiceHubFrameworkVersion>$(MicrosoftServiceHubVersion)</MicrosoftServiceHubFrameworkVersion>
     <MicrosoftSourceLinkToolsVersion>1.1.1-beta-21566-01</MicrosoftSourceLinkToolsVersion>
+    <MicrosoftTeamFoundationServerClientVersion>16.170.0</MicrosoftTeamFoundationServerClientVersion>
     <MicrosoftTestPlatformTranslationLayerVersion>$(MicrosoftTestPlatformVersion)</MicrosoftTestPlatformTranslationLayerVersion>
     <MicrosoftTestPlatformObjectModelVersion>$(MicrosoftTestPlatformVersion)</MicrosoftTestPlatformObjectModelVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
