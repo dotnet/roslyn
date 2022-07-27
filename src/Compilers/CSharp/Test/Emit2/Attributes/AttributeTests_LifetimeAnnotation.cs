@@ -284,7 +284,7 @@ struct S
     public S(scoped ref int i) { }
     public static void F(scoped R r) { }
     public object this[scoped in int i] => null;
-    public static S operator+(S a, in scoped R b) => a;
+    public static S operator+(S a, scoped in R b) => a;
 }";
             var comp = CreateCompilation(source);
             var expected =
@@ -294,7 +294,7 @@ void S.F(R r)
     [LifetimeAnnotation(False, True)] R r
 S S.op_Addition(S a, in R b)
     S a
-    [LifetimeAnnotation(False, True)] in R b
+    [LifetimeAnnotation(True, False)] in R b
 System.Object S.this[in System.Int32 i].get
     [LifetimeAnnotation(True, False)] in System.Int32 i
 ";
@@ -344,27 +344,6 @@ class Program
             {
                 Assert.Null(GetLifetimeAnnotationType(module));
                 AssertLifetimeAnnotationAttributes(module, "");
-            });
-        }
-
-        [Fact]
-        public void EmitAttribute_OutParameters_03()
-        {
-            var source =
-@"ref struct R { }
-class Program
-{
-    public static void F(out scoped R r) { r = default; }
-}";
-            var comp = CreateCompilation(source);
-            var expected =
-@" void Program.F(out R r)
-    [LifetimeAnnotation(False, True)] out R r
-";
-            CompileAndVerify(comp, symbolValidator: module =>
-            {
-                Assert.Equal("System.Runtime.CompilerServices.LifetimeAnnotationAttribute", GetLifetimeAnnotationType(module).ToTestDisplayString());
-                AssertLifetimeAnnotationAttributes(module, expected);
             });
         }
 
