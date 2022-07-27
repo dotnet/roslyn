@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var baseSyntaxTree = await baseDocument.GetRequiredSyntaxTreeAsync(_cancellationToken).ConfigureAwait(false);
                         var baseRoot = await baseDocument.GetRequiredSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
                         SemanticModel? newDocumentSemanticModel = null;
-                        var syntaxFactsService = newDocument.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+                        var syntaxFactsService = newDocument.Project.Services.GetRequiredService<ISyntaxFactsService>();
 
                         // Get all tokens that need conflict check
                         var nodesOrTokensWithConflictCheckAnnotations = GetNodesOrTokensToCheckForConflicts(syntaxRoot);

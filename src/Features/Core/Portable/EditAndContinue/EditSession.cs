@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 using var _2 = ArrayBuilder<SequencePointUpdates>.GetInstance(out var allLineEdits);
                 using var _3 = ArrayBuilder<DocumentActiveStatementChanges>.GetInstance(out var activeStatementsInChangedDocuments);
 
-                var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+                var analyzer = newProject.Services.GetRequiredService<IEditAndContinueAnalyzer>();
                 var requiredCapabilities = EditAndContinueCapabilities.None;
 
                 foreach (var analysis in changedDocumentAnalyses)

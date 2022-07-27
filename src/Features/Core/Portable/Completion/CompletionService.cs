@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet? options = null)
         {
             var document = text.GetOpenDocumentInCurrentContextWithChanges();
-            var languageServices = document?.Project.LanguageServices ?? _services.GetLanguageServices(Language);
+            var languageServices = document?.Project.Services ?? _services.GetLanguageServices(Language).ProjectServices;
 
             // Publicly available options do not affect this API.
             var completionOptions = CompletionOptions.Default;
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </remarks>
         internal virtual bool ShouldTriggerCompletion(
             Project? project,
-            HostLanguageServices languageServices,
+            HostProjectServices languageServices,
             SourceText text,
             int caretPosition,
             CompletionTrigger trigger,

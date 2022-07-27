@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // keep from build flag if full analysis is off
                 var fromBuild = fullAnalysis ? false : lastResult.FromBuild;
 
-                var languageServices = document.Project.LanguageServices;
+                var languageServices = document.Project.Services;
                 var simplifierOptions = (languageServices.GetService<ISimplifierOptionsStorage>() != null) ? globalOptions.GetSimplifierOptions(languageServices) : null;
                 var openFileOnlyAnalyzer = _owner.Analyzer.IsOpenFileOnly(simplifierOptions);
 
