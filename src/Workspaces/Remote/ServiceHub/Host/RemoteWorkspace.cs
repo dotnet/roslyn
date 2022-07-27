@@ -163,9 +163,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 return primaryBranchRefCountedSolution;
             }
 
-            // Otherwise, have the any-branch solution try to retrieve or create the solution.  Ensure we release this
-            // solution once done with it.
-            using var anyBranchRefCountedSolution =
+            // Otherwise, have the any-branch solution try to retrieve or create the solution.
+            var anyBranchRefCountedSolution =
                 await _anyBranchSolutionCache.TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false) ??
                 await _anyBranchSolutionCache.SlowGetOrCreateSolutionAsync(
                     solutionChecksum,
@@ -175,25 +174,28 @@ namespace Microsoft.CodeAnalysis.Remote
 
             if (!updatePrimaryBranch)
             {
-                // if we aren't updating the primary branch we're done and can just return the any-branch solution. Add
-                // an explicit ref here as this solution is in a using block above which will be decreasing its ref count.
-                anyBranchRefCountedSolution.AddReference_TakeLock();
+                // if we aren't updating the primary branch we're done and can just return the any-branch solution.
+                // note: the ref-count of this item is still correct.  the calls above to TryFastGetSolutionAsync or 
+                // SlowGetOrCreateSolutionAsync will have appropriately raised it for us.
                 return anyBranchRefCountedSolution;
             }
 
             // We were asked to update the primary-branch solution.  So take the any-branch solution and promote it to
-            // the primary-branch-level.
+            // the primary-branch-level.  This may return a different solution.  So ensure that we release our reference
+            // on the anyBranch solution when we're done in case we didn't return that.
+            using (anyBranchRefCountedSolution)
+            {
+                var anyBranchSolution = await anyBranchRefCountedSolution.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
 
-            var anyBranchSolution = await anyBranchRefCountedSolution.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
-
-            return await _primaryBranchSolutionCache.SlowGetOrCreateSolutionAsync(
-                solutionChecksum,
-                async cancellationToken =>
-                {
-                    var (primaryBranchSolution, _) = await this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, anyBranchSolution, cancellationToken).ConfigureAwait(false);
-                    return primaryBranchSolution;
-                },
-                cancellationToken).ConfigureAwait(false);
+                return await _primaryBranchSolutionCache.SlowGetOrCreateSolutionAsync(
+                    solutionChecksum,
+                    async cancellationToken =>
+                    {
+                        var (primaryBranchSolution, _) = await this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, anyBranchSolution, cancellationToken).ConfigureAwait(false);
+                        return primaryBranchSolution;
+                    },
+                    cancellationToken).ConfigureAwait(false);
+            }
         }
 
         /// <summary>
