@@ -41,7 +41,7 @@ class Test {
             var nugetCompletionProvider = new DebugAssertTestCompletionProvider();
             var reference = new MockAnalyzerReference(nugetCompletionProvider);
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
-            var completionService = project.LanguageServices.GetRequiredService<CompletionService>();
+            var completionService = project.Services.GetRequiredService<CompletionService>();
 
             var document = project.Documents.Single();
             var caretPosition = workspace.DocumentWithCursor.CursorPosition ?? throw new InvalidOperationException();

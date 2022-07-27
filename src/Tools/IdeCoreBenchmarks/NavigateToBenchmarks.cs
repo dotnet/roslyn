@@ -201,7 +201,7 @@ namespace IdeCoreBenchmarks
 
         private async Task<int> SearchAsync(Project project, ImmutableArray<Document> priorityDocuments)
         {
-            var service = project.LanguageServices.GetService<INavigateToSearchService>();
+            var service = project.Services.GetService<INavigateToSearchService>();
             var results = new List<INavigateToSearchResult>();
             await service.SearchProjectAsync(
                 project, priorityDocuments, "Syntax", service.KindsProvided,

@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     pszEventHandlerName,
                     itemidInsertionPoint,
                     useHandlesClause: false,
-                    additionalFormattingRule: targetDocument.Project.LanguageServices.GetService<IAdditionalFormattingRuleLanguageService>().GetAdditionalCodeGenerationRule(),
+                    additionalFormattingRule: targetDocument.Project.Services.GetService<IAdditionalFormattingRuleLanguageService>().GetAdditionalCodeGenerationRule(),
                     GlobalOptions,
                     cancellationToken: c.UserCancellationToken));
 
