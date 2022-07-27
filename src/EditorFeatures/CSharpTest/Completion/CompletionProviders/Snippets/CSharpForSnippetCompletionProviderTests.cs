@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -176,34 +177,41 @@ static void Main(string[] args)
     {
         protected override string ItemToCommit => FeaturesResources.Insert_a_for_loop;
 
-        protected override OptionSet WithChangedNonCompletionOptions(OptionSet options)
-        {
-            return base.WithChangedNonCompletionOptions(options)
-                .WithChangedOption(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement);
-        }
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsertForSnippetInMethodTest()
         {
             var markupBeforeCommit =
-@"class Program
-{
+                $@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+    <Document FilePath=""/0/Test0.cs"">
+class Program
+{{
     public void Method()
-    {
+    {{
         Ins$$
-    }
-}";
-
+    }}
+}}</Document>
+<AnalyzerConfigDocument FilePath=""/.editorconfig"">
+root = true
+ 
+[*]
+# IDE0008: Use explicit type
+csharp_style_var_for_built_in_types = true
+    </AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
             var expectedCodeAfterCommit =
-@"class Program
-{
+                $@"
+class Program
+{{
     public void Method()
-    {
+    {{
         for (var i = 0; i < length; i++)
-        {$$
-        }
-    }
-}";
+        {{$$
+        }}
+    }}
+}}";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
     }
