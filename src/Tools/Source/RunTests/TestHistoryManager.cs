@@ -28,11 +28,6 @@ internal class TestHistoryManager
     private const int MaxTestsReturnedPerRequest = 10000;
 
     /// <summary>
-    /// The pipeline id for roslyn-ci, see https://dev.azure.com/dnceng/public/_build?definitionId=15
-    /// </summary>
-    private const int RoslynCiBuildDefinitionId = 15;
-
-    /// <summary>
     /// The Azure devops project that the build pipeline is located in.
     /// </summary>
     private static readonly Uri s_projectUri = new(@"https://dev.azure.com/dnceng");
@@ -50,6 +45,7 @@ internal class TestHistoryManager
         //   Note here that 'phaseName' corresponds to the 'jobName' defined in our pipeline yaml file and the job name env var is not correct.
         //   See https://developercommunity.visualstudio.com/t/systemjobname-seems-to-be-incorrectly-assigned-and/1209736
         if (!TryGetEnvironmentVariable("SYSTEM_ACCESSTOKEN", out var accessToken)
+            || !TryGetEnvironmentVariable("SYSTEM_DEFINITIONID", out var definitionId)
             || !TryGetEnvironmentVariable("SYSTEM_PHASENAME", out var phaseName))
         {
             Console.WriteLine("Missing required environment variables - skipping test history lookup");
@@ -72,12 +68,12 @@ internal class TestHistoryManager
 
         Console.WriteLine($"Getting last successful build for branch {targetBranch}");
         var adoBranch = $"refs/heads/{targetBranch}";
-        var builds = await buildClient.GetBuildsAsync2(project: "public", new int[] { RoslynCiBuildDefinitionId }, resultFilter: BuildResult.Succeeded, queryOrder: BuildQueryOrder.FinishTimeDescending, maxBuildsPerDefinition: 1, reasonFilter: BuildReason.IndividualCI, branchName: adoBranch, cancellationToken: cancellationToken);
+        var builds = await buildClient.GetBuildsAsync2(project: "public", new int[] { int.Parse(definitionId) }, resultFilter: BuildResult.Succeeded, queryOrder: BuildQueryOrder.FinishTimeDescending, maxBuildsPerDefinition: 1, reasonFilter: BuildReason.IndividualCI, branchName: adoBranch, cancellationToken: cancellationToken);
         var lastSuccessfulBuild = builds?.FirstOrDefault();
         if (lastSuccessfulBuild == null)
         {
             // If this is a new branch we may not have any historical data for it.
-            ConsoleUtil.WriteLine($"Unable to get the last successful build for definition {RoslynCiBuildDefinitionId} and branch {targetBranch}");
+            ConsoleUtil.WriteLine($"Unable to get the last successful build for definition {definitionId} and branch {targetBranch}");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
@@ -87,8 +83,7 @@ internal class TestHistoryManager
         var minTime = lastSuccessfulBuild.QueueTime!.Value;
         var maxTime = lastSuccessfulBuild.FinishTime!.Value;
         var runsInBuild = await testClient.QueryTestRunsAsync2("public", minTime, maxTime, buildIds: new int[] { lastSuccessfulBuild.Id }, cancellationToken: cancellationToken);
-
-        var runForThisStage = runsInBuild.SingleOrDefault(r => r.Name.Contains(phaseName));
+        var runForThisStage = runsInBuild.SingleOrDefault(r => r.PipelineReference.PhaseReference.PhaseName.Contains(phaseName));
         if (runForThisStage == null)
         {
             // If this is a new stage, historical runs will not have any data for it.
@@ -149,7 +144,7 @@ internal class TestHistoryManager
     {
         // Some test names contain test arguments, so take everything before the first paren (since they are not valid in the fully qualified test name).
         var beforeMethodArgs = fullyQualifiedTestName.Split('(')[0];
-        return beforeMethodArgs;
+        return beforeMethodArgs.Trim();
     }
 
     private static bool TryGetEnvironmentVariable(string envVarName, [NotNullWhen(true)] out string? envVar)

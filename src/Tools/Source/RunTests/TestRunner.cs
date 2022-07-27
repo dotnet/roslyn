@@ -44,6 +44,17 @@ namespace RunTests
             _options = options;
         }
 
+        static void Copy(string sourceDir, string targetDir)
+        {
+            Directory.CreateDirectory(targetDir);
+
+            foreach (var file in Directory.GetFiles(sourceDir))
+                File.Copy(file, Path.Combine(targetDir, Path.GetFileName(file)), overwrite: true);
+
+            foreach (var directory in Directory.GetDirectories(sourceDir))
+                Copy(directory, Path.Combine(targetDir, Path.GetFileName(directory)));
+        }
+
         internal async Task<RunAllResult> RunAllOnHelixAsync(ImmutableArray<WorkItemInfo> workItems, Options options, CancellationToken cancellationToken)
         {
             var sourceBranch = Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCH");
@@ -96,6 +107,9 @@ namespace RunTests
                 Environment.SetEnvironmentVariable("BUILD_REASON", "pr");
 
             var buildNumber = Environment.GetEnvironmentVariable("BUILD_BUILDNUMBER") ?? "0";
+
+            Debugger.Launch();
+
             var helixWorkItems = workItems.Select(workItem => MakeHelixWorkItemProject(workItem));
 
             var globalJson = JsonConvert.DeserializeAnonymousType(File.ReadAllText(getGlobalJsonPath()), new { sdk = new { version = "" } })
@@ -176,8 +190,52 @@ namespace RunTests
                 return assemblyRelativePath;
             }
 
+            string MakeHelixIntegrationTestWorkItemProject(WorkItemInfo workItemInfo)
+            {
+                var command = new StringBuilder();
+                command.AppendLine("PowerShell.exe -command \"eng/build.ps1 -testVsi\"");
+
+                Debugger.Launch();
+
+                var payloadDirectory = Directory.GetParent(msbuildTestPayloadRoot);
+                return "";
+            }
+
+
             string MakeHelixWorkItemProject(WorkItemInfo workItemInfo)
             {
+                // Create a payload directory that contains all the assemblies in the work item in separate folders.
+                var payloadDirectory = Path.Combine(msbuildTestPayloadRoot, "artifacts", "bin");
+
+                if (options.TestVsi)
+                {
+                    var vsSetupDir = Path.Combine(options.ArtifactsDirectory, "VSSetup");
+
+                    // Copy the vsix's to the test payload directory.
+                    Copy(vsSetupDir, Path.Combine(payloadDirectory, "VSSetup"));
+
+                    // Copy the integration test deployment powershell script and dependencies.
+                    var repoRoot = Path.GetDirectoryName(options.ArtifactsDirectory);
+                    var deployIntegrationTestVsixScript = Path.Combine(repoRoot, "eng", "run_integration_tests.ps1");
+
+                    // Copy the vsix exp installer to the test payload directory.
+                    var nugetPackagesPath = Environment.GetEnvironmentVariable("NUGET_PACKAGES") ??
+                        Path.Combine(Environment.GetEnvironmentVariable("UserProfile"), ".nuget", "packages");
+                    var expInstallerPath = Directory.EnumerateFiles(Path.Combine(nugetPackagesPath, "roslyntools.vsixexpinstaller"), "vsixexpinstaller.exe", SearchOption.AllDirectories).Last();
+                    File.Copy(expInstallerPath, Path.Combine(payloadDirectory, "vsixexpinstaller.exe"), overwrite: true);
+
+                    // Copy all integration test assemblies in the work item to the test payload directory.
+                    foreach (var assembly in workItemInfo.Filters.Keys)
+                    {
+                        var assemblyPath = assembly.AssemblyPath;
+                        var tfmFolder = Path.GetDirectoryName(assemblyPath);
+                        var configurationFolder = Path.GetDirectoryName(tfmFolder);
+                        var testDirectory = Path.GetDirectoryName(configurationFolder);
+                        var newAssemblyDirectory = Path.Combine(payloadDirectory, Path.GetFileName(testDirectory));
+                        Copy(testDirectory, newAssemblyDirectory);
+                    }
+                }
+
                 // Currently, it's required for the client machine to use the same OS family as the target Helix queue.
                 // We could relax this and allow for example Linux clients to kick off Windows jobs, but we'd have to
                 // figure out solutions for issues such as creating file paths in the correct format for the target machine.
@@ -200,13 +258,20 @@ namespace RunTests
                     }
                 }
 
-                // Create a payload directory that contains all the assemblies in the work item in separate folders.
-                var payloadDirectory = Path.Combine(msbuildTestPayloadRoot, "artifacts", "bin");
-
                 // Update the assembly groups to test with the assembly paths in the context of the helix work item.
                 workItemInfo = workItemInfo with { Filters = workItemInfo.Filters.ToImmutableSortedDictionary(kvp => kvp.Key with { AssemblyPath = GetHelixRelativeAssemblyPath(kvp.Key.AssemblyPath) }, kvp => kvp.Value) };
 
-                AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);
+                if (options.TestVsi)
+                {
+                    command.Append("dir");
+                    // TODO retry - may need to call via runtests without helix param?
+                    // TODO move WER dump configuration to this powershell script.
+                    command.AppendLine("PowerShell.exe -ExecutionPolicy Unrestricted -command \"./run_integration_tests.ps1 -vsixExpInstallerExe 'vsixexpinstaller.exe'\"");
+                }
+                else
+                {
+                    AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);
+                }
 
                 // Build an rsp file to send to dotnet test that contains all the assemblies and tests to run.
                 // This gets around command line length limitations and avoids weird escaping issues.
