@@ -3247,19 +3247,34 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        /// <summary>
+        /// Adds a delete and insert edit for the old and new symbols that have had a parameter inserted or deleted
+        /// </summary>
+        /// <param name="containingSymbol">The symbol that contains the parameter that has been added or deleted (either IMethodSymbol or IPropertySymbol)</param>
+        /// <param name="otherModel">The semantic model from the old compilation, for parameter inserts, or new compilation, for deletes</param>
+        /// <param name="notSupportedByRuntime">Whether the edit should be rejected because the runtime doesn't support inserting new methods. Otherwise a normal rude edit is appropriate.</param>
+        /// <returns>Returns whether semantic edits were added, or if not then a rude edit should be created</returns>
         private static bool TryAddParameterInsertOrDeleteEdits(ArrayBuilder<SemanticEditInfo> semanticEdits, ISymbol containingSymbol, SemanticModel? otherModel, EditAndContinueCapabilitiesGrantor capabilities, Func<SyntaxNode, SyntaxNode?>? syntaxMap, EditScript<SyntaxNode> editScript, CancellationToken cancellationToken, out bool notSupportedByRuntime)
         {
+            Debug.Assert(containingSymbol is IPropertySymbol or IMethodSymbol);
+
             notSupportedByRuntime = false;
 
             // Since we're inserting (or deleting) a parameter node, oldSymbol (or newSymbol) would have been null,
             // and a symbolkey won't map to the other compilation because the parameters are different, so we have to go back to the edit map
-            // to find the declaration that contains the parameter, and its partner
-
-            // Some sanity checks
+            // to find the declaration that contains the parameter, and its partner, and then its symbol, so we need to be sure we can get
+            // to syntax, and have a semantic model to get back to symbols.
             if (otherModel is null ||
                 containingSymbol.DeclaringSyntaxReferences.Length != 1)
             {
                 return false;
+            }
+
+            // We can ignore parameter inserts and deletes for partial method definitions, as we'll report them on the implementation.
+            // We return true here so no rude edit is raised.
+            if (containingSymbol is IMethodSymbol { IsPartialDefinition: true })
+            {
+                return true;
             }
 
             // We don't support delegate parameters
@@ -3295,22 +3310,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var oldSymbol = (otherContainingNode == oldNode) ? otherContainingSymbol : containingSymbol;
             var newSymbol = (otherContainingNode == oldNode) ? containingSymbol : otherContainingSymbol;
 
-            if (CanAddNewMember(oldSymbol, capabilities))
+            if (!CanAddNewMember(oldSymbol, capabilities))
             {
-                var containingSymbolKey = SymbolKey.Create(oldSymbol.ContainingType, cancellationToken);
-
-                AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Delete, oldSymbol, containingSymbolKey, syntaxMap, partialType: null, cancellationToken);
-
-                var symbolKey = SymbolKey.Create(newSymbol, cancellationToken);
-                AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Insert, newSymbol, containingSymbolKey: null, syntaxMap,
-                    partialType: IsPartialEdit(oldSymbol, newSymbol, editScript.Match.OldRoot.SyntaxTree, editScript.Match.NewRoot.SyntaxTree) ? symbolKey : null,
-                    cancellationToken);
-
-                return true;
+                notSupportedByRuntime = true;
+                return false;
             }
 
-            notSupportedByRuntime = true;
-            return false;
+            var containingSymbolKey = SymbolKey.Create(oldSymbol.ContainingType, cancellationToken);
+
+            AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Delete, oldSymbol, containingSymbolKey, syntaxMap, partialType: null, cancellationToken);
+
+            var symbolKey = SymbolKey.Create(newSymbol, cancellationToken);
+            AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Insert, newSymbol, containingSymbolKey: null, syntaxMap,
+                partialType: IsPartialEdit(oldSymbol, newSymbol, editScript.Match.OldRoot.SyntaxTree, editScript.Match.NewRoot.SyntaxTree) ? symbolKey : null,
+                cancellationToken);
+
+            return true;
         }
 
         /// <summary>
