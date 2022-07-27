@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfTrue(primaryBranchSolution == null);
 
             // Otherwise, have the any-branch solution try to retrieve or create the solution.  This will always
-            // succeed, and must give us back a solution with a ref-count that is keeping it alive.
+            // succeed, and must give us back a solution with a in-flight count for the operation currently in progress.
             var anyBranchSolution =
                 await _anyBranchSolutionCache.TryFastGetSolutionAndAddInFlightCountAsync(solutionChecksum, cancellationToken).ConfigureAwait(false) ??
                 await _anyBranchSolutionCache.SlowGetOrCreateSolutionAndAddInFlightCountAsync(
