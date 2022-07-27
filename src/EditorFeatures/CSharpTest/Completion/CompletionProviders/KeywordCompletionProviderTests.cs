@@ -726,7 +726,7 @@ $@"class C
                 """;
 
             // it might seem like we want to prevent 'file file class',
-            // but it's likely the user is declaring a file type above an existing file type here.
+            // but it's likely the user is declaring a file-local type above an existing file-local type here.
             await VerifyItemExistsAsync(markup, "file");
         }
 

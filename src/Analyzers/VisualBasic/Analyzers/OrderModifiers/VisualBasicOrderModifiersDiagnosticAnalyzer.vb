@@ -17,8 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
         Public Sub New()
             MyBase.New(VisualBasicSyntaxFacts.Instance,
                        VisualBasicCodeStyleOptions.PreferredModifierOrder,
-                       VisualBasicOrderModifiersHelper.Instance,
-                       LanguageNames.VisualBasic)
+                       VisualBasicOrderModifiersHelper.Instance)
         End Sub
 
         Protected Overrides Function GetPreferredOrderStyle(context As SyntaxTreeAnalysisContext) As CodeStyleOption2(Of String)

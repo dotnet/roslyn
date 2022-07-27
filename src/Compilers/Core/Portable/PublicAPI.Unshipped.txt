@@ -8,6 +8,7 @@ Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.GeneratorAttributeSyntaxC
 Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel!
 Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetNode.get -> Microsoft.CodeAnalysis.SyntaxNode!
 Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetSymbol.get -> Microsoft.CodeAnalysis.ISymbol!
+Microsoft.CodeAnalysis.GeneratorDriver.ReplaceGenerators(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!> generators) -> Microsoft.CodeAnalysis.GeneratorDriver!
 Microsoft.CodeAnalysis.IFieldSymbol.IsRequired.get -> bool
 Microsoft.CodeAnalysis.IFieldSymbol.RefCustomModifiers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomModifier!>
 Microsoft.CodeAnalysis.IFieldSymbol.RefKind.get -> Microsoft.CodeAnalysis.RefKind
@@ -90,6 +91,8 @@ Microsoft.CodeAnalysis.OperationKind.Utf8String = 124 -> Microsoft.CodeAnalysis.
 Microsoft.CodeAnalysis.Operations.IUtf8StringOperation
 Microsoft.CodeAnalysis.Operations.IUtf8StringOperation.Value.get -> string!
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions.Keys.get -> System.Collections.Generic.IEnumerable<string!>!
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesNewerCompiler = 5 -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.ReferencedCompilerVersion.get -> System.Version?
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitUtf8String(Microsoft.CodeAnalysis.Operations.IUtf8StringOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitUtf8String(Microsoft.CodeAnalysis.Operations.IUtf8StringOperation! operation, TArgument argument) -> TResult?
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.DefaultVisit(Microsoft.CodeAnalysis.ISymbol! symbol, TArgument argument) -> TResult
@@ -114,4 +117,4 @@ virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitProperty(M
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitRangeVariable(Microsoft.CodeAnalysis.IRangeVariableSymbol! symbol, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitTypeParameter(Microsoft.CodeAnalysis.ITypeParameterSymbol! symbol, TArgument argument) -> TResult
 Microsoft.CodeAnalysis.Operations.BinaryOperatorKind.UnsignedRightShift = 25 -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind
-Microsoft.CodeAnalysis.INamedTypeSymbol.IsFile.get -> bool
+Microsoft.CodeAnalysis.INamedTypeSymbol.IsFileLocal.get -> bool

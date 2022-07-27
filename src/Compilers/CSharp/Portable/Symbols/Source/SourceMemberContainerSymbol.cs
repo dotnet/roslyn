@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol containingSymbol = this.ContainingSymbol;
             DeclarationModifiers defaultAccess;
 
-            // note: we give a specific diagnostic when a file type is nested
+            // note: we give a specific diagnostic when a file-local type is nested
             var allowedModifiers = DeclarationModifiers.AccessibilityMask | DeclarationModifiers.File;
 
             if (containingSymbol.Kind == SymbolKind.Namespace)
@@ -826,9 +826,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsNew => HasFlag(DeclarationModifiers.New);
 
-        internal bool IsFile => HasFlag(DeclarationModifiers.File);
+        internal bool IsFileLocal => HasFlag(DeclarationModifiers.File);
 
-        internal sealed override SyntaxTree? AssociatedSyntaxTree => IsFile ? declaration.Declarations[0].Location.SourceTree : null;
+        internal sealed override SyntaxTree? AssociatedSyntaxTree => IsFileLocal ? declaration.Declarations[0].Location.SourceTree : null;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool HasFlag(DeclarationModifiers flag) => (_declModifiers & flag) != 0;
@@ -1744,7 +1744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (IsFile && (object?)ContainingType != null)
+            if (IsFileLocal && (object?)ContainingType != null)
             {
                 diagnostics.Add(ErrorCode.ERR_FileTypeNested, location, this);
             }
@@ -4442,7 +4442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.FieldDeclaration:
                         {
                             var fieldSyntax = (FieldDeclarationSyntax)m;
-                            _ = fieldSyntax.Declaration.Type.SkipRef(out RefKind refKind, allowScoped: false, diagnostics);
+                            _ = fieldSyntax.Declaration.Type.SkipRef(out RefKind refKind);
 
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {

@@ -94,7 +94,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                     return;
                 }
 
-                exception.SetCallstackIfEmpty();
                 var currentProcess = Process.GetCurrentProcess();
 
                 // write the exception to a log file:
@@ -158,28 +157,36 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             try
             {
                 // walk up the stack looking for the first call from a type that isn't in the ErrorReporting namespace.
-                foreach (var frame in new StackTrace(exception).GetFrames())
+                var frames = new StackTrace(exception).GetFrames();
+
+                // On the .NET Framework, GetFrames() can return null even though it's not documented as such.
+                // At least one case here is if the exception's stack trace itself is null.
+                if (frames != null)
                 {
-                    var method = frame?.GetMethod();
-                    var methodName = method?.Name;
-                    if (methodName == null)
-                        continue;
+                    foreach (var frame in frames)
+                    {
+                        var method = frame?.GetMethod();
+                        var methodName = method?.Name;
+                        if (methodName == null)
+                            continue;
 
-                    var declaringTypeName = method?.DeclaringType?.FullName;
-                    if (declaringTypeName == null)
-                        continue;
+                        var declaringTypeName = method?.DeclaringType?.FullName;
+                        if (declaringTypeName == null)
+                            continue;
 
-                    if (!declaringTypeName.StartsWith(CodeAnalysisNamespace))
-                        continue;
+                        if (!declaringTypeName.StartsWith(CodeAnalysisNamespace))
+                            continue;
 
-                    return declaringTypeName + "." + methodName;
+                        return declaringTypeName + "." + methodName;
+                    }
                 }
             }
             catch
             {
             }
 
-            return "Roslyn NonFatal Watson";
+            // If we couldn't get a stack, do this
+            return exception.Message;
         }
 
         private static List<string> CollectServiceHubLogFilePaths()

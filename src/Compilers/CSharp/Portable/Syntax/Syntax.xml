@@ -412,9 +412,6 @@
         <summary>Gets the optional "readonly" keyword.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="ScopedKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="ScopedKeyword"/>
-    </Field>
     <Field Name="Type" Type="TypeSyntax"/>
   </Node>
   <!-- Expressions -->

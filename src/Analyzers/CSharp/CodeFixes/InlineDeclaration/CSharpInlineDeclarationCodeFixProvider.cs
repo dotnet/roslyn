@@ -27,12 +27,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.InlineDeclaration), Shared]
@@ -86,12 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
                     return (t.invocationOrCreation, additionalNodesToTrack.ToImmutable());
                 },
-                (_1, _2, _3) => true,
+                (_, _, _) => true,
                 (semanticModel, currentRoot, t, currentNode)
                     => ReplaceIdentifierWithInlineDeclaration(
-                        options, semanticModel, currentRoot, t.declarator,
-                        t.identifier, currentNode, declarationsToRemove, document.Project.Solution.Workspace.Services,
-                        cancellationToken),
+                        document, options, semanticModel, currentRoot, t.declarator,
+                        t.identifier, currentNode, declarationsToRemove, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -112,17 +105,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         }
 
         private static SyntaxNode ReplaceIdentifierWithInlineDeclaration(
+            Document document,
             CSharpCodeFixOptionsProvider options, SemanticModel semanticModel,
             SyntaxNode currentRoot, VariableDeclaratorSyntax declarator,
             IdentifierNameSyntax identifier, SyntaxNode currentNode,
             HashSet<StatementSyntax> declarationsToRemove,
-            HostWorkspaceServices services,
             CancellationToken cancellationToken)
         {
             declarator = currentRoot.GetCurrentNode(declarator);
             identifier = currentRoot.GetCurrentNode(identifier);
 
-            var editor = new SyntaxEditor(currentRoot, services);
+            var editor = document.GetSyntaxEditor(currentRoot);
             var sourceText = currentRoot.GetText();
 
             var declaration = (VariableDeclarationSyntax)declarator.Parent;

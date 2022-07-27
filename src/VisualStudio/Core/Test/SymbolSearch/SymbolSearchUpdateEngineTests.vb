@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Elfie.Model
 Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.LanguageServices.Storage
 Imports Microsoft.VisualStudio.RemoteControl
 Imports Moq
 
@@ -34,10 +35,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo))).Callback(
                     AddressOf cancellationTokenSource.Cancel)
 
-                Dim remoteControlService = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
+                Dim fileDownloaderFactory = New Mock(Of IFileDownloaderFactory)(MockBehavior.Strict)
 
                 Dim service = New SymbolSearchUpdateEngine(
-                    remoteControlService:=remoteControlService.Object,
+                    fileDownloaderFactory:=fileDownloaderFactory.Object,
                     delayService:=TestDelayService.Instance,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
@@ -46,7 +47,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Await service.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
                 ioMock.Verify()
-                remoteControlService.Verify()
+                fileDownloaderFactory.Verify()
             End Using
         End Function
 
@@ -62,10 +63,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of DirectoryInfo))).Returns(True).Callback(
                     AddressOf cancellationTokenSource.Cancel)
 
-                Dim remoteControlService = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
+                Dim fileDownloaderFactory = New Mock(Of IFileDownloaderFactory)(MockBehavior.Strict)
 
                 Dim service = New SymbolSearchUpdateEngine(
-                    remoteControlService:=remoteControlService.Object,
+                    fileDownloaderFactory:=fileDownloaderFactory.Object,
                     delayService:=TestDelayService.Instance,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
@@ -74,7 +75,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Await service.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
                 ioMock.Verify()
-                remoteControlService.Verify()
+                fileDownloaderFactory.Verify()
             End Using
         End Function
 
@@ -89,20 +90,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
                 ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
 
-                Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
-                clientMock.Setup(Sub(s) s.Dispose())
+                Dim downloaderMock = New Mock(Of IFileDownloader)(MockBehavior.Strict)
+                downloaderMock.Setup(Sub(s) s.Dispose())
 
-                Dim serviceMock = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
+                Dim serviceMock = New Mock(Of IFileDownloaderFactory)(MockBehavior.Strict)
 
                 ' The client should request the 'Latest' database from the server. 
                 ' Cancel processing at that point so the test can complete.
                 serviceMock.Setup(
                     Function(s) s.CreateClient(It.IsAny(Of String), It.IsRegex(".*Latest.*"), It.IsAny(Of Integer))).
-                    Returns(clientMock.Object).
+                    Returns(downloaderMock.Object).
                     Callback(AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    remoteControlService:=serviceMock.Object,
+                    fileDownloaderFactory:=serviceMock.Object,
                     delayService:=TestDelayService.Instance,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
@@ -112,7 +113,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
                 ioMock.Verify()
                 serviceMock.Verify()
-                clientMock.Verify()
+                downloaderMock.Verify()
             End Using
         End Function
 
@@ -127,24 +128,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
                 ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
 
-                Dim clientMock = CreateClientMock(CreateStream(New XElement("Database",
+                Dim downloaderMock = CreatedownloaderMock(CreateStream(New XElement("Database",
                     New XAttribute(SymbolSearchUpdateEngine.ContentAttributeName, ""),
                     New XAttribute(SymbolSearchUpdateEngine.ChecksumAttributeName, Convert.ToBase64String(New Byte() {0, 1, 2})))))
 
-                Dim serviceMock = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
+                Dim serviceMock = New Mock(Of IFileDownloaderFactory)(MockBehavior.Strict)
 
                 ' The client should request the 'Latest' database from the server. 
                 ' Cancel processing at that point so the test can complete.
                 serviceMock.Setup(
                     Function(s) s.CreateClient(It.IsAny(Of String), It.IsRegex(".*Latest.*"), It.IsAny(Of Integer))).
-                    Returns(clientMock.Object)
+                    Returns(downloaderMock.Object)
 
                 Dim delayMock = New Mock(Of IDelayService)(MockBehavior.Strict)
                 delayMock.SetupGet(Function(s) s.CatastrophicFailureDelay).Returns(TimeSpan.Zero).Callback(
                     AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    remoteControlService:=serviceMock.Object,
+                    fileDownloaderFactory:=serviceMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
@@ -154,7 +155,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
                 ioMock.Verify()
                 serviceMock.Verify()
-                clientMock.Verify()
+                downloaderMock.Verify()
                 delayMock.Verify()
             End Using
         End Function
@@ -168,17 +169,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
                 ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
 
-                Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
-                clientMock.Setup(Sub(c) c.Dispose())
+                Dim downloaderMock = New Mock(Of IFileDownloader)(MockBehavior.Strict)
+                downloaderMock.Setup(Sub(c) c.Dispose())
 
-                Dim serviceMock = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
+                Dim serviceMock = New Mock(Of IFileDownloaderFactory)(MockBehavior.Strict)
                 serviceMock.Setup(
                     Function(s) s.CreateClient(It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of Integer))).
-                    Returns(clientMock.Object).
+                    Returns(downloaderMock.Object).
                     Callback(AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    remoteControlService:=serviceMock.Object,
+                    fileDownloaderFactory:=serviceMock.Object,
                     delayService:=TestDelayService.Instance,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
@@ -188,7 +189,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
                 ioMock.Verify()
                 serviceMock.Verify()
-                clientMock.Verify()
+                downloaderMock.Verify()
             End Using
         End Function
 
@@ -203,19 +204,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
                 ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
 
-                Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
+                Dim downloaderMock = New Mock(Of IFileDownloader)(MockBehavior.Strict)
 
                 ' We should get a call to try to read the file. Simulate a crash in the client.
-                clientMock.Setup(Sub(c) c.ReadFileAsync(It.IsAny(Of BehaviorOnStale))).
+                downloaderMock.Setup(Sub(c) c.ReadFileAsync()).
                     Throws(New NotImplementedException())
 
                 ' Client should be disposed.
-                clientMock.Setup(Sub(c) c.Dispose())
+                downloaderMock.Setup(Sub(c) c.Dispose())
 
-                Dim remoteControlMock = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
+                Dim remoteControlMock = New Mock(Of IFileDownloaderFactory)(MockBehavior.Strict)
                 remoteControlMock.Setup(
                     Function(s) s.CreateClient(It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of Integer))).
-                    Returns(clientMock.Object)
+                    Returns(downloaderMock.Object)
 
                 ' Because the client failed we will expect to call into the 'UpdateFailedDelay' to
                 ' control when we do our next loop.
@@ -225,7 +226,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    remoteControlService:=remoteControlMock.Object,
+                    fileDownloaderFactory:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
@@ -235,7 +236,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
-                clientMock.Verify()
+                downloaderMock.Verify()
                 delayMock.Verify()
             End Using
         End Function
@@ -251,8 +252,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
 
                 ' Get a client that will download the latest database.
-                Dim clientMock = CreateFullDatabaseClientMock()
-                Dim remoteControlMock = CreateRemoteControlServiceMock(clientMock, latest:=True)
+                Dim downloaderMock = CreateFullDatabasedownloaderMock()
+                Dim remoteControlMock = CreatefileDownloaderFactoryMock(downloaderMock, latest:=True)
 
                 Dim factoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
                 ' Simulate Elfie throwing when trying to make a database from the contents of that response
@@ -267,7 +268,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    remoteControlService:=remoteControlMock.Object,
+                    fileDownloaderFactory:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
@@ -277,7 +278,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
-                clientMock.Verify()
+                downloaderMock.Verify()
                 delayMock.Verify()
                 factoryMock.Verify()
             End Using
@@ -296,8 +297,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ioMock.Setup(Sub(s) s.Move(It.IsAny(Of String), It.IsAny(Of String)))
 
                 ' Create a client that will download the latest database.
-                Dim clientMock = CreateFullDatabaseClientMock()
-                Dim remoteControlMock = CreateRemoteControlServiceMock(clientMock, latest:=True)
+                Dim downloaderMock = CreateFullDatabasedownloaderMock()
+                Dim remoteControlMock = CreatefileDownloaderFactoryMock(downloaderMock, latest:=True)
 
                 ' Successfully create a database from that response.
                 Dim factoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
@@ -315,7 +316,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Callback(AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    remoteControlService:=remoteControlMock.Object,
+                    fileDownloaderFactory:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
@@ -325,7 +326,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
-                clientMock.Verify()
+                downloaderMock.Verify()
                 delayMock.Verify()
                 factoryMock.Verify()
             End Using
@@ -345,8 +346,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ioMock.Setup(Sub(s) s.Move(It.IsAny(Of String), It.IsAny(Of String)))
 
                 ' Create a client that will download the latest database
-                Dim clientMock = CreateFullDatabaseClientMock()
-                Dim remoteControlMock = CreateRemoteControlServiceMock(clientMock, latest:=True)
+                Dim downloaderMock = CreateFullDatabasedownloaderMock()
+                Dim remoteControlMock = CreatefileDownloaderFactoryMock(downloaderMock, latest:=True)
 
                 ' Create a database from the client response.
                 Dim factoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
@@ -374,7 +375,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Callback(AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    remoteControlService:=remoteControlMock.Object,
+                    fileDownloaderFactory:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
@@ -384,7 +385,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
-                clientMock.Verify()
+                downloaderMock.Verify()
                 delayMock.Verify()
                 factoryMock.Verify()
             End Using
@@ -407,8 +408,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Returns(New AddReferenceDatabase())
 
                 ' Create a client that will return a patch that says things are up to date.
-                Dim clientMock = CreatePatchClientMock(isUpToDate:=True)
-                Dim remoteControlMock = CreateRemoteControlServiceMock(clientMock, latest:=False)
+                Dim downloaderMock = CreatePatchdownloaderMock(isUpToDate:=True)
+                Dim remoteControlMock = CreatefileDownloaderFactoryMock(downloaderMock, latest:=False)
 
                 Dim delayMock = New Mock(Of IDelayService)(MockBehavior.Strict)
 
@@ -418,7 +419,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Callback(AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    remoteControlService:=remoteControlMock.Object,
+                    fileDownloaderFactory:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
@@ -428,7 +429,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
-                clientMock.Verify()
+                downloaderMock.Verify()
                 delayMock.Verify()
                 databaseFactoryMock.Verify()
             End Using
@@ -452,13 +453,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Returns(New AddReferenceDatabase())
 
                 ' Create a client that will return a patch that says things are too old.
-                Dim clientMock = CreatePatchClientMock(isTooOld:=True)
-                Dim remoteControlMock = CreateRemoteControlServiceMock(clientMock, latest:=False)
+                Dim downloaderMock = CreatePatchdownloaderMock(isTooOld:=True)
+                Dim remoteControlMock = CreatefileDownloaderFactoryMock(downloaderMock, latest:=False)
 
                 ' This should cause us to want to then download the full db.  So now
                 ' setup an expectation that we'll download the latest.
-                Dim clientMock2 = CreateFullDatabaseClientMock()
-                SetupDownloadLatest(remoteControlMock, clientMock2)
+                Dim downloaderMock2 = CreateFullDatabasedownloaderMock()
+                SetupDownloadLatest(remoteControlMock, downloaderMock2)
 
                 ' Expect that we'll write the database to disk successfully.
                 SetupWritesDatabaseSuccessfullyToDisk(ioMock)
@@ -471,7 +472,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Callback(AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    remoteControlService:=remoteControlMock.Object,
+                    fileDownloaderFactory:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
@@ -481,8 +482,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
-                clientMock.Verify()
-                clientMock2.Verify()
+                downloaderMock.Verify()
+                downloaderMock2.Verify()
                 delayMock.Verify()
                 databaseFactoryMock.Verify()
             End Using
@@ -506,8 +507,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Returns(New AddReferenceDatabase())
 
                 ' Create a client that will return a patch with contents.
-                Dim clientMock = CreatePatchClientMock(contents:="")
-                Dim remoteControlMock = CreateRemoteControlServiceMock(clientMock, latest:=False)
+                Dim downloaderMock = CreatePatchdownloaderMock(contents:="")
+                Dim remoteControlMock = CreatefileDownloaderFactoryMock(downloaderMock, latest:=False)
 
                 ' Simulate a crash in the patching process.
                 Dim patchService = New Mock(Of IPatchService)(MockBehavior.Strict)
@@ -516,8 +517,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 ' This should cause us to want to then download the full db.  So now
                 ' setup an expectation that we'll download the latest.
-                Dim clientMock2 = CreateFullDatabaseClientMock()
-                SetupDownloadLatest(remoteControlMock, clientMock2)
+                Dim downloaderMock2 = CreateFullDatabasedownloaderMock()
+                SetupDownloadLatest(remoteControlMock, downloaderMock2)
 
                 ' Expect that we'll write the database to disk successfully.
                 SetupWritesDatabaseSuccessfullyToDisk(ioMock)
@@ -530,7 +531,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Callback(AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    remoteControlService:=remoteControlMock.Object,
+                    fileDownloaderFactory:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
                     patchService:=Nothing,
@@ -540,8 +541,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
-                clientMock.Verify()
-                clientMock2.Verify()
+                downloaderMock.Verify()
+                downloaderMock2.Verify()
                 patchService.Verify()
                 delayMock.Verify()
                 databaseFactoryMock.Verify()
@@ -566,8 +567,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Returns(New AddReferenceDatabase())
 
                 ' Create a client that will return a patch with contents.
-                Dim clientMock = CreatePatchClientMock(contents:="")
-                Dim remoteControlMock = CreateRemoteControlServiceMock(clientMock, latest:=False)
+                Dim downloaderMock = CreatePatchdownloaderMock(contents:="")
+                Dim remoteControlMock = CreatefileDownloaderFactoryMock(downloaderMock, latest:=False)
 
                 ' Simulate a crash in the patching process.
                 Dim patchMock = New Mock(Of IPatchService)(MockBehavior.Strict)
@@ -585,7 +586,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Callback(AddressOf cancellationTokenSource.Cancel)
 
                 Dim searchService = New SymbolSearchUpdateEngine(
-                    remoteControlService:=remoteControlMock.Object,
+                    fileDownloaderFactory:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
                     patchService:=patchMock.Object,
@@ -595,7 +596,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
-                clientMock.Verify()
+                downloaderMock.Verify()
                 patchMock.Verify()
                 delayMock.Verify()
                 databaseFactoryMock.Verify()
@@ -610,51 +611,51 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             ioMock.Setup(Sub(s) s.Replace(It.IsRegex(".*tmp"), It.IsRegex(".*txt"), Nothing, It.IsAny(Of Boolean)))
         End Sub
 
-        Private Shared Function CreateRemoteControlServiceMock(
-                clientMock As Mock(Of IRemoteControlClient),
-                latest As Boolean) As Mock(Of IRemoteControlService)
-            Dim remoteControlMock = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
+        Private Shared Function CreatefileDownloaderFactoryMock(
+                downloaderMock As Mock(Of IFileDownloader),
+                latest As Boolean) As Mock(Of IFileDownloaderFactory)
+            Dim remoteControlMock = New Mock(Of IFileDownloaderFactory)(MockBehavior.Strict)
 
             If latest Then
-                SetupDownloadLatest(remoteControlMock, clientMock)
+                SetupDownloadLatest(remoteControlMock, downloaderMock)
             Else
-                SetupDownloadPatch(clientMock, remoteControlMock)
+                SetupDownloadPatch(downloaderMock, remoteControlMock)
             End If
 
             Return remoteControlMock
         End Function
 
-        Private Shared Sub SetupDownloadPatch(clientMock As Mock(Of IRemoteControlClient), remoteControlMock As Mock(Of IRemoteControlService))
+        Private Shared Sub SetupDownloadPatch(downloaderMock As Mock(Of IFileDownloader), remoteControlMock As Mock(Of IFileDownloaderFactory))
             remoteControlMock.Setup(
                 Function(s) s.CreateClient(It.IsAny(Of String), It.IsRegex(".*Patch.*"), It.IsAny(Of Integer))).
-                Returns(clientMock.Object)
+                Returns(downloaderMock.Object)
         End Sub
 
-        Private Shared Sub SetupDownloadLatest(remoteControlMock As Mock(Of IRemoteControlService), clientMock As Mock(Of IRemoteControlClient))
+        Private Shared Sub SetupDownloadLatest(remoteControlMock As Mock(Of IFileDownloaderFactory), downloaderMock As Mock(Of IFileDownloader))
             remoteControlMock.Setup(
                 Function(s) s.CreateClient(It.IsAny(Of String), It.IsRegex(".*Latest.*"), It.IsAny(Of Integer))).
-                Returns(clientMock.Object)
+                Returns(downloaderMock.Object)
         End Sub
 
-        Private Shared Function CreateFullDatabaseClientMock() As Mock(Of IRemoteControlClient)
-            Return CreateClientMock(CreateFullDownloadElementStream())
+        Private Shared Function CreateFullDatabasedownloaderMock() As Mock(Of IFileDownloader)
+            Return CreatedownloaderMock(CreateFullDownloadElementStream())
         End Function
 
-        Private Shared Function CreateClientMock(stream As Stream) As Mock(Of IRemoteControlClient)
-            Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
+        Private Shared Function CreateDownloaderMock(stream As Stream) As Mock(Of IFileDownloader)
+            Dim downloaderMock = New Mock(Of IFileDownloader)(MockBehavior.Strict)
 
             ' Return a full database element when the service asks for it.
-            clientMock.Setup(Function(c) c.ReadFileAsync(It.IsAny(Of BehaviorOnStale))).
+            downloaderMock.Setup(Function(c) c.ReadFileAsync()).
                 Returns(Task.FromResult(stream))
             ' Always dispose the client when we get a response.
-            clientMock.Setup(Sub(c) c.Dispose())
-            Return clientMock
+            downloaderMock.Setup(Sub(c) c.Dispose())
+            Return downloaderMock
         End Function
 
-        Private Shared Function CreatePatchClientMock(Optional isUpToDate As Boolean = False,
+        Private Shared Function CreatePatchdownloaderMock(Optional isUpToDate As Boolean = False,
                                                Optional isTooOld As Boolean = False,
-                                               Optional contents As String = Nothing) As Mock(Of IRemoteControlClient)
-            Return CreateClientMock(CreatePatchElementStream(isUpToDate, isTooOld, contents))
+                                               Optional contents As String = Nothing) As Mock(Of IFileDownloader)
+            Return CreatedownloaderMock(CreatePatchElementStream(isUpToDate, isTooOld, contents))
         End Function
 
         Private Shared Function CreatePatchElementStream(Optional isUpToDate As Boolean = False,

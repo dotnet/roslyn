@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
 
         protected DocumentState(
             HostLanguageServices languageServices,
-            SolutionServices solutionServices,
+            HostWorkspaceServices solutionServices,
             IDocumentServiceProvider? documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             ParseOptions? options,
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
             DocumentInfo info,
             ParseOptions? options,
             HostLanguageServices languageServices,
-            SolutionServices services)
+            HostWorkspaceServices services)
             : base(info, services)
         {
             _languageServices = languageServices;
