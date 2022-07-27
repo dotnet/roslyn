@@ -708,7 +708,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var originalSyntaxTreeOptionsProvider = solution.Projects.Single().CompilationOptions!.SyntaxTreeOptionsProvider;
             Assert.NotNull(originalSyntaxTreeOptionsProvider);
 
-            var defaultOptions = solution.Projects.Single().LanguageServices.GetRequiredService<ICompilationFactoryService>().GetDefaultCompilationOptions();
+            var defaultOptions = solution.Projects.Single().Services.GetRequiredService<ICompilationFactoryService>().GetDefaultCompilationOptions();
             Assert.Null(defaultOptions.SyntaxTreeOptionsProvider);
 
             solution = solution.WithProjectCompilationOptions(projectId, defaultOptions);
@@ -3144,7 +3144,7 @@ class C
         [Fact]
         public void NoCompilationProjectsHaveNullSyntaxTreesAndSemanticModels()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageServiceFactory) });
+            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
             var solution = workspace.CurrentSolution;
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
@@ -3165,7 +3165,7 @@ class C
         [Fact]
         public void ChangingFilePathOfFileInNoCompilationProjectWorks()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageServiceFactory) });
+            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
             var solution = workspace.CurrentSolution;
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);

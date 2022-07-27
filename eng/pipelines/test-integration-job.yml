@@ -14,12 +14,13 @@ parameters:
   - name: lspEditor
     type: string
     default: false
-  - name: shallowCheckout
+  - name: skipCheckout
     type: boolean
-    default: true
+    default: false
 
 steps:
-  - ${{ if eq(parameters.shallowCheckout, true) }}:
+  # Pipelines like the DartLab integration pipeline skip checkout because it is performed elsewhere.
+  - ${{ if eq(parameters.skipCheckout, false) }}:
     - template: checkout-windows-task.yml
 
   - task: PowerShell@2

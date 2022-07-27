@@ -91,7 +91,7 @@ S5();
 
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
-            var analyzer = project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            var analyzer = project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
 
             var documentPathMap = new Dictionary<string, ImmutableArray<ActiveStatement>>();
 
@@ -127,6 +127,47 @@ S5();
         }
 
         [Fact]
+        public async Task InvalidActiveStatements()
+        {
+            using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
+
+            var source = @"
+class C
+{
+    void F()
+    {
+S1();
+    }
+}";
+
+            var solution = workspace.CurrentSolution
+                .AddProject("proj", "proj", LanguageNames.CSharp)
+                .AddDocument("doc", SourceText.From(source, Encoding.UTF8), filePath: "a.cs").Project.Solution;
+
+            var project = solution.Projects.Single();
+            var document = project.Documents.Single();
+            var analyzer = project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
+
+            var documentPathMap = new Dictionary<string, ImmutableArray<ActiveStatement>>();
+
+            var moduleId = Guid.NewGuid();
+            var token = 0x06000001;
+            ManagedActiveStatementDebugInfo CreateInfo(int startLine, int startColumn, int endLine, int endColumn, string fileName)
+                => new(new(new(moduleId, token++, version: 1), ilOffset: 0), fileName, new SourceSpan(startLine, startColumn, endLine, endColumn), ActiveStatementFlags.MethodUpToDate);
+
+            // Create a bad active span that is outside the document, but passes the `TryGetTextSpan` check in ActiveStatementMap
+            var debugInfos = ImmutableArray.Create(
+                CreateInfo(7, 9, 7, 10, "a.cs")
+            );
+
+            var map = ActiveStatementsMap.Create(debugInfos, remapping: ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
+
+            var oldSpans = await map.GetOldActiveStatementsAsync(analyzer, document, CancellationToken.None);
+
+            AssertEx.Empty(oldSpans);
+        }
+
+        [Fact]
         public void ExpandMultiLineSpan()
         {
             using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
@@ -156,7 +197,7 @@ class C
 
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
-            var analyzer = project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            var analyzer = project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
 
             var documentPathMap = new Dictionary<string, ImmutableArray<ActiveStatement>>();
 

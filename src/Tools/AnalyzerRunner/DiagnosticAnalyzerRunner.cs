@@ -182,7 +182,7 @@ namespace AnalyzerRunner
             }
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.LanguageServices);
+            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
 
             var stopwatch = PerformanceTracker.StartNew();
             for (int i = 0; i < analyzerOptionsInternal.TestDocumentIterations; i++)
@@ -393,7 +393,7 @@ namespace AnalyzerRunner
             {
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var newCompilation = compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(compilation.SyntaxTrees);
-                var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.LanguageServices);
+                var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
 
                 var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution, ideAnalyzerOptions);
                 var compilationWithAnalyzers = newCompilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));

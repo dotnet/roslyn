@@ -340,7 +340,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         [Fact]
         public async Task TestSynchronizeWithBuild()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageServiceFactory) });
+            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
 
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new NoNameAnalyzer()));
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
@@ -1058,7 +1058,7 @@ class A
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
             var project = workspace.CurrentSolution.Projects.Single();
             var document = documentAnalysis ? project.Documents.Single() : null;
-            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.LanguageServices);
+            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
             var diagnosticComputer = new DiagnosticComputer(document, project, ideAnalyzerOptions, span: null, AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache());
             var diagnosticsMapResults = await diagnosticComputer.GetDiagnosticsAsync(analyzerIdsToRequestDiagnostics, reportSuppressedDiagnostics: false,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
@@ -1104,7 +1104,7 @@ class A
             var document = project.Documents.Single();
             var diagnosticAnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
 
-            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.LanguageServices);
+            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
             var kind = actionKind == AnalyzerRegisterActionKind.SyntaxTree ? AnalysisKind.Syntax : AnalysisKind.Semantic;
             var diagnosticComputer = new DiagnosticComputer(document, project, ideAnalyzerOptions, span: null, kind, diagnosticAnalyzerInfoCache);
             var analyzerIds = new[] { analyzer.GetAnalyzerId() };

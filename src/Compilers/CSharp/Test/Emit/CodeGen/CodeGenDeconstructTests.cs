@@ -3001,7 +3001,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12400")]
+        [Fact]
         [WorkItem(12400, "https://github.com/dotnet/roslyn/issues/12400")]
         public void AssignWithPostfixOperator()
         {
@@ -3031,9 +3031,41 @@ class C
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/12400
-            // we expect "2 hello" instead, which means the evaluation order is wrong
             var comp = CompileAndVerify(source, expectedOutput: "1 hello");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(12400, "https://github.com/dotnet/roslyn/issues/12400")]
+        public void AssignWithPrefixOperator()
+        {
+            string source = @"
+class C
+{
+    int state = 1;
+
+    static void Main()
+    {
+        long x;
+        string y;
+        C c = new C();
+        (x, y) = ++c;
+        System.Console.WriteLine(x + "" "" + y);
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = state;
+        b = ""hello"";
+    }
+
+    public static C operator ++(C c1)
+    {
+        return new C() { state = 2 };
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "2 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -8900,12 +8932,12 @@ namespace System
                     // (13,20): warning CS0169: The field '(T1, T2).Item2' is never used
                     //         private T2 Item2;
                     Diagnostic(ErrorCode.WRN_UnreferencedField, "Item2").WithArguments("(T1, T2).Item2").WithLocation(13, 20),
-                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                     //         public ValueTuple(T1 item1, T2 item2)
-                    Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "preview").WithLocation(14, 16),
-                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                    Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "11.0").WithLocation(14, 16),
+                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                     //         public ValueTuple(T1 item1, T2 item2)
-                    Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "preview").WithLocation(14, 16),
+                    Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "11.0").WithLocation(14, 16),
                     // (17,13): error CS0229: Ambiguity between '(T1, T2).Item2' and '(T1, T2).Item2'
                     //             Item2 = item2;
                     Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(17, 13)

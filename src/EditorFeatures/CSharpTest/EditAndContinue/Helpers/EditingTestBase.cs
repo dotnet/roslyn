@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
@@ -73,11 +75,14 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             RudeEditDiagnosticDescription[]? diagnostics = null)
             => new(activeStatements, semanticEdits, lineEdits: null, diagnostics);
 
+        internal static string GetDocumentFilePath(int documentIndex)
+            => Path.Combine(TempRoot.Root, documentIndex.ToString() + ".cs");
+
         private static SyntaxTree ParseSource(string markedSource, int documentIndex = 0)
             => SyntaxFactory.ParseSyntaxTree(
                 ActiveStatementsDescription.ClearTags(markedSource),
                 CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
-                path: documentIndex.ToString());
+                path: GetDocumentFilePath(documentIndex));
 
         internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2, int documentIndex = 0)
         {
@@ -173,8 +178,8 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
                  _ => "class C { void F() { " + bodySource + " } }",
              };
 
-        internal static ActiveStatementsDescription GetActiveStatements(string oldSource, string newSource, ActiveStatementFlags[] flags = null, string path = "0")
-            => new(oldSource, newSource, source => SyntaxFactory.ParseSyntaxTree(source, path: path), flags);
+        internal static ActiveStatementsDescription GetActiveStatements(string oldSource, string newSource, ActiveStatementFlags[] flags = null, int documentIndex = 0)
+            => new(oldSource, newSource, source => SyntaxFactory.ParseSyntaxTree(source, path: GetDocumentFilePath(documentIndex)), flags);
 
         internal static SyntaxMapDescription GetSyntaxMap(string oldSource, string newSource)
             => new(oldSource, newSource);

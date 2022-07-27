@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Roslyn.Utilities;
 
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
     internal abstract class VSTypeScriptCompletionServiceWithProviders : CompletionService
     {
         internal VSTypeScriptCompletionServiceWithProviders(Workspace workspace)
-            : base(workspace)
+            : base(workspace.Services.SolutionServices)
         {
         }
 

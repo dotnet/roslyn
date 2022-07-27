@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Should we prefer navigating to the Object Browser over metadata-as-source?
             if (_globalOptions.GetOption(VisualStudioNavigationOptions.NavigateToObjectBrowser, project.Language))
             {
-                var libraryService = project.LanguageServices.GetService<ILibraryService>();
+                var libraryService = project.Services.GetService<ILibraryService>();
                 if (libraryService == null)
                 {
                     return null;
@@ -99,10 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, project, compilation);
-                if (navInfo == null)
-                {
-                    navInfo = libraryService.NavInfoFactory.CreateForProject(project);
-                }
+                navInfo ??= libraryService.NavInfoFactory.CreateForProject(project);
 
                 if (navInfo != null)
                 {
@@ -124,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private async Task<INavigableLocation?> GetNavigableLocationForMetadataAsync(
             Project project, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var masOptions = _globalOptions.GetMetadataAsSourceOptions(project.LanguageServices);
+            var masOptions = _globalOptions.GetMetadataAsSourceOptions(project.Services);
 
             var result = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, masOptions, cancellationToken).ConfigureAwait(false);
 

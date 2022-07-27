@@ -175,6 +175,27 @@ namespace {DefaultNamespace}.a.b
         }
 
         [Fact]
+        public async Task CodeStyleOptionIsFalse()
+        {
+            var folder = CreateFolderPath("B", "C");
+            var code =
+@"namespace A.B
+{
+    class Class1
+    {
+    }
+}";
+
+            await RunTestAsync(
+                fileName: "Class1.cs",
+                fileContents: code,
+                directory: folder,
+                editorConfig: EditorConfig + @"
+dotnet_style_namespace_match_folder = false"
+);
+        }
+
+        [Fact]
         public async Task SingleDocumentNoReference()
         {
             var folder = CreateFolderPath("B", "C");

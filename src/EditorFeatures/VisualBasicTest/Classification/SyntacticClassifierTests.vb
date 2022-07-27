@@ -5182,6 +5182,44 @@ end interface"
         End Function
 
         <Theory, CombinatorialData>
+        Public Async Function TestConflictMarkers2(testHost As TestHost) As Task
+            Dim code =
+"interface I
+<<<<<<< Start
+    sub Goo()
+||||||| Baseline
+    sub Removed()
+=======
+    sub Bar()
+>>>>>>> End
+end interface"
+
+            Await TestAsync(
+                code,
+                testHost,
+                Keyword("interface"),
+                [Interface]("I"),
+                Comment("<<<<<<< Start"),
+                Keyword("sub"),
+                Method("Goo"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Comment("||||||| Baseline"),
+                Keyword("sub"),
+                Identifier("Removed"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Comment("======="),
+                Keyword("sub"),
+                Identifier("Bar"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Comment(">>>>>>> End"),
+                Keyword("end"),
+                Keyword("interface"))
+        End Function
+
+        <Theory, CombinatorialData>
         Public Async Function TestConstField(testHost As TestHost) As Task
             Dim code = "Const Number = 42"
 

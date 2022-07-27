@@ -49,6 +49,16 @@
         <target state="translated">編輯和繼續無法繼續暫停的列舉程式，因為對應的 yield return 陳述式已刪除</target>
         <note />
       </trans-unit>
+      <trans-unit id="GeneratorNameColumnHeader">
+        <source>Generator</source>
+        <target state="new">Generator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorTotalExecutionTime">
+        <source>Total generator execution time: {0} seconds.</source>
+        <target state="new">Total generator execution time: {0} seconds.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HintNameInvalidChar">
         <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
         <target state="translated">位置 {2} 的 hintName {0} 包含無效的字元 '{1}'。</target>
