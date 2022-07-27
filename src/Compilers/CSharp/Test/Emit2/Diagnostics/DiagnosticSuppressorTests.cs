@@ -96,17 +96,17 @@ class C
 
             var compilation = CreateCompilation(SourceCode);
             compilation.VerifyDiagnostics(
-                // (9,25): warning CS1522: Empty switch block
+                // (8,25): warning CS1522: Empty switch block
                 //         {
                 Diagnostic(ErrorCode.WRN_EmptySwitch, "{", isSuppressed: false).WithLocation(line: 8, column: 25),
-                // (18,39): error CS0122: 'MyClass.MyPrivateMethod(int)' is inaccessible due to its protection level
+                // (17,39): error CS0122: 'MyClass.MyPrivateMethod(int)' is inaccessible due to its protection level
                 //                         new MyClass().MyPrivateMethod();
                 Diagnostic(ErrorCode.ERR_BadAccess, "MyPrivateMethod").WithArguments("MyClass.MyPrivateMethod(int)").WithLocation(17, 39));
 
             // Verify that suppression takes place even there are declaration errors
             var analyzers = new DiagnosticAnalyzer[] { new DiagnosticSuppressorForId("CS1522") };
             VerifySuppressedDiagnostics(compilation, analyzers,
-                // (9,25): warning CS1522: Empty switch block
+                // (8,25): warning CS1522: Empty switch block
                 //         {
                 Diagnostic("CS1522", "{", isSuppressed: true).WithLocation(line: 8, column: 25));
 
@@ -139,17 +139,17 @@ class C
 
             var compilation = CreateCompilation(SourceCode);
             compilation.VerifyDiagnostics(
-                // (9,25): warning CS1522: Empty switch block
+                // (8,25): warning CS1522: Empty switch block
                 //         {
                 Diagnostic(ErrorCode.WRN_EmptySwitch, "{", isSuppressed: false).WithLocation(line: 8, column: 25),
-                // (17,49): error CS0180: 'MyAbstractClass.MyFaultyMethod()' cannot be both extern and abstract
+                // (16,49): error CS0180: 'MyAbstractClass.MyFaultyMethod()' cannot be both extern and abstract
                 //                     public extern abstract void MyFaultyMethod()
                 Diagnostic(ErrorCode.ERR_AbstractAndExtern, "MyFaultyMethod").WithArguments("MyAbstractClass.MyFaultyMethod()").WithLocation(16, 49));
 
             // Verify that suppression takes place even there are declaration errors
             var analyzers = new DiagnosticAnalyzer[] { new DiagnosticSuppressorForId("CS1522") };
             VerifySuppressedDiagnostics(compilation, analyzers,
-                // (9,25): warning CS1522: Empty switch block
+                // (8,25): warning CS1522: Empty switch block
                 //         {
                 Diagnostic("CS1522", "{", isSuppressed: true).WithLocation(line: 8, column: 25));
 
