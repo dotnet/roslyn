@@ -183,10 +183,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 return primaryBranchSolution;
             }
 
-            Contract.ThrowIfTrue(primaryBranchSolution == null);
+            Contract.ThrowIfFalse(primaryBranchSolution == null);
 
             // Otherwise, have the any-branch solution try to retrieve or create the solution.  This will always
-            // succeed, and must give us back a solution with a in-flight count for the operation currently in progress.
+            // succeed, and must give us back a solution with a in-flight-count for the operation currently in progress.
             var anyBranchSolution =
                 await _anyBranchSolutionCache.TryFastGetSolutionAndAddInFlightCountAsync(solutionChecksum, cancellationToken).ConfigureAwait(false) ??
                 await _anyBranchSolutionCache.SlowGetOrCreateSolutionAndAddInFlightCountAsync(
@@ -205,9 +205,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // We were asked to update the primary-branch solution.  So take the any-branch solution and promote it to
             // the primary-branch-level.  This may return a different solution.  So ensure that we decrement our
-            // in-flight count on the anyBranch solution when we're done. If SlowGetOrCreateSolutionAsync returns the
+            // in-flight-count on the anyBranchSolution when we're done. If SlowGetOrCreateSolutionAsync returns the
             // same solution, it will increment that count, which will cancel this out.  If it returns a new solution,
-            // the new solution will have the right in-flight count, and we'll want to decrement our solution as we
+            // the new solution will have the right in-flight-count, and we'll want to decrement our solution as we
             // ended up not using it.
             try
             {

@@ -141,22 +141,22 @@ namespace Microsoft.CodeAnalysis.Remote
                     // From this point on we are mutating state.  Ensure we absolutely do not cancel accidentally.
                     cancellationToken = default;
 
-                    // Keep track of the existing solution so we can decrement the in-flight count on it once done.
+                    // Keep track of the existing solution so we can decrement the in-flight-count on it once done.
                     var solutionToDecrement = _lastRequestedSolution;
 
-                    // Increase the in-flight count as we are now holding onto this solution as well.
+                    // Increase the in-flight-count as we are now holding onto this solution as well.
                     solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
 
-                    // At this point our caller has upped the in-flight count and we have upped it as well, so we must at least have a count of 2.
+                    // At this point our caller has upped the in-flight-count and we have upped it as well, so we must at least have a count of 2.
                     Contract.ThrowIfTrue(solution.InFlightCount < 2);
 
                     (_lastRequestedSolution, _lastRequestedChecksum) = (solution, solutionChecksum);
 
-                    // Decrement the in-flight count on the last solution we were pointing at.  If we were the last count
-                    // on it then it will get removed from the cache.
+                    // Decrement the in-flight-count on the last solution we were pointing at.  If we were the last
+                    // count on it then it will get removed from the cache.
                     if (solutionToDecrement != null)
                     {
-                        // If were holding onto this solution, it must have a legal in-flight count.
+                        // If were holding onto this solution, it must have a legal in-flight-count.
                         Contract.ThrowIfTrue(solutionToDecrement.InFlightCount < 1);
                         solutionToDecrement.DecrementInFlightCount_WhileAlreadyHoldingLock();
 
