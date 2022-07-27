@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting
 
         public static async ValueTask<OmniSharpSyntaxFormattingOptionsWrapper> FromDocumentAsync(Document document, OmniSharpLineFormattingOptions fallbackLineFormattingOptions, CancellationToken cancellationToken)
         {
-            var defaultOptions = CodeCleanupOptions.GetDefault(document.Project.LanguageServices);
+            var defaultOptions = CodeCleanupOptions.GetDefault(document.Project.Services);
             var fallbackOptions = defaultOptions with
             {
                 FormattingOptions = defaultOptions.FormattingOptions.With(new LineFormattingOptions
