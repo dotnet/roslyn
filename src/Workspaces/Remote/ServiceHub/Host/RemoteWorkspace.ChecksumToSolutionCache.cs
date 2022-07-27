@@ -109,8 +109,10 @@ namespace Microsoft.CodeAnalysis.Remote
                     var solution = TryFastGetSolution_NoLock_NoInFlightCountChange(solutionChecksum);
                     if (solution != null)
                     {
-                        // Increase the count as our caller now is keeping this solution in-flight
+                        // The cached solution must have a valid in-flight count
                         Contract.ThrowIfFalse(solution.InFlightCount < 0);
+
+                        // Increase the count as our caller now is keeping this solution in-flight
                         solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
                         Contract.ThrowIfFalse(solution.InFlightCount < 1);
 
