@@ -4,12 +4,14 @@
 
 using System;
 using System.Composition;
+using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
-[ExportLspServiceFactory(typeof(RoslynRequestDispatcher), ProtocolConstants.TypeScriptLanguageContract), Shared]
+[ExportLspServiceFactory(typeof(RequestDispatcher<RequestContext>), ProtocolConstants.TypeScriptLanguageContract), Shared]
 internal class VSTypeScriptRequestDispatcherFactory : RequestDispatcherFactory
 {
     [ImportingConstructor]

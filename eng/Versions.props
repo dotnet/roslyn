@@ -43,7 +43,6 @@
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
     <MicrosoftServiceHubVersion>3.1.4097</MicrosoftServiceHubVersion>
     <MicrosoftVisualStudioThreadingPackagesVersion>17.2.32</MicrosoftVisualStudioThreadingPackagesVersion>
-    <OmniSharpExtensionsJsonRpcPackageVersion>0.19.5</OmniSharpExtensionsJsonRpcPackageVersion>
   </PropertyGroup>
   <!--
     Dependency versions

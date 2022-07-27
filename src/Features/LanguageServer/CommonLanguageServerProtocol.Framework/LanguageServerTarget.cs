@@ -21,7 +21,7 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
     private InitializeParams? _clientSettings;
 
     private readonly JsonRpc _jsonRpc;
-    private readonly IRequestDispatcher<RequestContextType> _requestDispatcher;
+    private IRequestDispatcher<RequestContextType>? _requestDispatcher;
     protected readonly ILspLogger _logger;
 
     protected readonly string _serverKind;
@@ -56,38 +56,41 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
         _jsonRpc = jsonRpc;
         _jsonRpc.AddLocalRpcTarget(this);
         _jsonRpc.Disconnected += JsonRpc_Disconnected;
-
-        _requestDispatcher = GetRequestDispatcher();
-
-        var entryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.EntryPointAsync));
-        if (entryPointMethod is null)
-        {
-            throw new InvalidOperationException($"{typeof(DelegatingEntryPoint).FullName} is missing method {nameof(DelegatingEntryPoint.EntryPointAsync)}");
-        }
-
-        foreach (var metadata in _requestDispatcher.GetRegisteredMethods())
-        {
-            // Instead of concretely defining methods for each LSP method, we instead dynamically construct the
-            // generic method info from the exported handler types.  This allows us to define multiple handlers for
-            // the same method but different type parameters.  This is a key functionality to support TS external
-            // access as we do not want to couple our LSP protocol version dll to theirs.
-            //
-            // We also do not use the StreamJsonRpc support for JToken as the rpc method parameters because we want
-            // StreamJsonRpc to do the deserialization to handle streaming requests using IProgress<T>.
-            var delegatingEntryPoint = new DelegatingEntryPoint(metadata.MethodName, this);
-
-            var genericEntryPointMethod = entryPointMethod.MakeGenericMethod(metadata.RequestType, metadata.ResponseType);
-
-            _jsonRpc.AddLocalRpcMethod(genericEntryPointMethod, delegatingEntryPoint, new JsonRpcMethodAttribute(metadata.MethodName) { UseSingleObjectParameterDeserialization = true });
-        }
     }
 
     public abstract ILspServices GetLspServices();
 
     public virtual IRequestDispatcher<RequestContextType> GetRequestDispatcher()
     {
-        var lspServices = GetLspServices();
-        return new RequestDispatcher<RequestContextType>(lspServices);
+        if (_requestDispatcher is null)
+        {
+            var lspServices = GetLspServices();
+            _requestDispatcher = new RequestDispatcher<RequestContextType>(lspServices);
+
+            var entryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.EntryPointAsync));
+            if (entryPointMethod is null)
+            {
+                throw new InvalidOperationException($"{typeof(DelegatingEntryPoint).FullName} is missing method {nameof(DelegatingEntryPoint.EntryPointAsync)}");
+            }
+
+            foreach (var metadata in _requestDispatcher.GetRegisteredMethods())
+            {
+                // Instead of concretely defining methods for each LSP method, we instead dynamically construct the
+                // generic method info from the exported handler types.  This allows us to define multiple handlers for
+                // the same method but different type parameters.  This is a key functionality to support TS external
+                // access as we do not want to couple our LSP protocol version dll to theirs.
+                //
+                // We also do not use the StreamJsonRpc support for JToken as the rpc method parameters because we want
+                // StreamJsonRpc to do the deserialization to handle streaming requests using IProgress<T>.
+                var delegatingEntryPoint = new DelegatingEntryPoint(metadata.MethodName, this);
+
+                var genericEntryPointMethod = entryPointMethod.MakeGenericMethod(metadata.RequestType, metadata.ResponseType);
+
+                _jsonRpc.AddLocalRpcMethod(genericEntryPointMethod, delegatingEntryPoint, new JsonRpcMethodAttribute(metadata.MethodName) { UseSingleObjectParameterDeserialization = true });
+            }
+        }
+
+        return _requestDispatcher;
     }
 
     public abstract IRequestExecutionQueue<RequestContextType> GetRequestExecutionQueue();
@@ -116,7 +119,8 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
             }
             var queue = _target.GetRequestExecutionQueue();
 
-            var result = await _target._requestDispatcher.ExecuteRequestAsync<TRequestType, TResponseType>(
+            var requestDispatcher = _target.GetRequestDispatcher();
+            var result = await requestDispatcher.ExecuteRequestAsync<TRequestType, TResponseType>(
                 _method,
                 requestType,
                 clientCapabilities,

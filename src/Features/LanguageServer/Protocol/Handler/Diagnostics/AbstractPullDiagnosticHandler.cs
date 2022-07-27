@@ -6,24 +6,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
-
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler
-{
-    internal interface IRoslynRequestHandler<RequestType, ResponseType> : ILspService, IRequestHandler<RequestType, ResponseType, RequestContext>
-    {
-    }
-}
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {

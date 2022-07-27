@@ -577,15 +577,13 @@ namespace Roslyn.Test.Utilities
                 };
 
                 var logger = NoOpLspLogger.Instance;
-                var clientCapabilitiesProvider = new ClientCapabilityProvider();
                 var languageServer = new RoslynLanguageServerTarget(
                     servicesProvider, jsonRpc,
                     capabilitiesProvider,
                     listenerProvider,
                     logger,
                     ProtocolConstants.RoslynLspLanguages,
-                    serverKind,
-                    clientCapabilitiesProvider);
+                    serverKind);
 
                 jsonRpc.StartListening();
                 return languageServer;

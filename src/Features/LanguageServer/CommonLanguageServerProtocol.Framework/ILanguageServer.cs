@@ -16,7 +16,7 @@ public interface ILanguageServer : IAsyncDisposable
 
     event EventHandler? Exit;
 
-    InitializeParams ClientSettings { get; }
+    InitializeParams? ClientSettings { get; }
 
     /// <summary>
     /// Handle the LSP initialize request by storing the client capabilities and responding with the server

@@ -23,5 +23,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             return new RoslynRequestDispatcher(lspServices);
         }
+
+        private class RoslynRequestDispatcher : RequestDispatcher<RequestContext>, ILspService
+        {
+            public RoslynRequestDispatcher(ILspServices lspServices) : base(lspServices)
+            {
+            }
+        }
     }
 }

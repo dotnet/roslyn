@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             return new XamlRequestDispatcher(_projectService, lspServices, _feedbackService);
         }
 
-        private class XamlRequestDispatcher : RoslynRequestDispatcher
+        private class XamlRequestDispatcher : RequestDispatcher<RequestContext>, ILspService
         {
             private readonly XamlProjectService _projectService;
             private readonly IXamlLanguageServerFeedbackService? _feedbackService;
