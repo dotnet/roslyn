@@ -249,7 +249,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IndentationOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IndentationResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\ISmartTokenFormatter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\FeatureFlagStorageLocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\AbstractBlockFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\IBlockFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\IBlockFactsExtensions.cs" />
@@ -389,6 +388,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\IOption2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IOptionWithGroup.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\LocalUserProfileStorageLocation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\ClientSettingsStorageLocation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\LocalClientSettingsStorageLocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionGroup.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionDefinition.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKey2.cs" />
