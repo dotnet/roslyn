@@ -30,7 +30,6 @@ namespace BuildActionTelemetryTable
             "Microsoft.CodeAnalysis.CodeActions.CodeAction+SolutionChangeAction",
             "Microsoft.CodeAnalysis.CodeActions.CustomCodeActions+DocumentChangeAction",
             "Microsoft.CodeAnalysis.CodeActions.CustomCodeActions+SolutionChangeAction",
-            "Microsoft.CodeAnalysis.CodeStyle.AbstractCodeStyleProvider`2+CodeRefactoringProvider",
             "Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider+PostProcessCodeAction",
         }.ToImmutableHashSet();
 

@@ -264,10 +264,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 
         public int FDoIdle(uint grfidlef)
         {
-            if (_control is not null)
-            {
-                _control.SynchronizeSettings();
-            }
+            _control?.SynchronizeSettings();
 
             return S_OK;
         }

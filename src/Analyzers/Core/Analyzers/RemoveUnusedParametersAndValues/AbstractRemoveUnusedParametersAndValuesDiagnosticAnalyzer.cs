@@ -91,14 +91,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer(
             Option2<CodeStyleOption2<UnusedValuePreference>> unusedValueExpressionStatementOption,
-            Option2<CodeStyleOption2<UnusedValuePreference>> unusedValueAssignmentOption,
-            string language)
-            : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
+            Option2<CodeStyleOption2<UnusedValuePreference>> unusedValueAssignmentOption)
+            : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
                         .Add(s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption)
-                        .Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption),
-                   ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption>.Empty
-                        .Add(s_unusedParameterRule, CodeStyleOptions2.UnusedParameters),
-                   language)
+                        .Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption)
+                        .Add(s_unusedParameterRule, CodeStyleOptions2.UnusedParameters))
         {
         }
 
@@ -186,10 +183,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         // Hence, we can support incremental span based method body analysis.
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
+        protected sealed override GeneratedCodeAnalysisFlags GeneratedCodeAnalysisFlags => GeneratedCodeAnalysisFlags.Analyze;
+
         protected sealed override void InitializeWorker(AnalysisContext context)
         {
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
-
             context.RegisterCompilationStartAction(
                 compilationContext => SymbolStartAnalyzer.CreateAndRegisterActions(compilationContext, this));
         }

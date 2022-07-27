@@ -408,13 +408,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(expression, diagnostics, ref hasErrors);
-            var convertedExpression = BindExpressionOrTypeForPattern(inputType, innerExpression, ref hasErrors, diagnostics, out var constantValueOpt, out bool wasExpression);
+            var convertedExpression = BindExpressionOrTypeForPattern(inputType, innerExpression, ref hasErrors, diagnostics, out var constantValueOpt, out bool wasExpression, out Conversion patternConversion);
             if (wasExpression)
             {
                 var convertedType = convertedExpression.Type ?? inputType;
                 if (convertedType.SpecialType == SpecialType.System_String && inputType.IsSpanOrReadOnlySpanChar())
                 {
                     convertedType = inputType;
+                }
+
+                if ((constantValueOpt?.IsNumeric == true) && ShouldBlockINumberBaseConversion(patternConversion, inputType))
+                {
+                    // Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.
+                    diagnostics.Add(ErrorCode.ERR_CannotMatchOnINumberBase, node.Location, inputType);
                 }
 
                 return new BoundConstantPattern(
@@ -429,6 +435,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isExplicitNotNullTest = boundType.Type.SpecialType == SpecialType.System_Object;
                 return new BoundTypePattern(node, boundType, isExplicitNotNullTest, inputType, boundType.Type, hasErrors);
             }
+        }
+
+        private bool ShouldBlockINumberBaseConversion(Conversion patternConversion, TypeSymbol inputType)
+        {
+            // We want to block constant and relation patterns that have an input type constrained to or inherited from INumberBase<T>, if we don't
+            // know how to represent the constant being matched against in the input type. For example, `1.0 is 1` will work when written inline, but
+            // will fail if the input type is `INumberBase<T>`. We block this now so that we can make make it work as expected in the future without
+            // being a breaking change.
+
+            if (patternConversion.IsIdentity || patternConversion.IsConstantExpression || patternConversion.IsNumeric)
+            {
+                return false;
+            }
+
+            var interfaces = inputType is TypeParameterSymbol typeParam ? typeParam.EffectiveInterfacesNoUseSiteDiagnostics : inputType.AllInterfacesNoUseSiteDiagnostics;
+            return interfaces.Any(static (i, _) => i.IsWellKnownINumberBaseType(), 0) || inputType.IsWellKnownINumberBaseType();
         }
 
         private static ExpressionSyntax SkipParensAndNullSuppressions(ExpressionSyntax e, BindingDiagnosticBag diagnostics, ref bool hasErrors)
@@ -465,19 +487,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref bool hasErrors,
             BindingDiagnosticBag diagnostics,
             out ConstantValue? constantValueOpt,
-            out bool wasExpression)
+            out bool wasExpression,
+            out Conversion patternExpressionConversion)
         {
             constantValueOpt = null;
             BoundExpression expression = BindTypeOrRValue(patternExpression, diagnostics);
             wasExpression = expression.Kind != BoundKind.TypeExpression;
             if (wasExpression)
             {
-                return BindExpressionForPatternContinued(expression, inputType, patternExpression, ref hasErrors, diagnostics, out constantValueOpt);
+                return BindExpressionForPatternContinued(expression, inputType, patternExpression, ref hasErrors, diagnostics, out constantValueOpt, out patternExpressionConversion);
             }
             else
             {
                 Debug.Assert(expression is { Kind: BoundKind.TypeExpression, Type: { } });
                 hasErrors |= CheckValidPatternType(patternExpression, inputType, expression.Type, diagnostics: diagnostics);
+                patternExpressionConversion = Conversion.NoConversion;
                 return expression;
             }
         }
@@ -491,13 +515,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref bool hasErrors,
             BindingDiagnosticBag diagnostics,
             out ConstantValue? constantValueOpt,
-            out bool wasExpression)
+            out bool wasExpression,
+            out Conversion patternExpressionConversion)
         {
             constantValueOpt = null;
             var expression = BindExpression(patternExpression, diagnostics: diagnostics, invoked: false, indexed: false);
             expression = CheckValue(expression, BindValueKind.RValue, diagnostics);
             wasExpression = expression.Kind switch { BoundKind.BadExpression => false, BoundKind.TypeExpression => false, _ => true };
-            return wasExpression ? BindExpressionForPatternContinued(expression, inputType, patternExpression, ref hasErrors, diagnostics, out constantValueOpt) : expression;
+            patternExpressionConversion = Conversion.NoConversion;
+            return wasExpression ? BindExpressionForPatternContinued(expression, inputType, patternExpression, ref hasErrors, diagnostics, out constantValueOpt, out patternExpressionConversion) : expression;
         }
 
         private BoundExpression BindExpressionForPatternContinued(
@@ -506,10 +532,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExpressionSyntax patternExpression,
             ref bool hasErrors,
             BindingDiagnosticBag diagnostics,
-            out ConstantValue? constantValueOpt)
+            out ConstantValue? constantValueOpt,
+            out Conversion patternExpressionConversion)
         {
             BoundExpression convertedExpression = ConvertPatternExpression(
-                inputType, patternExpression, expression, out constantValueOpt, hasErrors, diagnostics);
+                inputType, patternExpression, expression, out constantValueOpt, hasErrors, diagnostics, out patternExpressionConversion);
 
             ConstantValueUtils.CheckLangVersionForConstantValue(convertedExpression, diagnostics);
 
@@ -541,7 +568,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression,
             out ConstantValue? constantValue,
             bool hasErrors,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            out Conversion patternExpressionConversion)
         {
             BoundExpression convertedExpression;
 
@@ -577,15 +605,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!hasErrors)
                     {
                         var requiredVersion = MessageID.IDS_FeatureRecursivePatterns.RequiredVersion();
-                        if (Compilation.LanguageVersion < requiredVersion &&
-                            !this.Conversions.ClassifyConversionFromExpression(expression, inputType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo).IsImplicit)
+                        patternExpressionConversion = this.Conversions.ClassifyConversionFromExpression(expression, inputType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
+                        if (Compilation.LanguageVersion < requiredVersion && !patternExpressionConversion.IsImplicit)
                         {
                             diagnostics.Add(ErrorCode.ERR_ConstantPatternVsOpenType,
                                 expression.Syntax.Location, inputType, expression.Display, new CSharpRequiredLanguageVersion(requiredVersion));
                         }
                     }
+                    else
+                    {
+                        patternExpressionConversion = Conversion.NoConversion;
+                    }
 
                     diagnostics.Add(node, useSiteInfo);
+                }
+                else
+                {
+                    patternExpressionConversion = Conversion.NoConversion;
                 }
             }
             else
@@ -613,13 +649,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         diagnostics.Add(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, convertedExpression.Syntax.Location, inputType);
                     }
+
+                    patternExpressionConversion = Conversion.NoConversion;
+
                     return convertedExpression;
                 }
 
                 // This will allow user-defined conversions, even though they're not permitted here.  This is acceptable
                 // because the result of a user-defined conversion does not have a ConstantValue. A constant pattern
                 // requires a constant value so we'll report a diagnostic to that effect later.
-                convertedExpression = GenerateConversionForAssignment(inputType, expression, diagnostics);
+                convertedExpression = GenerateConversionForAssignment(inputType, expression, diagnostics, out patternExpressionConversion);
 
                 if (convertedExpression.Kind == BoundKind.Conversion)
                 {
@@ -1578,7 +1617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             BindingDiagnosticBag diagnostics)
         {
-            BoundExpression value = BindExpressionForPattern(inputType, node.Expression, ref hasErrors, diagnostics, out var constantValueOpt, out _);
+            BoundExpression value = BindExpressionForPattern(inputType, node.Expression, ref hasErrors, diagnostics, out var constantValueOpt, out _, out Conversion patternConversion);
             ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(node.Expression, diagnostics, ref hasErrors);
             RoslynDebug.Assert(value.Type is { });
             BinaryOperatorKind operation = tokenKindToBinaryOperatorKind(node.OperatorToken.Kind());
@@ -1614,6 +1653,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 hasErrors = true;
                 constantValueOpt = ConstantValue.Bad;
+            }
+
+            if (!hasErrors && ShouldBlockINumberBaseConversion(patternConversion, inputType))
+            {
+                // Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.
+                diagnostics.Add(ErrorCode.ERR_CannotMatchOnINumberBase, node.Location, inputType);
+                hasErrors = true;
             }
 
             return new BoundRelationalPattern(node, operation | opType, value, constantValueOpt, inputType, value.Type, hasErrors);

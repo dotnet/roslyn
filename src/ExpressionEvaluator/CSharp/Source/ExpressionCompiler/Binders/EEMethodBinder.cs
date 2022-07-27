@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var substitutedSourceMethod = method.SubstitutedSourceMethod;
             _parameterOffset = substitutedSourceMethod.IsStatic ? 0 : 1;
             _targetParameters = method.Parameters;
-            _sourceBinder = new InMethodBinder(substitutedSourceMethod, new BuckStopsHereBinder(next.Compilation));
+            // https://github.com/dotnet/roslyn/issues/62334: add tests and adjust implementation to allow EE to access file types
+            _sourceBinder = new InMethodBinder(substitutedSourceMethod, new BuckStopsHereBinder(next.Compilation, associatedSyntaxTree: null));
         }
 
         internal override void LookupSymbolsInSingleBinder(LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)

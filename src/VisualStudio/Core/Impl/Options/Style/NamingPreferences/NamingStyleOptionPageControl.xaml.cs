@@ -132,10 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                 if (row != null)
                 {
                     var cell = row.FindDescendant<DataGridCell>();
-                    if (cell != null)
-                    {
-                        cell.Focus();
-                    }
+                    cell?.Focus();
                 }
             }
         }

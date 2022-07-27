@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         {
             verifyCount<ParseOptions>(11);
             verifyCount<VisualBasicParseOptions>(10);
-            verifyCount<CompilationOptions>(62);
+            verifyCount<CompilationOptions>(63);
             verifyCount<VisualBasicCompilationOptions>(22);
 
             static void verifyCount<T>(int expected)

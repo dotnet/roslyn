@@ -443,7 +443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 ' exported types are not emitted in EnC deltas (hence generation 0):
                 Dim fullEmittedName As String = MetadataHelpers.BuildQualifiedName(
                     DirectCast(typeReference, Cci.INamespaceTypeReference).NamespaceName,
-                    Cci.MetadataWriter.GetMangledName(DirectCast(typeReference, Cci.INamedTypeReference), generation:=0))
+                    Cci.MetadataWriter.GetMetadataName(DirectCast(typeReference, Cci.INamedTypeReference), generation:=0))
 
                 ' First check against types declared in the primary module
                 If ContainsTopLevelType(fullEmittedName) Then

@@ -50,10 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                     }
                 }
 
-                if (fieldDeclarator == null)
-                {
-                    fieldDeclarator = variableDeclarators.Count > 0 ? variableDeclarators[0] : null;
-                }
+                fieldDeclarator ??= variableDeclarators.Count > 0 ? variableDeclarators[0] : null;
             }
 
             var name = syntaxFactsService.GetDisplayName(fieldDeclarator ?? memberDeclaration,

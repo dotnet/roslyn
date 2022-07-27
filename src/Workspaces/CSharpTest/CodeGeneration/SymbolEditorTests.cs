@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         private SyntaxGenerator _g;
 
         private SyntaxGenerator Generator
-            => _g ?? (_g = SyntaxGenerator.GetGenerator(new AdhocWorkspace(), LanguageNames.CSharp));
+            => _g ??= SyntaxGenerator.GetGenerator(new AdhocWorkspace(), LanguageNames.CSharp);
 
         private static Solution GetSolution(params string[] sources)
         {

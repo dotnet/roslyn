@@ -270,11 +270,8 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             var syntaxRoot = await mergedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxNode = syntaxRoot.GetAnnotatedNodes(AbstractMoveTypeService.NamespaceScopeMovedAnnotation).SingleOrDefault();
 
-            if (syntaxNode == null)
-            {
-                // The type might be declared in global namespace
-                syntaxNode = container.FirstAncestorOrSelf<TNamespaceDeclarationSyntax>() ?? syntaxRoot;
-            }
+            // The type might be declared in global namespace
+            syntaxNode ??= container.FirstAncestorOrSelf<TNamespaceDeclarationSyntax>() ?? syntaxRoot;
 
             return await MoveItemsInNamespaceAsync(
                 mergedDocument,

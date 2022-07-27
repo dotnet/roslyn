@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             ISymbol targetSymbol,
             INamedTypeSymbol suppressMessageAttribute,
             Diagnostic diagnostic,
-            HostWorkspaceServices services,
+            HostSolutionServices services,
             SyntaxFormattingOptions options,
             IAddImportsService addImportsService,
             CancellationToken cancellationToken);
@@ -332,11 +332,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
             }
 
-            if (targetSymbol == null)
-            {
-                // Outside of a member declaration, suppress diagnostic for the entire assembly.
-                targetSymbol = semanticModel.Compilation.Assembly;
-            }
+            // Outside of a member declaration, suppress diagnostic for the entire assembly.
+            targetSymbol ??= semanticModel.Compilation.Assembly;
 
             return new SuppressionTargetInfo() { TargetSymbol = targetSymbol, NodeWithTokens = nodeWithTokens, StartToken = startToken, EndToken = endToken, TargetMemberNode = targetMemberNode };
         }

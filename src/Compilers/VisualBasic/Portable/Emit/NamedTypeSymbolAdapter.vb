@@ -758,6 +758,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property INamedTypeReferenceAssociatedFileIdentifier As String Implements INamedTypeReference.AssociatedFileIdentifier
+            Get
+                Return Nothing
+            End Get
+        End Property
+
         Private ReadOnly Property INamedEntityName As String Implements INamedEntity.Name
             Get
                 ' CCI automatically adds the arity suffix, so we return Name, not MetadataName here.

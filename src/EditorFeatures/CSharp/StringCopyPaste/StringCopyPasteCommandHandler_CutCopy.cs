@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // Always try to store our data to the clipboard (if we have access to the clipboard service).  Even if we
             // didn't capture any useful data, we want to store that to blow away any prior stored data we have.
-            if (copyPasteService != null)
-                copyPasteService.TrySetClipboardData(KeyAndVersion, dataToStore ?? "");
+            copyPasteService?.TrySetClipboardData(KeyAndVersion, dataToStore ?? "");
         }
 
         private static (string? dataToStore, IStringCopyPasteService service) CaptureCutCopyInformation(
@@ -65,9 +64,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (document == null)
                 return default;
 
-            var copyPasteService = document.Project.Solution.Workspace.Services.GetService<IStringCopyPasteService>();
+            var copyPasteService = document.Project.Solution.Services.GetService<IStringCopyPasteService>();
             if (copyPasteService == null)
                 return default;
+
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
 
             var spans = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
 
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             }
 
             var stringExpression = TryGetCompatibleContainingStringExpression(
-                document, new NormalizedSnapshotSpanCollection(span), cancellationToken);
+                parsedDocument, new NormalizedSnapshotSpanCollection(span));
             if (stringExpression is null)
                 return default;
 

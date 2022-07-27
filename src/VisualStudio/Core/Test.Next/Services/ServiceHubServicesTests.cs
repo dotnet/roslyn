@@ -131,7 +131,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using var listener = new TodoCommentsListener(
                 workspace.GlobalOptions,
-                workspace.Services,
+                workspace.Services.SolutionServices,
                 workspace.GetService<IAsynchronousOperationListenerProvider>(),
                 onTodoCommentsUpdated: (documentId, _, newComments) => resultSource.SetResult((documentId, newComments)),
                 disposalToken: cancellationTokenSource.Token);
@@ -253,7 +253,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact]
         public async Task TestUnknownProject()
         {
-            var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageServiceFactory) });
+            var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
             var solution = workspace.CurrentSolution.AddProject("unknown", "unknown", NoCompilationConstants.LanguageName).Solution;
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);

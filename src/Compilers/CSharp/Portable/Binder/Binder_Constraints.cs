@@ -410,6 +410,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // "Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'"
                 diagnostics.Add(ErrorCode.ERR_BadVisBound, location, containingSymbol, constraintType.Type);
             }
+
+            if (constraintType.Type.HasFileLocalTypes())
+            {
+                // if the containing symbol of the constraint is a member, we need to ensure the nearest containing type is a file-local type.
+                var possibleFileType = containingSymbol switch
+                {
+                    TypeSymbol typeSymbol => typeSymbol,
+                    LocalFunctionSymbol => null,
+                    MethodSymbol method => (TypeSymbol)method.ContainingSymbol,
+                    _ => throw ExceptionUtilities.UnexpectedValue(containingSymbol)
+                };
+                Debug.Assert(possibleFileType?.IsDefinition != false);
+                if (possibleFileType?.HasFileLocalTypes() == false)
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, location, constraintType.Type, containingSymbol);
+                }
+            }
+
             diagnostics.Add(location, useSiteInfo);
         }
 
