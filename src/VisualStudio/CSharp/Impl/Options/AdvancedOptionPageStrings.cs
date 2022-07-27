@@ -387,10 +387,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Where_should_the_rename_ui_be_shown
             => ServicesVSResources.Where_should_the_rename_ui_be_shown;
 
-        public static string Option_Show_ui_inline
-            => ServicesVSResources.Show_ui_inline;
+        public static string Option_Show_UI_inline
+            => ServicesVSResources.Show_UI_inline;
 
-        public static string Option_Show_ui_as_dashboard_in_top_right
-            => ServicesVSResources.Show_ui_as_dashboard_in_top_right;
+        public static string Option_Show_UI_as_dashboard_in_top_right
+            => ServicesVSResources.Show_UI_as_dashboard_in_top_right;
     }
 }

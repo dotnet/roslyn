@@ -1357,6 +1357,16 @@
         <target state="translated">Afficher la commande Supprimer les références inutilisées dans l'Explorateur de solutions (expérimental)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_UI_as_dashboard_in_top_right">
+        <source>Show UI as a dashboard in top right</source>
+        <target state="new">Show UI as a dashboard in top right</target>
+        <note>"UI" is an acronym for "User Interface"</note>
+      </trans-unit>
+      <trans-unit id="Show_UI_inline">
+        <source>Show UI Inline</source>
+        <target state="new">Show UI Inline</target>
+        <note>"UI" is an acronym for "User Interface"</note>
+      </trans-unit>
       <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
         <source>Show compiler errors and warnings for:</source>
         <target state="translated">Afficher les erreurs et avertissements du compilateur pour :</target>
@@ -1400,16 +1410,6 @@
       <trans-unit id="Show_inheritance_margin">
         <source>Show inheritance margin</source>
         <target state="translated">Afficher la marge d’héritage</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_ui_as_dashboard_in_top_right">
-        <source>Show UI as a dashboard in top right</source>
-        <target state="new">Show UI as a dashboard in top right</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_ui_inline">
-        <source>Show UI Inline</source>
-        <target state="new">Show UI Inline</target>
         <note />
       </trans-unit>
       <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
@@ -1655,7 +1655,7 @@
       <trans-unit id="Where_should_the_rename_ui_be_shown">
         <source>Where should the rename UI be shown?</source>
         <target state="new">Where should the rename UI be shown?</target>
-        <note />
+        <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Whitespace">
         <source>Whitespace</source>

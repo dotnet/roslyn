@@ -93,10 +93,10 @@
                     <Label x:Name="Rename_UI_setting_label" Content="{x:Static local:AdvancedOptionPageStrings.Where_should_the_rename_ui_be_shown}" />
                     <ComboBox x:Name="Rename_UI_setting">
                         <ComboBoxItem x:Name="Rename_UI_inline"
-                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_ui_inline}"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_UI_inline}"
                             Tag="{StaticResource True}" />
                         <ComboBoxItem x:Name="Rename_UI_dashboard"
-                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_ui_as_dashboard_in_top_right}" 
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_UI_as_dashboard_in_top_right}" 
                             Tag="{StaticResource False}" />
                     </ComboBox>
                 </StackPanel>

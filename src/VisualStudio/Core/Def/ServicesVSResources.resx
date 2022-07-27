@@ -2004,13 +2004,16 @@ Additional information: {1}</value>
   <data name="Document_Outline" xml:space="preserve">
     <value>Document Outline</value>
   </data>
-  <data name="Show_ui_as_dashboard_in_top_right" xml:space="preserve">
+  <data name="Show_UI_as_dashboard_in_top_right" xml:space="preserve">
     <value>Show UI as a dashboard in top right</value>
+    <comment>"UI" is an acronym for "User Interface"</comment>
   </data>
-  <data name="Show_ui_inline" xml:space="preserve">
+  <data name="Show_UI_inline" xml:space="preserve">
     <value>Show UI Inline</value>
+    <comment>"UI" is an acronym for "User Interface"</comment>
   </data>
   <data name="Where_should_the_rename_ui_be_shown" xml:space="preserve">
     <value>Where should the rename UI be shown?</value>
+    <comment>"UI" is an acronym for "User Interface"</comment>
   </data>
 </root>

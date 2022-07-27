@@ -372,10 +372,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Where_should_the_rename_ui_be_shown As String =
             ServicesVSResources.Where_should_the_rename_ui_be_shown
 
-        Public ReadOnly Property Option_Show_ui_inline As String =
-            ServicesVSResources.Show_ui_inline
+        Public ReadOnly Property Option_Show_UI_inline As String =
+            ServicesVSResources.Show_UI_inline
 
-        Public ReadOnly Property Option_Show_ui_as_dashboard_in_top_right As String =
-            ServicesVSResources.Show_ui_as_dashboard_in_top_right
+        Public ReadOnly Property Option_Show_UI_as_dashboard_in_top_right As String =
+            ServicesVSResources.Show_UI_as_dashboard_in_top_right
     End Module
 End Namespace
