@@ -230,25 +230,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind)
         {
-            return SkipRef(syntax, out refKind, allowScoped: true, diagnostics: null);
-        }
-
-        internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind, bool allowScoped, BindingDiagnosticBag? diagnostics)
-        {
-            Debug.Assert(allowScoped || diagnostics is { });
-
             if (syntax.Kind() == SyntaxKind.RefType)
             {
                 var refType = (RefTypeSyntax)syntax;
                 refKind = refType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword ?
                     RefKind.RefReadOnly :
                     RefKind.Ref;
-                if (refType.ScopedKeyword.Kind() == SyntaxKind.ScopedKeyword &&
-                    !allowScoped &&
-                    diagnostics is { })
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, refType.ScopedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ScopedKeyword));
-                }
                 return refType.Type;
             }
 

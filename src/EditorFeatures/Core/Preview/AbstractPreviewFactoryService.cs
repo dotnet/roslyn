@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             // Defer to the editor to figure out what changes the client made.
             var diffService = _differenceSelectorService.GetTextDifferencingService(
-                oldDocument.Project.LanguageServices.GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType());
+                oldDocument.Project.Services.GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType());
 
             diffService ??= _differenceSelectorService.DefaultTextDifferencingService;
             return diffService.DiffStrings(oldText.ToString(), newText.ToString(), new StringDifferenceOptions()

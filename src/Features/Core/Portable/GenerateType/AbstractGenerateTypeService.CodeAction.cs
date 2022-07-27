@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var generateTypeOptionsService = _document.Project.Solution.Workspace.Services.GetRequiredService<IGenerateTypeOptionsService>();
-                var notificationService = _document.Project.Solution.Workspace.Services.GetService<INotificationService>();
-                var projectManagementService = _document.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
+                var generateTypeOptionsService = _document.Project.Solution.Services.GetRequiredService<IGenerateTypeOptionsService>();
+                var notificationService = _document.Project.Solution.Services.GetService<INotificationService>();
+                var projectManagementService = _document.Project.Solution.Services.GetService<IProjectManagementService>();
                 var syntaxFactsService = _document.GetLanguageService<ISyntaxFactsService>();
                 var typeKindValue = GetTypeKindOption(_state);
                 var isPublicOnlyAccessibility = IsPublicOnlyAccessibility(_state, _document.Project);

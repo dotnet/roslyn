@@ -565,10 +565,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 Return False
             End If
 
-            If GeneratedTypesMustBePublic(project) Then
-                Return True
-            End If
-
             Dim node As SyntaxNode = expression
             While node IsNot Nothing
                 ' Types in BaseList, Type Constraint or Member Types cannot be of more restricted accessibility than the declaring type

@@ -108,8 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                var workspace = document.Project.Solution.Workspace;
-
                 foreach (var parameter in unspecifiedParameters)
                 {
                     // Note: the filter text does not include the ':'.  We want to ensure that if 

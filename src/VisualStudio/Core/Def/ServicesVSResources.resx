@@ -1965,6 +1965,24 @@ Additional information: {1}</value>
   <data name="Collapse_sourcelink_embedded_decompiled_files_on_open" xml:space="preserve">
     <value>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</value>
   </data>
+  <data name="Document_Outline_Search" xml:space="preserve">
+    <value>Search Document Outline</value>
+  </data>
+  <data name="Document_Outline_Collapse_All" xml:space="preserve">
+    <value>Collapse All</value>
+  </data>
+  <data name="Document_Outline_Expand_All" xml:space="preserve">
+    <value>Expand All</value>
+  </data>
+  <data name="Document_Outline_Sort_Name" xml:space="preserve">
+    <value>Sort By Name</value>
+  </data>
+  <data name="Document_Outline_Sort_Order" xml:space="preserve">
+    <value>Sort By Order</value>
+  </data>
+  <data name="Document_Outline_Sort_Type" xml:space="preserve">
+    <value>Sort By Type</value>
+  </data>
   <data name="Rename" xml:space="preserve">
     <value>Rename</value>
   </data>
@@ -1982,5 +2000,8 @@ Additional information: {1}</value>
   </data>
   <data name="Stack_Trace" xml:space="preserve">
     <value>Stack Trace</value>
+  </data>
+  <data name="Document_Outline" xml:space="preserve">
+    <value>Document Outline</value>
   </data>
 </root>
