@@ -960,6 +960,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">內嵌並保留 '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Insert_a_for_loop">
+        <source>Insert a 'for' loop</source>
+        <target state="new">Insert a 'for' loop</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insert_an_if_statement">
         <source>Insert an 'if' statement</source>
         <target state="new">Insert an 'if' statement</target>

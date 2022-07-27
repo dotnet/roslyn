@@ -960,6 +960,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Inline refaktoring metody {0} se zachováním deklarace</target>
         <note />
       </trans-unit>
+      <trans-unit id="Insert_a_for_loop">
+        <source>Insert a 'for' loop</source>
+        <target state="new">Insert a 'for' loop</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insert_an_if_statement">
         <source>Insert an 'if' statement</source>
         <target state="new">Insert an 'if' statement</target>

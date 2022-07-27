@@ -960,6 +960,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Alinear y mantener "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Insert_a_for_loop">
+        <source>Insert a 'for' loop</source>
+        <target state="new">Insert a 'for' loop</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insert_an_if_statement">
         <source>Insert an 'if' statement</source>
         <target state="new">Insert an 'if' statement</target>

@@ -24,8 +24,10 @@ namespace Microsoft.CodeAnalysis.Snippets
     {
         public override string SnippetIdentifier => "for";
 
-        public override string SnippetDisplayName => FeaturesResources.Write_to_the_console;
+        public override string SnippetDisplayName => FeaturesResources.Insert_a_for_loop;
         protected abstract Task<SyntaxNode> CreateForLoopStatementSyntaxAsync(Document document, CancellationToken cancellationToken);
+        protected abstract ImmutableArray<SnippetPlaceholder> GetForLoopSnippetPlaceholders(SyntaxNode node, ISyntaxFacts syntaxFacts);
+        protected abstract int GetCaretPosition(SyntaxNode caretTarget);
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -41,11 +43,10 @@ namespace Microsoft.CodeAnalysis.Snippets
             return ImmutableArray.Create(snippetTextChange);
         }
 
-
         private async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var forLoopSyntax = await CreateForLoopStatementSyntaxAsync(document, cancellationToken).ConfigureAwait(false);
-            return new TextChange(TextSpan.FromBounds(position, position), forLoopSyntax.ToFullString());
+            return new TextChange(TextSpan.FromBounds(position, position), forLoopSyntax.NormalizeWhitespace().ToFullString());
         }
 
         /// <summary>
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// </summary>
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
         {
-            return 0;
+            return GetCaretPosition(caretTarget);
         }
 
         protected override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            return ImmutableArray<SnippetPlaceholder>.Empty;
+            return GetForLoopSnippetPlaceholders(node, syntaxFacts);
         }
 
         protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts)

@@ -3153,4 +3153,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Fixing_0" xml:space="preserve">
     <value>Fixing '{0}'</value>
   </data>
+  <data name="Insert_a_for_loop" xml:space="preserve">
+    <value>Insert a 'for' loop</value>
+  </data>
 </root>
