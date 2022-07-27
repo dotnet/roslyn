@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfTrue(solutionChecksum == Checksum.Null);
 
             // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will
-            // increment the in-flight of that solution until we release it at the end of our try/finally block.
+            // increment the in-flight of that solution until we decrement it at the end of our try/finally block.
             var solution = await GetOrCreateSolutionAsync(
                 assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch, cancellationToken).ConfigureAwait(false);
             try
@@ -157,8 +157,8 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             finally
             {
-                // finally, release our in-flight-count on the solution.  If we were the last one keeping it alive, it
-                // will get released from our caches.
+                // finally, decrement our in-flight-count on the solution.  If we were the last one keeping it alive, it
+                // will get removed from our caches.
                 solution.DecrementInFlightCount();
             }
         }
@@ -204,9 +204,11 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             // We were asked to update the primary-branch solution.  So take the any-branch solution and promote it to
-            // the primary-branch-level.  This may return a different solution.  So ensure that we release our in-flight
-            // count on the anyBranch solution when we're done. SlowGetOrCreateSolutionAsync will ensure the in-flight
-            // count of the solution it returns is proper, so this is safe to do.
+            // the primary-branch-level.  This may return a different solution.  So ensure that we decrement our
+            // in-flight count on the anyBranch solution when we're done. If SlowGetOrCreateSolutionAsync returns the
+            // same solution, it will increment that count, which will cancel this out.  If it returns a new solution,
+            // the new solution will have the right in-flight count, and we'll want to decrement our solution as we
+            // ended up not using it.
             try
             {
                 var anyBranchUnderlyingSolution = await anyBranchSolution.Task.WithCancellation(cancellationToken).ConfigureAwait(false);

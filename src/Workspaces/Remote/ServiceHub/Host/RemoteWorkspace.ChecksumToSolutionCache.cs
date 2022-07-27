@@ -141,8 +141,8 @@ namespace Microsoft.CodeAnalysis.Remote
                     // From this point on we are mutating state.  Ensure we absolutely do not cancel accidentally.
                     cancellationToken = default;
 
-                    // Keep track of the existing solution so we can release the count on it once done.
-                    var solutionToRelease = _lastRequestedSolution;
+                    // Keep track of the existing solution so we can decrement the in-flight count on it once done.
+                    var solutionToDecrement = _lastRequestedSolution;
 
                     // Increase the in-flight count as we are now holding onto this solution as well.
                     solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
@@ -154,14 +154,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     // Release the in-flight count on the last solution we were pointing at.  If we were the last count
                     // on it then it will get removed from the cache.
-                    if (solutionToRelease != null)
+                    if (solutionToDecrement != null)
                     {
                         // If were holding onto this solution, it must have a legal in-flight count.
-                        Contract.ThrowIfTrue(solutionToRelease.InFlightCount < 1);
-                        solutionToRelease.DecrementInFlightCount_WhileAlreadyHoldingLock();
+                        Contract.ThrowIfTrue(solutionToDecrement.InFlightCount < 1);
+                        solutionToDecrement.DecrementInFlightCount_WhileAlreadyHoldingLock();
 
                         // after releasing, if we went down to 0 in flight operations, then we better not still be in the cache.
-                        if (solutionToRelease.InFlightCount == 0)
+                        if (solutionToDecrement.InFlightCount == 0)
                         {
                             Contract.ThrowIfTrue(_solutionChecksumToSolution.ContainsKey(solutionChecksum));
                         }
