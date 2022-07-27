@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal static class ITemporaryStreamStorageExtensions
     {
-        public static void WriteAllLines(this ITemporaryStreamStorage storage, ImmutableArray<string> values)
+        public static void WriteAllLines(this ITemporaryStreamStorageInternal storage, ImmutableArray<string> values)
         {
             using var stream = SerializableBytes.CreateWritableStream();
             using var writer = new StreamWriter(stream);
@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.Host
             storage.WriteStream(stream);
         }
 
-        public static ImmutableArray<string> ReadLines(this ITemporaryStreamStorage storage)
+        public static ImmutableArray<string> ReadLines(this ITemporaryStreamStorageInternal storage)
         {
             return EnumerateLines(storage).ToImmutableArray();
         }
 
-        private static IEnumerable<string> EnumerateLines(ITemporaryStreamStorage storage)
+        private static IEnumerable<string> EnumerateLines(ITemporaryStreamStorageInternal storage)
         {
             using var stream = storage.ReadStream();
             using var reader = new StreamReader(stream);
