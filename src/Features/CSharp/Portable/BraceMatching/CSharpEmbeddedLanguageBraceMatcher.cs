@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
+namespace Microsoft.CodeAnalysis.CSharp.BraceMatching
 {
     [ExportBraceMatcher(LanguageNames.CSharp), Shared]
     internal class CSharpEmbeddedLanguageBraceMatcher : AbstractEmbeddedLanguageBraceMatcher

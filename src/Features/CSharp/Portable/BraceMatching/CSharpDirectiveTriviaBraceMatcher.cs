@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
+namespace Microsoft.CodeAnalysis.CSharp.BraceMatching
 {
     [ExportBraceMatcher(LanguageNames.CSharp), Shared]
     internal class CSharpDirectiveTriviaBraceMatcher : AbstractDirectiveTriviaBraceMatcher<DirectiveTriviaSyntax,

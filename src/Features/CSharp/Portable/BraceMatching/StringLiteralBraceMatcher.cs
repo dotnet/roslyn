@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
+namespace Microsoft.CodeAnalysis.CSharp.BraceMatching
 {
     [ExportBraceMatcher(LanguageNames.CSharp), Shared]
     internal class StringLiteralBraceMatcher : IBraceMatcher
