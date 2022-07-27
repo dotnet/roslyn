@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public sealed class SolutionAndInFlightCount
             {
                 private readonly ChecksumToSolutionCache _cache;
-                private readonly Checksum _solutionChecksum;
+                public readonly Checksum SolutionChecksum;
 
                 private readonly CancellationTokenSource _cancellationTokenSource = new();
 
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     Func<CancellationToken, Task<Solution>> getSolutionAsync)
                 {
                     _cache = cache;
-                    _solutionChecksum = solutionChecksum;
+                    SolutionChecksum = solutionChecksum;
                     Task = getSolutionAsync(_cancellationTokenSource.Token);
                 }
 
@@ -83,11 +83,11 @@ namespace Microsoft.CodeAnalysis.Remote
                         Contract.ThrowIfTrue(_cache._lastRequestedSolution == this);
 
                         // If we're going away, we better find ourself in the mapping for this checksum.
-                        Contract.ThrowIfFalse(_cache._solutionChecksumToSolution.TryGetValue(_solutionChecksum, out var existingSolution));
+                        Contract.ThrowIfFalse(_cache._solutionChecksumToSolution.TryGetValue(SolutionChecksum, out var existingSolution));
                         Contract.ThrowIfFalse(existingSolution == this);
 
                         // And we better succeed at actually removing.
-                        Contract.ThrowIfFalse(_cache._solutionChecksumToSolution.Remove(_solutionChecksum));
+                        Contract.ThrowIfFalse(_cache._solutionChecksumToSolution.Remove(SolutionChecksum));
                     }
                 }
             }

@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         // after releasing, if we went down to 0 in flight operations, then we better not still be in the cache.
                         if (solutionToDecrement.InFlightCount == 0)
                         {
-                            Contract.ThrowIfTrue(_solutionChecksumToSolution.ContainsKey(solutionChecksum));
+                            Contract.ThrowIfTrue(_solutionChecksumToSolution.ContainsKey(solutionToDecrement.SolutionChecksum));
                         }
                     }
                 }
