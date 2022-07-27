@@ -64,11 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return;
             }
 
+            var positionalTitle = FeaturesResources.Convert_to_positional_record;
+
             var positional = CodeAction.Create(
-                "placeholder title",
+                positionalTitle,
                 cancellationToken => ConvertToParameterRecordAsync(document, type, classDeclaration, semanticModel, cancellationToken),
-                "placeholder key");
-            var nested = CodeAction.CodeActionWithNestedActions.Create("placeholder nested action", ImmutableArray.Create(positional), isInlinable: false);
+                positionalTitle);
+            var nested = CodeAction.CodeActionWithNestedActions.Create(string.Format(FeaturesResources.Convert_0_to_record, type.Name), ImmutableArray.Create(positional), isInlinable: false);
             context.RegisterRefactoring(nested);
         }
 
