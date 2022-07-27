@@ -80,7 +80,6 @@ class C
                     void MyPrivateMethod(int i)
                     {
                         // warning CS1522: Empty switch block
-                        // NOTE: Empty switch block warning is reported by the C# language parser
                         switch (i)
                         {
                         }
@@ -120,7 +119,6 @@ class C
         {
             const string SourceCode = @"
                 // warning CS1522: Empty switch block
-                // NOTE: Empty switch block warning is reported by the C# language parser
                 class C
                 {
                     void M(int i)
