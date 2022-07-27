@@ -7,6 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -35,6 +38,168 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     public void Method()
     {
         for (int i = 0; i < length; i++)
+        {$$
+        }
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertForSnippetInGlobalContextTest()
+        {
+            var markupBeforeCommit =
+@"Ins$$
+";
+
+            var expectedCodeAfterCommit =
+@"for (int i = 0; i < length; i++)
+{$$
+}
+";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InserForfSnippetInConstructorTest()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public Program()
+    {
+        var x = 5;
+        $$
+    }
+}";
+
+            var expectedCodeAfterCommit =
+@"class Program
+{
+    public Program()
+    {
+        var x = 5;
+        for (int i = 0; i < length; i++)
+        {$$
+        }
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertForSnippettInLocalFunctionTest()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public void Method()
+    {
+        var x = 5;
+        void LocalMethod()
+        {
+            $$
+        }
+    }
+}";
+
+            var expectedCodeAfterCommit =
+@"class Program
+{
+    public void Method()
+    {
+        var x = 5;
+        void LocalMethod()
+        {
+            for (global::System.Int32 i = 0; (i) < (length); i++)
+            {$$
+            }
+        }
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertForSnippetInAnonymousFunctionTest()
+        {
+            var markupBeforeCommit =
+@"public delegate void Print(int value);
+
+static void Main(string[] args)
+{
+    Print print = delegate(int val) {
+        $$
+    };
+
+}";
+
+            var expectedCodeAfterCommit =
+@"public delegate void Print(int value);
+
+static void Main(string[] args)
+{
+    Print print = delegate(int val) {
+        for (global::System.Int32 i = 0; (i) < (length); i++)
+        {$$
+        }
+    };
+
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertIfSnippetInParenthesizedLambdaExpressionTest()
+        {
+            var markupBeforeCommit =
+@"Func<int, int, bool> testForEquality = (x, y) =>
+{
+    $$
+    return x == y;
+};";
+
+            var expectedCodeAfterCommit =
+@"Func<int, int, bool> testForEquality = (x, y) =>
+{
+    for (global::System.Int32 i = 0; (i) < (length); i++)
+    {$$
+    }
+
+    return x == y;
+};";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+    }
+
+    public class CSharpForSnippetPreferVarCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
+    {
+        protected override string ItemToCommit => FeaturesResources.Insert_a_for_loop;
+
+        protected override OptionSet WithChangedNonCompletionOptions(OptionSet options)
+        {
+            return base.WithChangedNonCompletionOptions(options)
+                .WithChangedOption(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertForSnippetInMethodTest()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public void Method()
+    {
+        Ins$$
+    }
+}";
+
+            var expectedCodeAfterCommit =
+@"class Program
+{
+    public void Method()
+    {
+        for (var i = 0; i < length; i++)
         {$$
         }
     }
