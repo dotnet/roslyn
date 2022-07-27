@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis
             ReportDiagnostics(diagnostics.ToReadOnlyAndFree(), consoleOutput, errorLoggerOpt: logger, compilation: null);
             return logger;
         }
-        
+
         /// <summary>
         /// csc.exe and vbc.exe entry point.
         /// </summary>

@@ -12619,7 +12619,6 @@ class C
                     analyzers: new[] { partialStructWarningSuppressor },
                     errorlog: true);
 
-
             Assert.DoesNotContain("warning CS0282", output, StringComparison.Ordinal);
 
             Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
