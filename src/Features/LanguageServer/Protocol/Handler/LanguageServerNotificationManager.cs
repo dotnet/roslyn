@@ -29,9 +29,9 @@ public class ClientLanguageServerManager : IClientLanguageServerManager
     public async ValueTask SendNotificationAsync(string methodName, CancellationToken cancellationToken)
         => await _jsonRpc.NotifyAsync(methodName).ConfigureAwait(false);
 
-    public ValueTask SendNotificationAsync<TParams>(string methodName, TParams @params, CancellationToken cancellationToken)
+    public async ValueTask SendNotificationAsync<TParams>(string methodName, TParams @params, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        await _jsonRpc.NotifyWithParameterObjectAsync(methodName, @params);
     }
 
     public Task<TResponse> SendRequestAsync<TParams, TResponse>(string methodName, TParams @params, CancellationToken cancellationToken)

@@ -3,34 +3,35 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    /// <summary>
-    /// Aggregates handlers for the specified languages and dispatches LSP requests
-    /// to the appropriate handler for the request.
-    /// </summary>
-    public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestContextType>, ILspService where RequestContextType : struct
+    internal class RoslynRequestDispatcher : RequestDispatcher<RequestContext>, ILspService
     {
-        private readonly ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler<RequestContextType>>> _requestHandlers;
-
-        public RequestDispatcher(ILspServices lspServices)
+        public RoslynRequestDispatcher(ILspServices lspServices) : base(lspServices)
         {
-            _requestHandlers = CreateMethodToHandlerMap(lspServices);
         }
 
-        private static ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler<RequestContextType>>> CreateMethodToHandlerMap(ILspServices lspServices)
+        private ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>>? _requestHandlers;
+
+        public override ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>> GetRequestHandlers()
         {
-            var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, Lazy<IRequestHandler<RequestContextType>>>();
+            if (_requestHandlers is null)
+            {
+                _requestHandlers = CreateMethodToHandlerMap(_lspServices);
+            }
+
+            return _requestHandlers;
+        }
+
+        private static ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>> CreateMethodToHandlerMap(ILspServices lspServices)
+        {
+            var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, Lazy<IRequestHandler>>();
 
             if (lspServices is not LspServices roslynLspServices)
             {
@@ -47,10 +48,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
                 // Using the lazy set of handlers, create a lazy instance that will resolve the set of handlers for the provider
                 // and then lookup the correct handler for the specified method.
-                requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestType, responseType), new Lazy<IRequestHandler<RequestContextType>>(() =>
+                requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestType, responseType), new Lazy<IRequestHandler>(() =>
                 {
                     Contract.ThrowIfFalse(roslynLspServices.TryGetService(handlerType, out var lspService));
-                    return (IRequestHandler<RequestContextType>)lspService;
+                    return (IRequestHandler)lspService;
                 }));
             }
 
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             static bool IsTypeRequestHandler(Type type)
             {
-                return type.GetInterfaces().Contains(typeof(IRequestHandler<RequestContextType>));
+                return type.GetInterfaces().Contains(typeof(IRequestHandler));
             }
         }
 
@@ -105,46 +106,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var requestContext = genericArguments[2];
 
             return (requestType, responseType, requestContext);
-        }
-
-        public async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(
-            string methodName,
-            TRequestType request,
-            LSP.ClientCapabilities clientCapabilities,
-            IRequestExecutionQueue<RequestContextType> queue,
-            CancellationToken cancellationToken)
-        {
-            // Get the handler matching the requested method.
-            var requestHandlerMetadata = new RequestHandlerMetadata(methodName, typeof(TRequestType), typeof(TResponseType));
-
-            var handler = _requestHandlers[requestHandlerMetadata].Value;
-
-            var mutatesSolutionState = handler.MutatesSolutionState;
-            var requiresLspSolution = handler.RequiresLSPSolution;
-
-            var strongHandler = (IRequestHandler<TRequestType, TResponseType, RequestContextType>?)handler;
-            Contract.ThrowIfNull(strongHandler, string.Format("Request handler not found for method {0}", methodName));
-
-            var result = await ExecuteRequestAsync(queue, mutatesSolutionState, requiresLspSolution, strongHandler, request, clientCapabilities, methodName, cancellationToken).ConfigureAwait(false);
-            return result;
-        }
-
-        protected virtual Task<TResponseType> ExecuteRequestAsync<TRequestType, TResponseType>(
-            IRequestExecutionQueue<RequestContextType> queue,
-            bool mutatesSolutionState,
-            bool requiresLSPSolution,
-            IRequestHandler<TRequestType, TResponseType, RequestContextType> handler,
-            TRequestType request,
-            LSP.ClientCapabilities clientCapabilities,
-            string methodName,
-            CancellationToken cancellationToken)
-        {
-            return queue.ExecuteAsync(mutatesSolutionState, requiresLSPSolution, handler, request, clientCapabilities, methodName, cancellationToken);
-        }
-
-        public ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()
-        {
-            return _requestHandlers.Keys.ToImmutableArray();
         }
     }
 }

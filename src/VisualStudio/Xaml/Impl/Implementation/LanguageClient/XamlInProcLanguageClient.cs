@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             XamlLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspLoggerFactory lspLoggerFactory,
+            IRoslynLspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
             : base(lspServiceProvider, globalOptions, listenerProvider, lspLoggerFactory, threadingContext)
         {

@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 /// </summary>
 internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TResponseType> : IRoslynRequestHandler<TRequestType, TResponseType>, IVSTypeScriptRequestHandler
 {
-    bool IRequestHandler<RequestContext>.MutatesSolutionState => MutatesSolutionState;
+    bool IRequestHandler.MutatesSolutionState => MutatesSolutionState;
 
-    bool IRequestHandler<RequestContext>.RequiresLSPSolution => RequiresLSPSolution;
+    bool IRequestHandler.RequiresLSPSolution => RequiresLSPSolution;
 
     public TextDocumentIdentifier? GetTextDocumentIdentifier(TRequestType request)
     {

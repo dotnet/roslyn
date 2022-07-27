@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using CommonLanguageServerProtocol.Framework;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -15,7 +14,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
-    /// Context for requests handled by <see cref="IRequestHandler{TResponseContextType}"/>
+    /// Context for requests handled by <see cref="IRequestHandler"/>
     /// </summary>
     internal readonly struct RequestContext
     {

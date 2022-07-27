@@ -2,24 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Composition;
 using CommonLanguageServerProtocol.Framework;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler
-{
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
-    public class MethodAttribute : Attribute
-    {
-        /// <summary>
-        /// Contains the method that this <see cref="IRequestHandler{RequestContextType}"/> implements.
-        /// </summary>
-        public string Method { get; }
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-        public MethodAttribute(string method)
-        {
-            Method = method;
-        }
+[MetadataAttribute]
+internal class MethodAttribute : LanguageServerEndpointAttribute
+{
+    public MethodAttribute(string method) : base(method)
+    {
     }
 }

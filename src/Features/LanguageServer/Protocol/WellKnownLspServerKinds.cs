@@ -14,7 +14,7 @@ public enum WellKnownLspServerKinds
     /// <summary>
     /// Roslyn LSP server for razor c# requests.
     /// </summary>
-    RoslynRazorLspServer,
+    RazorLspServer,
 
     /// <summary>
     /// Roslyn LSP server for liveshare guests.
@@ -47,8 +47,6 @@ public enum WellKnownLspServerKinds
     /// to specify that something applies to any LSP server.
     /// </summary>
     Any,
-
-    VSRazorLspServer,
 }
 
 internal static class WellKnownLspServerExtensions
@@ -62,7 +60,7 @@ internal static class WellKnownLspServerExtensions
     {
         return server switch
         {
-            WellKnownLspServerKinds.RoslynRazorLspServer => "Razor C# Language Server Client",
+            WellKnownLspServerKinds.RazorLspServer => "Razor C# Language Server Client",
             WellKnownLspServerKinds.LiveShareLspServer => "Live Share C#/Visual Basic Language Server Client",
             WellKnownLspServerKinds.AlwaysActiveVSLspServer => "Roslyn Language Server Client",
             WellKnownLspServerKinds.CSharpVisualBasicLspServer => "Roslyn Language Server Client",
@@ -71,14 +69,19 @@ internal static class WellKnownLspServerExtensions
             WellKnownLspServerKinds.XamlLspServer => "XAML Language Server Client (Experimental)",
             WellKnownLspServerKinds.XamlLspServerDisableUX => "XAML Language Server Client for LiveShare and Codespaces",
             WellKnownLspServerKinds.RoslynTypeScriptLspServer => "Roslyn TypeScript Language Server Client",
-            WellKnownLspServerKinds.VSRazorLspServer => "Razor Language Server Client",
             _ => throw ExceptionUtilities.UnexpectedValue(server),
         };
     }
 
     public static string ToConvertableString(this WellKnownLspServerKinds server)
     {
-        return Enum.GetName(typeof(WellKnownLspServerKinds), server);
+        var result = Enum.GetName(typeof(WellKnownLspServerKinds), server);
+        if (result is null)
+        {
+            throw new ArgumentOutOfRangeException("WellKnownLspServerKinds did not match expected values");
+        }
+
+        return result;
     }
 
     public static string ToTelemetryString(this WellKnownLspServerKinds server)
@@ -86,7 +89,7 @@ internal static class WellKnownLspServerExtensions
         return server switch
         {
             // Telemetry was previously reported as RazorInProcLanguageClient.GetType().Name
-            WellKnownLspServerKinds.RoslynRazorLspServer => "RazorInProcLanguageClient",
+            WellKnownLspServerKinds.RazorLspServer => "RazorInProcLanguageClient",
 
             // Telemtry was previously reported as LiveShareInProcLanguageClient.GetType().Name
             WellKnownLspServerKinds.LiveShareLspServer => "LiveShareInProcLanguageClient",
@@ -104,7 +107,6 @@ internal static class WellKnownLspServerExtensions
             WellKnownLspServerKinds.XamlLspServerDisableUX => "XamlInProcLanguageClientDisableUX",
 
             WellKnownLspServerKinds.RoslynTypeScriptLspServer => "RoslynTypeScriptLspServer",
-            WellKnownLspServerKinds.VSRazorLspServer => "RazorLspServer",
             _ => throw ExceptionUtilities.UnexpectedValue(server),
         };
     }
@@ -113,8 +115,7 @@ internal static class WellKnownLspServerExtensions
     {
         return server switch
         {
-            WellKnownLspServerKinds.VSRazorLspServer => "Razorlanguages",
-            WellKnownLspServerKinds.RoslynRazorLspServer => ProtocolConstants.RoslynLspLanguagesContract,
+            WellKnownLspServerKinds.RazorLspServer => ProtocolConstants.RoslynLspLanguagesContract,
             WellKnownLspServerKinds.LiveShareLspServer => ProtocolConstants.RoslynLspLanguagesContract,
             WellKnownLspServerKinds.AlwaysActiveVSLspServer => ProtocolConstants.RoslynLspLanguagesContract,
             WellKnownLspServerKinds.CSharpVisualBasicLspServer => ProtocolConstants.RoslynLspLanguagesContract,

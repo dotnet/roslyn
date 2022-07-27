@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             IAsynchronousOperationListenerProvider listenerProvider,
             ExperimentalCapabilitiesProvider experimentalCapabilitiesProvider,
             IThreadingContext threadingContext,
-            ILspLoggerFactory lspLoggerFactory,
+            IRoslynLspLoggerFactory lspLoggerFactory,
             [Import(AllowDefault = true)] AbstractLanguageClientMiddleLayer middleLayer)
             : base(lspServiceProvider, globalOptions, listenerProvider, lspLoggerFactory, threadingContext, middleLayer)
         {
@@ -95,6 +95,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// </summary>
         public override bool ShowNotificationOnInitializeFailed => true;
 
-        public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.RoslynRazorLspServer;
+        public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.RazorLspServer;
     }
 }

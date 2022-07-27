@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     {
         private readonly IGlobalOptionService _globalOptions;
         private readonly IAsynchronousOperationListener _asyncListener;
-
+        private readonly LspWorkspaceManager _lspWorkspaceManager;
+        private readonly IClientLanguageServerManager _notificationManager;
         private readonly CancellationTokenSource _disposalTokenSource;
 
         public bool MutatesSolutionState => false;
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// 
         /// Null when the client does not support sending refresh notifications.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<Uri?>? _semanticTokenRefreshQueue;
+        private AsyncBatchingWorkQueue<Uri?>? _semanticTokenRefreshQueue;
 
         #endregion
 
@@ -70,8 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             LspWorkspaceManager lspWorkspaceManager,
-            IClientLanguageServerManager notificationManager,
-            ClientCapabilities clientCapabilities)
+            IClientLanguageServerManager notificationManager)
         {
             _globalOptions = globalOptions;
             _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Classification);
@@ -79,22 +79,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
             _disposalTokenSource = new();
 
-            if (clientCapabilities.Workspace?.SemanticTokens?.RefreshSupport is true)
-            {
-                // Only send a refresh notification to the client every 2s (if needed) in order to avoid
-                // sending too many notifications at once.  This ensures we batch up workspace notifications,
-                // but also means we send soon enough after a compilation-computation to not make the user wait
-                // an enormous amount of time.
-                _semanticTokenRefreshQueue = new AsyncBatchingWorkQueue<Uri?>(
-                    delay: TimeSpan.FromMilliseconds(2000),
-                    processBatchAsync: (documentUris, cancellationToken)
-                        => FilterLspTrackedDocumentsAsync(lspWorkspaceManager, notificationManager, documentUris, cancellationToken),
-                    equalityComparer: EqualityComparer<Uri?>.Default,
-                    asyncListener: _asyncListener,
-                    _disposalTokenSource.Token);
-
-                _lspWorkspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
-            }
+            _lspWorkspaceManager = lspWorkspaceManager;
+            _notificationManager = notificationManager;
         }
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
@@ -155,6 +141,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
             Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
             Contract.ThrowIfNull(context.Document, "Document is null.");
+
+            if (_semanticTokenRefreshQueue is null && context.ClientCapabilities.Workspace?.SemanticTokens?.RefreshSupport is true)
+            {
+                // Only send a refresh notification to the client every 2s (if needed) in order to avoid
+                // sending too many notifications at once.  This ensures we batch up workspace notifications,
+                // but also means we send soon enough after a compilation-computation to not make the user wait
+                // an enormous amount of time.
+                _semanticTokenRefreshQueue = new AsyncBatchingWorkQueue<Uri?>(
+                    delay: TimeSpan.FromMilliseconds(2000),
+                    processBatchAsync: (documentUris, cancellationToken)
+                        => FilterLspTrackedDocumentsAsync(_lspWorkspaceManager, _notificationManager, documentUris, cancellationToken),
+                    equalityComparer: EqualityComparer<Uri?>.Default,
+                    asyncListener: _asyncListener,
+                    _disposalTokenSource.Token);
+
+                _lspWorkspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
+            }
 
             // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
             // results but will speed up how quickly we can respond to the client's request.

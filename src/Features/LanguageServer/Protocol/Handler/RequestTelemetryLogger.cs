@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// Logs metadata on LSP requests (duration, success / failure metrics)
 /// for this particular LSP server instance.
 /// </summary>
-public sealed class RequestTelemetryLogger : IDisposable, ILspService
+internal sealed class RequestTelemetryLogger : IDisposable, ILspService
 {
     private const string QueuedDurationKey = "QueuedDuration";
 

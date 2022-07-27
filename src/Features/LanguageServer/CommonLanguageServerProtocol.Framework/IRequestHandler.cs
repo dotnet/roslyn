@@ -13,7 +13,7 @@ namespace CommonLanguageServerProtocol.Framework;
 /// <summary>
 /// Top level type for LSP request handler.
 /// </summary>
-public interface IRequestHandler<RequestContextType>
+public interface IRequestHandler
 {
     /// <summary>
     /// Whether or not the solution state on the server is modified
@@ -31,7 +31,7 @@ public interface IRequestHandler<RequestContextType>
     bool RequiresLSPSolution { get; }
 }
 
-public interface IRequestHandler<RequestType, ResponseType, RequestContextType> : IRequestHandler<RequestContextType>
+public interface IRequestHandler<RequestType, ResponseType, RequestContextType> : IRequestHandler
 {
     /// <summary>
     /// Gets the <see cref="TextDocumentIdentifier"/> from the request, if the request provides one.

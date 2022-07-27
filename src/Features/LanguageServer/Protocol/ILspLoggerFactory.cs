@@ -9,7 +9,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal interface ILspLoggerFactory
+    internal interface IRoslynLspLoggerFactory
     {
         Task<IRoslynLspLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken);
     }

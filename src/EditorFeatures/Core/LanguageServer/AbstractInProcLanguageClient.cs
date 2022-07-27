@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     {
         private readonly IThreadingContext _threadingContext;
         private readonly ILanguageClientMiddleLayer? _middleLayer;
-        private readonly ILspLoggerFactory _lspLoggerFactory;
+        private readonly IRoslynLspLoggerFactory _lspLoggerFactory;
 
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly AbstractLspServiceProvider _lspServiceProvider;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             AbstractLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspLoggerFactory lspLoggerFactory,
+            IRoslynLspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
             AbstractLanguageClientMiddleLayer? middleLayer = null)
         {
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             AbstractInProcLanguageClient languageClient,
             Stream inputStream,
             Stream outputStream,
-            ILspLoggerFactory lspLoggerFactory,
+            IRoslynLspLoggerFactory lspLoggerFactory,
             CancellationToken cancellationToken) where RequestContextType : struct
         {
             var jsonMessageFormatter = new JsonMessageFormatter();
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             var serverTypeName = languageClient.GetType().Name;
 
             var logger = await lspLoggerFactory.CreateLoggerAsync(serverTypeName, jsonRpc, cancellationToken).ConfigureAwait(false);
-            
+
             if (logger is not IRoslynLspLogger roslynLogger)
             {
                 throw new NotImplementedException();
@@ -229,8 +229,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             ICapabilitiesProvider capabilitiesProvider,
             IRoslynLspLogger logger)
         {
-            var clientCapabilitiesProvider = new ClientCapabilityProvider();
-
             return new RoslynLanguageServerTarget(
                 _lspServiceProvider,
                 jsonRpc,
@@ -238,9 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 _listenerProvider,
                 logger,
                 SupportedLanguages,
-                ServerKind,
-                clientCapabilitiesProvider,
-                RoslynLanguageServerTarget.GetBaseServices(jsonRpc, logger, clientCapabilitiesProvider));
+                ServerKind);
         }
 
         public abstract ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);

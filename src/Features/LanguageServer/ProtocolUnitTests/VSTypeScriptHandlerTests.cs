@@ -12,6 +12,7 @@ using System.ServiceModel.Syndication;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
@@ -87,7 +88,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         return await TestLspServer.CreateAsync(testWorkspace, new ClientCapabilities(), languageServerTarget, clientStream);
     }
 
-    private static LanguageServerTarget<RequestContext> CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace)
+    private static RoslynLanguageServerTarget CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace)
     {
         var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
         var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
@@ -99,8 +100,6 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         };
 
         var logger = NoOpLspLogger.Instance;
-        var clientCapabilitiesProvider = new ClientCapabilityProvider();
-        var baseServices = RoslynLanguageServerTarget.GetBaseServices(jsonRpc, logger, clientCapabilitiesProvider);
 
         var languageServer = new RoslynLanguageServerTarget(
             servicesProvider, jsonRpc,
@@ -108,9 +107,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
             listenerProvider,
             logger,
             ImmutableArray.Create(InternalLanguageNames.TypeScript),
-            WellKnownLspServerKinds.RoslynTypeScriptLspServer,
-            clientCapabilitiesProvider,
-            baseServices);
+            WellKnownLspServerKinds.RoslynTypeScriptLspServer);
 
         jsonRpc.StartListening();
         return languageServer;

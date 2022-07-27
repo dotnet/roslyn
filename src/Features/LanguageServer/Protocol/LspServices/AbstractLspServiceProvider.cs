@@ -9,14 +9,10 @@ using CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-public class AbstractLspServiceProvider : ILspServiceProvider
+public class AbstractLspServiceProvider
 {
     private readonly ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> _lspServices;
     private readonly ImmutableArray<Lazy<ILspServiceFactory, LspServiceMetadataView>> _lspServiceFactories;
-
-    private ImmutableArray<Lazy<ILspService, LspServiceMetadataView>>? _baseServices;
-
-    private ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> BaseServices => _baseServices ?? throw new InvalidOperationException($"{nameof(BaseServices)} called before {nameof(SetBaseServices)}");
 
     public AbstractLspServiceProvider(
         IEnumerable<Lazy<ILspService, LspServiceMetadataView>> lspServices,
@@ -26,14 +22,9 @@ public class AbstractLspServiceProvider : ILspServiceProvider
         _lspServiceFactories = lspServiceFactories.ToImmutableArray();
     }
 
-    public void SetBaseServices(ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> baseServices)
-    {
-        _baseServices = baseServices;
-    }
-
-    public ILspServices CreateServices(string serverKind)
+    public ILspServices CreateServices(string serverKind, ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> baseServices)
     {
         var serverEnum = WellKnownLspServerExtensions.WellKnownLspServerKindsFromString(serverKind);
-        return new LspServices(_lspServices, _lspServiceFactories, serverEnum, BaseServices);
+        return new LspServices(_lspServices, _lspServiceFactories, serverEnum, baseServices);
     }
 }

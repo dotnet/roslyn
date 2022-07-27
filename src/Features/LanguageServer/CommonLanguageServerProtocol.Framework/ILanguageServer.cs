@@ -24,6 +24,4 @@ public interface ILanguageServer : IAsyncDisposable
     /// </summary>
     [JsonRpcMethod(Methods.InitializeName, UseSingleObjectParameterDeserialization = true)]
     Task<InitializeResult> InitializeAsync(InitializeParams initializeParams, CancellationToken cancellationToken);
-
-    object GetService(Type type);
 }

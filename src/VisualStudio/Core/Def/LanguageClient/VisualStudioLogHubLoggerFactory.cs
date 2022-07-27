@@ -21,8 +21,8 @@ using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
-    [Export(typeof(ILspLoggerFactory))]
-    internal class VisualStudioLogHubLoggerFactory : ILspLoggerFactory
+    [Export(typeof(IRoslynLspLoggerFactory))]
+    internal class VisualStudioLogHubLoggerFactory : IRoslynLspLoggerFactory
     {
         /// <summary>
         /// A unique, always increasing, ID we use to identify this server in our loghub logs.  Needed so that if our

@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var diagnosticModeOption = serverKindEnum switch
             {
                 WellKnownLspServerKinds.LiveShareLspServer => s_liveShareDiagnosticMode,
-                WellKnownLspServerKinds.RoslynRazorLspServer => s_razorDiagnosticMode,
+                WellKnownLspServerKinds.RazorLspServer => s_razorDiagnosticMode,
                 _ => InternalDiagnosticsOptions.NormalDiagnosticMode,
             };
 

@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.EditorFeatures.Cocoa.Lsp;
 /// Wraps the external access <see cref="IVSMacLspLoggerFactory"/> and exports it
 /// as an <see cref="ILspLoggerFactory"/> for inclusion in the vsmac composition.
 /// </summary>
-[Export(typeof(ILspLoggerFactory)), Shared]
-internal class VSMacLspLoggerFactoryWrapper : ILspLoggerFactory
+[Export(typeof(IRoslynLspLoggerFactory)), Shared]
+internal class VSMacLspLoggerFactoryWrapper : IRoslynLspLoggerFactory
 {
     private readonly IVSMacLspLoggerFactory _loggerFactory;
 
@@ -29,14 +29,14 @@ internal class VSMacLspLoggerFactoryWrapper : ILspLoggerFactory
         _loggerFactory = loggerFactory;
     }
 
-    public async Task<ILspLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken)
+    public async Task<IRoslynLspLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken)
     {
         var vsMacLogger = await _loggerFactory.CreateLoggerAsync(serverTypeName, jsonRpc, cancellationToken).ConfigureAwait(false);
         return new VSMacLspLoggerWrapper(vsMacLogger);
     }
 }
 
-internal class VSMacLspLoggerWrapper : ILspLogger
+internal class VSMacLspLoggerWrapper : IRoslynLspLogger
 {
     private readonly IVSMacLspLogger _logger;
 

@@ -3,21 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.ComponentModel.Composition.Hosting;
 using System.Composition;
-using System.Linq;
+using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     [ExportCSharpVisualBasicLspServiceFactory(typeof(RequestDispatcher<RequestContext>)), Shared]
-    public class RequestDispatcherFactory : ILspServiceFactory
+    internal class RequestDispatcherFactory : ILspServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -27,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public virtual ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         {
-            return new RequestDispatcher<RequestContext>(lspServices);
+            return new RoslynRequestDispatcher(lspServices);
         }
     }
 }

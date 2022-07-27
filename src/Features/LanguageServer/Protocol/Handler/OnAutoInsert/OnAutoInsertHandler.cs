@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Only support this for razor as LSP doesn't support overtype yet.
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1165179/
             // Once LSP supports overtype we can move all of brace completion to LSP.
-            if (request.Character == "\n" && context.ServerKind == WellKnownLspServerKinds.RoslynRazorLspServer.ToConvertableString())
+            if (request.Character == "\n" && context.ServerKind == WellKnownLspServerKinds.RazorLspServer.ToConvertableString())
             {
                 var indentationOptions = new IndentationOptions(formattingOptions)
                 {

@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             return new XamlRequestDispatcher(_projectService, lspServices, _feedbackService);
         }
 
-        private class XamlRequestDispatcher : RequestDispatcher<RequestContext>
+        private class XamlRequestDispatcher : RoslynRequestDispatcher
         {
             private readonly XamlProjectService _projectService;
             private readonly IXamlLanguageServerFeedbackService? _feedbackService;
@@ -55,6 +55,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             {
                 _projectService = projectService;
                 _feedbackService = feedbackService;
+            }
+
+            public override ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>> GetRequestHandlers()
+            {
+                throw new NotImplementedException();
             }
 
             protected override async Task<TResponseType> ExecuteRequestAsync<TRequestType, TResponseType>(

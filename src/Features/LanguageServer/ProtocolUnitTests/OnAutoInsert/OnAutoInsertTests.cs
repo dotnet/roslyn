@@ -268,7 +268,7 @@ End Class";
         $0
     }
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected, serverKind: WellKnownLspServerKinds.RoslynRazorLspServer);
+            await VerifyMarkupAndExpected("\n", markup, expected, serverKind: WellKnownLspServerKinds.RazorLspServer);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -290,7 +290,7 @@ End Class";
 		$0
 	}
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected, insertSpaces: false, tabSize: 4, serverKind: WellKnownLspServerKinds.RoslynRazorLspServer);
+            await VerifyMarkupAndExpected("\n", markup, expected, insertSpaces: false, tabSize: 4, serverKind: WellKnownLspServerKinds.RazorLspServer);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -316,7 +316,7 @@ End Class";
         }
     }
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected, serverKind: WellKnownLspServerKinds.RoslynRazorLspServer);
+            await VerifyMarkupAndExpected("\n", markup, expected, serverKind: WellKnownLspServerKinds.RazorLspServer);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
