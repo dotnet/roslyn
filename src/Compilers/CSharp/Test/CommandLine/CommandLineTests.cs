@@ -12402,7 +12402,7 @@ class C
                 VerifyOutput(
                     sourceDirectory,
                     sourceFile,
-                    additionalFlags: new[] { "/warn:5" }, 
+                    additionalFlags: new[] { "/warn:5" },
                     expectedErrorCount: 1,
                     expectedInfoCount: 1,
                     expectedWarningCount: 0,
