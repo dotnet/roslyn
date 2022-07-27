@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis
             var id = DocumentId.CreateNewId(projectId);
             var loader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create()));
 
-            return this.AddDocument(DocumentInfo.Create(id, name, loader: loader));
+            return AddDocument(DocumentInfo.Create(id, name, loader: loader));
         }
 
         /// <summary>

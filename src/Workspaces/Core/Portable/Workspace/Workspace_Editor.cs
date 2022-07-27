@@ -474,6 +474,12 @@ namespace Microsoft.CodeAnalysis
                 _newText = newText;
             }
 
+            internal override SourceHashAlgorithm ChecksumAlgorithm
+                => _newText.ChecksumAlgorithm;
+
+            internal override string? FilePath
+                => _oldDocumentState.FilePath;
+
             public override async Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
             {
                 var oldText = await _oldDocumentState.GetTextAsync(cancellationToken).ConfigureAwait(false);

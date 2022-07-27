@@ -707,6 +707,22 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
+        public SolutionState WithProjectChecksumAlgorithm(ProjectId projectId, SourceHashAlgorithm checksumAlgorithm)
+        {
+            var oldProject = GetRequiredProjectState(projectId);
+            var newProject = oldProject.WithChecksumAlgorithm(checksumAlgorithm);
+
+            if (oldProject == newProject)
+            {
+                return this;
+            }
+
+            return ForkProject(newProject);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the name.
+        /// </summary>
         public SolutionState WithProjectName(ProjectId projectId, string name)
         {
             var oldProject = GetRequiredProjectState(projectId);
@@ -812,6 +828,23 @@ namespace Microsoft.CodeAnalysis
             }
 
             // fork without any change on compilation.
+            return ForkProject(newProject);
+        }
+
+        /// <summary>
+        /// Create a new solution instance with the project specified updated to have
+        /// the specified attributes, except for <see cref="ProjectInfo.ProjectAttributes.Version"/> which is auto-incremented.
+        /// </summary>
+        public SolutionState WithProjectAttributes(ProjectId projectId, ProjectInfo.ProjectAttributes attributes)
+        {
+            var oldProject = GetRequiredProjectState(projectId);
+            var newProject = oldProject.WithAttributes(attributes);
+
+            if (oldProject == newProject)
+            {
+                return this;
+            }
+
             return ForkProject(newProject);
         }
 

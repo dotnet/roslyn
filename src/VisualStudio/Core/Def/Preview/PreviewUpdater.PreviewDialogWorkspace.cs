@@ -13,8 +13,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal partial class PreviewUpdater
     {
         // internal for testing
@@ -52,8 +50,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 internal PreviewTextLoader(SourceText documentText)
                     => _text = documentText;
 
+                private protected override TextLoader TryUpdateChecksumAlgorithmImpl(SourceHashAlgorithm algorithm)
+                    => throw ExceptionUtilities.Unreachable; // checksum alg should never be changed in preview workspace
+
                 public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
-                    => Task.FromResult(LoadTextAndVersionSynchronously(cancellationToken));
+                    => Task.FromResult(LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken));
 
                 internal override TextAndVersion LoadTextAndVersionSynchronously(CancellationToken cancellationToken)
                     => TextAndVersion.Create(_text, VersionStamp.Create());

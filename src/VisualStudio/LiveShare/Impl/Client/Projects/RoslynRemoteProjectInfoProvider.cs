@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
@@ -86,25 +87,25 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
         private static ProjectInfo CreateProjectInfo(string projectName, string language, ImmutableArray<string> files, SolutionServices services)
         {
             var projectId = ProjectId.CreateNewId();
-            var docInfos = ImmutableArray.CreateBuilder<DocumentInfo>();
+            const SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default;
 
-            foreach (var file in files)
-            {
-                var fileName = Path.GetFileNameWithoutExtension(file);
-                var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(projectId),
-                    fileName,
-                    filePath: file,
-                    loader: new WorkspaceFileTextLoaderNoException(services, file, defaultEncoding: null));
-                docInfos.Add(docInfo);
-            }
+            var docInfos = files.SelectAsArray(path =>
+                DocumentInfo.Create(
+                    DocumentId.CreateNewId(projectId),
+                    name: Path.GetFileNameWithoutExtension(path),
+                    loader: new WorkspaceFileTextLoaderNoException(path, defaultEncoding: null, checksumAlgorithm),
+                    filePath: path));
 
             return ProjectInfo.Create(
-                projectId,
-                VersionStamp.Create(),
-                projectName,
-                projectName,
-                language,
-                documents: docInfos.ToImmutable());
+                new ProjectInfo.ProjectAttributes(
+                    projectId,
+                    VersionStamp.Create(),
+                    name: projectName,
+                    assemblyName: projectName,
+                    language,
+                    compilationOutputFilePaths: default,
+                    checksumAlgorithm),
+                documents: docInfos);
         }
     }
 }

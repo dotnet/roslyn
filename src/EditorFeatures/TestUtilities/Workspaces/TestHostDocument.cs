@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly IReadOnlyList<string>? _folders;
         private readonly IDocumentServiceProvider? _documentServiceProvider;
         private readonly ImmutableArray<string> _roles;
+        private readonly TestDocumentLoader _loader;
 
         public DocumentId Id
         {
@@ -83,8 +84,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public string Name { get; }
         public SourceCodeKind SourceCodeKind { get; }
         public string? FilePath { get; }
+        public SourceHashAlgorithm ChecksumAlgorithm { get; } = SourceHashAlgorithms.Default;
 
-        public TextLoader Loader { get; }
         public int? CursorPosition { get; }
         public IList<TextSpan> SelectedSpans { get; } = new List<TextSpan>();
         public IDictionary<string, ImmutableArray<TextSpan>> AnnotatedSpans { get; } = new Dictionary<string, ImmutableArray<TextSpan>>();
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 this.AnnotatedSpans.Add(namedSpanList);
             }
 
-            Loader = new TestDocumentLoader(this, _initialText);
+            _loader = new TestDocumentLoader(this, _initialText);
 
             if (textBuffer != null)
             {
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _initialText = text;
             Name = displayName;
             SourceCodeKind = sourceCodeKind;
-            Loader = new TestDocumentLoader(this, text);
+            _loader = new TestDocumentLoader(this, text);
             FilePath = filePath;
             _folders = folders;
             _roles = s_defaultRoles;
@@ -198,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _languageServiceProvider ??= project.LanguageServiceProvider;
         }
 
-        private class TestDocumentLoader : TextLoader
+        private sealed class TestDocumentLoader : TextLoader
         {
             private readonly TestHostDocument _hostDocument;
             private readonly string _text;
@@ -209,9 +210,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 _text = text;
             }
 
+            internal override SourceHashAlgorithm ChecksumAlgorithm
+                => _hostDocument.ChecksumAlgorithm;
+
+            internal override string? FilePath
+                => _hostDocument.FilePath;
+
             public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
-                => Task.FromResult(TextAndVersion.Create(SourceText.From(_text), VersionStamp.Create(), _hostDocument.FilePath));
+                => Task.FromResult(TextAndVersion.Create(SourceText.From(_text, encoding: null, _hostDocument.ChecksumAlgorithm), VersionStamp.Create(), _hostDocument.FilePath));
         }
+
+        public TextLoader Loader => _loader;
 
         public IWpfTextView GetTextView()
         {
@@ -352,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public DocumentInfo ToDocumentInfo()
         {
             Contract.ThrowIfTrue(IsSourceGenerated, "We shouldn't be producing a DocumentInfo for a source generated document.");
-            return DocumentInfo.Create(this.Id, this.Name, this.Folders, this.SourceCodeKind, loader: this.Loader, filePath: this.FilePath, isGenerated: false, designTimeOnly: false, _documentServiceProvider);
+            return DocumentInfo.Create(Id, Name, Folders, SourceCodeKind, Loader, FilePath).WithDocumentServiceProvider(_documentServiceProvider);
         }
     }
 }

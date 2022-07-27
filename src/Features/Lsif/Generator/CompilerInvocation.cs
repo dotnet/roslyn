@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Newtonsoft.Json;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
@@ -90,20 +91,25 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var projectId = ProjectId.CreateNewId(invocationInfo.ProjectFilePath);
 
             var projectInfo = ProjectInfo.Create(
-                projectId,
-                VersionStamp.Default,
-                name: Path.GetFileNameWithoutExtension(invocationInfo.ProjectFilePath),
-                assemblyName: parsedCommandLine.CompilationName!,
-                language: languageName,
-                filePath: invocationInfo.ProjectFilePath,
-                outputFilePath: parsedCommandLine.OutputFileName,
+                new ProjectInfo.ProjectAttributes(
+                    id: projectId,
+                    version: VersionStamp.Default,
+                    name: Path.GetFileNameWithoutExtension(invocationInfo.ProjectFilePath),
+                    assemblyName: parsedCommandLine.CompilationName!,
+                    language: languageName,
+                    compilationOutputFilePaths: default,
+                    checksumAlgorithm: parsedCommandLine.ChecksumAlgorithm,
+                    filePath: invocationInfo.ProjectFilePath,
+                    outputFilePath: parsedCommandLine.OutputFileName),
                 parsedCommandLine.CompilationOptions,
                 parsedCommandLine.ParseOptions,
                 parsedCommandLine.SourceFiles.Select(s => CreateDocumentInfo(unmappedPath: s.Path)),
+                projectReferences: null,
                 metadataReferences: parsedCommandLine.MetadataReferences.Select(r => MetadataReference.CreateFromFile(mapPath(r.Reference), r.Properties)),
                 additionalDocuments: parsedCommandLine.AdditionalFiles.Select(f => CreateDocumentInfo(unmappedPath: f.Path)),
-                analyzerReferences: parsedCommandLine.AnalyzerReferences.Select(r => new AnalyzerFileReference(r.FilePath, analyzerLoader)))
-                .WithAnalyzerConfigDocuments(parsedCommandLine.AnalyzerConfigPaths.Select(CreateDocumentInfo));
+                analyzerReferences: parsedCommandLine.AnalyzerReferences.Select(r => new AnalyzerFileReference(r.FilePath, analyzerLoader)),
+                analyzerConfigDocuments: parsedCommandLine.AnalyzerConfigPaths.Select(CreateDocumentInfo),
+                hostObjectType: null);
 
             var solution = workspace.CurrentSolution.AddProject(projectInfo);
             var compilation = await solution.GetRequiredProject(projectId).GetRequiredCompilationAsync(CancellationToken.None);
@@ -119,7 +125,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     DocumentId.CreateNewId(projectId, mappedPath),
                     name: mappedPath,
                     filePath: mappedPath,
-                    loader: new WorkspaceFileTextLoader(languageServices.SolutionServices, mappedPath, parsedCommandLine.Encoding));
+                    loader: new WorkspaceFileTextLoader(languageServices.SolutionServices, mappedPath, parsedCommandLine.Encoding, parsedCommandLine.ChecksumAlgorithm)));
             }
         }
 

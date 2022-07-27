@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              cacheKey As ProjectId,
                                                              filePath As String,
                                                              options As ParseOptions,
-                                                             text As ValueSource(Of TextAndVersion),
+                                                             text As ITextAndVersionSource,
                                                              encoding As Encoding,
                                                              root As VisualBasicSyntaxNode) As SyntaxTree
                     Return New RecoverableSyntaxTree(

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -318,20 +319,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     {
                         if (w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
                         {
-                            var loader = new WorkspaceFileTextLoader(w.Services.SolutionServices, moniker, defaultEncoding: null);
+                            var solution = w.CurrentSolution;
 
-                            if (w.CurrentSolution.ContainsDocument(documentId))
+                            if (solution.GetDocument(documentId) is { } document)
                             {
-                                w.OnDocumentClosed(documentId, loader);
+                                w.OnDocumentClosed(documentId, new WorkspaceFileTextLoader(w.Services.SolutionServices, moniker, defaultEncoding: null, document.State.ChecksumAlgorithm));
                             }
-                            else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
+                            else if (solution.GetAdditionalDocument(documentId) is { } additionalDocument)
                             {
-                                w.OnAdditionalDocumentClosed(documentId, loader);
+                                w.OnAdditionalDocumentClosed(documentId, new WorkspaceFileTextLoader(w.Services.SolutionServices, moniker, defaultEncoding: null, additionalDocument.State.ChecksumAlgorithm));
                             }
                             else
                             {
-                                Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
-                                w.OnAnalyzerConfigDocumentClosed(documentId, loader);
+                                var analyzerConfigDocument = solution.GetRequiredAnalyzerConfigDocument(documentId);
+                                w.OnAnalyzerConfigDocumentClosed(documentId, new WorkspaceFileTextLoader(w.Services.SolutionServices, moniker, defaultEncoding: null, analyzerConfigDocument.State.ChecksumAlgorithm));
                             }
                         }
                     }

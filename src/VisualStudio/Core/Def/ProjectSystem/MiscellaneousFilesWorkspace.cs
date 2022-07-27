@@ -292,8 +292,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var languageInformation = TryGetLanguageInformation(filePath);
             Contract.ThrowIfNull(languageInformation);
 
-            var loader = new WorkspaceFileTextLoader(Services.SolutionServices, filePath, defaultEncoding: null);
-            return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(filePath, loader, languageInformation, Services.SolutionServices, _metadataReferences);
+            var checksumAlgorithm = SourceHashAlgorithms.Default;
+            var fileLoader = new WorkspaceFileTextLoader(filePath, defaultEncoding: null, checksumAlgorithm);
+            return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(filePath, fileLoader, languageInformation, checksumAlgorithm, Services.SolutionServices, _metadataReferences);
         }
 
         private void DetachFromDocument(string moniker)

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ProjectId cacheKey,
                     string filePath,
                     ParseOptions options,
-                    ValueSource<TextAndVersion> text,
+                    ITextAndVersionSource text,
                     Encoding encoding,
                     CompilationUnitSyntax root)
                 {

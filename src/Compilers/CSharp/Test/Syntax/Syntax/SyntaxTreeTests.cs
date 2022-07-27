@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -112,21 +113,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        // Diagnostic options on syntax trees are now obsolete
-#pragma warning disable CS0618
         [Fact]
+        public void Create()
+        {
+            var root = SyntaxFactory.ParseCompilationUnit("");
+
+            var tree = CSharpSyntaxTree.Create(root);
+            Assert.Equal(SourceHashAlgorithm.Sha1, tree.GetText().ChecksumAlgorithm);
+        }
+
+        // Diagnostic options on syntax trees are now obsolete
+        [Fact, Obsolete("Testing obsolete API")]
         public void Create_WithDiagnosticOptions()
         {
             var options = CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress));
-            var tree = CSharpSyntaxTree.Create(SyntaxFactory.ParseCompilationUnit(""),
-                options: null,
-                path: "",
-                encoding: null,
-                diagnosticOptions: options);
+            var tree = CSharpSyntaxTree.Create(SyntaxFactory.ParseCompilationUnit(""), options: null, path: null, encoding: null, diagnosticOptions: options);
+
             Assert.Same(options, tree.DiagnosticOptions);
+            Assert.Equal(SourceHashAlgorithm.Sha1, tree.GetText().ChecksumAlgorithm);
         }
 
-        [Fact]
+        [Fact, Obsolete("Testing obsolete API")]
         public void ParseTreeWithChangesPreservesDiagnosticOptions()
         {
             var options = CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress));
@@ -142,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(options, newTree.DiagnosticOptions);
         }
 
-        [Fact]
+        [Fact, Obsolete("Testing obsolete API")]
         public void ParseTreeNullDiagnosticOptions()
         {
             var tree = CSharpSyntaxTree.ParseText(
@@ -158,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotSame(ImmutableDictionary<string, ReportDiagnostic>.Empty, tree.DiagnosticOptions);
         }
 
-        [Fact]
+        [Fact, Obsolete("Testing obsolete API")]
         public void ParseTreeEmptyDiagnosticOptions()
         {
             var tree = CSharpSyntaxTree.ParseText(
@@ -173,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(ImmutableDictionary<string, ReportDiagnostic>.Empty, tree.DiagnosticOptions);
         }
 
-        [Fact]
+        [Fact, Obsolete("Testing obsolete API")]
         public void ParseTreeCustomDiagnosticOptions()
         {
             var options = CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress));
@@ -187,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(options, tree.DiagnosticOptions);
         }
 
-        [Fact]
+        [Fact, Obsolete("Testing obsolete API")]
         public void DefaultTreeDiagnosticOptions()
         {
             var tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit());
@@ -195,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(tree.DiagnosticOptions.IsEmpty);
         }
 
-        [Fact]
+        [Fact, Obsolete("Testing obsolete API")]
         public void WithDiagnosticOptionsNull()
         {
             var tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit());
@@ -205,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(tree, newTree);
         }
 
-        [Fact]
+        [Fact, Obsolete("Testing obsolete API")]
         public void WithDiagnosticOptionsEmpty()
         {
             var tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit());
@@ -216,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotSame(tree.DiagnosticOptions, newTree.DiagnosticOptions);
         }
 
-        [Fact]
+        [Fact, Obsolete("Testing obsolete API")]
         public void PerTreeDiagnosticOptionsNewDict()
         {
             var tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit());
@@ -227,7 +234,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(map, newTree.DiagnosticOptions);
             Assert.NotEqual(tree, newTree);
         }
-#pragma warning restore CS0618
 
         [Fact]
         public void WithRootAndOptions_ParsedTree()
@@ -248,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void WithRootAndOptions_ParsedTreeWithText()
         {
-            var oldText = SourceText.From("class B {}", Encoding.Unicode, SourceHashAlgorithm.Sha256);
+            var oldText = SourceText.From("class B {}", Encoding.Unicode, SourceHashAlgorithms.Default);
             var oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
 
             var newRoot = SyntaxFactory.ParseCompilationUnit("class C {}");
@@ -259,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(newRoot.ToString(), newTree.GetRoot().ToString());
             Assert.Same(newOptions, newTree.Options);
             Assert.Same(Encoding.Unicode, newText.Encoding);
-            Assert.Equal(SourceHashAlgorithm.Sha256, newText.ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithms.Default, newText.ChecksumAlgorithm);
         }
 
         [Fact]
@@ -290,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void WithFilePath_ParsedTreeWithText()
         {
-            var oldText = SourceText.From("class B {}", Encoding.Unicode, SourceHashAlgorithm.Sha256);
+            var oldText = SourceText.From("class B {}", Encoding.Unicode, SourceHashAlgorithms.Default);
             var oldTree = SyntaxFactory.ParseSyntaxTree(oldText, path: "old.cs");
 
             var newTree = oldTree.WithFilePath("new.cs");
@@ -300,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(oldTree.ToString(), newTree.ToString());
 
             Assert.Same(Encoding.Unicode, newText.Encoding);
-            Assert.Equal(SourceHashAlgorithm.Sha256, newText.ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithms.Default, newText.ChecksumAlgorithm);
         }
 
         [Fact]
@@ -321,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             oldTree = SyntaxFactory.ParseSyntaxTree("", path: "old.cs");
             Assert.Equal(string.Empty, oldTree.WithFilePath(null).FilePath);
             Assert.Equal(string.Empty, SyntaxFactory.ParseSyntaxTree("", path: null).FilePath);
-            Assert.Equal(string.Empty, CSharpSyntaxTree.Create((CSharpSyntaxNode)oldTree.GetRoot(), path: null).FilePath);
+            Assert.Equal(string.Empty, CSharpSyntaxTree.Create((CSharpSyntaxNode)oldTree.GetRoot()).FilePath);
         }
 
         [Fact]
