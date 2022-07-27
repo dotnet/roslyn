@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private static SyntaxNode ReplaceAnonymousWithLocalFunction(
-            HostWorkspaceServices services, SyntaxNode currentRoot,
+            HostSolutionServices services, SyntaxNode currentRoot,
             LocalDeclarationStatementSyntax localDeclaration, AnonymousFunctionExpressionSyntax anonymousFunction,
             IMethodSymbol delegateMethod, ParameterListSyntax parameterList, bool makeStatic)
         {

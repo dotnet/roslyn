@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             using var _ = ArrayBuilder<ReferencedSymbol>.GetInstance(out var result);
             foreach (var reference in references)
             {
-                var isCaseSensitive = solution.Services.GetLanguageServices(reference.Definition.Language).GetRequiredService<ISyntaxFactsService>().IsCaseSensitive;
+                var isCaseSensitive = solution.Services.GetProjectServices(reference.Definition.Language).GetRequiredService<ISyntaxFactsService>().IsCaseSensitive;
                 var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
                 if (reference.Definition.IsOrdinaryMethod() &&
                     !comparer.Equals(reference.Definition.Name, symbol.Name))

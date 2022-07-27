@@ -25,7 +25,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
                 End If
 
                 Dim document = If(Not useLastProject, workspace.CurrentSolution.Projects.Single(), workspace.CurrentSolution.Projects.Last()).Documents.Single()
-                Dim languageServices = document.Project.LanguageServices
 
                 Dim root = Await document.GetSyntaxRootAsync()
 

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal abstract partial class CommonCompletionService : CompletionService
     {
-        protected CommonCompletionService(HostWorkspaceServices services)
+        protected CommonCompletionService(HostSolutionServices services)
             : base(services)
         {
         }

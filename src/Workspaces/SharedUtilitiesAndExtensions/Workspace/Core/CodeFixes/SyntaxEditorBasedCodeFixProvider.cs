@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
+            var editor = document.GetSyntaxEditor(root);
 
             await editAsync(editor).ConfigureAwait(false);
 

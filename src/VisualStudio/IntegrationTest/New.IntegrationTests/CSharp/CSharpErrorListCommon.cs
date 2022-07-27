@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/61367")]
         public virtual async Task ErrorList()
         {
             await TestServices.Editor.SetTextAsync(@"

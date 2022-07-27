@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     var result = await client.TryInvokeAsync<IRemoteConvertTupleToStructCodeRefactoringService, SerializableConvertTupleToStructResult>(
                         solution,
                         (service, solutionInfo, callbackId, cancellationToken) => service.ConvertToStructAsync(solutionInfo, callbackId, document.Id, span, scope, isRecord, cancellationToken),
-                        callbackTarget: new RemoteOptionsProvider<CleanCodeGenerationOptions>(solution.Services, fallbackOptions),
+                        callbackTarget: new RemoteOptionsProvider<CleanCodeGenerationOptions>(solution.Workspace.Services, fallbackOptions),
                         cancellationToken).ConfigureAwait(false);
 
                     if (!result.HasValue)
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 var project = group.Key;
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                var generator = project.LanguageServices.GetRequiredService<SyntaxGenerator>();
+                var generator = project.Services.GetRequiredService<SyntaxGenerator>();
 
                 // Get the fully qualified name for the new type we're creating.  We'll use this
                 // at replacement points so that we can find the right type even if we're in a 
