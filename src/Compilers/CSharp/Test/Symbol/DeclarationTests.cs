@@ -463,6 +463,9 @@ public class b
                 get { return _underlyingTree.Encoding; }
             }
 
+            public override SourceHashAlgorithm ChecksumAlgorithm
+                => _underlyingTree.ChecksumAlgorithm;
+
             public override int Length
             {
                 get { return _underlyingTree.Length; }

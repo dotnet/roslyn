@@ -102,6 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     get { return _info.Encoding; }
                 }
 
+                public override SourceHashAlgorithm ChecksumAlgorithm
+                    => _info.ChecksumAlgorithm;
+
                 private CompilationUnitSyntax CacheRootNode(CompilationUnitSyntax node)
                     => _projectCacheService.CacheObjectIfCachingEnabledForKey(_cacheKey, this, node);
 

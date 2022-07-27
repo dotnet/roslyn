@@ -103,6 +103,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Get
                 End Property
 
+                Public Overrides ReadOnly Property ChecksumAlgorithm As SourceHashAlgorithm
+                    Get
+                        Return _info.ChecksumAlgorithm
+                    End Get
+                End Property
+
                 Public Overrides Function TryGetRoot(ByRef root As VisualBasicSyntaxNode) As Boolean
                     Dim compilationRoot As CompilationUnitSyntax = Nothing
                     Dim status = _recoverableRoot.TryGetValue(compilationRoot)

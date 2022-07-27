@@ -57,6 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 get { return _text.Encoding; }
             }
 
+            public override SourceHashAlgorithm ChecksumAlgorithm
+                => _text.ChecksumAlgorithm;
+
             public override int Length
             {
                 get { return _text.Length; }

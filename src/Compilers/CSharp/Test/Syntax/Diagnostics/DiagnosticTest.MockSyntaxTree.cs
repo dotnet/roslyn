@@ -44,6 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
             }
 
+            public override SourceHashAlgorithm ChecksumAlgorithm
+                => throw new NotImplementedException();
+
             public override int Length
             {
                 get { throw new NotImplementedException(); }

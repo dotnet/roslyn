@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal sealed class DummySyntaxTree : CSharpSyntaxTree
         {
-            private const SourceHashAlgorithm ChecksumAlgorithm = SourceHashAlgorithm.Sha256;
-
             private readonly CompilationUnitSyntax _node;
 
             public DummySyntaxTree()
@@ -45,6 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get { return Encoding.UTF8; }
             }
+
+            public override SourceHashAlgorithm ChecksumAlgorithm
+                => SourceHashAlgorithm.Sha256;
 
             public override int Length
             {

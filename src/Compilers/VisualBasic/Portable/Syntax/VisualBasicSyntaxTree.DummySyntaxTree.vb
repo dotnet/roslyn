@@ -13,8 +13,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Class DummySyntaxTree
             Inherits VisualBasicSyntaxTree
 
-            Private Const ChecksumAlgorithm As SourceHashAlgorithm = SourceHashAlgorithm.Sha256
-
             Private ReadOnly _node As CompilationUnitSyntax
 
             Public Sub New()
@@ -37,6 +35,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides ReadOnly Property Encoding As Encoding
                 Get
                     Return Encoding.UTF8
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property ChecksumAlgorithm As SourceHashAlgorithm
+                Get
+                    Return SourceHashAlgorithm.Sha256
                 End Get
             End Property
 

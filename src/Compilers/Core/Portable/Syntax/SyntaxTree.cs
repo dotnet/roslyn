@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary.Create<string, ReportDiagnostic>(CaseInsensitiveComparison.Comparer);
 
         private ImmutableArray<byte> _lazyChecksum;
-        private SourceHashAlgorithm _lazyHashAlgorithm;
 
         /// <summary>
         /// The path of the source document file.
@@ -101,6 +100,11 @@ namespace Microsoft.CodeAnalysis
         /// The text encoding of the source document.
         /// </summary>
         public abstract Encoding? Encoding { get; }
+
+        /// <summary>
+        /// Hash algorithm used to calculate checksum of the content of the source document.
+        /// </summary>
+        public abstract SourceHashAlgorithm ChecksumAlgorithm { get; }
 
         /// <summary>
         /// Useful information about this tree that is stored for source-generator scenarios.  Allows the incremental
@@ -357,17 +361,14 @@ namespace Microsoft.CodeAnalysis
         {
             if (_lazyChecksum.IsDefault)
             {
-                var text = this.GetText();
-                _lazyChecksum = text.GetChecksum();
-                _lazyHashAlgorithm = text.ChecksumAlgorithm;
+                _lazyChecksum = GetText().GetChecksum();
             }
 
             Debug.Assert(!_lazyChecksum.IsDefault);
-            Debug.Assert(_lazyHashAlgorithm != default(SourceHashAlgorithm));
 
             // NOTE: If this tree is to be embedded, it's debug source info should have
             // been obtained via EmbeddedText.GetDebugSourceInfo() and not here.
-            return new Cci.DebugSourceInfo(_lazyChecksum, _lazyHashAlgorithm);
+            return new Cci.DebugSourceInfo(_lazyChecksum, ChecksumAlgorithm);
         }
 
         /// <summary>

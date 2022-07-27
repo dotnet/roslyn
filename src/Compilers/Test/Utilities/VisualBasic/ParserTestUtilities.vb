@@ -530,6 +530,12 @@ Public Module VerificationHelpers
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ChecksumAlgorithm As SourceHashAlgorithm
+            Get
+                Throw New NotImplementedException()
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Length As Integer
             Get
                 Return 0

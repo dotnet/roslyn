@@ -63,6 +63,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
+            Public Overrides ReadOnly Property ChecksumAlgorithm As SourceHashAlgorithm
+                Get
+                    Return _text.ChecksumAlgorithm
+                End Get
+            End Property
+
             Public Overrides ReadOnly Property Length As Integer
                 Get
                     Return _text.Length
