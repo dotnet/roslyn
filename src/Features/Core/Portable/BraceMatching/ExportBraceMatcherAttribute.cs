@@ -5,13 +5,13 @@
 #nullable disable
 
 using System;
-using System.ComponentModel.Composition;
+using System.Composition;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.BraceMatching
 {
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportBraceMatcherAttribute : ExportAttribute
+    internal sealed class ExportBraceMatcherAttribute : ExportAttribute
     {
         public string Language { get; }
 

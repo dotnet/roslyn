@@ -3,13 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Composition;
+using System.Composition;
+using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
 {
-    [ExportBraceMatcher(LanguageNames.CSharp)]
+    [ExportBraceMatcher(LanguageNames.CSharp), Shared]
     internal class OpenCloseParenBraceMatcher : AbstractCSharpBraceMatcher
     {
         [ImportingConstructor]

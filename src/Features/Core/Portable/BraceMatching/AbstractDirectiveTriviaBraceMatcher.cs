@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.BraceMatching
 {
     internal abstract class AbstractDirectiveTriviaBraceMatcher<TDirectiveTriviaSyntax,
         TIfDirectiveTriviaSyntax, TElseIfDirectiveTriviaSyntax,

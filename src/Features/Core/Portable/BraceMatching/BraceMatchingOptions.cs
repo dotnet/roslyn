@@ -5,7 +5,7 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.BraceMatching
 {
     [DataContract]
     internal readonly record struct BraceMatchingOptions(

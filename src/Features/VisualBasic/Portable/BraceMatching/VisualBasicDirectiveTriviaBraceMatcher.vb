@@ -2,15 +2,15 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.ComponentModel.Composition
+Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.BraceMatching
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
-
-    <ExportBraceMatcher(LanguageNames.VisualBasic)>
+Namespace Microsoft.CodeAnalysis.VisualBasic.BraceMatching
+    <ExportBraceMatcher(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicDirectiveTriviaBraceMatcher
         Inherits AbstractDirectiveTriviaBraceMatcher(Of DirectiveTriviaSyntax,
              IfDirectiveTriviaSyntax, IfDirectiveTriviaSyntax,

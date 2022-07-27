@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
+using System.Composition;
 using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
 {
-    [ExportBraceMatcher(LanguageNames.CSharp)]
+    [ExportBraceMatcher(LanguageNames.CSharp), Shared]
     internal class CSharpEmbeddedLanguageBraceMatcher : AbstractEmbeddedLanguageBraceMatcher
     {
         [ImportingConstructor]

@@ -7,16 +7,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.BraceMatching
 {
-    [Export(typeof(IBraceMatchingService))]
+    [Export(typeof(IBraceMatchingService)), Shared]
     internal class BraceMatchingService : IBraceMatchingService
     {
         private readonly ImmutableArray<Lazy<IBraceMatcher, LanguageMetadata>> _braceMatchers;

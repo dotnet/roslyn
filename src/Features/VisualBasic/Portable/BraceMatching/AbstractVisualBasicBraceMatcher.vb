@@ -4,7 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.BraceMatching
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
+Namespace Microsoft.CodeAnalysis.VisualBasic.BraceMatching
     Friend Class AbstractVisualBasicBraceMatcher
         Inherits AbstractBraceMatcher
 
