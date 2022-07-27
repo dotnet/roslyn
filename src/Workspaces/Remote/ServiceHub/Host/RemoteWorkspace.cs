@@ -126,9 +126,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will
             // increment the ref count of that solution until we release it at the end of our using block.
-            using var refCountedSolution = await GetOrCreateSolutionAsync(
+            using var solutionAndInFlightCount = await GetOrCreateSolutionAsync(
                 assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch, cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfTrue(refCountedSolution.RefCount < 1);
+            Contract.ThrowIfTrue(solutionAndInFlightCount.InFlightCount < 1);
 
             // Store this around so that if another call comes through for this same checksum, they will see the
             // solution we just computed, even if we have returned.  This also ensures that if we promoted a
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return (newSolution, result);
         }
 
-        private async ValueTask<ChecksumToSolutionCache.RefCountedSolution> GetOrCreateSolutionAsync(
+        private async ValueTask<ChecksumToSolutionCache.SolutionAndInFlightCount> GetOrCreateSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             int workspaceVersion,

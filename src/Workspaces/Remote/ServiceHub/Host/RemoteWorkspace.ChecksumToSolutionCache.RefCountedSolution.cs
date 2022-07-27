@@ -11,25 +11,31 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed partial class RemoteWorkspace
     {
-private sealed partial class ChecksumToSolutionCache
+        private sealed partial class ChecksumToSolutionCache
         {
             /// <summary>
-            /// Ref counted wrapper around asynchronously produced solution.  The computation for producing the solution
-            /// will be canceled when the ref-count goes to 0.
+            /// Wrapper around asynchronously produced solution.  The computation for producing the solution will be
+            /// canceled when the number of in-flight operations using it goes down to 0.
             /// </summary>
-            public sealed class RefCountedSolution : IDisposable
+            public sealed class SolutionAndInFlightCount
             {
                 private readonly ChecksumToSolutionCache _cache;
                 private readonly Checksum _solutionChecksum;
 
                 private readonly CancellationTokenSource _cancellationTokenSource = new();
 
-                private int _refCount = 0;
+                private int _inFlightCount = 0;
+
+                /// <summary>
+                /// True if our _inFlightCount went to 0 and we canceled <see cref="_cancellationTokenSource"/>.  At
+                /// this point this instance is no longer usable.
+                /// </summary>
+                private bool _discarded;
 
                 // For assertion purposes.
-                public int RefCount => _refCount;
+                public int InFlightCount => _inFlightCount;
 
-                public RefCountedSolution(
+                public SolutionAndInFlightCount(
                     ChecksumToSolutionCache cache,
                     Checksum solutionChecksum,
                     Func<CancellationToken, Task<Solution>> getSolutionAsync)
@@ -41,39 +47,43 @@ private sealed partial class ChecksumToSolutionCache
 
                 public Task<Solution> Task { get; }
 
-                public void AddReference_TakeLock()
+                public void IncrementInFlightCount()
                 {
                     using (_cache._gate.DisposableWait(CancellationToken.None))
                     {
-                        AddReference_WhileAlreadyHoldingLock();
+                        IncrementInFlightCount_WhileAlreadyHoldingLock();
                     }
                 }
 
-                public void AddReference_WhileAlreadyHoldingLock()
+                public void IncrementInFlightCount_WhileAlreadyHoldingLock()
                 {
+                    Contract.ThrowIfTrue(_discarded);
                     Contract.ThrowIfFalse(_cache._gate.CurrentCount == 0);
-                    Contract.ThrowIfTrue(_refCount < 1);
-                    _refCount++;
+                    Contract.ThrowIfTrue(_inFlightCount < 1);
+                    _inFlightCount++;
                 }
 
-                public void Dispose()
+                public void DecrementInFlightCount()
                 {
                     using (_cache._gate.DisposableWait(CancellationToken.None))
                     {
-                        Release_WhileAlreadyHoldingLock();
+                        Contract.ThrowIfTrue(_discarded);
+                        DecrementInFlightCount_WhileAlreadyHoldingLock();
                     }
                 }
 
-                public void Release_WhileAlreadyHoldingLock()
+                public void DecrementInFlightCount_WhileAlreadyHoldingLock()
                 {
                     Contract.ThrowIfFalse(_cache._gate.CurrentCount == 0);
-                    Contract.ThrowIfTrue(_refCount < 1);
-                    _refCount--;
-                    if (_refCount == 0)
+                    Contract.ThrowIfTrue(_inFlightCount < 1);
+                    _inFlightCount--;
+                    if (_inFlightCount == 0)
                     {
+                        _discarded = true;
                         _cancellationTokenSource.Cancel();
                         _cancellationTokenSource.Dispose();
 
+                        Contract.ThrowIfTrue(_cache._lastRequestedSolution == this);
                         Contract.ThrowIfFalse(_cache._solutionChecksumToSolution.TryGetValue(_solutionChecksum, out var existingSolution));
                         Contract.ThrowIfFalse(existingSolution == this);
                         _cache._solutionChecksumToSolution.Remove(_solutionChecksum);

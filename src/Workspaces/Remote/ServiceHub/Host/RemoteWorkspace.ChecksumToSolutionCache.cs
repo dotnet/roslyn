@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis.Remote
             private readonly SemaphoreSlim _gate;
 
             /// <summary>
-            /// The last checksum and solution requested by a service. This effectively adds an additional ref count to
-            /// one of the items in <see cref="_solutionChecksumToSolution"/> ensuring that the very last solution
-            /// requested is kept alive by us, even if there are no active requests currently in progress for that
-            /// solution.  That way if we have two non-concurrent requests for that same solution, with no intervening
-            /// updates, we can cache and keep the solution around instead of having to recompute it.
+            /// The last checksum and solution requested by a service. This effectively adds an additional in-flight
+            /// count to one of the items in <see cref="_solutionChecksumToSolution"/> ensuring that the very last
+            /// solution requested is kept alive by us, even if there are no active requests currently in progress for
+            /// that solution.  That way if we have two non-concurrent requests for that same solution, with no
+            /// intervening updates, we can cache and keep the solution around instead of having to recompute it.
             /// </summary>
             private Checksum? _lastRequestedChecksum;
-            private RefCountedSolution? _lastRequestedSolution;
+            private SolutionAndInFlightCount? _lastRequestedSolution;
 
             /// <summary>
             /// Mapping from solution-checksum to the solution computed for it.  This is used so that we can hold a
@@ -40,14 +40,14 @@ namespace Microsoft.CodeAnalysis.Remote
             /// classification).  As long as we're holding onto it, concurrent feature requests for the same solution
             /// checksum can share the computation of that particular solution and avoid duplicated concurrent work.
             /// </summary>
-            private readonly Dictionary<Checksum, RefCountedSolution> _solutionChecksumToSolution = new();
+            private readonly Dictionary<Checksum, SolutionAndInFlightCount> _solutionChecksumToSolution = new();
 
             public ChecksumToSolutionCache(SemaphoreSlim gate)
             {
                 _gate = gate;
             }
 
-            public async ValueTask<RefCountedSolution?> TryFastGetSolutionAndAddRefAsync(
+            public async ValueTask<SolutionAndInFlightCount?> TryFastGetSolutionAndAddInFlightCountAsync(
                 Checksum solutionChecksum,
                 CancellationToken cancellationToken)
             {
@@ -56,24 +56,23 @@ namespace Microsoft.CodeAnalysis.Remote
                     // From this point on we are mutating state.  Ensure we absolutely do not cancel accidentally.
                     cancellationToken = default;
 
-                    var refCountedSolution = TryFastGetSolution_NoLock_NoRefCountChange(solutionChecksum);
+                    var solution = TryFastGetSolution_NoLock_NoInFlightCountChange(solutionChecksum);
 
-                    if (refCountedSolution != null)
+                    if (solution != null)
                     {
-                        // We are holding the solution ourself.  So it must have a legal refcount.
-                        Contract.ThrowIfTrue(refCountedSolution.RefCount < 1);
+                        Contract.ThrowIfTrue(solution.InFlightCount < 0);
 
-                        // Increase the ref count as our caller now owns a ref to this solution as well.
-                        refCountedSolution.AddReference_WhileAlreadyHoldingLock();
+                        // Increase the count as our caller now is keeping this solution in-flight
+                        solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
 
-                        Contract.ThrowIfTrue(refCountedSolution.RefCount < 2);
+                        Contract.ThrowIfTrue(solution.InFlightCount < 1);
                     }
 
-                    return refCountedSolution;
+                    return solution;
                 }
             }
 
-            public RefCountedSolution? TryFastGetSolution_NoLock_NoRefCountChange(
+            public SolutionAndInFlightCount? TryFastGetSolution_NoLock_NoInFlightCountChange(
                 Checksum solutionChecksum)
             {
                 Contract.ThrowIfFalse(_gate.CurrentCount == 0);
@@ -83,22 +82,22 @@ namespace Microsoft.CodeAnalysis.Remote
                     // If we had a checksum match, then we must have a cached solution.
                     Contract.ThrowIfNull(_lastRequestedSolution);
 
-                    // The cached solution must have a valid ref count.
-                    Contract.ThrowIfTrue(_lastRequestedSolution.RefCount < 1);
+                    // The cached solution must have a valid in-flight count
+                    Contract.ThrowIfTrue(_lastRequestedSolution.InFlightCount < 0);
                     return _lastRequestedSolution;
                 }
 
-                if (_solutionChecksumToSolution.TryGetValue(solutionChecksum, out var refCountedSolution))
+                if (_solutionChecksumToSolution.TryGetValue(solutionChecksum, out var solution))
                 {
-                    // The cached solution must have a valid ref count.
-                    Contract.ThrowIfTrue(refCountedSolution.RefCount < 1);
-                    return refCountedSolution;
+                    // The cached solution must have a valid in-flight count
+                    Contract.ThrowIfTrue(solution.InFlightCount < 0);
+                    return solution;
                 }
 
                 return null;
             }
 
-            public async ValueTask<RefCountedSolution> SlowGetOrCreateSolutionAndAddRefAsync(
+            public async ValueTask<SolutionAndInFlightCount> SlowGetOrCreateSolutionAndAddInFlightCountAsync(
                 Checksum solutionChecksum, Func<CancellationToken, Task<Solution>> getSolutionAsync, CancellationToken cancellationToken)
             {
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
@@ -107,60 +106,54 @@ namespace Microsoft.CodeAnalysis.Remote
                     cancellationToken = default;
 
                     // see if someone already raced with us and set the solution in the cache while we were waiting on the lock.
-                    var refCountedSolution = TryFastGetSolution_NoLock_NoRefCountChange(solutionChecksum);
-                    if (refCountedSolution == null)
+                    var solution = TryFastGetSolution_NoLock_NoInFlightCountChange(solutionChecksum);
+                    if (solution == null)
                     {
                         // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
-                        // refcount of 0.
-                        refCountedSolution = new RefCountedSolution(this, solutionChecksum, getSolutionAsync);
-                        Contract.ThrowIfFalse(refCountedSolution.RefCount == 0);
+                        // in-flight count of 0.
+                        solution = new SolutionAndInFlightCount(this, solutionChecksum, getSolutionAsync);
+                        Contract.ThrowIfFalse(solution.InFlightCount == 0);
 
-                        // Add a ref count to represent being held by us.
-                        refCountedSolution.AddReference_WhileAlreadyHoldingLock();
-                        Contract.ThrowIfFalse(refCountedSolution.RefCount == 1);
-
-                        _solutionChecksumToSolution.Add(solutionChecksum, refCountedSolution);
+                        _solutionChecksumToSolution.Add(solutionChecksum, solution);
                     }
 
-                    // We are holding the solution ourself.  So it must have a legal refcount.
-                    Contract.ThrowIfTrue(refCountedSolution.RefCount < 1);
+                    // Increase the count as our caller now is keeping this solution in-flight
+                    Contract.ThrowIfFalse(solution.InFlightCount < 0);
+                    solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
+                    Contract.ThrowIfFalse(solution.InFlightCount < 1);
 
-                    // Increase the ref count as our caller now owns a ref to this solution as well.
-                    refCountedSolution.AddReference_WhileAlreadyHoldingLock();
-                    Contract.ThrowIfTrue(refCountedSolution.RefCount < 2);
-
-                    return refCountedSolution;
+                    return solution;
                 }
             }
 
-            public async Task SetLastRequestedSolutionAsync(Checksum solutionChecksum, RefCountedSolution refCountedSolution, CancellationToken cancellationToken)
+            public async Task SetLastRequestedSolutionAsync(Checksum solutionChecksum, SolutionAndInFlightCount solution, CancellationToken cancellationToken)
             {
-                // The solution being passed in must have a valid ref count since the caller is holding onto it.
-                Contract.ThrowIfTrue(refCountedSolution.RefCount < 1);
+                // The solution being passed in must have a valid in-flight count since the caller currently has it in flight
+                Contract.ThrowIfTrue(solution.InFlightCount < 1);
 
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     // From this point on we are mutating state.  Ensure we absolutely do not cancel accidentally.
                     cancellationToken = default;
 
-                    // Keep track of the existing solution so we can release the ref on it once done.
+                    // Keep track of the existing solution so we can release the count on it once done.
                     var solutionToRelease = _lastRequestedSolution;
 
-                    // Increase the ref count as we are now holding onto this solution as well.
-                    refCountedSolution.AddReference_WhileAlreadyHoldingLock();
+                    // Increase the in-flight count as we are now holding onto this solution as well.
+                    solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
 
-                    // At this point our caller has a ref and we have a ref, so we must at least have a ref count of 2.
-                    Contract.ThrowIfTrue(refCountedSolution.RefCount < 2);
+                    // At this point our caller has upped the in-flight count and we have upped it as well, so we must at least have a count of 2.
+                    Contract.ThrowIfTrue(solution.InFlightCount < 2);
 
-                    (_lastRequestedSolution, _lastRequestedChecksum) = (refCountedSolution, solutionChecksum);
+                    (_lastRequestedSolution, _lastRequestedChecksum) = (solution, solutionChecksum);
 
-                    // Release the ref count on the last solution we were pointing at.  If we were the last reference to
-                    // it, it will get removed from the cache.
+                    // Release the in-flight count on the last solution we were pointing at.  If we were the last count
+                    // on it then it will get removed from the cache.
                     if (solutionToRelease != null)
                     {
-                        // If were holding onto this solution, it must have a legal refcount.
-                        Contract.ThrowIfTrue(solutionToRelease.RefCount < 1);
-                        solutionToRelease?.Release_WhileAlreadyHoldingLock();
+                        // If were holding onto this solution, it must have a legal in-flight count..
+                        Contract.ThrowIfTrue(solutionToRelease.InFlightCount < 1);
+                        solutionToRelease.DecrementInFlightCount_WhileAlreadyHoldingLock();
                     }
                 }
             }
