@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static void TestProperty<T, TValue>(T instance, Func<T, TValue, T> factory, Func<T, TValue> getter, TValue validNonDefaultValue, bool defaultThrows = false)
             where T : class
         {
-            Assert.NotEqual<TValue>(default, validNonDefaultValue);
+            Assert.NotEqual(getter(instance), validNonDefaultValue);
 
             var instanceWithValue = factory(instance, validNonDefaultValue);
             Assert.Equal(validNonDefaultValue, getter(instanceWithValue));

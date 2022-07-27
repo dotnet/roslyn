@@ -92,14 +92,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 var documentId = DocumentId.CreateNewId(_project.Id, fullPath);
-                var textLoader = new FileTextLoader(fullPath, defaultEncoding: null);
+                var textLoader = new FileTextLoader(fullPath, defaultEncoding: null, _project.ChecksumAlgorithm);
                 var documentInfo = DocumentInfo.Create(
                     documentId,
-                    FileNameUtilities.GetFileName(fullPath),
-                    folders: folders.IsDefault ? null : folders,
-                    sourceCodeKind: sourceCodeKind,
+                    name: FileNameUtilities.GetFileName(fullPath),
                     loader: textLoader,
                     filePath: fullPath,
+                    checksumAlgorithm: _project.ChecksumAlgorithm,
+                    sourceCodeKind: sourceCodeKind,
+                    folders: folders.IsDefault ? null : folders,
                     isGenerated: false);
 
                 using (_project._gate.DisposableWait())
@@ -129,7 +130,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return documentId;
             }
 
-            public DocumentId AddTextContainer(SourceTextContainer textContainer, string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders, bool designTimeOnly, IDocumentServiceProvider? documentServiceProvider)
+            public DocumentId AddTextContainer(
+                SourceTextContainer textContainer,
+                SourceHashAlgorithm checksumAlgorithm,
+                string fullPath,
+                SourceCodeKind sourceCodeKind,
+                ImmutableArray<string> folders,
+                bool designTimeOnly,
+                IDocumentServiceProvider? documentServiceProvider)
             {
                 if (textContainer == null)
                 {
@@ -141,10 +149,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var documentInfo = DocumentInfo.Create(
                     documentId,
                     FileNameUtilities.GetFileName(fullPath),
-                    folders: folders.NullToEmpty(),
-                    sourceCodeKind: sourceCodeKind,
                     loader: textLoader,
                     filePath: fullPath,
+                    folders: folders.NullToEmpty(),
+                    checksumAlgorithm: checksumAlgorithm,
+                    sourceCodeKind: sourceCodeKind,
                     isGenerated: false,
                     designTimeOnly: designTimeOnly,
                     documentServiceProvider: documentServiceProvider);
@@ -401,7 +410,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             // the batch, since those have already been removed out of _documentPathsToDocumentIds.
                             if (!_documentsAddedInBatch.Any(d => d.Id == documentId))
                             {
-                                documentsToChange.Add((documentId, new FileTextLoader(filePath, defaultEncoding: null)));
+                                documentsToChange.Add((documentId, new FileTextLoader(filePath, defaultEncoding: null, _project.ChecksumAlgorithm)));
                             }
                         }
                     }
@@ -473,18 +482,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 _project.Id, _project._filePath, projectSystemFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
                             // Right now we're only supporting dynamic files as actual source files, so it's OK to call GetDocument here
-                            var document = w.CurrentSolution.GetRequiredDocument(documentId);
+                            var attributes = w.CurrentSolution.GetRequiredDocument(documentId).State.Attributes;
 
-                            var documentInfo = DocumentInfo.Create(
-                                document.Id,
-                                document.Name,
-                                document.Folders,
-                                document.SourceCodeKind,
-                                loader: fileInfo.TextLoader,
-                                document.FilePath,
-                                document.State.Attributes.IsGenerated,
-                                document.State.Attributes.DesignTimeOnly,
-                                documentServiceProvider: fileInfo.DocumentServiceProvider);
+                            var documentInfo = new DocumentInfo(attributes, fileInfo.TextLoader, fileInfo.DocumentServiceProvider);
 
                             w.OnDocumentReloaded(documentInfo);
                         });
@@ -592,10 +592,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return DocumentInfo.Create(
                     documentId,
                     name,
-                    folders: folders,
-                    sourceCodeKind: fileInfo.SourceCodeKind,
                     loader: textLoader,
                     filePath: filePath,
+                    checksumAlgorithm: SourceHashAlgorithm.Sha256,
+                    folders: folders,
+                    sourceCodeKind: fileInfo.SourceCodeKind,
                     isGenerated: false,
                     designTimeOnly: true,
                     documentServiceProvider: documentServiceProvider);

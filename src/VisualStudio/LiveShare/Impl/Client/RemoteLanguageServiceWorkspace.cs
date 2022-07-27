@@ -329,15 +329,27 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             var project = CurrentSolution.Projects.FirstOrDefault(p => p.Name == projectName && p.Language == language);
             if (project == null)
             {
-                var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), projectName, projectName, language);
+                var projectInfo = ProjectInfo.Create(
+                    new ProjectInfo.ProjectAttributes(
+                        ProjectId.CreateNewId(),
+                        VersionStamp.Create(),
+                        name: projectName,
+                        assemblyName: projectName,
+                        language,
+                        compilationOutputFilePaths: default,
+                        checksumAlgorithm: SourceHashAlgorithm.Sha256));
+
                 OnProjectAdded(projectInfo);
                 project = CurrentSolution.GetRequiredProject(projectInfo.Id);
             }
 
-            var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(project.Id),
-                                                  name: Path.GetFileName(filePath),
-                                                  loader: new FileTextLoader(filePath, null),
-                                                  filePath: filePath);
+            var docInfo = DocumentInfo.Create(
+                DocumentId.CreateNewId(project.Id),
+                name: Path.GetFileName(filePath),
+                loader: new FileTextLoader(filePath, defaultEncoding: null, project.State.ChecksumAlgorithm),
+                filePath: filePath,
+                checksumAlgorithm: project.State.ChecksumAlgorithm);
+
             OnDocumentAdded(docInfo);
             return CurrentSolution.GetDocument(docInfo.Id)!;
         }

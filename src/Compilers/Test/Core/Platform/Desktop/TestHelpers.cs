@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Win32;
 using Basic.Reference.Assemblies;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Test.Utilities
 {
@@ -79,7 +80,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
 
             var analyzerCompilation = CSharpCompilation.Create(
                 assemblyName,
-                new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(analyzerSource) },
+                new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(SourceText.From(analyzerSource, encoding: null, SourceHashAlgorithm.Sha256)) },
                 new MetadataReference[]
                 {
                     NetStandard20.mscorlib,

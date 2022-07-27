@@ -123,12 +123,13 @@ namespace Microsoft.CodeAnalysis
                 var id = DocumentId.CreateNewId(projectId, absolutePath);
 
                 var doc = DocumentInfo.Create(
-                   id: id,
-                   name: name,
+                   id,
+                   name,
+                   new FileTextLoader(absolutePath, commandLineArguments.Encoding, commandLineArguments.ChecksumAlgorithm),
+                   absolutePath,
+                   commandLineArguments.ChecksumAlgorithm,
                    folders: folders,
-                   sourceCodeKind: fileArg.IsScript ? SourceCodeKind.Script : SourceCodeKind.Regular,
-                   loader: new FileTextLoader(absolutePath, commandLineArguments.Encoding),
-                   filePath: absolutePath);
+                   sourceCodeKind: fileArg.IsScript ? SourceCodeKind.Script : SourceCodeKind.Regular);
 
                 docs.Add(doc);
             }
@@ -152,10 +153,10 @@ namespace Microsoft.CodeAnalysis
                 var doc = DocumentInfo.Create(
                    id: id,
                    name: name,
-                   folders: folders,
-                   sourceCodeKind: SourceCodeKind.Regular,
-                   loader: new FileTextLoader(absolutePath, commandLineArguments.Encoding),
-                   filePath: absolutePath);
+                   loader: new FileTextLoader(absolutePath, commandLineArguments.Encoding, commandLineArguments.ChecksumAlgorithm),
+                   filePath: absolutePath,
+                   checksumAlgorithm: commandLineArguments.ChecksumAlgorithm,
+                   folders: folders);
 
                 additionalDocs.Add(doc);
             }
@@ -170,11 +171,14 @@ namespace Microsoft.CodeAnalysis
             // TODO (tomat): what should be the assemblyName when compiling a netmodule? Should it be /moduleassemblyname
 
             var projectInfo = ProjectInfo.Create(
-                projectId,
-                VersionStamp.Create(),
-                projectName,
-                assemblyName,
-                language: language,
+                new ProjectInfo.ProjectAttributes(
+                    id: projectId,
+                    version: VersionStamp.Create(),
+                    name: projectName,
+                    assemblyName: assemblyName,
+                    language: language,
+                    compilationOutputFilePaths: new CompilationOutputInfo(commandLineArguments.OutputFileName != null ? commandLineArguments.GetOutputFilePath(commandLineArguments.OutputFileName) : null),
+                    checksumAlgorithm: commandLineArguments.ChecksumAlgorithm),
                 compilationOptions: commandLineArguments.CompilationOptions
                     .WithXmlReferenceResolver(xmlFileResolver)
                     .WithAssemblyIdentityComparer(assemblyIdentityComparer)
@@ -183,9 +187,12 @@ namespace Microsoft.CodeAnalysis
                     .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(ImmutableArray<string>.Empty, projectDirectory))),
                 parseOptions: commandLineArguments.ParseOptions,
                 documents: docs,
-                additionalDocuments: additionalDocs,
+                projectReferences: null,
                 metadataReferences: boundMetadataReferences,
-                analyzerReferences: boundAnalyzerReferences);
+                analyzerReferences: boundAnalyzerReferences,
+                additionalDocuments: additionalDocs,
+                analyzerConfigDocuments: null,
+                hostObjectType: null);
 
             return projectInfo;
         }

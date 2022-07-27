@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private class ReuseVersionLoader : TextLoader
+        private sealed class ReuseVersionLoader : TextLoader
         {
             // Capture DocumentState instead of Document so that we don't hold onto the old solution.
             private readonly DocumentState _oldDocumentState;
@@ -473,6 +473,9 @@ namespace Microsoft.CodeAnalysis
                 _oldDocumentState = oldDocumentState;
                 _newText = newText;
             }
+
+            internal override string? FilePath
+                => _oldDocumentState.FilePath;
 
             public override async Task<TextAndVersion> LoadTextAndVersionAsync(
                 Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)

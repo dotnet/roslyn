@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -317,18 +318,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     {
                         if (w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
                         {
-                            if (w.CurrentSolution.ContainsDocument(documentId))
+                            var solution = w.CurrentSolution;
+
+                            if (solution.GetDocument(documentId) is { } document)
                             {
-                                w.OnDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                                w.OnDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null, document.Project.State.ChecksumAlgorithm));
                             }
-                            else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
+                            else if (solution.GetAdditionalDocument(documentId) is { } additionalDocument)
                             {
-                                w.OnAdditionalDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                                w.OnAdditionalDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null, additionalDocument.Project.State.ChecksumAlgorithm));
                             }
                             else
                             {
-                                Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
-                                w.OnAnalyzerConfigDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                                var analyzerConfigDocument = solution.GetRequiredAnalyzerConfigDocument(documentId);
+                                w.OnAnalyzerConfigDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null, analyzerConfigDocument.Project.State.ChecksumAlgorithm));
                             }
                         }
                     }

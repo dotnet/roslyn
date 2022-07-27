@@ -46,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Text
                 _container = container;
             }
 
-            public SnapshotSourceText(ITextBufferCloneService? textBufferCloneService, ITextImage textImage, Encoding? encoding, TextBufferContainer? container)
+            public SnapshotSourceText(ITextBufferCloneService? textBufferCloneService, ITextImage textImage, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, TextBufferContainer? container)
+                : base(checksumAlgorithm: checksumAlgorithm)
             {
                 Contract.ThrowIfNull(textImage);
 
@@ -263,8 +264,8 @@ namespace Microsoft.CodeAnalysis.Text
             /// </summary>
             internal sealed class ClosedSnapshotSourceText : SnapshotSourceText
             {
-                public ClosedSnapshotSourceText(ITextBufferCloneService? textBufferCloneService, ITextImage textImage, Encoding? encoding)
-                    : base(textBufferCloneService, textImage, encoding, container: null)
+                public ClosedSnapshotSourceText(ITextBufferCloneService? textBufferCloneService, ITextImage textImage, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm)
+                    : base(textBufferCloneService, textImage, encoding, checksumAlgorithm, container: null)
                 {
                 }
             }
@@ -278,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Text
                 private readonly ITextImage _baseSnapshot;
 
                 public ChangedSourceText(ITextBufferCloneService? textBufferCloneService, SnapshotSourceText baseText, ITextImage baseSnapshot, ITextImage currentSnapshot)
-                    : base(textBufferCloneService, currentSnapshot, baseText.Encoding, container: null)
+                    : base(textBufferCloneService, currentSnapshot, baseText.Encoding, baseText.ChecksumAlgorithm, container: null)
                 {
                     _baseText = baseText;
                     _baseSnapshot = baseSnapshot;

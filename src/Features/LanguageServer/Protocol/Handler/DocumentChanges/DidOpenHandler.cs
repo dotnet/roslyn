@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
             context.TraceInformation($"didOpen for {request.TextDocument.Uri}");
 
             // Add the document and ensure the text we have matches whats on the client
-            var sourceText = SourceText.From(request.TextDocument.Text, System.Text.Encoding.UTF8);
+            var sourceText = SourceText.From(request.TextDocument.Text, System.Text.Encoding.UTF8, SourceHashAlgorithm.Sha256);
 
             context.StartTracking(request.TextDocument.Uri, sourceText);
 

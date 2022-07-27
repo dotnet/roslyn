@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using static Microsoft.CodeAnalysis.CodeGen.CompilationTestData;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 assemblyName = TestBase.GetUniqueName();
             }
-            var tree = VisualBasicSyntaxTree.ParseText(source);
+            var tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source, encoding: null, SourceHashAlgorithm.Sha256));
             var options = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release);
             return VisualBasicCompilation.Create(assemblyName, new[] { tree }, references, options);
         }

@@ -51,6 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              options As ParseOptions,
                                                              text As ValueSource(Of TextAndVersion),
                                                              encoding As Encoding,
+                                                             checksumAlgorithm As SourceHashAlgorithm,
                                                              root As CompilationUnitSyntax) As SyntaxTree
                     Return New RecoverableSyntaxTree(
                         service,
@@ -61,6 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             options,
                             text,
                             encoding,
+                            checksumAlgorithm,
                             root.FullSpan.Length,
                             root.ContainsDirectives))
                 End Function

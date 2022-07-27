@@ -19,7 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
     /// </summary>
     internal class FileTextLoaderNoException : FileTextLoader
     {
-        public FileTextLoaderNoException(string path, Encoding defaultEncoding) : base(path, defaultEncoding)
+        public FileTextLoaderNoException(string path, Encoding defaultEncoding)
+            : base(path, defaultEncoding, SourceHashAlgorithm.Sha256)
         {
         }
 

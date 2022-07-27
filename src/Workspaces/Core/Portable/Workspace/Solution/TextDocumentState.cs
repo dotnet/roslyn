@@ -68,14 +68,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         public TextDocumentState(DocumentInfo info, HostWorkspaceServices services)
-
             : this(services,
                    info.DocumentServiceProvider,
                    info.Attributes,
                    sourceText: null,
                    textAndVersionSource: info.TextLoader != null
                     ? CreateRecoverableText(info.TextLoader, info.Id, services)
-                    : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, info.FilePath)))
+                    : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, info.Attributes.ChecksumAlgorithm), VersionStamp.Default, info.FilePath)))
         {
         }
 

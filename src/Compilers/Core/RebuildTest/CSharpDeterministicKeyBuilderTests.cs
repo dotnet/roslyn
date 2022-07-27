@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public void Simple()
         {
             var compilation = CSharpTestBase.CreateCompilation(
-                @"System.Console.WriteLine(""Hello World"");",
+                CSharpTestSource.Parse(@"System.Console.WriteLine(""Hello World"");", checksumAlgorithm: SourceHashAlgorithm.Sha1),
                 targetFramework: TargetFramework.NetCoreApp,
                 options: Options);
 

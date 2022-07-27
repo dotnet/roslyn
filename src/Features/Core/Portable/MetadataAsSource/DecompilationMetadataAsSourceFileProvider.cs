@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var documentId = _openedDocumentIds.GetValueOrDefault(fileInfo);
             Contract.ThrowIfNull(documentId);
 
-            workspace.OnDocumentClosed(documentId, new FileTextLoader(fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding));
+            workspace.OnDocumentClosed(documentId, new FileTextLoader(fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding, MetadataAsSourceGeneratedFileInfo.ChecksumAlgorithm));
             workspace.OnProjectRemoved(documentId.ProjectId);
 
             _openedDocumentIds = _openedDocumentIds.RemoveKey(fileInfo);

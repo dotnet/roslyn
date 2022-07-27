@@ -452,7 +452,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 var newDocumentInfo = info.WithName(fileName)
                     .WithFilePath(fullPath)
-                    .WithTextLoader(new FileTextLoader(fullPath, text.Encoding));
+                    .WithChecksumAlgorithm(text.ChecksumAlgorithm)
+                    .WithTextLoader(new FileTextLoader(fullPath, text.Encoding, text.ChecksumAlgorithm));
 
                 // add document to project file
                 _applyChangesProjectFile.AddDocument(relativePath);

@@ -6,6 +6,7 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports System.Text
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -34,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             ' Note, Dev11 emits DebuggerNonUserCodeAttribute, but we are using DebuggerHiddenAttribute instead.
@@ -69,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 "End Class" & vbCrLf
 
             ' TODO: It looks like Dev11 respects project level conditional compilation here.
-            Dim tree = VisualBasicSyntaxTree.ParseText(codeToParse)
+            Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(codeToParse, Encoding.UTF8, SourceHashAlgorithm.Sha256))
             Dim attributeSyntax = PropertyOrEvent.AttributeSyntax.GetVisualBasicSyntax()
             Dim diagnosticLocation As Location = attributeSyntax.GetLocation()
             Dim root As CompilationUnitSyntax = tree.GetCompilationUnitRoot()

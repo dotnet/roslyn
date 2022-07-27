@@ -115,7 +115,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 documentId = DocumentId.CreateNewId(projectId, $"{nameof(ContainedDocument)}: {filePath}");
 
                 // We must jam a document into an existing workspace, which we'll assume is safe to do with OnDocumentAdded
-                Workspace.OnDocumentAdded(DocumentInfo.Create(documentId, filePath, filePath: filePath));
+                Workspace.OnDocumentAdded(DocumentInfo.Create(
+                    documentId,
+                    name: filePath,
+                    loader: null,
+                    filePath: filePath,
+                    checksumAlgorithm: SourceHashAlgorithm.Sha256));
+
                 Workspace.OnDocumentOpened(documentId, SubjectBuffer.AsTextContainer());
             }
 

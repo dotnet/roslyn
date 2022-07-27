@@ -69,6 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string? _filePath;
         private CompilationOptions? _compilationOptions;
         private ParseOptions? _parseOptions;
+        private SourceHashAlgorithm _checksumAlgorithm;
         private bool _hasAllInformation = true;
         private string? _compilationOutputAssemblyFilePath;
         private string? _outputFilePath;
@@ -385,6 +386,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             set => ChangeProjectProperty(ref _displayName, value, s => s.WithProjectName(Id, value));
         }
 
+        public SourceHashAlgorithm ChecksumAlgorithm
+        {
+            get => _checksumAlgorithm;
+            set => ChangeProjectProperty(ref _checksumAlgorithm, value, s => s.WithProjectChecksumAlgorithm(Id, value));
+        }
+
         // internal to match the visibility of the Workspace-level API -- this is something
         // we use but we haven't made officially public yet.
         internal bool HasAllInformation
@@ -697,7 +704,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             bool designTimeOnly = false,
             IDocumentServiceProvider? documentServiceProvider = null)
         {
-            return _sourceFiles.AddTextContainer(textContainer, fullPath, sourceCodeKind, folders, designTimeOnly, documentServiceProvider);
+            return _sourceFiles.AddTextContainer(textContainer, ChecksumAlgorithm, fullPath, sourceCodeKind, folders, designTimeOnly, documentServiceProvider);
         }
 
         public bool ContainsSourceFile(string fullPath)

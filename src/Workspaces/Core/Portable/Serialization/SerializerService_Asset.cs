@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.Serialization
             {
                 context.AddResource(text.Storage);
 
-                writer.WriteInt32((int)text.Storage.ChecksumAlgorithm);
+                writer.WriteByte(checked((byte)text.Storage.ChecksumAlgorithm));
                 writer.WriteEncoding(text.Storage.Encoding);
+                writer.WriteByte(checked((byte)SerializationKinds.MemoryMapFile));
 
-                writer.WriteInt32((int)SerializationKinds.MemoryMapFile);
                 writer.WriteString(text.Storage.Name);
                 writer.WriteInt64(text.Storage.Offset);
                 writer.WriteInt64(text.Storage.Size);
@@ -38,9 +38,10 @@ namespace Microsoft.CodeAnalysis.Serialization
             {
                 RoslynDebug.AssertNotNull(text.Text);
 
-                writer.WriteInt32((int)text.Text.ChecksumAlgorithm);
+                writer.WriteByte(checked((byte)text.Text.ChecksumAlgorithm));
                 writer.WriteEncoding(text.Text.Encoding);
-                writer.WriteInt32((int)SerializationKinds.Bits);
+                writer.WriteByte(checked((byte)SerializationKinds.Bits));
+
                 text.Text.WriteTo(writer, cancellationToken);
             }
         }
@@ -49,10 +50,10 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
+            var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadByte();
             var encoding = (Encoding)reader.ReadValue();
+            var kind = (SerializationKinds)reader.ReadByte();
 
-            var kind = (SerializationKinds)reader.ReadInt32();
             if (kind == SerializationKinds.MemoryMapFile)
             {
                 var storage2 = (ITemporaryStorageService2)_storageService;
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
 
             Contract.ThrowIfFalse(kind == SerializationKinds.Bits);
-            return new SerializableSourceText(SourceTextExtensions.ReadFrom(_textService, reader, encoding, cancellationToken));
+            return new SerializableSourceText(SourceTextExtensions.ReadFrom(_textService, reader, encoding, checksumAlgorithm, cancellationToken));
         }
 
         private SourceText DeserializeSourceText(ObjectReader reader, CancellationToken cancellationToken)

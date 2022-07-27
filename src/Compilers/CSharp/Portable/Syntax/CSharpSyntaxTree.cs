@@ -304,21 +304,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Factories
 
-        // The overload that has more parameters is itself obsolete, as an intentional break to allow future
-        // expansion
-#pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
-
         /// <summary>
         /// Creates a new syntax tree from a syntax node.
         /// </summary>
-        public static SyntaxTree Create(CSharpSyntaxNode root, CSharpParseOptions? options = null, string? path = "", Encoding? encoding = null)
-        {
-#pragma warning disable CS0618 // We are calling into the obsolete member as that's the one that still does the real work
-            return Create(root, options, path, encoding, diagnosticOptions: null);
-#pragma warning restore CS0618
-        }
-
-#pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+        public static SyntaxTree Create(CSharpSyntaxNode root, CSharpParseOptions? options, string? path, Encoding? encoding)
+            => CreateImpl(root, diagnosticOptions: null, options, path, encoding, SourceHashAlgorithm.Sha1);
 
         /// <summary>
         /// Creates a new syntax tree from a syntax node.
@@ -332,15 +322,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpParseOptions? options,
             string? path,
             Encoding? encoding,
-            // obsolete parameter -- unused
             ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
-            // obsolete parameter -- unused
-            bool? isGeneratedCode)
+            bool? isGeneratedCode) // unused
+            => CreateImpl(root, diagnosticOptions, options, path, encoding, SourceHashAlgorithm.Sha1);
+
+        /// <summary>
+        /// Creates a new syntax tree from a syntax node.
+        /// </summary>
+        public static SyntaxTree Create(CSharpSyntaxNode root, CSharpParseOptions? options = null, string? path = "", Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
+            => CreateImpl(root, diagnosticOptions: null, options, path, encoding, checksumAlgorithm);
+
+        private static SyntaxTree CreateImpl(CSharpSyntaxNode root, ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions, CSharpParseOptions? options, string? path, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm)
         {
             if (root == null)
-            {
                 throw new ArgumentNullException(nameof(root));
-            }
 
             var directives = root.Kind() == SyntaxKind.CompilationUnit ?
                 ((CompilationUnitSyntax)root).GetConditionalDirectivesStack() :
@@ -349,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new ParsedSyntaxTree(
                 textOpt: null,
                 encodingOpt: encoding,
-                checksumAlgorithm: SourceHashAlgorithm.Sha1,
+                checksumAlgorithm: checksumAlgorithm,
                 path: path,
                 options: options ?? CSharpParseOptions.Default,
                 root: root,
@@ -442,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool? isGeneratedCode,
             CancellationToken cancellationToken)
         {
-            return ParseText(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
+            return ParseText(SourceText.From(text, encoding, SourceHashAlgorithm.Sha1), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
 
         // The overload that has more parameters is itself obsolete, as an intentional break to allow future
@@ -919,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Encoding? encoding,
             ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
             CancellationToken cancellationToken)
-            => ParseText(text, options, path, encoding, diagnosticOptions, isGeneratedCode: null, cancellationToken);
+            => ParseText(SourceText.From(text, encoding, SourceHashAlgorithm.Sha1), options, path, diagnosticOptions, isGeneratedCode: null, cancellationToken);
 
         // 3.3 BACK COMPAT OVERLOAD -- DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]

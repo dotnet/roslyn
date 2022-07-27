@@ -157,12 +157,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Creates a new syntax tree from a syntax node.
         ''' </summary>
+        Public Shared Function Create(root As VisualBasicSyntaxNode,
+                                      options As VisualBasicParseOptions,
+                                      path As String,
+                                      encoding As Encoding) As SyntaxTree
+            Return CreateImpl(root, diagnosticOptions:=Nothing, options, path, encoding, SourceHashAlgorithm.Sha1)
+        End Function
+
+        ''' <summary>
+        ''' Creates a new syntax tree from a syntax node.
+        ''' </summary>
         ''' <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/></param>
+        <EditorBrowsable(EditorBrowsableState.Never)>
+        <Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead", False)>
+        Public Shared Function Create(root As VisualBasicSyntaxNode,
+                                      options As VisualBasicParseOptions,
+                                      path As String,
+                                      encoding As Encoding,
+                                      diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic)) As SyntaxTree
+            Return CreateImpl(root, diagnosticOptions, options, path, encoding, SourceHashAlgorithm.Sha1)
+        End Function
+
+        ''' <summary>
+        ''' Creates a new syntax tree from a syntax node.
+        ''' </summary>
         Public Shared Function Create(root As VisualBasicSyntaxNode,
                                       Optional options As VisualBasicParseOptions = Nothing,
                                       Optional path As String = "",
                                       Optional encoding As Encoding = Nothing,
-                                      Optional diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic) = Nothing) As SyntaxTree
+                                      Optional checksumAlgorithm As SourceHashAlgorithm = SourceHashAlgorithm.Sha1) As SyntaxTree
+            Return CreateImpl(root, diagnosticOptions:=Nothing, options, path, encoding, checksumAlgorithm)
+        End Function
+
+        Private Shared Function CreateImpl(root As VisualBasicSyntaxNode,
+                                           diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic),
+                                           options As VisualBasicParseOptions,
+                                           path As String,
+                                           encoding As Encoding,
+                                           checksumAlgorithm As SourceHashAlgorithm) As SyntaxTree
             If root Is Nothing Then
                 Throw New ArgumentNullException(NameOf(root))
             End If
@@ -170,12 +202,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New ParsedSyntaxTree(
                 textOpt:=Nothing,
                 encodingOpt:=encoding,
-                checksumAlgorithm:=SourceHashAlgorithm.Sha1,
+                checksumAlgorithm:=checksumAlgorithm,
                 path:=path,
                 options:=If(options, VisualBasicParseOptions.Default),
                 syntaxRoot:=root,
                 isMyTemplate:=False,
-                diagnosticOptions)
+                diagnosticOptions,
+                cloneRoot:=True)
         End Function
 
         ''' <summary>
@@ -214,24 +247,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          Optional encoding As Encoding = Nothing,
                                          Optional diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic) = Nothing,
                                          Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
-            Return ParseText(text, isMyTemplate:=False, options, path, encoding, diagnosticOptions, cancellationToken)
+            Return ParseText(SourceText.From(text, encoding, SourceHashAlgorithm.Sha1), isMyTemplate:=False, options, path, diagnosticOptions, cancellationToken)
         End Function
 
-        Friend Shared Function ParseText(text As String,
-                                         isMyTemplate As Boolean,
-                                         Optional options As VisualBasicParseOptions = Nothing,
-                                         Optional path As String = "",
-                                         Optional encoding As Encoding = Nothing,
-                                         Optional diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic) = Nothing,
-                                         Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
-            Return ParseText(
-                SourceText.From(text, encoding),
-                isMyTemplate,
-                options,
-                path,
-                diagnosticOptions,
-                cancellationToken)
-        End Function
 
         ''' <summary>
         ''' Creates a syntax tree by parsing the source text.
@@ -589,7 +607,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          path As String,
                                          encoding As Encoding,
                                          cancellationToken As CancellationToken) As SyntaxTree
-            Return ParseText(text, options, path, encoding, diagnosticOptions:=Nothing, cancellationToken)
+            Return ParseText(SourceText.From(text, encoding, SourceHashAlgorithm.Sha1), isMyTemplate:=False, options, path, diagnosticOptions:=Nothing, cancellationToken)
         End Function
 
         ' 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
@@ -599,15 +617,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          path As String,
                                          cancellationToken As CancellationToken) As SyntaxTree
             Return ParseText(text, options, path, diagnosticOptions:=Nothing, cancellationToken)
-        End Function
-
-        ' 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
-        <EditorBrowsable(EditorBrowsableState.Never)>
-        Public Shared Function Create(root As VisualBasicSyntaxNode,
-                                      options As VisualBasicParseOptions,
-                                      path As String,
-                                      encoding As Encoding) As SyntaxTree
-            Return Create(root, options, path, encoding, diagnosticOptions:=Nothing)
         End Function
     End Class
 End Namespace

@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis
                     name: documentIdentity.HintName,
                     folders: SpecializedCollections.EmptyReadOnlyList<string>(),
                     parseOptions.Kind,
+                    checksumAlgorithm: generatedSourceText.ChecksumAlgorithm,
                     filePath: documentIdentity.FilePath,
                     isGenerated: true,
                     designTimeOnly: false),

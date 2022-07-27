@@ -360,16 +360,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         private static DocumentInfo CreateDesignTimeOnlyDocument(ProjectId projectId, string name = "design-time-only.cs", string path = "design-time-only.cs")
-            => DocumentInfo.Create(
+        {
+            var sourceText = SourceText.From("class DTO {}", Encoding.UTF8, SourceHashAlgorithm.Sha256);
+            return DocumentInfo.Create(
                 DocumentId.CreateNewId(projectId, name),
                 name: name,
                 folders: Array.Empty<string>(),
                 sourceCodeKind: SourceCodeKind.Regular,
-                loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class DTO {}"), VersionStamp.Create(), path)),
+                loader: TextLoader.From(TextAndVersion.Create(sourceText, VersionStamp.Create(), path)),
+                checksumAlgorithm: sourceText.ChecksumAlgorithm,
                 filePath: path,
                 isGenerated: false,
-                designTimeOnly: true,
-                documentServiceProvider: null);
+                designTimeOnly: true);
+        }
 
         internal sealed class FailingTextLoader : TextLoader
         {
@@ -497,28 +500,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdA,
                 name: "A",
-                loader: new FileTextLoader(sourceFileA.Path, encodingA),
+                loader: new FileTextLoader(sourceFileA.Path, encodingA, SourceHashAlgorithm.Sha1),
                 filePath: sourceFileA.Path));
 
             var documentIdB = DocumentId.CreateNewId(projectP.Id, debugName: "B");
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdB,
                 name: "B",
-                loader: new FileTextLoader(sourceFileB.Path, encodingB),
+                loader: new FileTextLoader(sourceFileB.Path, encodingB, SourceHashAlgorithm.Sha1),
                 filePath: sourceFileB.Path));
 
             var documentIdC = DocumentId.CreateNewId(projectP.Id, debugName: "C");
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdC,
                 name: "C",
-                loader: new FileTextLoader(sourceFileC.Path, encodingC),
+                loader: new FileTextLoader(sourceFileC.Path, encodingC, SourceHashAlgorithm.Sha1),
                 filePath: sourceFileC.Path));
 
             var documentIdE = DocumentId.CreateNewId(projectP.Id, debugName: "E");
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdE,
                 name: "E",
-                loader: new FileTextLoader(sourceFileE.Path, encodingE),
+                loader: new FileTextLoader(sourceFileE.Path, encodingE, SourceHashAlgorithm.Sha1),
                 filePath: sourceFileE.Path));
 
             // check that are testing documents whose hash algorithm does not match the PDB (but the hash itself does):
@@ -558,7 +561,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // change content of B on disk again:
             sourceFileB.WriteAllText(sourceB3, encodingB);
-            solution = solution.WithDocumentTextLoader(documentIdB, new FileTextLoader(sourceFileB.Path, encodingB), PreservationMode.PreserveValue);
+            solution = solution.WithDocumentTextLoader(documentIdB, new FileTextLoader(sourceFileB.Path, encodingB, SourceHashAlgorithm.Sha256), PreservationMode.PreserveValue);
 
             EnterBreakState(debuggingSession);
 
@@ -713,16 +716,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             (solution, var document) = AddDefaultTestProject(solution, "class C {}");
 
+            var sourceText = SourceText.From("class D {}", Encoding.UTF8, SourceHashAlgorithm.Sha256);
             var documentInfo = DocumentInfo.Create(
                 DocumentId.CreateNewId(document.Project.Id),
                 name: "design-time-only.cs",
-                folders: Array.Empty<string>(),
-                sourceCodeKind: SourceCodeKind.Regular,
-                loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class D {}"), VersionStamp.Create(), "design-time-only.cs")),
+                loader: TextLoader.From(TextAndVersion.Create(sourceText, VersionStamp.Create(), "design-time-only.cs")),
                 filePath: "design-time-only.cs",
+                checksumAlgorithm: sourceText.ChecksumAlgorithm,
                 isGenerated: false,
-                designTimeOnly: true,
-                documentServiceProvider: null);
+                designTimeOnly: true);
 
             solution = solution.AddDocument(documentInfo);
 
@@ -3612,17 +3614,17 @@ class C { int Y => 1; }
 
             var project = solution.AddProject("dummy_proj", "dummy_proj", designTimeOnly ? LanguageNames.CSharp : NoCompilationConstants.LanguageName);
             var filePath = withPath ? Path.Combine(TempRoot.Root, "test.cs") : null;
+            var sourceText = SourceText.From("dummy1", Encoding.UTF8, SourceHashAlgorithm.Sha256);
 
             var documentInfo = DocumentInfo.Create(
                 DocumentId.CreateNewId(project.Id, "test"),
                 name: "test",
                 folders: Array.Empty<string>(),
                 sourceCodeKind: SourceCodeKind.Regular,
-                loader: TextLoader.From(TextAndVersion.Create(SourceText.From("dummy1"), VersionStamp.Create(), filePath)),
+                loader: TextLoader.From(TextAndVersion.Create(sourceText, VersionStamp.Create(), filePath)),
                 filePath: filePath,
-                isGenerated: false,
-                designTimeOnly: designTimeOnly,
-                documentServiceProvider: null);
+                checksumAlgorithm: sourceText.ChecksumAlgorithm,
+                designTimeOnly: designTimeOnly);
 
             var document = project.Solution.AddDocument(documentInfo).GetDocument(documentInfo.Id);
 
@@ -4383,7 +4385,7 @@ class C
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdA,
                 name: "A",
-                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8),
+                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8, SourceHashAlgorithm.Sha256),
                 filePath: sourceFileA.Path));
 
             var tasks = Enumerable.Range(0, 10).Select(async i =>
@@ -4468,7 +4470,7 @@ class C
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdA,
                 name: "A",
-                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8),
+                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8, SourceHashAlgorithm.Sha256),
                 filePath: sourceFileA.Path));
 
             var hotReload = new WatchHotReloadService(workspace.Services, ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
@@ -4535,7 +4537,7 @@ class C
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdA,
                 name: "A",
-                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8),
+                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8, SourceHashAlgorithm.Sha256),
                 filePath: sourceFileA.Path));
 
             var hotReload = new UnitTestingHotReloadService(workspace.Services);

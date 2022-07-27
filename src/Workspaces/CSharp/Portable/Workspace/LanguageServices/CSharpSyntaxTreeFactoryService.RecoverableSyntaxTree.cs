@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ParseOptions options,
                     ValueSource<TextAndVersion> text,
                     Encoding encoding,
+                    SourceHashAlgorithm checksumAlgorithm,
                     CompilationUnitSyntax root)
                 {
                     return new RecoverableSyntaxTree(
@@ -67,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             options,
                             text,
                             encoding,
+                            checksumAlgorithm,
                             root.FullSpan.Length,
                             root.ContainsDirectives));
                 }
@@ -150,12 +152,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
                 {
-                    if (ReferenceEquals(_info.Options, options) && this.TryGetRoot(out var oldRoot) && ReferenceEquals(root, oldRoot))
+                    if (ReferenceEquals(_info.Options, options) && TryGetRoot(out var oldRoot) && ReferenceEquals(root, oldRoot))
                     {
                         return this;
                     }
 
-                    return Create((CSharpSyntaxNode)root, this.Options, _info.FilePath);
+                    return Create((CSharpSyntaxNode)root, Options, _info.FilePath, _info.Encoding, _info.ChecksumAlgorithm);
                 }
 
                 public override SyntaxTree WithFilePath(string path)

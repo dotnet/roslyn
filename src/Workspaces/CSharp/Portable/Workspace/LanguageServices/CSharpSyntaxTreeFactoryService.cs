@@ -69,10 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return csharpOptions1.WithPreprocessorSymbols(csharpOptions2.PreprocessorSymbolNames) == csharpOptions2;
             }
 
-            public override SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SyntaxNode root)
+            public override SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, SyntaxNode root)
             {
                 options ??= GetDefaultParseOptions();
-                return CSharpSyntaxTree.Create((CSharpSyntaxNode)root, (CSharpParseOptions)options, filePath, encoding);
+                return CSharpSyntaxTree.Create((CSharpSyntaxNode)root, (CSharpParseOptions)options, filePath, encoding, checksumAlgorithm);
             }
 
             public override SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken)
@@ -93,6 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ParseOptions options,
                 ValueSource<TextAndVersion> text,
                 Encoding encoding,
+                SourceHashAlgorithm checksumAlgorithm,
                 SyntaxNode root)
             {
                 System.Diagnostics.Debug.Assert(CanCreateRecoverableTree(root));
@@ -103,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     options ?? GetDefaultParseOptions(),
                     text,
                     encoding,
+                    checksumAlgorithm,
                     (CompilationUnitSyntax)root);
             }
         }

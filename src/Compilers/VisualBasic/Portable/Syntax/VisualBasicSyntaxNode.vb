@@ -69,7 +69,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If tree Is Nothing Then
                         Debug.Assert(rootCandidate IsNot Nothing)
+#Disable Warning RS0030 ' This method is only intended to be used from this call site
                         tree = VisualBasicSyntaxTree.CreateWithoutClone(DirectCast(rootCandidate, VisualBasicSyntaxNode))
+#Enable Warning RS0030
                     End If
 
                     Debug.Assert(tree IsNot Nothing)

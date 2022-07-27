@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
@@ -1046,7 +1047,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If type.IsErrorType() OrElse
                SourceModule IsNot type.ContainingModule OrElse
-               type.TypeKind <> TYPEKIND.Class Then
+               type.TypeKind <> TypeKind.Class Then
                 Return Nothing
             End If
 
@@ -1078,7 +1079,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 "End Class" & vbCrLf
 
             ' It looks like Dev11 ignores project level conditional compilation here, which makes sense since expression cannot contain #If directives.
-            Dim tree = VisualBasicSyntaxTree.ParseText(codeToParse)
+            Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(codeToParse))
             Dim root As CompilationUnitSyntax = tree.GetCompilationUnitRoot()
             Dim hasErrors As Boolean = False
 
@@ -1186,16 +1187,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function GetTypeNotExpressionErrorId(type As TypeSymbol) As ERRID
             Select Case type.TypeKind
 
-                Case TYPEKIND.Class
+                Case TypeKind.Class
                     Return ERRID.ERR_ClassNotExpression1
 
-                Case TYPEKIND.Interface
+                Case TypeKind.Interface
                     Return ERRID.ERR_InterfaceNotExpression1
 
-                Case TYPEKIND.Enum
+                Case TypeKind.Enum
                     Return ERRID.ERR_EnumNotExpression1
 
-                Case TYPEKIND.Structure
+                Case TypeKind.Structure
                     Return ERRID.ERR_StructureNotExpression1
 
                     ' TODO Modules??
@@ -2578,8 +2579,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function TryBindInteractiveReceiver(syntax As VisualBasicSyntaxNode, currentMember As Symbol, currentType As NamedTypeSymbol, memberDeclaringType As NamedTypeSymbol) As BoundExpression
-            If currentType.TypeKind = TYPEKIND.Submission AndAlso Not currentMember.IsShared Then
-                If memberDeclaringType.TypeKind = TYPEKIND.Submission Then
+            If currentType.TypeKind = TypeKind.Submission AndAlso Not currentMember.IsShared Then
+                If memberDeclaringType.TypeKind = TypeKind.Submission Then
                     Return New BoundPreviousSubmissionReference(syntax, currentType, memberDeclaringType)
                 Else
                     ' TODO (tomat): host object binding
@@ -2713,7 +2714,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If leftType IsNot Nothing Then
                         Dim leftName = node.Identifier.ValueText
-                        If CaseInsensitiveComparison.Equals(leftType.Name, leftName) AndAlso leftType.TypeKind <> TYPEKIND.TypeParameter Then
+                        If CaseInsensitiveComparison.Equals(leftType.Name, leftName) AndAlso leftType.TypeKind <> TypeKind.TypeParameter Then
                             Dim typeDiagnostics = BindingDiagnosticBag.Create(diagnostics)
                             Dim boundType = Me.BindNamespaceOrTypeExpression(node, typeDiagnostics)
                             If TypeSymbol.Equals(boundType.Type, leftType, TypeCompareKind.ConsiderEverything) Then
@@ -2790,9 +2791,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ConstructorNotFound1, leftTypeSymbol), left)
                     End If
 
-                    Dim leftTypeKind As TYPEKIND = leftTypeSymbol.TypeKind
+                    Dim leftTypeKind As TypeKind = leftTypeSymbol.TypeKind
 
-                    If leftTypeKind = TYPEKIND.Class OrElse leftTypeKind = TYPEKIND.Structure OrElse leftTypeKind = TYPEKIND.Module Then
+                    If leftTypeKind = TypeKind.Class OrElse leftTypeKind = TypeKind.Structure OrElse leftTypeKind = TypeKind.Module Then
 
                         ' Bind to method group representing available instance constructors
                         Dim namedLeftTypeSymbol = DirectCast(leftTypeSymbol, NamedTypeSymbol)
@@ -2845,7 +2846,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim rightArity As Integer = If(typeArguments IsNot Nothing, typeArguments.Arguments.Count, 0)
-            Dim lookupResult As LookupResult = lookupResult.GetInstance()
+            Dim lookupResult As LookupResult = LookupResult.GetInstance()
             Dim options As LookupOptions = LookupOptions.AllMethodsOfAnyArity
 
             Try
@@ -2875,7 +2876,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ElseIf left.Kind = BoundKind.TypeExpression Then
                     type = DirectCast(left, BoundTypeExpression).Type
 
-                    If type.TypeKind = TYPEKIND.TypeParameter Then
+                    If type.TypeKind = TypeKind.TypeParameter Then
                         Return ReportDiagnosticAndProduceBadExpression(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_TypeParamQualifierDisallowed), left)
                     Else
                         If String.IsNullOrEmpty(rightName) Then
@@ -2998,7 +2999,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    referenceLocation IsNot Nothing AndAlso referenceLocation.IsInSource AndAlso
                    declarationLocation.SourceTree Is referenceLocation.SourceTree Then
 
-                    localType = localSymbol.UseBeforeDeclarationResultType
+                    localType = LocalSymbol.UseBeforeDeclarationResultType
 
                     If diagnostics IsNot Nothing Then
                         ReportDiagnostic(diagnostics, node, ERRID.ERR_UseOfLocalBeforeDeclaration1, localSymbol)
@@ -3771,17 +3772,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ElseIf defaultPropertyGroup Is Nothing OrElse Not defaultPropertyGroup.HasErrors Then
                     Select Case type.TypeKind
-                        Case TYPEKIND.Array, TYPEKIND.Enum
+                        Case TypeKind.Array, TypeKind.Enum
                             ReportQualNotObjectRecord(left, diagnostics)
-                        Case TYPEKIND.Class
+                        Case TypeKind.Class
                             If type.SpecialType = SpecialType.System_Array Then
                                 ReportDefaultMemberNotProperty(left, diagnostics)
                             Else
                                 ReportNoDefaultProperty(left, diagnostics)
                             End If
-                        Case TYPEKIND.TypeParameter, TYPEKIND.Interface
+                        Case TypeKind.TypeParameter, TypeKind.Interface
                             ReportNoDefaultProperty(left, diagnostics)
-                        Case TYPEKIND.Structure
+                        Case TypeKind.Structure
                             If type.IsIntrinsicValueType() Then
                                 ReportQualNotObjectRecord(left, diagnostics)
                             Else
@@ -3808,13 +3809,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim type = expr.Type
             Dim syntax = expr.Syntax
             Select Case type.TypeKind
-                Case TYPEKIND.Class
+                Case TypeKind.Class
                     ' "Class '{0}' cannot be indexed because it has no default property."
                     ReportDiagnostic(diagnostics, syntax, ERRID.ERR_NoDefaultNotExtend1, type)
-                Case TYPEKIND.Structure
+                Case TypeKind.Structure
                     ' "Structure '{0}' cannot be indexed because it has no default property."
                     ReportDiagnostic(diagnostics, syntax, ERRID.ERR_StructureNoDefault1, type)
-                Case TYPEKIND.Error
+                Case TypeKind.Error
                     ' We should have reported an error elsewhere.
                 Case Else
                     ' "'{0}' cannot be indexed because it has no default property."
@@ -3868,7 +3869,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim typeCharacterString As String = Nothing
             Dim specialType As SpecialType = GetSpecialTypeForTypeCharacter(typeChar, typeCharacterString)
 
-            If specialType <> specialType.None Then
+            If specialType <> SpecialType.None Then
                 If type.IsArrayType() Then
                     type = DirectCast(type, ArrayTypeSymbol).ElementType
                 End If
@@ -4436,9 +4437,9 @@ lElseClause:
                 Dim specialType As SpecialType = SpecialTypeExtensions.FromRuntimeTypeOfLiteralValue(value)
 
                 ' VB literals can't be of type byte, sbyte
-                Debug.Assert(specialType <> specialType.None AndAlso
-                             specialType <> specialType.System_Byte AndAlso
-                             specialType <> specialType.System_SByte)
+                Debug.Assert(specialType <> SpecialType.None AndAlso
+                             specialType <> SpecialType.System_Byte AndAlso
+                             specialType <> SpecialType.System_SByte)
 
                 cv = ConstantValue.Create(value, specialType)
                 type = GetSpecialType(specialType, node, diagnostics)
@@ -4704,7 +4705,7 @@ lElseClause:
 
                 Debug.Assert(operand.Type.IsErrorType() OrElse ignoreDiagnostics.DiagnosticBag.IsEmptyWithoutResolution())
             Else
-                Dim lookupResult As LookupResult = lookupResult.GetInstance()
+                Dim lookupResult As LookupResult = LookupResult.GetInstance()
                 Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
                 ' 11.25 Await Operator

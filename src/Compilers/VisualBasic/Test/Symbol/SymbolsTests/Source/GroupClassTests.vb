@@ -2,14 +2,24 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+#Disable Warning RS0030 ' Do not used banned APIs
+
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class GroupClassTests
         Inherits BasicTestBase
+
+        Private Shared Function ParseTemplateTree(text As String, Optional path As String = Nothing) As SyntaxTree
+            Return VisualBasicSyntaxTree.ParseText(
+                SourceText.From(text, encoding:=Nothing, checksumAlgorithm:=SourceHashAlgorithm.Sha256),
+                isMyTemplate:=True,
+                path:=path)
+        End Function
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/34467")>
         Public Sub SimpleTest1()
@@ -2229,7 +2239,7 @@ End Namespace
 #End If
 ]]>.Value
 
-        Friend Shared ReadOnly WindowsFormsMyTemplateTree As SyntaxTree = VisualBasicSyntaxTree.ParseText(WindowsFormsMyTemplateSource, isMyTemplate:=True, path:="17d14f5c-a337-4978-8281-53493378c107.vb") ' The name used by native compiler
+        Friend Shared ReadOnly WindowsFormsMyTemplateTree As SyntaxTree = ParseTemplateTree(WindowsFormsMyTemplateSource, path:="17d14f5c-a337-4978-8281-53493378c107.vb") ' The name used by native compiler
 
         <Fact>
         Public Sub DefaultInstanceAlias1()
@@ -2859,7 +2869,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
-            compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
+            compilation.MyTemplate = ParseTemplateTree(
             <![CDATA[
 Imports System
 
@@ -2880,7 +2890,7 @@ Public NotInheritable Class MyTests
     End Sub
 
 End Class
-]]>.Value, isMyTemplate:=True)
+]]>.Value)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -2920,7 +2930,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
-            compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
+            compilation.MyTemplate = ParseTemplateTree(
             <![CDATA[
 Imports System
 
@@ -2961,7 +2971,7 @@ End Class
 Module Factory
     Public Mytests As MyTests
 End Module
-]]>.Value, isMyTemplate:=True)
+]]>.Value)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -3001,7 +3011,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
-            compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
+            compilation.MyTemplate = ParseTemplateTree(
             <![CDATA[
 Imports System
 
@@ -3059,7 +3069,7 @@ End Class
 Module Factory
     Public Mytests As MyTests
 End Module
-]]>.Value, isMyTemplate:=True)
+]]>.Value)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -3097,7 +3107,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
-            compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
+            compilation.MyTemplate = ParseTemplateTree(
             <![CDATA[
 Imports System
 
@@ -3121,7 +3131,7 @@ End Class
 Module Factory
     Public Mytests As MyTests
 End Module
-]]>.Value, isMyTemplate:=True)
+]]>.Value)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -3159,7 +3169,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
-            compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
+            compilation.MyTemplate = ParseTemplateTree(
             <![CDATA[
 Imports System
 
@@ -3183,7 +3193,7 @@ End Class
 Module Factory
     Public Mytests As MyTests
 End Module
-]]>.Value, isMyTemplate:=True)
+]]>.Value)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -3225,7 +3235,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
-            compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
+            compilation.MyTemplate = ParseTemplateTree(
             <![CDATA[
 Imports System
 
@@ -3250,7 +3260,7 @@ Module Factory
     Public DefaultInstanceTest1 As DefaultInstanceTest
     Public DefaultInstanceTest2 As DefaultInstanceTest2
 End Module
-]]>.Value, isMyTemplate:=True)
+]]>.Value)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -3310,7 +3320,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
-            compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
+            compilation.MyTemplate = ParseTemplateTree(
             <![CDATA[
 Imports System
 
@@ -3336,7 +3346,7 @@ Module Factory
         Return Nothing
     End Function
 End Module
-]]>.Value, isMyTemplate:=True)
+]]>.Value)
 
             AssertNoDiagnostics(compilation)
 
@@ -3388,7 +3398,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
 
-            compilation.MyTemplate = VisualBasicSyntaxTree.ParseText(
+            compilation.MyTemplate = ParseTemplateTree(
             <![CDATA[
 Imports System
 
@@ -3412,7 +3422,7 @@ End Class
 Module Factory
     Public DefaultInstanceTest1 As DefaultInstanceTest1
 End Module
-]]>.Value, isMyTemplate:=True)
+]]>.Value)
 
             AssertTheseDiagnostics(compilation,
 <expected>

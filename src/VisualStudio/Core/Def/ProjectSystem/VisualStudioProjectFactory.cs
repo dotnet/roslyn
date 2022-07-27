@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
@@ -105,15 +106,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _visualStudioWorkspaceImpl.AddProjectToInternalMaps_NoLock(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
 
                 var projectInfo = ProjectInfo.Create(
+                    new ProjectInfo.ProjectAttributes(
                         id,
                         versionStamp,
                         name: projectSystemName,
                         assemblyName: assemblyName,
                         language: language,
+                        checksumAlgorithm: SourceHashAlgorithm.Sha256, // will be updated when command line is set
+                        compilationOutputFilePaths: default, // will be updated when command line is set
                         filePath: creationInfo.FilePath,
-                        compilationOptions: creationInfo.CompilationOptions,
-                        parseOptions: creationInfo.ParseOptions)
-                    .WithTelemetryId(creationInfo.ProjectGuid);
+                        telemetryId: creationInfo.ProjectGuid),
+                    compilationOptions: creationInfo.CompilationOptions,
+                    parseOptions: creationInfo.ParseOptions);
 
                 // If we don't have any projects and this is our first project being added, then we'll create a new SolutionId
                 // and count this as the solution being added so that event is raised.

@@ -185,6 +185,9 @@ namespace Microsoft.CodeAnalysis
                 _filePath = filePath;
             }
 
+            internal override string? FilePath
+                => _filePath;
+
             public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
                 => Task.FromResult(LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken));
 

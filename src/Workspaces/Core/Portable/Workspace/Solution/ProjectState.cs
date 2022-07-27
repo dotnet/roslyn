@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -614,6 +616,9 @@ namespace Microsoft.CodeAnalysis
         public string? DefaultNamespace => this.ProjectInfo.DefaultNamespace;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public SourceHashAlgorithm ChecksumAlgorithm => this.ProjectInfo.ChecksumAlgorithm;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public HostLanguageServices LanguageServices => _languageServices;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
@@ -686,38 +691,44 @@ namespace Microsoft.CodeAnalysis
                 analyzerConfigSet ?? _lazyAnalyzerConfigOptions);
         }
 
-        private ProjectInfo.ProjectAttributes Attributes
+        internal ProjectInfo.ProjectAttributes Attributes
             => ProjectInfo.Attributes;
 
-        private ProjectState WithAttributes(ProjectInfo.ProjectAttributes attributes)
+        private ProjectState WithRawAttributes(ProjectInfo.ProjectAttributes attributes)
             => With(projectInfo: ProjectInfo.With(attributes: attributes));
 
+        public ProjectState WithAttributes(ProjectInfo.ProjectAttributes attributes)
+            => (attributes == Attributes) ? this : WithRawAttributes(attributes.With(version: Version.GetNewerVersion()));
+
         public ProjectState WithName(string name)
-            => (name == Name) ? this : WithAttributes(Attributes.With(name: name, version: Version.GetNewerVersion()));
+            => (name == Name) ? this : WithRawAttributes(Attributes.With(name: name, version: Version.GetNewerVersion()));
 
         public ProjectState WithFilePath(string? filePath)
-            => (filePath == FilePath) ? this : WithAttributes(Attributes.With(filePath: filePath, version: Version.GetNewerVersion()));
+            => (filePath == FilePath) ? this : WithRawAttributes(Attributes.With(filePath: filePath, version: Version.GetNewerVersion()));
 
         public ProjectState WithAssemblyName(string assemblyName)
-            => (assemblyName == AssemblyName) ? this : WithAttributes(Attributes.With(assemblyName: assemblyName, version: Version.GetNewerVersion()));
+            => (assemblyName == AssemblyName) ? this : WithRawAttributes(Attributes.With(assemblyName: assemblyName, version: Version.GetNewerVersion()));
 
         public ProjectState WithOutputFilePath(string? outputFilePath)
-            => (outputFilePath == OutputFilePath) ? this : WithAttributes(Attributes.With(outputPath: outputFilePath, version: Version.GetNewerVersion()));
+            => (outputFilePath == OutputFilePath) ? this : WithRawAttributes(Attributes.With(outputPath: outputFilePath, version: Version.GetNewerVersion()));
 
         public ProjectState WithOutputRefFilePath(string? outputRefFilePath)
-            => (outputRefFilePath == OutputRefFilePath) ? this : WithAttributes(Attributes.With(outputRefPath: outputRefFilePath, version: Version.GetNewerVersion()));
+            => (outputRefFilePath == OutputRefFilePath) ? this : WithRawAttributes(Attributes.With(outputRefPath: outputRefFilePath, version: Version.GetNewerVersion()));
 
         public ProjectState WithCompilationOutputInfo(in CompilationOutputInfo info)
-            => (info == CompilationOutputInfo) ? this : WithAttributes(Attributes.With(compilationOutputInfo: info, version: Version.GetNewerVersion()));
+            => (info == CompilationOutputInfo) ? this : WithRawAttributes(Attributes.With(compilationOutputInfo: info, version: Version.GetNewerVersion()));
 
         public ProjectState WithDefaultNamespace(string? defaultNamespace)
-            => (defaultNamespace == DefaultNamespace) ? this : WithAttributes(Attributes.With(defaultNamespace: defaultNamespace, version: Version.GetNewerVersion()));
+            => (defaultNamespace == DefaultNamespace) ? this : WithRawAttributes(Attributes.With(defaultNamespace: defaultNamespace, version: Version.GetNewerVersion()));
+
+        public ProjectState WithChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
+            => (checksumAlgorithm == ChecksumAlgorithm) ? this : WithRawAttributes(Attributes.With(checksumAlgorithm: checksumAlgorithm, version: Version.GetNewerVersion()));
 
         public ProjectState WithHasAllInformation(bool hasAllInformation)
-            => (hasAllInformation == HasAllInformation) ? this : WithAttributes(Attributes.With(hasAllInformation: hasAllInformation, version: Version.GetNewerVersion()));
+            => (hasAllInformation == HasAllInformation) ? this : WithRawAttributes(Attributes.With(hasAllInformation: hasAllInformation, version: Version.GetNewerVersion()));
 
         public ProjectState WithRunAnalyzers(bool runAnalyzers)
-            => (runAnalyzers == RunAnalyzers) ? this : WithAttributes(Attributes.With(runAnalyzers: runAnalyzers, version: Version.GetNewerVersion()));
+            => (runAnalyzers == RunAnalyzers) ? this : WithRawAttributes(Attributes.With(runAnalyzers: runAnalyzers, version: Version.GetNewerVersion()));
 
         public ProjectState WithCompilationOptions(CompilationOptions options)
         {

@@ -54,13 +54,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 AddDocument(DocumentInfo.Create(
                     designTimeDocumentId,
                     name: "a",
-                    folders: Array.Empty<string>(),
-                    sourceCodeKind: SourceCodeKind.Regular,
                     loader: null,
                     filePath: designTimeFilePath,
+                    checksumAlgorithm: SourceHashAlgorithm.Sha256,
                     isGenerated: true,
-                    designTimeOnly: true,
-                    documentServiceProvider: null));
+                    designTimeOnly: true));
 
             var designTimeDocument = designTimeSolution.GetRequiredDocument(designTimeDocumentId);
 

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             var sourceTextLoader = new SourceTextLoader(documentText, uriAbsolutePath);
 
-            var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(uri.AbsolutePath, sourceTextLoader, languageInformation, Services, ImmutableArray<MetadataReference>.Empty);
+            var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(uri.AbsolutePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services, ImmutableArray<MetadataReference>.Empty);
             OnProjectAdded(projectInfo);
 
             var id = projectInfo.Documents.Single().Id;
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        private class SourceTextLoader : TextLoader
+        private sealed class SourceTextLoader : TextLoader
         {
             private readonly SourceText _sourceText;
             private readonly string _fileUri;
@@ -103,6 +103,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 _sourceText = sourceText;
                 _fileUri = fileUri;
             }
+
+            internal override string? FilePath
+                => _fileUri;
 
             public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
                 => Task.FromResult(TextAndVersion.Create(_sourceText, VersionStamp.Create(), _fileUri));

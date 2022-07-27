@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     solution = initProject.Solution.AddDocument(
                         DocumentId.CreateNewId(initializationScriptProjectId, debugName: initializationScriptPath),
                         Path.GetFileName(initializationScriptPath),
-                        new FileTextLoader(initializationScriptPath, defaultEncoding: null));
+                        new FileTextLoader(initializationScriptPath, defaultEncoding: null, initProject.State.ChecksumAlgorithm));
                 }
 
                 var newSubmissionProject = CreateSubmissionProjectNoLock(solution, _currentSubmissionProjectId, _lastSuccessfulSubmissionProjectId, languageName, imports, references);
@@ -289,18 +289,21 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             solution = solution.AddProject(
                 ProjectInfo.Create(
-                    newSubmissionProjectId,
-                    VersionStamp.Create(),
-                    name: name,
-                    assemblyName: name,
-                    language: languageName,
+                    new ProjectInfo.ProjectAttributes(
+                        id: newSubmissionProjectId,
+                        version: VersionStamp.Create(),
+                        name: name,
+                        assemblyName: name,
+                        language: languageName,
+                        compilationOutputFilePaths: default,
+                        checksumAlgorithm: SourceHashAlgorithm.Sha256,
+                        isSubmission: true),
                     compilationOptions: compilationOptions,
                     parseOptions: _languageInfo.ParseOptions,
                     documents: null,
                     projectReferences: null,
                     metadataReferences: references,
-                    hostObjectType: typeof(InteractiveScriptGlobals),
-                    isSubmission: true));
+                    hostObjectType: typeof(InteractiveScriptGlobals)));
 
             if (previousSubmissionProjectId != null)
             {

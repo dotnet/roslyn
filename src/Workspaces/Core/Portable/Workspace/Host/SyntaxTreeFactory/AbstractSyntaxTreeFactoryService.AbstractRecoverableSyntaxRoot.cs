@@ -15,12 +15,13 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal abstract partial class AbstractSyntaxTreeFactoryService
     {
-        internal struct SyntaxTreeInfo
+        internal readonly struct SyntaxTreeInfo
         {
             public readonly string FilePath;
             public readonly ParseOptions Options;
             public readonly ValueSource<TextAndVersion> TextSource;
             public readonly Encoding Encoding;
+            public readonly SourceHashAlgorithm ChecksumAlgorithm;
             public readonly int Length;
             public readonly bool ContainsDirectives;
 
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Host
                 ParseOptions options,
                 ValueSource<TextAndVersion> textSource,
                 Encoding encoding,
+                SourceHashAlgorithm checksumAlgorithm,
                 int length,
                 bool containsDirectives)
             {
@@ -36,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Host
                 Options = options;
                 TextSource = textSource;
                 Encoding = encoding;
+                ChecksumAlgorithm = checksumAlgorithm;
                 Length = length;
                 ContainsDirectives = containsDirectives;
             }
@@ -65,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Host
                     Options,
                     TextSource,
                     Encoding,
+                    ChecksumAlgorithm,
                     Length,
                     ContainsDirectives);
             }
@@ -76,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Host
                     options,
                     TextSource,
                     Encoding,
+                    ChecksumAlgorithm,
                     length,
                     ContainsDirectives);
             }
@@ -87,6 +92,7 @@ namespace Microsoft.CodeAnalysis.Host
                     options,
                     TextSource,
                     Encoding,
+                    ChecksumAlgorithm,
                     Length,
                     ContainsDirectives);
             }

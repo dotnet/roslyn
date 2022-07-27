@@ -19,7 +19,7 @@ Imports Xunit
 Friend Module CompilationUtils
 
     Private Function ParseSources(source As IEnumerable(Of String), parseOptions As VisualBasicParseOptions) As IEnumerable(Of SyntaxTree)
-        Return source.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions))
+        Return source.Select(Function(s) VisualBasicSyntaxTree.ParseText(SourceText.From(s, encoding:=Nothing, SourceHashAlgorithm.Sha256), parseOptions))
     End Function
 
     Public Function CreateCompilation(

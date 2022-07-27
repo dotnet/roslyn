@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable disable
+#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable CS0618 // Obsolete APIs
 
 using System.Collections.Immutable;
 using System.Text;
@@ -21,18 +23,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         public SyntaxTreeTests(ITestOutputHelper output) : base(output) { }
 
-        // Diagnostic options on syntax trees are now obsolete
-#pragma warning disable CS0618
         [Fact]
-        public void CreateTreeWithDiagnostics()
+        public void Create()
+        {
+            var root = SyntaxFactory.ParseCompilationUnit("");
+
+            var tree = CSharpSyntaxTree.Create(root);
+            Assert.Equal(SourceHashAlgorithm.Sha1, tree.GetText().ChecksumAlgorithm);
+
+            tree = CSharpSyntaxTree.Create(root, checksumAlgorithm: SourceHashAlgorithm.Sha256);
+            Assert.Equal(SourceHashAlgorithm.Sha256, tree.GetText().ChecksumAlgorithm);
+        }
+
+        [Fact]
+        public void Create_WithDiagnosticOptions()
         {
             var options = CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress));
-            var tree = CSharpSyntaxTree.Create(SyntaxFactory.ParseCompilationUnit(""),
-                options: null,
-                path: "",
-                encoding: null,
-                diagnosticOptions: options);
+            var tree = CSharpSyntaxTree.Create(SyntaxFactory.ParseCompilationUnit(""), options: null, path: null, encoding: null, diagnosticOptions: options);
+
             Assert.Same(options, tree.DiagnosticOptions);
+            Assert.Equal(SourceHashAlgorithm.Sha1, tree.GetText().ChecksumAlgorithm);
         }
 
         [Fact]
@@ -230,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             oldTree = SyntaxFactory.ParseSyntaxTree("", path: "old.cs");
             Assert.Equal(string.Empty, oldTree.WithFilePath(null).FilePath);
             Assert.Equal(string.Empty, SyntaxFactory.ParseSyntaxTree("", path: null).FilePath);
-            Assert.Equal(string.Empty, CSharpSyntaxTree.Create((CSharpSyntaxNode)oldTree.GetRoot(), path: null).FilePath);
+            Assert.Equal(string.Empty, CSharpSyntaxTree.Create((CSharpSyntaxNode)oldTree.GetRoot(), checksumAlgorithm: SourceHashAlgorithm.Sha256).FilePath);
         }
 
         [Fact]
