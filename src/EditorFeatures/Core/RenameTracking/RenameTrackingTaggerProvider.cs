@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                             text.Container.GetType().FullName,
                             text.ToString()));
                         FatalError.ReportAndCatch(ex);
-                        return;
+                        return false;
                     }
 
                     if (textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine))
