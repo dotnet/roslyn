@@ -192,6 +192,16 @@
         <target state="translated">在快速信息中显示备注</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_ui_as_dashboard_in_top_right">
+        <source>Show UI as a dashboard in top right</source>
+        <target state="new">Show UI as a dashboard in top right</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_ui_inline">
+        <source>Show UI Inline</source>
+        <target state="new">Show UI Inline</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
         <target state="translated">对 using 排序</target>
@@ -705,6 +715,11 @@
       <trans-unit id="Prefer_var">
         <source>Prefer 'var'</source>
         <target state="translated">首选 "var"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Where_should_the_rename_ui_be_shown">
+        <source>Where should the rename UI be shown?</source>
+        <target state="new">Where should the rename UI be shown?</target>
         <note />
       </trans-unit>
       <trans-unit id="this_preferences_colon">

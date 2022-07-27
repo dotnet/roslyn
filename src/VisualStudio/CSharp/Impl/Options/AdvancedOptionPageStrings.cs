@@ -383,5 +383,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Rename_asynchronously_experimental
             => ServicesVSResources.Rename_asynchronously_experimental;
+
+        public static string Where_should_the_rename_ui_be_shown
+            => CSharpVSResources.Where_should_the_rename_ui_be_shown;
+
+        public static string Option_Show_ui_inline
+            => CSharpVSResources.Show_ui_inline;
+
+        public static string Option_Show_ui_as_dashboard_in_top_right
+            => CSharpVSResources.Show_ui_as_dashboard_in_top_right;
     }
 }
