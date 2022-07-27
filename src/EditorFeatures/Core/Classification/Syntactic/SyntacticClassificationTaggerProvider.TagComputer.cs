@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -108,9 +109,6 @@ namespace Microsoft.CodeAnalysis.Classification
             }
 
             public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
-
-            private IClassificationService? TryGetClassificationService(ITextSnapshot snapshot)
-                => _workspace?.Services.SolutionServices.GetProjectServices(snapshot.ContentType)?.GetService<IClassificationService>();
 
             #region Workspace Hookup
 
@@ -272,12 +270,12 @@ namespace Microsoft.CodeAnalysis.Classification
                 Contract.ThrowIfTrue(snapshots.IsDefault || snapshots.IsEmpty);
                 var currentSnapshot = GetLatest(snapshots);
 
-                var classificationService = TryGetClassificationService(currentSnapshot);
-                if (classificationService == null)
-                    return;
-
                 var currentDocument = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (currentDocument == null)
+                    return;
+
+                var classificationService = currentDocument.GetLanguageService<IClassificationService>();
+                if (classificationService is null)
                     return;
 
                 var (previousSnapshot, previousDocument, previousRoot) = GetLastProcessedData();
