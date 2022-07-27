@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
 
             // put variable statement in body
             var bodyStatement = GetForLoopBody(generator, foreachInfo, collectionVariable, indexVariable, donotCastElement);
-            
+
             // create for statement from foreach statement
             var forStatement = SyntaxFactory.ForStatement(
                 SyntaxFactory.VariableDeclaration(
