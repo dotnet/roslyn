@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// MEF will dispose of these services when the container is disposed of.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = false), MetadataAttribute]
-public class ExportStatelessLspServiceAttribute : ExportAttribute
+internal class ExportStatelessLspServiceAttribute : ExportAttribute
 {
     /// <summary>
     /// The type of the service being exported.  Used during retrieval to find the matching service.

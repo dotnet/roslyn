@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -15,16 +17,25 @@ namespace CommonLanguageServerProtocol.Framework;
 /// Aggregates handlers for the specified languages and dispatches LSP requests
 /// to the appropriate handler for the request.
 /// </summary>
-public abstract class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestContextType> where RequestContextType : struct
+public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestContextType> where RequestContextType : struct
 {
+    private ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>>? _requestHandlers;
     protected ILspServices _lspServices;
 
-    protected RequestDispatcher(ILspServices lspServices)
+    public RequestDispatcher(ILspServices lspServices)
     {
         _lspServices = lspServices;
     }
 
-    public abstract ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>> GetRequestHandlers();
+    public virtual ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>> GetRequestHandlers()
+    {
+        if (_requestHandlers is null)
+        {
+            _requestHandlers = CreateMethodToHandlerMap(_lspServices);
+        }
+
+        return _requestHandlers;
+    }
 
     public async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(
         string methodName,
@@ -69,5 +80,92 @@ public abstract class RequestDispatcher<RequestContextType> : IRequestDispatcher
     {
         var requestHandlers = GetRequestHandlers();
         return requestHandlers.Keys.ToImmutableArray();
+    }
+
+    private static ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>> CreateMethodToHandlerMap(ILspServices lspServices)
+    {
+        var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, Lazy<IRequestHandler>>();
+
+        var requestHandlerTypes = lspServices.GetRegisteredServices().Where(type => IsTypeRequestHandler(type));
+
+        foreach (var handlerType in requestHandlerTypes)
+        {
+            var (requestType, responseType, requestContext) = ConvertHandlerTypeToRequestResponseTypes(handlerType);
+            var method = GetRequestHandlerMethod(handlerType);
+
+            // Using the lazy set of handlers, create a lazy instance that will resolve the set of handlers for the provider
+            // and then lookup the correct handler for the specified method.
+            requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestType, responseType), new Lazy<IRequestHandler>(() =>
+            {
+                if (!lspServices.TryGetService(handlerType, out var lspService))
+                {
+                    throw new InvalidOperationException($"{handlerType} could not be retrieved from service");
+                }
+
+                return (IRequestHandler)lspService;
+            }));
+        }
+
+        return requestHandlerDictionary.ToImmutable();
+
+        static string GetRequestHandlerMethod(Type handlerType)
+        {
+            // Get the LSP method name from the handler's method name attribute.
+            var methodAttribute = GetMethodAttribute(handlerType);
+            if (methodAttribute is null)
+            {
+                throw new InvalidOperationException($"{handlerType.FullName} is missing Method attribute");
+            }
+            return methodAttribute.Method;
+
+            static LanguageServerEndpointAttribute? GetMethodAttribute(Type type)
+            {
+                var attribute = Attribute.GetCustomAttribute(type, typeof(LanguageServerEndpointAttribute)) as LanguageServerEndpointAttribute;
+                if (attribute is null)
+                {
+                    var interfaces = type.GetInterfaces();
+                    foreach (var @interface in interfaces)
+                    {
+                        attribute = GetMethodAttribute(@interface);
+                        if (attribute is not null)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                return attribute;
+            }
+        }
+
+        static bool IsTypeRequestHandler(Type type)
+        {
+            return type.GetInterfaces().Contains(typeof(IRequestHandler));
+        }
+    }
+
+    /// <summary>
+    /// Retrieves the generic argument information from the request handler type without instantiating it.
+    /// </summary>
+    private static (Type requestType, Type responseType, Type requestContext) ConvertHandlerTypeToRequestResponseTypes(Type handlerType)
+    {
+        var requestHandlerGenericType = handlerType.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequestHandler<,,>)).SingleOrDefault();
+        if (requestHandlerGenericType is null)
+        {
+            throw new InvalidOperationException($"Provided handler type {handlerType.FullName} does not implement IRequestHandler<,,>");
+        }
+
+        var genericArguments = requestHandlerGenericType.GetGenericArguments();
+
+        if (genericArguments.Length != 3)
+        {
+            throw new InvalidOperationException($"Provided handler type {handlerType.FullName} does not have exactly three generic arguments");
+        }
+
+        var requestType = genericArguments[0];
+        var responseType = genericArguments[1];
+        var requestContext = genericArguments[2];
+
+        return (requestType, responseType, requestContext);
     }
 }

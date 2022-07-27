@@ -43,12 +43,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _supportedLanguages = supportedLanguages;
         }
 
-        public override IRequestDispatcher<RequestContext> GetRequestDispatcher()
-        {
-            var lspServices = GetLspServices();
-            return new RoslynRequestDispatcher(lspServices);
-        }
-
         public override IRequestExecutionQueue<RequestContext> GetRequestExecutionQueue()
         {
             if (_queue is null)

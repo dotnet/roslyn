@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
-    public interface IAsyncToken : IDisposable
+    internal interface IAsyncToken : IDisposable
     {
     }
 }

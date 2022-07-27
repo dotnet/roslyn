@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-public class LspServices : ILspServices
+internal class LspServices : ILspServices
 {
     private readonly ImmutableDictionary<Type, Lazy<ILspService, LspServiceMetadataView>> _lazyLspServices;
 

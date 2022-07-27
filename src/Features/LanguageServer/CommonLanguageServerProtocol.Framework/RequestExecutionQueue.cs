@@ -166,7 +166,7 @@ public abstract class RequestExecutionQueue<RequestContextType> : IRequestExecut
         return resultTask;
     }
 
-    public abstract (IQueueItem<RequestContextType>, Task<TResponseType>) CreateQueueItem<TRequestType, TResponseType>(
+    public virtual (IQueueItem<RequestContextType>, Task<TResponseType>) CreateQueueItem<TRequestType, TResponseType>(
         bool mutatesSolutionState,
         bool requiresLSPSolution,
         ClientCapabilities clientCapabilities,
@@ -174,7 +174,20 @@ public abstract class RequestExecutionQueue<RequestContextType> : IRequestExecut
         TextDocumentIdentifier? textDocument,
         TRequestType request,
         IRequestHandler<TRequestType, TResponseType, RequestContextType> handler,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken)
+    {
+        return QueueItem<TRequestType, TResponseType, RequestContextType>.Create(mutatesSolutionState,
+            requiresLSPSolution,
+            clientCapabilities,
+            methodName,
+            textDocument,
+            request,
+            handler,
+            Trace.CorrelationManager.ActivityId,
+            _logger,
+            _lspServices,
+            cancellationToken);
+    }
 
     private async Task ProcessQueueAsync()
     {

@@ -2,15 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Diagnostics;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
-using System.Collections.Immutable;
 using CommonLanguageServerProtocol.Framework;
 
 #nullable enable
@@ -41,30 +35,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 queueCancellationToken: this.CancellationToken,
                 requestCancellationToken: cancellationToken);
         }
-
-        public override (IQueueItem<RequestContext>, Task<TResponseType>) CreateQueueItem<TRequestType, TResponseType>(
-            bool mutatesSolutionState,
-            bool requiresLSPSolution,
-            ClientCapabilities clientCapabilities,
-            string methodName,
-            TextDocumentIdentifier? textDocument,
-            TRequestType request,
-            IRequestHandler<TRequestType, TResponseType, RequestContext> handler,
-            CancellationToken cancellationToken)
-        {
-            return QueueItem<TRequestType, TResponseType, RequestContext>.Create(mutatesSolutionState,
-                requiresLSPSolution,
-                clientCapabilities,
-                methodName,
-                textDocument,
-                request,
-                handler,
-                Trace.CorrelationManager.ActivityId,
-                _logger,
-                _lspServices,
-                cancellationToken);
-        }
-
 
         #region Test Accessor
         internal TestAccessor GetTestAccessor()

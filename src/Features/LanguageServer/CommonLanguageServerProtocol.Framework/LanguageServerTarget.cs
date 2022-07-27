@@ -84,7 +84,11 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
 
     public abstract ILspServices GetLspServices();
 
-    public abstract IRequestDispatcher<RequestContextType> GetRequestDispatcher();
+    public virtual IRequestDispatcher<RequestContextType> GetRequestDispatcher()
+    {
+        var lspServices = GetLspServices();
+        return new RequestDispatcher<RequestContextType>(lspServices);
+    }
 
     public abstract IRequestExecutionQueue<RequestContextType> GetRequestExecutionQueue();
 

@@ -3,10 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Immutable;
 
 namespace CommonLanguageServerProtocol.Framework;
 
 public interface ILspServices : IDisposable
 {
     T GetRequiredService<T>();
+
+    bool TryGetService(Type @type, out object service);
+
+    ImmutableArray<Type> GetRegisteredServices();
 }

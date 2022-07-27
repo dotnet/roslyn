@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// when the LSP server instance shuts down.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false), MetadataAttribute]
-public class ExportLspServiceFactoryAttribute : ExportAttribute
+internal class ExportLspServiceFactoryAttribute : ExportAttribute
 {
     /// <summary>
     /// The type of the service being exported.  Used during retrieval to find the matching service.

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
     /// 
     /// We have this abstraction so that we can have isolated listener/waiter in unit tests
     /// </summary>
-    public interface IAsynchronousOperationListenerProvider
+    internal interface IAsynchronousOperationListenerProvider
     {
         /// <summary>
         /// Get <see cref="IAsynchronousOperationListener"/> for given feature.

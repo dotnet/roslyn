@@ -4,11 +4,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-public interface IClientLanguageServerManager : ILspService
+internal interface IClientLanguageServerManager : ILspService
 {
     ValueTask SendNotificationAsync(string methodName, CancellationToken cancellationToken);
     ValueTask SendNotificationAsync<TParams>(string methodName, TParams @params, CancellationToken cancellationToken);
