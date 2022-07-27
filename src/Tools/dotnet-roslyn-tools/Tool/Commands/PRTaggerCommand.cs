@@ -12,8 +12,9 @@ internal static class PRTaggerCommand
 {
     private static readonly PRTaggerCommandDefaultHandler s_prTaggerCommandHandler = new();
 
-    private static readonly Option<string> ProductName = new Option<string>(new[] { "--product-name", "-p" }, "Name of product (e.g. 'roslyn' or 'razor')") { IsRequired = true }
+    private static readonly Option<string> ProductName = new Option<string>(new[] { "--product-name", "-n" }, "Name of product (e.g. 'roslyn' or 'razor')") { IsRequired = true }
         .FromAmong("roslyn", "razor");
+    private static readonly Option<string> ProductRepoPath = new(new[] { "--repo-path", "-p" }, "Path to product repo") { IsRequired = true };
     private static readonly Option<string> VSBuild = new(new[] { "--build", "-b" }, "VS build number") { IsRequired = true };
     private static readonly Option<string> CommitId = new(new[] { "--commit", "-c" }, "VS build commit") { IsRequired = true };
 
@@ -22,6 +23,7 @@ internal static class PRTaggerCommand
         var command = new Command("pr-tagger", "Tags PRs inserted in a given VS build.")
         {
             ProductName,
+            ProductRepoPath,
             VSBuild,
             CommitId,
             CommonOptions.GitHubTokenOption,
@@ -39,6 +41,7 @@ internal static class PRTaggerCommand
         {
             var logger = context.SetupLogging();
             var productName = context.ParseResult.GetValueForOption(ProductName)!;
+            var productRepoPath = context.ParseResult.GetValueForOption(ProductRepoPath)!;
             var vsBuild = context.ParseResult.GetValueForOption(VSBuild)!;
             var vsCommitSha = context.ParseResult.GetValueForOption(CommitId)!;
             var settings = context.ParseResult.LoadSettings(logger);
@@ -52,7 +55,7 @@ internal static class PRTaggerCommand
             }
 
             return await PRTagger.PRTagger.TagPRs(
-                productName, vsBuild, vsCommitSha, settings, logger, CancellationToken.None).ConfigureAwait(false);
+                productName, productRepoPath, vsBuild, vsCommitSha, settings, logger, CancellationToken.None).ConfigureAwait(false);
         }
     }
 }
