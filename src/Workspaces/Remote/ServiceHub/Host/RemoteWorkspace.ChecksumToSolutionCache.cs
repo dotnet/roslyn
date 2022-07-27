@@ -25,10 +25,10 @@ namespace Microsoft.CodeAnalysis.Remote
             private readonly SemaphoreSlim _gate;
 
             /// <summary>
-            /// The last checksum and solution requested by a service. This effectively adds an additional in-flight
-            /// count to one of the items in <see cref="_solutionChecksumToSolution"/> ensuring that the very last
-            /// solution requested is kept alive by us, even if there are no active requests currently in progress for
-            /// that solution.  That way if we have two non-concurrent requests for that same solution, with no
+            /// The last checksum and solution requested by a service. This effectively adds an additional
+            /// in-flight-count to one of the items in <see cref="_solutionChecksumToSolution"/> ensuring that the very
+            /// last solution requested is kept alive by us, even if there are no active requests currently in progress
+            /// for that solution.  That way if we have two non-concurrent requests for that same solution, with no
             /// intervening updates, we can cache and keep the solution around instead of having to recompute it.
             /// </summary>
             private Checksum? _lastRequestedChecksum;
@@ -82,14 +82,14 @@ namespace Microsoft.CodeAnalysis.Remote
                     // If we had a checksum match, then we must have a cached solution.
                     Contract.ThrowIfNull(_lastRequestedSolution);
 
-                    // The cached solution must have a valid in-flight count
+                    // The cached solution must have a valid in-flight-count
                     Contract.ThrowIfTrue(_lastRequestedSolution.InFlightCount < 0);
                     return _lastRequestedSolution;
                 }
 
                 if (_solutionChecksumToSolution.TryGetValue(solutionChecksum, out var solution))
                 {
-                    // The cached solution must have a valid in-flight count
+                    // The cached solution must have a valid in-flight-count
                     Contract.ThrowIfTrue(solution.InFlightCount < 0);
                     return solution;
                 }
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var solution = TryFastGetSolution_NoLock_NoInFlightCountChange(solutionChecksum);
                     if (solution != null)
                     {
-                        // The cached solution must have a valid in-flight count
+                        // The cached solution must have a valid in-flight-count
                         Contract.ThrowIfFalse(solution.InFlightCount < 0);
 
                         // Increase the count as our caller now is keeping this solution in-flight
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     else
                     {
                         // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
-                        // in-flight count of 1 to represent our caller.
+                        // in-flight-count of 1 to represent our caller.
                         solution = new SolutionAndInFlightCount(this, solutionChecksum, getSolutionAsync);
                         Contract.ThrowIfFalse(solution.InFlightCount == 1);
 
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public async Task SetLastRequestedSolutionAsync(Checksum solutionChecksum, SolutionAndInFlightCount solution, CancellationToken cancellationToken)
             {
-                // The solution being passed in must have a valid in-flight count since the caller currently has it in flight
+                // The solution being passed in must have a valid in-flight-count since the caller currently has it in flight
                 Contract.ThrowIfTrue(solution.InFlightCount < 1);
 
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     (_lastRequestedSolution, _lastRequestedChecksum) = (solution, solutionChecksum);
 
-                    // Release the in-flight count on the last solution we were pointing at.  If we were the last count
+                    // Decrement the in-flight count on the last solution we were pointing at.  If we were the last count
                     // on it then it will get removed from the cache.
                     if (solutionToDecrement != null)
                     {
