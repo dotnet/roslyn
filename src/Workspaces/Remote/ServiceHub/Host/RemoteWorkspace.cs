@@ -126,31 +126,42 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will
             // increment the ref count of that solution until we release it at the end of our using block.
-            using var solutionAndInFlightCount = await GetOrCreateSolutionAsync(
+            var solution = await GetOrCreateSolutionAsync(
                 assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch, cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfTrue(solutionAndInFlightCount.InFlightCount < 1);
+            try
+            {
+                Contract.ThrowIfTrue(solution.InFlightCount < 1);
 
-            // Store this around so that if another call comes through for this same checksum, they will see the
-            // solution we just computed, even if we have returned.  This also ensures that if we promoted a
-            // non-primary-solution to a primary-solution that it will now take precedence in all our caches for this
-            // particular checksum.
-            await _anyBranchSolutionCache.SetLastRequestedSolutionAsync(solutionChecksum, refCountedSolution, cancellationToken).ConfigureAwait(false);
-            if (updatePrimaryBranch)
-                await _primaryBranchSolutionCache.SetLastRequestedSolutionAsync(solutionChecksum, refCountedSolution, cancellationToken).ConfigureAwait(false);
+                // Store this around so that if another call comes through for this same checksum, they will see the
+                // solution we just computed, even if we have returned.  This also ensures that if we promoted a
+                // non-primary-solution to a primary-solution that it will now take precedence in all our caches for this
+                // particular checksum.
+                await _anyBranchSolutionCache.SetLastRequestedSolutionAsync(solutionChecksum, solution, cancellationToken).ConfigureAwait(false);
+                if (updatePrimaryBranch)
+                    await _primaryBranchSolutionCache.SetLastRequestedSolutionAsync(solutionChecksum, solution, cancellationToken).ConfigureAwait(false);
 
-            // Actually get the solution, computing it ourselves, or getting the result that another caller was
-            // computing. In the event of cancellation, we do not wait here for the refCountedSolution to clean up,
-            // even if this was the last use of this solution.
-            var newSolution = await refCountedSolution.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
+                // Can't assert anything more than this.  We know we're keeping this solution in-flight.  However, even
+                // though we just added it to the caches as hte last-requested-solution, it might have been immediately
+                // overwritten by some other request on a another thread.
+                Contract.ThrowIfTrue(solution.InFlightCount < 1);
 
-            // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
-            // using this same solution as well
-            var result = await implementation(newSolution).ConfigureAwait(false);
+                // Actually get the solution, computing it ourselves, or getting the result that another caller was
+                // computing. In the event of cancellation, we do not wait here for the refCountedSolution to clean up,
+                // even if this was the last use of this solution.
+                var newSolution = await solution.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
 
-            // finally, implicitly release our ref-count on the solution.  If we were the last one keeping it alive, it
-            // will get released from our caches.
+                // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
+                // using this same solution as well
+                var result = await implementation(newSolution).ConfigureAwait(false);
 
-            return (newSolution, result);
+                return (newSolution, result);
+            }
+            finally
+            {
+                // finally, release our in-flicht-count on the solution.  If we were the last one keeping it alive, it
+                // will get released from our caches.
+                solution.DecrementInFlightCount();
+            }
         }
 
         private async ValueTask<ChecksumToSolutionCache.SolutionAndInFlightCount> GetOrCreateSolutionAsync(
@@ -164,50 +175,60 @@ namespace Microsoft.CodeAnalysis.Remote
             // that were the real solutions of this Workspace, and not ones forked off from that.  This gives the
             // highest likelihood of sharing data and being able to reuse workspace caches and services shared among all
             // components.
-            var primaryBranchRefCountedSolution = await _primaryBranchSolutionCache.TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-            if (primaryBranchRefCountedSolution != null)
+            var primaryBranchSolution = await _primaryBranchSolutionCache.TryFastGetSolutionAndAddInFlightCountAsync(
+                solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+            if (primaryBranchSolution != null)
             {
-                Contract.ThrowIfTrue(primaryBranchRefCountedSolution.RefCount < 1);
-                return primaryBranchRefCountedSolution;
+                Contract.ThrowIfTrue(primaryBranchSolution.InFlightCount < 1);
+                return primaryBranchSolution;
             }
+
+            Contract.ThrowIfTrue(primaryBranchSolution == null);
 
             // Otherwise, have the any-branch solution try to retrieve or create the solution.  This will always
             // succeed, and must give us back a solution with a ref-count that is keeping it alive.
-            var anyBranchRefCountedSolution =
-                await _anyBranchSolutionCache.TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false) ??
-                await _anyBranchSolutionCache.SlowGetOrCreateSolutionAsync(
+            var anyBranchSolution =
+                await _anyBranchSolutionCache.TryFastGetSolutionAndAddInFlightCountAsync(solutionChecksum, cancellationToken).ConfigureAwait(false) ??
+                await _anyBranchSolutionCache.SlowGetOrCreateSolutionAndAddInFlightCountAsync(
                     solutionChecksum,
                     cancellationToken => ComputeSolutionAsync(assetProvider, solutionChecksum, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfTrue(anyBranchRefCountedSolution.RefCount < 1);
+            Contract.ThrowIfTrue(anyBranchSolution.InFlightCount < 1);
 
             if (!updatePrimaryBranch)
             {
                 // if we aren't updating the primary branch we're done and can just return the any-branch solution.
-                // note: the ref-count of this item is still correct.  the calls above to TryFastGetSolutionAsync or 
+                // note: the in-flight-count of this item is still correct.  the calls above to TryFastGetSolutionAsync or 
                 // SlowGetOrCreateSolutionAsync will have appropriately raised it for us.
-                return anyBranchRefCountedSolution;
+                return anyBranchSolution;
             }
 
             // We were asked to update the primary-branch solution.  So take the any-branch solution and promote it to
-            // the primary-branch-level.  This may return a different solution.  So ensure that we release our reference
-            // on the anyBranch solution when we're done. SlowGetOrCreateSolutionAsync will ensure the refcount of the
-            // solution it returns is proper, so this is safe to do.
-            using (anyBranchRefCountedSolution)
+            // the primary-branch-level.  This may return a different solution.  So ensure that we release our in-flight
+            // count on the anyBranch solution when we're done. SlowGetOrCreateSolutionAsync will ensure the in-flight
+            // count of the solution it returns is proper, so this is safe to do.
+            try
             {
-                var anyBranchSolution = await anyBranchRefCountedSolution.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
+                var anyBranchUnderlyingSolution = await anyBranchSolution.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
 
-                var finalRefCountedSolution = await _primaryBranchSolutionCache.SlowGetOrCreateSolutionAsync(
+                var updatedSolution = await _primaryBranchSolutionCache.SlowGetOrCreateSolutionAndAddInFlightCountAsync(
                     solutionChecksum,
                     async cancellationToken =>
                     {
-                        var (primaryBranchSolution, _) = await this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, anyBranchSolution, cancellationToken).ConfigureAwait(false);
-                        return primaryBranchSolution;
+                        var (updatedSolution, _) = await this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, anyBranchUnderlyingSolution, cancellationToken).ConfigureAwait(false);
+                        return updatedSolution;
                     },
                     cancellationToken).ConfigureAwait(false);
 
-                Contract.ThrowIfTrue(anyBranchRefCountedSolution.RefCount < 1);
-                Contract.ThrowIfTrue(finalRefCountedSolution.RefCount < 1);
+                Contract.ThrowIfTrue(anyBranchSolution.InFlightCount < 1);
+                Contract.ThrowIfTrue(updatedSolution.InFlightCount < 1);
+
+                return updatedSolution;
+            }
+            finally
+            {
+                anyBranchSolution.DecrementInFlightCount();
             }
         }
 
