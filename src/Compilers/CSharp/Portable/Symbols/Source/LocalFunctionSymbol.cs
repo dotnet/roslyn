@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnostics = BindingDiagnosticBag.GetInstance(_declarationDiagnostics);
             TypeSyntax returnTypeSyntax = Syntax.ReturnType;
-            TypeWithAnnotations returnType = WithTypeParametersBinder.BindType(returnTypeSyntax.SkipRef(out _, allowScoped: false, diagnostics), diagnostics);
+            TypeWithAnnotations returnType = WithTypeParametersBinder.BindType(returnTypeSyntax.SkipRef(out _), diagnostics);
 
             var compilation = DeclaringCompilation;
 
