@@ -8,6 +8,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
@@ -67,6 +68,7 @@ namespace Microsoft.CodeAnalysis
         internal FileTextLoader(string path, Encoding? defaultEncoding, SourceHashAlgorithm checksumAlgorithm)
         {
             CompilerPathUtilities.RequireAbsolutePath(path, "path");
+            Contract.ThrowIfFalse(SourceHashAlgorithms.IsSupportedAlgorithm(checksumAlgorithm));
 
             Path = path;
             DefaultEncoding = defaultEncoding;
