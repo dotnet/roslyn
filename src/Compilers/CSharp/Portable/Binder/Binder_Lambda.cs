@@ -168,7 +168,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     scopes = scopesBuilder.ToImmutable();
                 }
 
-
                 if (attributesBuilder.Any(a => a.Count > 0))
                 {
                     parameterAttributes = attributesBuilder.ToImmutable();

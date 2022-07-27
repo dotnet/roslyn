@@ -3233,41 +3233,6 @@ return 1;
                 Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "value"));
         }
 
-        [WorkItem(536956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536956")]
-        [Fact]
-        public void CS1065ERR_DefaultValueNotAllowed()
-        {
-            var test = @"
-class A
-{
-    delegate void D(int x);    
-    D d1 = delegate(int x = 42) { };
-}
-";
-
-            CreateCompilation(test).VerifyDiagnostics(
-                // (5,27): error CS1065: Default values are not valid in this context.
-                //     D d1 = delegate(int x = 42) { };
-                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 27));
-        }
-
-        [Fact]
-        public void CS1065ERR_DefaultValueNotAllowed_2()
-        {
-            var test = @"
-class A
-{
-    delegate void D(int x, int y);    
-    D d1 = delegate(int x, int y = 42) { };
-}
-";
-
-            CreateCompilation(test).VerifyDiagnostics(
-                // (5,34): error CS1065: Default values are not valid in this context.
-                //     D d1 = delegate(int x, int y = 42) { };
-                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34));
-        }
-
         [Fact, WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
         public void CS7014ERR_AttributesNotAllowed()
         {

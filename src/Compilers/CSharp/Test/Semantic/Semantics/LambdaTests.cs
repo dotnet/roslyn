@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -6973,7 +6972,6 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-
                 // (5,19): error CS8917: The delegate type could not be inferred.
                 //         var lam = (string s = null, x = 7, double d = 3.14) => { };
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(string s = null, x = 7, double d = 3.14) => { }").WithLocation(5, 19),
@@ -7442,6 +7440,62 @@ class Program
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2(a)").WithArguments("i").WithLocation(5, 33));
         }
 
+        [Fact]
+        public void LambdaDefaultWithinCheckedContext()
+        {
+            var source = """
+class Program
+{
+    void M()
+    {
+        var _ = (int i = int.MaxValue + 1) => i;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (5,26): error CS0220: The operation overflows at compile time in checked mode
+                    //         var _ = (int i = int.MaxValue + 1) => i;
+                    Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MaxValue + 1").WithLocation(5, 26));
+        }
+
+        [Fact]
+        public void LambdaDefaultWithinUncheckedContext()
+        {
+            var source = """
+class Program
+{
+    void M()
+    {
+        unchecked
+        {
+            var _ = (int i = int.MaxValue + 1) => i;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaWithinNestedScope()
+        {
+            var source = """
+class Program
+{
+    void M()
+    {
+        {
+            const string s = "abcdef";
+            var _ = (string str = s) => s;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
     }
 
 }

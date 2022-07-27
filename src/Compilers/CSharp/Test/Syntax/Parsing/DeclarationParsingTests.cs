@@ -5795,10 +5795,7 @@ class C {
             Assert.NotNull(file);
             Assert.Equal(0, file.Errors().Length);
 
-            CreateCompilation(text).VerifyDiagnostics(
-                // (5,28): error CS1065: Default values are not valid in this context.
-                //      F f = delegate (int x = 0) { };
-                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 28));
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(537865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537865")]

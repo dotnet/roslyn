@@ -733,8 +733,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
-        <source> Default not allowed for implicitly typed lambda parameter '{0}' </source>
-        <target state="new"> Default not allowed for implicitly typed lambda parameter '{0}' </target>
+        <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
+        <target state="new">Implicitly typed lambda parameter '{0}' cannot have a default value.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">

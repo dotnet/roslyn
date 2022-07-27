@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -541,7 +540,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract int ParameterCount { get; }
         public abstract bool IsAsync { get; }
         public abstract bool IsStatic { get; }
-
         public abstract Location ParameterLocation(int index);
         public abstract TypeWithAnnotations ParameterTypeWithAnnotations(int index);
         public abstract RefKind RefKind(int index);
@@ -603,7 +601,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         private static MethodSymbol? DelegateInvokeMethod(NamedTypeSymbol? delegateType)
         {
             return delegateType.GetDelegateType()?.DelegateInvokeMethod;
@@ -632,7 +629,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterRefKindsBuilder = ArrayBuilder<RefKind>.GetInstance(ParameterCount);
             var parameterScopesBuilder = ArrayBuilder<DeclarationScope>.GetInstance(ParameterCount);
             var parameterTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(ParameterCount);
-            var parameterDefaultValueBuilder = ArrayBuilder<ConstantValue?>.GetInstance(ParameterCount);
 
             for (int i = 0; i < ParameterCount; i++)
             {
@@ -661,11 +657,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKind: default,
                 returnType: default);
 
+            ArrayBuilder<ConstantValue?>? parameterDefaultValueBuilder = null;
             foreach (var param in lambdaSymbol.Parameters)
             {
-                parameterDefaultValueBuilder.Add(param.ExplicitDefaultConstantValue);
+                var constVal = param.ExplicitDefaultConstantValue;
+                if (constVal != null)
+                {
+                    if (parameterDefaultValueBuilder == null)
+                    {
+                        parameterDefaultValueBuilder = ArrayBuilder<ConstantValue?>.GetInstance(ParameterCount);
+                    }
+
+                    parameterDefaultValueBuilder.Add(param.ExplicitDefaultConstantValue);
+                }
             }
-            var parameterDefaultValues = parameterDefaultValueBuilder.ToImmutableAndFree();
+
+            var parameterDefaultValues = parameterDefaultValueBuilder?.ToImmutableAndFree() ?? default;
 
             if (!HasExplicitReturnType(out var returnRefKind, out var returnType))
             {
