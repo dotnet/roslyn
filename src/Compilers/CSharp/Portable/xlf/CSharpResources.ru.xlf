@@ -207,6 +207,11 @@
         <target state="translated">Оператор "{0}" невозможно применить к операнду "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadParameterModifiersOrder">
+        <source> The parameter modifier '{0}' cannot follow '{1}'</source>
+        <target state="new"> The parameter modifier '{0}' cannot follow '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">Недопустимый операнд для сопоставления с шаблоном. Требуется значение, но найдено "{0}".</target>
@@ -255,6 +260,11 @@
       <trans-unit id="ERR_CannotInferDelegateType">
         <source>The delegate type could not be inferred.</source>
         <target state="translated">Не удалось вывести тип делегата.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotMatchOnINumberBase">
+        <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</source>
+        <target state="new">Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -915,6 +925,11 @@
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
         <target state="translated">Непредвиденное ключевое слово \"record\". Возможно, вы имели в виду \"record struct\" или \"record class\"?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedScoped">
+        <source>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</source>
+        <target state="new">Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">

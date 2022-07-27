@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             using var _ = PooledObjects.ArrayBuilder<CodeActionOperation>.GetInstance(out var operations);
             operations.Add(new ApplyChangesOperation(moveToNamespaceResult.UpdatedSolution));
 
-            var symbolRenameCodeActionOperationFactory = moveToNamespaceResult.UpdatedSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
+            var symbolRenameCodeActionOperationFactory = moveToNamespaceResult.UpdatedSolution.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
 
             // It's possible we're not in a host context providing this service, in which case
             // just provide a code action that won't notify of the symbol rename.

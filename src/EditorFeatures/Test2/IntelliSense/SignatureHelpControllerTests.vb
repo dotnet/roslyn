@@ -276,21 +276,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                  Optional provider As ISignatureHelpProvider = Nothing,
                                                  Optional waitForPresentation As Boolean = False,
                                                  Optional triggerSession As Boolean = True) As Controller
-            Dim document As Document =
-                (Function()
-                     Dim w = TestWorkspace.CreateWorkspace(
-                         <Workspace>
-                             <Project Language="C#">
-                                 <Document>
-                                 </Document>
-                             </Project>
-                         </Workspace>)
-                     Return w.CurrentSolution.GetDocument(w.Documents.Single().Id)
-                 End Function)()
+            Dim workspace = TestWorkspace.CreateWorkspace(
+                <Workspace>
+                    <Project Language="C#">
+                        <Document>
+                        </Document>
+                    </Project>
+                </Workspace>)
+            Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
 
-            Dim workspace = DirectCast(document.Project.Solution.Workspace, TestWorkspace)
             Dim threadingContext = workspace.GetService(Of IThreadingContext)
-            Dim bufferFactory As ITextBufferFactoryService = DirectCast(document.Project.Solution.Workspace, TestWorkspace).GetService(Of ITextBufferFactoryService)
+            Dim bufferFactory As ITextBufferFactoryService = workspace.GetService(Of ITextBufferFactoryService)
             Dim buffer = bufferFactory.CreateTextBuffer()
             Dim view = CreateMockTextView(buffer)
             Dim asyncListener = AsynchronousOperationListenerProvider.NullListener

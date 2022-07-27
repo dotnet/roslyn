@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -235,8 +236,8 @@ public class GlobalOptionsTests
         using var workspace = CreateWorkspace(out var globalOptions);
         var languageServices = workspace.Services.GetLanguageServices(language);
 
-        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetIdeAnalyzerOptions(languageServices), IdeAnalyzerOptions.GetDefault(languageServices), language);
-        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetCodeActionOptions(languageServices), CodeActionOptions.GetDefault(languageServices), language);
+        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetIdeAnalyzerOptions(languageServices.ProjectServices), IdeAnalyzerOptions.GetDefault(languageServices), language);
+        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetCodeActionOptions(languageServices.ProjectServices), CodeActionOptions.GetDefault(languageServices), language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetBraceMatchingOptions(language), BraceMatchingOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetFindUsagesOptions(language), FindUsagesOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetInlineHintsOptions(language), InlineHintsOptions.Default, language);
@@ -245,7 +246,7 @@ public class GlobalOptionsTests
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetDocumentationCommentOptions(globalOptions.GetLineFormattingOptions(language), language), DocumentationCommentOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetExtractMethodOptions(language), ExtractMethodOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetImplementTypeOptions(language), ImplementTypeOptions.Default, language);
-        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetMetadataAsSourceOptions(languageServices), MetadataAsSourceOptions.GetDefault(languageServices), language);
+        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetMetadataAsSourceOptions(languageServices.ProjectServices), MetadataAsSourceOptions.GetDefault(languageServices), language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetSignatureHelpOptions(language), SignatureHelpOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetSymbolSearchOptions(language), SymbolSearchOptions.Default, language);
     }
