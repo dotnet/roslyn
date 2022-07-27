@@ -1498,7 +1498,8 @@ namespace Microsoft.CodeAnalysis
                     // Split analyzers between those that must run on source code only and those that will run on transformed code.
                     (var sourceOnlyAnalyzers, analyzers) = SplitAnalyzers(analyzerConfigProvider, analyzers);
 
-                    logger.Trace?.Log($"Source-only analyzers: {string.Join(", ", sourceOnlyAnalyzers)}. After-transformation analyzers: {string.Join(", ", analyzers)}. ");
+                    logger.Trace?.Log(
+                        $"Source-only analyzers: {string.Join(", ", sourceOnlyAnalyzers)}. After-transformation analyzers: {string.Join(", ", analyzers)}. ");
 
                     // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
                     //  1. Always filter out 'Hidden' analyzer diagnostics in build.
@@ -1513,16 +1514,25 @@ namespace Microsoft.CodeAnalysis
                     // Execute transformers.
                     var compilationBeforeTransformation = compilation;
                     var transformersDiagnostics = new DiagnosticBag();
-                    var transformersResult = RunTransformers(compilationBeforeTransformation, serviceProvider, transformers, sourceOnlyAnalyzerOptions, plugins, analyzerConfigProvider, transformersDiagnostics, cancellationToken);
+                    var transformersResult = RunTransformers(compilationBeforeTransformation, serviceProvider,
+                        transformers, sourceOnlyAnalyzerOptions, plugins, analyzerConfigProvider,
+                        transformersDiagnostics, cancellationToken);
 
-                    compilation = transformersResult.TransformedCompilation;
+                    if (HasUnsuppressableErrors(transformersDiagnostics))
+                    {
+                        MapDiagnosticsToFinalCompilation(transformersDiagnostics, diagnostics, compilationBeforeTransformation, logger);
+                        logger.Error?.Log($"RunTransformers reported errors.");
+                        return;
+                    }
+
+                compilation = transformersResult.TransformedCompilation;
                     var mappedAnalyzerOptions = transformersResult.MappedAnalyzerOptions;
 
                     // Map diagnostics to the final compilation, because suppressors need it.
                     MapDiagnosticsToFinalCompilation(transformersDiagnostics, diagnostics, compilation, logger );
 
                     // Don't continue if transformers failed.
-                    if (!transformersResult.Success)
+                    if (!transformersResult.Success )
                     {
                         logger.Error?.Log($"RunTransformers was not successful.");
                         return;
@@ -2037,6 +2047,7 @@ namespace Microsoft.CodeAnalysis
 
                 // Find the node in the source syntax tree.
                 var sourceSyntaxNode = TreeTracker.GetSourceSyntaxNode(reportedSyntaxNode);
+
                 
                 // If sourceSyntaxNode == null, it means that two conditions are met:
                 //   1. The diagnostic is located in generated code AND
@@ -2054,18 +2065,11 @@ namespace Microsoft.CodeAnalysis
                     if (diagnostic.DefaultSeverity < DiagnosticSeverity.Error)
                     {
                         trace?.Log(
-                            $"Diagnostic ignored because this is not an C# error and it was reported in transformed code: {diagnostic}");
+                            $"Diagnostic ignored because this is not an error and it was reported in transformed code: {diagnostic}");
 
                         return default;
                     }
-                    else if (!diagnostic.Id.StartsWith("CS", StringComparison.OrdinalIgnoreCase))
-                    {
-                        trace?.Log(
-                            $"Diagnostic ignored because this is not a C# diagnostic and it was reported in transformed code: {diagnostic}");
-
-                        return default;
-                    }
-                    else
+                    else if ( isGeneratedCode )
                     {
                         // If this is a C# compiler error, it means that we have invalid code.
                         // Try to find the component that generated it and blame the error on it.
@@ -2093,6 +2097,12 @@ namespace Microsoft.CodeAnalysis
 
 
                         return (diagnosticWrapper, hasSystemBug, hasAspectBug);
+                    }
+                    else
+                    {
+                        trace?.Log($"Diagnostic passed through because not in source code neither in generated code: {diagnostic}");
+
+                        return (diagnostic,false,false);
                     }
                 }
 
