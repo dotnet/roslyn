@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         /// <summary>
         /// Cache of recently requested solution snapshots.  This always stores the last snapshot requested, and also
-        /// stores any requested solutino snapshot that is currently in-use.  This allows concurrent calls to come in
+        /// stores any requested solution snapshot that is currently in-use.  This allows concurrent calls to come in
         /// and see/reuse in-flight solution snapshots being used by other requests.
         /// </summary>
         private sealed partial class ChecksumToSolutionCache
@@ -47,16 +47,27 @@ namespace Microsoft.CodeAnalysis.Remote
                 _gate = gate;
             }
 
-            public async ValueTask<RefCountedSolution?> TryFastGetSolutionAsync(
+            public async ValueTask<RefCountedSolution?> TryFastGetSolutionAndAddRefAsync(
                 Checksum solutionChecksum,
                 CancellationToken cancellationToken)
             {
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
+                    // From this point on we are mutating state.  Ensure we absolutely do not cancel accidentally.
+                    cancellationToken = default;
+
                     var refCountedSolution = TryFastGetSolution_NoLock_NoRefCountChange(solutionChecksum);
 
-                    // Increase the ref count as our caller now owns a ref to this solution as well.
-                    refCountedSolution?.AddReference_WhileAlreadyHoldingLock();
+                    if (refCountedSolution != null)
+                    {
+                        // We are holding the solution ourself.  So it must have a legal refcount.
+                        Contract.ThrowIfTrue(refCountedSolution.RefCount < 1);
+
+                        // Increase the ref count as our caller now owns a ref to this solution as well.
+                        refCountedSolution.AddReference_WhileAlreadyHoldingLock();
+
+                        Contract.ThrowIfTrue(refCountedSolution.RefCount < 2);
+                    }
 
                     return refCountedSolution;
                 }
@@ -87,11 +98,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 return null;
             }
 
-            public async ValueTask<RefCountedSolution> SlowGetOrCreateSolutionAsync(
+            public async ValueTask<RefCountedSolution> SlowGetOrCreateSolutionAndAddRefAsync(
                 Checksum solutionChecksum, Func<CancellationToken, Task<Solution>> getSolutionAsync, CancellationToken cancellationToken)
             {
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
+                    // From this point on we are mutating state.  Ensure we absolutely do not cancel accidentally.
+                    cancellationToken = default;
+
                     // see if someone already raced with us and set the solution in the cache while we were waiting on the lock.
                     var refCountedSolution = TryFastGetSolution_NoLock_NoRefCountChange(solutionChecksum);
                     if (refCountedSolution == null)
@@ -101,40 +115,53 @@ namespace Microsoft.CodeAnalysis.Remote
                         refCountedSolution = new RefCountedSolution(this, solutionChecksum, getSolutionAsync);
                         Contract.ThrowIfFalse(refCountedSolution.RefCount == 0);
 
-                        // Add a ref count to represent being in the dictionary.
+                        // Add a ref count to represent being held by us.
                         refCountedSolution.AddReference_WhileAlreadyHoldingLock();
+                        Contract.ThrowIfFalse(refCountedSolution.RefCount == 1);
+
                         _solutionChecksumToSolution.Add(solutionChecksum, refCountedSolution);
                     }
 
-                    // The solution we're returning must have a valid ref count.
+                    // We are holding the solution ourself.  So it must have a legal refcount.
                     Contract.ThrowIfTrue(refCountedSolution.RefCount < 1);
 
                     // Increase the ref count as our caller now owns a ref to this solution as well.
                     refCountedSolution.AddReference_WhileAlreadyHoldingLock();
+                    Contract.ThrowIfTrue(refCountedSolution.RefCount < 2);
+
                     return refCountedSolution;
                 }
             }
 
             public async Task SetLastRequestedSolutionAsync(Checksum solutionChecksum, RefCountedSolution refCountedSolution, CancellationToken cancellationToken)
             {
-                // The solution being passed in must have a valid ref count.
+                // The solution being passed in must have a valid ref count since the caller is holding onto it.
                 Contract.ThrowIfTrue(refCountedSolution.RefCount < 1);
 
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
+                    // From this point on we are mutating state.  Ensure we absolutely do not cancel accidentally.
+                    cancellationToken = default;
+
+                    // Keep track of the existing solution so we can release the ref on it once done.
                     var solutionToRelease = _lastRequestedSolution;
 
-                    // Increase the ref count as we now are owning this solution as well.
+                    // Increase the ref count as we are now holding onto this solution as well.
                     refCountedSolution.AddReference_WhileAlreadyHoldingLock();
 
-                    // The cached solution must have a valid ref count.  At this point our caller has a ref and we have
-                    // a ref, so we must at least have a ref count of 2.
+                    // At this point our caller has a ref and we have a ref, so we must at least have a ref count of 2.
                     Contract.ThrowIfTrue(refCountedSolution.RefCount < 2);
 
                     (_lastRequestedSolution, _lastRequestedChecksum) = (refCountedSolution, solutionChecksum);
 
-                    // Release the ref count on the last solution we were pointing at.
-                    solutionToRelease?.Release_WhileAlreadyHoldingLock();
+                    // Release the ref count on the last solution we were pointing at.  If we were the last reference to
+                    // it, it will get removed from the cache.
+                    if (solutionToRelease != null)
+                    {
+                        // If were holding onto this solution, it must have a legal refcount.
+                        Contract.ThrowIfTrue(solutionToRelease.RefCount < 1);
+                        solutionToRelease?.Release_WhileAlreadyHoldingLock();
+                    }
                 }
             }
         }
