@@ -75,7 +75,7 @@
     It's also not necessary to generate these assets.
   -->
   <PropertyGroup Condition="'$(IsWpfTempProject)' == 'true'">
-    <_WpfTempProjectNuGetFilePathNoExt>$(RepoRootPath)obj\$(_TargetAssemblyProjectName)\$(_TargetAssemblyProjectName)$(MSBuildProjectExtension).nuget.g</_WpfTempProjectNuGetFilePathNoExt>
+    <_WpfTempProjectNuGetFilePathNoExt>$(BaseIntermediateOutputPath)..\$(_TargetAssemblyProjectName)\$(_TargetAssemblyProjectName)$(MSBuildProjectExtension).nuget.g</_WpfTempProjectNuGetFilePathNoExt>
 
     <EnableSourceLink>false</EnableSourceLink>
     <EmbedUntrackedSources>false</EmbedUntrackedSources>
