@@ -28,7 +28,7 @@ internal sealed record class CodeCleanupOptions(
     [DataMember] public DocumentFormattingOptions DocumentFormattingOptions { get; init; } = DocumentFormattingOptions.Default;
 
 #if !CODE_STYLE
-    public static CodeCleanupOptions GetDefault(HostLanguageServices languageServices)
+    public static CodeCleanupOptions GetDefault(HostProjectServices languageServices)
         => new(
             FormattingOptions: SyntaxFormattingOptions.GetDefault(languageServices),
             SimplifierOptions: SimplifierOptions.GetDefault(languageServices));

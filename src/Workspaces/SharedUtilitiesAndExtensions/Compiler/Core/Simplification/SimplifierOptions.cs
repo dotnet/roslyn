@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         }
 
 #if !CODE_STYLE
-        public static SimplifierOptions GetDefault(HostLanguageServices languageServices)
+        public static SimplifierOptions GetDefault(HostProjectServices languageServices)
             => languageServices.GetRequiredService<ISimplificationService>().DefaultOptions;
 #endif
     }

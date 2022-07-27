@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
 
                 Dim root = Await document.GetSyntaxRootAsync()
 
-                Dim cleanupOptions = CodeCleanupOptions.GetDefault(document.Project.LanguageServices)
+                Dim cleanupOptions = CodeCleanupOptions.GetDefault(document.Project.Services)
 
                 If hostDocument.AnnotatedSpans.ContainsKey("Expand") Then
                     For Each span In hostDocument.AnnotatedSpans("Expand")
