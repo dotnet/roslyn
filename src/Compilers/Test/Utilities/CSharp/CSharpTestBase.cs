@@ -1000,25 +1000,7 @@ namespace System.Diagnostics.CodeAnalysis
         #region SyntaxTree Factories
 
         public static SyntaxTree Parse(string text, string filename = "", CSharpParseOptions options = null, Encoding encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
-        {
-            if ((object)options == null)
-            {
-                options = TestOptions.RegularPreview;
-            }
-
-            var stringText = StringText.From(text, encoding ?? Encoding.UTF8, checksumAlgorithm);
-            return CheckSerializable(SyntaxFactory.ParseSyntaxTree(stringText, options, filename));
-        }
-
-        private static SyntaxTree CheckSerializable(SyntaxTree tree)
-        {
-            var stream = new MemoryStream();
-            var root = tree.GetRoot();
-            root.SerializeTo(stream);
-            stream.Position = 0;
-            var deserializedRoot = CSharpSyntaxNode.DeserializeFrom(stream);
-            return tree;
-        }
+            => CSharpTestSource.Parse(text, filename, options, encoding, checksumAlgorithm);
 
         public static SyntaxTree[] Parse(IEnumerable<string> sources, CSharpParseOptions options = null)
         {

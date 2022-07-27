@@ -28,6 +28,14 @@ namespace Microsoft.CodeAnalysis
 
         internal virtual string? FilePath => null;
 
+        internal virtual SourceHashAlgorithm ChecksumAlgorithm => SourceHashAlgorithm.Sha1;
+
+        internal TextLoader? TryUpdateChecksumAlgorithm(SourceHashAlgorithm algorithm)
+            => (ChecksumAlgorithm == algorithm) ? this : TryUpdateChecksumAlgorithmImpl(algorithm);
+
+        private protected virtual TextLoader? TryUpdateChecksumAlgorithmImpl(SourceHashAlgorithm algorithm)
+            => null;
+
         /// <summary>
         /// Load a text and a version of the document.
         /// </summary>
@@ -193,6 +201,9 @@ namespace Microsoft.CodeAnalysis
             internal TextDocumentLoader(TextAndVersion textAndVersion)
                 => _textAndVersion = textAndVersion;
 
+            internal override SourceHashAlgorithm ChecksumAlgorithm
+                => _textAndVersion.Text.ChecksumAlgorithm;
+
             public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
                 => Task.FromResult(_textAndVersion);
 
@@ -213,8 +224,11 @@ namespace Microsoft.CodeAnalysis
                 _filePath = filePath;
             }
 
+            internal override string? FilePath
+                => _filePath;
+
             public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
-                => Task.FromResult(LoadTextAndVersionSynchronously(cancellationToken));
+                => Task.FromResult(LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken));
 
             internal override TextAndVersion LoadTextAndVersionSynchronously(CancellationToken cancellationToken)
                 => TextAndVersion.Create(_container.CurrentText, _version, _filePath);

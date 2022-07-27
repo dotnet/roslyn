@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private static void TestCreateTextInferredEncoding(ITextFactoryService textFactoryService, byte[] bytes, Encoding? defaultEncoding, Encoding expectedEncoding)
         {
             using var stream = new MemoryStream(bytes);
-            var text = textFactoryService.CreateText(stream, defaultEncoding, CancellationToken.None);
+            var text = textFactoryService.CreateText(stream, defaultEncoding, SourceHashAlgorithms.Default, CancellationToken.None);
             Assert.Equal(expectedEncoding, text.Encoding);
         }
     }

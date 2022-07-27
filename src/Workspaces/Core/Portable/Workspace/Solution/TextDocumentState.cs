@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         /// only retrieve is asynchronously through <see cref="TextAndVersionSource"/>.
         /// </summary> 
         protected readonly SourceText? sourceText;
-        protected ValueSource<TextAndVersion> TextAndVersionSource { get; }
+        protected ITextAndVersionSource TextAndVersionSource { get; }
 
         // Checksums for this solution state
         private readonly ValueSource<DocumentStateChecksums> _lazyChecksums;
@@ -50,11 +51,12 @@ namespace Microsoft.CodeAnalysis
             IDocumentServiceProvider? documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             SourceText? sourceText,
-            ValueSource<TextAndVersion> textAndVersionSource)
+            ITextAndVersionSource textAndVersionSource)
         {
             this.solutionServices = solutionServices;
             this.sourceText = sourceText;
-            this.TextAndVersionSource = textAndVersionSource;
+
+            TextAndVersionSource = textAndVersionSource;
 
             Attributes = attributes;
             Services = documentServiceProvider ?? DefaultTextDocumentServiceProvider.Instance;
@@ -68,33 +70,30 @@ namespace Microsoft.CodeAnalysis
         }
 
         public TextDocumentState(DocumentInfo info, HostWorkspaceServices services)
-
             : this(services,
                    info.DocumentServiceProvider,
                    info.Attributes,
                    sourceText: null,
-                   textAndVersionSource: info.TextLoader != null
-                    ? CreateRecoverableText(info.TextLoader, services.SolutionServices)
-                    : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, info.FilePath)))
+                    ? CreateRecoverableText(info.TextLoader, info.Id, services.SolutionServices)
+                    : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, info.ChecksumAlgorithm), VersionStamp.Default, info.FilePath)))
         {
         }
 
+        public SourceHashAlgorithm ChecksumAlgorithm => TextAndVersionSource.ChecksumAlgorithm;
         public DocumentId Id => Attributes.Id;
         public string? FilePath => Attributes.FilePath;
         public IReadOnlyList<string> Folders => Attributes.Folders;
         public string Name => Attributes.Name;
 
-        protected static ValueSource<TextAndVersion> CreateStrongText(TextAndVersion text)
-            => new ConstantValueSource<TextAndVersion>(text);
+        private static ITextAndVersionSource CreateStrongText(TextAndVersion text)
+            => new ConstantTextAndVersionSource(text);
 
-        protected static ValueSource<TextAndVersion> CreateStrongText(TextLoader loader)
-        {
-            return new AsyncLazy<TextAndVersion>(loader.LoadTextAsync, loader.LoadTextSynchronously, cacheResult: true);
-        }
+        private static ITextAndVersionSource CreateStrongText(TextLoader loader, DocumentId documentId, SolutionServices services)
+            => new LoadableTextAndVersionSource(loader, documentId, services, cacheResult: true);
 
-        protected static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, SolutionServices services)
+        private static ITextAndVersionSource CreateRecoverableText(TextAndVersion text, HostWorkspaceServices services)
         {
-            var result = new RecoverableTextAndVersion(CreateStrongText(text), services);
+            var result = new RecoverableTextAndVersion(new ConstantTextAndVersionSource(text), services);
 
             // This RecoverableTextAndVersion is created directly from a TextAndVersion instance. In its initial state,
             // the RecoverableTextAndVersion keeps a strong reference to the initial TextAndVersion, and only
@@ -108,7 +107,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, SolutionServices services)
-            => new RecoverableTextAndVersion(new AsyncLazy<TextAndVersion>(loader.LoadTextAsync, loader.LoadTextSynchronously, cacheResult: false), services);
+            => new RecoverableTextAndVersion(new LoadableTextAndVersionSource(loader, documentId, services, cacheResult: false), services);
 
         public ITemporaryTextStorageInternal? Storage
             => (TextAndVersionSource as RecoverableTextAndVersion)?.Storage;
@@ -203,7 +202,7 @@ namespace Microsoft.CodeAnalysis
         {
             var newTextSource = mode == PreservationMode.PreserveIdentity
                 ? CreateStrongText(newTextAndVersion)
-                : CreateRecoverableText(newTextAndVersion, this.solutionServices.SolutionServices);
+                : CreateRecoverableText(newTextAndVersion, solutionServices);
 
             return UpdateText(newTextSource, mode, incremental: true);
         }
@@ -220,16 +219,16 @@ namespace Microsoft.CodeAnalysis
         {
             // don't blow up on non-text documents.
             var newTextSource = mode == PreservationMode.PreserveIdentity
-                ? CreateStrongText(loader)
-                : CreateRecoverableText(loader, solutionServices.SolutionServices);
+                ? CreateStrongText(loader, Id, solutionServices)
+                : CreateRecoverableText(loader, Id, solutionServices);
 
             return UpdateText(newTextSource, mode, incremental: false);
         }
 
-        protected virtual TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
+        protected virtual TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
         {
             return new TextDocumentState(
-                this.solutionServices,
+                solutionServices,
                 this.Services,
                 this.Attributes,
                 sourceText: null,

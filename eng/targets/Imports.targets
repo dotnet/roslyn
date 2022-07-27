@@ -175,8 +175,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Include BannedSymbols covering all projects -->
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\BannedSymbols.txt" />
+    <!-- Include BannedSymbols covering all product projects -->
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\BannedSymbols.txt" Condition="'$(IsTestProject)' == 'false'" />
   </ItemGroup>
 
   <ItemGroup>

@@ -288,13 +288,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         _solution = _solution.AddDocument(DocumentInfo.Create(
                             documentId,
                             name: document.Name,
-                            folders: document.Folders,
                             sourceCodeKind: document.SourceCodeKind,
+                            folders: document.Folders,
                             loader: TextLoader.From(TextAndVersion.Create(sourceText, sourceTextVersion, document.Name)),
                             filePath: document.FilePath,
-                            isGenerated: document.State.Attributes.IsGenerated,
-                            designTimeOnly: document.State.Attributes.DesignTimeOnly,
-                            documentServiceProvider: document.State.Services));
+                            isGenerated: document.State.Attributes.IsGenerated)
+                            .WithDesignTimeOnly(document.State.Attributes.DesignTimeOnly)
+                            .WithDocumentServiceProvider(document.State.Services));
                     }
 
                     if (matchingSourceText != null)

@@ -1550,7 +1550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 #pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
-
+#pragma warning disable RS0030 // Do not used banned APIs
         /// <inheritdoc cref="CSharpSyntaxTree.ParseText(string, CSharpParseOptions?, string, Encoding?, CancellationToken)"/>
         public static SyntaxTree ParseSyntaxTree(
             string text,
@@ -1561,6 +1561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, encoding, cancellationToken);
         }
+#pragma warning restore RS0030 // Do not used banned APIs
 
         /// <inheritdoc cref="CSharpSyntaxTree.ParseText(SourceText, CSharpParseOptions?, string, CancellationToken)"/>
         public static SyntaxTree ParseSyntaxTree(

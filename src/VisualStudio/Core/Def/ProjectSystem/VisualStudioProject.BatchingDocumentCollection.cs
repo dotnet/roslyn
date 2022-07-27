@@ -92,15 +92,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 var documentId = DocumentId.CreateNewId(_project.Id, fullPath);
-                var textLoader = new WorkspaceFileTextLoader(_project._workspace.Services.SolutionServices, fullPath, defaultEncoding: null);
+                var textLoader = new WorkspaceFileTextLoader(fullPath, defaultEncoding: null, _project.ChecksumAlgorithm);
                 var documentInfo = DocumentInfo.Create(
                     documentId,
-                    FileNameUtilities.GetFileName(fullPath),
+                    name: FileNameUtilities.GetFileName(fullPath),
                     folders: folders.IsDefault ? null : folders,
                     sourceCodeKind: sourceCodeKind,
                     loader: textLoader,
-                    filePath: fullPath,
-                    isGenerated: false);
+                    filePath: fullPath);
 
                 using (_project._gate.DisposableWait())
                 {
@@ -129,7 +128,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return documentId;
             }
 
-            public DocumentId AddTextContainer(SourceTextContainer textContainer, string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders, bool designTimeOnly, IDocumentServiceProvider? documentServiceProvider)
+            public DocumentId AddTextContainer(
+                SourceTextContainer textContainer,
+                string fullPath,
+                SourceCodeKind sourceCodeKind,
+                ImmutableArray<string> folders,
+                bool designTimeOnly,
+                IDocumentServiceProvider? documentServiceProvider)
             {
                 if (textContainer == null)
                 {
@@ -144,10 +149,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     folders: folders.NullToEmpty(),
                     sourceCodeKind: sourceCodeKind,
                     loader: textLoader,
-                    filePath: fullPath,
-                    isGenerated: false,
-                    designTimeOnly: designTimeOnly,
-                    documentServiceProvider: documentServiceProvider);
+                    filePath: fullPath)
+                    .WithDesignTimeOnly(designTimeOnly)
+                    .WithDocumentServiceProvider(documentServiceProvider);
 
                 using (_project._gate.DisposableWait())
                 {
@@ -473,18 +477,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 _project.Id, _project._filePath, projectSystemFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
                             // Right now we're only supporting dynamic files as actual source files, so it's OK to call GetDocument here
-                            var document = w.CurrentSolution.GetRequiredDocument(documentId);
+                            var attributes = w.CurrentSolution.GetRequiredDocument(documentId).State.Attributes;
 
-                            var documentInfo = DocumentInfo.Create(
-                                document.Id,
-                                document.Name,
-                                document.Folders,
-                                document.SourceCodeKind,
-                                loader: fileInfo.TextLoader,
-                                document.FilePath,
-                                document.State.Attributes.IsGenerated,
-                                document.State.Attributes.DesignTimeOnly,
-                                documentServiceProvider: fileInfo.DocumentServiceProvider);
+                            var documentInfo = new DocumentInfo(attributes, fileInfo.TextLoader, fileInfo.DocumentServiceProvider);
 
                             w.OnDocumentReloaded(documentInfo);
                         });
@@ -596,9 +591,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     sourceCodeKind: fileInfo.SourceCodeKind,
                     loader: textLoader,
                     filePath: filePath,
-                    isGenerated: false,
-                    designTimeOnly: true,
-                    documentServiceProvider: documentServiceProvider);
+                    isGenerated: false)
+                    .WithDesignTimeOnly(true)
+                    .WithDocumentServiceProvider(documentServiceProvider);
             }
 
             private sealed class SourceTextLoader : TextLoader

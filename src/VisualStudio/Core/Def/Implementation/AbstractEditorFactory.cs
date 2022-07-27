@@ -326,8 +326,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var documentId = DocumentId.CreateNewId(projectToAddTo.Id);
 
-            var fileLoader = new WorkspaceFileTextLoader(projectToAddTo.Solution.Services, filePath, defaultEncoding: null);
-            var forkedSolution = projectToAddTo.Solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: fileLoader, filePath: filePath));
+            var fileLoader = new WorkspaceFileTextLoader(filePath, defaultEncoding: null, projectToAddTo.State.ChecksumAlgorithm);
+            var forkedSolution = projectToAddTo.Solution.AddDocument(
+                DocumentInfo.Create(
+                    documentId,
+                    name: filePath,
+                    loader: fileLoader,
+                    filePath: filePath));
+
             var addedDocument = forkedSolution.GetRequiredDocument(documentId);
 
             var globalOptions = _componentModel.GetService<IGlobalOptionService>();

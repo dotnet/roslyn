@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -21,20 +22,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public VersionStamp Version { get; }
 
-        private TreeAndVersion(SyntaxTree tree, VersionStamp version)
-        {
-            this.Tree = tree;
-            this.Version = version;
-        }
+        public SourceHashAlgorithm ChecksumAlgorithm { get; }
 
-        public static TreeAndVersion Create(SyntaxTree tree, VersionStamp version)
+        public TreeAndVersion(SyntaxTree tree, VersionStamp version, SourceHashAlgorithm checksumAlgorithm)
         {
-            if (tree == null)
-            {
-                throw new ArgumentNullException(nameof(tree));
-            }
-
-            return new TreeAndVersion(tree, version);
+            Tree = tree;
+            Version = version;
+            ChecksumAlgorithm = checksumAlgorithm;
         }
     }
 }

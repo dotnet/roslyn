@@ -8,10 +8,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +20,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -27,7 +27,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UnitTests.Persistence;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
@@ -36,7 +35,7 @@ using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
-using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -56,9 +55,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution
                 .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp)
-                .AddDocument(DocumentId.CreateNewId(projectId), "goo.cs", "public class Goo { }")
-                .AddAdditionalDocument(DocumentId.CreateNewId(projectId), "add.txt", "text")
-                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), "editorcfg", SourceText.From("config"), filePath: "/a/b")));
+                .AddDocument(DocumentId.CreateNewId(projectId), "goo.cs", SourceText.From("public class Goo { }", Encoding.UTF8, SourceHashAlgorithms.Default))
+                .AddAdditionalDocument(DocumentId.CreateNewId(projectId), "add.txt", SourceText.From("text", Encoding.UTF8, SourceHashAlgorithms.Default))
+                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), "editorcfg", SourceText.From("config", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "/a/b")));
 
             return workspace;
         }
@@ -236,7 +235,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSourceCodeKind(s_unrelatedDocumentId, SourceCodeKind.Script));
         }
 
-        [Fact, Obsolete]
+        [Fact, Obsolete("Testing obsolete API")]
         public void WithSourceCodeKind_Obsolete()
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
@@ -253,7 +252,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
             var solution = workspace.CurrentSolution;
             var documentId = solution.Projects.Single().DocumentIds.Single();
-            var root = CS.SyntaxFactory.ParseSyntaxTree("class NewClass {}").GetRoot();
+
+            var tree = CS.SyntaxFactory.ParseSyntaxTree("class NewClass {}");
+            Assert.Equal(SourceHashAlgorithm.Sha1, tree.GetText().ChecksumAlgorithm);
+
+            var root = tree.GetRoot();
 
             var newSolution1 = solution.WithDocumentSyntaxRoot(documentId, root, PreservationMode.PreserveIdentity);
             Assert.True(newSolution1.GetDocument(documentId)!.TryGetSyntaxRoot(out var actualRoot));
@@ -295,10 +298,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
             var solution = workspace.CurrentSolution;
             var documentId = solution.Projects.Single().DocumentIds.Single();
-            var text = SourceText.From("new text");
+
+            var text = SourceText.From("new text", encoding: null, SourceHashAlgorithm.Sha1);
 
             var newSolution1 = solution.WithDocumentText(documentId, text, PreservationMode.PreserveIdentity);
-            Assert.True(newSolution1.GetDocument(documentId)!.TryGetText(out var actualText));
+            var newDocument1 = newSolution1.GetRequiredDocument(documentId);
+
+            Assert.True(newDocument1.TryGetText(out var actualText));
             Assert.Same(text, actualText);
 
             var newSolution2 = newSolution1.WithDocumentText(documentId, text, PreservationMode.PreserveIdentity);
@@ -554,7 +560,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             SolutionTestHelpers.TestProperty(
                 solution,
                 (s, value) => s.WithProjectOutputFilePath(projectId, value),
-                s => s.GetProject(projectId)!.OutputFilePath,
+                s => s.GetRequiredProject(projectId).OutputFilePath,
                 (string?)path,
                 defaultThrows: false);
 
@@ -577,7 +583,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             SolutionTestHelpers.TestProperty(
                 solution,
                 (s, value) => s.WithProjectOutputRefFilePath(projectId, value),
-                s => s.GetProject(projectId)!.OutputRefFilePath,
+                s => s.GetRequiredProject(projectId).OutputRefFilePath,
                 (string?)path,
                 defaultThrows: false);
 
@@ -600,7 +606,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             SolutionTestHelpers.TestProperty(
                 solution,
                 (s, value) => s.WithProjectCompilationOutputInfo(projectId, value),
-                s => s.GetProject(projectId)!.CompilationOutputInfo,
+                s => s.GetRequiredProject(projectId).CompilationOutputInfo,
                 new CompilationOutputInfo(path),
                 defaultThrows: false);
 
@@ -614,8 +620,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectId = ProjectId.CreateNewId();
 
             using var workspace = CreateWorkspace();
-            var solution = workspace.CurrentSolution
-                            .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+            var solution = workspace.CurrentSolution.
+                AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
 
             // any character is allowed
             var defaultNamespace = "\0<>a/b/*";
@@ -623,12 +629,94 @@ namespace Microsoft.CodeAnalysis.UnitTests
             SolutionTestHelpers.TestProperty(
                 solution,
                 (s, value) => s.WithProjectDefaultNamespace(projectId, value),
-                s => s.GetProject(projectId)!.DefaultNamespace,
+                s => s.GetRequiredProject(projectId).DefaultNamespace,
                 (string?)defaultNamespace,
                 defaultThrows: false);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectDefaultNamespace(null!, "x"));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectDefaultNamespace(ProjectId.CreateNewId(), "x"));
+        }
+
+        [Fact]
+        public void WithProjectChecksumAlgorithm()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution.
+                AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+
+            SolutionTestHelpers.TestProperty(
+                solution,
+                (s, value) => s.WithProjectChecksumAlgorithm(projectId, value),
+                s => s.GetRequiredProject(projectId).State.ChecksumAlgorithm,
+                SourceHashAlgorithms.Default,
+                defaultThrows: false);
+        }
+
+        [Fact]
+        public void WithProjectChecksumAlgorithm_DocumentUpdates()
+        {
+            var projectId = ProjectId.CreateNewId();
+            var documentAId = DocumentId.CreateNewId(projectId);
+            var documentBId = DocumentId.CreateNewId(projectId);
+            var documentCId = DocumentId.CreateNewId(projectId);
+            var documentDId = DocumentId.CreateNewId(projectId);
+
+            var fileD = Temp.CreateFile();
+            var bytes = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true).GetBytes("Text");
+            fileD.WriteAllBytes(bytes);
+
+            var sha256 = SHA256.Create();
+            var sha1 = SHA1.Create();
+            var checksumSHA1 = sha1.ComputeHash(bytes);
+            var checksumSHA256 = sha256.ComputeHash(bytes);
+            sha256.Dispose();
+            sha1.Dispose();
+
+            using var workspace = CreateWorkspace();
+
+            var textLoaderA = new TestTextLoader("class A {}", SourceHashAlgorithm.Sha1);
+            var textC = SourceText.From("class C {}", encoding: null, checksumAlgorithm: SourceHashAlgorithm.Sha1);
+
+            var solution = workspace.CurrentSolution.
+                AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp).
+                WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha1);
+
+            solution = solution.AddDocument(documentAId, "a.cs", textLoaderA);
+            solution = solution.AddDocument(documentBId, "b.cs", "class B {}");
+            solution = solution.AddDocument(documentCId, "c.cs", textC);
+            solution = solution.AddDocument(documentDId, "d.cs", new FileTextLoader(fileD.Path, defaultEncoding: null, SourceHashAlgorithm.Sha1));
+
+            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetRequiredDocument(documentAId).GetTextSynchronously(default).ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetRequiredDocument(documentBId).GetTextSynchronously(default).ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetRequiredDocument(documentCId).GetTextSynchronously(default).ChecksumAlgorithm);
+
+            var fileText = solution.GetRequiredDocument(documentDId).GetTextSynchronously(default);
+            Assert.Equal(SourceHashAlgorithm.Sha1, fileText.ChecksumAlgorithm);
+            Assert.Equal(checksumSHA1, fileText.GetChecksum());
+
+            solution = solution.WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha256);
+
+            // only file loader based documents support updating checksum alg:
+            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetRequiredDocument(documentAId).GetTextSynchronously(default).ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetRequiredDocument(documentBId).GetTextSynchronously(default).ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetRequiredDocument(documentCId).GetTextSynchronously(default).ChecksumAlgorithm);
+
+            fileText = solution.GetRequiredDocument(documentDId).GetTextSynchronously(default);
+            Assert.Equal(SourceHashAlgorithm.Sha256, fileText.ChecksumAlgorithm);
+            Assert.Equal(checksumSHA256, fileText.GetChecksum());
+
+            solution = solution.WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha1);
+
+            // only file loader based documents support updating checksum alg:
+            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetRequiredDocument(documentAId).GetTextSynchronously(default).ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetRequiredDocument(documentBId).GetTextSynchronously(default).ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetRequiredDocument(documentCId).GetTextSynchronously(default).ChecksumAlgorithm);
+
+            fileText = solution.GetRequiredDocument(documentDId).GetTextSynchronously(default);
+            Assert.Equal(SourceHashAlgorithm.Sha1, fileText.ChecksumAlgorithm);
+            Assert.Equal(checksumSHA1, fileText.GetChecksum());
         }
 
         [Fact]
@@ -646,7 +734,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             SolutionTestHelpers.TestProperty(
                 solution,
                 (s, value) => s.WithProjectName(projectId, value),
-                s => s.GetProject(projectId)!.Name,
+                s => s.GetRequiredProject(projectId).Name,
                 projectName,
                 defaultThrows: true);
 
@@ -669,7 +757,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             SolutionTestHelpers.TestProperty(
                 solution,
                 (s, value) => s.WithProjectFilePath(projectId, value),
-                s => s.GetProject(projectId)!.FilePath,
+                s => s.GetRequiredProject(projectId).FilePath,
                 (string?)path,
                 defaultThrows: false);
 
@@ -733,7 +821,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             SolutionTestHelpers.TestProperty(
                 solution,
                 (s, value) => s.WithProjectParseOptions(projectId, value),
-                s => s.GetProject(projectId)!.ParseOptions!,
+                s => s.GetRequiredProject(projectId).ParseOptions!,
                 (ParseOptions)options,
                 defaultThrows: true);
 
@@ -1173,6 +1261,174 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // removing a reference that's not in the list:
             Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerReference(new TestAnalyzerReference()));
+        }
+
+        [Fact]
+        public void AddDocument_Loader()
+        {
+            var projectId = ProjectId.CreateNewId();
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution.AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp).
+                WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithms.Default).
+                WithProjectParseOptions(projectId, new CSharpParseOptions(kind: SourceCodeKind.Script));
+
+            var loader = new TestTextLoader(checksumAlgorithm: SourceHashAlgorithm.Sha1);
+            var documentId = DocumentId.CreateNewId(projectId);
+            var folders = new[] { "folder1", "folder2" };
+
+            var solution2 = solution.AddDocument(documentId, "name", loader, folders);
+            var document = solution2.GetRequiredDocument(documentId);
+            AssertEx.Equal(folders, document.Folders);
+            Assert.Equal(SourceCodeKind.Script, document.SourceCodeKind);
+            Assert.Equal(SourceHashAlgorithm.Sha1, document.GetTextSynchronously(default).ChecksumAlgorithm);
+
+            Assert.Throws<ArgumentNullException>("documentId", () => solution.AddDocument(documentId: null!, "name", loader));
+            Assert.Throws<ArgumentNullException>("name", () => solution.AddDocument(documentId, name: null!, loader));
+            Assert.Throws<ArgumentNullException>("loader", () => solution.AddDocument(documentId, "name", loader: null!));
+            Assert.Throws<InvalidOperationException>(() => solution.AddDocument(documentId: DocumentId.CreateNewId(ProjectId.CreateNewId()), "name", loader));
+        }
+
+        [Fact]
+        public void AddDocument_Text()
+        {
+            var projectId = ProjectId.CreateNewId();
+            using var workspace = CreateWorkspace();
+
+            var solution = workspace.CurrentSolution.AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp).
+                WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithms.Default).
+                WithProjectParseOptions(projectId, new CSharpParseOptions(kind: SourceCodeKind.Script));
+
+            var documentId = DocumentId.CreateNewId(projectId);
+            var filePath = Path.Combine(TempRoot.Root, "x.cs");
+            var folders = new[] { "folder1", "folder2" };
+
+            var solution2 = solution.AddDocument(documentId, "name", "text", folders, filePath);
+            var document = solution2.GetRequiredDocument(documentId);
+            var sourceText = document.GetTextSynchronously(default);
+
+            Assert.Equal("text", sourceText.ToString());
+            Assert.Equal(SourceHashAlgorithms.Default, sourceText.ChecksumAlgorithm);
+            AssertEx.Equal(folders, document.Folders);
+            Assert.Equal(filePath, document.FilePath);
+            Assert.False(document.State.Attributes.IsGenerated);
+            Assert.Equal(SourceCodeKind.Script, document.SourceCodeKind);
+
+            Assert.Throws<ArgumentNullException>("documentId", () => solution.AddDocument(documentId: null!, "name", "text"));
+            Assert.Throws<ArgumentNullException>("name", () => solution.AddDocument(documentId, name: null!, "text"));
+            Assert.Throws<ArgumentNullException>("text", () => solution.AddDocument(documentId, "name", text: (string)null!));
+            Assert.Throws<InvalidOperationException>(() => solution.AddDocument(documentId: DocumentId.CreateNewId(ProjectId.CreateNewId()), "name", "text"));
+        }
+
+        [Fact]
+        public void AddDocument_SourceText()
+        {
+            var projectId = ProjectId.CreateNewId();
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution.AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp).
+                WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithms.Default).
+                WithProjectParseOptions(projectId, new CSharpParseOptions(kind: SourceCodeKind.Script));
+
+            var documentId = DocumentId.CreateNewId(projectId);
+            var sourceText = SourceText.From("text", checksumAlgorithm: SourceHashAlgorithms.Default);
+            var filePath = Path.Combine(TempRoot.Root, "x.cs");
+            var folders = new[] { "folder1", "folder2" };
+
+            var solution2 = solution.AddDocument(documentId, "name", sourceText, folders, filePath, isGenerated: true);
+            var document = solution2.GetRequiredDocument(documentId);
+
+            AssertEx.Equal(folders, document.Folders);
+            Assert.Equal(filePath, document.FilePath);
+            Assert.True(document.State.Attributes.IsGenerated);
+            Assert.Equal(SourceCodeKind.Script, document.SourceCodeKind);
+
+            Assert.Throws<ArgumentNullException>("documentId", () => solution.AddDocument(documentId: null!, "name", sourceText));
+            Assert.Throws<ArgumentNullException>("name", () => solution.AddDocument(documentId, name: null!, sourceText));
+            Assert.Throws<ArgumentNullException>("text", () => solution.AddDocument(documentId, "name", text: (SourceText)null!));
+            Assert.Throws<InvalidOperationException>(() => solution.AddDocument(documentId: DocumentId.CreateNewId(ProjectId.CreateNewId()), "name", sourceText));
+        }
+
+        [Fact]
+        public void AddDocument_SyntaxRoot()
+        {
+            var projectId = ProjectId.CreateNewId();
+            using var workspace = CreateWorkspace();
+
+            var solution = workspace.CurrentSolution.AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp).
+                WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithms.Default).
+                WithProjectParseOptions(projectId, new CSharpParseOptions(kind: SourceCodeKind.Script));
+
+            var documentId = DocumentId.CreateNewId(projectId);
+            var filePath = Path.Combine(TempRoot.Root, "x.cs");
+            var folders = new[] { "folder1", "folder2" };
+
+            var root = CSharp.SyntaxFactory.ParseCompilationUnit("class C {}");
+            var solution2 = solution.AddDocument(documentId, "name", root, folders, filePath);
+            var document2 = solution2.GetRequiredDocument(documentId);
+
+            AssertEx.Equal(folders, document2.Folders);
+            Assert.Equal(filePath, document2.FilePath);
+            Assert.False(document2.State.Attributes.IsGenerated);
+            Assert.Equal(SourceCodeKind.Script, document2.SourceCodeKind);
+
+            Assert.Throws<ArgumentNullException>("documentId", () => solution.AddDocument(documentId: null!, "name", root));
+            Assert.Throws<ArgumentNullException>("name", () => solution.AddDocument(documentId, name: null!, root));
+            Assert.Throws<ArgumentNullException>("syntaxRoot", () => solution.AddDocument(documentId, "name", syntaxRoot: null!));
+            Assert.Throws<InvalidOperationException>(() => solution.AddDocument(documentId: DocumentId.CreateNewId(ProjectId.CreateNewId()), "name", syntaxRoot: root));
+        }
+
+        [Fact]
+        public void AddDocument_SyntaxRoot_ExplicitTree()
+        {
+            var projectId = ProjectId.CreateNewId();
+            using var workspace = CreateWorkspace();
+
+            var solution = workspace.CurrentSolution.AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp).
+                WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithms.Default).
+                WithProjectParseOptions(projectId, new CSharpParseOptions(kind: SourceCodeKind.Script));
+
+            var documentId = DocumentId.CreateNewId(projectId);
+            var filePath = Path.Combine(TempRoot.Root, "x.cs");
+            var folders = new[] { "folder1", "folder2" };
+
+            var root = CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From("class C {}", encoding: null, SourceHashAlgorithm.Sha1)).GetRoot();
+            Assert.Equal(SourceHashAlgorithm.Sha1, root.SyntaxTree.GetText().ChecksumAlgorithm);
+
+            var solution2 = solution.AddDocument(documentId, "name", root, folders, filePath);
+            var document2 = solution2.GetRequiredDocument(documentId);
+            var sourceText = document2.GetTextSynchronously(default);
+            Assert.Equal("class C {}", sourceText.ToString());
+
+            // the checksum algorithm of the tree is ignored, instead the one set on the project is used:
+            Assert.Equal(SourceHashAlgorithms.Default, sourceText.ChecksumAlgorithm);
+
+            AssertEx.Equal(folders, document2.Folders);
+            Assert.Equal(filePath, document2.FilePath);
+            Assert.False(document2.State.Attributes.IsGenerated);
+            Assert.Equal(SourceCodeKind.Script, document2.SourceCodeKind);
+        }
+
+        [Fact]
+        public void AddDocument_SyntaxRoot_SynthesizedTree()
+        {
+            var projectId = ProjectId.CreateNewId();
+            using var workspace = CreateWorkspace();
+
+            var solution = workspace.CurrentSolution.AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp).
+                WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithms.Default).
+                WithProjectParseOptions(projectId, new CSharpParseOptions(kind: SourceCodeKind.Script));
+
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            var root = CSharp.SyntaxFactory.ParseCompilationUnit("class C {}");
+            Assert.Equal(SourceHashAlgorithm.Sha1, root.SyntaxTree.GetText().ChecksumAlgorithm);
+
+            var solution2 = solution.AddDocument(documentId, "name", root);
+            var document2 = solution2.GetRequiredDocument(documentId);
+            var sourceText = document2.GetTextSynchronously(default);
+            Assert.Equal("class C {}", sourceText.ToString());
+
+            // the checksum algorithm of the tree is ignored, instead the one set on the project is used:
+            Assert.Equal(SourceHashAlgorithms.Default, sourceText.ChecksumAlgorithm);
         }
 
 #nullable disable
@@ -1861,6 +2117,49 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(root2.HasAnnotation(annotation));
         }
 
+        [Theory]
+        [InlineData(LanguageNames.CSharp)]
+        [InlineData(LanguageNames.VisualBasic)]
+        public async Task ParsedTreeRootOwnership(string language)
+        {
+            var pid = ProjectId.CreateNewId();
+            var did = DocumentId.CreateNewId(pid);
+
+            var source = (language == LanguageNames.CSharp) ? "class C {}" : "Class C : End Class";
+
+            using var workspace = CreateWorkspace();
+
+            var sol = workspace.CurrentSolution
+                .AddProject(pid, "test", "test.dll", language)
+                .AddDocument(did, "test", source);
+
+            var document = sol.GetDocument(did);
+
+            // update the document syntax root:
+            var syntaxRoot = await document.GetSyntaxRootAsync(CancellationToken.None);
+
+            SyntaxNode newSyntaxRoot;
+            if (language == LanguageNames.CSharp)
+            {
+                var classNode = syntaxRoot.DescendantNodes().OfType<CS.Syntax.ClassDeclarationSyntax>().Single();
+                newSyntaxRoot = syntaxRoot.ReplaceNode(classNode, classNode.WithModifiers(CS.SyntaxFactory.TokenList(CS.SyntaxFactory.ParseToken("public"))));
+            }
+            else
+            {
+                var classNode = syntaxRoot.DescendantNodes().OfType<VB.Syntax.ClassStatementSyntax>().Single();
+                newSyntaxRoot = syntaxRoot.ReplaceNode(classNode, classNode.WithModifiers(VB.SyntaxFactory.TokenList(VB.SyntaxFactory.ParseToken("Public"))));
+            }
+
+            var documentWithAttribute = document.WithSyntaxRoot(newSyntaxRoot);
+
+            var tree = await documentWithAttribute.GetSyntaxTreeAsync(CancellationToken.None);
+            var root = await documentWithAttribute.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Same(tree, root.SyntaxTree);
+            Assert.Same(tree, tree.WithRootAndOptions(root, tree.Options));
+            Assert.Same(tree, tree.WithFilePath(tree.FilePath));
+        }
+
         [Fact]
         public void TestUpdatingFilePathUpdatesSyntaxTree()
         {
@@ -1926,7 +2225,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var did = DocumentId.CreateNewId(pid);
 
             sol = sol.AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
-                     .AddDocument(did, "x", new WorkspaceFileTextLoader(workspace.Services.SolutionServices, file.Path, Encoding.UTF8));
+                     .AddDocument(did, "x", new WorkspaceFileTextLoader(workspace.Services.SolutionServices, file.Path, Encoding.UTF8, SourceHashAlgorithms.Default));
 
             var observedText = GetObservedText(sol, did, text1);
 
@@ -1985,7 +2284,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspace();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
-                                    .AddDocument(did, "x", new WorkspaceFileTextLoader(workspace.Services.SolutionServices, file.Path, Encoding.UTF8));
+                                    .AddDocument(did, "x", new WorkspaceFileTextLoader(workspace.Services.SolutionServices, file.Path, Encoding.UTF8, SourceHashAlgorithms.Default));
 
             var doc = sol.GetDocument(did);
 
@@ -2052,7 +2351,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspace();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
-                                    .AddDocument(did, "x", new WorkspaceFileTextLoader(workspace.Services.SolutionServices, file.Path, Encoding.UTF8));
+                                    .AddDocument(did, "x", new WorkspaceFileTextLoader(workspace.Services.SolutionServices, file.Path, Encoding.UTF8, SourceHashAlgorithms.Default));
 
             var doc = sol.GetDocument(did);
             var docTree = doc.GetSyntaxTreeAsync().Result;
@@ -2571,7 +2870,7 @@ End Class";
             var did = DocumentId.CreateNewId(pid);
 
             solution = solution.AddProject(pid, "goo", "goo", LanguageNames.CSharp)
-                               .AddDocument(did, "x", new WorkspaceFileTextLoader(solution.Services, @"C:\doesnotexist.cs", Encoding.UTF8))
+                               .AddDocument(did, "x", new WorkspaceFileTextLoader(solution.Services, @"C:\doesnotexist.cs", Encoding.UTF8, SourceHashAlgorithms.Default))
                                .WithDocumentFilePath(did, "document path");
 
             var doc = solution.GetDocument(did);
@@ -2833,11 +3132,11 @@ public class C : A {
             Assert.True(transitivelyDependsOnNormalProjects.HasSuccessfullyLoadedAsync().Result);
         }
 
-        private class TestSmallFileTextLoader : FileTextLoader
+        private sealed class TestSmallFileTextLoader : FileTextLoader
         {
             public TestSmallFileTextLoader(string path, Encoding encoding)
 #pragma warning disable RS0030 // Do not used banned APIs
-                : base(path, encoding)
+                : base(path, encoding, SourceHashAlgorithms.Default)
 #pragma warning restore
             {
             }
@@ -2898,19 +3197,22 @@ public class C : A {
             var factory = dummyProject.Services.GetService<ISyntaxTreeFactoryService>();
 
             // create the origin tree
-            var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, SourceText.From("// emtpy"), CancellationToken.None);
+            var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, SourceText.From("// empty", encoding: null, SourceHashAlgorithms.Default), CancellationToken.None);
 
             // create recoverable tree off the original tree
+            var sourceText = strongTree.GetText();
             var recoverableTree = factory.CreateRecoverableTree(
                 dummyProject.Id,
                 strongTree.FilePath,
                 strongTree.Options,
-                new ConstantValueSource<TextAndVersion>(TextAndVersion.Create(strongTree.GetText(), VersionStamp.Create(), strongTree.FilePath)),
-                strongTree.GetText().Encoding,
+                new ConstantTextAndVersionSource(TextAndVersion.Create(sourceText, VersionStamp.Create(), strongTree.FilePath)),
+                sourceText.Encoding,
                 strongTree.GetRoot());
 
             // create new tree before it ever getting root node
             var newTree = recoverableTree.WithFilePath("different/dummy");
+
+            Assert.Equal(SourceHashAlgorithms.Default, recoverableTree.GetText().ChecksumAlgorithm);
 
             // this shouldn't throw
             _ = newTree.GetRoot();

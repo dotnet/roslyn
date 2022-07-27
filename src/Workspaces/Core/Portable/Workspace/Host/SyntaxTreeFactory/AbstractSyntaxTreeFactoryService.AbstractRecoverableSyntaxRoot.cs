@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             public readonly string FilePath;
             public readonly ParseOptions Options;
-            public readonly ValueSource<TextAndVersion> TextSource;
+            public readonly ITextAndVersionSource TextSource;
             public readonly Encoding Encoding;
             public readonly int Length;
             public readonly bool ContainsDirectives;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Host
             public SyntaxTreeInfo(
                 string filePath,
                 ParseOptions options,
-                ValueSource<TextAndVersion> textSource,
+                ITextAndVersionSource textSource,
                 Encoding encoding,
                 int length,
                 bool containsDirectives)

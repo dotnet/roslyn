@@ -6,10 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -171,12 +173,15 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 }
             }
 
+            Debug.Assert(!sourceDocuments.IsEmpty);
+            var checksumAlgorithm = sourceDocuments[0].ChecksumAlgorithm;
+
             Encoding? defaultEncoding = null;
-            if (pdbCompilationOptions.TryGetValue("default-encoding", out var encodingString))
+            if (pdbCompilationOptions.TryGetValue(Cci.CompilationOptionNames.DefaultEncoding, out var encodingString))
             {
                 defaultEncoding = Encoding.GetEncoding(encodingString);
             }
-            else if (pdbCompilationOptions.TryGetValue("fallback-encoding", out var fallbackEncodingString))
+            else if (pdbCompilationOptions.TryGetValue(Cci.CompilationOptionNames.FallbackEncoding, out var fallbackEncodingString))
             {
                 defaultEncoding = Encoding.GetEncoding(fallbackEncodingString);
             }
@@ -184,7 +189,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (!_assemblyToProjectMap.TryGetValue(assemblyName, out var projectId))
             {
                 // Get the project info now, so we can dispose the documentDebugInfoReader sooner
-                var projectInfo = CreateProjectInfo(metadataWorkspace, sourceProject, pdbCompilationOptions, assemblyName, assemblyVersion);
+                var projectInfo = CreateProjectInfo(metadataWorkspace, sourceProject, pdbCompilationOptions, assemblyName, assemblyVersion, checksumAlgorithm);
 
                 if (projectInfo is null)
                     return null;
@@ -244,11 +249,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return new MetadataAsSourceFile(documentPath, navigateLocation, documentName, documentTooltip);
         }
 
-        private ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, ImmutableDictionary<string, string> pdbCompilationOptions, string assemblyName, string assemblyVersion)
+        private ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, ImmutableDictionary<string, string> pdbCompilationOptions, string assemblyName, string assemblyVersion, SourceHashAlgorithm checksumAlgorithm)
         {
             // First we need the language name in order to get the services
             // TODO: Find language another way for non portable PDBs: https://github.com/dotnet/roslyn/issues/55834
-            if (!pdbCompilationOptions.TryGetValue("language", out var languageName) || languageName is null)
+            if (!pdbCompilationOptions.TryGetValue(Cci.CompilationOptionNames.Language, out var languageName) || languageName is null)
             {
                 _logger?.Log(FeaturesResources.Source_code_language_information_was_not_found_in_PDB);
                 return null;
@@ -262,11 +267,14 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             var projectId = ProjectId.CreateNewId();
             return ProjectInfo.Create(
-                projectId,
-                VersionStamp.Default,
-                name: $"{assemblyName} ({assemblyVersion})",
-                assemblyName: assemblyName,
-                language: languageName,
+                new ProjectInfo.ProjectAttributes(
+                    id: projectId,
+                    version: VersionStamp.Default,
+                    name: $"{assemblyName} ({assemblyVersion})",
+                    assemblyName: assemblyName,
+                    language: languageName,
+                    compilationOutputFilePaths: default,
+                    checksumAlgorithm: checksumAlgorithm),
                 compilationOptions: compilationOptions,
                 parseOptions: parseOptions,
                 metadataReferences: project.MetadataReferences.ToImmutableArray()); // TODO: Read references from PDB info: https://github.com/dotnet/roslyn/issues/55834
@@ -294,9 +302,10 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
                 documents.Add(DocumentInfo.Create(
                     documentId,
-                    Path.GetFileName(info.FilePath),
+                    name: Path.GetFileName(info.FilePath),
+                    loader: info.Loader,
                     filePath: info.FilePath,
-                    loader: info.Loader));
+                    isGenerated: true).WithDesignTimeOnly(true));
 
                 // If we successfully got something from SourceLink for this project then its nice to wait a bit longer
                 // if the user performs subsequent navigation
@@ -306,7 +315,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 }
 
                 // In order to open documents in VS we need to understand the link from temp file to document and its encoding etc.
-                _fileToDocumentInfoMap[info.FilePath] = new(documentId, encoding, sourceProject.Id, sourceWorkspace);
+                _fileToDocumentInfoMap[info.FilePath] = new(documentId, encoding, info.ChecksumAlgorithm, sourceProject.Id, sourceWorkspace);
             }
 
             return documents.ToImmutable();
@@ -338,7 +347,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         {
             if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
             {
-                workspace.OnDocumentClosed(info.DocumentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, filePath, info.Encoding));
+                workspace.OnDocumentClosed(info.DocumentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, filePath, info.Encoding, info.ChecksumAlgorithm));
 
                 return true;
             }
@@ -392,7 +401,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         }
     }
 
-    internal sealed record SourceDocument(string FilePath, SourceHashAlgorithm HashAlgorithm, ImmutableArray<byte> Checksum, byte[]? EmbeddedTextBytes, string? SourceLinkUrl);
+    internal sealed record SourceDocument(string FilePath, SourceHashAlgorithm ChecksumAlgorithm, ImmutableArray<byte> Checksum, byte[]? EmbeddedTextBytes, string? SourceLinkUrl);
 
-    internal record struct SourceDocumentInfo(DocumentId DocumentId, Encoding Encoding, ProjectId SourceProjectId, Workspace SourceWorkspace);
+    internal record struct SourceDocumentInfo(DocumentId DocumentId, Encoding Encoding, SourceHashAlgorithm ChecksumAlgorithm, ProjectId SourceProjectId, Workspace SourceWorkspace);
 }

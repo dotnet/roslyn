@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
             DocumentInfo.DocumentAttributes attributes,
             ParseOptions? options,
             SourceText? sourceText,
-            ValueSource<TextAndVersion> textSource,
+            ITextAndVersionSource textSource,
             ValueSource<TreeAndVersion>? treeSource)
             : base(solutionServices, documentServiceProvider, attributes, sourceText, textSource)
         {
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected static ValueSource<TreeAndVersion> CreateLazyFullyParsedTree(
-            ValueSource<TextAndVersion> newTextSource,
+            ITextAndVersionSource newTextSource,
             ProjectId cacheKey,
             string? filePath,
             ParseOptions options,
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static async Task<TreeAndVersion> FullyParseTreeAsync(
-            ValueSource<TextAndVersion> newTextSource,
+            ITextAndVersionSource newTextSource,
             ProjectId cacheKey,
             string? filePath,
             ParseOptions options,
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static TreeAndVersion FullyParseTree(
-            ValueSource<TextAndVersion> newTextSource,
+            ITextAndVersionSource newTextSource,
             ProjectId cacheKey,
             string? filePath,
             ParseOptions options,
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static TreeAndVersion CreateTreeAndVersion(
-            ValueSource<TextAndVersion> newTextSource,
+            ITextAndVersionSource newTextSource,
             ProjectId cacheKey,
             string? filePath,
             ParseOptions options,
@@ -202,12 +202,12 @@ namespace Microsoft.CodeAnalysis
             CheckTree(tree, text);
 
             // text version for this document should be unique. use it as a starting point.
-            return TreeAndVersion.Create(tree, textAndVersion.Version);
+            return new TreeAndVersion(tree, textAndVersion.Version, text.ChecksumAlgorithm);
         }
 
         private static ValueSource<TreeAndVersion> CreateLazyIncrementallyParsedTree(
             ValueSource<TreeAndVersion> oldTreeSource,
-            ValueSource<TextAndVersion> newTextSource)
+            ITextAndVersionSource newTextSource)
         {
             return new AsyncLazy<TreeAndVersion>(
                 c => IncrementallyParseTreeAsync(oldTreeSource, newTextSource, c),
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis
 
         private static async Task<TreeAndVersion> IncrementallyParseTreeAsync(
             ValueSource<TreeAndVersion> oldTreeSource,
-            ValueSource<TextAndVersion> newTextSource,
+            ITextAndVersionSource newTextSource,
             CancellationToken cancellationToken)
         {
             try
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis
 
         private static TreeAndVersion IncrementallyParseTree(
             ValueSource<TreeAndVersion> oldTreeSource,
-            ValueSource<TextAndVersion> newTextSource,
+            ITextAndVersionSource newTextSource,
             CancellationToken cancellationToken)
         {
             try
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis
         {
             var topLevelChanged = TopLevelChanged(oldTree, oldText, newTree, newText);
             var version = topLevelChanged ? newVersion : oldVersion;
-            return TreeAndVersion.Create(newTree, version);
+            return new TreeAndVersion(newTree, version, newText.ChecksumAlgorithm);
         }
 
         private const int MaxTextChangeRangeLength = 1024 * 4;
@@ -359,6 +359,7 @@ namespace Microsoft.CodeAnalysis
                 _treeSource.TryGetValue(out var existingTreeAndVersion))
             {
                 var existingTree = existingTreeAndVersion.Tree;
+
                 SyntaxTree? newTree = null;
 
                 if (existingTree is IRecoverableSyntaxTree recoverableTree &&
@@ -370,24 +371,24 @@ namespace Microsoft.CodeAnalysis
                 else if (existingTree.TryGetRoot(out var existingRoot) && !existingRoot.ContainsDirectives)
                 {
                     var treeFactory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
-                    newTree = treeFactory.CreateSyntaxTree(FilePath, options, existingTree.Encoding, existingRoot);
+                    newTree = treeFactory.CreateSyntaxTree(FilePath, options, existingTree.Encoding, existingTreeAndVersion.ChecksumAlgorithm, existingRoot);
                 }
 
                 if (newTree is not null)
-                    newTreeSource = new ConstantValueSource<TreeAndVersion>(TreeAndVersion.Create(newTree, existingTreeAndVersion.Version));
+                    newTreeSource = new ConstantValueSource<TreeAndVersion>(new TreeAndVersion(newTree, existingTreeAndVersion.Version, existingTreeAndVersion.ChecksumAlgorithm));
             }
 
             // If we weren't able to reuse in a smart way, just reparse
             newTreeSource ??= CreateLazyFullyParsedTree(
-                    TextAndVersionSource,
-                    Id.ProjectId,
-                    GetSyntaxTreeFilePath(Attributes),
-                    options,
-                    _languageServices);
+                TextAndVersionSource,
+                Id.ProjectId,
+                GetSyntaxTreeFilePath(Attributes),
+                options,
+                _languageServices);
 
             return new DocumentState(
                 LanguageServices,
-                solutionServices,
+                LanguageServices.WorkspaceServices,
                 Services,
                 Attributes.With(sourceCodeKind: options.Kind),
                 options,
@@ -420,7 +421,7 @@ namespace Microsoft.CodeAnalysis
 
             return new DocumentState(
                 _languageServices,
-                solutionServices,
+                LanguageServices.WorkspaceServices,
                 Services,
                 attributes,
                 _options,
@@ -455,13 +456,26 @@ namespace Microsoft.CodeAnalysis
                 newTreeSource);
         }
 
+        public DocumentState UpdateChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
+        {
+            var newTextSource = TextAndVersionSource.TryUpdateChecksumAlgorithm(checksumAlgorithm);
+            if (newTextSource == null || newTextSource == TextAndVersionSource)
+            {
+                return this;
+            }
+
+            // Changing the checksum algorithm does not change the tree nodes but the tree itself needs an update.
+            // Incremental update should be able to reuse the entire root node.
+            return (DocumentState)UpdateText(newTextSource, PreservationMode.PreserveValue, incremental: true);
+        }
+
         public new DocumentState UpdateText(SourceText newText, PreservationMode mode)
             => (DocumentState)base.UpdateText(newText, mode);
 
         public new DocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
             => (DocumentState)base.UpdateText(newTextAndVersion, mode);
 
-        protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
+        protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
         {
             ValueSource<TreeAndVersion>? newTreeSource;
 
@@ -508,6 +522,8 @@ namespace Microsoft.CodeAnalysis
                 return documentState;
             }
 
+            Debug.Assert(text.ChecksumAlgorithm == loader.ChecksumAlgorithm);
+
             return new DocumentState(
                 LanguageServices,
                 solutionServices,
@@ -552,7 +568,8 @@ namespace Microsoft.CodeAnalysis
             var filePath = GetSyntaxTreeFilePath(Attributes);
 
             Contract.ThrowIfNull(_options);
-            var (text, tree) = CreateRecoverableTextAndTree(newRoot, filePath, newTextVersion, newTreeVersion, encoding, Attributes, _options, syntaxTreeFactory, mode);
+            var (text, treeAndVersion) = CreateRecoverableTextAndTree(newRoot, filePath, newTextVersion, newTreeVersion, encoding, ChecksumAlgorithm, Attributes, _options, syntaxTreeFactory, mode);
+            Debug.Assert(treeAndVersion.ChecksumAlgorithm == ChecksumAlgorithm);
 
             return new DocumentState(
                 LanguageServices,
@@ -562,7 +579,7 @@ namespace Microsoft.CodeAnalysis
                 _options,
                 sourceText: null,
                 textSource: text,
-                treeSource: new ConstantValueSource<TreeAndVersion>(tree));
+                treeSource: new ConstantValueSource<TreeAndVersion>(treeAndVersion));
         }
 
         private VersionStamp GetNewTreeVersionForUpdatedTree(SyntaxNode newRoot, VersionStamp newTextVersion, PreservationMode mode)
@@ -583,23 +600,24 @@ namespace Microsoft.CodeAnalysis
         }
 
         // use static method so we don't capture references to this
-        private static (ValueSource<TextAndVersion>, TreeAndVersion) CreateRecoverableTextAndTree(
+        private static (ITextAndVersionSource, TreeAndVersion) CreateRecoverableTextAndTree(
             SyntaxNode newRoot,
             string filePath,
             VersionStamp textVersion,
             VersionStamp treeVersion,
             Encoding? encoding,
+            SourceHashAlgorithm checksumAlgorithm,
             DocumentInfo.DocumentAttributes attributes,
             ParseOptions options,
             ISyntaxTreeFactoryService factory,
             PreservationMode mode)
         {
             SyntaxTree tree;
-            ValueSource<TextAndVersion> lazyTextAndVersion;
+            ITextAndVersionSource lazyTextAndVersion;
 
             if (mode == PreservationMode.PreserveIdentity || !factory.CanCreateRecoverableTree(newRoot))
             {
-                tree = factory.CreateSyntaxTree(filePath, options, encoding, newRoot);
+                tree = factory.CreateSyntaxTree(GetSyntaxTreeFilePath(attributes), options, encoding, checksumAlgorithm, newRoot);
 
                 // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
                 lazyTextAndVersion = new TreeTextSource(
@@ -608,7 +626,8 @@ namespace Microsoft.CodeAnalysis
                         tree.GetText,
                         cacheResult: true),
                     textVersion,
-                    filePath);
+                    filePath,
+                    checksumAlgorithm);
             }
             else
             {
@@ -623,16 +642,17 @@ namespace Microsoft.CodeAnalysis
                     new WeaklyCachedValueSource<SourceText>(
                         new AsyncLazy<SourceText>(
                             // Build text from root, so recoverable tree won't cycle.
-                            async cancellationToken => (await tree.GetRootAsync(cancellationToken).ConfigureAwait(false)).GetText(encoding),
-                            cancellationToken => tree.GetRoot(cancellationToken).GetText(encoding),
+                            async cancellationToken => (await tree.GetRootAsync(cancellationToken).ConfigureAwait(false)).GetText(encoding, checksumAlgorithm),
+                            cancellationToken => tree.GetRoot(cancellationToken).GetText(encoding, checksumAlgorithm),
                             cacheResult: false)),
                     textVersion,
-                    filePath);
+                    filePath,
+                    checksumAlgorithm);
 
                 tree = factory.CreateRecoverableTree(attributes.Id.ProjectId, filePath, options, lazyTextAndVersion, encoding, newRoot);
             }
 
-            return (lazyTextAndVersion, TreeAndVersion.Create(tree, treeVersion));
+            return (lazyTextAndVersion, new TreeAndVersion(tree, treeVersion, checksumAlgorithm));
         }
 
         internal override Task<Diagnostic?> GetLoadDiagnosticAsync(CancellationToken cancellationToken)

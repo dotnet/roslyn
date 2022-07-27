@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool? isGeneratedCode,
             CancellationToken cancellationToken)
         {
-            return ParseText(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
+            return ParseText(SourceText.From(text, encoding, SourceHashAlgorithm.Sha1), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
 
         // The overload that has more parameters is itself obsolete, as an intentional break to allow future
@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Encoding? encoding,
             ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
             CancellationToken cancellationToken)
-            => ParseText(text, options, path, encoding, diagnosticOptions, isGeneratedCode: null, cancellationToken);
+            => ParseText(SourceText.From(text, encoding, SourceHashAlgorithm.Sha1), options, path, diagnosticOptions, isGeneratedCode: null, cancellationToken);
 
         // 3.3 BACK COMPAT OVERLOAD -- DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]

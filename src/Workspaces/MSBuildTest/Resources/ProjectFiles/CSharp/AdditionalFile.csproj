@@ -12,7 +12,8 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CSharpProject</RootNamespace>
     <AssemblyName>CSharpProject</AssemblyName>
-   <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <ChecksumAlgorithm>SHA1</ChecksumAlgorithm>
     <FileAlignment>512</FileAlignment>
     <AssemblyOriginatorKeyFile>snKey.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>

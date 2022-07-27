@@ -9,6 +9,9 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -43,6 +46,26 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("doc", info.Name);
             Assert.Equal(SourceCodeKind.Script, info.SourceCodeKind);
             Assert.Same(loader, info.TextLoader);
+            Assert.True(info.IsGenerated);
+            Assert.Equal(SourceHashAlgorithms.Default, info.ChecksumAlgorithm);
+        }
+
+        [Fact]
+        public void Create_NullLoader()
+        {
+            var id = DocumentId.CreateNewId(ProjectId.CreateNewId());
+
+            var info = DocumentInfo.Create(
+                id,
+                name: "doc",
+                sourceCodeKind: SourceCodeKind.Script,
+                loader: null,
+                isGenerated: true);
+
+            Assert.Equal(id, info.Id);
+            Assert.Equal("doc", info.Name);
+            Assert.Equal(SourceCodeKind.Script, info.SourceCodeKind);
+            Assert.Null(info.TextLoader);
             Assert.True(info.IsGenerated);
         }
 
@@ -80,11 +103,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
             var instance = DocumentInfo.Create(DocumentId.CreateNewId(ProjectId.CreateNewId()), "doc");
+            var serviceProvider = (IDocumentServiceProvider)new TestDocumentServiceProvider();
 
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithId(value), opt => opt.Id, documentId, defaultThrows: true);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithName(value), opt => opt.Name, "New", defaultThrows: true);
-            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithSourceCodeKind(value), opt => opt.SourceCodeKind, SourceCodeKind.Script);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithTextLoader(value), opt => opt.TextLoader, (TextLoader)new TestTextLoader("text"));
+            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithDesignTimeOnly(value), opt => opt.Attributes.DesignTimeOnly, true);
+            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithDocumentServiceProvider(value), opt => opt.DocumentServiceProvider, serviceProvider);
 
             SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithFolders(value), opt => opt.Folders, "folder", allowDuplicates: true);
         }

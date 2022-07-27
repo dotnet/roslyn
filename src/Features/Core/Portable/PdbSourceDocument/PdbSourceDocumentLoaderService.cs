@@ -197,14 +197,14 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             {
                 using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
 
-                var sourceText = SourceText.From(stream, encoding, sourceDocument.HashAlgorithm, throwIfBinaryDetected: true);
+                var sourceText = SourceText.From(stream, encoding, sourceDocument.ChecksumAlgorithm, throwIfBinaryDetected: true);
 
                 var fileChecksum = sourceText.GetChecksum();
                 if (ignoreChecksum || fileChecksum.SequenceEqual(sourceDocument.Checksum))
                 {
                     var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, filePath);
                     var textLoader = TextLoader.From(textAndVersion);
-                    return new SourceFileInfo(filePath, sourceDescription, textLoader, fromRemoteLocation);
+                    return new SourceFileInfo(filePath, sourceDescription, textLoader, sourceDocument.ChecksumAlgorithm, fromRemoteLocation);
                 }
 
                 return null;

@@ -6,7 +6,9 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.VisualBasic.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -17,25 +19,25 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, WorkItem(26459, "https://github.com/dotnet/roslyn/issues/26459")]
         public void TestGivesAccessTo_CrossLanguageAndCompilation()
         {
-            var csharpTree = CSharpSyntaxTree.ParseText(@"
+            var csharpTree = CSharpTestSource.Parse(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""VB"")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""CS2"")]
 internal class CS
 {
 }
 ");
-            var csharpTree2 = CSharpSyntaxTree.ParseText(@"
+            var csharpTree2 = CSharpTestSource.Parse(@"
 internal class CS2
 {
 }
 ");
-            var vbTree = VisualBasicSyntaxTree.ParseText(@"
+            var vbTree = BasicTestSource.Parse(@"
 <assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""CS"")>
 <assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""VB2"")>
 Friend Class VB
 End Class
 ");
-            var vbTree2 = VisualBasicSyntaxTree.ParseText(@"
+            var vbTree2 = BasicTestSource.Parse(@"
 Friend Class VB2
 End Class
 ");

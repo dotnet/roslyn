@@ -248,6 +248,40 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task TestChecksumAlgorithm()
+        {
+            CreateFiles(GetSimpleCSharpSolutionWithAdditionaFile());
+            var solutionFilePath = GetSolutionFileName("TestSolution.sln");
+
+            using var workspace = CreateMSBuildWorkspace();
+            var solution = await workspace.OpenSolutionAsync(solutionFilePath);
+            var project = solution.Projects.Single();
+
+            Assert.Equal(SourceHashAlgorithm.Sha1, project.State.ChecksumAlgorithm);
+
+            Assert.All(project.Documents, d => Assert.Equal(SourceHashAlgorithm.Sha1, d.GetTextSynchronously(default).ChecksumAlgorithm));
+            Assert.All(project.AdditionalDocuments, d => Assert.Equal(SourceHashAlgorithm.Sha1, d.GetTextSynchronously(default).ChecksumAlgorithm));
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task TestChecksumAlgorithm_Default()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles());
+            var solutionFilePath = GetSolutionFileName("TestSolution.sln");
+
+            using var workspace = CreateMSBuildWorkspace();
+            var sol = await workspace.OpenSolutionAsync(solutionFilePath);
+            var csProject = sol.Projects.First(p => p.Language == LanguageNames.CSharp);
+            var vbProject = sol.Projects.First(p => p.Language == LanguageNames.VisualBasic);
+
+            Assert.Equal(SourceHashAlgorithms.Default, csProject.State.ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithms.Default, vbProject.State.ChecksumAlgorithm);
+
+            Assert.All(csProject.Documents, d => Assert.Equal(SourceHashAlgorithms.Default, d.GetTextSynchronously(default).ChecksumAlgorithm));
+            Assert.All(vbProject.Documents, d => Assert.Equal(SourceHashAlgorithms.Default, d.GetTextSynchronously(default).ChecksumAlgorithm));
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
         public async Task TestCrossLanguageReferencesUsesInMemoryGeneratedMetadata()
         {
             CreateFiles(GetMultiProjectSolutionFiles());

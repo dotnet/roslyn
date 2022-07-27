@@ -16,18 +16,34 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A recoverable TextAndVersion source that saves its text to temporary storage.
     /// </summary>
-    internal sealed class RecoverableTextAndVersion : ValueSource<TextAndVersion>, ITextVersionable
+    internal sealed class RecoverableTextAndVersion : ValueSource<TextAndVersion>, ITextVersionable, ITextAndVersionSource
     {
-        private readonly SolutionServices _services;
+        private readonly HostWorkspaceServices _services;
 
-        // Starts as ValueSource<TextAndVersion> and is replaced with RecoverableText when the TextAndVersion value is requested.
+        // Starts as ITextAndVersionSource and is replaced with RecoverableText when the TextAndVersion value is requested.
         // At that point the initial source is no longer referenced and can be garbage collected.
         private object _initialSourceOrRecoverableText;
 
-        public RecoverableTextAndVersion(ValueSource<TextAndVersion> initialSource, SolutionServices services)
+        public RecoverableTextAndVersion(ITextAndVersionSource initialSource, HostWorkspaceServices services)
         {
             _initialSourceOrRecoverableText = initialSource;
             _services = services;
+        }
+
+        private bool TryGetInitialSourceOrRecoverableText([NotNullWhen(true)] out ITextAndVersionSource? source, [NotNullWhen(false)] out RecoverableText? text)
+        {
+            // store to local to avoid race:
+            var sourceOrRecoverableText = _initialSourceOrRecoverableText;
+
+            source = sourceOrRecoverableText as ITextAndVersionSource;
+            if (source != null)
+            {
+                text = null;
+                return true;
+            }
+
+            text = (RecoverableText)sourceOrRecoverableText;
+            return false;
         }
 
         public ITemporaryTextStorageInternal? Storage
@@ -35,20 +51,15 @@ namespace Microsoft.CodeAnalysis
 
         public override bool TryGetValue([MaybeNullWhen(false)] out TextAndVersion value)
         {
-            // store to local to avoid race:
-            var sourceOrRecoverableText = _initialSourceOrRecoverableText;
-
-            if (sourceOrRecoverableText is RecoverableText recoverableText)
+            if (TryGetInitialSourceOrRecoverableText(out var source, out var recoverableText))
             {
-                if (recoverableText.TryGetValue(out var text))
-                {
-                    value = TextAndVersion.Create(text, recoverableText.Version, recoverableText.LoadDiagnostic);
-                    return true;
-                }
+                return source.TryGetValue(out value);
             }
-            else
+
+            if (recoverableText.TryGetValue(out var text))
             {
-                return ((ValueSource<TextAndVersion>)sourceOrRecoverableText).TryGetValue(out value);
+                value = TextAndVersion.Create(text, recoverableText.Version, recoverableText.LoadDiagnostic);
+                return true;
             }
 
             value = null;
@@ -74,12 +85,12 @@ namespace Microsoft.CodeAnalysis
 
         public override TextAndVersion GetValue(CancellationToken cancellationToken = default)
         {
-            if (_initialSourceOrRecoverableText is ValueSource<TextAndVersion> source)
+            if (_initialSourceOrRecoverableText is ITextAndVersionSource source)
             {
                 // replace initial source with recovarable text if it hasn't been replaced already:
                 Interlocked.CompareExchange(
                     ref _initialSourceOrRecoverableText,
-                    value: new RecoverableText(source.GetValue(cancellationToken), _services),
+                    value: new RecoverableText(source, source.GetValue(cancellationToken), _services.SolutionServices),
                     comparand: source);
             }
 
@@ -89,12 +100,12 @@ namespace Microsoft.CodeAnalysis
 
         public override async Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken = default)
         {
-            if (_initialSourceOrRecoverableText is ValueSource<TextAndVersion> source)
+            if (_initialSourceOrRecoverableText is ITextAndVersionSource source)
             {
                 // replace initial source with recovarable text if it hasn't been replaced already:
                 Interlocked.CompareExchange(
                     ref _initialSourceOrRecoverableText,
-                    value: new RecoverableText(await source.GetValueAsync(cancellationToken).ConfigureAwait(false), _services),
+                    value: new RecoverableText(source, await source.GetValueAsync(cancellationToken).ConfigureAwait(false), _services.SolutionServices),
                     comparand: source);
             }
 
@@ -102,21 +113,60 @@ namespace Microsoft.CodeAnalysis
             return recoverableText.ToTextAndVersion(await recoverableText.GetValueAsync(cancellationToken).ConfigureAwait(false));
         }
 
+        public SourceHashAlgorithm ChecksumAlgorithm
+            => TryGetInitialSourceOrRecoverableText(out var source, out var text) ? source.ChecksumAlgorithm : text.ChecksumAlgorithm;
+
+        public ITextAndVersionSource? TryUpdateChecksumAlgorithm(SourceHashAlgorithm algorithm)
+        {
+            if (ChecksumAlgorithm == algorithm)
+            {
+                return this;
+            }
+
+            // store to local to avoid race:
+            if (TryGetInitialSourceOrRecoverableText(out var source, out var recoverableText))
+            {
+                var newSource = source.TryUpdateChecksumAlgorithm(algorithm);
+                return (newSource != null) ? new RecoverableTextAndVersion(newSource, _services) : null;
+            }
+
+            var newFileLoader = recoverableText.FileLoader?.TryUpdateChecksumAlgorithm(algorithm);
+            if (newFileLoader == null)
+            {
+                return null;
+            }
+
+            Contract.ThrowIfNull(recoverableText.DocumentId);
+
+            return new RecoverableTextAndVersion(new LoadableTextAndVersionSource(newFileLoader, recoverableText.DocumentId, _services.Workspace, cacheResult: false), _services);
+        }
+
         private sealed class RecoverableText : WeaklyCachedRecoverableValueSource<SourceText>, ITextVersionable
         {
             private readonly ITemporaryStorageServiceInternal _storageService;
             public readonly VersionStamp Version;
             public readonly Diagnostic? LoadDiagnostic;
+            public readonly FileTextLoader? FileLoader;
+            public readonly DocumentId? DocumentId;
+            public readonly SourceHashAlgorithm ChecksumAlgorithm;
 
             public ITemporaryTextStorageInternal? _storage;
 
-            public RecoverableText(TextAndVersion textAndVersion, SolutionServices services)
+            public RecoverableText(ITextAndVersionSource source, TextAndVersion textAndVersion, SolutionServices services)
                 : base(new ConstantValueSource<SourceText>(textAndVersion.Text))
             {
                 _storageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
 
                 Version = textAndVersion.Version;
                 LoadDiagnostic = textAndVersion.LoadDiagnostic;
+                ChecksumAlgorithm = source.ChecksumAlgorithm;
+
+                // preserve file loader so that we can update checksum algorithm later if necessary
+                if (source is LoadableTextAndVersionSource { Loader: FileTextLoader fileLoader, DocumentId: var documentId })
+                {
+                    FileLoader = fileLoader;
+                    DocumentId = documentId;
+                }
             }
 
             public TextAndVersion ToTextAndVersion(SourceText text)

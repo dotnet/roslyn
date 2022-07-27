@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis
         public Encoding? DefaultEncoding { get; }
 
         /// <summary>
+        /// Algorithm used to calculate content checksum.
+        /// </summary>
+        internal override SourceHashAlgorithm ChecksumAlgorithm { get; }
+
+        /// <summary>
         /// Creates a content loader for specified file.
         /// </summary>
         /// <param name="path">An absolute file path.</param>
@@ -43,12 +48,34 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="path"/> is not an absolute path.</exception>
         public FileTextLoader(string path, Encoding? defaultEncoding)
+            : this(path, defaultEncoding, SourceHashAlgorithm.Sha1)
+        {
+        }
+
+        /// <summary>
+        /// Creates a content loader for specified file.
+        /// </summary>
+        /// <param name="path">An absolute file path.</param>
+        /// <param name="defaultEncoding">
+        /// Specifies an encoding to be used if the actual encoding can't be determined from the stream content (the stream doesn't start with Byte Order Mark).
+        /// If not specified auto-detect heuristics are used to determine the encoding.
+        /// Note that if the stream starts with Byte Order Mark the value of <paramref name="defaultEncoding"/> is ignored.
+        /// </param>
+        /// <param name="checksumAlgorithm">Algorithm used to calculate content checksum.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="path"/> is not an absolute path.</exception>
+        internal FileTextLoader(string path, Encoding? defaultEncoding, SourceHashAlgorithm checksumAlgorithm)
         {
             CompilerPathUtilities.RequireAbsolutePath(path, "path");
+            Contract.ThrowIfFalse(SourceHashAlgorithms.IsSupportedAlgorithm(checksumAlgorithm));
 
             Path = path;
             DefaultEncoding = defaultEncoding;
+            ChecksumAlgorithm = checksumAlgorithm;
         }
+
+        private protected override TextLoader TryUpdateChecksumAlgorithmImpl(SourceHashAlgorithm algorithm)
+            => new FileTextLoader(Path, DefaultEncoding, algorithm);
 
         /// <summary>
         /// We have this limit on file size to reduce a chance of OOM when user adds massive files to the solution (often by accident).
@@ -58,6 +85,7 @@ namespace Microsoft.CodeAnalysis
 
         internal sealed override string FilePath => Path;
 
+<<<<<<< HEAD:src/Workspaces/Core/Portable/Workspace/FileTextLoader.cs
         /// <summary>
         /// Creates <see cref="SourceText"/> from <see cref="Stream"/>.
         /// </summary>
@@ -74,6 +102,13 @@ namespace Microsoft.CodeAnalysis
 #pragma warning disable CS0618 // Type or member is obsolete
             => CreateText(stream, workspace: null);
 #pragma warning restore
+=======
+        protected virtual SourceText CreateText(Stream stream, Workspace workspace)
+        {
+            var factory = workspace.Services.GetRequiredService<ITextFactoryService>();
+            return factory.CreateText(stream, DefaultEncoding, ChecksumAlgorithm, CancellationToken.None);
+        }
+>>>>>>> b316947cf73 (Add ChecksumAlgorithm to DocumentAttributes and ProjectAttributes):src/Workspaces/Core/Portable/Workspace/Solution/FileTextLoader.cs
 
         /// <summary>
         /// Load a text and a version of the document in the workspace.

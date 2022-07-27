@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
@@ -60,7 +61,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 documentServiceProvider = new RazorDocumentServiceProviderWrapper(razorDocumentServiceProvider);
             }
 
-            return DocumentInfo.Create(id, name, folders, sourceCodeKind, loader, filePath, isGenerated, designTimeOnly, documentServiceProvider);
+            return DocumentInfo.Create(id, name, folders, sourceCodeKind, loader, filePath, isGenerated)
+                .WithDesignTimeOnly(designTimeOnly)
+                .WithDocumentServiceProvider(documentServiceProvider);
         }
 
         private class RazorCapabilitiesProvider : ICapabilitiesProvider

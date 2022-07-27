@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild.Build;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -302,23 +303,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                     return Task.FromResult(
                         ProjectInfo.Create(
-                            projectId,
-                            version,
-                            projectName,
-                            assemblyName: assemblyName,
-                            language: language,
-                            filePath: projectPath,
-                            outputFilePath: string.Empty,
-                            outputRefFilePath: string.Empty,
+                            new ProjectInfo.ProjectAttributes(
+                                projectId,
+                                version,
+                                name: projectName,
+                                assemblyName: assemblyName,
+                                language: language,
+                                compilationOutputFilePaths: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath),
+                                checksumAlgorithm: SourceHashAlgorithms.Default,
+                                filePath: projectPath),
                             compilationOptions: compilationOptions,
-                            parseOptions: parseOptions,
-                            documents: SpecializedCollections.EmptyEnumerable<DocumentInfo>(),
-                            projectReferences: SpecializedCollections.EmptyEnumerable<ProjectReference>(),
-                            metadataReferences: SpecializedCollections.EmptyEnumerable<MetadataReference>(),
-                            analyzerReferences: SpecializedCollections.EmptyEnumerable<AnalyzerReference>(),
-                            additionalDocuments: SpecializedCollections.EmptyEnumerable<DocumentInfo>(),
-                            isSubmission: false,
-                            hostObjectType: null));
+                            parseOptions: parseOptions));
                 }
 
                 return DoOperationAndReportProgressAsync(ProjectLoadOperation.Resolve, projectPath, projectFileInfo.TargetFramework, async () =>
@@ -366,9 +361,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths))
                         .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
-                    var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, commandLineArgs.Encoding);
-                    var additionalDocuments = CreateDocumentInfos(projectFileInfo.AdditionalDocuments, projectId, commandLineArgs.Encoding);
-                    var analyzerConfigDocuments = CreateDocumentInfos(projectFileInfo.AnalyzerConfigDocuments, projectId, commandLineArgs.Encoding);
+                    var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, commandLineArgs.Encoding, commandLineArgs.ChecksumAlgorithm);
+                    var additionalDocuments = CreateDocumentInfos(projectFileInfo.AdditionalDocuments, projectId, commandLineArgs.Encoding, commandLineArgs.ChecksumAlgorithm);
+                    var analyzerConfigDocuments = CreateDocumentInfos(projectFileInfo.AnalyzerConfigDocuments, projectId, commandLineArgs.Encoding, commandLineArgs.ChecksumAlgorithm);
                     CheckForDuplicateDocuments(documents.Concat(additionalDocuments).Concat(analyzerConfigDocuments), projectPath, projectId);
 
                     var analyzerReferences = ResolveAnalyzerReferences(commandLineArgs);
@@ -376,14 +371,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     var resolvedReferences = await ResolveReferencesAsync(projectId, projectFileInfo, commandLineArgs, cancellationToken).ConfigureAwait(false);
 
                     return ProjectInfo.Create(
-                        projectId,
-                        version,
-                        projectName,
-                        assemblyName,
-                        language,
-                        projectPath,
-                        outputFilePath: projectFileInfo.OutputFilePath,
-                        outputRefFilePath: projectFileInfo.OutputRefFilePath,
+                        new ProjectInfo.ProjectAttributes(
+                            projectId,
+                            version,
+                            projectName,
+                            assemblyName,
+                            language,
+                            compilationOutputFilePaths: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath),
+                            checksumAlgorithm: commandLineArgs.ChecksumAlgorithm,
+                            filePath: projectPath,
+                            outputFilePath: projectFileInfo.OutputFilePath,
+                            outputRefFilePath: projectFileInfo.OutputRefFilePath,
+                            isSubmission: false),
                         compilationOptions: compilationOptions,
                         parseOptions: parseOptions,
                         documents: documents,
@@ -391,7 +390,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         metadataReferences: resolvedReferences.MetadataReferences,
                         analyzerReferences: analyzerReferences,
                         additionalDocuments: additionalDocuments,
-                        isSubmission: false,
                         hostObjectType: null)
                         .WithDefaultNamespace(projectFileInfo.DefaultNamespace)
                         .WithAnalyzerConfigDocuments(analyzerConfigDocuments)
@@ -441,7 +439,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 return commandLineArgs.ResolveAnalyzerReferences(analyzerLoader).Distinct(AnalyzerReferencePathComparer.Instance);
             }
 
-            private ImmutableArray<DocumentInfo> CreateDocumentInfos(IReadOnlyList<DocumentFileInfo> documentFileInfos, ProjectId projectId, Encoding? encoding)
+            private ImmutableArray<DocumentInfo> CreateDocumentInfos(IReadOnlyList<DocumentFileInfo> documentFileInfos, ProjectId projectId, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm)
             {
                 var results = ImmutableArray.CreateBuilder<DocumentInfo>();
 
@@ -454,7 +452,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         name,
                         folders,
                         info.SourceCodeKind,
-                        new WorkspaceFileTextLoader(_workspaceServices.SolutionServices, info.FilePath, encoding),
+                        new WorkspaceFileTextLoader(_workspaceServices.SolutionServices, info.FilePath, encoding, checksumAlgorithm),
                         info.FilePath,
                         info.IsGenerated);
 
