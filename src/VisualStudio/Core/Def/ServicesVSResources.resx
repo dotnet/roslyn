@@ -2012,7 +2012,7 @@ Additional information: {1}</value>
     <value>Show UI Inline</value>
     <comment>"UI" is an acronym for "User Interface"</comment>
   </data>
-  <data name="Where_should_the_rename_ui_be_shown" xml:space="preserve">
+  <data name="Where_should_the_rename_UI_be_shown" xml:space="preserve">
     <value>Where should the rename UI be shown?</value>
     <comment>"UI" is an acronym for "User Interface"</comment>
   </data>

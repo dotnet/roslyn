@@ -1652,7 +1652,7 @@
         <target state="translated">Quest'area di lavoro non supporta l'aggiornamento delle opzioni di compilazione di Visual Basic.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Where_should_the_rename_ui_be_shown">
+      <trans-unit id="Where_should_the_rename_UI_be_shown">
         <source>Where should the rename UI be shown?</source>
         <target state="new">Where should the rename UI be shown?</target>
         <note>"UI" is an acronym for "User Interface"</note>

@@ -1652,7 +1652,7 @@
         <target state="translated">이 작업 영역은 Visual Basic 컴파일 옵션 업데이트를 지원하지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Where_should_the_rename_ui_be_shown">
+      <trans-unit id="Where_should_the_rename_UI_be_shown">
         <source>Where should the rename UI be shown?</source>
         <target state="new">Where should the rename UI be shown?</target>
         <note>"UI" is an acronym for "User Interface"</note>
