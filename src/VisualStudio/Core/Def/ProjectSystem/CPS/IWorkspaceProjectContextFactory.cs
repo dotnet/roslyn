@@ -48,14 +48,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// <param name="id">Project guid</param>
         /// <param name="uniqueName">
         /// Unique across the entire solution for the life of the solution. 
-        /// Includes full path of the project, the GUID of project and the name of the config.
-        /// 
         /// This will be unique across regardless of whether projects are added or renamed 
-        /// to match this project's original name. We include file path to make debugging easier.
-        /// 
-        /// For example:
-        ///      C:\Project\Project.csproj (Debug;AnyCPU {72B509BD-C502-4707-ADFD-E2D43867CF45})
-        ///      C:\Project\MultiTarget.csproj (Debug;AnyCPU;net45 {72B509BD-C502-4707-ADFD-E2D43867CF45})
+        /// to match this project's original name.
         /// </param>
         /// <param name="data">Providers access to msbuild evaluation data for the project.</param>
         /// <param name="hostObject">The IVsHierarchy for the project; this is used to track linked files across multiple projects when determining contexts.</param>
