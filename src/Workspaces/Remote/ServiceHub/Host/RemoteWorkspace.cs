@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfTrue(solutionChecksum == Checksum.Null);
 
             // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will
-            // increment the ref count of that solution until we release it at the end of our using block.
+            // increment the in-flight of that solution until we release it at the end of our try/finally block.
             var solution = await GetOrCreateSolutionAsync(
                 assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch, cancellationToken).ConfigureAwait(false);
             try
@@ -146,8 +146,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfTrue(solution.InFlightCount < 1);
 
                 // Actually get the solution, computing it ourselves, or getting the result that another caller was
-                // computing. In the event of cancellation, we do not wait here for the refCountedSolution to clean up,
-                // even if this was the last use of this solution.
+                // computing.
                 var newSolution = await solution.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
 
                 // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
@@ -158,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             finally
             {
-                // finally, release our in-flicht-count on the solution.  If we were the last one keeping it alive, it
+                // finally, release our in-flight-count on the solution.  If we were the last one keeping it alive, it
                 // will get released from our caches.
                 solution.DecrementInFlightCount();
             }
