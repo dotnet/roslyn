@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.Remote
     internal sealed partial class RemoteWorkspace : Workspace
     {
         /// <summary>
-        /// Guards updates to all mutable state in this workspace.
+        /// Guards updates to all mutable state in this workspace.  The caches below will also use this same gate to
+        /// mutate themselves.  This keeps the caches in sync with each other.
         /// </summary>
         private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Remote
         internal RemoteWorkspace(HostServices hostServices, string? workspaceKind)
             : base(hostServices, workspaceKind)
         {
+            // Pass along our gate to our two caches.  This way all mutation is kept in sync.
             _anyBranchSolutionCache = new ChecksumToSolutionCache(_gate);
             _primaryBranchSolutionCache = new ChecksumToSolutionCache(_gate);
         }
@@ -79,13 +81,14 @@ namespace Microsoft.CodeAnalysis.Remote
             if (currentSolutionChecksum == solutionChecksum)
                 return;
 
-            // Do a no-op run.  This will still ensure that we compute and cache this checksum/solution pair for future callers.
+            // Do a normal Run with a no-op for `implementation`.  This will still ensure that we compute and cache this
+            // checksum/solution pair for future callers.
             await RunWithSolutionAsync(
                 assetProvider,
                 solutionChecksum,
                 workspaceVersion,
                 updatePrimaryBranch: true,
-                static _ => ValueTaskFactory.FromResult(false),
+                implementation: static _ => ValueTaskFactory.FromResult(false),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -142,6 +145,9 @@ namespace Microsoft.CodeAnalysis.Remote
             // using this same solution as well
             var result = await implementation(newSolution).ConfigureAwait(false);
 
+            // finally, implicitly release our ref-count on the solution.  If we were the last one keeping it alive, it
+            // will get released from our caches.
+
             return (newSolution, result);
         }
 
@@ -154,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             // Always try to retrieve cached solutions from the primary branch first.  That way we can use the solutions
             // that were the real solutions of this Workspace, and not ones forked off from that.  This gives the
-            // highest likelihood of sharing data and being able to reuse caches and services shared among all
+            // highest likelihood of sharing data and being able to reuse workspace caches and services shared among all
             // components.
             var primaryBranchRefCountedSolution = await _primaryBranchSolutionCache.TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
             if (primaryBranchRefCountedSolution != null)
@@ -163,7 +169,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 return primaryBranchRefCountedSolution;
             }
 
-            // Otherwise, have the any-branch solution try to retrieve or create the solution.
+            // Otherwise, have the any-branch solution try to retrieve or create the solution.  This will always
+            // succeed, and must give us back a solution with a ref-count that is keeping it alive.
             var anyBranchRefCountedSolution =
                 await _anyBranchSolutionCache.TryFastGetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false) ??
                 await _anyBranchSolutionCache.SlowGetOrCreateSolutionAsync(
@@ -182,12 +189,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // We were asked to update the primary-branch solution.  So take the any-branch solution and promote it to
             // the primary-branch-level.  This may return a different solution.  So ensure that we release our reference
-            // on the anyBranch solution when we're done in case we didn't return that.
+            // on the anyBranch solution when we're done. SlowGetOrCreateSolutionAsync will ensure the refcount of the
+            // solution it returns is proper, so this is safe to do.
             using (anyBranchRefCountedSolution)
             {
                 var anyBranchSolution = await anyBranchRefCountedSolution.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
 
-                return await _primaryBranchSolutionCache.SlowGetOrCreateSolutionAsync(
+                var finalRefCountedSolution = await _primaryBranchSolutionCache.SlowGetOrCreateSolutionAsync(
                     solutionChecksum,
                     async cancellationToken =>
                     {
@@ -195,30 +203,24 @@ namespace Microsoft.CodeAnalysis.Remote
                         return primaryBranchSolution;
                     },
                     cancellationToken).ConfigureAwait(false);
+
+                Contract.ThrowIfTrue(anyBranchRefCountedSolution.RefCount <= 0);
+                Contract.ThrowIfTrue(finalRefCountedSolution.RefCount <= 0);
             }
         }
 
         /// <summary>
-        /// The workspace is designed to be stateless. If someone asks for a solution (through solution checksum), 
-        /// it will create one and return the solution. The engine takes care of syncing required data and creating a solution
-        /// corresponding to the given checksum.
-        /// 
-        /// but doing that from scratch all the time will be expansive in terms of syncing data, compilation being cached, file being parsed
-        /// and etc. so even if the service itself is stateless, internally it has several caches to improve perf of various parts.
-        /// 
-        /// first, it holds onto last solution got built. this will take care of common cases where multiple services running off same solution.
-        /// second, it uses assets cache to hold onto data just synched (within 3 min) so that if it requires to build new solution, 
-        ///         it can save some time to re-sync data which might just used by other solution.
-        /// third, it holds onto solution from primary branch from Host. and it will try to see whether it can build new solution off the
-        ///        primary solution it is holding onto. this will make many solution level cache to be re-used.
-        ///
-        /// the primary solution can be updated in 2 ways.
-        /// first, host will keep track of primary solution changes in host, and call OOP to synch to latest time to time.
-        /// second, engine keeps track of whether a certain request is for primary solution or not, and if it is, 
-        ///         it let that request to update primary solution cache to latest.
-        /// 
-        /// these 2 are complimentary to each other. #1 makes OOP's primary solution to be ready for next call (push), #2 makes OOP's primary
-        /// solution be not stale as much as possible. (pull)
+        /// Create an appropriate <see cref="Solution"/> instance corresponding to the <paramref
+        /// name="solutionChecksum"/> passed in.  Note: this method changes no Workspace state and exists purely to
+        /// compute the corresponding solution.  Updating of our caches, or storing this solution as the <see
+        /// cref="Workspace.CurrentSolution"/> of this <see cref="RemoteWorkspace"/> is the responsibility of any
+        /// callers.
+        /// <para>
+        /// This method will either create the new solution from scratch if it has to.  Or it will attempt to create a
+        /// fork off of <see cref="Workspace.CurrentSolution"/> if possible.  The latter is almost always what will
+        /// happen (once the first sync completes) as most calls to the remote workspace are using a solution snapshot
+        /// very close to the primary one, and so can share almost all state with that.
+        /// </para>
         /// </summary>
         private async Task<Solution> ComputeSolutionAsync(
             AssetProvider assetProvider,
@@ -227,21 +229,22 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             try
             {
+                // Try to create the solution snapshot incrementally off of the workspaces CurrentSolution first.
                 var updater = new SolutionCreator(Services.HostServices, assetProvider, this.CurrentSolution);
-
-                // check whether solution is update to the given base solution
                 if (await updater.IsIncrementalUpdateAsync(solutionChecksum, cancellationToken).ConfigureAwait(false))
                 {
-                    // create updated solution off the baseSolution
                     return await updater.CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
                 }
+                else
+                {
+                    // Otherwise, this is a different solution, or the first time we're creating this solution.  Bulk
+                    // sync over all assets for it.
+                    await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-                // we need new solution. bulk sync all asset for the solution first.
-                await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-                // get new solution info and options
-                var solutionInfo = await assetProvider.CreateSolutionInfoAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-                return CreateSolutionFromInfo(solutionInfo);
+                    // get new solution info and options
+                    var solutionInfo = await assetProvider.CreateSolutionInfoAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                    return CreateSolutionFromInfo(solutionInfo);
+                }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
