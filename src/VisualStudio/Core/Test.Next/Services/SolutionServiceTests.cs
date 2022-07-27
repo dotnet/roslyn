@@ -350,7 +350,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var remoteSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
 
             // get solution cralwer in remote host
-            var solutionCrawlerService = remoteSolution.Workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
+            var solutionCrawlerService = remoteSolution.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
             Assert.NotNull(solutionCrawlerService);
 
             // check remote workspace has enabled solution crawler in remote host

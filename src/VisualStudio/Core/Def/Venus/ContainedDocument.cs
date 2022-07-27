@@ -761,7 +761,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             Debug.Assert(ReferenceEquals(parsedDocument.Text, subjectBuffer.CurrentSnapshot.AsText()));
 
             var editorOptionsService = _componentModel.GetService<EditorOptionsService>();
-            var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.LanguageServices, explicitFormat: false);
+            var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.Services, explicitFormat: false);
 
             using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
 
@@ -797,7 +797,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var formattingRules = venusFormattingRules.Concat(Formatter.GetDefaultFormattingRules(document));
 
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
             var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
             var changes = formatter.GetFormattingResult(
                 root, new TextSpan[] { CommonFormattingHelpers.GetFormattingSpan(root, visibleSpan) },

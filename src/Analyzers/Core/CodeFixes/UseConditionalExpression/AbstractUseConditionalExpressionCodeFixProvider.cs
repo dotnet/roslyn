@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             // will return 'true' if it made a multi-line conditional expression. In that case,
             // we'll need to explicitly format this node so we can get our special multi-line
             // formatting in VB and C#.
-            var nestedEditor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+            var nestedEditor = document.GetSyntaxEditor(root);
             foreach (var diagnostic in diagnostics)
             {
                 await FixOneAsync(
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 #if CODE_STYLE
             var provider = GetSyntaxFormatting();
 #else
-            var provider = document.Project.Solution.Workspace.Services;
+            var provider = document.Project.Solution.Services;
 #endif
             var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var formattingOptions = options.GetFormattingOptions(GetSyntaxFormatting());

@@ -252,8 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 
         protected static void CompileTestSource(string dllFilePath, string sourceCodePath, string? pdbFilePath, string assemblyName, SourceText source, Project project, Location pdbLocation, Location sourceLocation, bool buildReferenceAssembly, bool windowsPdb, Encoding? fallbackEncoding = null)
         {
-            var languageServices = project.Solution.Workspace.Services.GetLanguageServices(LanguageNames.CSharp);
-            var compilationFactory = languageServices.GetRequiredService<ICompilationFactoryService>();
+            var compilationFactory = project.Solution.Services.GetRequiredLanguageService<ICompilationFactoryService>(LanguageNames.CSharp);
             var options = compilationFactory.GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
             var parseOptions = project.ParseOptions;
 

@@ -71,18 +71,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
         private static void ValidateHelpLinkForDiagnostic(string diagnosticId, string helpLinkUri)
         {
             if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
-                    or "RemoveUnnecessaryImportsFixable"
+                    or "RemoveUnnecessaryImportsFixable" // this diagnostic is hidden and not configurable.
+                    or "IDE0005_gen" // this diagnostic is hidden and not configurable.
                     or "RE0001"
                     or "JSON001"
                     or "JSON002") // Tracked by https://github.com/dotnet/roslyn/issues/48530
             {
                 Assert.True(helpLinkUri == string.Empty, $"Expected empty help link for {diagnosticId}");
                 return;
-            }
-
-            if (diagnosticId == "IDE0005_gen")
-            {
-                diagnosticId = "IDE0005";
             }
 
             if (helpLinkUri != $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")

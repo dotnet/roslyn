@@ -4442,7 +4442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.FieldDeclaration:
                         {
                             var fieldSyntax = (FieldDeclarationSyntax)m;
-                            _ = fieldSyntax.Declaration.Type.SkipRef(out RefKind refKind, allowScoped: false, diagnostics);
+                            _ = fieldSyntax.Declaration.Type.SkipRef(out RefKind refKind);
 
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
