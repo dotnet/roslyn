@@ -159,12 +159,6 @@ namespace Microsoft.CodeAnalysis.Remote
                         // If were holding onto this solution, it must have a legal in-flight-count.
                         Contract.ThrowIfTrue(solutionToDecrement.InFlightCount < 1);
                         solutionToDecrement.DecrementInFlightCount_WhileAlreadyHoldingLock();
-
-                        // after releasing, if we went down to 0 in flight operations, then we better not still be in the cache.
-                        if (solutionToDecrement.InFlightCount == 0)
-                        {
-                            Contract.ThrowIfTrue(_solutionChecksumToSolution.ContainsKey(solutionToDecrement.SolutionChecksum));
-                        }
                     }
                 }
             }
