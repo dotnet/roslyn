@@ -2,9 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-#Disable Warning RS0030 ' Do not used banned APIs
-#Disable Warning BC40000 ' Obsolete APIs
-
 Imports System.Collections.Immutable
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
@@ -24,14 +21,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(SourceHashAlgorithm.Sha256, tree.GetText().ChecksumAlgorithm)
         End Sub
 
-        <Fact>
+        <Fact, Obsolete>
         Public Sub Create_WithDiagnosticOptions()
             Dim options = CreateImmutableDictionary(("BC000", ReportDiagnostic.Suppress))
             Dim tree = VisualBasicSyntaxTree.Create(SyntaxFactory.ParseCompilationUnit(""), options:=Nothing, path:=Nothing, encoding:=Nothing, diagnosticOptions:=options)
             Assert.Same(options, tree.DiagnosticOptions)
         End Sub
 
-        <Fact>
+        <Fact, Obsolete>
         Public Sub ParseTreeWithChangesPreservesDiagnosticOptions()
             Dim options = CreateImmutableDictionary(("BC000", ReportDiagnostic.Suppress))
             Dim tree = VisualBasicSyntaxTree.ParseText(
@@ -42,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Same(options, newTree.DiagnosticOptions)
         End Sub
 
-        <Fact>
+        <Fact, Obsolete>
         Public Sub ParseTreeNullDiagnosticOptions()
             Dim tree = VisualBasicSyntaxTree.ParseText(
                 SourceText.From(""),
@@ -53,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.NotSame(ImmutableDictionary(Of String, ReportDiagnostic).Empty, tree.DiagnosticOptions)
         End Sub
 
-        <Fact>
+        <Fact, Obsolete>
         Public Sub ParseTreeEmptyDiagnosticOptions()
             Dim tree = VisualBasicSyntaxTree.ParseText(
                 SourceText.From(""),
@@ -63,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Same(ImmutableDictionary(Of String, ReportDiagnostic).Empty, tree.DiagnosticOptions)
         End Sub
 
-        <Fact>
+        <Fact, Obsolete>
         Public Sub ParseTreeCustomDiagnosticOptions()
             Dim options = CreateImmutableDictionary(("BC000", ReportDiagnostic.Suppress))
             Dim tree = VisualBasicSyntaxTree.ParseText(
@@ -72,14 +69,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Same(options, tree.DiagnosticOptions)
         End Sub
 
-        <Fact>
+        <Fact, Obsolete>
         Public Sub DefaultTreeDiagnosticOptions()
             Dim tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit())
             Assert.NotNull(tree.DiagnosticOptions)
             Assert.True(tree.DiagnosticOptions.IsEmpty)
         End Sub
 
-        <Fact>
+        <Fact, Obsolete>
         Public Sub WithDiagnosticOptionsNull()
             Dim tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit())
             Dim newTree = tree.WithDiagnosticOptions(Nothing)
@@ -88,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Same(tree, newTree)
         End Sub
 
-        <Fact>
+        <Fact, Obsolete>
         Public Sub WithDiagnosticOptionsEmpty()
             Dim tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit())
             Dim newTree = tree.WithDiagnosticOptions(ImmutableDictionary(Of String, ReportDiagnostic).Empty)
@@ -98,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.NotSame(tree.DiagnosticOptions, newTree.DiagnosticOptions)
         End Sub
 
-        <Fact>
+        <Fact, Obsolete>
         Public Sub PerTreeDiagnosticOptionsNewDict()
             Dim tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit())
             Dim map = CreateImmutableDictionary(("BC000", ReportDiagnostic.Suppress))

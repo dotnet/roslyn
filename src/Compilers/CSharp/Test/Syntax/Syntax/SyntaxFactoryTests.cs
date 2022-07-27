@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable disable
-#pragma warning disable RS0030 // Do not used banned APIs
 
 using System;
 using System.Globalization;

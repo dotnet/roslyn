@@ -15,9 +15,9 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Win32;
 using Basic.Reference.Assemblies;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Test.Utilities
 {

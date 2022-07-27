@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable disable
-#pragma warning disable RS0030 // Do not used banned APIs
-#pragma warning disable CS0618 // Obsolete APIs
 
+using System;
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SourceHashAlgorithm.Sha256, tree.GetText().ChecksumAlgorithm);
         }
 
-        [Fact]
+        [Fact, Obsolete]
         public void Create_WithDiagnosticOptions()
         {
             var options = CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress));
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SourceHashAlgorithm.Sha1, tree.GetText().ChecksumAlgorithm);
         }
 
-        [Fact]
+        [Fact, Obsolete]
         public void ParseTreeWithChangesPreservesDiagnosticOptions()
         {
             var options = CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress));
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(options, newTree.DiagnosticOptions);
         }
 
-        [Fact]
+        [Fact, Obsolete]
         public void ParseTreeNullDiagnosticOptions()
         {
             var tree = CSharpSyntaxTree.ParseText(
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotSame(ImmutableDictionary<string, ReportDiagnostic>.Empty, tree.DiagnosticOptions);
         }
 
-        [Fact]
+        [Fact, Obsolete]
         public void ParseTreeEmptyDiagnosticOptions()
         {
             var tree = CSharpSyntaxTree.ParseText(
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(ImmutableDictionary<string, ReportDiagnostic>.Empty, tree.DiagnosticOptions);
         }
 
-        [Fact]
+        [Fact, Obsolete]
         public void ParseTreeCustomDiagnosticOptions()
         {
             var options = CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress));
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(options, tree.DiagnosticOptions);
         }
 
-        [Fact]
+        [Fact, Obsolete]
         public void DefaultTreeDiagnosticOptions()
         {
             var tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit());
@@ -114,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(tree.DiagnosticOptions.IsEmpty);
         }
 
-        [Fact]
+        [Fact, Obsolete]
         public void WithDiagnosticOptionsNull()
         {
             var tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit());
@@ -124,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(tree, newTree);
         }
 
-        [Fact]
+        [Fact, Obsolete]
         public void WithDiagnosticOptionsEmpty()
         {
             var tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit());
@@ -135,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotSame(tree.DiagnosticOptions, newTree.DiagnosticOptions);
         }
 
-        [Fact]
+        [Fact, Obsolete]
         public void PerTreeDiagnosticOptionsNewDict()
         {
             var tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit());
@@ -146,7 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(map, newTree.DiagnosticOptions);
             Assert.NotEqual(tree, newTree);
         }
-#pragma warning restore CS0618
 
         [Fact]
         public void WithRootAndOptions_ParsedTree()
