@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts)
         {
-            var closestNode = root.FindNode(TextSpan.FromBounds(position, position),  getInnermostNodeForTie: true);
+            var closestNode = root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true);
             var nearestStatement = closestNode.DescendantNodesAndSelf(syntaxFacts.IsForStatement).FirstOrDefault();
             if (nearestStatement is null)
             {

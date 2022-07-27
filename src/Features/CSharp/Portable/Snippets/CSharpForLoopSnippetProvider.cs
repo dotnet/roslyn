@@ -38,6 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
         }
 
+        /// <summary>
+        /// Creates the for loop statement syntax.
+        /// Must be done in language specific file since there is no generic way to generate the syntax.
+        /// </summary>
         protected override async Task<SyntaxNode> CreateForLoopStatementSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -53,6 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var indexVariable = generator.Identifier("i");
             var varIdentifier = SyntaxFactory.IdentifierName("var");
 
+            // Creating the variable declaration based on if the user has
+            // 'var for built in types' set in their editorconfig.
             var variableDeclarationSyntax = varBuiltInType
                 ? SyntaxFactory.VariableDeclaration(varIdentifier,
                     SyntaxFactory.SingletonSeparatedList(
@@ -71,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                 SyntaxFactory.SeparatedList<ExpressionSyntax>(),
                 (ExpressionSyntax)generator.LessThanExpression(
                     generator.IdentifierName(indexVariable),
+                    // Using a temporary identifier name for now, could later be changed
+                    // to look for an iterable item in the scope of the insertion.
                     generator.IdentifierName("length")),
                 SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
                     SyntaxFactory.PostfixUnaryExpression(
@@ -80,12 +88,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return forLoopSyntax;
         }
 
+        /// <summary>
+        /// Goes through each piece of the for statement and extracts the identifiers
+        /// as well as their locations to create SnippetPlaceholder's of each.
+        /// </summary>
         protected override ImmutableArray<SnippetPlaceholder> GetForLoopSnippetPlaceholders(SyntaxNode node, ISyntaxFacts syntaxFacts)
         {
             using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
             var placeHolderBuilder = new Dictionary<string, List<int>>();
             GetPartsOfForStatement(node, out var declaration, out var condition, out var incrementor, out var _1);
 
+            // Retrieves the placeholder present in the variable declaration as well as its location.
             if (declaration != null)
             {
                 var variableDeclarator = ((VariableDeclarationSyntax)declaration).Variables.FirstOrDefault();
@@ -96,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                 }
             }
 
+            // Gets the placeholders present in the left and right side of the conditional.
             if (condition != null)
             {
                 var conditionExpression = (BinaryExpressionSyntax)condition;
@@ -118,6 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                 lengthList.Add(right.SpanStart);
             }
 
+            // Gets the placeholder present in the incrementor.
             if (incrementor != null)
             {
                 var operand = ((PostfixUnaryExpressionSyntax)incrementor).Operand;
@@ -139,6 +154,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         }
 
+        /// <summary>
+        /// Gets the start of the BlockSyntax of the for statement
+        /// to be able to insert the caret position at that location.
+        /// </summary>
         protected override int GetCaretPosition(SyntaxNode caretTarget)
         {
             GetPartsOfForStatement(caretTarget, out _, out _, out _, out var statement);
@@ -152,6 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var forStatement = (ForStatementSyntax)node;
             declaration = forStatement.Declaration;
             condition = forStatement.Condition;
+            // We can assume there will only be one incrementor since it is only constructed with one.
             incrementor = forStatement.Incrementors.FirstOrDefault();
             statement = forStatement.Statement;
         }
