@@ -1402,6 +1402,16 @@
         <target state="translated">顯示繼承邊界</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_ui_as_dashboard_in_top_right">
+        <source>Show UI as a dashboard in top right</source>
+        <target state="new">Show UI as a dashboard in top right</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_ui_inline">
+        <source>Show UI Inline</source>
+        <target state="new">Show UI Inline</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
         <source>Skip analyzers for implicitly triggered builds</source>
         <target state="translated">跳過隱含已觸發組建的分析器</target>
@@ -1640,6 +1650,11 @@
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
         <target state="translated">此工作區不支援更新 Visual Basic 編譯選項。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Where_should_the_rename_ui_be_shown">
+        <source>Where should the rename UI be shown?</source>
+        <target state="new">Where should the rename UI be shown?</target>
         <note />
       </trans-unit>
       <trans-unit id="Whitespace">

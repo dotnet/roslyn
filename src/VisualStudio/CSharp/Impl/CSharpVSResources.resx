@@ -658,13 +658,4 @@
   <data name="Show_new_snippet_experience_experimental" xml:space="preserve">
     <value>Show new snippet experience (experimental)</value>
   </data>
-  <data name="Show_ui_as_dashboard_in_top_right" xml:space="preserve">
-    <value>Show UI as a dashboard in top right</value>
-  </data>
-  <data name="Show_ui_inline" xml:space="preserve">
-    <value>Show UI Inline</value>
-  </data>
-  <data name="Where_should_the_rename_ui_be_shown" xml:space="preserve">
-    <value>Where should the rename UI be shown?</value>
-  </data>
 </root>
