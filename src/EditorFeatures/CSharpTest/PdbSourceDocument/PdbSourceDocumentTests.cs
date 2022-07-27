@@ -448,6 +448,112 @@ public class C
         }
 
         [Fact]
+        public async Task Net6SdkLayout_WithOtherReferences()
+        {
+            var source = @"
+public class C
+{
+    public void [|M|](string d)
+    {
+    }
+}
+";
+
+            await RunTestAsync(async path =>
+            {
+                MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+
+                var packDir = Directory.CreateDirectory(Path.Combine(path, "packs", "MyPack.Ref", "1.0", "ref", "net6.0")).FullName;
+                var dataDir = Directory.CreateDirectory(Path.Combine(path, "packs", "MyPack.Ref", "1.0", "data")).FullName;
+                var sharedDir = Directory.CreateDirectory(Path.Combine(path, "shared", "MyPack", "1.0")).FullName;
+
+                var sourceText = SourceText.From(metadataSource, Encoding.UTF8);
+                var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.M"), buildReferenceAssembly: true);
+
+                var workspace = TestWorkspace.Create(@$"
+<Workspace>
+    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
+    </Project>
+</Workspace>", composition: GetTestComposition());
+
+                var implProject = workspace.CurrentSolution.Projects.First();
+
+                // Compile implementation assembly
+                CompileTestSource(sharedDir, sourceText, project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
+
+                // Create FrameworkList.xml
+                File.WriteAllText(Path.Combine(dataDir, "FrameworkList.xml"), """
+                    <FileList FrameworkName="MyPack">
+                    </FileList>
+                    """);
+
+                await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false);
+            });
+        }
+
+        [Fact]
+        public async Task Net6SdkLayout_TypeForward()
+        {
+            var source = @"
+public class [|C|]
+{
+    public void M(string d)
+    {
+    }
+}
+";
+            var typeForwardSource = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
+";
+
+            await RunTestAsync(async path =>
+            {
+                MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+
+                var packDir = Directory.CreateDirectory(Path.Combine(path, "packs", "MyPack.Ref", "1.0", "ref", "net6.0")).FullName;
+                var dataDir = Directory.CreateDirectory(Path.Combine(path, "packs", "MyPack.Ref", "1.0", "data")).FullName;
+                var sharedDir = Directory.CreateDirectory(Path.Combine(path, "shared", "MyPack", "1.0")).FullName;
+
+                var sourceText = SourceText.From(metadataSource, Encoding.UTF8);
+                var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C"), buildReferenceAssembly: true);
+
+                var workspace = TestWorkspace.Create(@$"
+<Workspace>
+    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
+    </Project>
+</Workspace>", composition: GetTestComposition());
+
+                var implProject = workspace.CurrentSolution.Projects.First();
+
+                // Compile implementation assembly
+                var implementationDllFilePath = Path.Combine(sharedDir, "implementation.dll");
+                var sourceCodePath = Path.Combine(sharedDir, "implementation.cs");
+                var pdbFilePath = Path.Combine(sharedDir, "implementation.pdb");
+                var assemblyName = "implementation";
+
+                CompileTestSource(implementationDllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
+
+                // Compile type forwarding implementation DLL, that looks like reference.dll
+                var typeForwardDllFilePath = Path.Combine(sharedDir, "reference.dll");
+                sourceCodePath = Path.Combine(sharedDir, "reference.cs");
+                pdbFilePath = Path.Combine(sharedDir, "reference.pdb");
+                assemblyName = "reference";
+
+                implProject = implProject.AddMetadataReference(MetadataReference.CreateFromFile(implementationDllFilePath));
+                sourceText = SourceText.From(typeForwardSource, Encoding.UTF8);
+                CompileTestSource(typeForwardDllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
+
+                // Create FrameworkList.xml
+                File.WriteAllText(Path.Combine(dataDir, "FrameworkList.xml"), """
+                    <FileList FrameworkName="MyPack">
+                    </FileList>
+                    """);
+
+                await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false);
+            });
+        }
+
+        [Fact]
         public async Task NoPdb_NullResult()
         {
             var source = @"

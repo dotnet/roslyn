@@ -13,13 +13,11 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.TestSourceGenerator;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.LanguageServices;
-using Microsoft.VisualStudio.LanguageServices.Implementation;
-using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using WindowsInput.Native;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -93,7 +91,7 @@ internal static class Program
                 Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             }
 
-            await TestServices.Input.SendAsync(new KeyPress(VirtualKey.F12, ShiftState.Shift));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT));
 
             var results = (await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken)).OrderBy(r => r.GetLine()).ToArray();
 
@@ -135,7 +133,7 @@ internal static class Program
 }", HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync(HelloWorldGenerator.GeneratedEnglishClassName, charsOffset: 0, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(new KeyPress(VirtualKey.F12, ShiftState.Shift));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT));
 
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
             var referenceInGeneratedFile = results.Single(r => r.GetText()?.Contains("<summary>") ?? false);
@@ -146,12 +144,12 @@ internal static class Program
             Assert.Equal(isPreview, await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/60477"), Trait(Traits.Feature, Traits.Features.SourceGenerators)]
         public async Task InvokeNavigateToForGeneratedFile()
         {
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd12CmdID.NavigateTo, HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendToNavigateToAsync(HelloWorldGenerator.GeneratedEnglishClassName, VirtualKey.Enter);
+            await TestServices.Input.SendToNavigateToAsync(HelloWorldGenerator.GeneratedEnglishClassName, VirtualKeyCode.RETURN);
             await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
 
             Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs [generated]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));

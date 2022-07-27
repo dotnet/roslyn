@@ -706,7 +706,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 @namespace = @namespace.ContainingNamespace;
             }
 
-            Binder binder = new BuckStopsHereBinder(compilation);
+            // https://github.com/dotnet/roslyn/issues/62334: add tests and adjust implementation to allow EE to access file types
+            Binder binder = new BuckStopsHereBinder(compilation, associatedSyntaxTree: null);
             var hasImports = !importRecordGroups.IsDefaultOrEmpty;
             var numImportStringGroups = hasImports ? importRecordGroups.Length : 0;
             var currentStringGroup = numImportStringGroups - 1;

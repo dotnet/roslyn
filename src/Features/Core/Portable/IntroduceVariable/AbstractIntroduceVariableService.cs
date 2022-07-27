@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             bool allOccurrences,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = currentDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFacts = currentDocument.Project.Services.GetService<ISyntaxFactsService>();
             var originalSemanticModel = originalDocument.SemanticModel;
             var currentSemanticModel = currentDocument.SemanticModel;
 

@@ -46,6 +46,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 Supersedes = WorkspaceDiagnosticIdentifier,
             };
 
+        protected override VSInternalDiagnosticReport CreateRemovedReport(TextDocumentIdentifier identifier)
+            => CreateReport(identifier, diagnostics: null, resultId: null);
+
+        protected override VSInternalDiagnosticReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
+            => CreateReport(identifier, diagnostics: null, resultId);
+
         protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalDocumentDiagnosticsParams diagnosticsParams)
         {
             if (diagnosticsParams.PreviousResultId != null && diagnosticsParams.TextDocument != null)

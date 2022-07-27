@@ -268,43 +268,49 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             await _progress.OnFindInDocumentStartedAsync(document, cancellationToken).ConfigureAwait(false);
 
-            SemanticModel? model = null;
             try
             {
-                model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                // start cache for this semantic model
-                FindReferenceCache.Start(model);
+                // We're doing to do all of our processing of this document at once.  This will necessitate all the
+                // appropriate finders checking this document for hits.  We know that in the initial pass to determine
+                // documents, this document was already considered a strong match (e.g. we know it contains the name of
+                // the symbol being searched for).  As such, we're almost certainly going to have to do semantic checks
+                // to now see if the candidate actually matches the symbol.  This will require syntax and semantics.  So
+                // just grab those once here and hold onto them for the lifetime of this call.
+                var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var cache = FindReferenceCache.GetCache(model);
 
                 foreach (var symbol in symbols)
                 {
                     var globalAliases = TryGet(symbolToGlobalAliases, symbol);
-                    await ProcessDocumentAsync(document, model, symbol, globalAliases, cancellationToken).ConfigureAwait(false);
+                    var state = new FindReferencesDocumentState(
+                        document, model, root, cache, globalAliases);
+                    await ProcessDocumentAsync(symbol, state).ConfigureAwait(false);
                 }
             }
             finally
             {
-                FindReferenceCache.Stop(model);
-
                 await _progress.OnFindInDocumentCompletedAsync(document, cancellationToken).ConfigureAwait(false);
             }
-        }
 
-        private async Task ProcessDocumentAsync(
-            Document document, SemanticModel semanticModel, ISymbol symbol,
-            HashSet<string>? globalAliases, CancellationToken cancellationToken)
-        {
-            using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, cancellationToken))
+            async Task ProcessDocumentAsync(
+                ISymbol symbol,
+                FindReferencesDocumentState state)
             {
-                // This is safe to just blindly read. We can only ever get here after the call to ReportGroupsAsync
-                // happened.  So there must be a group for this symbol in our map.
-                var group = _symbolToGroup[symbol];
-                foreach (var finder in _finders)
+                cancellationToken.ThrowIfCancellationRequested();
+
+                using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, cancellationToken))
                 {
-                    var references = await finder.FindReferencesInDocumentAsync(
-                        symbol, globalAliases, document, semanticModel, _options, cancellationToken).ConfigureAwait(false);
-                    foreach (var (_, location) in references)
-                        await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
+                    // This is safe to just blindly read. We can only ever get here after the call to ReportGroupsAsync
+                    // happened.  So there must be a group for this symbol in our map.
+                    var group = _symbolToGroup[symbol];
+                    foreach (var finder in _finders)
+                    {
+                        var references = await finder.FindReferencesInDocumentAsync(
+                            symbol, state, _options, cancellationToken).ConfigureAwait(false);
+                        foreach (var (_, location) in references)
+                            await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
+                    }
                 }
             }
         }

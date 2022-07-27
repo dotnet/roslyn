@@ -99,6 +99,9 @@ namespace Roslyn.Test.Utilities
 
         protected virtual TestComposition Composition => s_composition;
 
+        private protected virtual TestAnalyzerReferenceByLanguage TestAnalyzerReferences
+            => new(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
+
         protected static LSP.ClientCapabilities CapabilitiesWithVSExtensions => new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
 
         /// <summary>
@@ -282,50 +285,42 @@ namespace Roslyn.Test.Utilities
         private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, IEnumerable<string>? customTags = null)
             => new CodeActionResolveData(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri));
 
-        /// <summary>
-        /// Creates an LSP server backed by a workspace instance with a solution containing the markup.
-        /// </summary>
-        protected Task<TestLspServer> CreateTestLspServerAsync(string markup, LSP.ClientCapabilities? clientCapabilities = null)
-            => CreateTestLspServerAsync(new string[] { markup }, Array.Empty<string>(), LanguageNames.CSharp, clientCapabilities);
+        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, LSP.ClientCapabilities clientCapabilities)
+            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, new InitializationOptions { ClientCapabilities = clientCapabilities });
 
-        private protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, LSP.ClientCapabilities? clientCapabilities = null, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
-            => CreateTestLspServerAsync(new string[] { markup }, Array.Empty<string>(), LanguageNames.VisualBasic, clientCapabilities, serverKind);
+        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, InitializationOptions? initializationOptions = null)
+            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, initializationOptions);
 
-        protected Task<TestLspServer> CreateMultiProjectLspServerAsync(string xmlMarkup, LSP.ClientCapabilities? clientCapabilities = null)
-            => CreateTestLspServerAsync(TestWorkspace.Create(xmlMarkup, composition: Composition), clientCapabilities, WellKnownLspServerKinds.AlwaysActiveVSLspServer);
+        private protected Task<TestLspServer> CreateTestLspServerAsync(string[] markups, InitializationOptions? initializationOptions = null)
+            => CreateTestLspServerAsync(markups, LanguageNames.CSharp, initializationOptions);
 
-        /// <summary>
-        /// Creates an LSP server backed by a workspace instance with a solution containing the specified documents.
-        /// </summary>
-        protected Task<TestLspServer> CreateTestLspServerAsync(string[] markups, LSP.ClientCapabilities? clientCapabilities = null)
-            => CreateTestLspServerAsync(markups, Array.Empty<string>(), LanguageNames.CSharp, clientCapabilities);
+        private protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, InitializationOptions? initializationOptions = null)
+            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.VisualBasic, initializationOptions);
 
-        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, LSP.ClientCapabilities clientCapabilities, WellKnownLspServerKinds serverKind)
-            => CreateTestLspServerAsync(new string[] { markup }, Array.Empty<string>(), LanguageNames.CSharp, clientCapabilities, serverKind);
-
-        /// <summary>
-        /// Creates an LSP server backed by a workspace instance with a solution containing the specified documents.
-        /// </summary>
-        protected Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string[] sourceGeneratedMarkups, LSP.ClientCapabilities? clientCapabilities = null)
-            => CreateTestLspServerAsync(markups, sourceGeneratedMarkups, LanguageNames.CSharp, clientCapabilities);
-
-        private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string[] sourceGeneratedMarkups, string languageName, LSP.ClientCapabilities? clientCapabilities, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
+        private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string languageName, InitializationOptions? initializationOptions)
         {
+            var lspOptions = initializationOptions ?? new InitializationOptions();
             var exportProvider = Composition.ExportProviderFactory.CreateExportProvider();
             var workspaceConfigurationService = exportProvider.GetExportedValue<TestWorkspaceConfigurationService>();
             workspaceConfigurationService.Options = new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true);
 
+            if (lspOptions.OptionUpdater != null)
+            {
+                var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
+                lspOptions.OptionUpdater(globalOptions);
+            }
+
             var workspace = languageName switch
             {
-                LanguageNames.CSharp => TestWorkspace.CreateCSharp(markups, sourceGeneratedMarkups, exportProvider: exportProvider),
-                LanguageNames.VisualBasic => TestWorkspace.CreateVisualBasic(markups, sourceGeneratedMarkups, exportProvider: exportProvider),
+                LanguageNames.CSharp => TestWorkspace.CreateCSharp(markups, lspOptions.SourceGeneratedMarkups, exportProvider: exportProvider),
+                LanguageNames.VisualBasic => TestWorkspace.CreateVisualBasic(markups, lspOptions.SourceGeneratedMarkups, exportProvider: exportProvider),
                 _ => throw new ArgumentException($"language name {languageName} is not valid for a test workspace"),
             };
 
-            return CreateTestLspServerAsync(workspace, clientCapabilities, serverKind);
+            return CreateTestLspServerAsync(workspace, lspOptions);
         }
 
-        private static async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace, LSP.ClientCapabilities? clientCapabilities, WellKnownLspServerKinds serverKind)
+        private async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace, InitializationOptions initializationOptions)
         {
             var solution = workspace.CurrentSolution;
 
@@ -346,6 +341,7 @@ namespace Roslyn.Test.Utilities
                 solution = solution.WithProjectFilePath(project.Id, GetDocumentFilePathFromName(project.FilePath));
             }
 
+            solution = solution.WithAnalyzerReferences(new[] { TestAnalyzerReferences });
             workspace.ChangeSolution(solution);
 
             // Important: We must wait for workspace creation operations to finish.
@@ -353,22 +349,30 @@ namespace Roslyn.Test.Utilities
             // created by the initial test steps. This can interfere with the expected test state.
             await WaitForWorkspaceOperationsAsync(workspace);
 
-            return await TestLspServer.CreateAsync(workspace, clientCapabilities ?? new LSP.ClientCapabilities(), serverKind);
+            return await TestLspServer.CreateAsync(workspace, initializationOptions);
         }
 
         private protected async Task<TestLspServer> CreateXmlTestLspServerAsync(
             string xmlContent,
             string? workspaceKind = null,
-            LSP.ClientCapabilities? clientCapabilities = null,
-            WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
+            InitializationOptions? initializationOptions = null)
         {
-            var workspace = TestWorkspace.Create(XElement.Parse(xmlContent), openDocuments: false, composition: Composition, workspaceKind: workspaceKind);
+            var lspOptions = initializationOptions ?? new InitializationOptions();
+            var exportProvider = Composition.ExportProviderFactory.CreateExportProvider();
+            if (lspOptions.OptionUpdater != null)
+            {
+                var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
+                lspOptions.OptionUpdater(globalOptions);
+            }
+
+            var workspace = TestWorkspace.Create(XElement.Parse(xmlContent), openDocuments: false, exportProvider: exportProvider, workspaceKind: workspaceKind);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { TestAnalyzerReferences }));
 
             // Important: We must wait for workspace creation operations to finish.
             // Otherwise we could have a race where workspace change events triggered by creation are changing the state
             // created by the initial test steps. This can interfere with the expected test state.
             await WaitForWorkspaceOperationsAsync(workspace);
-            return await TestLspServer.CreateAsync(workspace, clientCapabilities ?? new LSP.ClientCapabilities(), serverKind);
+            return await TestLspServer.CreateAsync(workspace, lspOptions);
         }
 
         /// <summary>
@@ -472,7 +476,7 @@ namespace Roslyn.Test.Utilities
                }
            };
 
-        public sealed class TestLspServer : IDisposable
+        internal sealed class TestLspServer : IDisposable
         {
             public readonly TestWorkspace TestWorkspace;
             private readonly Dictionary<string, IList<LSP.Location>> _locations;
@@ -534,14 +538,14 @@ namespace Roslyn.Test.Utilities
                 return messageFormatter;
             }
 
-            internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, LSP.ClientCapabilities clientCapabilities, WellKnownLspServerKinds serverKind)
+            internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, InitializationOptions initializationOptions)
             {
                 var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
-                var server = new TestLspServer(testWorkspace, locations, clientCapabilities, serverKind);
+                var server = new TestLspServer(testWorkspace, locations, initializationOptions.ClientCapabilities, initializationOptions.ServerKind);
 
                 await server.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
                 {
-                    Capabilities = clientCapabilities,
+                    Capabilities = initializationOptions.ClientCapabilities,
                 }, CancellationToken.None);
 
                 return server;
@@ -638,22 +642,6 @@ namespace Roslyn.Test.Utilities
             public IList<LSP.Location> GetLocations(string locationName) => _locations[locationName];
 
             public Solution GetCurrentSolution() => TestWorkspace.CurrentSolution;
-
-            internal void InitializeDiagnostics(BackgroundAnalysisScope scope, DiagnosticMode diagnosticMode, TestAnalyzerReferenceByLanguage references)
-            {
-                TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), scope);
-                TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), scope);
-                TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript), scope);
-                TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(InternalDiagnosticsOptions.NormalDiagnosticMode), diagnosticMode);
-
-                TestWorkspace.TryApplyChanges(TestWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { references }));
-
-                var registrationService = TestWorkspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                registrationService.Register(TestWorkspace);
-
-                var diagnosticService = (DiagnosticService)TestWorkspace.ExportProvider.GetExportedValue<IDiagnosticService>();
-                diagnosticService.Register(new TestHostDiagnosticUpdateSource(TestWorkspace));
-            }
 
             internal async Task WaitForDiagnosticsAsync()
             {

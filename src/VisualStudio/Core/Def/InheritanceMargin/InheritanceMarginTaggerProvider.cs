@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (document == null)
                 return;
 
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.Interactive)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.Interactive)
                 return;
 
             var inheritanceMarginInfoService = document.GetLanguageService<IInheritanceMarginService>();
@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 // We only care about the line, so just tag the start.
                 context.AddTag(new TagSpan<InheritanceMarginTag>(
                     new SnapshotSpan(snapshot, line.Start, length: 0),
-                    new InheritanceMarginTag(document.Project.Solution.Workspace, lineNumber, membersOnTheLineArray)));
+                    new InheritanceMarginTag(lineNumber, membersOnTheLineArray)));
             }
         }
     }

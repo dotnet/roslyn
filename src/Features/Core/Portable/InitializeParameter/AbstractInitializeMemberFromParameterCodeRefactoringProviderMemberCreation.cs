@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, services);
             var generator = editor.Generator;

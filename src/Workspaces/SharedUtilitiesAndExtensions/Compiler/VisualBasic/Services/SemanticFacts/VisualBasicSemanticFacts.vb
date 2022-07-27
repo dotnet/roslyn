@@ -227,12 +227,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SpecializedCollections.SingletonEnumerable(semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken))
         End Function
 
-        Public Function FindParameterForArgument(semanticModel As SemanticModel, argument As SyntaxNode, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForArgument
-            Return DirectCast(argument, ArgumentSyntax).DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
+        Public Function FindParameterForArgument(semanticModel As SemanticModel, argument As SyntaxNode, allowUncertainCandidates As Boolean, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForArgument
+            Return DirectCast(argument, ArgumentSyntax).DetermineParameter(semanticModel, allowUncertainCandidates, allowParamArray:=False, cancellationToken)
         End Function
 
-        Public Function FindParameterForAttributeArgument(semanticModel As SemanticModel, argument As SyntaxNode, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForAttributeArgument
-            Return FindParameterForArgument(semanticModel, argument, cancellationToken)
+        Public Function FindParameterForAttributeArgument(semanticModel As SemanticModel, argument As SyntaxNode, allowUncertainCandidates As Boolean, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFacts.FindParameterForAttributeArgument
+            Return Nothing
+        End Function
+
+        Public Function FindFieldOrPropertyForArgument(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISymbol Implements ISemanticFacts.FindFieldOrPropertyForArgument
+            Dim argument = TryCast(node, SimpleArgumentSyntax)
+            If argument?.NameColonEquals IsNot Nothing AndAlso
+               TypeOf argument.Parent Is ArgumentListSyntax AndAlso
+               TypeOf argument.Parent.Parent Is AttributeSyntax Then
+
+                Dim symbol = semanticModel.GetSymbolInfo(argument.NameColonEquals.Name, cancellationToken).GetAnySymbol()
+                If symbol?.Kind = SymbolKind.Field OrElse symbol?.Kind = SymbolKind.Property Then
+                    Return symbol
+                End If
+            End If
+
+            Return Nothing
+        End Function
+
+        Public Function FindFieldOrPropertyForAttributeArgument(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISymbol Implements ISemanticFacts.FindFieldOrPropertyForAttributeArgument
+            Return Nothing
         End Function
 
         Public Function GetBestOrAllSymbols(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol) Implements ISemanticFacts.GetBestOrAllSymbols

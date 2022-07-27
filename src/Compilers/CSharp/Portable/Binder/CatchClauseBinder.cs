@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declarationOpt = _syntax.Declaration;
             if ((declarationOpt != null) && (declarationOpt.Identifier.Kind() != SyntaxKind.None))
             {
-                locals.Add(SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, false, declarationOpt.Type, declarationOpt.Identifier, LocalDeclarationKind.CatchVariable));
+                locals.Add(SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, allowRefKind: false, declarationOpt.Type, declarationOpt.Identifier, LocalDeclarationKind.CatchVariable, initializer: null, hasScopedModifier: false));
             }
 
             if (_syntax.Filter != null)

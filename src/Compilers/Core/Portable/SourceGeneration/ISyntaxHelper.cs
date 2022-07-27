@@ -6,9 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.SourceGeneration
+namespace Microsoft.CodeAnalysis
 {
     internal interface ISyntaxHelper
     {
@@ -28,22 +29,26 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         bool IsLambdaExpression(SyntaxNode node);
 
-        SyntaxToken GetUnqualifiedIdentifierOfName(SyntaxNode node);
+        string GetUnqualifiedIdentifierOfName(SyntaxNode node);
 
         /// <summary>
         /// <paramref name="node"/> must be a compilation unit or namespace block.
         /// </summary>
-        void AddAliases(SyntaxNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
+        void AddAliases(GreenNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
         void AddAliases(CompilationOptions options, ArrayBuilder<(string aliasName, string symbolName)> aliases);
+
+        bool ContainsAttributeList(SyntaxNode root);
+        bool ContainsGlobalAliases(SyntaxNode root);
     }
 
     internal abstract class AbstractSyntaxHelper : ISyntaxHelper
     {
         public abstract bool IsCaseSensitive { get; }
+        protected abstract int AttributeListKind { get; }
 
         public abstract bool IsValidIdentifier(string name);
 
-        public abstract SyntaxToken GetUnqualifiedIdentifierOfName(SyntaxNode name);
+        public abstract string GetUnqualifiedIdentifierOfName(SyntaxNode name);
 
         public abstract bool IsAnyNamespaceBlock(SyntaxNode node);
 
@@ -56,7 +61,31 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public abstract bool IsLambdaExpression(SyntaxNode node);
 
-        public abstract void AddAliases(SyntaxNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
+        public abstract void AddAliases(GreenNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
         public abstract void AddAliases(CompilationOptions options, ArrayBuilder<(string aliasName, string symbolName)> aliases);
+
+        public abstract bool ContainsGlobalAliases(SyntaxNode root);
+
+        public bool ContainsAttributeList(SyntaxNode root)
+            => ContainsAttributeList(root.Green, this.AttributeListKind);
+
+        private static bool ContainsAttributeList(GreenNode node, int attributeListKind)
+        {
+            if (node.RawKind == attributeListKind)
+                return true;
+
+            for (int i = 0, n = node.SlotCount; i < n; i++)
+            {
+                var child = node.GetSlot(i);
+
+                if (child is null || child.IsToken)
+                    continue;
+
+                if (ContainsAttributeList(child, attributeListKind))
+                    return true;
+            }
+
+            return false;
+        }
     }
 }

@@ -42,18 +42,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private AbstractListItemFactory _listItemFactory;
         private readonly object _classMemberGate = new();
 
-        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
-
-        public readonly IUIThreadOperationExecutor OperationExecutor;
-        public readonly IAsynchronousOperationListener AsynchronousOperationListener;
-
         protected AbstractObjectBrowserLibraryManager(
             string languageName,
             Guid libraryGuid,
             IServiceProvider serviceProvider,
             IComponentModel componentModel,
             VisualStudioWorkspace workspace)
-            : base(libraryGuid, serviceProvider)
+            : base(libraryGuid, componentModel, serviceProvider)
         {
             _languageName = languageName;
 
@@ -61,10 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             Workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             _libraryService = new Lazy<ILibraryService>(() => Workspace.Services.GetLanguageServices(_languageName).GetService<ILibraryService>());
-            _streamingPresenter = componentModel.DefaultExportProvider.GetExportedValue<IStreamingFindUsagesPresenter>();
-
-            OperationExecutor = componentModel.DefaultExportProvider.GetExportedValue<IUIThreadOperationExecutor>();
-            AsynchronousOperationListener = componentModel.DefaultExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.LibraryManager);
         }
 
         internal abstract AbstractDescriptionBuilder CreateDescriptionBuilder(
@@ -76,10 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private AbstractListItemFactory GetListItemFactory()
         {
-            if (_listItemFactory == null)
-            {
-                _listItemFactory = CreateListItemFactory();
-            }
+            _listItemFactory ??= CreateListItemFactory();
 
             return _listItemFactory;
         }
@@ -500,7 +488,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                                 // asynchronously added to the FindReferences window as they are computed.  The user
                                 // also knows something is happening as the window, with the progress-banner will pop up
                                 // immediately.
-                                _ = FindReferencesAsync(_streamingPresenter, symbolListItem, project);
+                                var streamingPresenter = ComponentModel.GetService<IStreamingFindUsagesPresenter>();
+                                var asynchronousOperationListener = ComponentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.LibraryManager);
+
+                                var asyncToken = asynchronousOperationListener.BeginAsyncOperation(nameof(AbstractObjectBrowserLibraryManager) + "." + nameof(TryExec));
+                                FindReferencesAsync(streamingPresenter, symbolListItem, project).CompletesAsyncOperation(asyncToken);
                                 return true;
                             }
                         }

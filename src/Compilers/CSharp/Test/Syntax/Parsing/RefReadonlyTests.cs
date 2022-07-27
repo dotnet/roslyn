@@ -134,12 +134,6 @@ class Program
 ";
 
             ParseAndValidate(text, TestOptions.Regular9,
-                // (9,27): error CS1003: Syntax error, '(' expected
-                //     ref readonly int Field;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("(").WithLocation(9, 27),
-                // (9,27): error CS1026: ) expected
-                //     ref readonly int Field;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(9, 27),
                 // (11,41): error CS1519: Invalid token 'operator' in class, record, struct, or interface member declaration
                 //     public static ref readonly Program  operator  +(Program x, Program y)
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(11, 41),
@@ -425,9 +419,15 @@ class Test
                 // (4,12): error CS1002: ; expected
                 //     void M(readonly ref int p)
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(4, 12),
-                // (4,30): error CS1003: Syntax error, '(' expected
+                // (4,30): error CS1003: Syntax error, ',' expected
                 //     void M(readonly ref int p)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(").WithLocation(4, 30));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(4, 30),
+                // (5,6): error CS1002: ; expected
+                //     {
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 6),
+                // (7,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1));
         }
 
         [Fact]

@@ -451,18 +451,18 @@ class C
 ";
         var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.Regular10);
         compilation.VerifyDiagnostics(
-            // (2,16): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (2,16): error CS8936: Feature 'list pattern' is not available in C# 10.0. Please use language version 11.0 or greater.
             // _ = new C() is [];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[]").WithArguments("list pattern").WithLocation(2, 16),
-            // (3,16): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "[]").WithArguments("list pattern", "11.0").WithLocation(2, 16),
+            // (3,16): error CS8936: Feature 'list pattern' is not available in C# 10.0. Please use language version 11.0 or greater.
             // _ = new C() is [.. var x];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[.. var x]").WithArguments("list pattern").WithLocation(3, 16),
-            // (4,16): error CS9002: Slice patterns may only be used once and directly inside a list pattern.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "[.. var x]").WithArguments("list pattern", "11.0").WithLocation(3, 16),
+            // (4,16): error CS8980: Slice patterns may only be used once and directly inside a list pattern.
             // _ = new C() is .. var y;
             Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, ".. var y").WithLocation(4, 16)
             );
 
-        compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularNext);
+        compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.Regular11);
         compilation.VerifyDiagnostics(
             // (4,16): error CS9002: Slice patterns may only be used once and directly inside a list pattern.
             // _ = new C() is .. var y;
@@ -2848,18 +2848,18 @@ public class C
         } 
     }
 }").VerifyDiagnostics(
-            // (15,35): error CS8352: Cannot use local 'list' in this context because it may expose referenced variables outside of their declaration scope
+            // (15,35): error CS8352: Cannot use variable 'list' in this context because it may expose referenced variables outside of their declaration scope
             //         if (outer is [] list) s = list; // error 1
-            Diagnostic(ErrorCode.ERR_EscapeLocal, "list").WithArguments("list").WithLocation(15, 35),
-            // (22,17): error CS8352: Cannot use local 'element' in this context because it may expose referenced variables outside of their declaration scope
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "list").WithArguments("list").WithLocation(15, 35),
+            // (22,17): error CS8352: Cannot use variable 'element' in this context because it may expose referenced variables outside of their declaration scope
             //             r = element; // error 2
-            Diagnostic(ErrorCode.ERR_EscapeLocal, "element").WithArguments("element").WithLocation(22, 17),
-            // (23,17): error CS8352: Cannot use local 'slice' in this context because it may expose referenced variables outside of their declaration scope
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "element").WithArguments("element").WithLocation(22, 17),
+            // (23,17): error CS8352: Cannot use variable 'slice' in this context because it may expose referenced variables outside of their declaration scope
             //             r = slice; // error 3
-            Diagnostic(ErrorCode.ERR_EscapeLocal, "slice").WithArguments("slice").WithLocation(23, 17),
-            // (24,17): error CS8352: Cannot use local 'list' in this context because it may expose referenced variables outside of their declaration scope
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "slice").WithArguments("slice").WithLocation(23, 17),
+            // (24,17): error CS8352: Cannot use variable 'list' in this context because it may expose referenced variables outside of their declaration scope
             //             r = list; // error 4
-            Diagnostic(ErrorCode.ERR_EscapeLocal, "list").WithArguments("list").WithLocation(24, 17));
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "list").WithArguments("list").WithLocation(24, 17));
     }
 
     [Fact]

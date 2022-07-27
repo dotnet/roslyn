@@ -1087,6 +1087,18 @@ namespace Microsoft.CodeAnalysis
             return TryExtractBoolArrayValueFromAttribute(info.Handle, out transformFlags);
         }
 
+        internal bool HasLifetimeAnnotationAttribute(EntityHandle token, out (bool IsRefScoped, bool IsValueScoped) value)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.LifetimeAnnotationAttribute);
+            if (!info.HasValue)
+            {
+                value = default;
+                return false;
+            }
+
+            return TryExtractValueFromAttribute(info.Handle, out value, CrackBoolAndBoolInAttributeValue);
+        }
+
         internal bool HasTupleElementNamesAttribute(EntityHandle token, out ImmutableArray<string> tupleElementNames)
         {
             var info = FindTargetAttribute(token, AttributeDescription.TupleElementNamesAttribute);
@@ -1952,7 +1964,7 @@ namespace Microsoft.CodeAnalysis
 
                 value = null;
 
-                // Strings are stored as UTF8, but 0xFF means NULL string.
+                // Strings are stored as UTF-8, but 0xFF means NULL string.
                 return sig.RemainingBytes >= 1 && sig.ReadByte() == 0xFF;
             }
             catch (BadImageFormatException)
@@ -2006,7 +2018,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackBoolAndStringArrayInAttributeValue(out BoolAndStringArrayData value, ref BlobReader sig)
+        private static bool CrackBoolAndStringArrayInAttributeValue(out BoolAndStringArrayData value, ref BlobReader sig)
         {
             if (CrackBooleanInAttributeValue(out bool sense, ref sig) &&
                 CrackStringArrayInAttributeValue(out ImmutableArray<string?> strings, ref sig))
@@ -2019,7 +2031,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackBoolAndStringInAttributeValue(out BoolAndStringData value, ref BlobReader sig)
+        private static bool CrackBoolAndStringInAttributeValue(out BoolAndStringData value, ref BlobReader sig)
         {
             if (CrackBooleanInAttributeValue(out bool sense, ref sig) &&
                 CrackStringInAttributeValue(out string? @string, ref sig))
@@ -2032,7 +2044,20 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackBooleanInAttributeValue(out bool value, ref BlobReader sig)
+        private static bool CrackBoolAndBoolInAttributeValue(out (bool, bool) value, ref BlobReader sig)
+        {
+            if (CrackBooleanInAttributeValue(out bool item1, ref sig) &&
+                CrackBooleanInAttributeValue(out bool item2, ref sig))
+            {
+                value = (item1, item2);
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        private static bool CrackBooleanInAttributeValue(out bool value, ref BlobReader sig)
         {
             if (sig.RemainingBytes >= 1)
             {
@@ -2044,7 +2069,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackByteInAttributeValue(out byte value, ref BlobReader sig)
+        private static bool CrackByteInAttributeValue(out byte value, ref BlobReader sig)
         {
             if (sig.RemainingBytes >= 1)
             {
@@ -2056,7 +2081,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackShortInAttributeValue(out short value, ref BlobReader sig)
+        private static bool CrackShortInAttributeValue(out short value, ref BlobReader sig)
         {
             if (sig.RemainingBytes >= 2)
             {
@@ -2068,7 +2093,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackIntInAttributeValue(out int value, ref BlobReader sig)
+        private static bool CrackIntInAttributeValue(out int value, ref BlobReader sig)
         {
             if (sig.RemainingBytes >= 4)
             {
@@ -2080,7 +2105,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackLongInAttributeValue(out long value, ref BlobReader sig)
+        private static bool CrackLongInAttributeValue(out long value, ref BlobReader sig)
         {
             if (sig.RemainingBytes >= 8)
             {
@@ -2115,7 +2140,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackBoolArrayInAttributeValue(out ImmutableArray<bool> value, ref BlobReader sig)
+        private static bool CrackBoolArrayInAttributeValue(out ImmutableArray<bool> value, ref BlobReader sig)
         {
             if (sig.RemainingBytes >= 4)
             {
@@ -2144,7 +2169,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackByteArrayInAttributeValue(out ImmutableArray<byte> value, ref BlobReader sig)
+        private static bool CrackByteArrayInAttributeValue(out ImmutableArray<byte> value, ref BlobReader sig)
         {
             if (sig.RemainingBytes >= 4)
             {
@@ -3623,7 +3648,7 @@ namespace Microsoft.CodeAnalysis
             return metadataReader.StringComparer.Equals(nameHandle, name);
         }
 
-        // Provides a UTF8 decoder to the MetadataReader that reuses strings from the string table
+        // Provides a UTF-8 decoder to the MetadataReader that reuses strings from the string table
         // rather than allocating on each call to MetadataReader.GetString(handle).
         private sealed class StringTableDecoder : MetadataStringDecoder
         {
@@ -3633,7 +3658,7 @@ namespace Microsoft.CodeAnalysis
 
             public override unsafe string GetString(byte* bytes, int byteCount)
             {
-                return StringTable.AddSharedUTF8(new ReadOnlySpan<byte>(bytes, byteCount));
+                return StringTable.AddSharedUtf8(new ReadOnlySpan<byte>(bytes, byteCount));
             }
         }
 

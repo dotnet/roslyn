@@ -1955,12 +1955,12 @@ class B<T> where T : Q
                 // (7,25): error CS0110: The evaluation of the constant value for 'P.Constant2' involves a circular definition
                 //     public const string Constant2 = Q.Constant2;
                 Diagnostic(ErrorCode.ERR_CircConstValue, "Constant2").WithArguments("P.Constant2"),
-                // (18,18): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (18,18): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //     [IndexerName(T.Constant1)]
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter"),
-                // (24,18): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(18, 18),
+                // (24,18): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //     [IndexerName(T.Constant2)]
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter"));
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(24, 18));
         }
 
         [Fact]

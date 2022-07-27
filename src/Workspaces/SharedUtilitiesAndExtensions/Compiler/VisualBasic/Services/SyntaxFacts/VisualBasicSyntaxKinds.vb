@@ -41,9 +41,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property StringLiteralToken As Integer = SyntaxKind.StringLiteralToken Implements ISyntaxKinds.StringLiteralToken
         Public ReadOnly Property SingleLineRawStringLiteralToken As Integer? = Nothing Implements ISyntaxKinds.SingleLineRawStringLiteralToken
         Public ReadOnly Property MultiLineRawStringLiteralToken As Integer? = Nothing Implements ISyntaxKinds.MultiLineRawStringLiteralToken
-        Public ReadOnly Property UTF8StringLiteralToken As Integer? = Nothing Implements ISyntaxKinds.UTF8StringLiteralToken
-        Public ReadOnly Property UTF8SingleLineRawStringLiteralToken As Integer? = Nothing Implements ISyntaxKinds.UTF8SingleLineRawStringLiteralToken
-        Public ReadOnly Property UTF8MultiLineRawStringLiteralToken As Integer? = Nothing Implements ISyntaxKinds.UTF8MultiLineRawStringLiteralToken
+        Public ReadOnly Property Utf8StringLiteralToken As Integer? = Nothing Implements ISyntaxKinds.Utf8StringLiteralToken
+        Public ReadOnly Property Utf8SingleLineRawStringLiteralToken As Integer? = Nothing Implements ISyntaxKinds.Utf8SingleLineRawStringLiteralToken
+        Public ReadOnly Property Utf8MultiLineRawStringLiteralToken As Integer? = Nothing Implements ISyntaxKinds.Utf8MultiLineRawStringLiteralToken
 
         Public ReadOnly Property XmlTextLiteralToken As Integer = SyntaxKind.XmlTextLiteralToken Implements ISyntaxKinds.XmlTextLiteralToken
 

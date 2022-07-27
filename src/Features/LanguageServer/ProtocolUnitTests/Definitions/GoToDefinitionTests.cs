@@ -125,23 +125,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         {
             var markup =
 @"<Workspace>
-    <Project Language=""C#"" Name=""Definition"" CommonReferences=""true"">
-        <Document>
+    <Project Language=""C#"" Name=""Definition"" CommonReferences=""true"" FilePath=""C:\CSProj1.csproj"">
+        <Document FilePath=""C:\A.cs"">
             public class {|definition:A|}
             {
             }
         </Document>
     </Project>
-    <Project Language=""Visual Basic"" CommonReferences=""true"">
+    <Project Language=""Visual Basic"" CommonReferences=""true"" FilePath=""C:\CSProj2.csproj"">
         <ProjectReference>Definition</ProjectReference>
-        <Document>
+        <Document FilePath=""C:\C.cs"">
             Class C
                 Dim a As {|caret:A|}
             End Class
         </Document>
     </Project>
 </Workspace>";
-            using var testLspServer = await CreateMultiProjectLspServerAsync(markup);
+            using var testLspServer = await CreateXmlTestLspServerAsync(markup);
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);

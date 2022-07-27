@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
             static LSP.Diagnostic[]? GetApplicableDiagnostics(LSP.CodeActionContext context, IUnifiedSuggestedAction action)
             {
-                if (action is UnifiedCodeFixSuggestedAction codeFixAction)
+                if (action is UnifiedCodeFixSuggestedAction codeFixAction && context.Diagnostics != null)
                 {
                     // Associate the diagnostics from the request that match the diagnostic fixed by the code action by ID.
                     // The request diagnostics are already restricted to the code fix location by the request.

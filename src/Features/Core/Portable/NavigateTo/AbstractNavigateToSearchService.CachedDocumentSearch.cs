@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 return;
             }
 
-            var storageService = solution.Workspace.Services.GetPersistentStorageService();
+            var storageService = solution.Services.GetPersistentStorageService();
             await SearchCachedDocumentsInCurrentProcessAsync(
                 storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
         }
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static async Task SearchCachedDocumentsInCurrentProcessAsync(
             IChecksummedPersistentStorageService storageService,
             string patternName,
-            string patternContainer,
+            string? patternContainer,
             DeclaredSymbolInfoKindSet kinds,
             Func<RoslynNavigateToItem, Task> onItemFound,
             ImmutableArray<DocumentKey> documentKeys,

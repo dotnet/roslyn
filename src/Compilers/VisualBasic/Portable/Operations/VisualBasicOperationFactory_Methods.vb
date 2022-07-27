@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim isImplicit As Boolean = boundAssignment.WasCompilerGenerated
 
             Return New CompoundAssignmentOperation(inConversion, outConversion, operatorInfo.OperatorKind, operatorInfo.IsLifted,
-                                                   operatorInfo.IsChecked, operatorInfo.OperatorMethod, target, value,
+                                                   operatorInfo.IsChecked, operatorInfo.OperatorMethod, constrainedToType:=Nothing, target, value,
                                                    _semanticModel, syntax, type, isImplicit)
         End Function
 
@@ -326,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Dim [property] As IPropertySymbol = properties(i)
                     Dim instance As IInstanceReferenceOperation = CreateAnonymousTypePropertyAccessImplicitReceiverOperation([property], expression.Syntax)
                     target = New PropertyReferenceOperation(
-                        [property],
+                        [property], constrainedToType:=Nothing,
                         ImmutableArray(Of IArgumentOperation).Empty,
                         instance,
                         _semanticModel,

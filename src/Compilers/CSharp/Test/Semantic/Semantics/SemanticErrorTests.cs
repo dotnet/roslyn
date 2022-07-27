@@ -2564,15 +2564,15 @@ class B<T, U> where T : A
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (10,27): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                // (10,9): error CS0704: Cannot do non-virtual member lookup in 'U' because it is a type parameter
                 //         U.ReferenceEquals(T.F, null);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter"),
-                // (10,9): error CS0119: 'U' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "U").WithArguments("U").WithLocation(10, 9),
+                // (10,27): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         U.ReferenceEquals(T.F, null);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "U").WithArguments("U", "type parameter"),
-                // (11,9): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(10, 27),
+                // (11,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.M();
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter"),
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(11, 9),
                 // (3,28): warning CS0649: Field 'A.F' is never assigned to, and will always have its default value null
                 //     internal static object F;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("A.F", "null")
@@ -6466,9 +6466,9 @@ class MyClass
 }";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (4,4): error CS0171: Field 'MyStruct.i' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                // (4,4): error CS0171: Field 'MyStruct.i' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //    MyStruct(int initField)   // CS0171
-                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "MyStruct").WithArguments("MyStruct.i", "preview").WithLocation(4, 4),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "MyStruct").WithArguments("MyStruct.i", "11.0").WithLocation(4, 4),
                 // (15,16): warning CS0219: The variable 'aStruct' is assigned but its value is never used
                 //       MyStruct aStruct = new MyStruct();
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "aStruct").WithArguments("aStruct").WithLocation(15, 16),
@@ -6477,7 +6477,7 @@ class MyClass
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("MyStruct.i", "0").WithLocation(8, 15)
                 );
 
-            var verifier = CompileAndVerify(text, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(text, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics(
                 // (15,16): warning CS0219: The variable 'aStruct' is assigned but its value is never used
                 //       MyStruct aStruct = new MyStruct();
@@ -6982,14 +6982,14 @@ namespace MyNamespace
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular10).
                 VerifyDiagnostics(
-                // (17,17): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
+                // (17,17): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
                 //                 Goo();  // CS0188
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Goo").WithArguments("preview").WithLocation(17, 17),
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Goo").WithArguments("11.0").WithLocation(17, 17),
                 // (8,24): warning CS0649: Field 'MyClass.S.a' is never assigned to, and will always have its default value 0
                 //             public int a;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "a").WithArguments("MyNamespace.MyClass.S.a", "0").WithLocation(8, 24));
 
-            var verifier = CompileAndVerify(text, parseOptions: TestOptions.RegularNext).
+            var verifier = CompileAndVerify(text, parseOptions: TestOptions.Regular11).
                 VerifyDiagnostics(
                 // (8,24): warning CS0649: Field 'MyNamespace.MyClass.S.a' is never assigned to, and will always have its default value 0
                 //             public int a;
@@ -7032,11 +7032,11 @@ struct S
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         var b1 = F is Action;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "F is Action").WithLocation(10, 18),
-                // (10,18): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
+                // (10,18): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
                 //         var b1 = F is Action;
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "F").WithArguments("preview").WithLocation(10, 18));
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "F").WithArguments("11.0").WithLocation(10, 18));
 
-            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "F is Action").WithLocation(10, 18));
         }
@@ -7066,11 +7066,11 @@ struct S
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         var b1 = this.F is Action;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "this.F is Action").WithLocation(10, 18),
-                // (10,18): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
+                // (10,18): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
                 //         var b1 = this.F is Action;
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("preview").WithLocation(10, 18));
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(10, 18));
 
-            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         var b1 = this.F is Action;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "this.F is Action").WithLocation(10, 18));
@@ -7099,11 +7099,11 @@ struct S
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (10,19): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
+                // (10,19): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
                 //         /*this.*/ Add(d);
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Add").WithArguments("preview").WithLocation(10, 19));
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Add").WithArguments("11.0").WithLocation(10, 19));
 
-            var verifier = CompileAndVerify(source, new[] { CSharpRef }, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(source, new[] { CSharpRef }, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("S..ctor", @"
 {
@@ -7170,11 +7170,11 @@ struct S
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (10,9): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
+                // (10,9): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
                 //         this.Add(d);
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("preview").WithLocation(10, 9));
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("11.0").WithLocation(10, 9));
 
-            var verifier = CompileAndVerify(source, new[] { CSharpRef }, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(source, new[] { CSharpRef }, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("S..ctor", @"
 {
@@ -11747,30 +11747,30 @@ class D<T> where T : A
     }
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (9,15): error CS0704: Cannot do member lookup in 'T' because it is a type parameter class E : T.B { }
+                // (9,15): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter class E : T.B { }
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.B").WithArguments("T"),
-                // (10,30): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (10,30): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //     interface I<U> where U : T.B { }
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.B").WithArguments("T"),
-                // (11,6): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (11,6): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //     [T.B]
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.B").WithArguments("T"),
-                // (14,9): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (14,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.C<object> b1 = new T.C<object>();
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.C<object>").WithArguments("T"),
-                // (14,30): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (14,30): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         T.C<object> b1 = new T.C<object>();
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.C<object>").WithArguments("T"),
                 // (15,9): error CS0307: The type parameter 'T' cannot be used with type arguments
                 //         T<U>.B b2 = null;
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "T<U>").WithArguments("T", "type parameter"),
-                // (16,22): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (16,22): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         b1 = default(T.B);
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.B").WithArguments("T"),
-                // (17,27): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (17,27): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         object o = typeof(T.C<A>);
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.C<A>").WithArguments("T"),
-                // (18,18): error CS0704: Cannot do member lookup in 'T' because it is a type parameter
+                // (18,18): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         o = o as T.B;
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.B").WithArguments("T")
                 );
@@ -12922,11 +12922,11 @@ class Test
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular10)
                 .VerifyDiagnostics(
-                // (5,12): error CS0843: Auto-implemented property 'S.AIProp' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
+                // (5,12): error CS0843: Auto-implemented property 'S.AIProp' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the property.
                 //     public S(int i) { } //CS0843
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S").WithArguments("S.AIProp", "preview").WithLocation(5, 12));
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S").WithArguments("S.AIProp", "11.0").WithLocation(5, 12));
 
-            var verifier = CompileAndVerify(text, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(text, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("S..ctor", @"
 {

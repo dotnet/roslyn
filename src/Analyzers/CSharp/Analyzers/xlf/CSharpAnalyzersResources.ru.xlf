@@ -117,6 +117,16 @@
         <target state="translated">Проверку значения null можно уточнить.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Nullable_directive_is_redundant">
+        <source>Nullable directive is redundant</source>
+        <target state="translated">Директива, допускающая значение NULL, является избыточной</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nullable_directive_is_unnecessary">
+        <source>Nullable directive is unnecessary</source>
+        <target state="translated">Директива, допускающий значение NULL, не нужна</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
         <target state="translated">Предпочитать проверку "null" проверке типа</target>
@@ -132,6 +142,11 @@
         <target state="translated">Удалить оператор (семантика сохраняется)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_nullable_directive">
+        <source>Remove redundant nullable directive</source>
+        <target state="translated">Удалите избыточную директиву, допускающую значение NULL</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_suppression_operators">
         <source>Remove suppression operators</source>
         <target state="translated">Удалить операторы подавления</target>
@@ -140,6 +155,11 @@
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
         <target state="translated">Удалить ненужное лямбда-выражение</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_nullable_directive">
+        <source>Remove unnecessary nullable directive</source>
+        <target state="translated">Удалите ненужную директиву, допускающую значение NULL</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
@@ -182,7 +202,7 @@
         <target state="translated">Обнаружен недостижимый код</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_UTF8_string_literal">
+      <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
         <target state="translated">Использовать строковый литерал UTF-8</target>
         <note />
@@ -205,6 +225,11 @@
       <trans-unit id="Use_block_body_for_indexers">
         <source>Use block body for indexers</source>
         <target state="translated">Использовать тело блока для индексаторов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_lambda_expressions">
+        <source>Use block body for lambda expressions</source>
+        <target state="new">Use block body for lambda expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
@@ -255,6 +280,11 @@
       <trans-unit id="Use_expression_body_for_indexers">
         <source>Use expression body for indexers</source>
         <target state="translated">Использовать тело выражения для индексаторов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambda_expressions">
+        <source>Use expression body for lambda expressions</source>
+        <target state="new">Use expression body for lambda expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">

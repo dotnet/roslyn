@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -286,6 +287,84 @@ namespace Microsoft.CodeAnalysis.UnitTests
             retval = look1[key1];
             retval = look1[key2];
             retval = look1[key3];
+        }
+
+        [Fact]
+        [WorkItem(60259, "https://github.com/dotnet/roslyn/issues/60259")]
+        public void FullyPopulateRace_01()
+        {
+            CachingDictionary<int, FullyPopulateRaceHelper> lookup = null;
+            FullyPopulateRaceHelper item = null;
+            int itemAccessCount = 0;
+            lookup = new CachingDictionary<int, FullyPopulateRaceHelper>(getElementsOfKey, getKeys, EqualityComparer<int>.Default);
+
+            _ = lookup.Count;
+            Assert.NotNull(item);
+            Assert.Same(item, getItem());
+
+            ImmutableArray<FullyPopulateRaceHelper> getElementsOfKey(int id)
+            {
+                itemAccessCount++;
+                if (item is null && itemAccessCount == 1)
+                {
+                    item = getItem();
+                }
+
+                return ImmutableArray.Create<FullyPopulateRaceHelper>(new FullyPopulateRaceHelper());
+            }
+
+            HashSet<int> getKeys(IEqualityComparer<int> comparer)
+            {
+                return new HashSet<int>(new[] { 1 }, comparer);
+            }
+
+            FullyPopulateRaceHelper getItem()
+            {
+                return lookup[1][0];
+            }
+        }
+
+        private class FullyPopulateRaceHelper { }
+
+        [Fact]
+        [WorkItem(60259, "https://github.com/dotnet/roslyn/issues/60259")]
+        public void FullyPopulateRace_02()
+        {
+            CachingDictionary<int, FullyPopulateRaceHelper> lookup = null;
+            FullyPopulateRaceHelper item = null;
+            int itemAccessCount = 0;
+            lookup = new CachingDictionary<int, FullyPopulateRaceHelper>(getElementsOfKey, getKeys, EqualityComparer<int>.Default);
+
+            Assert.Empty(lookup[2]);
+            _ = lookup.Count;
+            Assert.NotNull(item);
+            Assert.Same(item, getItem());
+
+            ImmutableArray<FullyPopulateRaceHelper> getElementsOfKey(int id)
+            {
+                if (id != 1)
+                {
+                    return ImmutableArray<FullyPopulateRaceHelper>.Empty;
+                }
+
+                itemAccessCount++;
+                if (item is null && itemAccessCount == 1)
+                {
+                    item = getItem();
+                }
+
+                return ImmutableArray.Create<FullyPopulateRaceHelper>(new FullyPopulateRaceHelper());
+            }
+
+            HashSet<int> getKeys(IEqualityComparer<int> comparer)
+            {
+                return new HashSet<int>(new[] { 1 }, comparer);
+            }
+
+            FullyPopulateRaceHelper getItem()
+            {
+                return lookup[1][0];
+            }
         }
     }
 }

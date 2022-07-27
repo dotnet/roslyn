@@ -117,6 +117,16 @@
         <target state="translated">Null denetimi daha fazla ayrıntıya sahip olabilir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Nullable_directive_is_redundant">
+        <source>Nullable directive is redundant</source>
+        <target state="translated">Null atanabilir yönerge yineleniyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nullable_directive_is_unnecessary">
+        <source>Nullable directive is unnecessary</source>
+        <target state="translated">Null atanabilir yönerge gereksiz</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
         <target state="translated">Tür denetimi yerine 'null' denetimini tercih et</target>
@@ -132,6 +142,11 @@
         <target state="translated">İşleci kaldır (semantiği korur)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_nullable_directive">
+        <source>Remove redundant nullable directive</source>
+        <target state="translated">Yinelenen null atanabilir yönergeyi kaldırın</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_suppression_operators">
         <source>Remove suppression operators</source>
         <target state="translated">Gizleme işleçlerini kaldır</target>
@@ -140,6 +155,11 @@
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
         <target state="translated">Gereksiz lambda ifadesini kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_nullable_directive">
+        <source>Remove unnecessary nullable directive</source>
+        <target state="translated">Gereksiz null atanabilir yönergeyi kaldırın</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
@@ -182,7 +202,7 @@
         <target state="translated">Ulaşılamayan kod algılandı</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_UTF8_string_literal">
+      <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
         <target state="translated">UTF-8 sabit değerli dizesini kullan</target>
         <note />
@@ -205,6 +225,11 @@
       <trans-unit id="Use_block_body_for_indexers">
         <source>Use block body for indexers</source>
         <target state="translated">Dizin oluşturucular için blok gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_lambda_expressions">
+        <source>Use block body for lambda expressions</source>
+        <target state="new">Use block body for lambda expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
@@ -255,6 +280,11 @@
       <trans-unit id="Use_expression_body_for_indexers">
         <source>Use expression body for indexers</source>
         <target state="translated">Dizin oluşturucular için ifade gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambda_expressions">
+        <source>Use expression body for lambda expressions</source>
+        <target state="new">Use expression body for lambda expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">

@@ -1826,7 +1826,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestStringLiteralUTF8_01()
+        public async Task TestStringLiteralUtf8_01()
         {
             await TestInMethodAsync(@"var f = ""Goo""u8$$",
                 TestSources.Span,
@@ -1835,7 +1835,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestStringLiteralUTF8_02()
+        public async Task TestStringLiteralUtf8_02()
         {
             await TestInMethodAsync(@"var f = ""Goo""U8$$",
                 TestSources.Span,
@@ -1852,7 +1852,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestVerbatimStringLiteralUTF8_01()
+        public async Task TestVerbatimStringLiteralUtf8_01()
         {
             await TestInMethodAsync(@"string f = @""cat""u8$$",
                 TestSources.Span,
@@ -1861,7 +1861,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestVerbatimStringLiteralUTF8_02()
+        public async Task TestVerbatimStringLiteralUtf8_02()
         {
             await TestInMethodAsync(@"string f = @""cat""U8$$",
                 TestSources.Span,
@@ -1877,7 +1877,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestRawStringLiteralUTF8_01()
+        public async Task TestRawStringLiteralUtf8_01()
         {
             await TestInMethodAsync(@"string f = """"""Goo""""""u8$$",
                 TestSources.Span,
@@ -1886,7 +1886,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestRawStringLiteralUTF8_02()
+        public async Task TestRawStringLiteralUtf8_02()
         {
             await TestInMethodAsync(@"string f = """"""Goo""""""U8$$",
                 TestSources.Span,
@@ -1904,7 +1904,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestRawStringLiteralMultilineUTF8_01()
+        public async Task TestRawStringLiteralMultilineUtf8_01()
         {
             await TestInMethodAsync(@"string f = """"""
                 Goo
@@ -1915,7 +1915,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestRawStringLiteralMultilineUTF8_02()
+        public async Task TestRawStringLiteralMultilineUtf8_02()
         {
             await TestInMethodAsync(@"string f = """"""
                 Goo
@@ -8570,7 +8570,7 @@ class Program
     void M(string s) { }
 }
 ";
-            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersionFacts.CSharpNext), source,
+            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), source,
                 MainDescription($"({FeaturesResources.parameter}) string s"));
         }
 
@@ -8583,7 +8583,7 @@ class Program
     void M([My(nameof($$s))] string s) { }
 }
 ";
-            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersionFacts.CSharpNext), source,
+            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), source,
                 MainDescription($"({FeaturesResources.parameter}) string s"));
         }
 
@@ -8600,7 +8600,7 @@ class Program
     }
 }
 ";
-            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersionFacts.CSharpNext), source,
+            await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), source,
                 MainDescription($"({FeaturesResources.parameter}) string s"));
         }
     }

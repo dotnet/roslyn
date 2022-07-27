@@ -11,9 +11,8 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
-using System.Windows;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 #if !COCOA
 using System.Linq;
@@ -36,8 +35,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RenameCommandHandler(IThreadingContext threadingContext, InlineRenameService renameService)
-            : base(threadingContext, renameService)
+        public RenameCommandHandler(
+            IThreadingContext threadingContext,
+            InlineRenameService renameService,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
+            : base(threadingContext, renameService, asynchronousOperationListenerProvider)
         {
         }
 

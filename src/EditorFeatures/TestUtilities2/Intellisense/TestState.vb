@@ -63,9 +63,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             ' Disable editor's responsive completion option to ensure a deterministic test behavior
             MyBase.TextView.Options.GlobalOptions.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, False)
+            MyBase.TextView.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
 
-            Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
-            Dim language = languageServices.Language
+            Dim language = Me.Workspace.CurrentSolution.Projects.First().Language
 
             Me.SessionTestState = GetExportedValue(Of IIntelliSenseTestState)()
 

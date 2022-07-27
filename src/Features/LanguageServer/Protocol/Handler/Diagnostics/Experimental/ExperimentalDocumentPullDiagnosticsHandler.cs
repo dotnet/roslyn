@@ -42,14 +42,14 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
         return ConvertTags(diagnosticData, potentialDuplicate: false);
     }
 
-    protected override DocumentDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
-    {
-        // We will only report once for document pull, so we only need to return the first literal send = DocumentDiagnosticReport.
-        var report = diagnostics == null
-            ? new DocumentDiagnosticReport(new UnchangedDocumentDiagnosticReport(resultId))
-            : new DocumentDiagnosticReport(new FullDocumentDiagnosticReport(resultId, diagnostics));
-        return report;
-    }
+    protected override DocumentDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
+        => new DocumentDiagnosticReport(new FullDocumentDiagnosticReport(resultId, diagnostics));
+
+    protected override DocumentDiagnosticPartialReport CreateRemovedReport(TextDocumentIdentifier identifier)
+        => new DocumentDiagnosticReport(new FullDocumentDiagnosticReport(resultId: null, Array.Empty<VisualStudio.LanguageServer.Protocol.Diagnostic>()));
+
+    protected override DocumentDiagnosticPartialReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
+        => new DocumentDiagnosticReport(new UnchangedDocumentDiagnosticReport(resultId));
 
     protected override DocumentDiagnosticReport? CreateReturn(BufferedProgress<DocumentDiagnosticPartialReport> progress)
     {

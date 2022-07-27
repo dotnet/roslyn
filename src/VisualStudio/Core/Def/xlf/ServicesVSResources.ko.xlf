@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="Collapse_sourcelink_embedded_decompiled_files_on_open">
         <source>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</source>
-        <target state="translated">원본 축소 파일을 열 때 정의에 대한 링크, 포함 및 디컴파일된 원본</target>
+        <target state="translated">파일을 열 때 소스 링크, 포함 및 디컴파일된 소스를 정의로 축소</target>
         <note />
       </trans-unit>
       <trans-unit id="Color_hints">
@@ -355,6 +355,41 @@
       <trans-unit id="Display_inline_type_hints">
         <source>Display inline type hints</source>
         <target state="translated">인라인 유형 힌트 표시</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline">
+        <source>Document Outline</source>
+        <target state="new">Document Outline</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Collapse_All">
+        <source>Collapse All</source>
+        <target state="new">Collapse All</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Expand_All">
+        <source>Expand All</source>
+        <target state="new">Expand All</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Search">
+        <source>Search Document Outline</source>
+        <target state="new">Search Document Outline</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Sort_Name">
+        <source>Sort By Name</source>
+        <target state="new">Sort By Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Sort_Order">
+        <source>Sort By Order</source>
+        <target state="new">Sort By Order</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Sort_Type">
+        <source>Sort By Type</source>
+        <target state="new">Sort By Type</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -469,17 +504,17 @@
       </trans-unit>
       <trans-unit id="Fix_analyzer_warnings_and_errors">
         <source>Fix analyzer warnings and errors</source>
-        <target state="new">Fix analyzer warnings and errors</target>
+        <target state="translated">분석기 경고 및 오류 수정</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_warnings_and_errors_set_in_EditorConfig">
         <source>Fix all warnings and errors set in EditorConfig</source>
-        <target state="new">Fix all warnings and errors set in EditorConfig</target>
+        <target state="translated">EditorConfig에 설정된 모든 경고 및 오류 수정</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_analyzer_warnings_and_errors_set_in_EditorConfig">
         <source>Fix analyzer warnings and errors set in EditorConfig</source>
-        <target state="new">Fix analyzer warnings and errors set in EditorConfig</target>
+        <target state="translated">EditorConfig에 설정된 분석기 경고 및 오류 수정</target>
         <note />
       </trans-unit>
       <trans-unit id="For_non_interface_members">
@@ -1067,7 +1102,7 @@
         <target state="translated">'GetHashCode'에서 'System.HashCode' 선호</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_UTF8_string_literals">
+      <trans-unit id="Prefer_Utf8_string_literals">
         <source>Prefer UTF-8 string literals</source>
         <target state="translated">UTF-8 문자열 리터럴 선호</target>
         <note />
@@ -1179,7 +1214,7 @@
       </trans-unit>
       <trans-unit id="Rename">
         <source>Rename</source>
-        <target state="new">Rename</target>
+        <target state="translated">이름 바꾸기</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
@@ -1188,8 +1223,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Rename_asynchronously_experimental">
-        <source>Rename asynchronously experimental</source>
-        <target state="new">Rename asynchronously experimental</target>
+        <source>Rename asynchronously (experimental)</source>
+        <target state="needs-review-translation">비동기식으로 이름 바꾸기 실험</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
@@ -1380,6 +1415,11 @@
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
         <target state="translated">Using 정렬</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stack_Trace">
+        <source>Stack Trace</source>
+        <target state="translated">스택 추적</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace_Explorer">

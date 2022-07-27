@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var trackingService = solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            var trackingService = solution.Services.GetRequiredService<IDocumentTrackingService>();
             var visibleProjectIds = trackingService.GetVisibleDocuments().Select(d => d.ProjectId).ToSet();
             var activeProjectId = trackingService.TryGetActiveDocument()?.ProjectId;
 

@@ -181,8 +181,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 fallbackNode = contextSpine.OfType<TNamespaceDeclarationSyntax>().FirstOrDefault();
 
             // If all else fails use the root
-            if (fallbackNode is null)
-                fallbackNode = root;
+            fallbackNode ??= root;
 
             // The specific container to add each type of import to.  We look for a container
             // that already has an import of the same type as the node we want to add to.

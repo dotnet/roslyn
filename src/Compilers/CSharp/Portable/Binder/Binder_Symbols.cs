@@ -1816,6 +1816,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(!Symbol.Equals(first, second, TypeCompareKind.ConsiderEverything) || !Symbol.Equals(originalSymbols[best.Index], originalSymbols[secondBest.Index], TypeCompareKind.ConsiderEverything),
                             "Why does the LookupResult contain the same symbol twice?");
 
+                        if (best.IsFromFile && !secondBest.IsFromFile)
+                        {
+                            // a lookup of a file-local type is "better" than a lookup of a non-file-local type; no need to further diagnose
+                            // https://github.com/dotnet/roslyn/issues/62331
+                            // some "single symbol" diagnostics are missed here for similar reasons
+                            // that make us miss diagnostics when reporting WRN_SameFullNameThisAggAgg.
+                            // 
+                            return first;
+                        }
+
                         CSDiagnosticInfo info;
                         bool reportError;
 
@@ -2133,6 +2143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private enum BestSymbolLocation
         {
             None,
+            FromFile,
             FromSourceModule,
             FromAddedModule,
             FromReferencedAssembly,
@@ -2177,6 +2188,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 get
                 {
                     return (_location == BestSymbolLocation.FromSourceModule) || (_location == BestSymbolLocation.FromAddedModule);
+                }
+            }
+
+            public bool IsFromFile
+            {
+                get
+                {
+                    return _location == BestSymbolLocation.FromFile;
                 }
             }
 
@@ -2281,6 +2300,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BestSymbolLocation GetLocation(CSharpCompilation compilation, Symbol symbol)
         {
+            if (symbol is SourceMemberContainerTypeSymbol { IsFileLocal: true })
+            {
+                return BestSymbolLocation.FromFile;
+            }
+
             var containingAssembly = symbol.ContainingAssembly;
             if (containingAssembly == compilation.SourceAssembly)
             {
@@ -2470,7 +2494,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE: This won't work if the type isn't using CLS-style generic naming (i.e. `arity), but this code is
             // only intended to improve diagnostic messages, so false negatives in corner cases aren't a big deal.
-            var metadataName = MetadataHelpers.ComposeAritySuffixedMetadataName(name, arity);
+            // File types can't be forwarded, so we won't attempt to determine a file identifier to attach to the metadata name.
+            var metadataName = MetadataHelpers.ComposeAritySuffixedMetadataName(name, arity, associatedFileIdentifier: null);
             var fullMetadataName = MetadataHelpers.BuildQualifiedName(qualifierOpt?.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat), metadataName);
             var result = GetForwardedToAssembly(fullMetadataName, diagnostics, location);
             if ((object)result != null)

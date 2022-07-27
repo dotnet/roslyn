@@ -29,7 +29,7 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
 }";
 
         // Create a server that supports LSP misc files and verify no misc files present.
-        using var testLspServer = await CreateTestLspServerAsync(string.Empty, new LSP.ClientCapabilities(), WellKnownLspServerKinds.CSharpVisualBasicLspServer);
+        using var testLspServer = await CreateTestLspServerAsync(string.Empty, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
         Assert.Null(GetMiscellaneousDocument(testLspServer));
 
         // Open an empty loose file and make a request to verify it gets added to the misc workspace.
@@ -52,7 +52,7 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
 }";
 
         // Create a server that supports LSP misc files and verify no misc files present.
-        using var testLspServer = await CreateTestLspServerAsync(string.Empty, new LSP.ClientCapabilities(), WellKnownLspServerKinds.CSharpVisualBasicLspServer);
+        using var testLspServer = await CreateTestLspServerAsync(string.Empty, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
         Assert.Null(GetMiscellaneousDocument(testLspServer));
 
         var looseFileUri = new Uri(@"C:\SomeFile.cs");
@@ -81,7 +81,7 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
 }";
 
         // Create a server that supports LSP misc files and verify no misc files present.
-        using var testLspServer = await CreateTestLspServerAsync(string.Empty, new LSP.ClientCapabilities(), WellKnownLspServerKinds.CSharpVisualBasicLspServer);
+        using var testLspServer = await CreateTestLspServerAsync(string.Empty, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
         Assert.Null(GetMiscellaneousDocument(testLspServer));
 
         // Open an empty loose file and make a request to verify it gets added to the misc workspace.
@@ -106,7 +106,7 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
 }";
 
         // Create a server that supports LSP misc files and verify no misc files present.
-        using var testLspServer = await CreateTestLspServerAsync(markup, new LSP.ClientCapabilities(), WellKnownLspServerKinds.CSharpVisualBasicLspServer);
+        using var testLspServer = await CreateTestLspServerAsync(markup, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
         Assert.Null(GetMiscellaneousDocument(testLspServer));
 
         // Open a file that is part of a registered workspace and verify it is not present in the misc workspace.
@@ -127,7 +127,7 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
 }";
 
         // Create a server that supports LSP misc files and verify no misc files present.
-        using var testLspServer = await CreateTestLspServerAsync(string.Empty, new LSP.ClientCapabilities(), WellKnownLspServerKinds.CSharpVisualBasicLspServer);
+        using var testLspServer = await CreateTestLspServerAsync(string.Empty, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
         Assert.Null(GetMiscellaneousDocument(testLspServer));
 
         // Open an empty loose file and make a request to verify it gets added to the misc workspace.
@@ -167,7 +167,7 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
 }";
 
         // Create a server that doesn't use the LSP misc files workspace.
-        using var testLspServer = await CreateTestLspServerAsync(string.Empty, new LSP.ClientCapabilities(), WellKnownLspServerKinds.AlwaysActiveVSLspServer);
+        using var testLspServer = await CreateTestLspServerAsync(string.Empty, new InitializationOptions { ServerKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer });
         Assert.Null(testLspServer.GetManagerAccessor().GetLspMiscellaneousFilesWorkspace());
 
         // Open an empty loose file and make a request to verify it gets added to the misc workspace.

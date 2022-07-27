@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         /// <summary>
         /// MVIDs read from the assembly built for given project id.
+        /// Only contains ids for projects that support EnC.
         /// </summary>
         private readonly Dictionary<ProjectId, (Guid Mvid, Diagnostic Error)> _projectModuleIds = new();
         private readonly Dictionary<Guid, ProjectId> _moduleIds = new();
@@ -241,10 +242,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         /// <returns>
         /// An MVID and an error message to report, in case an IO exception occurred while reading the binary.
-        /// The MVID is default if either project not built, or an it can't be read from the module binary.
+        /// The MVID is <see cref="Guid.Empty"/> if either the project is not built, or the MVID can't be read from the module binary.
         /// </returns>
         internal async Task<(Guid Mvid, Diagnostic? Error)> GetProjectModuleIdAsync(Project project, CancellationToken cancellationToken)
         {
+            Debug.Assert(project.SupportsEditAndContinue());
+
             lock (_projectModuleIdsGuard)
             {
                 if (_projectModuleIds.TryGetValue(project.Id, out var id))
@@ -281,8 +284,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return id;
                 }
 
-                _moduleIds[newId.Mvid] = project.Id;
-                return _projectModuleIds[project.Id] = newId;
+                // Do not cache failures. The error might be intermittent and might be corrected next time we attempt to read the MVID.
+                if (newId.Mvid != Guid.Empty)
+                {
+                    _moduleIds[newId.Mvid] = project.Id;
+                    _projectModuleIds[project.Id] = newId;
+                }
+
+                return newId;
             }
         }
 
@@ -615,9 +624,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var documentId = documentIds[i];
 
                     var document = await solution.GetTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
-                    if (document?.FilePath == null)
+                    if (document?.State.SupportsEditAndContinue() != true)
                     {
-                        // document has been deleted or has no path (can't have an active statement anymore):
+                        // document has been deleted or doesn't support EnC (can't have an active statement anymore):
                         continue;
                     }
 
@@ -626,6 +635,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // document is in a project that does not support EnC
                         continue;
                     }
+
+                    Contract.ThrowIfNull(document.FilePath);
 
                     // Multiple documents may have the same path (linked file).
                     // The documents represent the files that #line directives map to.
@@ -648,7 +659,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     var newProject = solution.GetRequiredProject(projectId);
-                    var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+
+                    Debug.Assert(oldProject.SupportsEditAndContinue());
+                    Debug.Assert(newProject.SupportsEditAndContinue());
+
+                    var analyzer = newProject.Services.GetRequiredService<IEditAndContinueAnalyzer>();
 
                     await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
                     {
@@ -743,7 +758,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             try
             {
-                if (_isDisposed || !EditSession.InBreakState || !mappedDocument.State.SupportsEditAndContinue())
+                if (_isDisposed || !EditSession.InBreakState || !mappedDocument.State.SupportsEditAndContinue() || !mappedDocument.Project.SupportsEditAndContinue())
                 {
                     return ImmutableArray<ActiveStatementSpan>.Empty;
                 }
@@ -773,7 +788,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<ActiveStatementSpan>.Empty;
                 }
 
-                var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+                var analyzer = newProject.Services.GetRequiredService<IEditAndContinueAnalyzer>();
 
                 using var _ = ArrayBuilder<ActiveStatementSpan>.GetInstance(out var adjustedMappedSpans);
 
@@ -925,7 +940,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                var analyzer = newDocument.Project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+                var analyzer = newDocument.Project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
                 var oldDocumentActiveStatements = await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
                 return oldDocumentActiveStatements.GetStatement(baseActiveStatement.Ordinal).ExceptionRegions.IsActiveStatementCovered;
             }
@@ -963,6 +978,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         return null;
                     }
 
+                    // We only maintain module ids for projects that support EnC:
+                    Debug.Assert(oldProject.SupportsEditAndContinue());
+                    Debug.Assert(newProject.SupportsEditAndContinue());
+
                     documentId = await GetChangedDocumentContainingUnmappedActiveStatementAsync(activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, cancellationToken).ConfigureAwait(false);
                 }
                 else
@@ -980,8 +999,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // TODO: https://github.com/dotnet/roslyn/issues/1204
                         // oldProject == null ==> project has been added - it may have active statements if the project was unloaded when debugging session started but the sources 
                         // correspond to the PDB.
-                        var id = (oldProject != null) ? await GetChangedDocumentContainingUnmappedActiveStatementAsync(
-                        activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, linkedTokenSource.Token).ConfigureAwait(false) : null;
+                        var id = (oldProject?.SupportsEditAndContinue() == true) ?
+                            await GetChangedDocumentContainingUnmappedActiveStatementAsync(
+                                activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, linkedTokenSource.Token).ConfigureAwait(false) :
+                            null;
 
                         Interlocked.CompareExchange(ref documentId, id, null);
                         if (id != null)
@@ -1015,7 +1036,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static async ValueTask<DocumentId?> GetChangedDocumentContainingUnmappedActiveStatementAsync(ActiveStatementsMap baseActiveStatements, CommittedSolution oldSolution, Project oldProject, Project newProject, ActiveStatement activeStatement, CancellationToken cancellationToken)
         {
             Debug.Assert(oldProject.Id == newProject.Id);
-            var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            Debug.Assert(oldProject.SupportsEditAndContinue());
+            Debug.Assert(newProject.SupportsEditAndContinue());
+
+            var analyzer = newProject.Services.GetRequiredService<IEditAndContinueAnalyzer>();
 
             await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
             {

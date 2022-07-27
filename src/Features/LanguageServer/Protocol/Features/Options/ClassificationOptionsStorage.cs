@@ -9,10 +9,13 @@ namespace Microsoft.CodeAnalysis.Classification;
 internal static class ClassificationOptionsStorage
 {
     public static ClassificationOptions GetClassificationOptions(this IGlobalOptionService globalOptions, string language)
-        => new(
-            ClassifyReassignedVariables: globalOptions.GetOption(ClassifyReassignedVariables, language),
-            ColorizeRegexPatterns: globalOptions.GetOption(ColorizeRegexPatterns, language),
-            ColorizeJsonPatterns: globalOptions.GetOption(ColorizeJsonPatterns, language));
+        => new()
+        {
+            ClassifyReassignedVariables = globalOptions.GetOption(ClassifyReassignedVariables, language),
+            ColorizeRegexPatterns = globalOptions.GetOption(ColorizeRegexPatterns, language),
+            ColorizeJsonPatterns = globalOptions.GetOption(ColorizeJsonPatterns, language),
+            // ForceFrozenPartialSemanticsForCrossProcessOperations not stored in global options
+        };
 
     public static PerLanguageOption2<bool> ClassifyReassignedVariables =
         new("ClassificationOptions", "ClassifyReassignedVariables", ClassificationOptions.Default.ClassifyReassignedVariables,

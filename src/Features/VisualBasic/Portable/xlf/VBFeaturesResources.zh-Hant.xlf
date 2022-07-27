@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Project_level_Imports">
         <source>Project level 'Imports'</source>
-        <target state="new">Project level 'Imports'</target>
+        <target state="translated">專案層級 'Imports'</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_shared_keyword_from_module_member">
