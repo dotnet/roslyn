@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 projectFilePath: data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.MSBuildProjectFullPath),
                 projectGuid: id,
                 hierarchy: hostObject,
-                binOutputPath: data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.TargetPath),
+                binOutputPath: (languageName != LanguageNames.FSharp) ? data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.TargetPath) : null,
                 assemblyName: data.GetPropertyValue(BuildPropertyNames.AssemblyName),
                 cancellationToken);
 
