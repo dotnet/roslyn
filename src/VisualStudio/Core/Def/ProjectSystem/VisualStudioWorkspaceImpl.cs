@@ -247,7 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Switch to a background thread to avoid loading option providers on UI thread (telemetry is reading options).
             await TaskScheduler.Default;
 
-            var logDelta = _globalOptions.GetOption(DiagnosticOptions.LogTelemetryForBackgroundAnalyzerExecution);
+            var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
             var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
             telemetryService.InitializeTelemetrySession(telemetrySession, logDelta);
 
