@@ -765,7 +765,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         _triggerView, _triggerSpan, EditorFeaturesResources.Computing_Rename_information,
                         cancelOnEdit: false, cancelOnFocusLost: false);
 
-                    await CommitCoreAsync(context, previewChanges).ConfigureAwait(false);
+                    await CommitCoreAsync(context, previewChanges).ConfigureAwait(true);
                 }
                 else
                 {
@@ -775,7 +775,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         allowCancellation: true,
                         showProgress: false);
 
-                    await CommitCoreAsync(context, previewChanges).ConfigureAwait(false);
+                    // .ConfigureAwait(true); so we can return to the UI thread to dispose the operation context.  It
+                    // has a non-JTF threading dependency on the main thread.  So it can deadlock if you call it on a BG
+                    // thread when in a blocking JTF call.
+                    await CommitCoreAsync(context, previewChanges).ConfigureAwait(true);
                 }
             }
             catch (OperationCanceledException)
