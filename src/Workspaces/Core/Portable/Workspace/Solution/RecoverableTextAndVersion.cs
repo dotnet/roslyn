@@ -111,7 +111,9 @@ namespace Microsoft.CodeAnalysis
         {
             _initialSource = null;
             _version = textAndVersion.Version;
+#pragma warning disable CS0618 // Type or member is obsolete
             _filePath = textAndVersion.FilePath;
+#pragma warning restore
             _loadDiagnostic = textAndVersion.LoadDiagnostic;
             _text = new RecoverableText(this, textAndVersion.Text);
             _text.GetValue(CancellationToken.None); // force access to trigger save

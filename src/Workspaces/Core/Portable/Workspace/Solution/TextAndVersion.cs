@@ -23,8 +23,9 @@ namespace Microsoft.CodeAnalysis
         public VersionStamp Version { get; }
 
         /// <summary>
-        /// An optional file path that identifies the origin of the source text. Empty if not available.
+        /// Obsolete.
         /// </summary>
+        [Obsolete("Use Document.FilePath instead", false)]
         public string FilePath { get; }
 
         /// <summary>
@@ -36,7 +37,9 @@ namespace Microsoft.CodeAnalysis
         {
             Text = text;
             Version = version;
+#pragma warning disable CS0618 // Type or member is obsolete
             FilePath = filePath ?? string.Empty;
+#pragma warning restore
             LoadDiagnostic = loadDiagnostic;
         }
 
@@ -45,7 +48,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="text">The text</param>
         /// <param name="version">The version</param>
-        /// <param name="filePath">An optional file path that identifies the original of the source text.</param>
+        /// <param name="filePath">Obsolete.</param>
         /// <returns></returns>
         public static TextAndVersion Create(SourceText text, VersionStamp version, string? filePath = null)
             => Create(text, version, filePath, loadDiagnostic: null);
@@ -55,7 +58,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="text">The text</param>
         /// <param name="version">The version</param>
-        /// <param name="filePath">An optional file path that identifies the original of the source text.</param>
+        /// <param name="filePath">Obsolete.</param>
         /// <param name="loadDiagnostic">Diagnostic describing failure to load the source text.</param>
         /// <returns></returns>
         internal static TextAndVersion Create(SourceText text, VersionStamp version, string? filePath, Diagnostic? loadDiagnostic)
