@@ -47,11 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _syntaxTree = syntaxTree;
             _ignoresAccessibility = ignoreAccessibility;
 
-            if (!this.Compilation.SyntaxTrees.Contains(syntaxTree))
-            {
-                throw new ArgumentOutOfRangeException(nameof(syntaxTree), CSharpResources.TreeNotPartOfCompilation);
-            }
-
             _binderFactory = compilation.GetBinderFactory(SyntaxTree, ignoreAccessibility);
         }
 

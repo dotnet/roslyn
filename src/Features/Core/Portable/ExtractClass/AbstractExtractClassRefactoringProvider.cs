@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 return;
             }
 
-            var optionsService = _optionsService ?? context.Document.Project.Solution.Workspace.Services.GetService<IExtractClassOptionsService>();
+            var optionsService = _optionsService ?? context.Document.Project.Solution.Services.GetService<IExtractClassOptionsService>();
             if (optionsService is null)
             {
                 return;

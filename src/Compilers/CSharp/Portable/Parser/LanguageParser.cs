@@ -1212,10 +1212,8 @@ tryAgain:
                             nextToken.Kind == SyntaxKind.DelegateKeyword ||
                             (IsPossibleStartOfTypeDeclaration(nextToken.Kind) && GetModifier(nextToken) != DeclarationModifiers.None))
                         {
-                            // Misplaced partial
-                            // TODO(https://github.com/dotnet/roslyn/issues/22439):
-                            // We should consider moving this check into binding, but avoid holding on to trees
-                            modTok = AddError(ConvertToKeyword(this.EatToken()), ErrorCode.ERR_PartialMisplaced);
+                            // Error reported in ModifierUtils.
+                            modTok = ConvertToKeyword(this.EatToken());
                         }
                         else
                         {
@@ -7304,25 +7302,19 @@ done:
                     readonlyKeyword = this.CheckFeatureAvailability(readonlyKeyword, MessageID.IDS_FeatureReadOnlyReferences);
                 }
 
-                SyntaxToken scopedKeyword = null;
+                SyntaxToken misplacedScoped = null;
                 if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword && mode == ParseTypeMode.Normal)
                 {
-                    var resetPoint = this.GetResetPoint();
-
-                    this.EatToken();
-                    bool shouldTreatAsModifier = ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
-
-                    this.Reset(ref resetPoint);
-                    this.Release(ref resetPoint);
-
-                    if (shouldTreatAsModifier)
-                    {
-                        scopedKeyword = this.EatContextualToken(SyntaxKind.ScopedKeyword);
-                    }
+                    misplacedScoped = this.AddError(this.EatContextualToken(SyntaxKind.ScopedKeyword), ErrorCode.ERR_MisplacedScoped);
                 }
 
                 var type = ParseTypeCore(ParseTypeMode.AfterRef);
-                return _syntaxFactory.RefType(refKeyword, readonlyKeyword, scopedKeyword, type);
+                if (misplacedScoped is not null)
+                {
+                    type = AddLeadingSkippedSyntax(type, misplacedScoped);
+                }
+
+                return _syntaxFactory.RefType(refKeyword, readonlyKeyword, type);
             }
 
             return ParseTypeCore(mode);
@@ -12753,10 +12745,14 @@ tryAgain:
         {
             if (this.IsComplexElementInitializer())
             {
+                // { ... }
                 return this.ParseComplexElementInitializer();
             }
             else if (IsDictionaryInitializer())
             {
+                // [...] = { ... }
+                // [...] = ref <expr>
+                // [...] = <expr>
                 isObjectInitializer = true;
                 var initializer = this.ParseDictionaryInitializer();
                 initializer = CheckFeatureAvailability(initializer, MessageID.IDS_FeatureDictionaryInitializer);
@@ -12764,12 +12760,17 @@ tryAgain:
             }
             else if (this.IsNamedAssignment())
             {
+                // Name = { ... }
+                // Name = ref <expr>
+                // Name =  <expr>
                 isObjectInitializer = true;
                 return this.ParseObjectInitializerNamedAssignment();
             }
             else
             {
-                return this.ParseExpressionCore();
+                // <expr>
+                // ref <expr>
+                return this.ParsePossibleRefExpression();
             }
         }
 
@@ -12793,7 +12794,7 @@ tryAgain:
             }
             else
             {
-                expression = this.ParseExpressionCore();
+                expression = this.ParsePossibleRefExpression();
             }
 
             return _syntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, identifier, equal, expression);
@@ -12805,7 +12806,7 @@ tryAgain:
             var equal = this.EatToken(SyntaxKind.EqualsToken);
             var expression = this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
                 ? this.ParseObjectOrCollectionInitializer()
-                : this.ParseExpressionCore();
+                : this.ParsePossibleRefExpression();
 
             var elementAccess = _syntaxFactory.ImplicitElementAccess(arguments);
             return _syntaxFactory.AssignmentExpression(

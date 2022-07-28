@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var option = new Option2<T>(
                 "CSharpFormattingOptions",
                 group, name, defaultValue,
-                ImmutableArray.Create(storageLocation1, storageLocation2));
+                ImmutableArray.Create(storageLocation1, storageLocation2), LanguageNames.CSharp);
 
             s_allOptionsBuilder.Add(option);
             return option;

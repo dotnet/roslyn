@@ -49,6 +49,16 @@
         <target state="translated">해당 yield return 문이 삭제되었으므로 편집하고 계속하기가 일시 중단된 반복기를 다시 시작할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="GeneratorNameColumnHeader">
+        <source>Generator</source>
+        <target state="new">Generator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorTotalExecutionTime">
+        <source>Total generator execution time: {0} seconds.</source>
+        <target state="new">Total generator execution time: {0} seconds.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HintNameInvalidChar">
         <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
         <target state="translated">hintName의 {0} 위치 {2}에 잘못된 문자 '{1}'이(가) 있습니다.</target>

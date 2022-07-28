@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -10,12 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        protected readonly string? DescriptorId;
-
         protected readonly DiagnosticDescriptor Descriptor;
-
-        protected readonly LocalizableString _localizableTitle;
-        protected readonly LocalizableString _localizableMessageFormat;
 
         private AbstractBuiltInCodeStyleDiagnosticAnalyzer(
             string descriptorId,
@@ -25,11 +21,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             bool isUnnecessary,
             bool configurable)
         {
-            DescriptorId = descriptorId;
-            _localizableTitle = title;
-            _localizableMessageFormat = messageFormat ?? title;
+            // 'isUnnecessary' should be true only for sub-types of AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer.
+            Debug.Assert(!isUnnecessary || this is AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer);
 
-            Descriptor = CreateDescriptorWithId(DescriptorId, enforceOnBuild, _localizableTitle, _localizableMessageFormat, isUnnecessary: isUnnecessary, isConfigurable: configurable);
+            Descriptor = CreateDescriptorWithId(descriptorId, enforceOnBuild, title, messageFormat ?? title, isUnnecessary: isUnnecessary, isConfigurable: configurable);
             SupportedDiagnostics = ImmutableArray.Create(Descriptor);
         }
 
@@ -41,8 +36,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             SupportedDiagnostics = supportedDiagnostics;
 
             Descriptor = SupportedDiagnostics[0];
-            _localizableTitle = Descriptor.Title;
-            _localizableMessageFormat = Descriptor.MessageFormat;
         }
 
         public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
@@ -68,15 +61,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 #pragma warning restore RS0030 // Do not used banned APIs
 
         /// <summary>
-        /// Flag indicating whether or not analyzer should receive analysis callbacks for generated code.
-        /// By default, code style analyzers should not run on generated code, so the value is false.
+        /// Flags to configure the analysis of generated code.
+        /// By default, code style analyzers should not analyze or report diagnostics on generated code, so the value is false.
         /// </summary>
-        protected virtual bool ReceiveAnalysisCallbacksForGeneratedCode => false;
+        protected virtual GeneratedCodeAnalysisFlags GeneratedCodeAnalysisFlags => GeneratedCodeAnalysisFlags.None;
 
         public sealed override void Initialize(AnalysisContext context)
         {
-            var flags = ReceiveAnalysisCallbacksForGeneratedCode ? GeneratedCodeAnalysisFlags.Analyze : GeneratedCodeAnalysisFlags.None;
-            context.ConfigureGeneratedCodeAnalysis(flags);
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags);
             context.EnableConcurrentExecution();
 
             InitializeWorker(context);

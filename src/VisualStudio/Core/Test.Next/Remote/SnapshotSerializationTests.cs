@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task UnknownLanguageTest()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageServiceFactory) });
+            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
             var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", NoCompilationConstants.LanguageName);
 
             var validator = new SerializationValidator(workspace.Services);
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public async Task EmptyAssetChecksumTest()
         {
             var document = CreateWorkspace().CurrentSolution.AddProject("empty", "empty", LanguageNames.CSharp).AddDocument("empty", SourceText.From(""));
-            var serializer = document.Project.Solution.Workspace.Services.GetService<ISerializerService>();
+            var serializer = document.Project.Solution.Services.GetService<ISerializerService>();
 
             var source = serializer.CreateChecksum(await document.GetTextAsync().ConfigureAwait(false), CancellationToken.None);
             var metadata = serializer.CreateChecksum(new MissingMetadataReference(), CancellationToken.None);

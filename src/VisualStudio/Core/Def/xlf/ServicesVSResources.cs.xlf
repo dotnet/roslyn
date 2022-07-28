@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="Collapse_sourcelink_embedded_decompiled_files_on_open">
         <source>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</source>
-        <target state="translated">Sbalit zdrojový, vložený a dekompilovaný zdroj do definic při otevření souboru</target>
+        <target state="translated">Sbalit Source Link, vložený a dekompilovaný zdroj do definic při otevření souboru</target>
         <note />
       </trans-unit>
       <trans-unit id="Color_hints">
@@ -355,6 +355,41 @@
       <trans-unit id="Display_inline_type_hints">
         <source>Display inline type hints</source>
         <target state="translated">Zobrazovat vložené nápovědy k typům</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline">
+        <source>Document Outline</source>
+        <target state="new">Document Outline</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Collapse_All">
+        <source>Collapse All</source>
+        <target state="new">Collapse All</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Expand_All">
+        <source>Expand All</source>
+        <target state="new">Expand All</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Search">
+        <source>Search Document Outline</source>
+        <target state="new">Search Document Outline</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Sort_Name">
+        <source>Sort By Name</source>
+        <target state="new">Sort By Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Sort_Order">
+        <source>Sort By Order</source>
+        <target state="new">Sort By Order</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Sort_Type">
+        <source>Sort By Type</source>
+        <target state="new">Sort By Type</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -1188,8 +1223,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Rename_asynchronously_experimental">
-        <source>Rename asynchronously experimental</source>
-        <target state="translated">Asynchronní přejmenování (experimentální)</target>
+        <source>Rename asynchronously (experimental)</source>
+        <target state="needs-review-translation">Asynchronní přejmenování (experimentální)</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">

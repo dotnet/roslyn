@@ -118,7 +118,7 @@ class Implementation : IEnumerable
 
             var document = await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken);
             RoslynDebug.AssertNotNull(document);
-            Assert.Equal(WorkspaceKind.MetadataAsSource, document.Project.Solution.Workspace.Kind);
+            Assert.Equal(WorkspaceKind.MetadataAsSource, document.Project.Solution.WorkspaceKind);
         }
 
         [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/62286")]
@@ -160,7 +160,7 @@ class Implementation : IBar
 
             var document = await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken);
             RoslynDebug.AssertNotNull(document);
-            Assert.NotEqual(WorkspaceKind.MetadataAsSource, document.Project.Solution.Workspace.Kind);
+            Assert.NotEqual(WorkspaceKind.MetadataAsSource, document.Project.Solution.WorkspaceKind);
         }
     }
 }

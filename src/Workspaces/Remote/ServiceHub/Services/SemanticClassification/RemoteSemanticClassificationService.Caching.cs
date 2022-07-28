@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Document document, ClassificationType type, ClassificationOptions options, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistenceService = solution.Workspace.Services.GetPersistentStorageService();
+            var persistenceService = solution.Services.GetPersistentStorageService();
 
             // we should never use no-op storage in OOP
             Contract.ThrowIfTrue(persistenceService is NoOpPersistentStorageService);

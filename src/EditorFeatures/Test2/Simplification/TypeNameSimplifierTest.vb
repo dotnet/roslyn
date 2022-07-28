@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
@@ -1470,7 +1471,7 @@ class C1
         <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarLocalDeclaration() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey2, Object) From {
+            Dim simplificationOption = New OptionsCollection(LanguageNames.CSharp) From {
                 {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSilentEnforcement}
@@ -1508,7 +1509,7 @@ class Program
         <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarForeachDecl() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey2, Object) From {
+            Dim simplificationOption = New OptionsCollection(LanguageNames.CSharp) From {
                 {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSilentEnforcement}
@@ -1548,7 +1549,7 @@ class Program
         <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarCorrect() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey2, Object) From {
+            Dim simplificationOption = New OptionsCollection(LanguageNames.CSharp) From {
                 {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSilentEnforcement}
@@ -1618,7 +1619,7 @@ class Program
         <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarCorrect_QualifiedTypeNames() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey2, Object) From {
+            Dim simplificationOption = New OptionsCollection(LanguageNames.CSharp) From {
                 {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSilentEnforcement}
@@ -1667,9 +1668,6 @@ class Program
         <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarDontSimplify() As Task
-
-            Dim simplificationOption = New Dictionary(Of OptionKey2, Object) From {}
-
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1724,7 +1722,7 @@ class Program
 }
 </code>
 
-            Await TestAsync(input, expected, simplificationOption)
+            Await TestAsync(input, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -2025,8 +2023,6 @@ class E
         <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDoNotSimplifyToGenericName() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey2, Object) From {}
-
             Dim input =
         <Workspace>
             <Project Language="C#" CommonReferences="true">
@@ -2081,13 +2077,11 @@ class E
 }]]>
               </text>
 
-            Await TestAsync(input, expected, simplificationOption)
+            Await TestAsync(input, expected)
         End Function
 
         <Fact, WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontSimplifyAllNodes_SimplifyNestedType() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey2, Object) From {}
-
             Dim input =
         <Workspace>
             <Project Language="C#" CommonReferences="true">
@@ -2143,7 +2137,7 @@ static class M
 	}
 }]]></text>
 
-            Await TestAsync(input, expected, simplificationOption)
+            Await TestAsync(input, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -2524,7 +2518,10 @@ class C
 }
 ]]>
                 </text>
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey2, Object) From {{New OptionKey2(CodeStyleOptions2.QualifyFieldAccess, LanguageNames.CSharp), New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Error)}}
+            Dim simplificationOptionSet = New OptionsCollection(LanguageNames.CSharp) From
+            {
+                {CodeStyleOptions2.QualifyFieldAccess, New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Error)}
+            }
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
 
@@ -4829,8 +4826,6 @@ End Class
         <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DoNotSimplifyToGenericName() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey2, Object) From {}
-
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -4877,13 +4872,11 @@ End Class
 ]]>
               </text>
 
-            Await TestAsync(input, expected, simplificationOption)
+            Await TestAsync(input, expected)
         End Function
 
         <Fact, WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestDontSimplifyAllNodes_SimplifyNestedType() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey2, Object) From {}
-
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -4927,7 +4920,7 @@ NotInheritable Class M
 	End Sub
 End Class]]></text>
 
-            Await TestAsync(input, expected, simplificationOption)
+            Await TestAsync(input, expected)
         End Function
 
         <Fact, WorkItem(881746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/881746"), Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -5953,27 +5946,28 @@ End Class
 
 #Region "Helpers"
 
-        Private Protected Shared Function QualifyFieldAccessOption(languageName As String) As Dictionary(Of OptionKey2, Object)
-            Return New Dictionary(Of OptionKey2, Object) From {{New OptionKey2(CodeStyleOptions2.QualifyFieldAccess, languageName), New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Error)}}
+        Private Protected Shared Function QualifyFieldAccessOption(languageName As String) As OptionsCollection
+            Return New OptionsCollection(languageName) From {{CodeStyleOptions2.QualifyFieldAccess, New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Error)}}
         End Function
 
-        Private Protected Shared Function QualifyPropertyAccessOption(languageName As String) As Dictionary(Of OptionKey2, Object)
+        Private Protected Shared Function QualifyPropertyAccessOption(languageName As String) As OptionsCollection
             Return QualifyPropertyAccessOptionWithNotification(languageName, NotificationOption2.Error)
         End Function
 
-        Private Protected Shared Function QualifyMethodAccessOption(languageName As String) As Dictionary(Of OptionKey2, Object)
-            Return New Dictionary(Of OptionKey2, Object) From {{New OptionKey2(CodeStyleOptions2.QualifyMethodAccess, languageName), New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Error)}}
+        Private Protected Shared Function QualifyMethodAccessOption(languageName As String) As OptionsCollection
+            Return New OptionsCollection(languageName) From {{CodeStyleOptions2.QualifyMethodAccess, New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Error)}}
         End Function
 
-        Private Protected Shared Function QualifyEventAccessOption(languageName As String) As Dictionary(Of OptionKey2, Object)
-            Return New Dictionary(Of OptionKey2, Object) From {{New OptionKey2(CodeStyleOptions2.QualifyEventAccess, languageName), New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Error)}}
+        Private Protected Shared Function QualifyEventAccessOption(languageName As String) As OptionsCollection
+            Return New OptionsCollection(languageName) From {{CodeStyleOptions2.QualifyEventAccess, New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Error)}}
         End Function
 
-        Private Protected Shared Function QualifyPropertyAccessOptionWithNotification(languageName As String, notification As NotificationOption2) As Dictionary(Of OptionKey2, Object)
-            Return New Dictionary(Of OptionKey2, Object) From {{New OptionKey2(CodeStyleOptions2.QualifyPropertyAccess, languageName), New CodeStyleOption2(Of Boolean)(True, notification)}}
+        Private Protected Shared Function QualifyPropertyAccessOptionWithNotification(languageName As String, notification As NotificationOption2) As OptionsCollection
+            Return New OptionsCollection(languageName) From {{CodeStyleOptions2.QualifyPropertyAccess, New CodeStyleOption2(Of Boolean)(True, notification)}}
         End Function
 
-        Private Shared ReadOnly DontPreferIntrinsicPredefinedTypeKeywordInDeclaration As Dictionary(Of OptionKey2, Object) = New Dictionary(Of OptionKey2, Object) From {{New OptionKey2(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic), CodeStyleOption2(Of Boolean).Default}}
+        Private Shared ReadOnly DontPreferIntrinsicPredefinedTypeKeywordInDeclaration As New OptionsCollection(LanguageNames.VisualBasic) From
+            {{CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOption2(Of Boolean).Default}}
 
 #End Region
 

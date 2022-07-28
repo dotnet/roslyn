@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             _classificationFormatMap = classificationFormatMap;
             _classificationTypeMap = classificationTypeMap;
 
-            _notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
+            _notificationService = document.Project.Solution.Services.GetRequiredService<INotificationService>();
 
             // This index is displayed to users. That is why we start it from 1.
             var initialDisplayIndex = 1;

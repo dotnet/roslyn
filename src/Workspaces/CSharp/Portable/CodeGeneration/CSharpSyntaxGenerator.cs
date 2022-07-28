@@ -1377,7 +1377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 {
                     // If user wants to set accessibility for a file-local declaration, we remove file.
                     // Otherwise, code will be in error:
-                    // error CS9052: File type '{0}' cannot use accessibility modifiers.
+                    // error CS9052: File-local type '{0}' cannot use accessibility modifiers.
                     modifiers = modifiers.WithIsFile(false);
                 }
 

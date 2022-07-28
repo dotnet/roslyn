@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 Dim formattingOptions = buffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.LanguageServices, isExplicitFormat)
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
                     document.Id,
-                    document.Project.LanguageServices,
+                    document.Project.Services,
                     formattingOptions,
                     spanToFormat,
                     baseSnapshot,
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                         root,
                         ImmutableArray.Create(textSpanToFormat),
                         formattingOptions,
-                        document.Project.Solution.Workspace.Services,
+                        document.Project.Solution.Services,
                         codeCleanups,
                         cancellationToken).WaitAndGetResult(cancellationToken)
 
@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         Private Shared Function GetCommitFormattingCleanupProvider(
             documentId As DocumentId,
-            languageServices As HostLanguageServices,
+            languageServices As HostProjectServices,
             options As SyntaxFormattingOptions,
             spanToFormat As SnapshotSpan,
             oldSnapshot As ITextSnapshot,
@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         Private Shared Function GetFormattingRules(
             documentId As DocumentId,
-            languageServices As HostLanguageServices,
+            languageServices As HostProjectServices,
             options As SyntaxFormattingOptions,
             spanToFormat As SnapshotSpan,
             oldDirtySpan As SnapshotSpan,
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             ' workaround for VB razor case.
             ' if we are under VB razor, we always use anchor operation otherwise, due to our double formatting, everything will just get messed.
             ' this is really a hacky workaround we should remove this in dev14
-            Dim formattingRuleService = languageServices.WorkspaceServices.GetService(Of IHostDependentFormattingRuleFactoryService)()
+            Dim formattingRuleService = languageServices.SolutionServices.GetService(Of IHostDependentFormattingRuleFactoryService)()
             If formattingRuleService IsNot Nothing Then
                 If formattingRuleService.ShouldUseBaseIndentation(documentId) Then
                     Return Formatter.GetDefaultFormattingRules(languageServices)
@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Private Shared Function GetNumberOfIndentOperations(
-            languageServices As HostLanguageServices,
+            languageServices As HostProjectServices,
             options As SyntaxFormattingOptions,
             syntaxTree As SyntaxTree,
             span As SnapshotSpan,
