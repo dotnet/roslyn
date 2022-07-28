@@ -101,17 +101,17 @@ namespace Microsoft.CodeAnalysis.Completion.Log
                 foreach (var kv in s_statisticLogAggregator)
                 {
                     var statistics = kv.Value.GetStatisticResult();
-                    statistics.WriteTelemetryPropertiesTo(m, prefix: kv.Key.ToString("f") + ".");
+                    statistics.WriteTelemetryPropertiesTo(m, prefix: kv.Key + ".");
                 }
 
                 foreach (var kv in s_countLogAggregator)
                 {
-                    m[kv.Key.ToString("f")] = kv.Value.GetCount();
+                    m[kv.Key.ToString()] = kv.Value.GetCount();
                 }
 
                 foreach (var kv in s_histogramLogAggregator)
                 {
-                    kv.Value.WriteTelemetryPropertiesTo(m, prefix: kv.Key.ToString("f") + ".");
+                    kv.Value.WriteTelemetryPropertiesTo(m, prefix: kv.Key + ".");
                 }
             }));
         }
