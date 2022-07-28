@@ -19,7 +19,7 @@ efforts behind them.
 | [nameof accessing instance members](https://github.com/dotnet/roslyn/issues/40229) | main | [In Progress](https://github.com/dotnet/roslyn/pull/48754) | [YairHalberstadt ](https://github.com/YairHalberstadt) | [333fred](https://github.com/333fred), [AlekseyTs](https://github.com/AlekseyTs)  | [333fred](https://github.com/333fred) |
 | [Lambda default parameters](https://github.com/dotnet/csharplang/issues/6051) | [lambda-default-parameters](https://github.com/dotnet/roslyn/tree/features/lambda-default-parameters) | [In Progress](https://github.com/dotnet/roslyn/issues/62485) | [adamperlin](https://github.com/adamperlin) | [333fred](https://github.com/333fred), [cston](https://github.com/cston)  | [captainsafia](https://github.com/captainsafia) | 
   
-# C# 11
+# C# 11.0
 
 | Feature | Branch | State | Developer | Reviewer | LDM Champ |
 | ------- | ------ | ----- | --------- | -------- | --------- |
