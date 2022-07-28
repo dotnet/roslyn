@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
                 SymbolFilter filter, SearchQuery searchQuery)
             {
-                var service = _solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
+                var service = _solution.Services.GetService<ISymbolTreeInfoCacheService>();
                 var info = await service.TryGetMetadataSymbolTreeInfoAsync(_solution, _metadataReference, CancellationToken).ConfigureAwait(false);
                 if (info == null)
                 {

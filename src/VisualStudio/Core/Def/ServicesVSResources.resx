@@ -1987,7 +1987,7 @@ Additional information: {1}</value>
     <value>Rename</value>
   </data>
   <data name="Rename_asynchronously_experimental" xml:space="preserve">
-    <value>Rename asynchronously experimental</value>
+    <value>Rename asynchronously (experimental)</value>
   </data>
   <data name="Fix_analyzer_warnings_and_errors" xml:space="preserve">
     <value>Fix analyzer warnings and errors</value>

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
             protected override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
-                var services = _document.Project.Solution.Workspace.Services;
+                var services = _document.Project.Solution.Services;
                 var declarationService = _document.GetRequiredLanguageService<ISymbolDeclarationService>();
                 var constructor = declarationService.GetDeclarations(
                     _constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();

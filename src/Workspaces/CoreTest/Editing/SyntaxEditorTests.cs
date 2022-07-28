@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
             Assert.IsAssignableFrom<TSyntax>(node);
 
             var options = CSharpSyntaxFormattingOptions.Default;
-            var formatted = Formatter.Format(node, EmptyWorkspace.Services, options, CancellationToken.None);
+            var formatted = Formatter.Format(node, EmptyWorkspace.Services.SolutionServices, options, CancellationToken.None);
             var actualText = formatted.ToFullString();
             Assert.Equal(expectedText, actualText);
         }
 
         private SyntaxEditor GetEditor(SyntaxNode root)
-            => new SyntaxEditor(root, EmptyWorkspace.Services);
+            => new SyntaxEditor(root, EmptyWorkspace.Services.SolutionServices);
 
         [Fact]
         public void TestReplaceNode()

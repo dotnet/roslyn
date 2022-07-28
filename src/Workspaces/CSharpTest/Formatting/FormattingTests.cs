@@ -4628,7 +4628,7 @@ class innerClass
 
             Assert.NotNull(property);
             using var workspace = new AdhocWorkspace();
-            var newProperty = Formatter.Format(property, workspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
+            var newProperty = Formatter.Format(property, workspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
 
             Assert.Equal(expected, newProperty.ToFullString());
         }
@@ -8323,7 +8323,7 @@ class Program
         public void DontAssumeCertainNodeAreAlwaysParented()
         {
             var block = SyntaxFactory.Block();
-            Formatter.Format(block, new AdhocWorkspace().Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
+            Formatter.Format(block, new AdhocWorkspace().Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
         }
 
         [WorkItem(776, "https://github.com/dotnet/roslyn/issues/776")]
@@ -9398,7 +9398,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(25098, "https://github.com/dotnet/roslyn/issues/25098")]
         public void FormatSingleStructDeclaration()
-            => Formatter.Format(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
+            => Formatter.Format(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatIndexExpression()

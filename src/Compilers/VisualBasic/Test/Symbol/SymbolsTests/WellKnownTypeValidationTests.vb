@@ -551,7 +551,7 @@ End Namespace
                          WellKnownType.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute,
                          WellKnownType.System_MemoryExtensions,
                          WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute,
-                        WellKnownType.System_Runtime_CompilerServices_LifetimeAnnotationAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_LifetimeAnnotationAttribute,
                          WellKnownType.System_MemoryExtensions
                         ' Not available on all platforms.
                         Continue For
@@ -739,8 +739,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
                          WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
-                         WellKnownMember.System_GC__AllocateUninitializedArray_T
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
                         ' Not always available.
                         Continue For
                 End Select
@@ -892,8 +891,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
                          WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
-                         WellKnownMember.System_GC__AllocateUninitializedArray_T
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
                         ' Not always available.
                         Continue For
                 End Select
