@@ -130,40 +130,24 @@ using System.Runtime.CompilerServices;
     [ScopedRef] static object M1() => throw null;
     [ScopedRef] static object M2() => throw null;
     static void M3<[ScopedRef] T>() { }
-}";
-            var comp = CreateCompilation(new[] { ScopedRefAttributeDefinition, source });
+}
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = false)]
+    public sealed class ScopedRefAttribute : Attribute
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
             // https://github.com/dotnet/roslyn/issues/62124: Re-enable check for ScopedRefAttribute in ReportExplicitUseOfReservedAttributes.
             comp.VerifyDiagnostics(
-                // (3,10): error CS0592: Attribute 'ScopedRef' is not valid on this declaration type. It is only valid on 'parameter' declarations.
-                // [module: ScopedRef]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ScopedRef").WithArguments("ScopedRef", "parameter").WithLocation(3, 10),
-                // (4,2): error CS0592: Attribute 'ScopedRef' is not valid on this declaration type. It is only valid on 'parameter' declarations.
-                // [ScopedRef] class Program
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ScopedRef").WithArguments("ScopedRef", "parameter").WithLocation(4, 2),
-                // (6,6): error CS0592: Attribute 'ScopedRef' is not valid on this declaration type. It is only valid on 'parameter' declarations.
-                //     [ScopedRef] object F;
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ScopedRef").WithArguments("ScopedRef", "parameter").WithLocation(6, 6),
                 // (6,24): warning CS0169: The field 'Program.F' is never used
                 //     [ScopedRef] object F;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("Program.F").WithLocation(6, 24),
-                // (7,6): error CS0592: Attribute 'ScopedRef' is not valid on this declaration type. It is only valid on 'parameter' declarations.
-                //     [ScopedRef] event EventHandler E;
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ScopedRef").WithArguments("ScopedRef", "parameter").WithLocation(7, 6),
                 // (7,36): warning CS0067: The event 'Program.E' is never used
                 //     [ScopedRef] event EventHandler E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Program.E").WithLocation(7, 36),
-                // (8,6): error CS0592: Attribute 'ScopedRef' is not valid on this declaration type. It is only valid on 'parameter' declarations.
-                //     [ScopedRef] object P { get; }
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ScopedRef").WithArguments("ScopedRef", "parameter").WithLocation(8, 6),
-                // (9,6): error CS0592: Attribute 'ScopedRef' is not valid on this declaration type. It is only valid on 'parameter' declarations.
-                //     [ScopedRef] static object M1() => throw null;
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ScopedRef").WithArguments("ScopedRef", "parameter").WithLocation(9, 6),
-                // (10,6): error CS0592: Attribute 'ScopedRef' is not valid on this declaration type. It is only valid on 'parameter' declarations.
-                //     [ScopedRef] static object M2() => throw null;
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ScopedRef").WithArguments("ScopedRef", "parameter").WithLocation(10, 6),
-                // (11,21): error CS0592: Attribute 'ScopedRef' is not valid on this declaration type. It is only valid on 'parameter' declarations.
-                //     static void M3<[ScopedRef] T>() { }
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ScopedRef").WithArguments("ScopedRef", "parameter").WithLocation(11, 21));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Program.E").WithLocation(7, 36));
         }
 
         [Fact]
