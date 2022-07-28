@@ -45,12 +45,11 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
 
     public void Deregister(Workspace workspace)
     {
+        workspace.WorkspaceChanged -= OnLspWorkspaceChanged;
         lock (_gate)
         {
             _registrations = _registrations.Remove(workspace);
         }
-
-        workspace.WorkspaceChanged -= OnLspWorkspaceChanged;
     }
 
     private void OnLspWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
