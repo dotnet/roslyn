@@ -120,6 +120,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     // And we better succeed at actually removing.
                     Contract.ThrowIfFalse(_workspace._solutionChecksumToSolution.Remove(SolutionChecksum));
+
+                    _workspace.CheckCacheInvariants_NoLock();
                 }
             }
         }

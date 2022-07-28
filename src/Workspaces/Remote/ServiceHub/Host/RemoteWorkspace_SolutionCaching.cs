@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
+            CheckCacheInvariants_NoLock();
+
             var solution = GetOrCreateSolutionAndAddInFlightCount_NoLock();
 
             // The solution must now have a valid in-flight-count.
@@ -64,6 +66,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 solution.TryKickOffPrimaryBranchWork_NoLock((disconnectedSolution, cancellationToken) =>
                     this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, disconnectedSolution, cancellationToken));
             }
+
+            CheckCacheInvariants_NoLock();
 
             return solution;
 
@@ -176,6 +180,35 @@ namespace Microsoft.CodeAnalysis.Remote
                         }
                     }
                 }
+            }
+        }
+
+        private void CheckCacheInvariants_NoLock()
+        {
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+
+            foreach (var (solutionChecksum, solution) in _solutionChecksumToSolution)
+            {
+                // Anything in this dictionary is currently in flight with an existing request.  So it must have an
+                // in-flight-count of at least 1.  Note: this in-flight-request may be an actual request that has come
+                // in from the client.  Or it can be a virtual one we've created through _lastAnyBranchSolution or
+                // _lastPrimaryBranchSolution
+                Contract.ThrowIfTrue(solution.InFlightCount < 1);
+                Contract.ThrowIfTrue(solutionChecksum != solution.SolutionChecksum);
+            }
+
+            if (_lastAnyBranchSolution != null)
+            {
+                // if we're holding onto this solution, it must also be in _solutionChecksumToSolution.
+                Contract.ThrowIfFalse(_solutionChecksumToSolution.TryGetValue(_lastAnyBranchSolution.SolutionChecksum, out var solution));
+                Contract.ThrowIfFalse(_lastAnyBranchSolution == solution);
+            }
+
+            if (_lastPrimaryBranchSolution != null)
+            {
+                // if we're holding onto this solution, it must also be in _solutionChecksumToSolution.
+                Contract.ThrowIfFalse(_solutionChecksumToSolution.TryGetValue(_lastPrimaryBranchSolution.SolutionChecksum, out var solution));
+                Contract.ThrowIfFalse(_lastPrimaryBranchSolution == solution);
             }
         }
     }
