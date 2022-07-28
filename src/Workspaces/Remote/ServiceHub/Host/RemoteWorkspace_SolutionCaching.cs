@@ -54,7 +54,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // The solution must now have a valid in-flight-count.
                 Contract.ThrowIfTrue(solution.InFlightCount < 1);
 
-                // Now mark this as the last-requested-solution for this cache.
+                // Now mark this as the last-requested-solution.  Ensuring we keep alive at least one recent solution even
+                // if there are no current host requests active.
                 SetLastRequestedSolution_NoLock(solution);
 
                 // Our in-flight-count must not have somehow dropped here.  Note: we cannot assert that it incremented.
