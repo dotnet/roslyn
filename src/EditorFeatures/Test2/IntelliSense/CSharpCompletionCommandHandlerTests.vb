@@ -8416,7 +8416,8 @@ namespace B
                 }}"
                 state.SendTypeChars("C")
                 Dim expectingItem = state.GetCompletionItems().First(Function(item) item.DisplayText.Equals("C11"))
-                Assert.True(SymbolCompletionItem.GetShouldProvideParenthesisCompletion(expectingItem))
+                Dim includeDotCommitCharacter As Boolean
+                Assert.True(SymbolCompletionItem.GetShouldProvideParenthesisCompletion(expectingItem, includeDotCommitCharacter))
 
                 state.SendSelectCompletionItem("C11")
                 state.SendTypeChars(commitChar)
@@ -8453,7 +8454,8 @@ namespace B
                 }}"
                 state.SendTypeChars("D")
                 Dim expectingItem = state.GetCompletionItems().First(Function(item) item.DisplayText.Equals("DDD"))
-                Assert.True(SymbolCompletionItem.GetShouldProvideParenthesisCompletion(expectingItem))
+                Dim includeDotCommitCharacter As Boolean
+                Assert.True(SymbolCompletionItem.GetShouldProvideParenthesisCompletion(expectingItem, includeDotCommitCharacter))
 
                 state.SendSelectCompletionItem("DDD")
                 state.SendTypeChars(";"c)
@@ -8492,7 +8494,8 @@ namespace B
                 }}"
                 state.SendTypeChars("D")
                 Dim expectingItem = state.GetCompletionItems().First(Function(item) item.DisplayText.Equals("DDD"))
-                Assert.False(SymbolCompletionItem.GetShouldProvideParenthesisCompletion(expectingItem))
+                Dim includeDotCommitCharacter As Boolean
+                Assert.False(SymbolCompletionItem.GetShouldProvideParenthesisCompletion(expectingItem, includeDotCommitCharacter))
 
                 state.SendSelectCompletionItem("DDD")
                 state.SendTypeChars(";"c)
@@ -8529,7 +8532,8 @@ namespace B
                 }}"
                 state.SendTypeChars("D")
                 Dim expectingItem = state.GetCompletionItems().First(Function(item) item.DisplayText.Equals("DDD"))
-                Assert.True(SymbolCompletionItem.GetShouldProvideParenthesisCompletion(expectingItem))
+                Dim includeDotCommitCharacter As Boolean
+                Assert.True(SymbolCompletionItem.GetShouldProvideParenthesisCompletion(expectingItem, includeDotCommitCharacter))
 
                 state.SendSelectCompletionItem("DDD")
                 state.SendTypeChars("."c)
@@ -8563,7 +8567,8 @@ namespace B
                 }}"
                 state.SendTypeChars("C")
                 Dim expectingItem = state.GetCompletionItems().First(Function(item) item.DisplayText.Equals("C11"))
-                Assert.False(SymbolCompletionItem.GetShouldProvideParenthesisCompletion(expectingItem))
+                Dim includeDotCommitCharacter As Boolean
+                Assert.False(SymbolCompletionItem.GetShouldProvideParenthesisCompletion(expectingItem, includeDotCommitCharacter))
 
                 state.SendSelectCompletionItem("C11")
                 state.SendTypeChars(commitChar)
@@ -8597,7 +8602,8 @@ namespace B
                 }}"
                 state.SendTypeChars("B")
                 Dim expectingItem = state.GetCompletionItems().First(Function(item) item.DisplayText.Equals("AA"))
-                Assert.True(SymbolCompletionItem.GetShouldProvideParenthesisCompletion(expectingItem))
+                Dim includeDotCommitCharacter As Boolean
+                Assert.True(SymbolCompletionItem.GetShouldProvideParenthesisCompletion(expectingItem, includeDotCommitCharacter))
 
                 state.SendSelectCompletionItem("Bar")
                 state.SendTypeChars(commitChar)
@@ -8631,7 +8637,8 @@ namespace B
                 }}"
                 state.SendTypeChars("B")
                 Dim expectingItem = state.GetCompletionItems().First(Function(item) item.DisplayText.Equals("AA"))
-                Assert.False(SymbolCompletionItem.GetShouldProvideParenthesisCompletion(expectingItem))
+                Dim includeDotCommitCharacter As Boolean
+                Assert.False(SymbolCompletionItem.GetShouldProvideParenthesisCompletion(expectingItem, includeDotCommitCharacter))
 
                 state.SendSelectCompletionItem("Bar")
 

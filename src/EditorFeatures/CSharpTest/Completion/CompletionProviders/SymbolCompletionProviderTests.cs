@@ -12239,6 +12239,36 @@ delegate void MyDelegate([Some(nameof(p$$))] int parameter);
             await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter", skipSpeculation: true);
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task TypeBeingInstantiatedHaveNestedType(char commitChar)
+        {
+            var markup = @"
+class Program
+{
+    class Nested { }
+
+    void Bar()
+    {
+        var x = new $$
+    }
+}
+";
+            var expectedMark = @$"
+class Program
+{{
+    class Nested {{ }}
+
+    void Bar()
+    {{
+        var x = new Program{(commitChar == '.' ? "" : "()")}{commitChar}
+    }}
+}}
+";
+            await VerifyProviderCommitAsync(markup, "Program", expectedMark, commitChar: commitChar);
+        }
+
         private static string MakeMarkup(string source, string languageVersion = "Preview")
         {
             return $$"""
