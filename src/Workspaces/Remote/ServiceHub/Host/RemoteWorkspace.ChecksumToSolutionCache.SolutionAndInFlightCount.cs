@@ -24,7 +24,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
             private readonly CancellationTokenSource _cancellationTokenSource = new();
 
+            /// <summary>
+            /// Background work to just compute the disconnected solution associated with this <see cref="SolutionChecksum"/>
+            /// </summary>
             private readonly Task<Solution> _anyBranchTask;
+
+            /// <summary>
+            /// Optional work to try to elevate the <see cref=""/>
+            /// </summary>
             private Task<Solution>? _primaryBranchTask;
 
             /// <summary>
@@ -124,14 +131,15 @@ namespace Microsoft.CodeAnalysis.Remote
                     _cancellationTokenSource.Dispose();
 
                     // If we're going away, then we absolutely must not be pointed at in the _lastRequestedSolution field.
-                    Contract.ThrowIfTrue(_cache._lastRequestedSolution == this);
+                    Contract.ThrowIfTrue(_workspace._lastAnyBranchSolution == this);
+                    Contract.ThrowIfTrue(_workspace._lastPrimaryBranchSolution == this);
 
                     // If we're going away, we better find ourself in the mapping for this checksum.
-                    Contract.ThrowIfFalse(_cache._solutionChecksumToSolution.TryGetValue(SolutionChecksum, out var existingSolution));
+                    Contract.ThrowIfFalse(_workspace._solutionChecksumToSolution.TryGetValue(SolutionChecksum, out var existingSolution));
                     Contract.ThrowIfFalse(existingSolution == this);
 
                     // And we better succeed at actually removing.
-                    Contract.ThrowIfFalse(_cache._solutionChecksumToSolution.Remove(SolutionChecksum));
+                    Contract.ThrowIfFalse(_solutionChecksumToSolution.Remove(SolutionChecksum));
                 }
             }
         }
