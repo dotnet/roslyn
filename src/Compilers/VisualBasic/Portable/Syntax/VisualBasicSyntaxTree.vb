@@ -186,6 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       Optional path As String = "",
                                       Optional encoding As Encoding = Nothing,
                                       Optional checksumAlgorithm As SourceHashAlgorithm = SourceHashAlgorithm.Sha1) As SyntaxTree
+            SourceText.ValidateChecksumAlgorithm(checksumAlgorithm)
             Return CreateImpl(root, diagnosticOptions:=Nothing, options, path, encoding, checksumAlgorithm)
         End Function
 

@@ -1289,25 +1289,77 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 WithProjectParseOptions(projectId, new CSharpParseOptions(kind: SourceCodeKind.Script));
 
             var documentId = DocumentId.CreateNewId(projectId);
-            var root = CSharp.SyntaxFactory.ParseCompilationUnit("class C {}");
             var filePath = Path.Combine(TempRoot.Root, "x.cs");
             var folders = new[] { "folder1", "folder2" };
 
+            var root = CSharp.SyntaxFactory.ParseCompilationUnit("class C {}");
             var solution2 = solution.AddDocument(documentId, "name", root, folders, filePath);
-            var document = solution2.GetRequiredDocument(documentId);
-            var sourceText = document.GetTextSynchronously(default);
+            var document2 = solution2.GetRequiredDocument(documentId);
 
-            Assert.Equal("class C {}", sourceText.ToString());
-            Assert.Equal(SourceHashAlgorithm.Sha256, sourceText.ChecksumAlgorithm);
-            AssertEx.Equal(folders, document.Folders);
-            Assert.Equal(filePath, document.FilePath);
-            Assert.False(document.State.Attributes.IsGenerated);
-            Assert.Equal(SourceCodeKind.Script, document.SourceCodeKind);
+            AssertEx.Equal(folders, document2.Folders);
+            Assert.Equal(filePath, document2.FilePath);
+            Assert.False(document2.State.Attributes.IsGenerated);
+            Assert.Equal(SourceCodeKind.Script, document2.SourceCodeKind);
 
             Assert.Throws<ArgumentNullException>("documentId", () => solution.AddDocument(documentId: null!, "name", root));
             Assert.Throws<ArgumentNullException>("name", () => solution.AddDocument(documentId, name: null!, root));
             Assert.Throws<ArgumentNullException>("syntaxRoot", () => solution.AddDocument(documentId, "name", syntaxRoot: null!));
             Assert.Throws<InvalidOperationException>(() => solution.AddDocument(documentId: DocumentId.CreateNewId(ProjectId.CreateNewId()), "name", syntaxRoot: root));
+        }
+
+        [Fact]
+        public void AddDocument_SyntaxRoot_ExplicitTree()
+        {
+            var projectId = ProjectId.CreateNewId();
+            using var workspace = CreateWorkspace();
+
+            var solution = workspace.CurrentSolution.AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp).
+                WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha256).
+                WithProjectParseOptions(projectId, new CSharpParseOptions(kind: SourceCodeKind.Script));
+
+            var documentId = DocumentId.CreateNewId(projectId);
+            var filePath = Path.Combine(TempRoot.Root, "x.cs");
+            var folders = new[] { "folder1", "folder2" };
+
+            var root = CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From("class C {}", encoding: null, SourceHashAlgorithm.Sha1)).GetRoot();
+            Assert.Equal(SourceHashAlgorithm.Sha1, root.SyntaxTree.ChecksumAlgorithm);
+
+            var solution2 = solution.AddDocument(documentId, "name", root, folders, filePath);
+            var document2 = solution2.GetRequiredDocument(documentId);
+            var sourceText = document2.GetTextSynchronously(default);
+            Assert.Equal("class C {}", sourceText.ToString());
+
+            // the checksum algorithm of the tree is ignored, instead the one set on the project is used:
+            Assert.Equal(SourceHashAlgorithm.Sha256, sourceText.ChecksumAlgorithm);
+
+            AssertEx.Equal(folders, document2.Folders);
+            Assert.Equal(filePath, document2.FilePath);
+            Assert.False(document2.State.Attributes.IsGenerated);
+            Assert.Equal(SourceCodeKind.Script, document2.SourceCodeKind);
+        }
+
+        [Fact]
+        public void AddDocument_SyntaxRoot_SynthesizedTree()
+        {
+            var projectId = ProjectId.CreateNewId();
+            using var workspace = CreateWorkspace();
+
+            var solution = workspace.CurrentSolution.AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp).
+                WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha256).
+                WithProjectParseOptions(projectId, new CSharpParseOptions(kind: SourceCodeKind.Script));
+
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            var root = CSharp.SyntaxFactory.ParseCompilationUnit("class C {}");
+            Assert.Equal(SourceHashAlgorithm.Sha1, root.SyntaxTree.ChecksumAlgorithm);
+
+            var solution2 = solution.AddDocument(documentId, "name", root);
+            var document2 = solution2.GetRequiredDocument(documentId);
+            var sourceText = document2.GetTextSynchronously(default);
+            Assert.Equal("class C {}", sourceText.ToString());
+
+            // the checksum algorithm of the tree is ignored, instead the one set on the project is used:
+            Assert.Equal(SourceHashAlgorithm.Sha256, sourceText.ChecksumAlgorithm);
         }
 
 #nullable disable

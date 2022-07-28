@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Text
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -43,10 +44,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic),
                            Optional cloneRoot As Boolean = True)
 
-
                 Debug.Assert(syntaxRoot IsNot Nothing)
                 Debug.Assert(options IsNot Nothing)
                 Debug.Assert(textOpt Is Nothing OrElse textOpt.Encoding Is encodingOpt AndAlso textOpt.ChecksumAlgorithm = checksumAlgorithm)
+                Debug.Assert(SourceHashAlgorithms.IsSupportedAlgorithm(checksumAlgorithm))
 
                 _lazyText = textOpt
                 _encodingOpt = If(encodingOpt, textOpt?.Encoding)

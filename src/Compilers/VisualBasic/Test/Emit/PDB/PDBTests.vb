@@ -66,6 +66,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 
         End Sub
 
+        <Fact>
+        Public Sub EmitDebugInfoForSynthesizedSyntaxTree()
+            Dim tree1 = SyntaxFactory.ParseCompilationUnit("
+#ExternalSource(""test.vb"", 1)  
+Class C
+  Sub M
+  End Sub
+End Class
+#End ExternalSource
+").SyntaxTree
+            Dim tree2 = SyntaxFactory.ParseCompilationUnit("
+Class D
+  Sub M
+  End Sub
+End Class
+").SyntaxTree
+
+            Dim comp = VisualBasicCompilation.Create("test", {tree1, tree2}, TargetFrameworkUtil.StandardReferences, TestOptions.DebugDll)
+
+            Dim result = comp.Emit(New MemoryStream(), pdbStream:=New MemoryStream())
+            result.Diagnostics.Verify()
+
+            comp.VerifyPdb("
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""VB"" />
+    <file id=""2"" name=""test.vb"" language=""VB"" />
+  </files>
+</symbols>
+", format:=DebugInformationFormat.PortablePdb, options:=PdbValidationOptions.ExcludeMethods)
+        End Sub
+
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub CustomDebugEntryPoint_DLL()
             Dim source = "

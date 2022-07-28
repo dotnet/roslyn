@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return new ParsedSyntaxTree(
-                    textOpt: null,
+                    text: null,
                     _text.Encoding,
                     _text.ChecksumAlgorithm,
                     _path,

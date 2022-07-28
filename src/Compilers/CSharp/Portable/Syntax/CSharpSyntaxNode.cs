@@ -72,7 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (parent == null)
                 {
                     // set the tree on the root node atomically
+#pragma warning disable RS0030 // This method is intended to be used from this call site only
                     Interlocked.CompareExchange(ref node._syntaxTree, CSharpSyntaxTree.CreateWithoutClone(node), null);
+#pragma warning restore
                     tree = node._syntaxTree;
                     break;
                 }

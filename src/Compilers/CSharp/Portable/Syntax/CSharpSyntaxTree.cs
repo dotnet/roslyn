@@ -329,8 +329,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a new syntax tree from a syntax node.
         /// </summary>
+        /// <exception cref="ArgumentException"><paramref name="checksumAlgorithm"/> is not a supported algorithm.</exception>
         public static SyntaxTree Create(CSharpSyntaxNode root, CSharpParseOptions? options = null, string? path = "", Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
-            => CreateImpl(root, diagnosticOptions: null, options, path, encoding, checksumAlgorithm);
+        {
+            SourceText.ValidateChecksumAlgorithm(checksumAlgorithm);
+            return CreateImpl(root, diagnosticOptions: null, options, path, encoding, checksumAlgorithm);
+        }
 
         private static SyntaxTree CreateImpl(CSharpSyntaxNode root, ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions, CSharpParseOptions? options, string? path, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm)
         {
@@ -342,8 +346,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 InternalSyntax.DirectiveStack.Empty;
 
             return new ParsedSyntaxTree(
-                textOpt: null,
-                encodingOpt: encoding,
+                text: null,
+                encoding: encoding,
                 checksumAlgorithm: checksumAlgorithm,
                 path: path,
                 options: options ?? CSharpParseOptions.Default,
@@ -377,8 +381,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(root != null);
 
             return new ParsedSyntaxTree(
-                textOpt: null,
-                encodingOpt: null,
+                text: null,
+                encoding: null,
                 checksumAlgorithm: SourceHashAlgorithm.Sha1,
                 path: "",
                 options: CSharpParseOptions.Default,

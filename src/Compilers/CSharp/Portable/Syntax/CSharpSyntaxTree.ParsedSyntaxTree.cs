@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -23,14 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly string _path;
             private readonly CSharpSyntaxNode _root;
             private readonly bool _hasCompilationUnitRoot;
-            private readonly Encoding? _encodingOpt;
+            private readonly Encoding? _encoding;
             private readonly SourceHashAlgorithm _checksumAlgorithm;
             private readonly ImmutableDictionary<string, ReportDiagnostic> _diagnosticOptions;
             private SourceText? _lazyText;
 
             internal ParsedSyntaxTree(
-                SourceText? textOpt,
-                Encoding? encodingOpt,
+                SourceText? text,
+                Encoding? encoding,
                 SourceHashAlgorithm checksumAlgorithm,
                 string? path,
                 CSharpParseOptions options,
@@ -41,10 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(root != null);
                 Debug.Assert(options != null);
-                Debug.Assert(textOpt == null || textOpt.Encoding == encodingOpt && textOpt.ChecksumAlgorithm == checksumAlgorithm);
+                Debug.Assert(text == null || text.Encoding == encoding && text.ChecksumAlgorithm == checksumAlgorithm);
+                Debug.Assert(SourceHashAlgorithms.IsSupportedAlgorithm(checksumAlgorithm));
 
-                _lazyText = textOpt;
-                _encodingOpt = encodingOpt ?? textOpt?.Encoding;
+                _lazyText = text;
+                _encoding = encoding ?? text?.Encoding;
                 _checksumAlgorithm = checksumAlgorithm;
                 _options = options;
                 _path = path ?? string.Empty;
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_lazyText == null)
                 {
-                    Interlocked.CompareExchange(ref _lazyText, this.GetRoot(cancellationToken).GetText(_encodingOpt, _checksumAlgorithm), null);
+                    Interlocked.CompareExchange(ref _lazyText, this.GetRoot(cancellationToken).GetText(_encoding, _checksumAlgorithm), null);
                 }
 
                 return _lazyText;
@@ -78,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override Encoding? Encoding
             {
-                get { return _encodingOpt; }
+                get { return _encoding; }
             }
 
             public override SourceHashAlgorithm ChecksumAlgorithm
@@ -132,8 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return new ParsedSyntaxTree(
-                    textOpt: null,
-                    _encodingOpt,
+                    text: null,
+                    _encoding,
                     _checksumAlgorithm,
                     _path,
                     (CSharpParseOptions)options,
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new ParsedSyntaxTree(
                     _lazyText,
-                    _encodingOpt,
+                    _encoding,
                     _checksumAlgorithm,
                     path,
                     _options,
@@ -177,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new ParsedSyntaxTree(
                     _lazyText,
-                    _encodingOpt,
+                    _encoding,
                     _checksumAlgorithm,
                     _path,
                     _options,

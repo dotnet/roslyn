@@ -38,6 +38,7 @@ M:Microsoft.CodeAnalysis.Editing.SyntaxEditor.#ctor(Microsoft.CodeAnalysis.Synta
 M:Microsoft.CodeAnalysis.FileTextLoader.#ctor(System.String,System.Text.Encoding); Use overload with checksum algorithm
 M:Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SyntaxTree(Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.ParseOptions,System.String,System.Text.Encoding); Use overload with checksum algorithm
 M:Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(System.String,Microsoft.CodeAnalysis.ParseOptions,System.String,System.Text.Encoding,System.Threading.CancellationToken)
+M:Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.CreateWithoutClone(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode); Use CSharpSyntaxTree.Create
 M:Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(System.String,Microsoft.CodeAnalysis.CSharp.CSharpParseOptions,System.String,System.Text.Encoding,System.Threading.CancellationToken); Use API that takes SourceText
 M:Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(System.String,Microsoft.CodeAnalysis.CSharp.CSharpParseOptions,System.String,System.Text.Encoding,System.Collections.Immutable.ImmutableDictionary{System.String,Microsoft.CodeAnalysis.ReportDiagnostic},System.Nullable{System.Boolean},System.Threading.CancellationToken); Use API that takes SourceText
 M:Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.SyntaxTree(Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.ParseOptions,System.String,System.Text.Encoding); Use overload with checksum algorithm
