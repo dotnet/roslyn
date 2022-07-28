@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (solution is not null)
                 {
                     // The cached solution must have a valid in-flight-count
-                    Contract.ThrowIfTrue(_lastAnyBranchSolution.InFlightCount < 0);
+                    Contract.ThrowIfTrue(solution.InFlightCount < 1);
                     return solution;
                 }
 
@@ -94,78 +94,78 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 return solution;
             }
-        }
 
-        private InFlightSolution? TryFastGetSolution_NoLock(Checksum solutionChecksum, bool updatePrimaryBranch)
-        {
-            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
-
-            if (_lastPrimaryBranchSolution?.SolutionChecksum == solutionChecksum)
+            InFlightSolution? TryFastGetSolution_NoLock(Checksum solutionChecksum, bool updatePrimaryBranch)
             {
-                // The cached solution must have a valid in-flight-count
-                Contract.ThrowIfTrue(_lastPrimaryBranchSolution.InFlightCount < 1);
-                return _lastPrimaryBranchSolution;
+                Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+
+                if (_lastPrimaryBranchSolution?.SolutionChecksum == solutionChecksum)
+                {
+                    // The cached solution must have a valid in-flight-count
+                    Contract.ThrowIfTrue(_lastPrimaryBranchSolution.InFlightCount < 1);
+                    return _lastPrimaryBranchSolution;
+                }
+
+                if (_lastAnyBranchSolution?.SolutionChecksum == solutionChecksum)
+                {
+                    // The cached solution must have a valid in-flight-count
+                    Contract.ThrowIfTrue(_lastAnyBranchSolution.InFlightCount < 1);
+                    return _lastAnyBranchSolution;
+                }
+
+                if (_solutionChecksumToSolution.TryGetValue(solutionChecksum, out var solution))
+                {
+                    // The cached solution must have a valid in-flight-count
+                    Contract.ThrowIfTrue(solution.InFlightCount < 1);
+                    return solution;
+                }
+
+                return null;
             }
 
-            if (_lastAnyBranchSolution?.SolutionChecksum == solutionChecksum)
+            void SetLastRequestedSolution_NoLock(InFlightSolution solution)
             {
-                // The cached solution must have a valid in-flight-count
-                Contract.ThrowIfTrue(_lastAnyBranchSolution.InFlightCount < 1);
-                return _lastAnyBranchSolution;
-            }
-
-            if (_solutionChecksumToSolution.TryGetValue(solutionChecksum, out var solution))
-            {
-                // The cached solution must have a valid in-flight-count
+                // The solution being passed in must have a valid in-flight-count since the caller currently has it in flight
                 Contract.ThrowIfTrue(solution.InFlightCount < 1);
-                return solution;
-            }
+                Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-            return null;
-        }
+                // Always set the last requested solution.
+                SetLastRequestedSolution(solution, primaryBranch: false);
 
-        private void SetLastRequestedSolution_NoLock(InFlightSolution solution, bool updatePrimaryBranch)
-        {
-            // The solution being passed in must have a valid in-flight-count since the caller currently has it in flight
-            Contract.ThrowIfTrue(solution.InFlightCount < 1);
-            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+                // If we're updating the primary branch, then set the last requested primary branch solution as well.
+                if (updatePrimaryBranchAsync != null)
+                    SetLastRequestedSolution(solution, primaryBranch: true);
 
-            // Always set the last requested solution.
-            SetLastRequestedSolution(solution, primaryBranch: false);
+                return;
 
-            // If we're updating the primary branch, then set the last requested primary branch solution as well.
-            if (updatePrimaryBranch)
-                SetLastRequestedSolution(solution, primaryBranch: true);
-
-            return;
-
-            void SetLastRequestedSolution(InFlightSolution solution, bool primaryBranch)
-            {
-                // Keep track of the existing solution so we can decrement the in-flight-count on it once done.
-                var solutionToDecrement = primaryBranch ? _lastPrimaryBranchSolution : _lastAnyBranchSolution;
-
-                // Increase the in-flight-count as we are now holding onto this solution as well.
-                solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
-
-                // At this point our caller has upped the in-flight-count and we have upped it as well, so we must at least have a count of 2.
-                Contract.ThrowIfTrue(solution.InFlightCount < 2);
-
-                if (primaryBranch)
+                void SetLastRequestedSolution(InFlightSolution solution, bool primaryBranch)
                 {
-                    _lastPrimaryBranchSolution = solution;
-                }
-                else
-                {
-                    _lastAnyBranchSolution = solution;
-                }
+                    // Keep track of the existing solution so we can decrement the in-flight-count on it once done.
+                    var solutionToDecrement = primaryBranch ? _lastPrimaryBranchSolution : _lastAnyBranchSolution;
 
-                // Decrement the in-flight-count on the last solution we were pointing at.  If we were the last
-                // count on it then it will get removed from the cache.
-                if (solutionToDecrement != null)
-                {
-                    // If were holding onto this solution, it must have a legal in-flight-count.
-                    Contract.ThrowIfTrue(solutionToDecrement.InFlightCount < 1);
-                    solutionToDecrement.DecrementInFlightCount_WhileAlreadyHoldingLock();
+                    // Increase the in-flight-count as we are now holding onto this solution as well.
+                    solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
+
+                    // At this point our caller has upped the in-flight-count and we have upped it as well, so we must at least have a count of 2.
+                    Contract.ThrowIfTrue(solution.InFlightCount < 2);
+
+                    if (primaryBranch)
+                    {
+                        _lastPrimaryBranchSolution = solution;
+                    }
+                    else
+                    {
+                        _lastAnyBranchSolution = solution;
+                    }
+
+                    // Decrement the in-flight-count on the last solution we were pointing at.  If we were the last
+                    // count on it then it will get removed from the cache.
+                    if (solutionToDecrement != null)
+                    {
+                        // If were holding onto this solution, it must have a legal in-flight-count.
+                        Contract.ThrowIfTrue(solutionToDecrement.InFlightCount < 1);
+                        solutionToDecrement.DecrementInFlightCount_WhileAlreadyHoldingLock();
+                    }
                 }
             }
         }
