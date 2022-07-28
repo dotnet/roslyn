@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
                 // in-flight-count of 1 to represent our caller. 
-                solution = new InFlightSolution(this, solutionChecksum, computeDisconnectedSolutionAsync, updatePrimaryBranchAsync);
+                solution = new InFlightSolution(this, solutionChecksum, computeDisconnectedSolutionAsync);
                 Contract.ThrowIfFalse(solution.InFlightCount == 1);
 
                 _solutionChecksumToSolution.Add(solutionChecksum, solution);

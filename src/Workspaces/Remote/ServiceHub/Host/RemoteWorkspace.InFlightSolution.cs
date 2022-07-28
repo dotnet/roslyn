@@ -47,16 +47,12 @@ namespace Microsoft.CodeAnalysis.Remote
             public InFlightSolution(
                 RemoteWorkspace workspace,
                 Checksum solutionChecksum,
-                Func<CancellationToken, Task<Solution>> computeDisconnectedSolutionAsync,
-                Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync)
+                Func<CancellationToken, Task<Solution>> computeDisconnectedSolutionAsync)
             {
                 _workspace = workspace;
                 SolutionChecksum = solutionChecksum;
 
                 _disconnectedSolutionTask = computeDisconnectedSolutionAsync(_cancellationTokenSource.Token);
-
-                // If we were asked to make this the primary workspace, then kick off that work immediately as well.
-                TryKickOffPrimaryBranchWork_NoLock(updatePrimaryBranchAsync);
             }
 
             /// <summary>
