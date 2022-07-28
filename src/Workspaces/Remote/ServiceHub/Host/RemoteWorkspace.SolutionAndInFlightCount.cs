@@ -86,10 +86,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            private void TryKickOffPrimaryBranchWork_NoLock(Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync)
-            {
-            }
-
             public async ValueTask<Solution> GetSolutionAsync(CancellationToken cancellationToken)
             {
                 // Defer to the primary branch task if we have it, otherwise, fallback to the any-branch-task. This
