@@ -49,14 +49,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 // From this point on we are mutating state.  Ensure we absolutely do not cancel accidentally.
                 cancellationToken = CancellationToken.None;
 
-                var solution = GetOrCreateSolution_NoLock();
+                var solution = GetOrCreateSolutionAndAddInFlightCount_NoLock();
 
-                // The solution must have a valid in-flight-count.
+                // The solution must now have a valid in-flight-count.
                 Contract.ThrowIfTrue(solution.InFlightCount < 1);
-
-                // Increase the count as our caller now is keeping this solution in-flight
-                solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
-                Contract.ThrowIfTrue(solution.InFlightCount < 2);
 
                 // Now mark this as the last-requested-solution for this cache.
                 SetLastRequestedSolution_NoLock(solution);
@@ -64,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Our in-flight-count must not have somehow dropped here.  Note: we cannot assert that it incremented.
                 // For example, if TryFastGetSolution found the item in the last-requested-solution slot then trying to
                 // set it again as the last-requested-solution will not change anything.
-                Contract.ThrowIfTrue(solution.InFlightCount < 2);
+                Contract.ThrowIfTrue(solution.InFlightCount < 1);
 
                 // We may be getting back a solution that only was computing a non-primary branch.  If we were asked
                 // to compute the primary branch as well, let it know so it can start that now.
@@ -73,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return solution;
             }
 
-            InFlightSolution GetOrCreateSolution_NoLock()
+            InFlightSolution GetOrCreateSolutionAndAddInFlightCount_NoLock()
             {
                 Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
@@ -82,6 +78,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     // The cached solution must have a valid in-flight-count
                     Contract.ThrowIfTrue(solution.InFlightCount < 1);
+
+                    // Increase the count as our caller now is keeping this solution in-flight
+                    solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
+                    Contract.ThrowIfTrue(solution.InFlightCount < 2);
+
                     return solution;
                 }
 
@@ -125,9 +126,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
             void SetLastRequestedSolution_NoLock(InFlightSolution solution)
             {
+                Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+
                 // The solution being passed in must have a valid in-flight-count since the caller currently has it in flight
                 Contract.ThrowIfTrue(solution.InFlightCount < 1);
-                Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
                 // Always set the last requested solution.
                 SetLastRequestedSolution(solution, primaryBranch: false);
@@ -165,6 +167,13 @@ namespace Microsoft.CodeAnalysis.Remote
                         // If were holding onto this solution, it must have a legal in-flight-count.
                         Contract.ThrowIfTrue(solutionToDecrement.InFlightCount < 1);
                         solutionToDecrement.DecrementInFlightCount_WhileAlreadyHoldingLock();
+
+                        if (solutionToDecrement.InFlightCount == 0)
+                        {
+                            Contract.ThrowIfTrue(_lastAnyBranchSolution == solutionToDecrement);
+                            Contract.ThrowIfTrue(_lastPrimaryBranchSolution == solutionToDecrement);
+                            Contract.ThrowIfFalse(_solutionChecksumToSolution.ContainsKey(solutionChecksum));
+                        }
                     }
                 }
             }

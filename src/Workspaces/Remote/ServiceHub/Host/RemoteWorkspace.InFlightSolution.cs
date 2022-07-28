@@ -99,14 +99,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 return await task.WithCancellation(cancellationToken).ConfigureAwait(false);
             }
 
-            public void IncrementInFlightCount()
-            {
-                using (_workspace._gate.DisposableWait(CancellationToken.None))
-                {
-                    IncrementInFlightCount_WhileAlreadyHoldingLock();
-                }
-            }
-
             public void IncrementInFlightCount_WhileAlreadyHoldingLock()
             {
                 Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
