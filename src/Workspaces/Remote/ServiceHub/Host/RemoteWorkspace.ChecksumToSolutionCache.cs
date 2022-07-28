@@ -25,13 +25,12 @@ namespace Microsoft.CodeAnalysis.Remote
             private readonly SemaphoreSlim _gate;
 
             /// <summary>
-            /// The last checksum and solution requested by a service. This effectively adds an additional
-            /// in-flight-count to one of the items in <see cref="_solutionChecksumToSolution"/> ensuring that the very
-            /// last solution requested is kept alive by us, even if there are no active requests currently in progress
-            /// for that solution.  That way if we have two non-concurrent requests for that same solution, with no
-            /// intervening updates, we can cache and keep the solution around instead of having to recompute it.
+            /// The last solution requested by a service. This effectively adds an additional in-flight-count to one of
+            /// the items in <see cref="_solutionChecksumToSolution"/> ensuring that the very last solution requested is
+            /// kept alive by us, even if there are no active requests currently in progress for that solution.  That
+            /// way if we have two non-concurrent requests for that same solution, with no intervening updates, we can
+            /// cache and keep the solution around instead of having to recompute it.
             /// </summary>
-            private Checksum? _lastRequestedChecksum;
             private SolutionAndInFlightCount? _lastRequestedSolution;
 
             /// <summary>
@@ -77,11 +76,8 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-                if (_lastRequestedChecksum == solutionChecksum)
+                if (_lastRequestedSolution?.SolutionChecksum == solutionChecksum)
                 {
-                    // If we had a checksum match, then we must have a cached solution.
-                    Contract.ThrowIfNull(_lastRequestedSolution);
-
                     // The cached solution must have a valid in-flight-count
                     Contract.ThrowIfTrue(_lastRequestedSolution.InFlightCount < 0);
                     return _lastRequestedSolution;
@@ -150,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     // At this point our caller has upped the in-flight-count and we have upped it as well, so we must at least have a count of 2.
                     Contract.ThrowIfTrue(solution.InFlightCount < 2);
 
-                    (_lastRequestedSolution, _lastRequestedChecksum) = (solution, solutionChecksum);
+                    _lastRequestedSolution = solution;
 
                     // Decrement the in-flight-count on the last solution we were pointing at.  If we were the last
                     // count on it then it will get removed from the cache.
