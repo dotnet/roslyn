@@ -53,44 +53,56 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     // From this point on we are mutating state.  Ensure we absolutely do not cancel accidentally.
-                    cancellationToken = default;
+                    cancellationToken = CancellationToken.None;
 
-                    var solution = TryFastGetSolution_NoLock_NoInFlightCountChange(solutionChecksum);
-
-                    if (solution != null)
-                    {
-                        Contract.ThrowIfTrue(solution.InFlightCount < 0);
-
-                        // Increase the count as our caller now is keeping this solution in-flight
-                        solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
-
-                        Contract.ThrowIfTrue(solution.InFlightCount < 1);
-                    }
-
-                    return solution;
+                    return TryFastGetSolutionAndAddInFlightCount_NoLock(solutionChecksum);
                 }
             }
 
-            public SolutionAndInFlightCount? TryFastGetSolution_NoLock_NoInFlightCountChange(
-                Checksum solutionChecksum)
+            public SolutionAndInFlightCount? TryFastGetSolutionAndAddInFlightCount_NoLock(Checksum solutionChecksum)
             {
                 Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-                if (_lastRequestedSolution?.SolutionChecksum == solutionChecksum)
-                {
-                    // The cached solution must have a valid in-flight-count
-                    Contract.ThrowIfTrue(_lastRequestedSolution.InFlightCount < 0);
-                    return _lastRequestedSolution;
-                }
+                var solution = TryFastGetSolution();
+                if (solution is null)
+                    return null;
 
-                if (_solutionChecksumToSolution.TryGetValue(solutionChecksum, out var solution))
-                {
-                    // The cached solution must have a valid in-flight-count
-                    Contract.ThrowIfTrue(solution.InFlightCount < 0);
-                    return solution;
-                }
+                // If we found the solution, it must have a valid in-flight-count.
+                Contract.ThrowIfTrue(solution.InFlightCount < 0);
 
-                return null;
+                // Increase the count as our caller now is keeping this solution in-flight
+                solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
+
+                Contract.ThrowIfTrue(solution.InFlightCount < 1);
+
+                // Now mark this as the last-requested-solution for this cache.
+                SetLastRequestedSolution_NoLock(solution);
+
+                // Our in-flight-count must not have somehow dropped here.  Note: we cannot assert that it incremented.
+                // For example, if TryFastGetSolution found the item in the last-requested-solution slot then trying to
+                // set it again as the last-requested-solution will not change anything.
+                Contract.ThrowIfTrue(solution.InFlightCount < 1);
+
+                return solution;
+
+                SolutionAndInFlightCount? TryFastGetSolution()
+                {
+                    if (_lastRequestedSolution?.SolutionChecksum == solutionChecksum)
+                    {
+                        // The cached solution must have a valid in-flight-count
+                        Contract.ThrowIfTrue(_lastRequestedSolution.InFlightCount < 0);
+                        return _lastRequestedSolution;
+                    }
+
+                    if (_solutionChecksumToSolution.TryGetValue(solutionChecksum, out var solution))
+                    {
+                        // The cached solution must have a valid in-flight-count
+                        Contract.ThrowIfTrue(solution.InFlightCount < 0);
+                        return solution;
+                    }
+
+                    return null;
+                }
             }
 
             public async ValueTask<SolutionAndInFlightCount> SlowGetOrCreateSolutionAndAddInFlightCountAsync(
@@ -99,63 +111,60 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     // From this point on we are mutating state.  Ensure we absolutely do not cancel accidentally.
-                    cancellationToken = default;
+                    cancellationToken = CancellationToken.None;
 
                     // see if someone already raced with us and set the solution in the cache while we were waiting on the lock.
-                    var solution = TryFastGetSolution_NoLock_NoInFlightCountChange(solutionChecksum);
+                    var solution = TryFastGetSolutionAndAddInFlightCount_NoLock(solutionChecksum);
                     if (solution != null)
                     {
-                        // The cached solution must have a valid in-flight-count
-                        Contract.ThrowIfFalse(solution.InFlightCount < 0);
-
-                        // Increase the count as our caller now is keeping this solution in-flight
-                        solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
-                        Contract.ThrowIfFalse(solution.InFlightCount < 1);
-
+                        // We must have an in-flight-count of at least 2.  One for our caller who is requesting this,
+                        // and one because TryFastGetSolutionAndAddInFlightCount_NoLock would have put this in the 
+                        // last-requested-solution bucket and increased the count to that.
+                        Contract.ThrowIfFalse(solution.InFlightCount < 2);
                         return solution;
                     }
-                    else
-                    {
-                        // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
-                        // in-flight-count of 1 to represent our caller.
-                        solution = new SolutionAndInFlightCount(this, solutionChecksum, getSolutionAsync);
-                        Contract.ThrowIfFalse(solution.InFlightCount == 1);
 
-                        _solutionChecksumToSolution.Add(solutionChecksum, solution);
-                        return solution;
-                    }
+                    // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
+                    // in-flight-count of 1 to represent our caller.
+                    solution = new SolutionAndInFlightCount(this, solutionChecksum, getSolutionAsync);
+                    Contract.ThrowIfFalse(solution.InFlightCount == 1);
+
+                    _solutionChecksumToSolution.Add(solutionChecksum, solution);
+
+                    // Also set this as the last-requested-solution.  Note this means our ref-count must go up since we
+                    // just created this item and will always succeed at then increating the in-flight-count ourselves
+                    // when we set the last-requsted-solution.
+                    SetLastRequestedSolution_NoLock(solution);
+                    Contract.ThrowIfFalse(solution.InFlightCount == 2);
+
+                    return solution;
                 }
             }
 
-            public async Task SetLastRequestedSolutionAsync(SolutionAndInFlightCount solution, CancellationToken cancellationToken)
+            private void SetLastRequestedSolution_NoLock(SolutionAndInFlightCount solution)
             {
                 // The solution being passed in must have a valid in-flight-count since the caller currently has it in flight
                 Contract.ThrowIfTrue(solution.InFlightCount < 1);
+                Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                // Keep track of the existing solution so we can decrement the in-flight-count on it once done.
+                var solutionToDecrement = _lastRequestedSolution;
+
+                // Increase the in-flight-count as we are now holding onto this solution as well.
+                solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
+
+                // At this point our caller has upped the in-flight-count and we have upped it as well, so we must at least have a count of 2.
+                Contract.ThrowIfTrue(solution.InFlightCount < 2);
+
+                _lastRequestedSolution = solution;
+
+                // Decrement the in-flight-count on the last solution we were pointing at.  If we were the last
+                // count on it then it will get removed from the cache.
+                if (solutionToDecrement != null)
                 {
-                    // From this point on we are mutating state.  Ensure we absolutely do not cancel accidentally.
-                    cancellationToken = default;
-
-                    // Keep track of the existing solution so we can decrement the in-flight-count on it once done.
-                    var solutionToDecrement = _lastRequestedSolution;
-
-                    // Increase the in-flight-count as we are now holding onto this solution as well.
-                    solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
-
-                    // At this point our caller has upped the in-flight-count and we have upped it as well, so we must at least have a count of 2.
-                    Contract.ThrowIfTrue(solution.InFlightCount < 2);
-
-                    _lastRequestedSolution = solution;
-
-                    // Decrement the in-flight-count on the last solution we were pointing at.  If we were the last
-                    // count on it then it will get removed from the cache.
-                    if (solutionToDecrement != null)
-                    {
-                        // If were holding onto this solution, it must have a legal in-flight-count.
-                        Contract.ThrowIfTrue(solutionToDecrement.InFlightCount < 1);
-                        solutionToDecrement.DecrementInFlightCount_WhileAlreadyHoldingLock();
-                    }
+                    // If were holding onto this solution, it must have a legal in-flight-count.
+                    Contract.ThrowIfTrue(solutionToDecrement.InFlightCount < 1);
+                    solutionToDecrement.DecrementInFlightCount_WhileAlreadyHoldingLock();
                 }
             }
         }

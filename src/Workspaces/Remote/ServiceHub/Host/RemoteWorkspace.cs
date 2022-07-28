@@ -132,14 +132,6 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 Contract.ThrowIfTrue(solution.InFlightCount < 1);
 
-                // Store this around so that if another call comes through for this same checksum, they will see the
-                // solution we just computed, even if we have returned.  This also ensures that if we promoted a
-                // non-primary-solution to a primary-solution that it will now take precedence in all our caches for this
-                // particular checksum.
-                await _anyBranchSolutionCache.SetLastRequestedSolutionAsync(solution, cancellationToken).ConfigureAwait(false);
-                if (updatePrimaryBranch)
-                    await _primaryBranchSolutionCache.SetLastRequestedSolutionAsync(solution, cancellationToken).ConfigureAwait(false);
-
                 // Can't assert anything more than this.  We know we're keeping this solution in-flight.  However, even
                 // though we just added it to the caches as hte last-requested-solution, it might have been immediately
                 // overwritten by some other request on a another thread.
