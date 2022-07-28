@@ -93,4 +93,8 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Handler\NewFolder\" />
+  </ItemGroup>
+
 </Project>

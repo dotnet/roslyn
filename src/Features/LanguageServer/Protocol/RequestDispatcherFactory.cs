@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(RequestDispatcher<RequestContext>)), Shared]
+    [ExportCSharpVisualBasicLspServiceFactory(typeof(RoslynRequestDispatcher)), Shared]
     internal class RequestDispatcherFactory : ILspServiceFactory
     {
         [ImportingConstructor]
@@ -23,12 +23,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             return new RoslynRequestDispatcher(lspServices);
         }
+    }
 
-        private class RoslynRequestDispatcher : RequestDispatcher<RequestContext>, ILspService
+    // We need this as a wrapper around RequestDispatcher<> because it does not implement ILspService
+    internal class RoslynRequestDispatcher : RequestDispatcher<RequestContext>, ILspService
+    {
+        public RoslynRequestDispatcher(ILspServices lspServices) : base(lspServices)
         {
-            public RoslynRequestDispatcher(ILspServices lspServices) : base(lspServices)
-            {
-            }
         }
     }
 }

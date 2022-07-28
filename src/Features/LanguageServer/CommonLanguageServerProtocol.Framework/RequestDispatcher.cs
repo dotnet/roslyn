@@ -144,24 +144,58 @@ public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestC
     /// <summary>
     /// Retrieves the generic argument information from the request handler type without instantiating it.
     /// </summary>
-    private static (Type requestType, Type responseType, Type requestContext) ConvertHandlerTypeToRequestResponseTypes(Type handlerType)
+    private static (Type? requestType, Type? responseType, Type requestContext) ConvertHandlerTypeToRequestResponseTypes(Type handlerType)
     {
         var requestHandlerGenericType = handlerType.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequestHandler<,,>)).SingleOrDefault();
-        if (requestHandlerGenericType is null)
+        var parameterlessNotificationHandlerGenericType = handlerType.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(INotificationHandler<>)).SingleOrDefault();
+        var notificationHandlerGenericType = handlerType.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(INotificationHandler<,>)).SingleOrDefault();
+
+        Type? requestType;
+        Type? responseType;
+        Type requestContext;
+        if (requestHandlerGenericType is not null)
         {
-            throw new InvalidOperationException($"Provided handler type {handlerType.FullName} does not implement IRequestHandler<,,>");
+            var genericArguments = requestHandlerGenericType.GetGenericArguments();
+
+            if (genericArguments.Length != 3)
+            {
+                throw new InvalidOperationException($"Provided handler type {handlerType.FullName} does not have exactly three generic arguments");
+            }
+
+            requestType = genericArguments[0];
+            responseType = genericArguments[1];
+            requestContext = genericArguments[2];
         }
-
-        var genericArguments = requestHandlerGenericType.GetGenericArguments();
-
-        if (genericArguments.Length != 3)
+        else if (parameterlessNotificationHandlerGenericType is not null)
         {
-            throw new InvalidOperationException($"Provided handler type {handlerType.FullName} does not have exactly three generic arguments");
-        }
+            var genericArguments = parameterlessNotificationHandlerGenericType.GetGenericArguments();
 
-        var requestType = genericArguments[0];
-        var responseType = genericArguments[1];
-        var requestContext = genericArguments[2];
+            if (genericArguments.Length != 1)
+            {
+                throw new InvalidOperationException($"Provided handler type {handlerType.FullName} does not have exactly 1 generic argument");
+            }
+
+            requestType = null;
+            responseType = null;
+            requestContext = genericArguments[0];
+        }
+        else if (notificationHandlerGenericType is not null)
+        {
+            var genericArguments = notificationHandlerGenericType.GetGenericArguments();
+
+            if (genericArguments.Length != 2)
+            {
+                throw new InvalidOperationException($"Provided handler type {handlerType.FullName} does not have exactly 2 generic arguments");
+            }
+
+            requestType = genericArguments[0];
+            responseType = null;
+            requestContext = genericArguments[1];
+        }
+        else
+        {
+            throw new InvalidOperationException($"Provided handler type {handlerType.FullName} does not implement {typeof(IRequestHandler<,,>).Name}, {typeof(INotificationHandler<>).Name} or {typeof(INotificationHandler<,>).Name}");
+        }
 
         return (requestType, responseType, requestContext);
     }

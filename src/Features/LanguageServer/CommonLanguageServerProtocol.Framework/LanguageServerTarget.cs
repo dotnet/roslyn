@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,6 +47,15 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
         _jsonRpc.Disconnected += JsonRpc_Disconnected;
     }
 
+    /// <summary>
+    /// This spins up the LSP and should be called at the bottom of the constructor of the non-abstract implementor.
+    /// </summary>
+    public virtual void Initialize()
+    {
+        GetRequestExecutionQueue();
+        GetRequestDispatcher();
+    }
+
     public abstract ILspServices GetLspServices();
 
     public virtual IRequestDispatcher<RequestContextType> GetRequestDispatcher()
@@ -55,30 +65,62 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
             var lspServices = GetLspServices();
             _requestDispatcher = new RequestDispatcher<RequestContextType>(lspServices);
 
-            var entryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.EntryPointAsync));
-            if (entryPointMethod is null)
-            {
-                throw new InvalidOperationException($"{typeof(DelegatingEntryPoint).FullName} is missing method {nameof(DelegatingEntryPoint.EntryPointAsync)}");
-            }
+            SetupRequestDispatcher(_requestDispatcher);
+        }
+        return _requestDispatcher;
+    }
 
-            foreach (var metadata in _requestDispatcher.GetRegisteredMethods())
-            {
-                // Instead of concretely defining methods for each LSP method, we instead dynamically construct the
-                // generic method info from the exported handler types.  This allows us to define multiple handlers for
-                // the same method but different type parameters.  This is a key functionality to support TS external
-                // access as we do not want to couple our LSP protocol version dll to theirs.
-                //
-                // We also do not use the StreamJsonRpc support for JToken as the rpc method parameters because we want
-                // StreamJsonRpc to do the deserialization to handle streaming requests using IProgress<T>.
-                var delegatingEntryPoint = new DelegatingEntryPoint(metadata.MethodName, this);
-
-                var genericEntryPointMethod = entryPointMethod.MakeGenericMethod(metadata.RequestType, metadata.ResponseType);
-
-                _jsonRpc.AddLocalRpcMethod(genericEntryPointMethod, delegatingEntryPoint, new JsonRpcMethodAttribute(metadata.MethodName) { UseSingleObjectParameterDeserialization = true });
-            }
+    protected virtual void SetupRequestDispatcher(IRequestDispatcher<RequestContextType> requestDispatcher)
+    {
+        var entryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.EntryPointAsync));
+        if (entryPointMethod is null)
+        {
+            throw new InvalidOperationException($"{typeof(DelegatingEntryPoint).FullName} is missing method {nameof(DelegatingEntryPoint.EntryPointAsync)}");
+        }
+        var notificationMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.NotificationEntryPointAsync));
+        if (notificationMethod is null)
+        {
+            throw new InvalidOperationException($"{typeof(DelegatingEntryPoint).FullName} is missing method {nameof(DelegatingEntryPoint.NotificationEntryPointAsync)}");
         }
 
-        return _requestDispatcher;
+        var parameterlessNotificationMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.ParameterlessNotificationEntryPointAsync));
+        if (parameterlessNotificationMethod is null)
+        {
+            throw new InvalidOperationException($"{typeof(DelegatingEntryPoint).FullName} is missing method {nameof(DelegatingEntryPoint.ParameterlessNotificationEntryPointAsync)}");
+        }
+
+        foreach (var metadata in requestDispatcher.GetRegisteredMethods())
+        {
+            // Instead of concretely defining methods for each LSP method, we instead dynamically construct the
+            // generic method info from the exported handler types.  This allows us to define multiple handlers for
+            // the same method but different type parameters.  This is a key functionality to support TS external
+            // access as we do not want to couple our LSP protocol version dll to theirs.
+            //
+            // We also do not use the StreamJsonRpc support for JToken as the rpc method parameters because we want
+            // StreamJsonRpc to do the deserialization to handle streaming requests using IProgress<T>.
+            var delegatingEntryPoint = new DelegatingEntryPoint(metadata.MethodName, this);
+
+            MethodInfo genericEntryPointMethod;
+            if (metadata.RequestType is not null && metadata.ResponseType is not null)
+            {
+                genericEntryPointMethod = entryPointMethod.MakeGenericMethod(metadata.RequestType, metadata.ResponseType);
+            }
+            else if (metadata.RequestType is not null && metadata.ResponseType is null)
+            {
+                genericEntryPointMethod = notificationMethod.MakeGenericMethod(metadata.RequestType);
+            }
+            else if (metadata.RequestType is null && metadata.ResponseType is null)
+            {
+                // No need to genericize
+                genericEntryPointMethod = parameterlessNotificationMethod;
+            }
+            else
+            {
+                throw new NotImplementedException($"An unrecognized {nameof(RequestHandlerMetadata)} situation has occured");
+            }
+
+            _jsonRpc.AddLocalRpcMethod(genericEntryPointMethod, delegatingEntryPoint, new JsonRpcMethodAttribute(metadata.MethodName) { UseSingleObjectParameterDeserialization = true });
+        }
     }
 
     public virtual void OnInitialized()
@@ -86,7 +128,7 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
         IsInitialized = true;
     }
 
-    public RequestExecutionQueue<RequestContextType> GetRequestExecutionQueue()
+    public virtual RequestExecutionQueue<RequestContextType> GetRequestExecutionQueue()
     {
         if (_queue is null)
         {
@@ -110,6 +152,16 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
         {
             _method = method;
             _target = target;
+        }
+
+        public async Task NotificationEntryPointAsync<TRequestType>(TRequestType requestType, CancellationToken cancellationToken) where TRequestType : class
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task ParameterlessNotificationEntryPointAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<TResponseType?> EntryPointAsync<TRequestType, TResponseType>(TRequestType requestType, CancellationToken cancellationToken) where TRequestType : class

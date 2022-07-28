@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
     /// <summary>
     /// Implements the Language Server Protocol for XAML
     /// </summary>
-    [ExportLspServiceFactory(typeof(RequestDispatcher<>), StringConstants.XamlLspLanguagesContract), Shared]
+    [ExportLspServiceFactory(typeof(RoslynRequestDispatcher), StringConstants.XamlLspLanguagesContract), Shared]
     internal sealed class XamlRequestDispatcherFactory : RequestDispatcherFactory
     {
         private readonly XamlProjectService _projectService;
@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             return new XamlRequestDispatcher(_projectService, lspServices, _feedbackService);
         }
 
-        private class XamlRequestDispatcher : RequestDispatcher<RequestContext>, ILspService
+        private class XamlRequestDispatcher : RoslynRequestDispatcher, ILspService
         {
             private readonly XamlProjectService _projectService;
             private readonly IXamlLanguageServerFeedbackService? _feedbackService;

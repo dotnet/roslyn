@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// The client capabilities for the request.
         /// </summary>
-        public readonly ClientCapabilities ClientCapabilities;
+        public readonly ClientCapabilities? ClientCapabilities;
 
         /// <summary>
         /// The LSP server handling the request.
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public RequestContext(
             Solution? solution,
             ILspLogger logger,
-            ClientCapabilities clientCapabilities,
+            ClientCapabilities? clientCapabilities,
             string serverKind,
             Document? document,
             IDocumentChangeTracker documentChangeTracker,
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             bool mutatesSolutionState,
             Uri? textDocument,
             string serverKind,
-            ClientCapabilities clientCapabilities,
+            ClientCapabilities? clientCapabilities,
             ImmutableArray<string> supportedLanguages,
             ILspServices lspServices,
             ILspLogger logger,

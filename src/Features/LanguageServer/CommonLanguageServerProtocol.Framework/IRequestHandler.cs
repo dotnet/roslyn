@@ -31,10 +31,20 @@ public interface IRequestHandler
     bool RequiresLSPSolution { get; }
 }
 
-public interface IRequestHandler<RequestType, ResponseType, RequestContextType> : IRequestHandler
+public interface INotificationHandler<RequestContextType> : IRequestHandler where RequestContextType : IRequestContext
+{
+    Task HandleNotificationAsync(RequestContextType requestContext, CancellationToken cancellationToken);
+}
+
+public interface INotificationHandler<RequestType, RequestContextType> : IRequestHandler where RequestContextType : IRequestContext
+{
+    Task HandleNotificationAsync(RequestType request, RequestContextType requestContext, CancellationToken cancellationToken);
+}
+
+public interface IRequestHandler<RequestType, ResponseType, RequestContextType> : IRequestHandler where RequestContextType : IRequestContext
 {
     /// <summary>
-    /// Gets the <see cref="TextDocumentIdentifier"/> from the request, if the request provides one.
+    /// Gets the <see cref="Uri"/> of the document from the request, if the request provides one.
     /// </summary>
     Uri? GetTextDocumentIdentifier(RequestType request);
 

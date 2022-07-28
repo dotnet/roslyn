@@ -50,7 +50,7 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
 {
     protected readonly string _serverKind;
     protected readonly ILspLogger _logger;
-    protected readonly ILspServices _lspServices;
+    private readonly ILspServices _lspServices;
 
     /// <summary>
     /// The queue containing the ordered LSP requests along with a combined cancellation token
@@ -209,7 +209,7 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
                     // Record when the work item was been de-queued and the request context preparation started.
                     work.OnExecutionStart();
 
-                    var requestContextFactory = _lspServices.GetRequiredService<IRequestContextFactory<RequestContextType>>();
+                    var requestContextFactory = GetRequestContextFactory(_lspServices);
                     var context = await requestContextFactory.CreateRequestContextAsync(work, queueCancellationToken: this.CancellationToken, requestCancellationToken: cancellationToken);
 
                     if (work.MutatesSolutionState)
@@ -245,6 +245,11 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
             OnRequestServerShutdown($"Error occurred processing queue in {_serverKind}: {ex.Message}.");
             return;
         }
+    }
+
+    public virtual IRequestContextFactory<RequestContextType> GetRequestContextFactory(ILspServices lspServices)
+    {
+        return lspServices.GetRequiredService<IRequestContextFactory<RequestContextType>>();
     }
 
     private void OnRequestServerShutdown(string message)

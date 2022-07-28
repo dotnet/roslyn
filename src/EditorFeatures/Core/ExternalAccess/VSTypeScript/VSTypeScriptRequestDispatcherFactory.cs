@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
-[ExportLspServiceFactory(typeof(RequestDispatcher<RequestContext>), ProtocolConstants.TypeScriptLanguageContract), Shared]
+[ExportLspServiceFactory(typeof(RoslynRequestDispatcher), ProtocolConstants.TypeScriptLanguageContract), Shared]
 internal class VSTypeScriptRequestDispatcherFactory : RequestDispatcherFactory
 {
     [ImportingConstructor]

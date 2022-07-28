@@ -4,13 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Tasks;
 using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.RpcContracts;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
@@ -25,6 +23,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         private readonly ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> _baseServices;
         private readonly ImmutableArray<string> _supportedLanguages;
         private Task? _errorShutdownTask;
+        private IRequestDispatcher<RequestContext>? _requestDispatcher;
+        private LspServices? _lspServices;
 
         public RoslynLanguageServerTarget(
             AbstractLspServiceProvider lspServiceProvider,
@@ -40,24 +40,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
 
             // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
-            _baseServices = GetBaseServices(jsonRpc, this, logger);
+            _baseServices = GetBaseServices(jsonRpc, this, logger, capabilitiesProvider);
             _supportedLanguages = supportedLanguages;
+
+            Initialize();
         }
 
         public override ILspServices GetLspServices()
         {
-            return _lspServiceProvider.CreateServices(_serverKind, _baseServices);
+            if (_lspServices is null)
+            {
+                _lspServices = _lspServiceProvider.CreateServices(_serverKind, _baseServices);
+            }
+            return _lspServices;
         }
 
         internal static ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> GetBaseServices(
             JsonRpc jsonRpc,
             IClientCapabilitiesProvider clientCapabilitiesProvider,
-            IRoslynLspLogger logger)
+            IRoslynLspLogger logger,
+            ICapabilitiesProvider capabilitiesProvider)
         {
             var baseServices = ImmutableArray.Create(
                 CreateLspServiceInstance<IClientLanguageServerManager>(new ClientLanguageServerManager(jsonRpc)),
                 CreateLspServiceInstance(logger),
-                CreateLspServiceInstance<IClientCapabilitiesProvider>(clientCapabilitiesProvider));
+                CreateLspServiceInstance<IClientCapabilitiesProvider>(clientCapabilitiesProvider),
+                CreateLspServiceInstance<ICapabilitiesProvider>(capabilitiesProvider));
 
             return baseServices;
 
@@ -66,6 +74,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 return new Lazy<ILspService, LspServiceMetadataView>(
                     () => lspServiceInstance, new LspServiceMetadataView(typeof(T)));
             }
+        }
+
+        public override RequestExecutionQueue<RequestContext> GetRequestExecutionQueue()
+        {
+            var lspServices = GetLspServices();
+            var requestExecutionQueue = new RoslynRequestExecutionQueue(_serverKind, lspServices, _logger);
+            requestExecutionQueue.SetSupportedLanguages(_supportedLanguages);
+
+            return requestExecutionQueue;
+        }
+
+        public override IRequestDispatcher<RequestContext> GetRequestDispatcher()
+        {
+            if (_requestDispatcher is null)
+            {
+                var lspServices = GetLspServices();
+                _requestDispatcher = lspServices.GetRequiredService<RoslynRequestDispatcher>();
+
+                SetupRequestDispatcher(_requestDispatcher);
+            }
+
+            return _requestDispatcher;
         }
 
         //protected override Task OnExitInternal()

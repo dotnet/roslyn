@@ -22,7 +22,7 @@ internal class AbstractLspServiceProvider
         _lspServiceFactories = lspServiceFactories.ToImmutableArray();
     }
 
-    public ILspServices CreateServices(string serverKind, ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> baseServices)
+    public LspServices CreateServices(string serverKind, ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> baseServices)
     {
         var serverEnum = WellKnownLspServerExtensions.WellKnownLspServerKindsFromString(serverKind);
         return new LspServices(_lspServices, _lspServiceFactories, serverEnum, baseServices);

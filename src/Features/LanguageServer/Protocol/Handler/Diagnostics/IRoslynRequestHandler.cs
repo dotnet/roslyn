@@ -6,6 +6,13 @@ using CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
+    internal interface IRoslynNotificationHandler : ILspService, INotificationHandler<RequestContext>
+    {
+    }
+    internal interface IRoslynNotificationHandler<RequestType> : ILspService, INotificationHandler<RequestType, RequestContext>
+    {
+    }
+
     internal interface IRoslynRequestHandler<RequestType, ResponseType> : ILspService, IRequestHandler<RequestType, ResponseType, RequestContext>
     {
     }
