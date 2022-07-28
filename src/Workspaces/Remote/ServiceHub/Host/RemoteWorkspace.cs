@@ -127,13 +127,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Actually get the solution, computing it ourselves, or getting the result that another caller was
                 // computing. Note: we use our own cancellation token here as the task is currently operating using a
                 // private CTS token that inFlightSolution controls.
-                var newSolution = await solutionTask.WithCancellation(cancellationToken).ConfigureAwait(false);
+                var solution = await solutionTask.WithCancellation(cancellationToken).ConfigureAwait(false);
 
                 // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
                 // using this same solution as well
-                var result = await implementation(newSolution).ConfigureAwait(false);
+                var result = await implementation(solution).ConfigureAwait(false);
 
-                return (newSolution, result);
+                return (solution, result);
             }
             finally
             {
