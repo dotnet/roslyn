@@ -201,7 +201,7 @@ namespace RunTests
                         var newAccumulatedValue = addFunc(test, accumulatedValue);
 
                         // If the new accumulated value is greater than the limit
-                        if (isOverLimitFunc(newAccumulatedValue) || IsOverMacOsFilterCountLimit())
+                        if (isOverLimitFunc(newAccumulatedValue))
                         {
                             // Adding this type would put us over the time limit for this partition.
                             // Add the current work item to our list and start a new one.
@@ -246,30 +246,6 @@ namespace RunTests
                 }
 
                 accumulatedValue = addFunc(test, accumulatedValue);
-            }
-
-            bool IsOverMacOsFilterCountLimit()
-            {
-                // Hack: On helix MacOS machines the test platform will currently crash with a stack overflow
-                // when the test filter count exceeds about 6350 tests.  We need to truncate the work item before we get there.
-                // See https://github.com/microsoft/vstest/issues/3905
-                //
-                // Note: Because the partitioning for both OSX and Linux helix work items runs on Linux we must look
-                // at the target queue name to determine where the tests will eventually be running.
-                if (_options.HelixQueueName?.StartsWith("OSX") == true)
-                {
-                    var currentNumberOfTestsInWorkItem = currentFilters.Values.SelectMany(t => t).Count();
-                    if (currentNumberOfTestsInWorkItem > 6300)
-                    {
-                        // The test platform stack overflows at a pretty low test filter count on macOS
-                        // See https://github.com/microsoft/vstest/issues/3905
-                        Console.WriteLine($"##[warning] Partitioning work item {workItemIndex} early to avoid stack overflow in test filters on macOS");
-                        return true;
-                    }
-                }
-
-
-                return false;
             }
         }
 

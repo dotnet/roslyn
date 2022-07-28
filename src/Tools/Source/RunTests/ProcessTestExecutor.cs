@@ -69,7 +69,7 @@ namespace RunTests
                 foreach (var filter in filters)
                 {
                     MaybeAddSeparator();
-                    filterStringBuilder.Append(filter.FullyQualifiedName);
+                    filterStringBuilder.Append($"FullyQualifiedName={filter.FullyQualifiedName}");
                 }
 
                 if (options.TestFilter is not null)
