@@ -172,13 +172,11 @@ namespace RunTests
             }
         }
 
-        private static ImmutableArray<WorkItemInfo> BuildWorkItems<T>(
+        private ImmutableArray<WorkItemInfo> BuildWorkItems<T>(
             ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> typeInfos,
             Func<T, bool> isOverLimitFunc,
             Func<TestMethodInfo, T, T> addFunc) where T : struct
         {
-            var isMacOs = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
-
             var workItems = new List<WorkItemInfo>();
 
             // Keep track of which work item we are creating - used to identify work items in names.
@@ -252,7 +250,13 @@ namespace RunTests
 
             bool IsOverMacOsFilterCountLimit()
             {
-                if (isMacOs)
+                // Hack: On helix MacOS machines the test platform will currently crash with a stack overflow
+                // when the test filter count exceeds about 6350 tests.  We need to truncate the work item before we get there.
+                // See https://github.com/microsoft/vstest/issues/3905
+                //
+                // Note: Because the partitioning for both OSX and Linux helix work items runs on Linux we must look
+                // at the target queue name to determine where the tests will eventually be running.
+                if (_options.HelixQueueName?.StartsWith("OSX") == true)
                 {
                     var currentNumberOfTestsInWorkItem = currentFilters.Values.SelectMany(t => t).Count();
                     if (currentNumberOfTestsInWorkItem > 6300)
