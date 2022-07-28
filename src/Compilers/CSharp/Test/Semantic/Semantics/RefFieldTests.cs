@@ -6814,7 +6814,7 @@ class Program
         public void ParameterScope_09()
         {
             var source =
-@"ref struct scoped { }
+@"ref struct @scoped { }
 class Program
 {
     static void F0(scoped s) { }
@@ -6831,9 +6831,6 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (1,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                // ref struct scoped { }
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(1, 12),
                 // (7,24): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
                 //     static void F3(ref scoped scoped s) { }
                 Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(7, 24),
@@ -7434,7 +7431,7 @@ ref @scoped s3 = ref s1;
 scoped scoped s4 = default; // 2
 scoped ref scoped s5 = ref s1; // 3
 scoped ref @scoped s6 = ref s1; // 4
-ref struct scoped { } // 5
+ref struct @scoped { } // 5
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
@@ -7458,10 +7455,7 @@ ref struct scoped { } // 5
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(5, 22),
                 // (6,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // scoped ref @scoped s6 = ref s1; // 4
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 1),
-                // (7,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                // ref struct scoped { } // 5
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(7, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 1));
             verify(comp);
 
             comp = CreateCompilation(source);
@@ -7480,10 +7474,7 @@ ref struct scoped { } // 5
                 Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(5, 12),
                 // (5,22): error CS1525: Invalid expression term '='
                 // scoped ref scoped s5 = ref s1; // 3
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(5, 22),
-                // (7,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
-                // ref struct scoped { } // 5
-                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(7, 12));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(5, 22));
             verify(comp);
 
             static void verify(CSharpCompilation comp)
@@ -12507,6 +12498,148 @@ ref struct R
                 // (6,23): error CS8339:  The parameter modifier 'scoped' cannot follow 'ref'
                 //         _ = void (ref scoped R parameter) => throw null;
                 Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "scoped").WithArguments("scoped", "ref").WithLocation(6, 23)
+                );
+        }
+
+        [Theory, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("interface")]
+        [InlineData("enum")]
+        [InlineData("record")]
+        public void ScopedReserved_Type(string typeKind)
+        {
+            var source = $$"""
+{{typeKind}} scoped { }
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (1,8): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // struct scoped { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped")
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS9062: Types and aliases cannot be named 'scoped'.
+                // struct scoped { }
+                Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped")
+                );
+        }
+
+        [Fact, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
+        public void ScopedReserved_Type_Escaped()
+        {
+            var source = """
+class @scoped { }
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
+        public void ScopedReserved_TypeParameter()
+        {
+            var source = """
+class C<scoped> { } // 1
+class C2<@scoped> { }
+
+class D
+{
+    void M()
+    {
+        local<object>();
+        void local<scoped>() { } // 2
+    }
+
+    void M2()
+    {
+        local<object>();
+        void local<@scoped>() { }
+    }
+}
+
+class D2
+{
+    void M<scoped>() { } // 3
+    void M2<@scoped>() { }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (1,9): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class C<scoped> { } // 1
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(1, 9),
+                // (9,20): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //         void local<scoped>() { } // 2
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(9, 20),
+                // (21,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                //     void M<scoped>() { } // 3
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(21, 12)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (1,9): error CS9062: Types and aliases cannot be named 'scoped'.
+                // class C<scoped> { } // 1
+                Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 9),
+                // (9,20): error CS9062: Types and aliases cannot be named 'scoped'.
+                //         void local<scoped>() { } // 2
+                Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(9, 20),
+                // (21,12): error CS9062: Types and aliases cannot be named 'scoped'.
+                //     void M<scoped>() { } // 3
+                Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(21, 12)
+                );
+        }
+
+        [Fact, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
+        public void ScopedReserved_Alias()
+        {
+            var source = """
+using scoped = System.Int32;
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using scoped = System.Int32;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using scoped = System.Int32;").WithLocation(1, 1),
+                // (1,7): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using scoped = System.Int32;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(1, 7)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using scoped = System.Int32;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using scoped = System.Int32;").WithLocation(1, 1),
+                // (1,7): error CS9062: Types and aliases cannot be named 'scoped'.
+                // using scoped = System.Int32;
+                Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 7)
+                );
+        }
+
+        [Fact, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
+        public void ScopedReserved_Alias_Escaped()
+        {
+            var source = """
+using @scoped = System.Int32;
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using @scoped = System.Int32;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @scoped = System.Int32;").WithLocation(1, 1)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using @scoped = System.Int32;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @scoped = System.Int32;").WithLocation(1, 1)
                 );
         }
     }
