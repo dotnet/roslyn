@@ -105,6 +105,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public void DecrementInFlightCount()
             {
+                // Intentionally not cancellable.  We must do the decrement to ensure our state is consistent.  This
+                // does block the calling thread.  However, this should only be for a short amount of time as nothing in
+                // RemoteWorkspace should ever hold this lock for long periods of time.
                 using (_workspace._gate.DisposableWait(CancellationToken.None))
                 {
                     DecrementInFlightCount_WhileAlreadyHoldingLock();
