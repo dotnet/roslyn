@@ -14,6 +14,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -176,6 +177,8 @@ namespace RunTests
             Func<T, bool> isOverLimitFunc,
             Func<TestMethodInfo, T, T> addFunc) where T : struct
         {
+            var isMacOs = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+
             var workItems = new List<WorkItemInfo>();
 
             // Keep track of which work item we are creating - used to identify work items in names.
@@ -200,7 +203,7 @@ namespace RunTests
                         var newAccumulatedValue = addFunc(test, accumulatedValue);
 
                         // If the new accumulated value is greater than the limit
-                        if (isOverLimitFunc(newAccumulatedValue))
+                        if (isOverLimitFunc(newAccumulatedValue) || IsOverMacOsFilterCountLimit())
                         {
                             // Adding this type would put us over the time limit for this partition.
                             // Add the current work item to our list and start a new one.
@@ -245,6 +248,24 @@ namespace RunTests
                 }
 
                 accumulatedValue = addFunc(test, accumulatedValue);
+            }
+
+            bool IsOverMacOsFilterCountLimit()
+            {
+                if (isMacOs)
+                {
+                    var currentNumberOfTestsInWorkItem = currentFilters.Values.SelectMany(t => t).Count();
+                    if (currentNumberOfTestsInWorkItem > 6300)
+                    {
+                        // The test platform stack overflows at a pretty low test filter count on macOS
+                        // See https://github.com/microsoft/vstest/issues/3905
+                        Console.WriteLine($"##[warning] Partitioning work item {workItemIndex} early to avoid stack overflow in test filters on macOS");
+                        return true;
+                    }
+                }
+
+
+                return false;
             }
         }
 
