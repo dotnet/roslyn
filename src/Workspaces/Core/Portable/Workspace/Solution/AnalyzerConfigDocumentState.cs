@@ -20,9 +20,10 @@ namespace Microsoft.CodeAnalysis
             HostWorkspaceServices solutionServices,
             IDocumentServiceProvider documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
+            SourceHashAlgorithm checksumAlgorithm,
             SourceText sourceTextOpt,
             ValueSource<TextAndVersion> textAndVersionSource)
-            : base(solutionServices, documentServiceProvider, attributes, sourceTextOpt, textAndVersionSource)
+            : base(solutionServices, documentServiceProvider, attributes, checksumAlgorithm, sourceTextOpt, textAndVersionSource)
         {
             _analyzerConfigValueSource = CreateAnalyzerConfigValueSource();
         }
@@ -55,12 +56,13 @@ namespace Microsoft.CodeAnalysis
         public new AnalyzerConfigDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
             => (AnalyzerConfigDocumentState)base.UpdateText(newTextAndVersion, mode);
 
-        protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
+        protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, SourceHashAlgorithm checksumAlgorithm, PreservationMode mode, bool incremental)
         {
             return new AnalyzerConfigDocumentState(
                 this.solutionServices,
                 this.Services,
                 this.Attributes,
+                checksumAlgorithm,
                 this.sourceText,
                 newTextSource);
         }

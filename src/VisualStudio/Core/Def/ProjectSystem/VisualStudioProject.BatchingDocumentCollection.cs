@@ -96,12 +96,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var documentInfo = DocumentInfo.Create(
                     documentId,
                     name: FileNameUtilities.GetFileName(fullPath),
-                    loader: textLoader,
-                    filePath: fullPath,
-                    checksumAlgorithm: _project.ChecksumAlgorithm,
-                    sourceCodeKind: sourceCodeKind,
                     folders: folders.IsDefault ? null : folders,
-                    isGenerated: false);
+                    sourceCodeKind: sourceCodeKind,
+                    loader: textLoader,
+                    filePath: fullPath);
 
                 using (_project._gate.DisposableWait())
                 {
@@ -132,7 +130,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public DocumentId AddTextContainer(
                 SourceTextContainer textContainer,
-                SourceHashAlgorithm checksumAlgorithm,
                 string fullPath,
                 SourceCodeKind sourceCodeKind,
                 ImmutableArray<string> folders,
@@ -149,14 +146,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var documentInfo = DocumentInfo.Create(
                     documentId,
                     FileNameUtilities.GetFileName(fullPath),
-                    loader: textLoader,
-                    filePath: fullPath,
                     folders: folders.NullToEmpty(),
-                    checksumAlgorithm: checksumAlgorithm,
                     sourceCodeKind: sourceCodeKind,
-                    isGenerated: false,
-                    designTimeOnly: designTimeOnly,
-                    documentServiceProvider: documentServiceProvider);
+                    loader: textLoader,
+                    filePath: fullPath)
+                    .WithDesignTimeOnly(designTimeOnly)
+                    .WithDocumentServiceProvider(documentServiceProvider);
 
                 using (_project._gate.DisposableWait())
                 {
@@ -592,14 +587,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return DocumentInfo.Create(
                     documentId,
                     name,
-                    loader: textLoader,
-                    filePath: filePath,
-                    checksumAlgorithm: SourceHashAlgorithm.Sha256,
                     folders: folders,
                     sourceCodeKind: fileInfo.SourceCodeKind,
-                    isGenerated: false,
-                    designTimeOnly: true,
-                    documentServiceProvider: documentServiceProvider);
+                    loader: textLoader,
+                    filePath: filePath,
+                    isGenerated: false)
+                    .WithDesignTimeOnly(true)
+                    .WithDocumentServiceProvider(documentServiceProvider);
             }
 
             private sealed class SourceTextLoader : TextLoader

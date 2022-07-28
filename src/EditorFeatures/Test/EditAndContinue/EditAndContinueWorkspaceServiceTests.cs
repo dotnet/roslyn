@@ -368,10 +368,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 folders: Array.Empty<string>(),
                 sourceCodeKind: SourceCodeKind.Regular,
                 loader: TextLoader.From(TextAndVersion.Create(sourceText, VersionStamp.Create(), path)),
-                checksumAlgorithm: sourceText.ChecksumAlgorithm,
                 filePath: path,
-                isGenerated: false,
-                designTimeOnly: true);
+                isGenerated: false).WithDesignTimeOnly(true);
         }
 
         internal sealed class FailingTextLoader : TextLoader
@@ -722,9 +720,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 name: "design-time-only.cs",
                 loader: TextLoader.From(TextAndVersion.Create(sourceText, VersionStamp.Create(), "design-time-only.cs")),
                 filePath: "design-time-only.cs",
-                checksumAlgorithm: sourceText.ChecksumAlgorithm,
-                isGenerated: false,
-                designTimeOnly: true);
+                isGenerated: false).WithDesignTimeOnly(true);
 
             solution = solution.AddDocument(documentInfo);
 
@@ -3619,12 +3615,8 @@ class C { int Y => 1; }
             var documentInfo = DocumentInfo.Create(
                 DocumentId.CreateNewId(project.Id, "test"),
                 name: "test",
-                folders: Array.Empty<string>(),
-                sourceCodeKind: SourceCodeKind.Regular,
                 loader: TextLoader.From(TextAndVersion.Create(sourceText, VersionStamp.Create(), filePath)),
-                filePath: filePath,
-                checksumAlgorithm: sourceText.ChecksumAlgorithm,
-                designTimeOnly: designTimeOnly);
+                filePath: filePath).WithDesignTimeOnly(designTimeOnly);
 
             var document = project.Solution.AddDocument(documentInfo).GetDocument(documentInfo.Id);
 

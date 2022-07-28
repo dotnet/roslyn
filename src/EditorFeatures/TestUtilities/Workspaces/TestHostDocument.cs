@@ -358,17 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public DocumentInfo ToDocumentInfo()
         {
             Contract.ThrowIfTrue(IsSourceGenerated, "We shouldn't be producing a DocumentInfo for a source generated document.");
-            return DocumentInfo.Create(
-                Id,
-                Name,
-                Loader,
-                FilePath,
-                SourceHashAlgorithm.Sha256,
-                Folders,
-                SourceCodeKind,
-                isGenerated: false,
-                designTimeOnly: false,
-                _documentServiceProvider);
+            return DocumentInfo.Create(Id, Name, Folders, SourceCodeKind, Loader, FilePath).WithDocumentServiceProvider(_documentServiceProvider);
         }
     }
 }

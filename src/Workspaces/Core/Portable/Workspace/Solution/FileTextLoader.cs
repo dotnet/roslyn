@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Algorithm used to calculate content checksum.
         /// </summary>
-        internal SourceHashAlgorithm ChecksumAlgorithm { get; }
+        internal override SourceHashAlgorithm ChecksumAlgorithm { get; }
 
         /// <summary>
         /// Creates a content loader for specified file.

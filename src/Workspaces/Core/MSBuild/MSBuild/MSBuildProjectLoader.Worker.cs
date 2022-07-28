@@ -450,11 +450,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     var documentInfo = DocumentInfo.Create(
                         DocumentId.CreateNewId(projectId, debugName: info.FilePath),
                         name,
-                        new FileTextLoader(info.FilePath, encoding, checksumAlgorithm),
-                        info.FilePath,
-                        checksumAlgorithm,
                         folders,
                         info.SourceCodeKind,
+                        new FileTextLoader(info.FilePath, encoding, checksumAlgorithm),
+                        info.FilePath,
                         info.IsGenerated);
 
                     results.Add(documentInfo);

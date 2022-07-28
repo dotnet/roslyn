@@ -399,12 +399,11 @@ namespace Roslyn.Test.Utilities
             var generatedDocumentInfo = DocumentInfo.Create(
                 generatedDocumentId,
                 TestSpanMapper.GeneratedFileName,
-                loader,
+                loader: loader,
                 filePath: $"C:\\{TestSpanMapper.GeneratedFileName}",
-                checksumAlgorithm: SourceHashAlgorithm.Sha256,
-                isGenerated: true,
-                designTimeOnly: false,
-                documentServiceProvider: new TestSpanMapperProvider());
+                isGenerated: true)
+                .WithDocumentServiceProvider(new TestSpanMapperProvider());
+
             var newSolution = workspace.CurrentSolution.AddDocument(generatedDocumentInfo);
             workspace.TryApplyChanges(newSolution);
         }

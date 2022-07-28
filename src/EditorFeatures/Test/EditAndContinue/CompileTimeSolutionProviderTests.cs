@@ -56,9 +56,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     name: "a",
                     loader: null,
                     filePath: designTimeFilePath,
-                    checksumAlgorithm: SourceHashAlgorithm.Sha256,
-                    isGenerated: true,
-                    designTimeOnly: true));
+                    isGenerated: true).WithDesignTimeOnly(true));
 
             var designTimeDocument = designTimeSolution.GetRequiredDocument(designTimeDocumentId);
 

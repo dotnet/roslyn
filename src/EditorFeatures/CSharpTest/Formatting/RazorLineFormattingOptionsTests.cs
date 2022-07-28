@@ -69,11 +69,9 @@ void F   () {}
             folders: Array.Empty<string>(),
             sourceCodeKind: SourceCodeKind.Regular,
             loader: TextLoader.From(TextAndVersion.Create(sourceText, VersionStamp.Create(), "file.razor.g.cs")),
-            filePath: "file.razor.g.cs",
-            checksumAlgorithm: sourceText.ChecksumAlgorithm,
-            isGenerated: false,
-            designTimeOnly: true,
-            documentServiceProvider: new TestRazorDocumentServiceProvider());
+            filePath: "file.razor.g.cs")
+            .WithDesignTimeOnly(true)
+            .WithDocumentServiceProvider(new TestRazorDocumentServiceProvider());
 
         var document = workspace.AddDocument(documentInfo);
 

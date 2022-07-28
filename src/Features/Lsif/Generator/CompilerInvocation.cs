@@ -125,8 +125,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     DocumentId.CreateNewId(projectId, mappedPath),
                     name: mappedPath,
                     loader: new FileTextLoader(mappedPath, parsedCommandLine.Encoding, parsedCommandLine.ChecksumAlgorithm),
-                    filePath: mappedPath,
-                    checksumAlgorithm: parsedCommandLine.ChecksumAlgorithm);
+                    filePath: mappedPath);
             }
         }
 

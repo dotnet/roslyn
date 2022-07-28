@@ -1058,11 +1058,10 @@ namespace Microsoft.CodeAnalysis
             => AddDocument(DocumentInfo.Create(
                 documentId,
                 name: name,
-                loader: TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create(), name)),
-                filePath: filePath,
-                checksumAlgorithm: text.ChecksumAlgorithm,
                 folders: folders,
                 sourceCodeKind: GetSourceCodeKind(project),
+                loader: TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create(), name)),
+                filePath: filePath,
                 isGenerated: isGenerated));
 
         /// <summary>
@@ -1085,11 +1084,9 @@ namespace Microsoft.CodeAnalysis
             return AddDocument(DocumentInfo.Create(
                 documentId,
                 name,
-                loader,
-                filePath: null,
-                checksumAlgorithm: project.ChecksumAlgorithm,
                 folders,
-                GetSourceCodeKind(project)));
+                GetSourceCodeKind(project),
+                loader));
         }
 
         /// <summary>
@@ -1198,11 +1195,10 @@ namespace Microsoft.CodeAnalysis
             return DocumentInfo.Create(
                 documentId,
                 name: name,
-                loader: loader,
-                filePath: filePath,
-                checksumAlgorithm: text.ChecksumAlgorithm,
+                folders: folders,
                 sourceCodeKind: GetSourceCodeKind(project),
-                folders: folders);
+                loader: loader,
+                filePath: filePath);
         }
 
         private ProjectState GetRequiredProjectState(ProjectId projectId)

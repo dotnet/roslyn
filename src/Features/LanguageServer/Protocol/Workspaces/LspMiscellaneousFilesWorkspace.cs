@@ -104,6 +104,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 _fileUri = fileUri;
             }
 
+            internal override SourceHashAlgorithm ChecksumAlgorithm
+                => _sourceText.ChecksumAlgorithm;
+
             internal override string? FilePath
                 => _fileUri;
 

@@ -83,7 +83,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithId(value), opt => opt.Id, documentId, defaultThrows: true);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithName(value), opt => opt.Name, "New", defaultThrows: true);
-            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithChecksumAlgorithm(value), opt => opt.Attributes.ChecksumAlgorithm, SourceHashAlgorithm.Sha256);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithSourceCodeKind(value), opt => opt.SourceCodeKind, SourceCodeKind.Script);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithTextLoader(value), opt => opt.TextLoader, (TextLoader)new FileTextLoader(Path.GetTempPath(), defaultEncoding: null, SourceHashAlgorithm.Sha256));
 

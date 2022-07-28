@@ -772,11 +772,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var documentInfo = DocumentInfo.Create(
                 DocumentId.CreateNewId(project.Id),
                 name: "Test.cs",
-                loader: null,
-                filePath: null,
-                checksumAlgorithm: SourceHashAlgorithm.Sha256,
-                isGenerated: true,
-                designTimeOnly: true);
+                isGenerated: true).WithDesignTimeOnly(true);
 
             project = project.Solution.AddDocument(documentInfo).Projects.Single()
                 .AddAnalyzerReference(analyzerReference);

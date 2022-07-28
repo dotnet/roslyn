@@ -357,9 +357,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     DocumentInfo.Create(
                         documentId,
                         documentName,
-                        loader: null,
-                        filePath: null,
-                        checksumAlgorithm: projectToBeUpdated.State.Attributes.ChecksumAlgorithm,
                         containers,
                         sourceCodeKind));
 

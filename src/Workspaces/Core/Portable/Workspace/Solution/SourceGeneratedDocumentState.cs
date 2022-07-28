@@ -40,11 +40,11 @@ namespace Microsoft.CodeAnalysis
                     name: documentIdentity.HintName,
                     folders: SpecializedCollections.EmptyReadOnlyList<string>(),
                     parseOptions.Kind,
-                    checksumAlgorithm: generatedSourceText.ChecksumAlgorithm,
                     filePath: documentIdentity.FilePath,
                     isGenerated: true,
                     designTimeOnly: false),
                 parseOptions,
+                generatedSourceText.ChecksumAlgorithm,
                 textSource,
                 treeSource);
         }
@@ -56,9 +56,10 @@ namespace Microsoft.CodeAnalysis
             IDocumentServiceProvider? documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             ParseOptions options,
+            SourceHashAlgorithm checksumAlgorithm,
             ValueSource<TextAndVersion> textSource,
             ValueSource<TreeAndVersion> treeSource)
-            : base(languageServices, solutionServices, documentServiceProvider, attributes, options, sourceText: null, textSource, treeSource)
+            : base(languageServices, solutionServices, documentServiceProvider, attributes, options, checksumAlgorithm, sourceText: null, textSource, treeSource)
         {
             Identity = documentIdentity;
         }
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis
         // The base allows for parse options to be null for non-C#/VB languages, but we'll always have parse options
         public new ParseOptions ParseOptions => base.ParseOptions!;
 
-        protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
+        protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, SourceHashAlgorithm checksumAlgorithm, PreservationMode mode, bool incremental)
         {
             throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
         }

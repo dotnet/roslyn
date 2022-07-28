@@ -1631,7 +1631,7 @@ namespace Microsoft.CodeAnalysis
                 // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
                 ApplyDocumentInfoChanged(
                     documentId,
-                    new DocumentInfo(newDoc.State.Attributes, loader: null, documentServiceProvider: newDoc.State.Services));
+                    new DocumentInfo(newDoc.State.Attributes, NullTextLoader.Default, documentServiceProvider: newDoc.State.Services));
             }
         }
 
@@ -1666,14 +1666,13 @@ namespace Microsoft.CodeAnalysis
             => DocumentInfo.Create(
                 doc.Id,
                 doc.Name,
-                loader: null,
-                filePath: doc.FilePath,
-                checksumAlgorithm: doc.State.Attributes.ChecksumAlgorithm,
                 doc.Folders,
                 doc is Document sourceDoc ? sourceDoc.SourceCodeKind : SourceCodeKind.Regular,
-                isGenerated: false,
-                designTimeOnly: false,
-                doc.Services);
+                loader: null,
+                filePath: doc.FilePath,
+                isGenerated: doc.State.Attributes.IsGenerated)
+                .WithDesignTimeOnly(doc.State.Attributes.DesignTimeOnly)
+                .WithDocumentServiceProvider(doc.Services);
 
         /// <summary>
         /// This method is called during <see cref="TryApplyChanges(Solution)"/> to add a project to the current solution.

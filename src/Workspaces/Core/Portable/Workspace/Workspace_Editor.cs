@@ -474,6 +474,9 @@ namespace Microsoft.CodeAnalysis
                 _newText = newText;
             }
 
+            internal override SourceHashAlgorithm ChecksumAlgorithm
+                => _newText.ChecksumAlgorithm;
+
             internal override string? FilePath
                 => _oldDocumentState.FilePath;
 

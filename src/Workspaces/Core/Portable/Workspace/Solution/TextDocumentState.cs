@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
@@ -35,6 +36,8 @@ namespace Microsoft.CodeAnalysis
         protected readonly SourceText? sourceText;
         protected ValueSource<TextAndVersion> TextAndVersionSource { get; }
 
+        public SourceHashAlgorithm ChecksumAlgorithm { get; }
+
         // Checksums for this solution state
         private readonly ValueSource<DocumentStateChecksums> _lazyChecksums;
 
@@ -49,12 +52,17 @@ namespace Microsoft.CodeAnalysis
             HostWorkspaceServices solutionServices,
             IDocumentServiceProvider? documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
+            SourceHashAlgorithm checksumAlgorithm,
             SourceText? sourceText,
             ValueSource<TextAndVersion> textAndVersionSource)
         {
+            Debug.Assert(sourceText == null || sourceText.ChecksumAlgorithm == checksumAlgorithm);
+
             this.solutionServices = solutionServices;
             this.sourceText = sourceText;
-            this.TextAndVersionSource = textAndVersionSource;
+
+            ChecksumAlgorithm = checksumAlgorithm;
+            TextAndVersionSource = textAndVersionSource;
 
             Attributes = attributes;
             Services = documentServiceProvider ?? DefaultTextDocumentServiceProvider.Instance;
@@ -71,10 +79,11 @@ namespace Microsoft.CodeAnalysis
             : this(services,
                    info.DocumentServiceProvider,
                    info.Attributes,
+                   info.ChecksumAlgorithm,
                    sourceText: null,
                    textAndVersionSource: info.TextLoader != null
                     ? CreateRecoverableText(info.TextLoader, info.Id, services)
-                    : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, info.Attributes.ChecksumAlgorithm), VersionStamp.Default, info.FilePath)))
+                    : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, info.TextLoaderNotNull.ChecksumAlgorithm), VersionStamp.Default, info.FilePath)))
         {
         }
 
@@ -225,7 +234,7 @@ namespace Microsoft.CodeAnalysis
                 ? CreateStrongText(newTextAndVersion)
                 : CreateRecoverableText(newTextAndVersion, this.solutionServices);
 
-            return UpdateText(newTextSource, mode, incremental: true);
+            return UpdateText(newTextSource, newTextAndVersion.Text.ChecksumAlgorithm, mode, incremental: true);
         }
 
         public TextDocumentState UpdateText(SourceText newText, PreservationMode mode)
@@ -243,15 +252,16 @@ namespace Microsoft.CodeAnalysis
                 ? CreateStrongText(loader, Id, solutionServices)
                 : CreateRecoverableText(loader, Id, solutionServices);
 
-            return UpdateText(newTextSource, mode, incremental: false);
+            return UpdateText(newTextSource, loader.ChecksumAlgorithm, mode, incremental: false);
         }
 
-        protected virtual TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
+        protected virtual TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, SourceHashAlgorithm checksumAlgorithm, PreservationMode mode, bool incremental)
         {
             return new TextDocumentState(
                 this.solutionServices,
                 this.Services,
                 this.Attributes,
+                checksumAlgorithm,
                 sourceText: null,
                 textAndVersionSource: newTextSource);
         }

@@ -330,9 +330,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 DocumentInfo.Create(
                     documentId,
                     name: filePath,
-                    fileLoader,
-                    filePath: filePath,
-                    checksumAlgorithm: projectToAddTo.State.ChecksumAlgorithm));
+                    loader: fileLoader,
+                    filePath: filePath));
 
             var addedDocument = forkedSolution.GetRequiredDocument(documentId);
 

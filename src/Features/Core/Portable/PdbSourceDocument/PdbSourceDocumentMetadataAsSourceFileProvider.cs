@@ -295,10 +295,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     documentId,
                     name: Path.GetFileName(info.FilePath),
                     loader: info.Loader,
-                    checksumAlgorithm: info.ChecksumAlgorithm,
                     filePath: info.FilePath,
-                    isGenerated: true,
-                    designTimeOnly: true));
+                    isGenerated: true).WithDesignTimeOnly(true));
 
                 // If we successfully got something from SourceLink for this project then its nice to wait a bit longer
                 // if the user performs subsequent navigation

@@ -225,14 +225,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             var documentInfo = DocumentInfo.Create(
                 documentId,
                 documentName,
-                TextLoader.From(TextAndVersion.Create(startSourceText, VersionStamp.Create(), documentName)),
-                s_defaultDocumentPath,
-                startSourceText.ChecksumAlgorithm,
-                GetDocumentFolders(s_defaultDocumentPath),
-                SourceCodeKind.Regular,
-                isGenerated: true,
-                designTimeOnly: false,
-                new TestDocumentServiceProvider());
+                folders: GetDocumentFolders(s_defaultDocumentPath),
+                loader: TextLoader.From(TextAndVersion.Create(startSourceText, VersionStamp.Create(), documentName)),
+                filePath: s_defaultDocumentPath,
+                isGenerated: true)
+                .WithDocumentServiceProvider(new TestDocumentServiceProvider());
 
             solution = solution.AddDocument(documentInfo);
 

@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay() , nq}")]
     public sealed class DocumentInfo
     {
+        private readonly TextLoader _textLoader;
+
         internal DocumentAttributes Attributes { get; }
 
         /// <summary>
@@ -53,9 +55,12 @@ namespace Microsoft.CodeAnalysis
         public bool IsGenerated => Attributes.IsGenerated;
 
         /// <summary>
-        /// A loader that can retrieve the document text.
+        /// Algorithm used for calculating the document content checksum.
         /// </summary>
-        public TextLoader? TextLoader { get; }
+        /// <remarks>
+        /// If <see cref="TextLoader"/> is specified then equal to <see cref="TextLoader.ChecksumAlgorithm"/>.
+        /// </remarks>
+        internal SourceHashAlgorithm ChecksumAlgorithm { get; }
 
         /// <summary>
         /// A <see cref="IDocumentServiceProvider"/> associated with this document
@@ -65,10 +70,10 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a new instance of a <see cref="DocumentInfo"/>.
         /// </summary>
-        internal DocumentInfo(DocumentAttributes attributes, TextLoader? loader, IDocumentServiceProvider? documentServiceProvider)
+        internal DocumentInfo(DocumentAttributes attributes, TextLoader loader, IDocumentServiceProvider? documentServiceProvider)
         {
             Attributes = attributes;
-            TextLoader = loader;
+            _textLoader = loader;
             DocumentServiceProvider = documentServiceProvider;
         }
 
@@ -90,47 +95,20 @@ namespace Microsoft.CodeAnalysis
                     name ?? throw new ArgumentNullException(nameof(name)),
                     PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders)),
                     sourceCodeKind,
-                    SourceHashAlgorithm.Sha1,
                     filePath,
                     isGenerated,
                     designTimeOnly: false),
-                loader,
+                loader ?? NullTextLoader.Default,
                 documentServiceProvider: null);
-        }
-
-        internal static DocumentInfo Create(
-            DocumentId id,
-            string name,
-            TextLoader? loader,
-            string? filePath,
-            SourceHashAlgorithm checksumAlgorithm,
-            IEnumerable<string>? folders = null,
-            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
-            bool isGenerated = false,
-            bool designTimeOnly = false,
-            IDocumentServiceProvider? documentServiceProvider = null)
-        {
-            return new DocumentInfo(
-                new DocumentAttributes(
-                    id,
-                    name,
-                    PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders)),
-                    sourceCodeKind,
-                    checksumAlgorithm,
-                    filePath,
-                    isGenerated: isGenerated,
-                    designTimeOnly: designTimeOnly),
-                loader,
-                documentServiceProvider);
         }
 
         private DocumentInfo With(
             DocumentAttributes? attributes = null,
-            Optional<TextLoader?> loader = default,
+            TextLoader? loader = null,
             Optional<IDocumentServiceProvider?> documentServiceProvider = default)
         {
             var newAttributes = attributes ?? Attributes;
-            var newLoader = loader.HasValue ? loader.Value : TextLoader;
+            var newLoader = loader ?? _textLoader;
             var newDocumentServiceProvider = documentServiceProvider.HasValue ? documentServiceProvider.Value : DocumentServiceProvider;
 
             if (newAttributes == Attributes &&
@@ -142,6 +120,13 @@ namespace Microsoft.CodeAnalysis
 
             return new DocumentInfo(newAttributes, newLoader, newDocumentServiceProvider);
         }
+
+        /// <summary>
+        /// A loader that can retrieve the document text.
+        /// </summary>
+        public TextLoader? TextLoader => _textLoader is NullTextLoader ? null : _textLoader;
+
+        internal TextLoader TextLoaderNotNull => _textLoader;
 
         public DocumentInfo WithId(DocumentId id)
             => With(attributes: Attributes.With(id: id ?? throw new ArgumentNullException(nameof(id))));
@@ -155,14 +140,17 @@ namespace Microsoft.CodeAnalysis
         public DocumentInfo WithSourceCodeKind(SourceCodeKind kind)
             => With(attributes: Attributes.With(sourceCodeKind: kind));
 
-        internal DocumentInfo WithChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
-            => With(attributes: Attributes.With(checksumAlgorithm: checksumAlgorithm));
-
         public DocumentInfo WithFilePath(string? filePath)
             => With(attributes: Attributes.With(filePath: filePath));
 
         public DocumentInfo WithTextLoader(TextLoader? loader)
-            => With(loader: loader);
+            => With(loader: loader ?? NullTextLoader.Default);
+
+        internal DocumentInfo WithDesignTimeOnly(bool designTimeOnly)
+            => With(attributes: Attributes.With(designTimeOnly: designTimeOnly));
+
+        internal DocumentInfo WithDocumentServiceProvider(IDocumentServiceProvider? provider)
+            => With(documentServiceProvider: new(provider));
 
         private string GetDebuggerDisplay()
             => (FilePath == null) ? (nameof(Name) + " = " + Name) : (nameof(FilePath) + " = " + FilePath);
@@ -201,11 +189,6 @@ namespace Microsoft.CodeAnalysis
             public string? FilePath { get; }
 
             /// <summary>
-            /// Algorithm used to calculate content checksum.
-            /// </summary>
-            public SourceHashAlgorithm ChecksumAlgorithm { get; }
-
-            /// <summary>
             /// True if the document is a side effect of the build.
             /// </summary>
             public bool IsGenerated { get; }
@@ -221,7 +204,6 @@ namespace Microsoft.CodeAnalysis
                 string name,
                 IReadOnlyList<string> folders,
                 SourceCodeKind sourceCodeKind,
-                SourceHashAlgorithm checksumAlgorithm,
                 string? filePath,
                 bool isGenerated,
                 bool designTimeOnly)
@@ -230,7 +212,6 @@ namespace Microsoft.CodeAnalysis
                 Name = name;
                 Folders = folders;
                 SourceCodeKind = sourceCodeKind;
-                ChecksumAlgorithm = checksumAlgorithm;
                 FilePath = filePath;
                 IsGenerated = isGenerated;
                 DesignTimeOnly = designTimeOnly;
@@ -241,7 +222,6 @@ namespace Microsoft.CodeAnalysis
                 string? name = null,
                 IReadOnlyList<string>? folders = null,
                 Optional<SourceCodeKind> sourceCodeKind = default,
-                Optional<SourceHashAlgorithm> checksumAlgorithm = default,
                 Optional<string?> filePath = default,
                 Optional<bool> isGenerated = default,
                 Optional<bool> designTimeOnly = default)
@@ -250,7 +230,6 @@ namespace Microsoft.CodeAnalysis
                 var newName = name ?? Name;
                 var newFolders = folders ?? Folders;
                 var newSourceCodeKind = sourceCodeKind.HasValue ? sourceCodeKind.Value : SourceCodeKind;
-                var newChecksumAlgorithm = checksumAlgorithm.HasValue ? checksumAlgorithm.Value : ChecksumAlgorithm;
                 var newFilePath = filePath.HasValue ? filePath.Value : FilePath;
                 var newIsGenerated = isGenerated.HasValue ? isGenerated.Value : IsGenerated;
                 var newDesignTimeOnly = designTimeOnly.HasValue ? designTimeOnly.Value : DesignTimeOnly;
@@ -259,7 +238,6 @@ namespace Microsoft.CodeAnalysis
                     newName == Name &&
                     newFolders.SequenceEqual(Folders) &&
                     newSourceCodeKind == SourceCodeKind &&
-                    newChecksumAlgorithm == ChecksumAlgorithm &&
                     newFilePath == FilePath &&
                     newIsGenerated == IsGenerated &&
                     newDesignTimeOnly == DesignTimeOnly)
@@ -267,7 +245,7 @@ namespace Microsoft.CodeAnalysis
                     return this;
                 }
 
-                return new DocumentAttributes(newId, newName, newFolders, newSourceCodeKind, newChecksumAlgorithm, newFilePath, newIsGenerated, newDesignTimeOnly);
+                return new DocumentAttributes(newId, newName, newFolders, newSourceCodeKind, newFilePath, newIsGenerated, newDesignTimeOnly);
             }
 
             bool IObjectWritable.ShouldReuseInSerialization => true;
@@ -279,7 +257,6 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteString(Name);
                 writer.WriteValue(Folders.ToArray());
                 writer.WriteByte(checked((byte)SourceCodeKind));
-                writer.WriteByte(checked((byte)ChecksumAlgorithm));
                 writer.WriteString(FilePath);
                 writer.WriteBoolean(IsGenerated);
                 writer.WriteBoolean(DesignTimeOnly);
@@ -292,12 +269,11 @@ namespace Microsoft.CodeAnalysis
                 var name = reader.ReadString();
                 var folders = (string[])reader.ReadValue();
                 var sourceCodeKind = (SourceCodeKind)reader.ReadByte();
-                var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadByte();
                 var filePath = reader.ReadString();
                 var isGenerated = reader.ReadBoolean();
                 var designTimeOnly = reader.ReadBoolean();
 
-                return new DocumentAttributes(documentId, name, folders, sourceCodeKind, checksumAlgorithm, filePath, isGenerated, designTimeOnly);
+                return new DocumentAttributes(documentId, name, folders, sourceCodeKind, filePath, isGenerated, designTimeOnly);
             }
 
             Checksum IChecksummedObject.Checksum

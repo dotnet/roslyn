@@ -704,7 +704,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             bool designTimeOnly = false,
             IDocumentServiceProvider? documentServiceProvider = null)
         {
-            return _sourceFiles.AddTextContainer(textContainer, ChecksumAlgorithm, fullPath, sourceCodeKind, folders, designTimeOnly, documentServiceProvider);
+            return _sourceFiles.AddTextContainer(textContainer, fullPath, sourceCodeKind, folders, designTimeOnly, documentServiceProvider);
         }
 
         public bool ContainsSourceFile(string fullPath)

@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution
                 .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp)
-                .AddDocument(DocumentId.CreateNewId(projectId), "goo.cs", "public class Goo { }")
-                .AddAdditionalDocument(DocumentId.CreateNewId(projectId), "add.txt", "text")
-                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), "editorcfg", SourceText.From("config"), filePath: "/a/b")));
+                .AddDocument(DocumentId.CreateNewId(projectId), "goo.cs", SourceText.From("public class Goo { }", Encoding.UTF8, SourceHashAlgorithm.Sha256))
+                .AddAdditionalDocument(DocumentId.CreateNewId(projectId), "add.txt", SourceText.From("text", Encoding.UTF8, SourceHashAlgorithm.Sha256))
+                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), "editorcfg", SourceText.From("config", Encoding.UTF8, SourceHashAlgorithm.Sha256), filePath: "/a/b")));
 
             return workspace;
         }
@@ -293,10 +293,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
             var solution = workspace.CurrentSolution;
             var documentId = solution.Projects.Single().DocumentIds.Single();
-            var text = SourceText.From("new text");
+
+            var text = SourceText.From("new text", encoding: null, SourceHashAlgorithm.Sha1);
 
             var newSolution1 = solution.WithDocumentText(documentId, text, PreservationMode.PreserveIdentity);
-            Assert.True(newSolution1.GetDocument(documentId)!.TryGetText(out var actualText));
+            var newDocument1 = newSolution1.GetRequiredDocument(documentId);
+
+            Assert.True(newDocument1.TryGetText(out var actualText));
             Assert.Same(text, actualText);
 
             var newSolution2 = newSolution1.WithDocumentText(documentId, text, PreservationMode.PreserveIdentity);
@@ -1200,7 +1203,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha256).
                 WithProjectParseOptions(projectId, new CSharpParseOptions(kind: SourceCodeKind.Script));
 
-            var loader = new TestTextLoader();
+            var loader = new TestTextLoader(checksumAlgorithm: SourceHashAlgorithm.Sha1);
             var documentId = DocumentId.CreateNewId(projectId);
             var folders = new[] { "folder1", "folder2" };
 
@@ -1208,7 +1211,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var document = solution2.GetRequiredDocument(documentId);
             AssertEx.Equal(folders, document.Folders);
             Assert.Equal(SourceCodeKind.Script, document.SourceCodeKind);
-            Assert.Equal(SourceHashAlgorithm.Sha256, document.State.Attributes.ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithm.Sha1, document.GetTextSynchronously(default).ChecksumAlgorithm);
 
             Assert.Throws<ArgumentNullException>("documentId", () => solution.AddDocument(documentId: null!, "name", loader));
             Assert.Throws<ArgumentNullException>("name", () => solution.AddDocument(documentId, name: null!, loader));
@@ -1236,7 +1239,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal("text", sourceText.ToString());
             Assert.Equal(SourceHashAlgorithm.Sha256, sourceText.ChecksumAlgorithm);
-            Assert.Equal(SourceHashAlgorithm.Sha256, document.State.Attributes.ChecksumAlgorithm);
             AssertEx.Equal(folders, document.Folders);
             Assert.Equal(filePath, document.FilePath);
             Assert.False(document.State.Attributes.IsGenerated);
@@ -1269,7 +1271,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(filePath, document.FilePath);
             Assert.True(document.State.Attributes.IsGenerated);
             Assert.Equal(SourceCodeKind.Script, document.SourceCodeKind);
-            Assert.Equal(SourceHashAlgorithm.Sha256, document.State.Attributes.ChecksumAlgorithm);
 
             Assert.Throws<ArgumentNullException>("documentId", () => solution.AddDocument(documentId: null!, "name", sourceText));
             Assert.Throws<ArgumentNullException>("name", () => solution.AddDocument(documentId, name: null!, sourceText));

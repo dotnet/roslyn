@@ -347,8 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 DocumentId.CreateNewId(project.Id),
                 name: Path.GetFileName(filePath),
                 loader: new FileTextLoader(filePath, defaultEncoding: null, project.State.ChecksumAlgorithm),
-                filePath: filePath,
-                checksumAlgorithm: project.State.ChecksumAlgorithm);
+                filePath: filePath);
 
             OnDocumentAdded(docInfo);
             return CurrentSolution.GetDocument(docInfo.Id)!;
@@ -382,7 +381,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 // check if the doc is part of the current Roslyn workspace before notifying Roslyn.
                 if (CurrentSolution.ContainsProject(id.ProjectId))
                 {
-                    OnDocumentClosed(id, new FileTextLoaderNoException(moniker, null));
+                    OnDocumentClosed(id, new FileTextLoaderNoException(moniker, null, SourceHashAlgorithm.Sha256));
                     _openedDocs = _openedDocs.Remove(moniker);
                 }
             }

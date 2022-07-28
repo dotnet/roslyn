@@ -61,7 +61,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 documentServiceProvider = new RazorDocumentServiceProviderWrapper(razorDocumentServiceProvider);
             }
 
-            return DocumentInfo.Create(id, name, loader, filePath, SourceHashAlgorithm.Sha256, folders, sourceCodeKind, isGenerated, designTimeOnly, documentServiceProvider);
+            return DocumentInfo.Create(id, name, folders, sourceCodeKind, loader, filePath, isGenerated)
+                .WithDesignTimeOnly(designTimeOnly)
+                .WithDocumentServiceProvider(documentServiceProvider);
         }
 
         private class RazorCapabilitiesProvider : ICapabilitiesProvider

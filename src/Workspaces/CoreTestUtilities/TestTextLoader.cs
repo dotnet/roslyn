@@ -15,8 +15,13 @@ namespace Roslyn.Test.Utilities
     {
         private readonly string _text;
 
-        public TestTextLoader(string text = "test")
-            => _text = text;
+        internal override SourceHashAlgorithm ChecksumAlgorithm { get; }
+
+        public TestTextLoader(string text = "test", SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha256)
+        {
+            _text = text;
+            ChecksumAlgorithm = checksumAlgorithm;
+        }
 
         public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             => Task.FromResult(TextAndVersion.Create(SourceText.From(_text), VersionStamp.Create()));

@@ -125,11 +125,10 @@ namespace Microsoft.CodeAnalysis
                 var doc = DocumentInfo.Create(
                    id,
                    name,
-                   new FileTextLoader(absolutePath, commandLineArguments.Encoding, commandLineArguments.ChecksumAlgorithm),
-                   absolutePath,
-                   commandLineArguments.ChecksumAlgorithm,
                    folders: folders,
-                   sourceCodeKind: fileArg.IsScript ? SourceCodeKind.Script : SourceCodeKind.Regular);
+                   sourceCodeKind: fileArg.IsScript ? SourceCodeKind.Script : SourceCodeKind.Regular,
+                   new FileTextLoader(absolutePath, commandLineArguments.Encoding, commandLineArguments.ChecksumAlgorithm),
+                   filePath: absolutePath);
 
                 docs.Add(doc);
             }
@@ -153,10 +152,9 @@ namespace Microsoft.CodeAnalysis
                 var doc = DocumentInfo.Create(
                    id: id,
                    name: name,
+                   folders: folders,
                    loader: new FileTextLoader(absolutePath, commandLineArguments.Encoding, commandLineArguments.ChecksumAlgorithm),
-                   filePath: absolutePath,
-                   checksumAlgorithm: commandLineArguments.ChecksumAlgorithm,
-                   folders: folders);
+                   filePath: absolutePath);
 
                 additionalDocs.Add(doc);
             }

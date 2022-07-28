@@ -46,11 +46,10 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces
 
             var sourceCodeKind = parseOptions?.Kind ?? SourceCodeKind.Regular;
             var documentInfo = DocumentInfo.Create(
-                documentId,
-                fileName,
-                textLoader,
-                filePath,
-                checksumAlgorithm,
+                id: documentId,
+                name: fileName,
+                loader: textLoader,
+                filePath: filePath,
                 sourceCodeKind: sourceCodeKind);
 
             // The assembly name must be unique for each collection of loose files. Since the name doesn't matter

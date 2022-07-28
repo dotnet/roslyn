@@ -84,9 +84,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 assemblyInfoFileName,
                 loader: TextLoader.From(assemblyInfoSourceTextContainer, VersionStamp.Default),
                 filePath: null,
-                checksumAlgorithm: ChecksumAlgorithm,
-                isGenerated: true,
-                designTimeOnly: true);
+                isGenerated: true).WithDesignTimeOnly(true);
 
             var generatedDocumentId = DocumentId.CreateNewId(projectId);
             var generatedDocument = DocumentInfo.Create(
@@ -94,9 +92,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 Path.GetFileName(TemporaryFilePath),
                 loader: loadFileFromDisk ? new FileTextLoader(TemporaryFilePath, Encoding, ChecksumAlgorithm) : null,
                 filePath: TemporaryFilePath,
-                checksumAlgorithm: ChecksumAlgorithm,
-                isGenerated: true,
-                designTimeOnly: true);
+                isGenerated: true).WithDesignTimeOnly(true);
 
             var projectInfo = ProjectInfo.Create(
                 new ProjectInfo.ProjectAttributes(

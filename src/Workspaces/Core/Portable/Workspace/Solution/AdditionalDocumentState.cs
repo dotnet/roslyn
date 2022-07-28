@@ -17,9 +17,10 @@ namespace Microsoft.CodeAnalysis
             HostWorkspaceServices solutionServices,
             IDocumentServiceProvider documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
+            SourceHashAlgorithm checksumAlgorithm,
             SourceText? sourceText,
             ValueSource<TextAndVersion> textAndVersionSource)
-            : base(solutionServices, documentServiceProvider, attributes, sourceText, textAndVersionSource)
+            : base(solutionServices, documentServiceProvider, attributes, checksumAlgorithm, sourceText, textAndVersionSource)
         {
             _additionalText = new AdditionalTextWithState(this);
         }
@@ -43,12 +44,13 @@ namespace Microsoft.CodeAnalysis
         public new AdditionalDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
             => (AdditionalDocumentState)base.UpdateText(newTextAndVersion, mode);
 
-        protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
+        protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, SourceHashAlgorithm checksumAlgorithm, PreservationMode mode, bool incremental)
         {
             return new AdditionalDocumentState(
                 this.solutionServices,
                 this.Services,
                 this.Attributes,
+                checksumAlgorithm,
                 this.sourceText,
                 newTextSource);
         }
