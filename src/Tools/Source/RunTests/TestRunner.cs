@@ -263,10 +263,12 @@ namespace RunTests
 
                 if (options.TestVsi)
                 {
+                    command.AppendLine("time");
                     command.Append("dir");
                     // TODO retry - may need to call via runtests without helix param?
                     // TODO move WER dump configuration to this powershell script.
                     command.AppendLine("PowerShell.exe -ExecutionPolicy Unrestricted -command \"./run_integration_tests.ps1 -vsixExpInstallerExe 'vsixexpinstaller.exe'\"");
+                    command.AppendLine("time");
                 }
                 else
                 {
