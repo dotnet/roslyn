@@ -90,8 +90,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 async Task<Solution> ComputePrimaryBranchAsync()
                 {
-                    var anyBranchSolution = await _disconnectedSolutionTask.ConfigureAwait(false);
-                    return await updatePrimaryBranchAsync(anyBranchSolution, _cancellationTokenSource.Token).ConfigureAwait(false);
+                    var solution = await _disconnectedSolutionTask.ConfigureAwait(false);
+                    return await updatePrimaryBranchAsync(solution, _cancellationTokenSource.Token).ConfigureAwait(false);
                 }
             }
 
