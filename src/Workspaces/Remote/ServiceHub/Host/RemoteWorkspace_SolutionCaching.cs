@@ -35,36 +35,31 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private readonly Dictionary<Checksum, InFlightSolution> _solutionChecksumToSolution = new();
 
-        private async ValueTask<InFlightSolution> GetOrCreateSolutionAndAddInFlightCountAsync(
+        private (InFlightSolution inFlightSolution, Task<Solution> solutionTask) GetOrCreateSolutionAndAddInFlightCount_NoLock(
             Checksum solutionChecksum,
             Func<CancellationToken, Task<Solution>> computeDisconnectedSolutionAsync,
-            Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync,
-            CancellationToken cancellationToken)
+            Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync)
         {
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                // From this point on we are mutating state.  Ensure we absolutely do not cancel accidentally.
-                cancellationToken = CancellationToken.None;
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-                var solution = GetOrCreateSolutionAndAddInFlightCount_NoLock();
+            var solution = GetOrCreateSolutionAndAddInFlightCount_NoLock();
 
-                // The solution must now have a valid in-flight-count.
-                Contract.ThrowIfTrue(solution.InFlightCount < 1);
+            // The solution must now have a valid in-flight-count.
+            Contract.ThrowIfTrue(solution.InFlightCount < 1);
 
-                // Now mark this as the last-requested-solution for this cache.
-                SetLastRequestedSolution_NoLock(solution);
+            // Now mark this as the last-requested-solution for this cache.
+            SetLastRequestedSolution_NoLock(solution);
 
-                // Our in-flight-count must not have somehow dropped here.  Note: we cannot assert that it incremented.
-                // For example, if TryFastGetSolution found the item in the last-requested-solution slot then trying to
-                // set it again as the last-requested-solution will not change anything.
-                Contract.ThrowIfTrue(solution.InFlightCount < 1);
+            // Our in-flight-count must not have somehow dropped here.  Note: we cannot assert that it incremented.
+            // For example, if TryFastGetSolution found the item in the last-requested-solution slot then trying to
+            // set it again as the last-requested-solution will not change anything.
+            Contract.ThrowIfTrue(solution.InFlightCount < 1);
 
-                // We may be getting back a solution that only was computing a non-primary branch.  If we were asked
-                // to compute the primary branch as well, let it know so it can start that now.
-                solution.TryKickOffPrimaryBranchWork_NoLock(updatePrimaryBranchAsync);
+            // We may be getting back a solution that only was computing a non-primary branch.  If we were asked
+            // to compute the primary branch as well, let it know so it can start that now.
+            solution.TryKickOffPrimaryBranchWork_WhileAlreadyHoldingLock(updatePrimaryBranchAsync);
 
-                return solution;
-            }
+            return (solution, solution.PreferredSolutionTask_WhileAlreadyHoldingLock);
 
             InFlightSolution GetOrCreateSolutionAndAddInFlightCount_NoLock()
             {

@@ -55,6 +55,18 @@ namespace Microsoft.CodeAnalysis.Remote
                 _disconnectedSolutionTask = computeDisconnectedSolutionAsync(_cancellationTokenSource.Token);
             }
 
+            public Task<Solution> PreferredSolutionTask_WhileAlreadyHoldingLock
+            {
+                get
+                {
+                    Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
+
+                    // Defer to the primary branch task if we have it, otherwise, fallback to the any-branch-task. This
+                    // keeps everything on the primary branch if possible, allowing more sharing of services/caches.
+                    return _primaryBranchTask ?? _disconnectedSolutionTask;
+                }
+            }
+
             /// <summary>
             /// Allow the RemoteWorkspace to try to elevate this solution to be the primary solution for itself.  This
             /// commonly happens because when a change happens to the host, features may kick off immediately, creating
@@ -62,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
             /// checksum be the primary solution of this workspace.
             /// </summary>
             /// <param name="updatePrimaryBranchAsync"></param>
-            public void TryKickOffPrimaryBranchWork_NoLock(Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync)
+            public void TryKickOffPrimaryBranchWork_WhileAlreadyHoldingLock(Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync)
             {
                 Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
 
@@ -83,35 +95,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            public async ValueTask<Solution> GetSolutionAsync(CancellationToken cancellationToken)
-            {
-                // Defer to the primary branch task if we have it, otherwise, fallback to the any-branch-task. This
-                // keeps everything on the primary branch if possible, allowing more sharing of services/caches.
-                Task<Solution> task;
-                using (await _workspace._gate.DisposableWaitAsync(cancellationToken))
-                {
-                    task = _primaryBranchTask ?? _disconnectedSolutionTask;
-                }
-
-                return await task.WithCancellation(cancellationToken).ConfigureAwait(false);
-            }
-
             public void IncrementInFlightCount_WhileAlreadyHoldingLock()
             {
                 Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
                 Contract.ThrowIfTrue(InFlightCount < 1);
                 InFlightCount++;
-            }
-
-            public void DecrementInFlightCount()
-            {
-                // Intentionally not cancellable.  We must do the decrement to ensure our state is consistent.  This
-                // does block the calling thread.  However, this should only be for a short amount of time as nothing in
-                // RemoteWorkspace should ever hold this lock for long periods of time.
-                using (_workspace._gate.DisposableWait(CancellationToken.None))
-                {
-                    DecrementInFlightCount_WhileAlreadyHoldingLock();
-                }
             }
 
             public void DecrementInFlightCount_WhileAlreadyHoldingLock()

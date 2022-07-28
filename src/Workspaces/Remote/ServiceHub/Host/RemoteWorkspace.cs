@@ -117,15 +117,22 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will
             // increment the in-flight of that solution until we decrement it at the end of our try/finally block.
-            var solution = await GetOrCreateSolutionAndAddInFlightCountAsync(
-                solutionChecksum, computeDisconnectedSolutionAsync, updatePrimaryBranchAsync, cancellationToken).ConfigureAwait(false);
+            InFlightSolution inFlightSolution;
+            Task<Solution> solutionTask;
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                (inFlightSolution, solutionTask) = GetOrCreateSolutionAndAddInFlightCount_NoLock(
+                    solutionChecksum, computeDisconnectedSolutionAsync, updatePrimaryBranchAsync);
+            }
             try
             {
                 // We must have at least 1 for the in-flight-count (representing this current in-flight call).
-                Contract.ThrowIfTrue(solution.InFlightCount < 1);
+                Contract.ThrowIfTrue(inFlightSolution.InFlightCount < 1);
 
-                // Actually get the solution, computing it ourselves, or getting the result that another caller was computing.
-                var newSolution = await solution.GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                // Actually get the solution, computing it ourselves, or getting the result that another caller was
+                // computing. Note: we use our own cancellation token here as the task is currently operating using a
+                // private CTS token that inFlightSolution controls.
+                var newSolution = await solutionTask.WithCancellation(cancellationToken).ConfigureAwait(false);
 
                 // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
                 // using this same solution as well
@@ -135,9 +142,17 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             finally
             {
-                // finally, decrement our in-flight-count on the solution.  If we were the last one keeping it alive, it
-                // will get removed from our caches.
-                solution.DecrementInFlightCount();
+
+                // Intentionally not cancellable.  We must do the decrement to ensure our state is consistent.  This
+                // does block the calling thread.  However, this should only be for a short amount of time as nothing in
+                // RemoteWorkspace should ever hold this lock for long periods of time.
+                using (_gate.DisposableWait(CancellationToken.None))
+                {
+
+                    // finally, decrement our in-flight-count on the solution.  If we were the last one keeping it alive, it
+                    // will get removed from our caches.
+                    inFlightSolution.DecrementInFlightCount_WhileAlreadyHoldingLock();
+                }
             }
         }
 
