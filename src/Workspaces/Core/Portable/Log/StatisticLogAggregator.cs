@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             AddDataPoint(key, (int)timeSpan.TotalMilliseconds);
         }
 
-        public StatisticResult GetStaticticResult(TKey key)
+        public StatisticResult GetStatisticResult(TKey key)
         {
             if (TryGetCounter(key, out var counter))
             {
