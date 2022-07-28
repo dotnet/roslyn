@@ -3,10 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
@@ -60,6 +64,44 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                     // TODO(jmarolf): Should we expose duplicate options if the user has a different setting in VB vs. C#?
                     //                Today this code will choose whatever option is set for C# as the default.
                     : _visualStudioOptions.GetOption<CodeStyleOption2<T>>(new OptionKey2(_option, LanguageNames.CSharp));
+
+            public override string? GetSettingName()
+            {
+                // Could change to op.GetType().Name == "EditorConfigStorageLocation`1" but not sure if it applies for all editorconfig settings
+                var option = _option.StorageLocations.FirstOrDefault(op => op.GetType().Name != "RoamingProfileStorageLocation");
+
+                if (option == null)
+                {
+                    return null;
+                }
+
+                return ((IEditorConfigStorageLocation2)option).KeyName;
+            }
+
+            public override string? GetDocumentation()
+            {
+                return Description;
+            }
+
+            public override string[]? GetSettingValues(OptionSet optionSet)
+            {
+                var type = typeof(T);
+                var strings = new List<string>();
+                var enumName = type.GetEnumValues();
+
+                foreach (var enumValue in enumName)
+                {
+                    if (enumValue != null)
+                    {
+                        // GetEditorConfigStringValue only returns the first part (first:second) of the setting so the NotificationOption we set here does not matter
+                        var codeStyleOption= new CodeStyleOption2<T>((T)enumValue, NotificationOption2.Silent);
+                        var option = ((IEditorConfigStorageLocation2)_option.StorageLocations.First()).GetEditorConfigStringValue(codeStyleOption, optionSet);
+                        strings.Add(option);
+                    }
+                }
+
+                return strings.ToArray();
+            }
         }
     }
 }

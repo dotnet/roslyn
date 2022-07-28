@@ -64,7 +64,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
             yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBeforeComma, CSharpVSResources.Insert_space_before_comma, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBeforeDot, CSharpVSResources.Insert_space_before_dot, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement, CSharpVSResources.Insert_space_before_semicolon_in_for_statement, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-
             yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpacingAroundBinaryOperator, CSharpVSResources.Set_spacing_for_operators, editorConfigOptions, visualStudioOptions, updaterService, FileName);
         }
 

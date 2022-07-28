@@ -3,6 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Input;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
@@ -58,6 +61,44 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                 => _editorConfigOptions.TryGetEditorConfigOption(_option, out CodeStyleOption2<T>? value) && value is not null
                     ? value
                     : _visualStudioOptions.GetOption(_option);
+
+            public override string? GetSettingName()
+            {
+                // Could change to op.GetType().Name == "EditorConfigStorageLocation`1" but not sure if it applies for all editorconfig settings
+                var option = _option.StorageLocations.FirstOrDefault(op => op.GetType().Name != "RoamingProfileStorageLocation");
+
+                if (option == null)
+                {
+                    return null;
+                }
+
+                return ((IEditorConfigStorageLocation2)option).KeyName;
+            }
+
+            public override string? GetDocumentation()
+            {
+                return Description;
+            }
+
+            public override string[]? GetSettingValues(OptionSet optionSet)
+            {
+                var type = typeof(T);
+                var strings = new List<string>();
+                var enumName = type.GetEnumValues();
+
+                foreach (var enumValue in enumName)
+                {
+                    if (enumValue != null)
+                    {
+                        // GetEditorConfigStringValue only returns the first part (first:second) of the setting so the NotificationOption we set here does not matter
+                        var codeStyleSetting = new CodeStyleOption2<T>((T)enumValue, NotificationOption2.Silent);
+                        var option = ((IEditorConfigStorageLocation2)_option.StorageLocations.First()).GetEditorConfigStringValue(codeStyleSetting, optionSet);
+                        strings.Add(option);
+                    }
+                }
+
+                return strings.ToArray();
+            }
         }
     }
 }
