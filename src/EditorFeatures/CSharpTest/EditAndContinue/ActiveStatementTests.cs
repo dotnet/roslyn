@@ -9931,6 +9931,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(61415, "https://github.com/dotnet/roslyn/issues/61415")]
         public void LocalFunction_EditAroundTry_WithActiveStatement()
         {
             var src1 =
