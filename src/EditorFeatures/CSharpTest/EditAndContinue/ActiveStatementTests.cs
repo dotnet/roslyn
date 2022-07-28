@@ -9931,6 +9931,55 @@ class C
         }
 
         [Fact]
+        public void LocalFunction_EditAroundTry_WithActiveStatement()
+        {
+            var src1 =
+                """
+                <AS:0>F();</AS:0>
+
+                void F()
+                {
+                    try
+                    {
+                        <AS:1>G();</AS:1>
+                    }
+                    <ER:1.0>catch
+                    {
+                    }</ER:1.0>
+                }
+
+                void G()
+                <AS:2>{</AS:2>
+                }
+                """;
+            var src2 =
+                """
+                <AS:0>F();</AS:0>
+
+                void F()
+                {
+                    System.Console.WriteLine(1);
+                    try
+                    {
+                        <AS:1>G();</AS:1>
+                    }
+                    <ER:1.0>catch
+                    {
+                    }</ER:1.0>
+                }
+
+                void G()
+                <AS:2>{</AS:2>
+                }
+                """;
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
         [WorkItem(37054, "https://github.com/dotnet/roslyn/issues/37054")]
         public void LocalFunctionToAsyncLocalFunction_ExpressionBody_WithActiveStatement()
         {

@@ -1145,6 +1145,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var oldLambda = GetLambda(oldEnclosingLambdaBody);
                         diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ActiveStatementLambdaRemoved, newSpan, oldLambda,
                             new[] { GetDisplayName(oldLambda) }));
+
+                        // The best we can do is use the body match for any further checks
+                        match = bodyMatch;
                     }
                     else
                     {
@@ -1162,7 +1165,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     // exception handling around the statement:
                     CalculateExceptionRegionsAroundActiveStatement(
-                        bodyMatch,
+                        match,
                         oldStatementSyntax,
                         newStatementSyntax,
                         newSpan,
