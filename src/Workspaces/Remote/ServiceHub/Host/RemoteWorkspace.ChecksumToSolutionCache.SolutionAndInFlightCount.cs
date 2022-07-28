@@ -5,90 +5,133 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed partial class RemoteWorkspace
     {
-        private sealed partial class ChecksumToSolutionCache
+        /// <summary>
+        /// Wrapper around asynchronously produced solution.  The computation for producing the solution will be
+        /// canceled when the number of in-flight operations using it goes down to 0.
+        /// </summary>
+        public sealed class SolutionAndInFlightCount
         {
+            private readonly RemoteWorkspace _workspace;
+
+            public readonly Checksum SolutionChecksum;
+
+            private readonly CancellationTokenSource _cancellationTokenSource = new();
+
+            private readonly Task<Solution> _anyBranchTask;
+            private Task<Solution>? _primaryBranchTask;
+
             /// <summary>
-            /// Wrapper around asynchronously produced solution.  The computation for producing the solution will be
-            /// canceled when the number of in-flight operations using it goes down to 0.
+            /// Initially set to 1 to represent the operation that requested and is using this solution.  This also
+            /// allows us to use 0 to represent a point that this solution computation is canceled and can not be
+            /// used again.
             /// </summary>
-            public sealed class SolutionAndInFlightCount
+            public int InFlightCount { get; private set; } = 1;
+
+            public SolutionAndInFlightCount(
+                RemoteWorkspace workspace,
+                Checksum solutionChecksum,
+                Func<CancellationToken, Task<Solution>> getSolutionAsync,
+                Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync)
             {
-                private readonly ChecksumToSolutionCache _cache;
-                public readonly Checksum SolutionChecksum;
+                _workspace = workspace;
+                SolutionChecksum = solutionChecksum;
 
-                private readonly CancellationTokenSource _cancellationTokenSource = new();
+                _anyBranchTask = getSolutionAsync(_cancellationTokenSource.Token);
+                TryKickOffPrimaryBranchWork_NoLock(updatePrimaryBranchAsync);
+            }
 
-                /// <summary>
-                /// Initially set to 1 to represent the operation that requested and is using this solution.  This also
-                /// allows us to use 0 to represent a point that this solution computation is canceled and can not be
-                /// used again.
-                /// </summary>
-                private int _inFlightCount = 1;
+            public void TryKickOffPrimaryBranchWork(Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync)
+            {
+                if (updatePrimaryBranchAsync is null)
+                    return;
 
-                // For assertion purposes.
-                public int InFlightCount => _inFlightCount;
-
-                public SolutionAndInFlightCount(
-                    ChecksumToSolutionCache cache,
-                    Checksum solutionChecksum,
-                    Func<CancellationToken, Task<Solution>> getSolutionAsync)
+                lock (this)
                 {
-                    _cache = cache;
-                    SolutionChecksum = solutionChecksum;
-                    Task = getSolutionAsync(_cancellationTokenSource.Token);
+                    // Already set up the work to update the primary branch
+                    if (_primaryBranchTask != null)
+                        return;
+
+                    TryKickOffPrimaryBranchWork_NoLock(updatePrimaryBranchAsync);
+                }
+            }
+
+            private void TryKickOffPrimaryBranchWork_NoLock(Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync)
+            {
+                if (updatePrimaryBranchAsync is null)
+                    return;
+
+                Contract.ThrowIfTrue(_primaryBranchTask != null);
+                _primaryBranchTask = ComputePrimaryBranchAsync();
+
+                async Task<Solution> ComputePrimaryBranchAsync()
+                {
+                    var anyBranchSolution = await _anyBranchTask.ConfigureAwait(false);
+                    return await updatePrimaryBranchAsync(anyBranchSolution, _cancellationTokenSource.Token).ConfigureAwait(false);
+                }
+            }
+
+            public async ValueTask<Solution> GetSolutionAsync(CancellationToken cancellationToken)
+            {
+                // Defer to the primary branch task if we have it, otherwise, fallback to the any-branch-task. This
+                // keeps everything on the primary branch if possible, allowing more sharing of services/caches.
+                Task<Solution> task;
+                lock (this)
+                {
+                    task = _primaryBranchTask ?? _anyBranchTask;
                 }
 
-                public Task<Solution> Task { get; }
+                return await task.WithCancellation(cancellationToken).ConfigureAwait(false);
+            }
 
-                public void IncrementInFlightCount()
+            public void IncrementInFlightCount()
+            {
+                using (_workspace._gate.DisposableWait(CancellationToken.None))
                 {
-                    using (_cache._gate.DisposableWait(CancellationToken.None))
-                    {
-                        IncrementInFlightCount_WhileAlreadyHoldingLock();
-                    }
+                    IncrementInFlightCount_WhileAlreadyHoldingLock();
                 }
+            }
 
-                public void IncrementInFlightCount_WhileAlreadyHoldingLock()
+            public void IncrementInFlightCount_WhileAlreadyHoldingLock()
+            {
+                Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
+                Contract.ThrowIfTrue(InFlightCount < 1);
+                InFlightCount++;
+            }
+
+            public void DecrementInFlightCount()
+            {
+                using (_workspace._gate.DisposableWait(CancellationToken.None))
                 {
-                    Contract.ThrowIfFalse(_cache._gate.CurrentCount == 0);
-                    Contract.ThrowIfTrue(_inFlightCount < 1);
-                    _inFlightCount++;
+                    DecrementInFlightCount_WhileAlreadyHoldingLock();
                 }
+            }
 
-                public void DecrementInFlightCount()
+            public void DecrementInFlightCount_WhileAlreadyHoldingLock()
+            {
+                Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
+                Contract.ThrowIfTrue(InFlightCount < 1);
+                InFlightCount--;
+                if (InFlightCount == 0)
                 {
-                    using (_cache._gate.DisposableWait(CancellationToken.None))
-                    {
-                        DecrementInFlightCount_WhileAlreadyHoldingLock();
-                    }
-                }
+                    _cancellationTokenSource.Cancel();
+                    _cancellationTokenSource.Dispose();
 
-                public void DecrementInFlightCount_WhileAlreadyHoldingLock()
-                {
-                    Contract.ThrowIfFalse(_cache._gate.CurrentCount == 0);
-                    Contract.ThrowIfTrue(_inFlightCount < 1);
-                    _inFlightCount--;
-                    if (_inFlightCount == 0)
-                    {
-                        _cancellationTokenSource.Cancel();
-                        _cancellationTokenSource.Dispose();
+                    // If we're going away, then we absolutely must not be pointed at in the _lastRequestedSolution field.
+                    Contract.ThrowIfTrue(_cache._lastRequestedSolution == this);
 
-                        // If we're going away, then we absolutely must not be pointed at in the _lastRequestedSolution field.
-                        Contract.ThrowIfTrue(_cache._lastRequestedSolution == this);
+                    // If we're going away, we better find ourself in the mapping for this checksum.
+                    Contract.ThrowIfFalse(_cache._solutionChecksumToSolution.TryGetValue(SolutionChecksum, out var existingSolution));
+                    Contract.ThrowIfFalse(existingSolution == this);
 
-                        // If we're going away, we better find ourself in the mapping for this checksum.
-                        Contract.ThrowIfFalse(_cache._solutionChecksumToSolution.TryGetValue(SolutionChecksum, out var existingSolution));
-                        Contract.ThrowIfFalse(existingSolution == this);
-
-                        // And we better succeed at actually removing.
-                        Contract.ThrowIfFalse(_cache._solutionChecksumToSolution.Remove(SolutionChecksum));
-                    }
+                    // And we better succeed at actually removing.
+                    Contract.ThrowIfFalse(_cache._solutionChecksumToSolution.Remove(SolutionChecksum));
                 }
             }
         }

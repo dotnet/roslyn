@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -26,17 +27,30 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
         /// <summary>
-        /// Cache of checksums/solutions for any request that came through.
+        /// The last solution requested by a service. This effectively adds an additional in-flight-count to one of
+        /// the items in <see cref="_solutionChecksumToSolution"/> ensuring that the very last solution requested is
+        /// kept alive by us, even if there are no active requests currently in progress for that solution.  That
+        /// way if we have two non-concurrent requests for that same solution, with no intervening updates, we can
+        /// cache and keep the solution around instead of having to recompute it.
         /// </summary>
-        private readonly ChecksumToSolutionCache _anyBranchSolutionCache;
+        private SolutionAndInFlightCount? _lastAnyBranchSolution;
 
         /// <summary>
-        /// Cache of checksums/solutions for requests to update the primary-solution (e.g. the solution this <see
-        /// cref="RemoteWorkspace"/> should actually use as its <see cref="Workspace.CurrentSolution"/>).  When requests
-        /// come through, we should always try to service them from this cache if possible, or fallback to the
-        /// <see cref="_anyBranchSolutionCache"/> otherwise.
+        /// The last solution requested by a service. This effectively adds an additional in-flight-count to one of
+        /// the items in <see cref="_solutionChecksumToSolution"/> ensuring that the very last solution requested is
+        /// kept alive by us, even if there are no active requests currently in progress for that solution.  That
+        /// way if we have two non-concurrent requests for that same solution, with no intervening updates, we can
+        /// cache and keep the solution around instead of having to recompute it.
         /// </summary>
-        private readonly ChecksumToSolutionCache _primaryBranchSolutionCache;
+        private SolutionAndInFlightCount? _lastPrimaryBranchSolution;
+
+        /// <summary>
+        /// Mapping from solution-checksum to the solution computed for it.  This is used so that we can hold a
+        /// solution around as long as the checksum for it is being used in service of some feature operation (e.g.
+        /// classification).  As long as we're holding onto it, concurrent feature requests for the same solution
+        /// checksum can share the computation of that particular solution and avoid duplicated concurrent work.
+        /// </summary>
+        private readonly Dictionary<Checksum, SolutionAndInFlightCount> _solutionChecksumToSolution = new();
 
         /// <summary>
         /// Used to make sure we never move remote workspace backward. this version is the WorkspaceVersion of primary
@@ -48,9 +62,6 @@ namespace Microsoft.CodeAnalysis.Remote
         internal RemoteWorkspace(HostServices hostServices, string? workspaceKind)
             : base(hostServices, workspaceKind)
         {
-            // Pass along our gate to our two caches.  This way all mutation is kept in sync.
-            _anyBranchSolutionCache = new ChecksumToSolutionCache(_gate);
-            _primaryBranchSolutionCache = new ChecksumToSolutionCache(_gate);
         }
 
         protected override void Dispose(bool finalize)
@@ -124,10 +135,16 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfNull(solutionChecksum);
             Contract.ThrowIfTrue(solutionChecksum == Checksum.Null);
 
+            var computeSolutionAsync = (CancellationToken cancellationToken) => ComputeSolutionAsync(assetProvider, solutionChecksum, cancellationToken);
+
+            Func<Solution, CancellationToken, ValueTask<Solution>>? updatePrimaryBranchAsync = updatePrimaryBranch
+                ? (anyBranchSolution, cancellationToken) => this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, anyBranchSolution, cancellationToken)
+                : null;
+
             // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will
             // increment the in-flight of that solution until we decrement it at the end of our try/finally block.
-            var solution = await GetOrCreateSolutionAsync(
-                assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch, cancellationToken).ConfigureAwait(false);
+            var solution = await GetOrCreateSolutionAndAddInFlightCountAsync(
+                solutionChecksum, computeSolutionAsync, updatePrimaryBranchAsync, cancellationToken).ConfigureAwait(false);
             try
             {
                 Contract.ThrowIfTrue(solution.InFlightCount < 1);
@@ -137,9 +154,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // overwritten by some other request on a another thread.
                 Contract.ThrowIfTrue(solution.InFlightCount < 1);
 
-                // Actually get the solution, computing it ourselves, or getting the result that another caller was
-                // computing.
-                var newSolution = await solution.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
+                // Actually get the solution, computing it ourselves, or getting the result that another caller was computing.
+                var newSolution = await solution.GetSolutionAsync(cancellationToken).ConfigureAwait(false);
 
                 // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
                 // using this same solution as well
@@ -155,75 +171,75 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async ValueTask<ChecksumToSolutionCache.SolutionAndInFlightCount> GetOrCreateSolutionAsync(
-            AssetProvider assetProvider,
-            Checksum solutionChecksum,
-            int workspaceVersion,
-            bool updatePrimaryBranch,
-            CancellationToken cancellationToken)
-        {
-            // Always try to retrieve cached solutions from the primary branch first.  That way we can use the solutions
-            // that were the real solutions of this Workspace, and not ones forked off from that.  This gives the
-            // highest likelihood of sharing data and being able to reuse workspace caches and services shared among all
-            // components.
-            var primaryBranchSolution = await _primaryBranchSolutionCache.TryFastGetSolutionAndAddInFlightCountAsync(
-                solutionChecksum, cancellationToken).ConfigureAwait(false);
+        //private async ValueTask<SolutionAndInFlightCount> GetOrCreateSolutionAsync(
+        //    AssetProvider assetProvider,
+        //    Checksum solutionChecksum,
+        //    int workspaceVersion,
+        //    bool updatePrimaryBranch,
+        //    CancellationToken cancellationToken)
+        //{
+        //    // Always try to retrieve cached solutions from the primary branch first.  That way we can use the solutions
+        //    // that were the real solutions of this Workspace, and not ones forked off from that.  This gives the
+        //    // highest likelihood of sharing data and being able to reuse workspace caches and services shared among all
+        //    // components.
+        //    var solution = await TryFastGetSolutionAndAddInFlightCountAsync(
+        //        solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-            if (primaryBranchSolution != null)
-            {
-                Contract.ThrowIfTrue(primaryBranchSolution.InFlightCount < 1);
-                return primaryBranchSolution;
-            }
+        //    if (solution != null)
+        //    {
+        //        Contract.ThrowIfTrue(solution.InFlightCount < 1);
+        //        return solution;
+        //    }
 
-            Contract.ThrowIfFalse(primaryBranchSolution == null);
+        //    Contract.ThrowIfFalse(primaryBranchSolution == null);
 
-            // Otherwise, have the any-branch solution try to retrieve or create the solution.  This will always
-            // succeed, and must give us back a solution with a in-flight-count for the operation currently in progress.
-            var anyBranchSolution =
-                await _anyBranchSolutionCache.TryFastGetSolutionAndAddInFlightCountAsync(solutionChecksum, cancellationToken).ConfigureAwait(false) ??
-                await _anyBranchSolutionCache.SlowGetOrCreateSolutionAndAddInFlightCountAsync(
-                    solutionChecksum,
-                    cancellationToken => ComputeSolutionAsync(assetProvider, solutionChecksum, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfTrue(anyBranchSolution.InFlightCount < 1);
+        //    // Otherwise, have the any-branch solution try to retrieve or create the solution.  This will always
+        //    // succeed, and must give us back a solution with a in-flight-count for the operation currently in progress.
+        //    var anyBranchSolution =
+        //        await _anyBranchSolutionCache.TryFastGetSolutionAndAddInFlightCountAsync(solutionChecksum, cancellationToken).ConfigureAwait(false) ??
+        //        await _anyBranchSolutionCache.SlowGetOrCreateSolutionAndAddInFlightCountAsync(
+        //            solutionChecksum,
+        //            cancellationToken => ComputeSolutionAsync(assetProvider, solutionChecksum, cancellationToken),
+        //            cancellationToken).ConfigureAwait(false);
+        //    Contract.ThrowIfTrue(anyBranchSolution.InFlightCount < 1);
 
-            if (!updatePrimaryBranch)
-            {
-                // if we aren't updating the primary branch we're done and can just return the any-branch solution.
-                // note: the in-flight-count of this item is still correct.  the calls above to TryFastGetSolutionAsync or 
-                // SlowGetOrCreateSolutionAsync will have appropriately raised it for us.
-                return anyBranchSolution;
-            }
+        //    if (!updatePrimaryBranch)
+        //    {
+        //        // if we aren't updating the primary branch we're done and can just return the any-branch solution.
+        //        // note: the in-flight-count of this item is still correct.  the calls above to TryFastGetSolutionAsync or 
+        //        // SlowGetOrCreateSolutionAsync will have appropriately raised it for us.
+        //        return anyBranchSolution;
+        //    }
 
-            // We were asked to update the primary-branch solution.  So take the any-branch solution and promote it to
-            // the primary-branch-level.  This may return a different solution.  So ensure that we decrement our
-            // in-flight-count on the anyBranchSolution when we're done. If SlowGetOrCreateSolutionAsync returns the
-            // same solution, it will increment that count, which will cancel this out.  If it returns a new solution,
-            // the new solution will have the right in-flight-count, and we'll want to decrement our solution as we
-            // ended up not using it.
-            try
-            {
-                var anyBranchUnderlyingSolution = await anyBranchSolution.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
+        //    // We were asked to update the primary-branch solution.  So take the any-branch solution and promote it to
+        //    // the primary-branch-level.  This may return a different solution.  So ensure that we decrement our
+        //    // in-flight-count on the anyBranchSolution when we're done. If SlowGetOrCreateSolutionAsync returns the
+        //    // same solution, it will increment that count, which will cancel this out.  If it returns a new solution,
+        //    // the new solution will have the right in-flight-count, and we'll want to decrement our solution as we
+        //    // ended up not using it.
+        //    try
+        //    {
+        //        var anyBranchUnderlyingSolution = await anyBranchSolution.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
 
-                var updatedSolution = await _primaryBranchSolutionCache.SlowGetOrCreateSolutionAndAddInFlightCountAsync(
-                    solutionChecksum,
-                    async cancellationToken =>
-                    {
-                        var (updatedSolution, _) = await this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, anyBranchUnderlyingSolution, cancellationToken).ConfigureAwait(false);
-                        return updatedSolution;
-                    },
-                    cancellationToken).ConfigureAwait(false);
+        //        var updatedSolution = await _primaryBranchSolutionCache.SlowGetOrCreateSolutionAndAddInFlightCountAsync(
+        //            solutionChecksum,
+        //            async cancellationToken =>
+        //            {
+        //                var (updatedSolution, _) = await this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, anyBranchUnderlyingSolution, cancellationToken).ConfigureAwait(false);
+        //                return updatedSolution;
+        //            },
+        //            cancellationToken).ConfigureAwait(false);
 
-                Contract.ThrowIfTrue(anyBranchSolution.InFlightCount < 1);
-                Contract.ThrowIfTrue(updatedSolution.InFlightCount < 1);
+        //        Contract.ThrowIfTrue(anyBranchSolution.InFlightCount < 1);
+        //        Contract.ThrowIfTrue(updatedSolution.InFlightCount < 1);
 
-                return updatedSolution;
-            }
-            finally
-            {
-                anyBranchSolution.DecrementInFlightCount();
-            }
-        }
+        //        return updatedSolution;
+        //    }
+        //    finally
+        //    {
+        //        anyBranchSolution.DecrementInFlightCount();
+        //    }
+        //}
 
         /// <summary>
         /// Create an appropriate <see cref="Solution"/> instance corresponding to the <paramref
@@ -238,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// very close to the primary one, and so can share almost all state with that.
         /// </para>
         /// </summary>
-        private async Task<Solution> ComputeSolutionAsync(
+        private async ValueTask<Solution> ComputeSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             CancellationToken cancellationToken)
@@ -283,7 +299,16 @@ namespace Microsoft.CodeAnalysis.Remote
         /// along with the solution passed in.  The only time the solution can not be updated is if it would move <see
         /// cref="_currentRemoteWorkspaceVersion"/> backwards.
         /// </summary>
-        private async ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceCurrentSolutionAsync(
+        private async ValueTask<Solution> TryUpdateWorkspaceCurrentSolutionAsync(
+            int workspaceVersion,
+            Solution newSolution,
+            CancellationToken cancellationToken)
+        {
+            var result = await TryUpdateWorkspaceCurrentSolutionWorkerAsync(workspaceVersion, newSolution, cancellationToken).ConfigureAwait(false);
+            return result.solution;
+        }
+
+        private async ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceCurrentSolutionWorkerAsync(
             int workspaceVersion,
             Solution newSolution,
             CancellationToken cancellationToken)
@@ -334,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 => _remoteWorkspace.CreateSolutionFromInfo(solutionInfo);
 
             public ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceCurrentSolutionAsync(Solution newSolution, int workspaceVersion)
-                => _remoteWorkspace.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, newSolution, CancellationToken.None);
+                => _remoteWorkspace.TryUpdateWorkspaceCurrentSolutionWorkerAsync(workspaceVersion, newSolution, CancellationToken.None);
 
             public async ValueTask<Solution> GetSolutionAsync(
                 AssetProvider assetProvider,
