@@ -125,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     solutionChecksum, computeDisconnectedSolutionAsync, updatePrimaryBranchAsync);
                 solutionTask = inFlightSolution.PreferredSolutionTask_NoLock;
             }
+
             try
             {
                 // We must have at least 1 for the in-flight-count (representing this current in-flight call).
@@ -143,9 +144,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             finally
             {
-                // Intentionally not cancellable.  We must do the decrement to ensure our state is consistent.  This
-                // does block the calling thread.  However, this should only be for a short amount of time as nothing in
-                // RemoteWorkspace should ever hold this lock for long periods of time.
+                // Intentionally not cancellable.  We must do the decrement to ensure our cache state is consistent.
+                // This will block the calling thread.  However, this should only be for a short amount of time as
+                // nothing in RemoteWorkspace should ever hold this lock for long periods of time.
                 using (_gate.DisposableWait(CancellationToken.None))
                 {
 
