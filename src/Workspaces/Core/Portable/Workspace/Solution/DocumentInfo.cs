@@ -55,14 +55,6 @@ namespace Microsoft.CodeAnalysis
         public bool IsGenerated => Attributes.IsGenerated;
 
         /// <summary>
-        /// Algorithm used for calculating the document content checksum.
-        /// </summary>
-        /// <remarks>
-        /// If <see cref="TextLoader"/> is specified then equal to <see cref="TextLoader.ChecksumAlgorithm"/>.
-        /// </remarks>
-        internal SourceHashAlgorithm ChecksumAlgorithm { get; }
-
-        /// <summary>
         /// A <see cref="IDocumentServiceProvider"/> associated with this document
         /// </summary>
         internal IDocumentServiceProvider? DocumentServiceProvider { get; }
@@ -124,9 +116,14 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A loader that can retrieve the document text.
         /// </summary>
-        public TextLoader? TextLoader => _textLoader is NullTextLoader ? null : _textLoader;
+        public TextLoader? TextLoader
+            => _textLoader is NullTextLoader ? null : _textLoader;
 
-        internal TextLoader TextLoaderNotNull => _textLoader;
+        /// <summary>
+        /// Algorithm used for calculating the document content checksum.
+        /// </summary>
+        internal SourceHashAlgorithm ChecksumAlgorithm
+            => _textLoader.ChecksumAlgorithm;
 
         public DocumentInfo WithId(DocumentId id)
             => With(attributes: Attributes.With(id: id ?? throw new ArgumentNullException(nameof(id))));

@@ -250,7 +250,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
             var solution = workspace.CurrentSolution;
             var documentId = solution.Projects.Single().DocumentIds.Single();
-            var root = CS.SyntaxFactory.ParseSyntaxTree("class NewClass {}").GetRoot();
+
+            var tree = CS.SyntaxFactory.ParseSyntaxTree("class NewClass {}");
+            Assert.Equal(SourceHashAlgorithm.Sha1, tree.ChecksumAlgorithm);
+
+            var root = tree.GetRoot();
 
             var newSolution1 = solution.WithDocumentSyntaxRoot(documentId, root, PreservationMode.PreserveIdentity);
             Assert.True(newSolution1.GetDocument(documentId)!.TryGetSyntaxRoot(out var actualRoot));

@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
@@ -57,6 +58,7 @@ namespace Microsoft.CodeAnalysis
             ValueSource<TextAndVersion> textAndVersionSource)
         {
             Debug.Assert(sourceText == null || sourceText.ChecksumAlgorithm == checksumAlgorithm);
+            Debug.Assert(SourceHashAlgorithms.IsSupportedAlgorithm(checksumAlgorithm));
 
             this.solutionServices = solutionServices;
             this.sourceText = sourceText;
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis
                    sourceText: null,
                    textAndVersionSource: info.TextLoader != null
                     ? CreateRecoverableText(info.TextLoader, info.Id, services)
-                    : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, info.TextLoaderNotNull.ChecksumAlgorithm), VersionStamp.Default, info.FilePath)))
+                    : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, info.ChecksumAlgorithm), VersionStamp.Default, info.FilePath)))
         {
         }
 
