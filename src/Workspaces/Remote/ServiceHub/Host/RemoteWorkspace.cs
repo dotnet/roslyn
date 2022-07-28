@@ -121,8 +121,9 @@ namespace Microsoft.CodeAnalysis.Remote
             Task<Solution> solutionTask;
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                (inFlightSolution, solutionTask) = GetOrCreateSolutionAndAddInFlightCount_NoLock(
+                inFlightSolution = GetOrCreateSolutionAndAddInFlightCount_NoLock(
                     solutionChecksum, computeDisconnectedSolutionAsync, updatePrimaryBranchAsync);
+                solutionTask = inFlightSolution.PreferredSolutionTask_NoLock;
             }
             try
             {
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     // finally, decrement our in-flight-count on the solution.  If we were the last one keeping it alive, it
                     // will get removed from our caches.
-                    inFlightSolution.DecrementInFlightCount_WhileAlreadyHoldingLock();
+                    inFlightSolution.DecrementInFlightCount_NoLock();
                 }
             }
         }

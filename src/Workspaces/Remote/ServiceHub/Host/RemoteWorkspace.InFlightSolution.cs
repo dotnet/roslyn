@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 _disconnectedSolutionTask = computeDisconnectedSolutionAsync(_cancellationTokenSource.Token);
             }
 
-            public Task<Solution> PreferredSolutionTask_WhileAlreadyHoldingLock
+            public Task<Solution> PreferredSolutionTask_NoLock
             {
                 get
                 {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
             /// checksum be the primary solution of this workspace.
             /// </summary>
             /// <param name="updatePrimaryBranchAsync"></param>
-            public void TryKickOffPrimaryBranchWork_WhileAlreadyHoldingLock(Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync)
+            public void TryKickOffPrimaryBranchWork_NoLock(Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync)
             {
                 Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
 
@@ -95,14 +95,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            public void IncrementInFlightCount_WhileAlreadyHoldingLock()
+            public void IncrementInFlightCount_NoLock()
             {
                 Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
                 Contract.ThrowIfTrue(InFlightCount < 1);
                 InFlightCount++;
             }
 
-            public void DecrementInFlightCount_WhileAlreadyHoldingLock()
+            public void DecrementInFlightCount_NoLock()
             {
                 Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
                 Contract.ThrowIfTrue(InFlightCount < 1);

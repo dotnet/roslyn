@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private readonly Dictionary<Checksum, InFlightSolution> _solutionChecksumToSolution = new();
 
-        private (InFlightSolution inFlightSolution, Task<Solution> solutionTask) GetOrCreateSolutionAndAddInFlightCount_NoLock(
+        private InFlightSolution GetOrCreateSolutionAndAddInFlightCount_NoLock(
             Checksum solutionChecksum,
             Func<CancellationToken, Task<Solution>> computeDisconnectedSolutionAsync,
             Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync)
@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.Remote
             // The solution must now have a valid in-flight-count.
             Contract.ThrowIfTrue(solution.InFlightCount < 1);
 
-            // Now mark this as the last-requested-solution for this cache.
+            // Now mark this as the last-requested-solution.  Ensuring we keep alive at least one recent solution even
+            // if there are no current host requests active.
             SetLastRequestedSolution_NoLock(solution);
 
             // Our in-flight-count must not have somehow dropped here.  Note: we cannot assert that it incremented.
@@ -57,9 +58,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // We may be getting back a solution that only was computing a non-primary branch.  If we were asked
             // to compute the primary branch as well, let it know so it can start that now.
-            solution.TryKickOffPrimaryBranchWork_WhileAlreadyHoldingLock(updatePrimaryBranchAsync);
+            solution.TryKickOffPrimaryBranchWork_NoLock(updatePrimaryBranchAsync);
 
-            return (solution, solution.PreferredSolutionTask_WhileAlreadyHoldingLock);
+            return solution;
 
             InFlightSolution GetOrCreateSolutionAndAddInFlightCount_NoLock()
             {
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     Contract.ThrowIfTrue(solution.InFlightCount < 1);
 
                     // Increase the count as our caller now is keeping this solution in-flight
-                    solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
+                    solution.IncrementInFlightCount_NoLock();
                     Contract.ThrowIfTrue(solution.InFlightCount < 2);
 
                     return solution;
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var solutionToDecrement = primaryBranch ? _lastPrimaryBranchSolution : _lastAnyBranchSolution;
 
                     // Increase the in-flight-count as we are now holding onto this solution as well.
-                    solution.IncrementInFlightCount_WhileAlreadyHoldingLock();
+                    solution.IncrementInFlightCount_NoLock();
 
                     // At this point our caller has upped the in-flight-count and we have upped it as well, so we must at least have a count of 2.
                     Contract.ThrowIfTrue(solution.InFlightCount < 2);
@@ -158,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         // If were holding onto this solution, it must have a legal in-flight-count.
                         Contract.ThrowIfTrue(solutionToDecrement.InFlightCount < 1);
-                        solutionToDecrement.DecrementInFlightCount_WhileAlreadyHoldingLock();
+                        solutionToDecrement.DecrementInFlightCount_NoLock();
 
                         if (solutionToDecrement.InFlightCount == 0)
                         {
