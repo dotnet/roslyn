@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Query lambdas don't have default values as part of their syntax
             public override EqualsValueClauseSyntax DefaultValue(int index) => null;
             // Query unbound lambdas don't have associated parameter syntax
-            public override ParameterSyntax? ParamSyntax(int index) => null;
+            public override ParameterSyntax ParamSyntax(int index) => null;
             public override TypeWithAnnotations ParameterTypeWithAnnotations(int index) { throw new ArgumentException(); } // implicitly typed
 
             public override void GenerateAnonymousFunctionConversionError(BindingDiagnosticBag diagnostics, TypeSymbol targetType)
