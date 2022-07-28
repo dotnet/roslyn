@@ -3,14 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Windows.Input;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
-    internal abstract partial class CodeStyleSetting
+    internal abstract partial class CodeStyleSetting : IEditorConfigSettingInfo
     {
         public string Description { get; }
 
@@ -24,6 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public abstract DiagnosticSeverity Severity { get; }
         public abstract bool IsDefinedInEditorConfig { get; }
         public abstract SettingLocation Location { get; protected set; }
+        public abstract string? GetSettingName();
+        public abstract string? GetDocumentation();
+        public abstract string[]? GetSettingValues(OptionSet optionSet);
 
         public CodeStyleSetting(string description, OptionUpdater updater)
         {

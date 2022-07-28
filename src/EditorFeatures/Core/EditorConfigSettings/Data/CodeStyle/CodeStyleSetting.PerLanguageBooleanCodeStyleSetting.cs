@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
@@ -57,6 +58,29 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                 => _editorConfigOptions.TryGetEditorConfigOption(_option, out CodeStyleOption2<bool>? value) && value is not null
                     ? value
                     : _visualStudioOptions.GetOption<CodeStyleOption2<bool>>(new OptionKey2(_option, LanguageNames.CSharp));
+
+            public override string? GetSettingName()
+            {
+                // Could change to op.GetType().Name == "EditorConfigStorageLocation`1" but not sure if it applies for all editorconfig settings
+                var option = _option.StorageLocations.FirstOrDefault(op => op.GetType().Name != "RoamingProfileStorageLocation");
+
+                if (option == null)
+                {
+                    return null;
+                }
+
+                return ((IEditorConfigStorageLocation2)option).KeyName;
+            }
+
+            public override string? GetDocumentation()
+            {
+                return Description;
+            }
+
+            public override string[]? GetSettingValues(OptionSet optionSet)
+            {
+                return new string[] { "true", "false" };
+            }
         }
     }
 }

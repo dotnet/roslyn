@@ -9,21 +9,18 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using System.Linq;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Security.AccessControl;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.EditorConfigSettings.Data;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Options;
+using System.Net.WebSockets;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 {
@@ -55,6 +52,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             var filePath = document.FilePath;
             Contract.ThrowIfNull(filePath);
 
+            var optionSet = workspace.Options;
+
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var offset = text.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(request.Position));
             var textInLine = text.Lines.GetLineFromPosition(offset).ToString();
@@ -62,165 +61,157 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             var settingsAggregator = workspace.Services.GetRequiredService<ISettingsAggregator>();
 
             var codeStyleProvider = settingsAggregator.GetSettingsProvider<CodeStyleSetting>(filePath);
-            var codeStyleSettings = codeStyleProvider?.GetCurrentDataSnapshot();
-
             var whitespaceProvider = settingsAggregator.GetSettingsProvider<WhitespaceSetting>(filePath);
-            var whitespaceSettings = whitespaceProvider?.GetCurrentDataSnapshot().Select(GetSettingsNameCompletion);
-
             var analyzerProvider = settingsAggregator.GetSettingsProvider<AnalyzerSetting>(filePath);
-            var analyzerSettings = analyzerProvider?.GetCurrentDataSnapshot().Select(GetSettingsNameCompletion);
 
-            var namingStyleProvider = settingsAggregator.GetSettingsProvider<NamingStyleSetting>(filePath);
-            var namingStyleSettings = namingStyleProvider?.GetCurrentDataSnapshot();
+            var codeStyleSnapshot = codeStyleProvider?.GetCurrentDataSnapshot();
+            var whitespaceSnapshot = whitespaceProvider?.GetCurrentDataSnapshot();
+            var analyzerSnapshot = analyzerProvider?.GetCurrentDataSnapshot();
 
-            var settings = whitespaceSettings.Concat(analyzerSettings);
-            if (settings == null)
+            // Check if the user has written a name and not a value
+            if (textInLine.Contains(' ') && !textInLine.Contains('='))
             {
                 return null;
             }
 
-            var commitCharactersCache = new Dictionary<EditorConfigCompletionKind, string[]>();
-
-            if (textInLine.Contains("="))
+            // Check if we need to show the name of the setting or the values
+            if (textInLine.Contains('='))
             {
-                var settingName = textInLine.Split('=').FirstOrDefault().Split(' ').FirstOrDefault();
-                var values = GetSettingsValues(settingName, settings);
+                if (textInLine.Count(c => c == '=') > 1 || textInLine.Count(c => c == ':') > 1)
+                {
+                    return null;
+                }
+
+                var settingName = textInLine.Split('=').FirstOrDefault().Trim();
+
+                // Check if we need to show severities (only for code style settings)
+                if (textInLine.Contains(':'))
+                {
+                    var severities = GetSettingValues(settingName, codeStyleSnapshot, whitespaceSnapshot, analyzerSnapshot, true, optionSet);
+                    if (severities == null)
+                    {
+                        return null;
+                    }
+
+                    return new CompletionList
+                    {
+                        Items = severities,
+                    };
+                }
+
+                // Generate completion for setting values
+                var values = GetSettingValues(settingName, codeStyleSnapshot, whitespaceSnapshot, analyzerSnapshot, false, optionSet);
+                if (values == null)
+                {
+                    return null;
+                }
+
                 return new CompletionList
                 {
-                    Items = values.Select(value => CreateCompletionItem(value, commitCharactersCache)).ToArray(),
+                    Items = values,
                 };
+            }
+
+            // Generate completion for settings names
+            var codeStyleSettingsItems = codeStyleSnapshot?.Select(GenerateSettingNameCompletionItem);
+            var whitespaceSettingsItems = whitespaceSnapshot?.Select(GenerateSettingNameCompletionItem);
+            var analyzerSettingsItems = analyzerSnapshot?.Select(GenerateSettingNameCompletionItem);
+            var settingsItems = codeStyleSettingsItems.Concat(whitespaceSettingsItems).Concat(analyzerSettingsItems).Where(item => item != null) as IEnumerable<CompletionItem>;
+            if (settingsItems == null)
+            {
+                return null;
             }
 
             return new CompletionList
             {
-                Items = settings.Select(setting => CreateCompletionItem(setting, commitCharactersCache)).ToArray(),
+                Items = settingsItems.ToArray(),
             };
         }
 
-        private static EditorConfigCompletionItem GetSettingsNameCompletion<T>(T setting)
+        private static CompletionItem? GenerateSettingNameCompletionItem<T>(T setting) where T : IEditorConfigSettingInfo
         {
-            var item = new EditorConfigCompletionItem();
-
-            if (setting is WhitespaceSetting whitespaceSetting)
+            var name = setting.GetSettingName();
+            if (name == null)
             {
-                var settingText = ((IEditorConfigStorageLocation2)whitespaceSetting.Key.Option.StorageLocations.First()).KeyName;
-                var valueType = whitespaceSetting.Type;
-                var values = valueType != null ? GetValues(valueType) : Array.Empty<string>();
-                item = new EditorConfigCompletionItem
-                {
-                    Label = settingText,
-                    InsertText = settingText,
-                    Documentation = whitespaceSetting.Description,
-                    CommitCharacters = new string[] { " ", "=" },
-                    Values = values,
-                };
-            }
-
-            if (setting is CodeStyleSetting codeStyleSetting)
-            {
-                return item;
-            }
-
-            if (setting is AnalyzerSetting analyzerSetting)
-            {
-                var settingText = $"dotnet_diagnostic.{analyzerSetting.Id}.severity";
-                item = new EditorConfigCompletionItem
-                {
-                    Label = settingText,
-                    InsertText = settingText,
-                    Documentation = analyzerSetting.Description,
-                    CommitCharacters = new string[] { " ", "=" },
-                    Values = new string[] { "silent", "suggestion", "warning", "error" },
-                };
-            }
-
-            if (setting is NamingStyleSetting namingStyleSetting)
-            {
-                return item;
-            }
-
-            return item;
-        }
-
-        private static IEnumerable<EditorConfigCompletionItem>? GetSettingsValues(string settingName, IEnumerable<EditorConfigCompletionItem> settings)
-        {
-            var values = settings.Where(setting => setting.Label == settingName);
-
-            if (values.IsEmpty())
                 return null;
+            }
+            var documentation = setting.GetDocumentation();
+            var commitCharacters = new string[] { " ", "=" };
 
-            return values.First().Values.Select(value =>
-                new EditorConfigCompletionItem
-                {
-                    Label = value,
-                    InsertText = value,
-                    Kind = EditorConfigCompletionKind.Value,
-                    CommitCharacters = Array.Empty<string>(),
-                }
-            );
+            return CreateCompletionItem(name, name, CompletionItemKind.Property, documentation, commitCharacters);
         }
 
-        private static CompletionItem CreateCompletionItem(EditorConfigCompletionItem editorConfigCompletion, Dictionary<EditorConfigCompletionKind, string[]> commitCharactersCache)
+        private static CompletionItem[]? GenerateSettingValuesCompletionItem<T>(T setting, bool additional, bool isCodeStyle, OptionSet optionSet) where T : IEditorConfigSettingInfo
+        {
+            var values = new List<CompletionItem>();
+
+            // Create severities list only if there exists ':' and we are in a code style setting
+            if (additional && isCodeStyle)
+            {
+                values.Add(CreateCompletionItem("silent", "silent", CompletionItemKind.Value, null, null));
+                values.Add(CreateCompletionItem("suggestion", "suggestion", CompletionItemKind.Value, null, null));
+                values.Add(CreateCompletionItem("warning", "warning", CompletionItemKind.Value, null, null));
+                values.Add(CreateCompletionItem("error", "error", CompletionItemKind.Value, null, null));
+
+                return values.ToArray();
+            }
+
+            // User may type a ':' but not in a code style setting
+            if (additional && !isCodeStyle)
+            {
+                return null;
+            }
+
+            // Create normal values list
+            var settingValues = setting.GetSettingValues(optionSet);
+            if (settingValues == null)
+            {
+                return null;
+            }
+
+            foreach (var value in settingValues)
+            {
+                var commitCharacters = isCodeStyle ? new string[] { ":" } : Array.Empty<string>();
+                values.Add(CreateCompletionItem(value, value, CompletionItemKind.Value, null, commitCharacters));
+            }
+
+            return values.ToArray();
+        }
+
+        private static CompletionItem CreateCompletionItem(string label, string insertText, CompletionItemKind kind, string? documentation, string[]? commitCharacters)
         {
             var item = new CompletionItem
             {
-                Label = editorConfigCompletion.Label,
-                InsertText = editorConfigCompletion.InsertText,
-                Kind = GetItemKind(editorConfigCompletion.Kind),
-                Documentation = editorConfigCompletion.Documentation,
-                CommitCharacters = GetCommitCharacters(editorConfigCompletion, commitCharactersCache),
+                Label = label,
+                InsertText = insertText,
+                Kind = kind,
+                Documentation = documentation,
+                CommitCharacters = commitCharacters,
             };
             return item;
         }
 
-        private static CompletionItemKind GetItemKind(EditorConfigCompletionKind kind)
+        private static CompletionItem[]? GetSettingValues(string settingName, ImmutableArray<CodeStyleSetting>? cs, ImmutableArray<WhitespaceSetting>? ws, ImmutableArray<AnalyzerSetting>? a, bool additional, OptionSet optionSet)
         {
-            switch (kind)
+            var codestyleSettings = cs?.Where(setting => setting.GetSettingName() == settingName);
+            if (codestyleSettings.Any())
             {
-                case EditorConfigCompletionKind.Property:
-                    return CompletionItemKind.Property;
-                case EditorConfigCompletionKind.Value:
-                    return CompletionItemKind.Value;
-                default:
-                    Debug.Fail($"Unhandled {nameof(EditorConfigCompletionKind)}: {Enum.GetName(typeof(EditorConfigCompletionKind), kind)}");
-                    return CompletionItemKind.Text;
-            }
-        }
-
-        private static string[] GetCommitCharacters(EditorConfigCompletionItem completionItem, Dictionary<EditorConfigCompletionKind, string[]> commitCharactersCache)
-        {
-            if (commitCharactersCache.TryGetValue(completionItem.Kind, out var cachedCharacters))
-            {
-                // If we have already cached the commit characters, return the cached ones
-                return cachedCharacters.ToArray();
+                return GenerateSettingValuesCompletionItem(codestyleSettings.First(), additional, true, optionSet);
             }
 
-            var commitCharacters = completionItem.CommitCharacters;
-            commitCharactersCache.Add(completionItem.Kind, commitCharacters);
-            return commitCharacters.ToArray();
-        }
-
-        private static string[] GetValues(Type type)
-        {
-            if (type.Name == "Boolean")
+            var whitespaceSettings = ws?.Where(setting => setting.GetSettingName() == settingName);
+            if (whitespaceSettings.Any())
             {
-                return new string[] { "true", "false" };
-            }
-            if (type.Name == "Int32")
-            {
-                return new string[] { "2", "4", "6", "8" };
-            }
-            if (type.Name == "String")
-            {
-                return new string[] { "Not yet implemented!" };
-            }
-            if (type.BaseType?.Name == "Enum")
-            {
-                var enumName = type.GetEnumValues();
-                return type.GetEnumNames();
+                return GenerateSettingValuesCompletionItem(whitespaceSettings.First(), additional, false, optionSet);
             }
 
-            return Array.Empty<string>();
+            var analyzerSettings = a?.Where(setting => setting.GetSettingName() == settingName);
+            if (analyzerSettings.Any())
+            {
+                return GenerateSettingValuesCompletionItem(analyzerSettings.First(), additional, false, optionSet);
+            }
+
+            return null;
         }
     }
 }
