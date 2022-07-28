@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// way if we have two non-concurrent requests for that same solution, with no intervening updates, we can
         /// cache and keep the solution around instead of having to recompute it.
         /// </summary>
-        private SolutionAndInFlightCount? _lastAnyBranchSolution;
+        private InFlightSolution? _lastAnyBranchSolution;
 
         /// <summary>
         /// The last solution requested by a service. This effectively adds an additional in-flight-count to one of
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// way if we have two non-concurrent requests for that same solution, with no intervening updates, we can
         /// cache and keep the solution around instead of having to recompute it.
         /// </summary>
-        private SolutionAndInFlightCount? _lastPrimaryBranchSolution;
+        private InFlightSolution? _lastPrimaryBranchSolution;
 
         /// <summary>
         /// Mapping from solution-checksum to the solution computed for it.  This is used so that we can hold a
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// classification).  As long as we're holding onto it, concurrent feature requests for the same solution
         /// checksum can share the computation of that particular solution and avoid duplicated concurrent work.
         /// </summary>
-        private readonly Dictionary<Checksum, SolutionAndInFlightCount> _solutionChecksumToSolution = new();
+        private readonly Dictionary<Checksum, InFlightSolution> _solutionChecksumToSolution = new();
 
         /// <summary>
         /// Used to make sure we never move remote workspace backward. this version is the WorkspaceVersion of primary

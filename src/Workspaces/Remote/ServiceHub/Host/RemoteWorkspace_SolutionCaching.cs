@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed partial class RemoteWorkspace
     {
-        private async ValueTask<SolutionAndInFlightCount> GetOrCreateSolutionAndAddInFlightCountAsync(
+        private async ValueTask<InFlightSolution> GetOrCreateSolutionAndAddInFlightCountAsync(
             Checksum solutionChecksum,
             Func<CancellationToken, Task<Solution>> computeDisconnectedSolutionAsync,
             Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync,
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
                 // in-flight-count of 1 to represent our caller. 
-                solution = new SolutionAndInFlightCount(this, solutionChecksum, computeDisconnectedSolutionAsync, updatePrimaryBranchAsync);
+                solution = new InFlightSolution(this, solutionChecksum, computeDisconnectedSolutionAsync, updatePrimaryBranchAsync);
                 Contract.ThrowIfFalse(solution.InFlightCount == 1);
 
                 _solutionChecksumToSolution.Add(solutionChecksum, solution);
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private SolutionAndInFlightCount? TryFastGetSolutionAndAddInFlightCount_NoLock(Checksum solutionChecksum, bool updatePrimaryBranch)
+        private InFlightSolution? TryFastGetSolutionAndAddInFlightCount_NoLock(Checksum solutionChecksum, bool updatePrimaryBranch)
         {
             Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             return solution;
 
-            SolutionAndInFlightCount? TryFastGetSolution()
+            InFlightSolution? TryFastGetSolution()
             {
                 if (_lastPrimaryBranchSolution?.SolutionChecksum == solutionChecksum)
                 {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private void SetLastRequestedSolution_NoLock(SolutionAndInFlightCount solution, bool updatePrimaryBranch)
+        private void SetLastRequestedSolution_NoLock(InFlightSolution solution, bool updatePrimaryBranch)
         {
             // The solution being passed in must have a valid in-flight-count since the caller currently has it in flight
             Contract.ThrowIfTrue(solution.InFlightCount < 1);
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             return;
 
-            void SetLastRequestedSolution(SolutionAndInFlightCount solution, bool primaryBranch)
+            void SetLastRequestedSolution(InFlightSolution solution, bool primaryBranch)
             {
                 // Keep track of the existing solution so we can decrement the in-flight-count on it once done.
                 var solutionToDecrement = primaryBranch ? _lastPrimaryBranchSolution : _lastAnyBranchSolution;

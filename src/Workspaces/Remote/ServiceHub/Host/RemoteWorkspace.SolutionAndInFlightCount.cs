@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Wrapper around asynchronously produced solution.  The computation for producing the solution will be
         /// canceled when the number of in-flight operations using it goes down to 0.
         /// </summary>
-        public sealed class SolutionAndInFlightCount
+        public sealed class InFlightSolution
         {
             private readonly RemoteWorkspace _workspace;
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Remote
             /// </summary>
             public int InFlightCount { get; private set; } = 1;
 
-            public SolutionAndInFlightCount(
+            public InFlightSolution(
                 RemoteWorkspace workspace,
                 Checksum solutionChecksum,
                 Func<CancellationToken, Task<Solution>> computeDisconnectedSolutionAsync,
@@ -54,9 +54,16 @@ namespace Microsoft.CodeAnalysis.Remote
                 _disconnectedSolutionTask = computeDisconnectedSolutionAsync(_cancellationTokenSource.Token);
 
                 // If we were asked to make this the primary workspace, then kick off that work immediately as well.
-                TryKickOffPrimaryBranchWork_NoLock(updatePrimaryBranchAsync);
+                TryKickOffPrimaryBranchWork(updatePrimaryBranchAsync);
             }
 
+            /// <summary>
+            /// Allow the RemoteWorkspace to try to elevate this solution to be the primary solution for itself.  This
+            /// commonly happens because when a change happens to the host, features may kick off immediately, creating
+            /// the disconnected solution, followed shortly afterwards by a request from the host to make that same
+            /// checksum be the primary solution of this workspace.
+            /// </summary>
+            /// <param name="updatePrimaryBranchAsync"></param>
             public void TryKickOffPrimaryBranchWork(Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync)
             {
                 if (updatePrimaryBranchAsync is null)
@@ -68,23 +75,19 @@ namespace Microsoft.CodeAnalysis.Remote
                     if (_primaryBranchTask != null)
                         return;
 
-                    TryKickOffPrimaryBranchWork_NoLock(updatePrimaryBranchAsync);
+                    _primaryBranchTask = ComputePrimaryBranchAsync();
+                    return;
+
+                    async Task<Solution> ComputePrimaryBranchAsync()
+                    {
+                        var anyBranchSolution = await _disconnectedSolutionTask.ConfigureAwait(false);
+                        return await updatePrimaryBranchAsync(anyBranchSolution, _cancellationTokenSource.Token).ConfigureAwait(false);
+                    }
                 }
             }
 
             private void TryKickOffPrimaryBranchWork_NoLock(Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync)
             {
-                if (updatePrimaryBranchAsync is null)
-                    return;
-
-                Contract.ThrowIfTrue(_primaryBranchTask != null);
-                _primaryBranchTask = ComputePrimaryBranchAsync();
-
-                async Task<Solution> ComputePrimaryBranchAsync()
-                {
-                    var anyBranchSolution = await _disconnectedSolutionTask.ConfigureAwait(false);
-                    return await updatePrimaryBranchAsync(anyBranchSolution, _cancellationTokenSource.Token).ConfigureAwait(false);
-                }
             }
 
             public async ValueTask<Solution> GetSolutionAsync(CancellationToken cancellationToken)
