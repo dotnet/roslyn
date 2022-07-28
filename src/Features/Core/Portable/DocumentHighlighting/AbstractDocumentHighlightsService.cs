@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var solution = document.Project.Solution;
 
             var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
-                semanticModel, position, solution.Workspace, cancellationToken).ConfigureAwait(false);
+                semanticModel, position, solution.Services, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
                 return ImmutableArray<DocumentHighlights>.Empty;
 
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                             // Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
                             if (document == null)
                             {
-                                Debug.Assert(solution.Workspace.Kind is WorkspaceKind.Interactive or WorkspaceKind.MiscellaneousFiles);
+                                Debug.Assert(solution.WorkspaceKind is WorkspaceKind.Interactive or WorkspaceKind.MiscellaneousFiles);
                                 continue;
                             }
 

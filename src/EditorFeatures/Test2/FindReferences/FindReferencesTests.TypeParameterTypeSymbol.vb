@@ -27,6 +27,42 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(62744, "https://github.com/dotnet/roslyn/issues/62744")>
+        Public Async Function TestTypeParameter_NewConstraint_CSharp(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+        class C<{|Definition:$$T|}> where [|T|] : new()
+        {
+            void Goo()
+            {
+                new [|T|]();
+            }
+        }]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(62744, "https://github.com/dotnet/roslyn/issues/62744")>
+        Public Async Function TestTypeParameter_NewConstraint_VisualBasic(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+        class C(Of {|Definition:$$T|} As New)
+            sub Goo()
+                dim x = new [|T|]()
+            end sub
+        end class]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
         <WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharp_LocalFunctionTypeParameter(kind As TestKind, host As TestHost) As Task

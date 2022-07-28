@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
 
         private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansAsync(TestWorkspace workspace)
         {
-            workspace.ApplyOptions(new[] { KeyValuePairUtil.Create(new OptionKey2(InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp), (object)true) });
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp), true);
             return (await TestDiagnosticTagProducer<InlineDiagnosticsTaggerProvider, InlineDiagnosticsTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
         }
     }

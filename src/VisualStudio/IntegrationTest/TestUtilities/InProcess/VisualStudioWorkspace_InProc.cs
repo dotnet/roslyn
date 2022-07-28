@@ -145,7 +145,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             // Local function
             void ResetOption(IOption option)
             {
-                if (option is IPerLanguageOption)
+                if (option is IPerLanguageValuedOption)
                 {
                     _globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.CSharp), option.DefaultValue);
                     _globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.VisualBasic), option.DefaultValue);

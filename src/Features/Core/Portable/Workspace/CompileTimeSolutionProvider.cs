@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             lock (_gate)
             {
-                var cachedCompileTimeSolution = GetCachedCompileTimeSolution(designTimeSolution);
+                var (cachedCompileTimeSolution, staleSolution) = GetCachedCompileTimeSolution(designTimeSolution);
 
                 // Design time solution hasn't changed since we calculated the last compile-time solution:
                 if (cachedCompileTimeSolution != null)
@@ -90,24 +90,23 @@ namespace Microsoft.CodeAnalysis.Host
                     return cachedCompileTimeSolution;
                 }
 
-                using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var configIdsToRemove);
-                using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var documentIdsToRemove);
+                var compileTimeSolution = designTimeSolution;
 
-                foreach (var (_, projectState) in designTimeSolution.State.ProjectStates)
+                foreach (var (_, projectState) in compileTimeSolution.State.ProjectStates)
                 {
-                    var anyConfigs = false;
+                    using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var configIdsToRemove);
+                    using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var documentIdsToRemove);
 
                     foreach (var (_, configState) in projectState.AnalyzerConfigDocumentStates.States)
                     {
                         if (IsRazorAnalyzerConfig(configState))
                         {
                             configIdsToRemove.Add(configState.Id);
-                            anyConfigs = true;
                         }
                     }
 
                     // only remove design-time only documents when source-generated ones replace them
-                    if (anyConfigs)
+                    if (configIdsToRemove.Count > 0)
                     {
                         foreach (var (_, documentState) in projectState.DocumentStates.States)
                         {
@@ -116,12 +115,19 @@ namespace Microsoft.CodeAnalysis.Host
                                 documentIdsToRemove.Add(documentState.Id);
                             }
                         }
+
+                        compileTimeSolution = compileTimeSolution
+                            .RemoveAnalyzerConfigDocuments(configIdsToRemove.ToImmutable())
+                            .RemoveDocuments(documentIdsToRemove.ToImmutable());
+
+                        if (staleSolution is not null)
+                        {
+                            var existingStaleProject = staleSolution.GetProject(projectState.Id);
+                            if (existingStaleProject is not null)
+                                compileTimeSolution = compileTimeSolution.WithCachedSourceGeneratorState(projectState.Id, existingStaleProject);
+                        }
                     }
                 }
-
-                var compileTimeSolution = designTimeSolution
-                    .RemoveAnalyzerConfigDocuments(configIdsToRemove.ToImmutable())
-                    .RemoveDocuments(documentIdsToRemove.ToImmutable());
 
                 UpdateCachedCompileTimeSolution(designTimeSolution, compileTimeSolution);
 
@@ -129,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        private Solution? GetCachedCompileTimeSolution(Solution designTimeSolution)
+        private (Solution? correctSolution, Solution? staleSolution) GetCachedCompileTimeSolution(Solution designTimeSolution)
         {
             // If the design time solution is for the primary branch, retrieve the last cached solution for it.
             // Otherwise this is a forked solution, so retrieve the last forked compile time solution we calculated.
@@ -141,10 +147,12 @@ namespace Microsoft.CodeAnalysis.Host
                     && designTimeSolution.WorkspaceVersion == cachedCompileTimeSolution.Value.DesignTimeSolutionVersion
                     && designTimeSolution.BranchId == cachedCompileTimeSolution.Value.DesignTimeSolutionBranch)
             {
-                return cachedCompileTimeSolution.Value.CompileTimeSolution;
+                var solution = cachedCompileTimeSolution.Value.CompileTimeSolution;
+                return (solution, solution);
             }
 
-            return null;
+            // We don't have a correct solution, but return the most likely thing we had to help caching when we recreate a new one.
+            return (null, cachedCompileTimeSolution?.CompileTimeSolution);
         }
 
         private void UpdateCachedCompileTimeSolution(Solution designTimeSolution, Solution compileTimeSolution)

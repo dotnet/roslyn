@@ -83,7 +83,7 @@ End Class
         {
             using var workspace = new AdhocWorkspace();
 
-            var formattedRoot = Formatter.Format(tree.GetRoot(), workspace.Services, options, CancellationToken.None);
+            var formattedRoot = Formatter.Format(tree.GetRoot(), workspace.Services.SolutionServices, options, CancellationToken.None);
             var actualFormattedText = formattedRoot.ToFullString();
 
             Assert.Equal(expected, actualFormattedText);

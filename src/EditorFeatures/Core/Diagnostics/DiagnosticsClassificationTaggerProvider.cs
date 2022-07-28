@@ -61,6 +61,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected internal override bool IsEnabled
             => !_editorOptionsService.Factory.GlobalOptions.GetOptionValue(DefaultTextViewHostOptions.IsInContrastModeId);
 
+        protected internal override bool SupportsDignosticMode(DiagnosticMode mode)
+        {
+            // We only support push diagnostics.  When pull diagnostics are on, diagnostic fading is handled by the lsp client.
+            return mode == DiagnosticMode.Push;
+        }
+
         protected internal override bool IncludeDiagnostic(DiagnosticData data)
         {
             if (!data.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
