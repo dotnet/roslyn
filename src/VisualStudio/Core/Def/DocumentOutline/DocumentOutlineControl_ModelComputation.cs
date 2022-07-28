@@ -6,11 +6,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -54,6 +56,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (filePath is null)
                 return null;
 
+            // If we are creating the document symbol tree for the first time, show the progress bar to the user.
+            if (!SymbolTreeIsInitialized)
+                UpdateProgressBarVisibility(Visibility.Visible);
+
             // Ensure we switch to the threadpool before calling ComputeModelAsync. It ensures that fetching and processing the document
             // symbol data model is not done on the UI thread.
             await TaskScheduler.Default;
@@ -61,8 +67,15 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             var model = await ComputeModelAsync().ConfigureAwait(false);
 
             // The model can be null if the LSP document symbol request returns a null response.
-            if (model is not null)
-                EnqueueFilterAndSortDataModelTask();
+            // In this case, we want to hide the progress bar since there is nothing to show.
+            if (model is null)
+            {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                UpdateProgressBarVisibility(Visibility.Hidden);
+                return null;
+            }
+
+            EnqueueFilterAndSortDataModelTask();
 
             return model;
 
@@ -157,30 +170,33 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             if (model is null)
                 return;
 
-            // Switch to the UI thread to get the current caret point and latest active text view then create the UI model.
+            // Switch to the UI thread to get the current caret point and create the UI model.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var activeTextView = GetLastActiveIWpfTextView();
-            if (activeTextView is null)
-                return;
+            var caretPoint = GetActiveTextViewCaretPoint();
 
-            var caretPoint = activeTextView.GetCaretPoint(activeTextView.TextBuffer);
-            if (!caretPoint.HasValue)
-                return;
+            SnapshotPoint? GetActiveTextViewCaretPoint()
+            {
+                var activeTextView = GetLastActiveIWpfTextView();
+                if (activeTextView is null)
+                    return null;
+
+                return activeTextView.GetCaretPoint(activeTextView.TextBuffer);
+            }
 
             var documentSymbolUIItems = DocumentOutlineHelper.GetDocumentSymbolUIItems(model.DocumentSymbolData, _threadingContext);
 
             // Switch to the threadpool to determine which node to select (if applicable).
             await TaskScheduler.Default;
 
-            var symbolToSelect = DocumentOutlineHelper.GetDocumentNodeToSelect(documentSymbolUIItems, model.OriginalSnapshot, caretPoint.Value);
+            var symbolToSelect = caretPoint is null ? null : DocumentOutlineHelper.GetDocumentNodeToSelect(documentSymbolUIItems, model.OriginalSnapshot, caretPoint.Value);
 
             // Switch to the UI thread to update the view.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Expand/collapse nodes based on the given Expansion Option.
             var expansion = expansionOption.Last();
-            if (expansion is not ExpansionOption.NoChange && SymbolTree.ItemsSource is not null)
+            if (expansion is not ExpansionOption.NoChange && SymbolTreeIsInitialized)
                 DocumentOutlineHelper.SetIsExpanded(documentSymbolUIItems, (IEnumerable<DocumentSymbolUIItem>)SymbolTree.ItemsSource, expansion);
 
             // Hightlight the selected node if it exists, otherwise unselect all nodes (required so that the view does not select a node by default).
@@ -192,12 +208,18 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
             else
             {
-                // On Document Outline Control initialization, SymbolTree.ItemsSource is null
-                if (SymbolTree.ItemsSource is not null)
+                if (SymbolTreeIsInitialized)
                     DocumentOutlineHelper.UnselectAll((IEnumerable<DocumentSymbolUIItem>)SymbolTree.ItemsSource);
             }
 
             SymbolTree.ItemsSource = documentSymbolUIItems;
+
+            // If we are setting SymbolTree.ItemsSource for the first time, hide the progress bar.
+            if (!SymbolTreeIsInitialized)
+            {
+                UpdateProgressBarVisibility(Visibility.Hidden);
+                SymbolTreeIsInitialized = true;
+            }
         }
 
         private IWpfTextView? GetLastActiveIWpfTextView()
@@ -209,6 +231,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 return null;
 
             return _editorAdaptersFactoryService.GetWpfTextView(textView);
+        }
+
+        private void UpdateProgressBarVisibility(Visibility visibility)
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
+            if (ProgressBar.Visibility != visibility)
+                ProgressBar.Visibility = visibility;
         }
     }
 }

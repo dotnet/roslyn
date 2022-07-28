@@ -83,6 +83,14 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
         /// </summary>
         private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = new();
 
+        /// <summary>
+        /// Returns whether SymbolTree.ItemsSource has been initialized. 
+        /// </summary>
+        /// <remarks>
+        /// It is only safe to read/mutate SymbolTreeIsInitialized from the UI thread.
+        /// </remarks>
+        private bool SymbolTreeIsInitialized { get; set; } = false;
+
         public DocumentOutlineControl(
             ILanguageServiceBroker2 languageServiceBroker,
             IThreadingContext threadingContext,
