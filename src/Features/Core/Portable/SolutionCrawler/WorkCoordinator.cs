@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _shutdownToken);
             }
 
-            private async Task EnqueueDocumentWorkItemAsync(Project project, DocumentId documentId, TextDocument? document, InvocationReasons invocationReasons, SyntaxNode? changedMember = null)
+            private async Task EnqueueDocumentWorkItemAsync(Project project, DocumentId documentId, TextDocument? document, InvocationReasons invocationReasons, ActiveMemberWithVersions? changedMemberWithVersions = null)
             {
                 // we are shutting down
                 _shutdownToken.ThrowIfCancellationRequested();
@@ -409,18 +409,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var sourceDocument = document as Document;
                 var isLowPriority = priorityService != null && sourceDocument != null && await priorityService.IsLowPriorityAsync(sourceDocument, _shutdownToken).ConfigureAwait(false);
 
-                var currentMember = GetSyntaxPath(changedMember);
-
                 // call to this method is serialized. and only this method does the writing.
                 _documentAndProjectWorkerProcessor.Enqueue(
-                    new WorkItem(documentId, project.Language, invocationReasons, isLowPriority, currentMember, _listener.BeginAsyncOperation("WorkItem")));
+                    new WorkItem(documentId, project.Language, invocationReasons, isLowPriority, changedMemberWithVersions, _listener.BeginAsyncOperation("WorkItem")));
 
                 // enqueue semantic work planner
                 if (invocationReasons.Contains(PredefinedInvocationReasons.SemanticChanged) && sourceDocument != null)
                 {
                     // must use "Document" here so that the snapshot doesn't go away. we need the snapshot to calculate p2p dependency graph later.
                     // due to this, we might hold onto solution (and things kept alive by it) little bit longer than usual.
-                    _semanticChangeProcessor.Enqueue(project, documentId, sourceDocument, currentMember);
+                    _semanticChangeProcessor.Enqueue(project, documentId, sourceDocument, changedMemberWithVersions);
                 }
             }
 
@@ -550,7 +548,23 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     var differenceResult = await differenceService.GetDifferenceAsync(oldDocument, newDocument, _shutdownToken).ConfigureAwait(false);
 
                     if (differenceResult != null)
-                        await EnqueueDocumentWorkItemAsync(newDocument.Project, newDocument.Id, newDocument, differenceResult.ChangeType, differenceResult.ChangedMember).ConfigureAwait(false);
+                    {
+                        var syntaxPath = GetSyntaxPath(differenceResult.ChangedMember);
+
+                        ActiveMemberWithVersions? changedMemberWithVersions;
+                        if (syntaxPath != null)
+                        {
+                            var oldVersion = await oldDocument.Project.GetDependentVersionAsync(CancellationToken.None).ConfigureAwait(false);
+                            var newVersion = await newDocument.Project.GetDependentVersionAsync(CancellationToken.None).ConfigureAwait(false);
+                            changedMemberWithVersions = new(syntaxPath, oldVersion, newVersion);
+                        }
+                        else
+                        {
+                            changedMemberWithVersions = null;
+                        }
+
+                        await EnqueueDocumentWorkItemAsync(newDocument.Project, newDocument.Id, newDocument, differenceResult.ChangeType, changedMemberWithVersions).ConfigureAwait(false);
+                    }
                 }
             }
 
@@ -577,7 +591,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         foreach (var document in project.Documents)
                         {
-                            list.Add(new WorkItem(document.Id, document.Project.Language, InvocationReasons.DocumentAdded, isLowPriority: false, activeMember: null, EmptyAsyncToken.Instance));
+                            list.Add(new WorkItem(document.Id, document.Project.Language, InvocationReasons.DocumentAdded, isLowPriority: false, activeMemberWithVersions: null, EmptyAsyncToken.Instance));
                         }
                     }
 

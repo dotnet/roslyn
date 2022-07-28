@@ -5,16 +5,19 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -23,15 +26,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     internal partial class DiagnosticIncrementalAnalyzer
     {
         public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
-            => AnalyzeDocumentForKindAsync(document, AnalysisKind.Syntax, cancellationToken);
+            => AnalyzeDocumentForKindAsync(document, changedMemberWithVersions: null, AnalysisKind.Syntax, cancellationToken);
 
-        public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
-            => AnalyzeDocumentForKindAsync(document, AnalysisKind.Semantic, cancellationToken);
+        public Task AnalyzeDocumentAsync(Document document, ChangedMemberNodeWithVersions? changedMemberWithVersions, InvocationReasons reasons, CancellationToken cancellationToken)
+            => AnalyzeDocumentForKindAsync(document, changedMemberWithVersions, AnalysisKind.Semantic, cancellationToken);
 
         public Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
-            => AnalyzeDocumentForKindAsync(textDocument, AnalysisKind.Syntax, cancellationToken);
+            => AnalyzeDocumentForKindAsync(textDocument, changedMemberWithVersions: null, AnalysisKind.Syntax, cancellationToken);
 
-        private async Task AnalyzeDocumentForKindAsync(TextDocument document, AnalysisKind kind, CancellationToken cancellationToken)
+        private async Task AnalyzeDocumentForKindAsync(TextDocument document, ChangedMemberNodeWithVersions? changedMemberWithVersions, AnalysisKind kind, CancellationToken cancellationToken)
         {
             try
             {
@@ -55,20 +58,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
                 var backgroundAnalysisScope = GlobalOptions.GetBackgroundAnalysisScope(document.Project.Language);
                 var compilerDiagnosticsScope = GlobalOptions.GetOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, document.Project.Language);
+                var member = changedMemberWithVersions?.ChangedMemberNode;
 
                 // TODO: Switch to a more reliable service to determine visible documents.
                 //       DocumentTrackingService is known be unreliable at times.
                 var isVisibleDocument = _documentTrackingService.GetVisibleDocuments().Contains(document.Id);
 
+                var lazyMemberId = new Lazy<int>(() =>
+                {
+                    Contract.ThrowIfFalse(member != null);
+                    var syntaxFacts = document.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+                    var members = syntaxFacts.GetMethodLevelMembers(member.SyntaxTree.GetRoot(cancellationToken));
+                    return members.IndexOf(member);
+                });
+
                 // We split the diagnostic computation for document into following steps:
                 //  1. Try to get cached diagnostics for each analyzer, while computing the set of analyzers that do not have cached diagnostics.
                 //  2. Execute all the non-cached analyzers with a single invocation into CompilationWithAnalyzers.
                 //  3. Fetch computed diagnostics per-analyzer from the above invocation, and cache and raise diagnostic reported events.
-                // In near future, the diagnostic computation invocation into CompilationWithAnalyzers will be moved to OOP.
-                // This should help simplify and/or remove the IDE layer diagnostic caching in devenv process.
 
                 // First attempt to fetch diagnostics from the cache, while computing the state sets for analyzers that are not cached.
-                using var _ = ArrayBuilder<StateSet>.GetInstance(out var nonCachedStateSets);
+                using var _1 = ArrayBuilder<StateSet>.GetInstance(out var documentBasedNonCachedStateSets);
+                using var _2 = ArrayBuilder<StateSet>.GetInstance(out var spanBasedNonCachedStateSets);
+                using var _3 = PooledDictionary<DiagnosticAnalyzer, MemberRangeMap.MemberRanges?>.GetInstance(out var savedMemberRangesForSpanBasedAnalyzers);
+                var isCompilerAnalyzerAddedToSpanBasedNonCachedStateSets = false;
                 foreach (var stateSet in stateSets)
                 {
                     var data = TryGetCachedDocumentAnalysisData(document, stateSet, kind, version,
@@ -81,26 +94,144 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
                     else
                     {
-                        nonCachedStateSets.Add(stateSet);
+                        var spanBased = false;
+                        if (changedMemberWithVersions != null)
+                        {
+                            Contract.ThrowIfFalse(document is Document);
+                            Contract.ThrowIfFalse(kind == AnalysisKind.Semantic);
+
+                            if (stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis())
+                            {
+                                if (!_memberRangeMap.TryGetSavedMemberRanges(stateSet.Analyzer, (Document)document, out var ranges))
+                                {
+                                    // We do not have existing saved member ranges to perform incremental member edit analysis.
+                                    savedMemberRangesForSpanBasedAnalyzers.Add(stateSet.Analyzer, null);
+                                }
+                                else
+                                {
+                                    // We have existing saved member ranges, so we might be able to perform incremental member edit only analysis.
+                                    savedMemberRangesForSpanBasedAnalyzers.Add(stateSet.Analyzer, ranges);
+
+                                    // Check if we can re-use existing data for this analysis.
+                                    // If so, we can perform span based analysis for just the edited member.
+                                    // Otherwise, we have to perform entire document analysis.
+
+                                    // First, verify that the old version for member edit matches our saved member ranges
+                                    // and the new version for the member edit matches the current project's semantic version.
+                                    if (changedMemberWithVersions.OldVersion == ranges.Value.Version
+                                        && changedMemberWithVersions.NewVersion == version)
+                                    {
+                                        var memberId = lazyMemberId.Value;
+                                        if (memberId >= 0 && memberId < ranges.Value.Ranges.Length)
+                                        {
+                                            // Now, verify that the existing cached diagnostics version also
+                                            // matches the old version of the member edit.
+                                            var state = stateSet.GetOrCreateActiveFileState(document.Id);
+                                            var existingData = state.GetAnalysisData(kind);
+                                            if (existingData.Version == changedMemberWithVersions.OldVersion)
+                                            {
+                                                spanBasedNonCachedStateSets.Add(stateSet);
+                                                spanBased = true;
+
+                                                if (stateSet.Analyzer.IsCompilerAnalyzer())
+                                                    isCompilerAnalyzerAddedToSpanBasedNonCachedStateSets = true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // If we were unable to register the analyzer for span-based incremental analysis,
+                        // we need to perform entire document analysis for it.
+                        if (!spanBased)
+                        {
+                            documentBasedNonCachedStateSets.Add(stateSet);
+                        }
                     }
                 }
 
-                // Then, compute the diagnostics for non-cached state sets, and cache and raise diagnostic reported events for these diagnostics.
-                if (nonCachedStateSets.Count > 0)
+                // Now, compute the diagnostics for non-cached state sets, and cache and raise diagnostic reported events for these diagnostics.
+
+                // We need to execute the span based analyzers and document based analyzers separately.
+                // However, we want to ensure that compiler analyzer executes before rest of the analyzers
+                // so that compiler's semantic diagnostics refresh before the analyzer diagnostics.
+                // So, based on whether we can execute the compiler analyzer in a span based fashion or not,
+                // we order the execution of span based and document based analyzers accordingly. 
+                if (isCompilerAnalyzerAddedToSpanBasedNonCachedStateSets)
                 {
-                    var analysisScope = new DocumentAnalysisScope(document, span: null, nonCachedStateSets.SelectAsArray(s => s.Analyzer), kind);
-                    var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true, onAnalysisException: OnAnalysisException);
-                    var logTelemetry = GlobalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
-                    foreach (var stateSet in nonCachedStateSets)
-                    {
-                        var computedData = await ComputeDocumentAnalysisDataAsync(executor, stateSet, logTelemetry, cancellationToken).ConfigureAwait(false);
-                        PersistAndRaiseDiagnosticsIfNeeded(computedData, stateSet);
-                    }
+                    await ExecuteSpanBasedStateSetsAsnyc(spanBasedNonCachedStateSets, compilationWithAnalyzers,
+                        version, member, lazyMemberId, savedMemberRangesForSpanBasedAnalyzers).ConfigureAwait(false);
+                    await ExecuteDocumentBasedStateSetsAsnyc(documentBasedNonCachedStateSets, compilationWithAnalyzers,
+                        version, savedMemberRangesForSpanBasedAnalyzers).ConfigureAwait(false);
+                }
+                else
+                {
+                    await ExecuteDocumentBasedStateSetsAsnyc(documentBasedNonCachedStateSets, compilationWithAnalyzers,
+                        version, savedMemberRangesForSpanBasedAnalyzers).ConfigureAwait(false);
+                    await ExecuteSpanBasedStateSetsAsnyc(spanBasedNonCachedStateSets, compilationWithAnalyzers,
+                        version, member, lazyMemberId, savedMemberRangesForSpanBasedAnalyzers).ConfigureAwait(false);
+                }
+
+                // Finally, save the current member ranges for member nodes in the document so that the
+                // diagnostic computation for any subsequent member-only edits can be done incrementally
+                // for the edited member.
+                if (savedMemberRangesForSpanBasedAnalyzers.Count > 0)
+                {
+                    Debug.Assert(member != null);
+                    UpdateMemberRangesForSpanBasedAnalyzers(savedMemberRangesForSpanBasedAnalyzers, (Document)document, version, lazyMemberId.Value, member);
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+
+            async Task ExecuteSpanBasedStateSetsAsnyc(
+                ArrayBuilder<StateSet> spanBasedNonCachedStateSets,
+                CompilationWithAnalyzers? compilationWithAnalyzers,
+                VersionStamp version,
+                SyntaxNode? member,
+                Lazy<int>? lazyMemberId,
+                PooledDictionary<DiagnosticAnalyzer, MemberRangeMap.MemberRanges?> savedMemberRangesForSpanBasedAnalyzers)
+            {
+                if (spanBasedNonCachedStateSets.Count > 0)
+                {
+                    await ComputePersistAndRaiseDiagnosticsIfNeededAsync(spanBasedNonCachedStateSets, compilationWithAnalyzers,
+                        version, member!, lazyMemberId!.Value, savedMemberRangesForSpanBasedAnalyzers).ConfigureAwait(false);
+                }
+            }
+
+            async Task ExecuteDocumentBasedStateSetsAsnyc(
+                ArrayBuilder<StateSet> documentBasedNonCachedStateSets,
+                CompilationWithAnalyzers? compilationWithAnalyzers,
+                VersionStamp version,
+                PooledDictionary<DiagnosticAnalyzer, MemberRangeMap.MemberRanges?> savedMemberRangesForSpanBasedAnalyzers)
+            {
+                if (documentBasedNonCachedStateSets.Count > 0)
+                {
+                    await ComputePersistAndRaiseDiagnosticsIfNeededAsync(documentBasedNonCachedStateSets, compilationWithAnalyzers,
+                        version, member: null, memberId: null, savedMemberRangesForSpanBasedAnalyzers).ConfigureAwait(false);
+                }
+            }
+
+            async Task ComputePersistAndRaiseDiagnosticsIfNeededAsync(
+                ArrayBuilder<StateSet> stateSets,
+                CompilationWithAnalyzers? compilationWithAnalyzers,
+                VersionStamp version,
+                SyntaxNode? member,
+                int? memberId,
+                PooledDictionary<DiagnosticAnalyzer, MemberRangeMap.MemberRanges?> savedMemberRangesForSpanBasedAnalyzers)
+            {
+                var analysisScope = new DocumentAnalysisScope(document, member?.FullSpan, stateSets.SelectAsArray(s => s.Analyzer), kind);
+                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true, onAnalysisException: OnAnalysisException);
+                var logTelemetry = GlobalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
+                foreach (var stateSet in stateSets)
+                {
+                    var computedData = await ComputeDocumentAnalysisDataAsync(executor, stateSet, logTelemetry,
+                        version, member, memberId, savedMemberRangesForSpanBasedAnalyzers, cancellationToken).ConfigureAwait(false);
+                    PersistAndRaiseDiagnosticsIfNeeded(computedData, stateSet);
+                }
             }
 
             void PersistAndRaiseDiagnosticsIfNeeded(DocumentAnalysisData result, StateSet stateSet)
@@ -122,6 +253,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 // Do not re-use cached CompilationWithAnalyzers instance in presence of an exception, as the underlying analysis state might be corrupt.
                 ClearCompilationsWithAnalyzersCache(document.Project);
+            }
+
+            void UpdateMemberRangesForSpanBasedAnalyzers(
+                PooledDictionary<DiagnosticAnalyzer, MemberRangeMap.MemberRanges?> savedMemberRangesForSpanBasedAnalyzers,
+                Document document,
+                VersionStamp version,
+                int memberId,
+                SyntaxNode member)
+            {
+                foreach (var (analyzer, ranges) in savedMemberRangesForSpanBasedAnalyzers)
+                {
+                    _memberRangeMap.UpdateMemberRange(analyzer, document, version, memberId, member.FullSpan, ranges);
+                }
             }
         }
 
@@ -288,11 +432,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             await TextDocumentResetAsync(document, cancellationToken).ConfigureAwait(false);
 
             // Trigger syntax analysis.
-            await AnalyzeDocumentForKindAsync(document, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false);
+            await AnalyzeDocumentForKindAsync(document, changedMemberWithVersions: null, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false);
 
             // Trigger semantic analysis for source documents. Non-source documents do not support semantic analysis.
             if (document is Document)
-                await AnalyzeDocumentForKindAsync(document, AnalysisKind.Semantic, cancellationToken).ConfigureAwait(false);
+                await AnalyzeDocumentForKindAsync(document, changedMemberWithVersions: null, AnalysisKind.Semantic, cancellationToken).ConfigureAwait(false);
         }
 
         public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)

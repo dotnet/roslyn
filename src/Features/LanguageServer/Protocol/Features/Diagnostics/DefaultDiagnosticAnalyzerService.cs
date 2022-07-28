@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 await AnalyzeForKindAsync(textDocument, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false);
             }
 
-            public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public async Task AnalyzeDocumentAsync(Document document, ChangedMemberNodeWithVersions changedMemberWithVersions, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 Debug.Assert(document.Project.Solution.Workspace == _workspace);
 

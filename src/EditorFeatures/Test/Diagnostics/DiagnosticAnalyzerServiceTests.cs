@@ -779,12 +779,12 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     workspace.OpenDocument(document.Id);
                     var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetService<IDocumentTrackingService>();
                     documentTrackingService.SetActiveDocument(document.Id);
-                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
+                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, changedMemberWithVersions: null, InvocationReasons.SemanticChanged, CancellationToken.None);
                     break;
 
                 case BackgroundAnalysisScope.OpenFiles:
                     workspace.OpenDocument(document.Id);
-                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
+                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, changedMemberWithVersions: null, InvocationReasons.SemanticChanged, CancellationToken.None);
                     break;
 
                 case BackgroundAnalysisScope.FullSolution:
@@ -914,7 +914,7 @@ class A
 
                     var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
                     documentTrackingService.SetActiveDocument(document.Id);
-                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
+                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, changedMemberWithVersions: null, InvocationReasons.SemanticChanged, CancellationToken.None);
                     break;
 
                 case BackgroundAnalysisScope.OpenFiles:
@@ -923,7 +923,7 @@ class A
                     else
                         workspace.OpenDocument(document.Id);
 
-                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
+                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, changedMemberWithVersions: null, InvocationReasons.SemanticChanged, CancellationToken.None);
                     break;
 
                 case BackgroundAnalysisScope.FullSolution:
@@ -1015,7 +1015,7 @@ class A
                 }
                 else
                 {
-                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, analyzer.CancellationToken);
+                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, changedMemberWithVersions: null, InvocationReasons.SemanticChanged, analyzer.CancellationToken);
                 }
 
                 throw ExceptionUtilities.Unreachable;
@@ -1034,7 +1034,7 @@ class A
             }
             else
             {
-                await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
+                await incrementalAnalyzer.AnalyzeDocumentAsync(document, changedMemberWithVersions: null, InvocationReasons.SemanticChanged, CancellationToken.None);
             }
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
@@ -1303,7 +1303,7 @@ class A
             if (textDocument is Document document)
             {
                 await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None).ConfigureAwait(false);
-                await analyzer.AnalyzeDocumentAsync(document, bodyOpt: null, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
+                await analyzer.AnalyzeDocumentAsync(document, changedMemberWithVersions: null, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
             }
             else
             {

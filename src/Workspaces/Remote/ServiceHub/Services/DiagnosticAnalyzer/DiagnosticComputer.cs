@@ -232,6 +232,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 }
 
                 data = await CreateCompilationWithAnalyzersCacheEntryAsync(cancellationToken).ConfigureAwait(false);
+
+                if (_span.HasValue)
+                    return data;
+
                 return s_compilationWithAnalyzersCache.GetValue(_project, _ => data);
             }
         }

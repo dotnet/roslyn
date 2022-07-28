@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                         if (textDocument is Document document)
                         {
                             await incrementalAnalyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, _source.Token).ConfigureAwait(false);
-                            await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, reasons: InvocationReasons.Empty, cancellationToken: _source.Token).ConfigureAwait(false);
+                            await incrementalAnalyzer.AnalyzeDocumentAsync(document, changedMemberWithVersions: null, reasons: InvocationReasons.Empty, cancellationToken: _source.Token).ConfigureAwait(false);
                         }
                         else
                         {

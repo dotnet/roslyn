@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             private static bool SupportAnalysis(Project project)
                 => project.SupportsCompilation;
 
-            public override async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public override async Task AnalyzeDocumentAsync(Document document, ChangedMemberNodeWithVersions changedMemberWithVersions, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 if (!SupportAnalysis(document.Project))
                     return;
 
-                if (bodyOpt != null)
+                if (changedMemberWithVersions != null)
                 {
                     // This was a method body edit.  We can reuse the existing SymbolTreeInfo if
                     // we have one.  We can't just bail out here as the change in the document means

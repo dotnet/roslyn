@@ -77,11 +77,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
-        public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+        public async Task AnalyzeDocumentAsync(Document document, ChangedMemberNodeWithVersions? changedMemberNodeWithVersions, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             if (TryGetAnalyzer(document.Project, out var analyzer))
             {
-                await analyzer.AnalyzeDocumentAsync(document, bodyOpt, reasons, cancellationToken).ConfigureAwait(false);
+                await analyzer.AnalyzeDocumentAsync(document, changedMemberNodeWithVersions, reasons, cancellationToken).ConfigureAwait(false);
             }
         }
 

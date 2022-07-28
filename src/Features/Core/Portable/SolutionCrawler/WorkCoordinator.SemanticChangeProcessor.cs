@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 private async Task<bool> TryEnqueueFromHintAsync(Data data)
                 {
-                    var changedMember = data.ChangedMember;
+                    var changedMember = data.ChangedMemberWithVersions?.ActiveMember;
                     if (changedMember == null)
                         return false;
 
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     Logger.Log(FunctionId.WorkCoordinator_SemanticChange_FullProjects, internalVisibleToAssembly == null ? "full" : "internals");
                 }
 
-                public void Enqueue(Project project, DocumentId documentId, Document? document, SyntaxPath? changedMember)
+                public void Enqueue(Project project, DocumentId documentId, Document? document, ActiveMemberWithVersions? changedMemberWithVersions)
                 {
                     UpdateLastAccessTime();
 
@@ -251,15 +251,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             var newAsyncToken = Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Workspace);
                             data.AsyncToken.Dispose();
 
-                            _pendingWork[documentId] = new Data(project, documentId, document, data.ChangedMember == changedMember ? changedMember : null, newAsyncToken);
+                            _pendingWork[documentId] = new Data(project, documentId, document, data.ChangedMemberWithVersions == changedMemberWithVersions ? changedMemberWithVersions : null, newAsyncToken);
                             return;
                         }
 
-                        _pendingWork.Add(documentId, new Data(project, documentId, document, changedMember, Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Workspace)));
+                        _pendingWork.Add(documentId, new Data(project, documentId, document, changedMemberWithVersions, Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Workspace)));
                         _gate.Release();
                     }
 
-                    Logger.Log(FunctionId.WorkCoordinator_SemanticChange_Enqueue, s_enqueueLogger, Environment.TickCount, documentId, changedMember != null);
+                    Logger.Log(FunctionId.WorkCoordinator_SemanticChange_Enqueue, s_enqueueLogger, Environment.TickCount, documentId, changedMemberWithVersions != null);
                 }
 
                 private static TValue DequeueWorker<TKey, TValue>(NonReentrantLock gate, Dictionary<TKey, TValue> map, CancellationToken cancellationToken)
@@ -310,15 +310,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private readonly Document? _document;
 
                     public readonly Project Project;
-                    public readonly SyntaxPath? ChangedMember;
+                    public readonly ActiveMemberWithVersions? ChangedMemberWithVersions;
                     public readonly IAsyncToken AsyncToken;
 
-                    public Data(Project project, DocumentId documentId, Document? document, SyntaxPath? changedMember, IAsyncToken asyncToken)
+                    public Data(Project project, DocumentId documentId, Document? document, ActiveMemberWithVersions? changedMemberWithVersions, IAsyncToken asyncToken)
                     {
                         _documentId = documentId;
                         _document = document;
                         Project = project;
-                        ChangedMember = changedMember;
+                        ChangedMemberWithVersions = changedMemberWithVersions;
                         AsyncToken = asyncToken;
                     }
 
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         _processor.Enqueue(
                             new WorkItem(documentId, project.Language, InvocationReasons.SemanticChanged,
-                                isLowPriority, activeMember: null, Listener.BeginAsyncOperation(nameof(EnqueueWorkItemAsync), tag: EnqueueItem)));
+                                isLowPriority, activeMemberWithVersions: null, Listener.BeginAsyncOperation(nameof(EnqueueWorkItemAsync), tag: EnqueueItem)));
                     }
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)

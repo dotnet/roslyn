@@ -1800,9 +1800,9 @@ class C
                 return Task.CompletedTask;
             }
 
-            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public Task AnalyzeDocumentAsync(Document document, ChangedMemberNodeWithVersions changedMemberWithVersions, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                if (bodyOpt == null)
+                if (changedMemberWithVersions == null)
                 {
                     this.DocumentIds.Add(document.Id);
                 }
@@ -1833,7 +1833,7 @@ class C
                 if (document is Document sourceDocument)
                 {
                     await AnalyzeSyntaxAsync(sourceDocument, InvocationReasons.ActiveDocumentSwitched, cancellationToken).ConfigureAwait(false);
-                    await AnalyzeDocumentAsync(sourceDocument, bodyOpt: null, InvocationReasons.ActiveDocumentSwitched, cancellationToken).ConfigureAwait(false);
+                    await AnalyzeDocumentAsync(sourceDocument, changedMemberWithVersions: null, InvocationReasons.ActiveDocumentSwitched, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -1919,7 +1919,7 @@ class C
         {
             public readonly List<DocumentId> DocumentIds = new List<DocumentId>();
 
-            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public Task AnalyzeDocumentAsync(Document document, ChangedMemberNodeWithVersions changedMemberNodeWithVersions, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 this.DocumentIds.Add(document.Id);
                 return Task.CompletedTask;

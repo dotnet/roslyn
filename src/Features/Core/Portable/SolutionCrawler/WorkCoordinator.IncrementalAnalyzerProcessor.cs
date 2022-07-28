@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         // check whether we know what body has changed. currently, this is an optimization toward typing case. if there are more than one body changes
                         // it will be considered as semantic change and whole document analyzer will take care of that case.
-                        var activeMember = GetMemberNode(syntaxFactsService, root, workItem.ActiveMember);
+                        var activeMember = GetMemberNode(syntaxFactsService, root, workItem.ActiveMemberWithVersions?.ActiveMember);
                         if (activeMember == null)
                         {
                             // no active member means, change is out side of a method body, but it didn't affect semantics (such as change in comment)
@@ -292,8 +292,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
 
                         // re-run just the body
+                        var activeMemberWithVersions = new ChangedMemberNodeWithVersions(activeMember, workItem.ActiveMemberWithVersions!.OldVersion, workItem.ActiveMemberWithVersions.NewVersion);
                         await RunAnalyzersAsync(analyzers, document, workItem, (analyzer, document, cancellationToken) =>
-                            analyzer.AnalyzeDocumentAsync(document, activeMember, reasons, cancellationToken), cancellationToken).ConfigureAwait(false);
+                            analyzer.AnalyzeDocumentAsync(document, activeMemberWithVersions, reasons, cancellationToken), cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                     {

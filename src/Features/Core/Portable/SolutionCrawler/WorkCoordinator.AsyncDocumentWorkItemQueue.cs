@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Debug.Assert(existingWorkItem.Language == item.Language);
 
                         // replace it
-                        documentMap[key] = existingWorkItem.With(item.InvocationReasons, item.ActiveMember, item.SpecificAnalyzers, item.IsRetry, item.AsyncToken);
+                        documentMap[key] = existingWorkItem.With(item.InvocationReasons, item.ActiveMemberWithVersions, item.SpecificAnalyzers, item.IsRetry, item.AsyncToken);
                         return false;
                     }
 

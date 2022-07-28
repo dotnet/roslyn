@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
         public UnitTestingIncrementalAnalyzer(IUnitTestingIncrementalAnalyzerImplementation implementation)
             => _implementation = implementation;
 
-        public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
-            => _implementation.AnalyzeDocumentAsync(document, bodyOpt, new UnitTestingInvocationReasonsWrapper(reasons), cancellationToken);
+        public Task AnalyzeDocumentAsync(Document document, ChangedMemberNodeWithVersions changedMemberWithVersions, InvocationReasons reasons, CancellationToken cancellationToken)
+            => _implementation.AnalyzeDocumentAsync(document, changedMemberWithVersions?.ChangedMemberNode, new UnitTestingInvocationReasonsWrapper(reasons), cancellationToken);
 
         public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             => _implementation.AnalyzeProjectAsync(project, semanticsChanged, new UnitTestingInvocationReasonsWrapper(reasons), cancellationToken);

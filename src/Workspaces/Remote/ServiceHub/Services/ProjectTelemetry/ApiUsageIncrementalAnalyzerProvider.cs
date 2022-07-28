@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
             public Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
-            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public Task AnalyzeDocumentAsync(Document document, ChangedMemberNodeWithVersions changedMemberWithVersions, InvocationReasons reasons, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)

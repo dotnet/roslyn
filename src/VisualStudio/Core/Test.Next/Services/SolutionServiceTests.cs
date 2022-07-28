@@ -874,7 +874,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 private TaskCompletionSource<bool> _source = new TaskCompletionSource<bool>();
 
-                public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+                public override Task AnalyzeDocumentAsync(Document document, ChangedMemberNodeWithVersions changedMemberWithVersions, InvocationReasons reasons, CancellationToken cancellationToken)
                 {
                     _source.SetResult(true);
                     return Task.CompletedTask;

@@ -53,11 +53,11 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             => AnalyzeProjectAsync(project, specificDocument: null, cancellationToken);
 
-        public override Task AnalyzeDocumentAsync(Document document, SyntaxNode? body, InvocationReasons reasons, CancellationToken cancellationToken)
+        public override Task AnalyzeDocumentAsync(Document document, ChangedMemberNodeWithVersions? changedMemberWithVersions, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             // don't need to reanalyze file if just a method body was edited.  That can't
             // affect designer attributes.
-            if (body != null)
+            if (changedMemberWithVersions != null)
                 return Task.CompletedTask;
 
             // When we register our analyzer we will get called into for every document to

@@ -7,9 +7,20 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
+    /// <summary>
+    /// Used for semantic analysis callbacks into <see cref="IIncrementalAnalyzer"/>s
+    /// when only a single member node, such as a method body, in the document has been
+    /// edited from the prior document snapshot.
+    /// </summary>
+    /// <param name="ChangedMemberNode">Member node which was edited.</param>
+    /// <param name="OldVersion">Semantic version of the old project prior to this member edit.</param>
+    /// <param name="NewVersion">Semantic version of the new project after this member edit.</param>
+    internal record class ChangedMemberNodeWithVersions(SyntaxNode ChangedMemberNode, VersionStamp OldVersion, VersionStamp NewVersion);
+
     internal interface IIncrementalAnalyzer
     {
         Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken);
@@ -24,7 +35,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         Task DocumentResetAsync(Document document, CancellationToken cancellationToken);
 
         Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken);
-        Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken);
+        Task AnalyzeDocumentAsync(Document document, ChangedMemberNodeWithVersions changedMemberWithVersions, InvocationReasons reasons, CancellationToken cancellationToken);
         Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken);
 
         Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken);

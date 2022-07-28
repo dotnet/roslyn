@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public virtual Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
-        public virtual Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+        public virtual Task AnalyzeDocumentAsync(Document document, ChangedMemberNodeWithVersions? changedMemberWithVersions, InvocationReasons reasons, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
         public virtual Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)

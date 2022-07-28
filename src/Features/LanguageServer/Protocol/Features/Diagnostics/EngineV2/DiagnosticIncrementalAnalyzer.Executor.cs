@@ -13,8 +13,11 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -126,7 +129,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// Computes all local diagnostics (syntax, semantic) that belong to given document for the given StateSet (analyzer).
         /// </summary>
         private static async Task<DocumentAnalysisData> ComputeDocumentAnalysisDataAsync(
-            DocumentAnalysisExecutor executor, StateSet stateSet, bool logTelemetry, CancellationToken cancellationToken)
+            DocumentAnalysisExecutor executor, StateSet stateSet, bool logTelemetry,
+            VersionStamp version, SyntaxNode? member, int? memberId,
+            PooledDictionary<DiagnosticAnalyzer, MemberRangeMap.MemberRanges?> savedMemberRangesForSpanBasedAnalyzers,
+            CancellationToken cancellationToken)
         {
             var kind = executor.AnalysisScope.Kind;
             var document = executor.AnalysisScope.TextDocument;
@@ -141,13 +147,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var diagnostics = await executor.ComputeDiagnosticsAsync(stateSet.Analyzer, cancellationToken).ConfigureAwait(false);
 
+                    var state = stateSet.GetOrCreateActiveFileState(document.Id);
+                    var existingData = state.GetAnalysisData(kind);
+
+                    if (executor.AnalysisScope.Span.HasValue && executor.AnalysisScope.Kind == AnalysisKind.Semantic)
+                    {
+                        diagnostics = await GetUpdatedDiagnosticsForMemberEditScenarioAsync(diagnostics, existingData).ConfigureAwait(false);
+                    }
+
                     // this is no-op in product. only run in test environment
                     Logger.Log(functionId, (t, d, a, ds) => $"{GetDocumentLogMessage(t, d, a)}, {string.Join(Environment.NewLine, ds)}",
                         title, document, stateSet.Analyzer, diagnostics);
-
-                    var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
-                    var state = stateSet.GetOrCreateActiveFileState(document.Id);
-                    var existingData = state.GetAnalysisData(kind);
 
                     // we only care about local diagnostics
                     return new DocumentAnalysisData(version, existingData.Items, diagnostics.ToImmutableArrayOrEmpty());
@@ -157,6 +167,52 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     throw ExceptionUtilities.Unreachable;
                 }
             }
+
+            async Task<IEnumerable<DiagnosticData>> GetUpdatedDiagnosticsForMemberEditScenarioAsync(
+                IEnumerable<DiagnosticData> diagnostics,
+                DocumentAnalysisData existingData)
+            {
+                // We are performing semantic span-based analysis for member-only edit scenario.
+                // Instead of computing the analyzer diagnostics for the entire document,
+                // we have computed the new diagnostics just for the edited member span.
+                Debug.Assert(member != null);
+                Debug.Assert(memberId.HasValue);
+                Debug.Assert(executor.AnalysisScope.Span.Value == member.FullSpan);
+                Debug.Assert(diagnostics.All(d => !d.HasTextSpan || member.FullSpan.IntersectsWith(d.GetTextSpan())));
+
+                // We now try to get the new document diagnostics by performing an incremental update:
+                //   1. Replacing old diagnostics for the edited member node in the prior document snapshot
+                //      with the new diagnostics for this member node in the latest document snaphot
+                //      AND
+                //   2. Re-using all the old diagnostics outside the edited member node from the prior
+                //      document snapshot, but with updated diagnostic spans.
+                // If we are unable to perform this incremental diagnostics update,
+                // we fallback to computing the diagnostics for the entire document.
+                var ranges = savedMemberRangesForSpanBasedAnalyzers[stateSet.Analyzer]!;
+                if (TryGetUpdatedDocumentDiagnostics(existingData, ranges.Value.Ranges, diagnostics.AsImmutableOrEmpty(), member.SyntaxTree, member, memberId.Value, out var updatedDiagnostics))
+                {
+#if DEBUG
+                    await ValidateMemberDiagnosticsAsync(executor, stateSet, updatedDiagnostics, cancellationToken).ConfigureAwait(false);
+#endif
+                    return updatedDiagnostics;
+                }
+                else
+                {
+                    // Incremental diagnostics update failed.
+                    // Fallback to computing the diagnostics for the entire document.
+                    var documentExecutor = executor.With(executor.AnalysisScope.WithSpan(null));
+                    return await documentExecutor.ComputeDiagnosticsAsync(stateSet.Analyzer, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+#if DEBUG
+            static async Task ValidateMemberDiagnosticsAsync(DocumentAnalysisExecutor executor, StateSet stateSet, ImmutableArray<DiagnosticData> diagnostics, CancellationToken cancellationToken)
+            {
+                executor = executor.With(executor.AnalysisScope.WithSpan(null));
+                var expected = await executor.ComputeDiagnosticsAsync(stateSet.Analyzer, cancellationToken).ConfigureAwait(false);
+                Debug.Assert(diagnostics.SetEquals(expected));
+            }
+#endif
         }
 
         /// <summary>
@@ -565,6 +621,110 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
+            }
+        }
+
+        private static bool TryGetUpdatedDocumentDiagnostics(
+            DocumentAnalysisData existingData, ImmutableArray<TextSpan> range, ImmutableArray<DiagnosticData> memberDiagnostics,
+            SyntaxTree tree, SyntaxNode member, int memberId, out ImmutableArray<DiagnosticData> updatedDiagnostics)
+        {
+            // get old span
+            var oldSpan = range[memberId];
+
+            // get old diagnostics
+            var diagnostics = existingData.Items;
+
+            // check quick exit cases
+            if (diagnostics.Length == 0 && memberDiagnostics.Length == 0)
+            {
+                updatedDiagnostics = diagnostics;
+                return true;
+            }
+
+            // simple case
+            if (diagnostics.Length == 0 && memberDiagnostics.Length > 0)
+            {
+                updatedDiagnostics = memberDiagnostics;
+                return true;
+            }
+
+            // regular case
+            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var resultBuilder);
+
+            // update member location
+            Contract.ThrowIfFalse(member.FullSpan.Start == oldSpan.Start);
+            var delta = member.FullSpan.End - oldSpan.End;
+
+            var replaced = false;
+            foreach (var diagnostic in diagnostics)
+            {
+                if (!diagnostic.HasTextSpan)
+                {
+                    resultBuilder.Add(diagnostic);
+                    continue;
+                }
+
+                var diagnosticSpan = diagnostic.GetTextSpan();
+                if (diagnosticSpan.Start < oldSpan.Start)
+                {
+                    // Bail out if the diagnostic has any additional locations that we don't know how to handle.
+                    if (diagnostic.AdditionalLocations.Any(l => l.SourceSpan.HasValue && l.SourceSpan.Value.Start >= oldSpan.Start))
+                    {
+                        updatedDiagnostics = default;
+                        return false;
+                    }
+
+                    resultBuilder.Add(diagnostic);
+                    continue;
+                }
+
+                if (!replaced)
+                {
+                    resultBuilder.AddRange(memberDiagnostics);
+                    replaced = true;
+                }
+
+                if (oldSpan.End <= diagnosticSpan.Start)
+                {
+                    // Bail out if the diagnostic has any additional locations that we don't know how to handle.
+                    if (diagnostic.AdditionalLocations.Any(l => l.SourceSpan.HasValue && oldSpan.End > l.SourceSpan.Value.Start))
+                    {
+                        updatedDiagnostics = default;
+                        return false;
+                    }
+
+                    resultBuilder.Add(UpdateLocations(diagnostic, tree, delta));
+                    continue;
+                }
+            }
+
+            // if it haven't replaced, replace it now
+            if (!replaced)
+            {
+                resultBuilder.AddRange(memberDiagnostics);
+            }
+
+            updatedDiagnostics = resultBuilder.ToImmutableArray();
+            return true;
+
+            static DiagnosticData UpdateLocations(DiagnosticData diagnostic, SyntaxTree tree, int delta)
+            {
+                Debug.Assert(diagnostic.DataLocation != null);
+                var location = UpdateLocation(diagnostic.DataLocation);
+                var additionalLocations = diagnostic.AdditionalLocations.SelectAsArray(UpdateLocation);
+                return diagnostic.WithLocations(location, additionalLocations);
+
+                DiagnosticDataLocation UpdateLocation(DiagnosticDataLocation location)
+                {
+                    // Do not need to update additional locations without source span
+                    if (!location.SourceSpan.HasValue)
+                        return location;
+
+                    var diagnosticSpan = location.SourceSpan.Value;
+                    var start = Math.Min(Math.Max(diagnosticSpan.Start + delta, 0), tree.Length);
+                    var newSpan = new TextSpan(start, start >= tree.Length ? 0 : diagnosticSpan.Length);
+                    return location.WithSpan(newSpan, tree);
+                }
             }
         }
     }
