@@ -1387,6 +1387,11 @@
         <target state="translated">Modyfikator „scoped" może być używany tylko w przypadku odwołań i wartości struktury referencyjnej.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScopedTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'scoped'.</source>
+        <target state="new">Types and aliases cannot be named 'scoped'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
         <source>Required members are not allowed on the top level of a script or submission.</source>
         <target state="translated">Wymagane składowe są niedozwolone na najwyższym poziomie skryptu lub żądania przesłania.</target>
