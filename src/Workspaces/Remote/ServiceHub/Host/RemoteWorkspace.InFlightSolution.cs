@@ -13,8 +13,9 @@ namespace Microsoft.CodeAnalysis.Remote
     internal sealed partial class RemoteWorkspace
     {
         /// <summary>
-        /// Wrapper around asynchronously produced solution.  The computation for producing the solution will be
-        /// canceled when the number of in-flight operations using it goes down to 0.
+        /// Wrapper around asynchronously produced solution for a particular <see cref="SolutionChecksum"/>.  The
+        /// computation for producing the solution will be canceled when the number of in-flight operations using it
+        /// goes down to 0.
         /// </summary>
         public sealed class InFlightSolution
         {
