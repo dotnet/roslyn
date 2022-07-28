@@ -22,11 +22,8 @@ namespace Microsoft.CodeAnalysis.Remote
         private InFlightSolution? _lastAnyBranchSolution;
 
         /// <summary>
-        /// The last solution requested by a service. This effectively adds an additional in-flight-count to one of
-        /// the items in <see cref="_solutionChecksumToSolution"/> ensuring that the very last solution requested is
-        /// kept alive by us, even if there are no active requests currently in progress for that solution.  That
-        /// way if we have two non-concurrent requests for that same solution, with no intervening updates, we can
-        /// cache and keep the solution around instead of having to recompute it.
+        /// The same as <see cref="_lastAnyBranchSolution"/> except only for solution checksums we heard about in <see
+        /// cref="UpdatePrimaryBranchSolutionAsync"/>.
         /// </summary>
         private InFlightSolution? _lastPrimaryBranchSolution;
 
