@@ -36,9 +36,10 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly Dictionary<Checksum, InFlightSolution> _solutionChecksumToSolution = new();
 
         private InFlightSolution GetOrCreateSolutionAndAddInFlightCount_NoLock(
+            AssetProvider assetProvider,
             Checksum solutionChecksum,
-            Func<CancellationToken, Task<Solution>> computeDisconnectedSolutionAsync,
-            Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync)
+            int workspaceVersion,
+            bool updatePrimaryBranch)
         {
             Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
@@ -58,7 +59,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // We may be getting back a solution that only was computing a non-primary branch.  If we were asked
             // to compute the primary branch as well, let it know so it can start that now.
-            solution.TryKickOffPrimaryBranchWork_NoLock(updatePrimaryBranchAsync);
+            if (updatePrimaryBranch)
+            {
+                solution.TryKickOffPrimaryBranchWork_NoLock((disconnectedSolution, cancellationToken) =>
+                    this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, disconnectedSolution, cancellationToken));
+            }
 
             return solution;
 
@@ -81,7 +86,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
                 // in-flight-count of 1 to represent our caller. 
-                solution = new InFlightSolution(this, solutionChecksum, computeDisconnectedSolutionAsync);
+                solution = new InFlightSolution(
+                    this, solutionChecksum,
+                    cancellationToken => ComputeDisconnectedSolutionAsync(assetProvider, solutionChecksum, cancellationToken));
                 Contract.ThrowIfFalse(solution.InFlightCount == 1);
 
                 _solutionChecksumToSolution.Add(solutionChecksum, solution);
@@ -128,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 SetLastRequestedSolution(solution, primaryBranch: false);
 
                 // If we're updating the primary branch, then set the last requested primary branch solution as well.
-                if (updatePrimaryBranchAsync != null)
+                if (updatePrimaryBranch)
                     SetLastRequestedSolution(solution, primaryBranch: true);
 
                 return;

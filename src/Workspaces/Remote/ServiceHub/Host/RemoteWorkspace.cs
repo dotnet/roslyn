@@ -109,12 +109,6 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfNull(solutionChecksum);
             Contract.ThrowIfTrue(solutionChecksum == Checksum.Null);
 
-            var computeDisconnectedSolutionAsync = (CancellationToken cancellationToken) => ComputeDisconnectedSolutionAsync(assetProvider, solutionChecksum, cancellationToken);
-
-            Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync = updatePrimaryBranch
-                ? (anyBranchSolution, cancellationToken) => this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, anyBranchSolution, cancellationToken)
-                : null;
-
             // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will
             // increment the in-flight of that solution until we decrement it at the end of our try/finally block.
             InFlightSolution inFlightSolution;
@@ -122,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Remote
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 inFlightSolution = GetOrCreateSolutionAndAddInFlightCount_NoLock(
-                    solutionChecksum, computeDisconnectedSolutionAsync, updatePrimaryBranchAsync);
+                    assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch);
                 solutionTask = inFlightSolution.PreferredSolutionTask_NoLock;
             }
 
