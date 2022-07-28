@@ -171,6 +171,26 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     public async Task<Document?> GetLspDocumentAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
     {
         var uri = textDocumentIdentifier.Uri;
+        var document = await GetLspTextDocumentAsync<Document>(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
+
+        if (document == null)
+        {
+            // Add the document to our loose files workspace if its open.
+            var miscDocument = _trackedDocuments.ContainsKey(uri) ? _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, _trackedDocuments[uri], _logger) : null;
+            return miscDocument;
+        }
+
+        return document;
+    }
+
+    /// <summary>
+    /// Returns an analyzer config document with the LSP tracked text forked from the appropriate workspace solution.
+    /// 
+    /// This is always called serially in the <see cref="RequestExecutionQueue"/> when creating the <see cref="RequestContext"/>.
+    /// </summary>
+    public async Task<T?> GetLspTextDocumentAsync<T>(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken) where T : TextDocument
+    {
+        var uri = textDocumentIdentifier.Uri;
 
         // Get the LSP view of all the workspace solutions.
         var lspSolutions = await GetLspSolutionsAsync(cancellationToken).ConfigureAwait(false);
@@ -178,10 +198,10 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Find the matching document from the LSP solutions.
         foreach (var (lspSolution, isForked) in lspSolutions)
         {
-            var documents = lspSolution.GetDocuments(uri);
-            if (documents.Any())
+            var textDocuments = lspSolution.GetTextDocuments<T>(uri);
+            if (textDocuments.Any())
             {
-                var document = documents.FindDocumentInProjectContext(textDocumentIdentifier);
+                var document = textDocuments.FindTextDocumentInProjectContext(textDocumentIdentifier);
 
                 // Record metadata on how we got this document.
                 var workspaceKind = document.Project.Solution.Workspace.Kind;
@@ -189,7 +209,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
                 _logger.TraceInformation($"{document.FilePath} found in workspace {workspaceKind}");
 
-                return document;
+                return (T)document;
             }
         }
 
@@ -198,9 +218,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _logger.TraceError($"Could not find '{uri}'.  Searched {searchedWorkspaceKinds}");
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
-        // Add the document to our loose files workspace if its open.
-        var miscDocument = _trackedDocuments.ContainsKey(uri) ? _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, _trackedDocuments[uri], _logger) : null;
-        return miscDocument;
+        return null;
     }
 
     /// <summary>

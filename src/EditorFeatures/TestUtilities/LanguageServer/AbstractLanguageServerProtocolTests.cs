@@ -19,6 +19,8 @@ using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.ExternalAccess.EditorConfig;
+using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -405,9 +407,9 @@ namespace Roslyn.Test.Utilities
         public static async Task<Dictionary<string, IList<LSP.Location>>> GetAnnotatedLocationsAsync(TestWorkspace workspace, Solution solution)
         {
             var locations = new Dictionary<string, IList<LSP.Location>>();
-            foreach (var testDocument in workspace.Documents)
+            foreach (var testDocument in workspace.Documents.Concat(workspace.AnalyzerConfigDocuments))
             {
-                var document = await solution.GetRequiredDocumentAsync(testDocument.Id, includeSourceGenerated: true, CancellationToken.None);
+                var document = await solution.GetRequiredTextDocumentAsync(testDocument.Id, CancellationToken.None);
                 var text = await document.GetTextAsync(CancellationToken.None);
                 foreach (var (name, spans) in testDocument.AnnotatedSpans)
                 {
@@ -568,7 +570,12 @@ namespace Roslyn.Test.Utilities
             {
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
                 var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
-                var servicesProvider = workspace.ExportProvider.GetExportedValue<CSharpVisualBasicLspServiceProvider>();
+                var servicesProvider = serverKind switch
+                {
+                    WellKnownLspServerKinds.RoslynTypeScriptLspServer => (AbstractLspServiceProvider)workspace.ExportProvider.GetExportedValue<VSTypeScriptLspServiceProvider>(),
+                    WellKnownLspServerKinds.EditorConfigLspServer => workspace.ExportProvider.GetExportedValue<EditorConfigLspServiceProvider>(),
+                    _ => workspace.ExportProvider.GetExportedValue<CSharpVisualBasicLspServiceProvider>(),
+                };
 
                 var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, CreateJsonMessageFormatter()))
                 {

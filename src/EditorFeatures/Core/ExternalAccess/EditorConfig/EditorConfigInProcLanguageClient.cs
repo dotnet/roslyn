@@ -52,8 +52,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
                 TextDocumentSync = new TextDocumentSyncOptions
                 {
                     OpenClose = true,
-                    Change = TextDocumentSyncKind.Incremental,
-                }
+                    Change = TextDocumentSyncKind.Incremental
+                },
+                HoverProvider = true,
             };
 
             return serverCapabilities;

@@ -386,6 +386,37 @@ _italic\_&nbsp;\*\*text\*\*_
             Assert.Equal(expectedMarkdown, results.Contents.Third.Value);
         }
 
+        [Fact]
+        public async Task TestGetHoverAsync_InEditorConfigFiles()
+        {
+            var markup = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">
+dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = {|caret:warning|}
+
+[Program.cs]
+dotnet_style_object_initializer = true:warning
+dotnet_diagnostic.IDE0017.severity = warning
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+            var clientCapabilities = new LSP.ClientCapabilities
+            {
+                TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = new LSP.MarkupKind[] { LSP.MarkupKind.Markdown } } }
+            };
+            using var testLspServer = await CreateXmlTestLspServerAsync(markup, initializationOptions: new InitializationOptions { ServerKind = WellKnownLspServerKinds.EditorConfigLspServer, ClientCapabilities = clientCapabilities });
+            var expectedLocation = testLspServer.GetLocations("caret").Single();
+
+            var expectedText = @$"Hover works!";
+
+            var results = await RunGetHoverAsync(
+                testLspServer,
+                expectedLocation).ConfigureAwait(false);
+            Assert.Equal(expectedText, results.Contents.Third.Value);
+        }
+
         private static async Task<LSP.Hover> RunGetHoverAsync(
             TestLspServer testLspServer,
             LSP.Location caret,
