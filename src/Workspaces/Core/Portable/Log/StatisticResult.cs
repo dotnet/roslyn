@@ -89,10 +89,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// <summary>
         /// Writes out these statistics to a property bag for sending to telemetry.
         /// </summary>
-        /// <param name="prefix">The prefix given to any properties written; if you want a period as a separator, it's
-        /// your responsibility to pass that.</param>
-        public void WriteTelemetryPropertiesTo(Dictionary<string, object?> properties, string prefix = "")
+        /// <param name="prefix">The prefix given to any properties written. A period is used to delimit between the 
+        /// prefix and the value.</param>
+        public void WriteTelemetryPropertiesTo(Dictionary<string, object?> properties, string prefix)
         {
+            prefix += ".";
+
             properties.Add(prefix + nameof(Maximum), Maximum);
             properties.Add(prefix + nameof(Minimum), Minimum);
             properties.Add(prefix + nameof(Mean), Mean);

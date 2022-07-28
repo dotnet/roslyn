@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     var result = StatisticResult.FromList(propertyValues);
 
-                    result.WriteTelemetryPropertiesTo(m, prefix: propertyName + ".");
+                    result.WriteTelemetryPropertiesTo(m, prefix: propertyName);
                 }
             }));
 

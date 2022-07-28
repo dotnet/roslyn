@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 foreach (var kv in s_statisticLogAggregator)
                 {
                     var statistics = kv.Value.GetStatisticResult();
-                    statistics.WriteTelemetryPropertiesTo(m, prefix: kv.Key + ".");
+                    statistics.WriteTelemetryPropertiesTo(m, prefix: kv.Key.ToString());
                 }
 
                 foreach (var kv in s_countLogAggregator)
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 foreach (var kv in s_histogramLogAggregator)
                 {
-                    kv.Value.WriteTelemetryPropertiesTo(m, prefix: kv.Key + ".");
+                    kv.Value.WriteTelemetryPropertiesTo(m, prefix: kv.Key.ToString());
                 }
             }));
         }
