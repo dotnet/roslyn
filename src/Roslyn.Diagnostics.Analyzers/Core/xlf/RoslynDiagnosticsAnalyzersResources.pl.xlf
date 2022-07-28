@@ -194,12 +194,12 @@
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorMessage">
         <source>'{0}' is MEF-exported and should have a single, public importing constructor of the correct form</source>
-        <target state="new">'{0}' is MEF-exported and should have a single, public importing constructor of the correct form</target>
+        <target state="translated">Element „{0}” jest eksportowany przez strukturę MEF i powinien mieć pojedynczy konstruktor importujący o właściwej postaci</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorTitle">
         <source>Exported parts should have a public constructor marked with 'ImportingConstructorAttribute'</source>
-        <target state="new">Exported parts should have a public constructor marked with 'ImportingConstructorAttribute'</target>
+        <target state="translated">Wyeksportowane części powinny mieć konstruktora publicznego oznaczonego atrybutem „ImportingConstructorAttribute”</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingDescription">
