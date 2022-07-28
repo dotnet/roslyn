@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return solution;
             }
 
-            InFlightSolution? TryFastGetSolution_NoLock(Checksum solutionChecksum, bool updatePrimaryBranch)
+            InFlightSolution? TryFastGetSolution_NoLock()
             {
                 Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
