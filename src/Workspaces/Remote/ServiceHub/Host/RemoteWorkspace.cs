@@ -136,9 +136,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 // solution we just computed, even if we have returned.  This also ensures that if we promoted a
                 // non-primary-solution to a primary-solution that it will now take precedence in all our caches for this
                 // particular checksum.
-                await _anyBranchSolutionCache.SetLastRequestedSolutionAsync(solutionChecksum, solution, cancellationToken).ConfigureAwait(false);
+                await _anyBranchSolutionCache.SetLastRequestedSolutionAsync(solution, cancellationToken).ConfigureAwait(false);
                 if (updatePrimaryBranch)
-                    await _primaryBranchSolutionCache.SetLastRequestedSolutionAsync(solutionChecksum, solution, cancellationToken).ConfigureAwait(false);
+                    await _primaryBranchSolutionCache.SetLastRequestedSolutionAsync(solution, cancellationToken).ConfigureAwait(false);
 
                 // Can't assert anything more than this.  We know we're keeping this solution in-flight.  However, even
                 // though we just added it to the caches as hte last-requested-solution, it might have been immediately

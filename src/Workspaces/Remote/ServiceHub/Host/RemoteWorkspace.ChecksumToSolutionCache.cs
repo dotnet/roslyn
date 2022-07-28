@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            public async Task SetLastRequestedSolutionAsync(Checksum solutionChecksum, SolutionAndInFlightCount solution, CancellationToken cancellationToken)
+            public async Task SetLastRequestedSolutionAsync(SolutionAndInFlightCount solution, CancellationToken cancellationToken)
             {
                 // The solution being passed in must have a valid in-flight-count since the caller currently has it in flight
                 Contract.ThrowIfTrue(solution.InFlightCount < 1);
