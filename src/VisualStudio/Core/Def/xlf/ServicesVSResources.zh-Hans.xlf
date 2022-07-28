@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="Collapse_sourcelink_embedded_decompiled_files_on_open">
         <source>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</source>
-        <target state="translated">在打开文件时将源链接、嵌入源和反编译源折叠到定义</target>
+        <target state="translated">在文件打开时将源链接、嵌入和反编译的源折叠到定义</target>
         <note />
       </trans-unit>
       <trans-unit id="Color_hints">

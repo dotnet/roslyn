@@ -31,19 +31,16 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         internal override bool ApplyDuringTests => true;
 
-        public sealed override void Apply(Workspace workspace, CancellationToken cancellationToken)
-            => ApplyWorker(workspace, new ProgressTracker());
-
         /// <summary>
         /// Show the confirmation message, if available, before attempting to apply the changes.
         /// </summary>
         internal sealed override Task<bool> TryApplyAsync(
-            Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+            Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            return ApplyWorker(workspace, progressTracker) ? SpecializedTasks.True : SpecializedTasks.False;
+            return ApplyWorker(workspace, originalSolution, progressTracker, cancellationToken) ? SpecializedTasks.True : SpecializedTasks.False;
         }
 
-        private bool ApplyWorker(Workspace workspace, IProgressTracker progressTracker)
+        private bool ApplyWorker(Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             if (ConfirmationMessage != null)
             {
@@ -54,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
             }
 
-            return workspace.TryApplyChanges(ChangedSolution, progressTracker);
+            return ApplyChangesOperation.ApplyOrMergeChanges(workspace, originalSolution, ChangedSolution, progressTracker, cancellationToken);
         }
     }
 }

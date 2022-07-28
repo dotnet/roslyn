@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -99,18 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             var formatter = new CSharpSmartTokenFormatter(options, rules, (CompilationUnitSyntax)documentSyntax.Root, documentSyntax.Text);
             var changes = formatter.FormatToken(token, CancellationToken.None);
 
-            ApplyChanges(buffer, changes);
-        }
-
-        private static void ApplyChanges(ITextBuffer buffer, IList<TextChange> changes)
-        {
-            using var edit = buffer.CreateEdit();
-            foreach (var change in changes)
-            {
-                edit.Replace(change.Span.ToSpan(), change.NewText);
-            }
-
-            edit.Apply();
+            buffer.ApplyChanges(changes);
         }
 
         protected static async Task<int> GetSmartTokenFormatterIndentationAsync(

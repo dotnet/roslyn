@@ -42,8 +42,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                        excludedTypes:={GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)), GetType(FormatCommandHandler)}.Concat(If(excludedTypes, {})).ToList(),
                        includeFormatCommandHandler:=False)
 
-            Workspace.TryApplyChanges(Workspace.CurrentSolution.WithOptions(Workspace.Options _
-                    .WithChangedOption(InternalFeatureOnOffOptions.Snippets, True)))
+            Workspace.GlobalOptions.SetGlobalOption(New OptionKey(InternalFeatureOnOffOptions.Snippets), True)
 
             Dim mockSVsServiceProvider = New Mock(Of SVsServiceProvider)(MockBehavior.Strict)
             mockSVsServiceProvider.Setup(Function(s) s.GetService(GetType(SVsTextManager))).Returns(Nothing)
@@ -104,9 +103,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                                </Workspace>
 
             Dim state = New SnippetTestState(workspaceXml, languageName, startActiveSession, extraParts, excludedTypes:=Enumerable.Empty(Of Type), WorkspaceKind.Interactive)
-            Dim workspace = state.Workspace
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                .WithChangedOption(InternalFeatureOnOffOptions.Snippets, False)))
+            state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(InternalFeatureOnOffOptions.Snippets), False)
             Return state
         End Function
 

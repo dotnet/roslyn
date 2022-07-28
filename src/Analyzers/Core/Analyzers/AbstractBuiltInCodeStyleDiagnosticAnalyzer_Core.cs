@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -10,12 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        protected readonly string? DescriptorId;
-
         protected readonly DiagnosticDescriptor Descriptor;
-
-        protected readonly LocalizableString _localizableTitle;
-        protected readonly LocalizableString _localizableMessageFormat;
 
         private AbstractBuiltInCodeStyleDiagnosticAnalyzer(
             string descriptorId,
@@ -25,24 +21,21 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             bool isUnnecessary,
             bool configurable)
         {
-            DescriptorId = descriptorId;
-            _localizableTitle = title;
-            _localizableMessageFormat = messageFormat ?? title;
+            // 'isUnnecessary' should be true only for sub-types of AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer.
+            Debug.Assert(!isUnnecessary || this is AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer);
 
-            Descriptor = CreateDescriptorWithId(DescriptorId, enforceOnBuild, _localizableTitle, _localizableMessageFormat, isUnnecessary: isUnnecessary, isConfigurable: configurable);
+            Descriptor = CreateDescriptorWithId(descriptorId, enforceOnBuild, title, messageFormat ?? title, isUnnecessary: isUnnecessary, isConfigurable: configurable);
             SupportedDiagnostics = ImmutableArray.Create(Descriptor);
         }
 
         /// <summary>
         /// Constructor for a code style analyzer with a multiple diagnostic descriptors such that all the descriptors have no unique code style option to configure the descriptors.
         /// </summary>
-        protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableArray<DiagnosticDescriptor> supportedDiagnostics)
+        private AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableArray<DiagnosticDescriptor> supportedDiagnostics)
         {
             SupportedDiagnostics = supportedDiagnostics;
 
             Descriptor = SupportedDiagnostics[0];
-            _localizableTitle = Descriptor.Title;
-            _localizableMessageFormat = Descriptor.MessageFormat;
         }
 
         public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;

@@ -44,11 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                 _ => throw new ArgumentException("Invalid language name.")
             };
 
-            if (options != null)
-            {
-                workspace.ApplyOptions(options);
-            }
-
+            options?.SetGlobalOptions(workspace.GlobalOptions);
             return new ChangeSignatureTestState(workspace);
         }
 
