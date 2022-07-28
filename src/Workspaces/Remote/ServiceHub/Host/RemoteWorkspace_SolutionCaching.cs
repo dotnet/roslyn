@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // We may be getting back a solution that only was computing a non-primary branch.  If we were asked
                 // to compute the primary branch as well, let it know so it can start that now.
-                solution.TryKickOffPrimaryBranchWork(updatePrimaryBranchAsync);
+                solution.TryKickOffPrimaryBranchWork_NoLock(updatePrimaryBranchAsync);
 
                 return solution;
             }

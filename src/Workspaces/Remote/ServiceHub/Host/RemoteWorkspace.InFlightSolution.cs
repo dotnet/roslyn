@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             /// <summary>
             /// Optional work to try to elevate the solution computed by <see cref="_disconnectedSolutionTask"/> to be
-            /// the primary solution of this <see cref="RemoteWorkspace"/>.
+            /// the primary solution of this <see cref="RemoteWorkspace"/>.  Must only be read/written while holding
+            /// <see cref="RemoteWorkspace._gate"/>.
             /// </summary>
             private Task<Solution>? _primaryBranchTask;
 
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 _disconnectedSolutionTask = computeDisconnectedSolutionAsync(_cancellationTokenSource.Token);
 
                 // If we were asked to make this the primary workspace, then kick off that work immediately as well.
-                TryKickOffPrimaryBranchWork(updatePrimaryBranchAsync);
+                TryKickOffPrimaryBranchWork_NoLock(updatePrimaryBranchAsync);
             }
 
             /// <summary>
@@ -64,25 +65,24 @@ namespace Microsoft.CodeAnalysis.Remote
             /// checksum be the primary solution of this workspace.
             /// </summary>
             /// <param name="updatePrimaryBranchAsync"></param>
-            public void TryKickOffPrimaryBranchWork(Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync)
+            public void TryKickOffPrimaryBranchWork_NoLock(Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync)
             {
+                Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
+
                 if (updatePrimaryBranchAsync is null)
                     return;
 
-                lock (this)
-                {
-                    // Already set up the work to update the primary branch
-                    if (_primaryBranchTask != null)
-                        return;
-
-                    _primaryBranchTask = ComputePrimaryBranchAsync();
+                // Already set up the work to update the primary branch
+                if (_primaryBranchTask != null)
                     return;
 
-                    async Task<Solution> ComputePrimaryBranchAsync()
-                    {
-                        var anyBranchSolution = await _disconnectedSolutionTask.ConfigureAwait(false);
-                        return await updatePrimaryBranchAsync(anyBranchSolution, _cancellationTokenSource.Token).ConfigureAwait(false);
-                    }
+                _primaryBranchTask = ComputePrimaryBranchAsync();
+                return;
+
+                async Task<Solution> ComputePrimaryBranchAsync()
+                {
+                    var anyBranchSolution = await _disconnectedSolutionTask.ConfigureAwait(false);
+                    return await updatePrimaryBranchAsync(anyBranchSolution, _cancellationTokenSource.Token).ConfigureAwait(false);
                 }
             }
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Defer to the primary branch task if we have it, otherwise, fallback to the any-branch-task. This
                 // keeps everything on the primary branch if possible, allowing more sharing of services/caches.
                 Task<Solution> task;
-                lock (this)
+                using (await _workspace._gate.DisposableWaitAsync(cancellationToken))
                 {
                     task = _primaryBranchTask ?? _disconnectedSolutionTask;
                 }
