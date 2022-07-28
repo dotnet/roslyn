@@ -43,6 +43,16 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
         workspace.WorkspaceChanged += OnLspWorkspaceChanged;
     }
 
+    public void Deregister(Workspace workspace)
+    {
+        lock (_gate)
+        {
+            _registrations = _registrations.Remove(workspace);
+        }
+
+        workspace.WorkspaceChanged -= OnLspWorkspaceChanged;
+    }
+
     private void OnLspWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
     {
         LspSolutionChanged?.Invoke(this, e);
@@ -56,6 +66,8 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
             {
                 workspace.WorkspaceChanged -= OnLspWorkspaceChanged;
             }
+
+            _registrations = _registrations.Clear();
         }
     }
 
