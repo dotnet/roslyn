@@ -12,19 +12,6 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed partial class RemoteWorkspace
     {
-        //private async ValueTask<SolutionAndInFlightCount?> TryFastGetSolutionAndAddInFlightCountAsync(
-        //    Checksum solutionChecksum,
-        //    CancellationToken cancellationToken)
-        //{
-        //    using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-        //    {
-        //        // From this point on we are mutating state.  Ensure we absolutely do not cancel accidentally.
-        //        cancellationToken = CancellationToken.None;
-
-        //        return TryFastGetSolutionAndAddInFlightCount_NoLock(solutionChecksum);
-        //    }
-        //}
-
         private async ValueTask<SolutionAndInFlightCount> GetOrCreateSolutionAndAddInFlightCountAsync(
             Checksum solutionChecksum,
             Func<CancellationToken, Task<Solution>> computeDisconnectedSolutionAsync,
