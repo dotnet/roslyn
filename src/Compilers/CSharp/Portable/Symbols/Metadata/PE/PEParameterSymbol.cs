@@ -270,7 +270,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (inOutFlags == ParameterAttributes.Out)
                     {
                         refKind = RefKind.Out;
-                        scope = DeclarationScope.RefScoped;
                     }
                     else if (moduleSymbol.Module.HasIsReadOnlyAttribute(handle))
                     {
@@ -298,16 +297,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     scope = DeclarationScope.Unscoped;
                 }
-                else if (_moduleSymbol.Module.HasLifetimeAnnotationAttribute(_handle, out var pair))
+                else if (refKind == RefKind.Out)
                 {
-                    var scopeOpt = GetScope(refKind, typeWithAnnotations.Type, pair.IsRefScoped, pair.IsValueScoped);
-                    if (scopeOpt is null)
+                    scope = DeclarationScope.RefScoped;
+                }
+                else if (_moduleSymbol.Module.HasScopedRefAttribute(_handle))
+                {
+                    if (isByRef)
                     {
-                        isBad = true;
+                        Debug.Assert(refKind != RefKind.None);
+                        scope = DeclarationScope.RefScoped;
+                    }
+                    else if (typeWithAnnotations.Type.IsRefLikeType)
+                    {
+                        scope = DeclarationScope.ValueScoped;
                     }
                     else
                     {
-                        scope = scopeOpt.GetValueOrDefault();
+                        isBad = true;
                     }
                 }
             }
@@ -986,16 +993,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal sealed override DeclarationScope EffectiveScope => DeclaredScope;
 
-        private static DeclarationScope? GetScope(RefKind refKind, TypeSymbol type, bool isRefScoped, bool isValueScoped)
-        {
-            return (isRefScoped, isValueScoped) switch
-            {
-                (false, false) => DeclarationScope.Unscoped,
-                (true, false) => refKind != RefKind.None ? DeclarationScope.RefScoped : null,
-                (_, true) => type.IsRefLikeType ? DeclarationScope.ValueScoped : null,
-            };
-        }
-
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             if (_lazyCustomAttributes.IsDefault)
@@ -1037,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         out _,
                         filterIsReadOnlyAttribute ? AttributeDescription.IsReadOnlyAttribute : default,
                         out _,
-                        AttributeDescription.LifetimeAnnotationAttribute,
+                        AttributeDescription.ScopedRefAttribute,
                         out _,
                         default);
 

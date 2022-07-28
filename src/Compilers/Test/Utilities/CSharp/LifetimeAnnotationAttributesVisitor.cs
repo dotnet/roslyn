@@ -14,19 +14,19 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
-    internal sealed class LifetimeAnnotationAttributesVisitor : CSharpSymbolVisitor
+    internal sealed class ScopedRefAttributesVisitor : CSharpSymbolVisitor
     {
         internal static string GetString(PEModuleSymbol module)
         {
             var builder = new StringBuilder();
-            var visitor = new LifetimeAnnotationAttributesVisitor(builder);
+            var visitor = new ScopedRefAttributesVisitor(builder);
             visitor.Visit(module);
             return builder.ToString();
         }
 
         private readonly StringBuilder _builder;
 
-        private LifetimeAnnotationAttributesVisitor(StringBuilder builder)
+        private ScopedRefAttributesVisitor(StringBuilder builder)
         {
             _builder = builder;
         }
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public override void VisitMethod(MethodSymbol method)
         {
             var parameters = method.Parameters;
-            if (!parameters.Any(p => TryGetLifetimeAnnotationAttribute((PEParameterSymbol)p, out _)))
+            if (!parameters.Any(p => TryGetScopedRefAttribute((PEParameterSymbol)p)))
             {
                 return;
             }
@@ -81,18 +81,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             foreach (var parameter in parameters)
             {
                 _builder.Append("    ");
-                if (TryGetLifetimeAnnotationAttribute((PEParameterSymbol)parameter, out var pair))
+                if (TryGetScopedRefAttribute((PEParameterSymbol)parameter))
                 {
-                    _builder.Append($"[LifetimeAnnotation({pair.IsRefScoped}, {pair.IsValueScoped})] ");
+                    _builder.Append($"[ScopedRef] ");
                 }
                 _builder.AppendLine(parameter.ToTestDisplayString());
             }
         }
 
-        private bool TryGetLifetimeAnnotationAttribute(PEParameterSymbol parameter, out (bool IsRefScoped, bool IsValueScoped) pair)
+        private bool TryGetScopedRefAttribute(PEParameterSymbol parameter)
         {
             var module = ((PEModuleSymbol)parameter.ContainingModule).Module;
-            return module.HasLifetimeAnnotationAttribute(parameter.Handle, out pair);
+            return module.HasScopedRefAttribute(parameter.Handle);
         }
     }
 }

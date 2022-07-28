@@ -551,7 +551,7 @@ End Namespace
                          WellKnownType.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute,
                          WellKnownType.System_MemoryExtensions,
                          WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_LifetimeAnnotationAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute,
                          WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute,
                          WellKnownType.System_MemoryExtensions
                         ' Not available on all platforms.
@@ -624,7 +624,7 @@ End Namespace
                          WellKnownType.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute,
                          WellKnownType.System_MemoryExtensions,
                          WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_LifetimeAnnotationAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute,
                          WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute
                         ' Not available on all platforms.
                         Continue For
@@ -717,7 +717,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
                          WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor,
                          WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_LifetimeAnnotationAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor,
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T,
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
                          WellKnownMember.System_MemoryExtensions__AsSpan_String,
@@ -870,7 +870,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
                          WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor,
                          WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_LifetimeAnnotationAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor,
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T,
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
                          WellKnownMember.System_MemoryExtensions__AsSpan_String,
