@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async ValueTask<SolutionAndInFlightCount> GetOrCreateSolutionAndAddInFlightCountAsync(
             Checksum solutionChecksum,
-            Func<CancellationToken, Task<Solution>> createSolutionAsync,
+            Func<CancellationToken, Task<Solution>> computeDisconnectedSolutionAsync,
             Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync,
             CancellationToken cancellationToken)
         {
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken = CancellationToken.None;
 
                 // see if someone already raced with us and set the solution in the cache while we were waiting on the lock.
-                var solution = TryFastGetSolutionAndAddInFlightCount_NoLock(solutionChecksum);
+                var solution = TryFastGetSolutionAndAddInFlightCount_NoLock(solutionChecksum, updatePrimaryBranch);
                 if (solution != null)
                 {
                     // We may be getting back a solution that only was computing a non-primary branch.  If we were asked
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
                 // in-flight-count of 1 to represent our caller. 
-                solution = new SolutionAndInFlightCount(this, solutionChecksum, createSolutionAsync, updatePrimaryBranchAsync);
+                solution = new SolutionAndInFlightCount(this, solutionChecksum, computeDisconnectedSolutionAsync, updatePrimaryBranchAsync);
                 Contract.ThrowIfFalse(solution.InFlightCount == 1);
 
                 _solutionChecksumToSolution.Add(solutionChecksum, solution);
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Also set this as the last-requested-solution.  Note this means our ref-count must go up since we
                 // just created this item and will always succeed at then increating the in-flight-count ourselves
                 // when we set the last-requsted-solution.
-                SetLastRequestedSolution_NoLock(solution, updatePrimaryBranch: updatePrimaryBranchAsync != null);
+                SetLastRequestedSolution_NoLock(solution, updatePrimaryBranch);
                 Contract.ThrowIfFalse(solution.InFlightCount == 2);
 
                 return solution;
@@ -130,18 +130,18 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
             // Always set the last requested solution.
-            SetLastRequestedSolutionWorker(solution, primaryBranch: false);
+            SetLastRequestedSolution(solution, primaryBranch: false);
 
             // If we're updating the primary branch, then set the last requested primary branch solution as well.
             if (updatePrimaryBranch)
-                SetLastRequestedSolutionWorker(solution, primaryBranch: true);
+                SetLastRequestedSolution(solution, primaryBranch: true);
 
             return;
 
-            void SetLastRequestedSolution(Solution solution, bool primaryBranch)
+            void SetLastRequestedSolution(SolutionAndInFlightCount solution, bool primaryBranch)
             {
                 // Keep track of the existing solution so we can decrement the in-flight-count on it once done.
-                var solutionToDecrement = primaryBranch ? _lastPrimaryBranchSolution : _lastRequestedSolution;
+                var solutionToDecrement = primaryBranch ? _lastPrimaryBranchSolution : _lastAnyBranchSolution;
 
                 // Increase the in-flight-count as we are now holding onto this solution as well.
                 solution.IncrementInFlightCount_WhileAlreadyHoldingLock();

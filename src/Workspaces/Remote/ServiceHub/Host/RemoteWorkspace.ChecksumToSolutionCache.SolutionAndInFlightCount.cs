@@ -27,10 +27,11 @@ namespace Microsoft.CodeAnalysis.Remote
             /// <summary>
             /// Background work to just compute the disconnected solution associated with this <see cref="SolutionChecksum"/>
             /// </summary>
-            private readonly Task<Solution> _anyBranchTask;
+            private readonly Task<Solution> _disconnectedSolutionTask;
 
             /// <summary>
-            /// Optional work to try to elevate the <see cref=""/>
+            /// Optional work to try to elevate the solution computed by <see cref="_disconnectedSolutionTask"/> to be
+            /// the primary solution of this <see cref="RemoteWorkspace"/>.
             /// </summary>
             private Task<Solution>? _primaryBranchTask;
 
@@ -44,13 +45,15 @@ namespace Microsoft.CodeAnalysis.Remote
             public SolutionAndInFlightCount(
                 RemoteWorkspace workspace,
                 Checksum solutionChecksum,
-                Func<CancellationToken, Task<Solution>> getSolutionAsync,
+                Func<CancellationToken, Task<Solution>> computeDisconnectedSolutionAsync,
                 Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync)
             {
                 _workspace = workspace;
                 SolutionChecksum = solutionChecksum;
 
-                _anyBranchTask = getSolutionAsync(_cancellationTokenSource.Token);
+                _disconnectedSolutionTask = computeDisconnectedSolutionAsync(_cancellationTokenSource.Token);
+
+                // If we were asked to make this the primary workspace, then kick off that work immediately as well.
                 TryKickOffPrimaryBranchWork_NoLock(updatePrimaryBranchAsync);
             }
 
@@ -79,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 async Task<Solution> ComputePrimaryBranchAsync()
                 {
-                    var anyBranchSolution = await _anyBranchTask.ConfigureAwait(false);
+                    var anyBranchSolution = await _disconnectedSolutionTask.ConfigureAwait(false);
                     return await updatePrimaryBranchAsync(anyBranchSolution, _cancellationTokenSource.Token).ConfigureAwait(false);
                 }
             }
@@ -91,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Task<Solution> task;
                 lock (this)
                 {
-                    task = _primaryBranchTask ?? _anyBranchTask;
+                    task = _primaryBranchTask ?? _disconnectedSolutionTask;
                 }
 
                 return await task.WithCancellation(cancellationToken).ConfigureAwait(false);
@@ -139,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     Contract.ThrowIfFalse(existingSolution == this);
 
                     // And we better succeed at actually removing.
-                    Contract.ThrowIfFalse(_solutionChecksumToSolution.Remove(SolutionChecksum));
+                    Contract.ThrowIfFalse(_workspace._solutionChecksumToSolution.Remove(SolutionChecksum));
                 }
             }
         }

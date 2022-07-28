@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Syncs over the solution corresponding to <paramref name="solutionChecksum"/> and sets it as the current
         /// solution for <see langword="this"/> workspace.  This will also end up updating <see
-        /// cref="_anyBranchSolutionCache"/> and <see cref="_primaryBranchSolutionCache"/>, allowing them to be pre-populated for
+        /// cref="_lastAnyBranchSolution"/> and <see cref="_lastPrimaryBranchSolution"/>, allowing them to be pre-populated for
         /// feature requests that come in soon after this call completes.
         /// </summary>
         public async Task UpdatePrimaryBranchSolutionAsync(
@@ -135,16 +135,16 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfNull(solutionChecksum);
             Contract.ThrowIfTrue(solutionChecksum == Checksum.Null);
 
-            var computeSolutionAsync = (CancellationToken cancellationToken) => ComputeSolutionAsync(assetProvider, solutionChecksum, cancellationToken);
+            var computeDisconnectedSolutionAsync = (CancellationToken cancellationToken) => ComputeDisconnectedSolutionAsync(assetProvider, solutionChecksum, cancellationToken);
 
-            Func<Solution, CancellationToken, ValueTask<Solution>>? updatePrimaryBranchAsync = updatePrimaryBranch
+            Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync = updatePrimaryBranch
                 ? (anyBranchSolution, cancellationToken) => this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, anyBranchSolution, cancellationToken)
                 : null;
 
             // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will
             // increment the in-flight of that solution until we decrement it at the end of our try/finally block.
             var solution = await GetOrCreateSolutionAndAddInFlightCountAsync(
-                solutionChecksum, computeSolutionAsync, updatePrimaryBranchAsync, cancellationToken).ConfigureAwait(false);
+                solutionChecksum, computeDisconnectedSolutionAsync, updatePrimaryBranchAsync, cancellationToken).ConfigureAwait(false);
             try
             {
                 Contract.ThrowIfTrue(solution.InFlightCount < 1);
@@ -248,13 +248,17 @@ namespace Microsoft.CodeAnalysis.Remote
         /// cref="Workspace.CurrentSolution"/> of this <see cref="RemoteWorkspace"/> is the responsibility of any
         /// callers.
         /// <para>
+        /// The term 'disconnected' is used to mean that this solution is not assigned to be the current solution of
+        /// this <see cref="RemoteWorkspace"/>.  It is effectively a fork of that instead.
+        /// </para>
+        /// <para>
         /// This method will either create the new solution from scratch if it has to.  Or it will attempt to create a
         /// fork off of <see cref="Workspace.CurrentSolution"/> if possible.  The latter is almost always what will
         /// happen (once the first sync completes) as most calls to the remote workspace are using a solution snapshot
         /// very close to the primary one, and so can share almost all state with that.
         /// </para>
         /// </summary>
-        private async ValueTask<Solution> ComputeSolutionAsync(
+        private async Task<Solution> ComputeDisconnectedSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             CancellationToken cancellationToken)
@@ -299,13 +303,13 @@ namespace Microsoft.CodeAnalysis.Remote
         /// along with the solution passed in.  The only time the solution can not be updated is if it would move <see
         /// cref="_currentRemoteWorkspaceVersion"/> backwards.
         /// </summary>
-        private async ValueTask<Solution> TryUpdateWorkspaceCurrentSolutionAsync(
+        private async Task<Solution> TryUpdateWorkspaceCurrentSolutionAsync(
             int workspaceVersion,
             Solution newSolution,
             CancellationToken cancellationToken)
         {
-            var result = await TryUpdateWorkspaceCurrentSolutionWorkerAsync(workspaceVersion, newSolution, cancellationToken).ConfigureAwait(false);
-            return result.solution;
+            var (solution, _) = await TryUpdateWorkspaceCurrentSolutionWorkerAsync(workspaceVersion, newSolution, cancellationToken).ConfigureAwait(false);
+            return solution;
         }
 
         private async ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceCurrentSolutionWorkerAsync(
