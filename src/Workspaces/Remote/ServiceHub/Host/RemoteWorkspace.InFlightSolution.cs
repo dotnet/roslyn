@@ -74,12 +74,10 @@ namespace Microsoft.CodeAnalysis.Remote
             /// checksum be the primary solution of this workspace.
             /// </summary>
             /// <param name="updatePrimaryBranchAsync"></param>
-            public void TryKickOffPrimaryBranchWork_NoLock(Func<Solution, CancellationToken, Task<Solution>>? updatePrimaryBranchAsync)
+            public void TryKickOffPrimaryBranchWork_NoLock(Func<Solution, CancellationToken, Task<Solution>> updatePrimaryBranchAsync)
             {
                 Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
-
-                if (updatePrimaryBranchAsync is null)
-                    return;
+                Contract.ThrowIfNull(updatePrimaryBranchAsync);
 
                 // Already set up the work to update the primary branch
                 if (_primaryBranchTask != null)
