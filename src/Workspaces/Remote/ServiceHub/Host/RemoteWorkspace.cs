@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
     internal sealed partial class RemoteWorkspace : Workspace
     {
         /// <summary>
-        /// Guards updates to all mutable state in this workspace.  The caches below will also use this same gate to
-        /// mutate themselves.  This keeps the caches in sync with each other.
+        /// Guards updates to all mutable state in this workspace.
         /// </summary>
         private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
