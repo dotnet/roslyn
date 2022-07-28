@@ -304,16 +304,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         Debug.Assert(refKind != RefKind.None);
                         scope = DeclarationScope.RefScoped;
                     }
+                    else if (typeWithAnnotations.Type.IsRefLikeType)
+                    {
+                        scope = DeclarationScope.ValueScoped;
+                    }
                     else
                     {
-                        if (typeWithAnnotations.Type.IsRefLikeType)
-                        {
-                            scope = DeclarationScope.ValueScoped;
-                        }
-                        else
-                        {
-                            isBad = true;
-                        }
+                        isBad = true;
                     }
                 }
             }

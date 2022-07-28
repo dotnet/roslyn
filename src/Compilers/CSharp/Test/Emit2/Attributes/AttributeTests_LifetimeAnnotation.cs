@@ -72,6 +72,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             });
         }
 
+        [Fact]
+        public void ExplicitAttribute_MissingConstructor()
+        {
+            var source1 =
+@"namespace System.Runtime.CompilerServices
+{
+    public sealed class ScopedRefAttribute : Attribute
+    {
+        public ScopedRefAttribute(int i) { }
+    }
+}";
+            var source2 =
+@"class Program
+{
+    public static void F(scoped ref int i) { }
+}";
+            var comp = CreateCompilation(new[] { source1, source2 });
+            comp.VerifyEmitDiagnostics(
+                // (3,26): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.ScopedRefAttribute..ctor'
+                //     public static void F(scoped ref int i) { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "scoped ref int i").WithArguments("System.Runtime.CompilerServices.ScopedRefAttribute", ".ctor").WithLocation(3, 26));
+        }
+
         [WorkItem(62124, "https://github.com/dotnet/roslyn/issues/62124")]
         [Fact]
         public void ExplicitAttribute_ReferencedInSource_01()
@@ -210,6 +233,11 @@ using System.Runtime.CompilerServices;
             Assert.Equal("void A.F1(scoped R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             var parameter = method.Parameters[0];
             Assert.Equal(DeclarationScope.ValueScoped, parameter.Scope);
+
+            method = comp.GetMember<MethodSymbol>("A.F2");
+            Assert.Equal("void A.F2(System.Int32 y)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
+            parameter = method.Parameters[0];
+            Assert.Equal(DeclarationScope.Unscoped, parameter.Scope);
 
             method = comp.GetMember<MethodSymbol>("A.F3");
             Assert.Equal("void A.F3(System.Object x, scoped ref System.Int32 y)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
