@@ -596,16 +596,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void ReportParameterErrors(
-            Symbol owner,
+
+        public static void ReportParameterErrors(
+            Symbol? owner,
             BaseParameterSyntax parameterSyntax,
-            ParameterSymbol parameter,
+            int ordinal,
+            bool isParams,
+            TypeWithAnnotations paramTypeWithAnnotations,
+            TypeSymbol paramType,
+            RefKind paramRefKind,
+            DeclarationScope paramScope,
+            Symbol? paramContainingSymbol,
             SyntaxToken thisKeyword,
             SyntaxToken paramsKeyword,
             int firstDefault,
             BindingDiagnosticBag diagnostics)
         {
-            int parameterIndex = parameter.Ordinal;
+            int parameterIndex = ordinal;
             bool isDefault = parameterSyntax is ParameterSyntax { Default: { } };
 
             if (thisKeyword.Kind() == SyntaxKind.ThisKeyword && parameterIndex != 0)
@@ -614,45 +621,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // which reports the error on the type following "this".
 
                 // error CS1100: Method '{0}' has a parameter modifier 'this' which is not on the first parameter
-                diagnostics.Add(ErrorCode.ERR_BadThisParam, thisKeyword.GetLocation(), owner.Name);
+                diagnostics.Add(ErrorCode.ERR_BadThisParam, thisKeyword.GetLocation(), owner?.Name ?? "");
             }
-            else if (parameter.IsParams && owner.IsOperator())
+            else if (isParams && owner != null && owner.IsOperator())
             {
                 // error CS1670: params is not valid in this context
                 diagnostics.Add(ErrorCode.ERR_IllegalParams, paramsKeyword.GetLocation());
             }
-            else if (parameter.IsParams && !parameter.TypeWithAnnotations.IsSZArray())
+            else if (isParams && !paramTypeWithAnnotations.IsSZArray())
             {
                 // error CS0225: The params parameter must be a single dimensional array
                 diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, paramsKeyword.GetLocation());
             }
-            else if (parameter.TypeWithAnnotations.IsStatic)
+            else if (paramTypeWithAnnotations.IsStatic)
             {
-                Debug.Assert(parameter.ContainingSymbol is FunctionPointerMethodSymbol or { ContainingType: not null });
+                Debug.Assert(paramContainingSymbol is null || (paramContainingSymbol is FunctionPointerMethodSymbol or { ContainingType: not null }));
                 // error CS0721: '{0}': static types cannot be used as parameters
                 diagnostics.Add(
-                    ErrorFacts.GetStaticClassParameterCode(parameter.ContainingSymbol.ContainingType?.IsInterfaceType() ?? false),
-                    owner.Locations.IsEmpty ? parameterSyntax.GetLocation() : owner.Locations[0],
-                    parameter.Type);
+                    ErrorFacts.GetStaticClassParameterCode(paramContainingSymbol?.ContainingType?.IsInterfaceType() ?? false),
+                    (owner is null || owner.Locations.IsEmpty) ? parameterSyntax.GetLocation() : owner.Locations[0],
+                    paramType);
             }
-            else if (firstDefault != -1 && parameterIndex > firstDefault && !isDefault && !parameter.IsParams)
+            else if (firstDefault != -1 && parameterIndex > firstDefault && !isDefault && !isParams)
             {
                 // error CS1737: Optional parameters must appear after all required parameters
                 Location loc = ((ParameterSyntax)parameterSyntax).Identifier.GetNextToken(includeZeroWidth: true).GetLocation(); //could be missing
                 diagnostics.Add(ErrorCode.ERR_DefaultValueBeforeRequiredValue, loc);
             }
-            else if (parameter.RefKind != RefKind.None &&
-                parameter.TypeWithAnnotations.IsRestrictedType(ignoreSpanLikeTypes: true))
+            else if (paramRefKind != RefKind.None &&
+                paramTypeWithAnnotations.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 // CS1601: Cannot make reference to variable of type 'System.TypedReference'
-                diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, parameter.Type);
+                diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, paramType);
             }
 
-            if (parameter.Scope == DeclarationScope.ValueScoped && !parameter.Type.IsErrorTypeOrRefLikeType())
+            if (paramScope == DeclarationScope.ValueScoped && !paramType.IsErrorTypeOrRefLikeType())
             {
                 diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, parameterSyntax.Location);
             }
         }
+
+        private static void ReportParameterErrors(
+            Symbol owner,
+            BaseParameterSyntax parameterSyntax,
+            ParameterSymbol parameter,
+            SyntaxToken thisKeyword,
+            SyntaxToken paramsKeyword,
+            int firstDefault,
+            BindingDiagnosticBag diagnostics)
+                    => ReportParameterErrors(owner,
+                                            parameterSyntax,
+                                            parameter.Ordinal,
+                                            parameter.IsParams,
+                                            parameter.TypeWithAnnotations,
+                                            parameter.Type,
+                                            parameter.RefKind,
+                                            parameter.Scope,
+                                            parameter.ContainingSymbol,
+                                            thisKeyword, paramsKeyword,
+                                            firstDefault,
+                                            diagnostics);
 #nullable disable
 
         internal static bool ReportDefaultParameterErrors(

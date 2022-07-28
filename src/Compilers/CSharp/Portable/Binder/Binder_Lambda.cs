@@ -304,21 +304,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             var data = lambda.Data;
             if (data.HasExplicitlyTypedParameterList)
             {
+                int firstDefault = -1;
                 for (int i = 0; i < lambda.ParameterCount; i++)
                 {
-                    // UNDONE: Where do we report improper use of pointer types?
-                    var type = data.ParameterTypeWithAnnotations(i).Type;
-                    if (type is { })
+                    // paramSyntax should not be null here; we should always be operating on an anonymous function which will have parameter information
+                    var paramSyntax = lambda.ParamSyntax(i);
+                    if (paramSyntax!.Default != null && firstDefault == -1)
                     {
-                        if (type.IsStatic)
-                        {
-                            Error(diagnostics, ErrorFacts.GetStaticClassParameterCode(useWarning: false), syntax, type);
-                        }
-                        if (data.Scope(i) == DeclarationScope.ValueScoped && !type.IsErrorTypeOrRefLikeType())
-                        {
-                            diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, data.ParameterLocation(i));
-                        }
+                        firstDefault = i;
                     }
+
+                    // UNDONE: Where do we report improper use of pointer types?
+                    ParameterHelpers.ReportParameterErrors(owner: null, paramSyntax!, ordinal: i, isParams: false, lambda.ParameterTypeWithAnnotations(i),
+                        lambda.ParameterType(i), lambda.RefKind(i), lambda.Scope(i), paramContainingSymbol: null, thisKeyword: default, paramsKeyword: default, firstDefault, diagnostics);
                 }
             }
 
@@ -366,13 +364,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else if (!allowShadowingNames)
                     {
                         binder.ValidateLambdaParameterNameConflictsInScope(lambda.ParameterLocation(i), name, diagnostics);
-                    }
-
-                    // An optional parameter cannot come before a required parameter
-                    if (i > 0 && lambda.ParameterHasDefault(i - 1) && !lambda.ParameterHasDefault(i))
-                    {
-                        diagnostics.Add(ErrorCode.ERR_DefaultValueBeforeRequiredValue,
-                            lambda.ParameterDefaultValue(i - 1)!.GetLocation());
                     }
                 }
                 pNames.Free();

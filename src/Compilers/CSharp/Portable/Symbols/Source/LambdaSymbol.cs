@@ -324,7 +324,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = ArrayBuilder<ParameterSymbol>.GetInstance(unboundLambda.ParameterCount);
             var hasExplicitlyTypedParameterList = unboundLambda.HasExplicitlyTypedParameterList;
             var numDelegateParameters = parameterTypes.Length;
-            var paramSyntaxList = unboundLambda.ParamSyntax?.Parameters.ToImmutableArray();
 
             for (int p = 0; p < unboundLambda.ParameterCount; ++p)
             {
@@ -365,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var name = unboundLambda.ParameterName(p);
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
-                var paramSyntax = paramSyntaxList != null ? paramSyntaxList.Value[p] : null;
+                var paramSyntax = unboundLambda.ParamSyntax(p);
 
                 var parameter = new LambdaParameterSymbol(owner: this, paramSyntax?.GetReference(), attributeLists, type, ordinal: p, refKind, scope, name, unboundLambda.ParameterIsDiscard(p), locations);
                 builder.Add(parameter);

@@ -575,6 +575,67 @@ class Program
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "x").WithArguments("System.GC").WithLocation(6, 15));
         }
 
+        [Fact]
+        public void StaticTypeLambdaParameter()
+        {
+            var source = """
+static class StaticClass {}
+
+class Program
+{
+    public void M()
+    {
+        var lam = (StaticClass sc) => sc;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,20): error CS0721: 'StaticClass': static types cannot be used as parameters
+                //         var lam = (StaticClass sc) => sc;
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "StaticClass sc").WithArguments("StaticClass").WithLocation(7, 20));
+        }
+
+        [Fact]
+        public void ScopedNonRefValueRefStructLambdaParam()
+        {
+            var source = """
+public class Program
+{
+    public void M()
+    {
+        var lam = (scoped int n) => n;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         var lam = (scoped int n) => n;
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped int n").WithLocation(5, 20));
+        }
+
+        [WorkItem(62960, "https://github.com/dotnet/roslyn/issues/62960")]
+        [Fact]
+        public void ReferenceToRestrictedTypeLambdaParameter()
+        {
+            var source = """
+using System;
+public class Program
+{
+    public void M()
+    {
+        var lam = (ref TypedReference r) => {};
+    }   
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics( 
+                // (6,20): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //         var lam = (ref TypedReference r) => {};
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference r").WithArguments("System.TypedReference").WithLocation(6, 20));
+        }
+
         [WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
         [Fact]
         public void AttributesCannotBeUsedInAnonymousMethods()
@@ -6998,9 +7059,9 @@ class Program
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                    // (5,26): error CS1737: Optional parameters must appear after all required parameters
+                    // (5,36): error CS1737: Optional parameters must appear after all required parameters
                     //         var lam = (int a = 3, int b) => { return a + b; };
-                    Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, "= 3").WithLocation(5, 26));
+                    Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(5, 36));
         }
 
 
@@ -7019,9 +7080,9 @@ class Program
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,34): error CS1737: Optional parameters must appear after all required parameters
+                // (5,44): error CS1737: Optional parameters must appear after all required parameters
                 //         var lam = delegate(int a = 3, int b) { return a + b; };
-                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, "= 3").WithLocation(5, 34));
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(5, 44));
         }
 
         [Fact]
@@ -7038,9 +7099,9 @@ class Program
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,33): error CS1737: Optional parameters must appear after all required parameters
+                // (5,43): error CS1737: Optional parameters must appear after all required parameters
                 //         var lam = (int x, int y = 3, int z) => x + y + z;
-                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, "= 3").WithLocation(5, 33));
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(5, 43));
         }
 
 
@@ -7058,9 +7119,9 @@ class Program
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,41): error CS1737: Optional parameters must appear after all required parameters
-                //         var lam = delegate(int x, int y = 3, int z) { return x + y + z; };
-                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, "= 3").WithLocation(5, 41));
+                    // (5,51): error CS1737: Optional parameters must appear after all required parameters
+                    //         var lam = delegate(int x, int y = 3, int z) { return x + y + z; };
+                    Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(5, 51));
         }
 
         [Fact]

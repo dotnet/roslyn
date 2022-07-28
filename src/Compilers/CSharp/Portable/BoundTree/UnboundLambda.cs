@@ -397,10 +397,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to re-use existing binder code for type-checking default params
             var paramSyntaxList = syntax switch
             {
-                ParenthesizedLambdaExpressionSyntax parenLam => parenLam.ParameterList,
-                AnonymousMethodExpressionSyntax anonMethod => anonMethod.ParameterList,
+                ParenthesizedLambdaExpressionSyntax parenLam => parenLam.ParameterList.Parameters.ToImmutableArray(),
+                AnonymousMethodExpressionSyntax anonMethod => anonMethod.ParameterList?.Parameters.ToImmutableArray() ?? ImmutableArray<ParameterSyntax>.Empty,
                 // Simple lambdas have no parameter list
-                SimpleLambdaExpressionSyntax simpleLam => null,
+                SimpleLambdaExpressionSyntax simpleLam => ImmutableArray.Create(simpleLam.Parameter),
                 _ => throw ExceptionUtilities.UnexpectedValue(syntax)
             };
 
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public TypeWithAnnotations ParameterTypeWithAnnotations(int index) { return Data.ParameterTypeWithAnnotations(index); }
         public TypeSymbol ParameterType(int index) { return ParameterTypeWithAnnotations(index).Type; }
         public EqualsValueClauseSyntax? ParameterDefaultValue(int index) => Data.DefaultValue(index);
-        public ParameterListSyntax? ParamSyntax => Data.ParamSyntax;
+        public ParameterSyntax? ParamSyntax(int index) => Data.ParamSyntax(index);
         public bool ParameterHasDefault(int index) => ParameterDefaultValue(index) != null;
         public Location ParameterLocation(int index) { return Data.ParameterLocation(index); }
         public string ParameterName(int index) { return Data.ParameterName(index); }
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract RefKind RefKind(int index);
         public abstract DeclarationScope Scope(int index);
         public abstract EqualsValueClauseSyntax? DefaultValue(int index);
-        public abstract ParameterListSyntax? ParamSyntax { get; }
+        public abstract ParameterSyntax? ParamSyntax(int i);
         protected abstract BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics);
 
         /// <summary>
@@ -1376,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<RefKind> _parameterRefKinds;
         private readonly ImmutableArray<DeclarationScope> _parameterScopes;
         private readonly ImmutableArray<EqualsValueClauseSyntax?> _defaultValues;
-        private readonly ParameterListSyntax? _parameterListSyntax;
+        private readonly ImmutableArray<ParameterSyntax> _parameterSyntaxList;
         private readonly bool _isAsync;
         private readonly bool _isStatic;
 
@@ -1391,7 +1391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> parameterRefKinds,
             ImmutableArray<DeclarationScope> parameterScopes,
             ImmutableArray<EqualsValueClauseSyntax?> defaultValues,
-            ParameterListSyntax? parameterListSyntax,
+            ImmutableArray<ParameterSyntax> parameterSyntaxList,
             bool isAsync,
             bool isStatic,
             bool includeCache)
@@ -1406,7 +1406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _parameterRefKinds = parameterRefKinds;
             _parameterScopes = parameterScopes;
             _defaultValues = defaultValues;
-            _parameterListSyntax = parameterListSyntax;
+            _parameterSyntaxList = parameterSyntaxList;
             _isAsync = isAsync;
             _isStatic = isStatic;
         }
@@ -1486,11 +1486,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override EqualsValueClauseSyntax? DefaultValue(int index)
         {
-            Debug.Assert(_defaultValues.IsDefault || (0 <= index && index <= _defaultValues.Length));
+            Debug.Assert(_defaultValues.IsDefault || (0 <= index && index < _defaultValues.Length));
             return _defaultValues.IsDefault ? null : _defaultValues[index];
         }
 
-        public override ParameterListSyntax? ParamSyntax { get { return _parameterListSyntax; } }
+        public override ParameterSyntax? ParamSyntax(int index)
+        {
+            Debug.Assert(0 <= index && index < _parameterSyntaxList.Length);
+            return _parameterSyntaxList[index];
+        }
 
         public override TypeWithAnnotations ParameterTypeWithAnnotations(int index)
         {
@@ -1501,7 +1505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override UnboundLambdaState WithCachingCore(bool includeCache)
         {
-            return new PlainUnboundLambdaState(Binder, _returnRefKind, _returnType, _parameterAttributes, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _parameterScopes, _defaultValues, _parameterListSyntax, _isAsync, _isStatic, includeCache);
+            return new PlainUnboundLambdaState(Binder, _returnRefKind, _returnType, _parameterAttributes, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _parameterScopes, _defaultValues, _parameterSyntaxList, _isAsync, _isStatic, includeCache);
         }
 
         protected override BoundExpression? GetLambdaExpressionBody(BoundBlock body)
