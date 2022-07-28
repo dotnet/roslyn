@@ -13217,7 +13217,7 @@ public class A<T>
         }
 
         [Fact]
-        public void UnscopedRefAttribute_Overrides()
+        public void UnscopedRefAttribute_Overrides_01()
         {
             var source =
 @"using System.Diagnostics.CodeAnalysis;
@@ -13248,7 +13248,61 @@ class B2 : A<int>
         }
 
         [Fact]
-        public void UnscopedRefAttribute_Implementations()
+        public void UnscopedRefAttribute_Overrides_02()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+abstract class A<T>
+{
+    internal abstract void F1(ref T t);
+    internal abstract void F2([UnscopedRef] ref T t);
+}
+class B1 : A<int>
+{
+    internal override void F1(ref int i) { }
+    internal override void F2([UnscopedRef] ref int i) { }
+}
+class B2 : A<int>
+{
+    internal override void F1([UnscopedRef] ref int i) { }
+    internal override void F2(ref int i) { }
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Overrides_03()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R<T>
+{
+}
+abstract class A<T>
+{
+    internal abstract void F1(ref R<T> r);
+    internal abstract void F2([UnscopedRef] ref R<T> r);
+}
+class B1 : A<int>
+{
+    internal override void F1(ref R<int> r) { }
+    internal override void F2([UnscopedRef] ref R<int> r) { }
+}
+class B2 : A<int>
+{
+    internal override void F1([UnscopedRef] ref R<int> r) { } // 1
+    internal override void F2(ref R<int> r) { } // 2
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            // https://github.com/dotnet/roslyn/issues/62691: Expected errors should be reported when 'ref R<T>' is considered 'scoped ref'.
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Implementations_01()
         {
             var source =
 @"using System.Diagnostics.CodeAnalysis;
@@ -13295,14 +13349,86 @@ class C4 : I<object>
         }
 
         [Fact]
-        public void UnscopedRefAttribute_Delegates()
+        public void UnscopedRefAttribute_Implementations_02()
         {
             var source =
 @"using System.Diagnostics.CodeAnalysis;
+interface I<T>
+{
+    void F1(ref T t);
+    void F2([UnscopedRef] ref T t);
+}
+class C1 : I<int>
+{
+    public void F1(ref int i) { }
+    public void F2([UnscopedRef] ref int i) { }
+}
+class C2 : I<int>
+{
+    public void F1([UnscopedRef] ref int i) { } // 1
+    public void F2(ref int i) { } // 2
+}
+class C3 : I<object>
+{
+    void I<object>.F1(ref object o) { }
+    void I<object>.F2([UnscopedRef] ref object o) { }
+}
+class C4 : I<object>
+{
+    void I<object>.F1([UnscopedRef] ref object o) { } // 3
+    void I<object>.F2(ref object o) { } // 4
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics();
+        }
 
+        [Fact]
+        public void UnscopedRefAttribute_Implementations_03()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R<T>
+{
+}
+interface I<T>
+{
+    void F1(ref R<T> r);
+    void F2([UnscopedRef] ref R<T> r);
+}
+class C1 : I<int>
+{
+    public void F1(ref R<int> r) { }
+    public void F2([UnscopedRef] ref R<int> r) { }
+}
+class C2 : I<int>
+{
+    public void F1([UnscopedRef] ref R<int> r) { } // 1
+    public void F2(ref R<int> r) { } // 2
+}
+class C3 : I<object>
+{
+    void I<object>.F1(ref R<object> r) { }
+    void I<object>.F2([UnscopedRef] ref R<object> r) { }
+}
+class C4 : I<object>
+{
+    void I<object>.F1([UnscopedRef] ref R<object> r) { } // 3
+    void I<object>.F2(ref R<object> r) { } // 4
+}
+";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            // https://github.com/dotnet/roslyn/issues/62691: Expected errors should be reported when 'ref R<T>' is considered 'scoped ref'.
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Delegates_01()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
 delegate void D1<T>(out T t);
 delegate void D2<T>([UnscopedRef] out T t);
-
 class Program
 {
     static void Main()
@@ -13317,12 +13443,12 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (12,14): error CS8986: The 'scoped' modifier of parameter 'i2' doesn't match target 'D1<int>'.
+                // (10,14): error CS8986: The 'scoped' modifier of parameter 'i2' doesn't match target 'D1<int>'.
                 //         d1 = ([UnscopedRef] out int i2) => { i2 = 2; }; // 1
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "([UnscopedRef] out int i2) => { i2 = 2; }").WithArguments("i2", "D1<int>").WithLocation(12, 14),
-                // (14,14): error CS8986: The 'scoped' modifier of parameter 'o1' doesn't match target 'D2<object>'.
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "([UnscopedRef] out int i2) => { i2 = 2; }").WithArguments("i2", "D1<int>").WithLocation(10, 14),
+                // (12,14): error CS8986: The 'scoped' modifier of parameter 'o1' doesn't match target 'D2<object>'.
                 //         d2 = (out object o1) => { o1 = 1; }; // 2
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(out object o1) => { o1 = 1; }").WithArguments("o1", "D2<object>").WithLocation(14, 14));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(out object o1) => { o1 = 1; }").WithArguments("o1", "D2<object>").WithLocation(12, 14));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -13332,6 +13458,54 @@ class Program
             VerifyParameterSymbol(lambdas[1].Parameters[0], "out System.Int32 i2", RefKind.Out, DeclarationScope.Unscoped);
             VerifyParameterSymbol(lambdas[2].Parameters[0], "out System.Object o1", RefKind.Out, DeclarationScope.RefScoped);
             VerifyParameterSymbol(lambdas[3].Parameters[0], "out System.Object o2", RefKind.Out, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Delegates_02()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+delegate void D1<T>(ref T t);
+delegate void D2<T>([UnscopedRef] ref T t);
+class Program
+{
+    static void Main()
+    {
+        D1<int> d1;
+        d1 = (ref int i1) => { };
+        d1 = ([UnscopedRef] ref int i2) => { };
+        D2<object> d2;
+        d2 = (ref object o1) => { };
+        d2 = ([UnscopedRef] ref object o2) => { };
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Delegates_03()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R<T> { }
+delegate void D1<T>(ref R<T> r);
+delegate void D2<T>([UnscopedRef] ref R<T> r);
+class Program
+{
+    static void Main()
+    {
+        D1<int> d1;
+        d1 = (ref R<int> r1) => { };
+        d1 = ([UnscopedRef] ref R<int> r2) => { }; // 1
+        D2<object> d2;
+        d2 = (ref R<object> r1) => { }; // 2
+        d2 = ([UnscopedRef] ref R<object> r2) => { };
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            // https://github.com/dotnet/roslyn/issues/62691: Expected errors should be reported when 'ref R<T>' is considered 'scoped ref'.
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
