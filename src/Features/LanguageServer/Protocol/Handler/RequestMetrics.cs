@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal class RequestMetrics : IRequestMetrics
+    internal class RequestMetrics
     {
         private readonly string _methodName;
         private readonly SharedStopwatch _sharedStopWatch;

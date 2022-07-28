@@ -63,22 +63,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             }
 
             protected override async Task<TResponseType> ExecuteRequestAsync<TRequestType, TResponseType>(
-                IRequestExecutionQueue<RequestContext> queue, bool mutatesSolutionState, bool requiresLSPSolution,
-                IRequestHandler<TRequestType, TResponseType, RequestContext> handler, TRequestType request, ClientCapabilities clientCapabilities, string methodName, CancellationToken cancellationToken)
+                RequestExecutionQueue<RequestContext> queue, bool mutatesSolutionState, bool requiresLSPSolution,
+                IRequestHandler<TRequestType, TResponseType, RequestContext> handler, TRequestType request, string methodName, CancellationToken cancellationToken)
             {
                 var textDocument = handler.GetTextDocumentIdentifier(request);
 
                 DocumentId? documentId = null;
-                if (textDocument is { Uri: { IsAbsoluteUri: true } documentUri })
+                if (textDocument.IsAbsoluteUri)
                 {
-                    documentId = _projectService.TrackOpenDocument(documentUri.LocalPath);
+                    documentId = _projectService.TrackOpenDocument(textDocument.LocalPath);
                 }
 
                 using (var requestScope = _feedbackService?.CreateRequestScope(documentId, methodName))
                 {
                     try
                     {
-                        return await base.ExecuteRequestAsync(queue, mutatesSolutionState, requiresLSPSolution, handler, request, clientCapabilities, methodName, cancellationToken).ConfigureAwait(false);
+                        return await base.ExecuteRequestAsync(queue, mutatesSolutionState, requiresLSPSolution, handler, request, methodName, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (e is not OperationCanceledException)
                     {

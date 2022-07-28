@@ -6,7 +6,6 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using System.Collections.Immutable;
 
@@ -47,7 +46,7 @@ namespace CommonLanguageServerProtocol.Framework;
 /// more messages, and a new queue will need to be created.
 /// </para>
 /// </remarks>
-public abstract class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<RequestContextType> where RequestContextType : struct
+public class RequestExecutionQueue<RequestContextType> where RequestContextType : IRequestContext
 {
     protected readonly string _serverKind;
     protected readonly ILspLogger _logger;
@@ -78,7 +77,7 @@ public abstract class RequestExecutionQueue<RequestContextType> : IRequestExecut
     /// </remarks>
     public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 
-    protected RequestExecutionQueue(
+    public RequestExecutionQueue(
         string serverKind,
         ILspServices services,
         ILspLogger logger)
@@ -127,7 +126,6 @@ public abstract class RequestExecutionQueue<RequestContextType> : IRequestExecut
         bool requiresLSPSolution,
         IRequestHandler<TRequestType, TResponseType, RequestContextType> handler,
         TRequestType request,
-        ClientCapabilities clientCapabilities,
         string methodName,
         CancellationToken requestCancellationToken)
     {
@@ -142,7 +140,6 @@ public abstract class RequestExecutionQueue<RequestContextType> : IRequestExecut
         var (item, resultTask) = CreateQueueItem(
             mutatesSolutionState,
             requiresLSPSolution,
-            clientCapabilities,
             methodName,
             textDocument,
             request,
@@ -169,21 +166,18 @@ public abstract class RequestExecutionQueue<RequestContextType> : IRequestExecut
     public virtual (IQueueItem<RequestContextType>, Task<TResponseType>) CreateQueueItem<TRequestType, TResponseType>(
         bool mutatesSolutionState,
         bool requiresLSPSolution,
-        ClientCapabilities clientCapabilities,
         string methodName,
-        TextDocumentIdentifier? textDocument,
+        Uri? textDocument,
         TRequestType request,
         IRequestHandler<TRequestType, TResponseType, RequestContextType> handler,
         CancellationToken cancellationToken)
     {
         return QueueItem<TRequestType, TResponseType, RequestContextType>.Create(mutatesSolutionState,
             requiresLSPSolution,
-            clientCapabilities,
             methodName,
             textDocument,
             request,
             handler,
-            Trace.CorrelationManager.ActivityId,
             _logger,
             _lspServices,
             cancellationToken);
@@ -213,11 +207,10 @@ public abstract class RequestExecutionQueue<RequestContextType> : IRequestExecut
                 {
                     var (work, cancellationToken) = queueItem;
                     // Record when the work item was been de-queued and the request context preparation started.
-                    work.Metrics.RecordExecutionStart();
+                    work.OnExecutionStart();
 
-                    // Restore our activity id so that logging/tracking works across asynchronous calls.
-                    Trace.CorrelationManager.ActivityId = work.ActivityId;
-                    var context = await CreateRequestContextAsync(work, cancellationToken).ConfigureAwait(false);
+                    var requestContextFactory = _lspServices.GetRequiredService<IRequestContextFactory<RequestContextType>>();
+                    var context = await requestContextFactory.CreateRequestContextAsync(work, queueCancellationToken: this.CancellationToken, requestCancellationToken: cancellationToken);
 
                     if (work.MutatesSolutionState)
                     {
@@ -261,5 +254,42 @@ public abstract class RequestExecutionQueue<RequestContextType> : IRequestExecut
         Shutdown();
     }
 
-    public abstract Task<RequestContextType?> CreateRequestContextAsync(IQueueItem<RequestContextType> queueItem, CancellationToken cancellationToken);
+    #region Test Accessor
+    internal TestAccessor GetTestAccessor()
+        => new(this);
+
+    internal readonly struct TestAccessor
+    {
+        private readonly RequestExecutionQueue<RequestContextType> _queue;
+
+        public TestAccessor(RequestExecutionQueue<RequestContextType> queue)
+            => _queue = queue;
+
+        public bool IsComplete() => _queue._queue.IsCompleted && _queue._queue.IsEmpty;
+
+        public async Task WaitForProcessingToStopAsync()
+        {
+            await _queue._queueProcessingTask.ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Test only method to validate that remaining items in the queue are cancelled.
+        /// This directly mutates the queue in an unsafe way, so ensure that all relevant queue operations
+        /// are done before calling.
+        /// </summary>
+        public async Task<bool> AreAllItemsCancelledUnsafeAsync()
+        {
+            while (!_queue._queue.IsEmpty)
+            {
+                var (_, cancellationToken) = await _queue._queue.DequeueAsync().ConfigureAwait(false);
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+    #endregion
 }

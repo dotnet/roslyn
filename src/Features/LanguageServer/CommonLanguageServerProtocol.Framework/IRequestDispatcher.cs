@@ -5,18 +5,16 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace CommonLanguageServerProtocol.Framework;
 
-public interface IRequestDispatcher<RequestContextType> where RequestContextType : struct
+public interface IRequestDispatcher<RequestContextType> where RequestContextType : IRequestContext
 {
     ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods();
 
     Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(
         string methodName,
         TRequestType request,
-        ClientCapabilities clientCapabilities,
-        IRequestExecutionQueue<RequestContextType> queue,
+        RequestExecutionQueue<RequestContextType> queue,
         CancellationToken cancellationToken);
 }

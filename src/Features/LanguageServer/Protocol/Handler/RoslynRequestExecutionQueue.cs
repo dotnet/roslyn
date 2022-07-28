@@ -6,74 +6,49 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 #nullable enable
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>
+    internal class RequestContextFactory : IRequestContextFactory<RequestContext>
     {
-        private ImmutableArray<string> _supportedLanguages;
+        private readonly ImmutableArray<string> _supportedLanguages;
+        private readonly ILspServices _lspServices;
+        private readonly string _serverKind;
 
-        public RoslynRequestExecutionQueue(ImmutableArray<string> supportedLanguages, string serverKind, ILspServices services, ILspLogger logger)
-            : base(serverKind, services, logger)
+        public RequestContextFactory(ILspServices lspServices, ImmutableArray<string> supportedLanguages, string serverKind)
         {
+            _lspServices = lspServices;
             _supportedLanguages = supportedLanguages;
+            _serverKind = serverKind;
         }
 
-        public override Task<RequestContext?> CreateRequestContextAsync(IQueueItem<RequestContext> queueItem, CancellationToken cancellationToken)
+        public Task<RequestContext?> CreateRequestContextAsync(IQueueItem<RequestContext> queueItem, CancellationToken queueCancellationToken, CancellationToken requestCancellationToken)
         {
+            var clientCapabilitiesManager = _lspServices.GetRequiredService<IClientCapabilitiesManager>();
+            var clientCapabilities = clientCapabilitiesManager.GetClientCapabilities();
+            var logger = _lspServices.GetRequiredService<ILspLogger>();
+
             return RequestContext.CreateAsync(
                 queueItem.RequiresLSPSolution,
                 queueItem.MutatesSolutionState,
                 queueItem.TextDocument,
                 _serverKind,
-                queueItem.ClientCapabilities,
+                clientCapabilities,
                 _supportedLanguages,
                 _lspServices,
-                _logger,
-                queueCancellationToken: this.CancellationToken,
-                requestCancellationToken: cancellationToken);
+                logger,
+                queueCancellationToken: queueCancellationToken,
+                requestCancellationToken: requestCancellationToken);
         }
+    }
 
-        #region Test Accessor
-        internal TestAccessor GetTestAccessor()
-            => new(this);
+    internal interface IClientCapabilitiesManager : ILspService
+    {
+        ClientCapabilities GetClientCapabilities();
 
-        internal readonly struct TestAccessor
-        {
-            private readonly RoslynRequestExecutionQueue _queue;
-
-            public TestAccessor(RoslynRequestExecutionQueue queue)
-                => _queue = queue;
-
-            public bool IsComplete() => _queue._queue.IsCompleted && _queue._queue.IsEmpty;
-
-            public async Task WaitForProcessingToStopAsync()
-            {
-                await _queue._queueProcessingTask.ConfigureAwait(false);
-            }
-
-            /// <summary>
-            /// Test only method to validate that remaining items in the queue are cancelled.
-            /// This directly mutates the queue in an unsafe way, so ensure that all relevant queue operations
-            /// are done before calling.
-            /// </summary>
-            public async Task<bool> AreAllItemsCancelledUnsafeAsync()
-            {
-                while (!_queue._queue.IsEmpty)
-                {
-                    var (_, cancellationToken) = await _queue._queue.DequeueAsync().ConfigureAwait(false);
-                    if (!cancellationToken.IsCancellationRequested)
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-        }
-
-        #endregion
+        void SetClientCapabilities(ClientCapabilities clientCapabilities);
     }
 }

@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 #nullable enable
 
@@ -36,7 +36,7 @@ public interface IRequestHandler<RequestType, ResponseType, RequestContextType> 
     /// <summary>
     /// Gets the <see cref="TextDocumentIdentifier"/> from the request, if the request provides one.
     /// </summary>
-    TextDocumentIdentifier? GetTextDocumentIdentifier(RequestType request);
+    Uri? GetTextDocumentIdentifier(RequestType request);
 
     /// <summary>
     /// Handles an LSP request in the context of the supplied document and/or solutuion.

@@ -5,13 +5,16 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace CommonLanguageServerProtocol.Framework;
 
 #nullable enable
 
-public interface IQueueItem<RequestContextType> where RequestContextType : struct
+public interface IRequestContext
+{
+}
+
+public interface IQueueItem<RequestContextType> where RequestContextType : IRequestContext
 {
     /// <summary>
     /// Begins executing the work specified by this queue item.
@@ -27,17 +30,9 @@ public interface IQueueItem<RequestContextType> where RequestContextType : struc
     string MethodName { get; }
 
     /// <summary>
-    /// The document identifier that will be used to find the solution and document for this request. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType, TResponseContextType}.GetTextDocumentIdentifier(RequestType)"/>.
+    /// The document identifier that will be used to find the solution and document for this request. This comes from the TextDocumentIdentifier returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType, TResponseContextType}.GetTextDocumentIdentifier(RequestType)"/>.
     /// </summary>
-    TextDocumentIdentifier? TextDocument { get; }
+    Uri? TextDocument { get; }
 
-    ClientCapabilities ClientCapabilities { get; }
-
-    /// <summary>
-    /// <see cref="CorrelationManager.ActivityId"/> used to properly correlate this work with the loghub
-    /// tracing/logging subsystem.
-    /// </summary>
-    Guid ActivityId { get; }
-
-    IRequestMetrics Metrics { get; }
+    void OnExecutionStart();
 }

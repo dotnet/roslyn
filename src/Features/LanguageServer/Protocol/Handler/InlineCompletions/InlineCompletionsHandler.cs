@@ -59,9 +59,9 @@ internal partial class InlineCompletionsHandler : IRoslynRequestHandler<VSIntern
         _globalOptions = globalOptions;
     }
 
-    public TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
+    public Uri? GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
     {
-        return request.TextDocument;
+        return request.TextDocument.Uri;
     }
 
     public async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RequestContext context, CancellationToken cancellationToken)

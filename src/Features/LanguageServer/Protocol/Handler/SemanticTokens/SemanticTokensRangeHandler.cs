@@ -83,10 +83,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             _notificationManager = notificationManager;
         }
 
-        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
+        public Uri? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
         {
             Contract.ThrowIfNull(request.TextDocument);
-            return request.TextDocument;
+            return request.TextDocument.Uri;
         }
 
         private static ValueTask FilterLspTrackedDocumentsAsync(

@@ -4,9 +4,8 @@
 
 using System;
 using System.Diagnostics.Contracts;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace CommonLanguageServerProtocol.Framework;
+//namespace CommonLanguageServerProtocol.Framework;
 
 //public class ClientCapabilityProvider : IClientCapabilitiesProvider
 //{

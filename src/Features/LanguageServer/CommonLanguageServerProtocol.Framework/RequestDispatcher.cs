@@ -9,7 +9,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace CommonLanguageServerProtocol.Framework;
 
@@ -17,7 +16,7 @@ namespace CommonLanguageServerProtocol.Framework;
 /// Aggregates handlers for the specified languages and dispatches LSP requests
 /// to the appropriate handler for the request.
 /// </summary>
-public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestContextType> where RequestContextType : struct
+public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestContextType> where RequestContextType : IRequestContext
 {
     private ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>>? _requestHandlers;
     protected ILspServices _lspServices;
@@ -40,8 +39,7 @@ public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestC
     public async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(
         string methodName,
         TRequestType request,
-        LSP.ClientCapabilities clientCapabilities,
-        IRequestExecutionQueue<RequestContextType> queue,
+        RequestExecutionQueue<RequestContextType> queue,
         CancellationToken cancellationToken)
     {
         // Get the handler matching the requested method.
@@ -59,21 +57,20 @@ public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestC
             throw new ArgumentOutOfRangeException(string.Format("Request handler not found for method {0}", methodName));
         }
 
-        var result = await ExecuteRequestAsync(queue, mutatesSolutionState, requiresLspSolution, strongHandler, request, clientCapabilities, methodName, cancellationToken).ConfigureAwait(false);
+        var result = await ExecuteRequestAsync(queue, mutatesSolutionState, requiresLspSolution, strongHandler, request, methodName, cancellationToken).ConfigureAwait(false);
         return result;
     }
 
     protected virtual Task<TResponseType> ExecuteRequestAsync<TRequestType, TResponseType>(
-        IRequestExecutionQueue<RequestContextType> queue,
+        RequestExecutionQueue<RequestContextType> queue,
         bool mutatesSolutionState,
         bool requiresLSPSolution,
         IRequestHandler<TRequestType, TResponseType, RequestContextType> handler,
         TRequestType request,
-        LSP.ClientCapabilities clientCapabilities,
         string methodName,
         CancellationToken cancellationToken)
     {
-        return queue.ExecuteAsync(mutatesSolutionState, requiresLSPSolution, handler, request, clientCapabilities, methodName, cancellationToken);
+        return queue.ExecuteAsync(mutatesSolutionState, requiresLSPSolution, handler, request, methodName, cancellationToken);
     }
 
     public ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()

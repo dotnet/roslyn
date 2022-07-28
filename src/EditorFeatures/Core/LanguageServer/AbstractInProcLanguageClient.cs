@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             Stream inputStream,
             Stream outputStream,
             IRoslynLspLoggerFactory lspLoggerFactory,
-            CancellationToken cancellationToken) where RequestContextType : struct
+            CancellationToken cancellationToken) where RequestContextType : IRequestContext
         {
             var jsonMessageFormatter = new JsonMessageFormatter();
             VSInternalExtensionUtilities.AddVSInternalExtensionConverters(jsonMessageFormatter.JsonSerializer);

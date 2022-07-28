@@ -15,13 +15,14 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal class RoslynLanguageServerTarget : LanguageServerTarget<RequestContext>
+    internal class RoslynLanguageServerTarget : LanguageServerTarget<RequestContext>, IClientCapabilitiesProvider
     {
+        private readonly ICapabilitiesProvider _capabilitiesProvider;
+
         private readonly AbstractLspServiceProvider _lspServiceProvider;
         private readonly IAsynchronousOperationListener _listener;
         private IAsyncToken? _erroredToken;
         private readonly ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> _baseServices;
-        private IRequestExecutionQueue<RequestContext>? _queue;
         private readonly ImmutableArray<string> _supportedLanguages;
         private Task? _errorShutdownTask;
 
@@ -33,31 +34,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             IRoslynLspLogger logger,
             ImmutableArray<string> supportedLanguages,
             WellKnownLspServerKinds serverKind)
-            : base(jsonRpc, capabilitiesProvider, logger, serverKind.ToConvertableString())
+            : base(jsonRpc, logger, serverKind.ToConvertableString())
         {
             _lspServiceProvider = lspServiceProvider;
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
 
             // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
-            _baseServices = GetBaseServices(jsonRpc, logger);
+            _baseServices = GetBaseServices(jsonRpc, this, logger);
             _supportedLanguages = supportedLanguages;
-        }
-
-        public override IRequestExecutionQueue<RequestContext> GetRequestExecutionQueue()
-        {
-            if (_queue is null)
-            {
-                _queue = new RoslynRequestExecutionQueue(_supportedLanguages, _serverKind, GetLspServices(), _logger);
-                _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
-            }
-
-            return _queue;
-        }
-
-        protected override Task OnExitInternal()
-        {
-            ShutdownRequestQueue();
-            return Task.CompletedTask;
         }
 
         public override ILspServices GetLspServices()
@@ -65,11 +49,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return _lspServiceProvider.CreateServices(_serverKind, _baseServices);
         }
 
-        internal static ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> GetBaseServices(JsonRpc jsonRpc, IRoslynLspLogger logger)
+        internal static ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> GetBaseServices(
+            JsonRpc jsonRpc,
+            IClientCapabilitiesProvider clientCapabilitiesProvider,
+            IRoslynLspLogger logger)
         {
             var baseServices = ImmutableArray.Create(
                 CreateLspServiceInstance<IClientLanguageServerManager>(new ClientLanguageServerManager(jsonRpc)),
-                CreateLspServiceInstance(logger));
+                CreateLspServiceInstance(logger),
+                CreateLspServiceInstance<IClientCapabilitiesProvider>(clientCapabilitiesProvider));
 
             return baseServices;
 
@@ -80,50 +68,51 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        public override void OnErroredStart()
+        //protected override Task OnExitInternal()
+        //{
+        //    ShutdownRequestQueue();
+        //    return Task.CompletedTask;
+        //}
+
+        //public override void OnErroredStart()
+        //{
+        //    _erroredToken = _listener.BeginAsyncOperation("RequestExecutionQueue_Errored");
+        //    // log message and shut down
+        //    _logger?.TraceWarning($"Request queue is requesting shutdown due to error: {e.Message}");
+
+        //    var message = new LogMessageParams()
+        //    {
+        //        MessageType = MessageType.Error,
+        //        Message = e.Message
+        //    };
+
+        //    OnErroredStart();
+        //    _errorShutdownTask = Task.Run(async () =>
+        //    {
+        //        _logger?.TraceInformation("Shutting down language server.");
+        //        var lspServices = GetLspServices();
+        //        var clientNotificationService = lspServices.GetRequiredService<IClientLanguageServerManager>();
+
+        //        await clientNotificationService.SendNotificationAsync<LogMessageParams>(Methods.WindowLogMessageName, message, CancellationToken.None).ConfigureAwait(false);
+
+        //        ShutdownImpl();
+        //        await OnExitAsync();
+        //    }).ContinueWith(OnErroredEndAsync);
+        //}
+
+        public ClientCapabilities GetClientCapabilities()
         {
-            _erroredToken = _listener.BeginAsyncOperation("RequestExecutionQueue_Errored");
+            var lspServices = GetLspServices();
+            var clientCapabilitiesManager = lspServices.GetRequiredService<IClientCapabilitiesManager>();
+            var clientCapabilities = clientCapabilitiesManager.GetClientCapabilities();
+
+            return clientCapabilities;
         }
 
         public override Task OnErroredEndAsync(object obj)
         {
             _erroredToken?.Dispose();
             return Task.CompletedTask;
-        }
-
-        public override InitializeParams? ClientSettings { get; }
-
-        private void RequestExecutionQueue_Errored(object? sender, RequestShutdownEventArgs e)
-        {
-            // log message and shut down
-            _logger?.TraceWarning($"Request queue is requesting shutdown due to error: {e.Message}");
-
-            var message = new LogMessageParams()
-            {
-                MessageType = MessageType.Error,
-                Message = e.Message
-            };
-
-            OnErroredStart();
-            _errorShutdownTask = Task.Run(async () =>
-            {
-                _logger?.TraceInformation("Shutting down language server.");
-                var lspServices = GetLspServices();
-                var clientNotificationService = lspServices.GetRequiredService<IClientLanguageServerManager>();
-
-                await clientNotificationService.SendNotificationAsync<LogMessageParams>(Methods.WindowLogMessageName, message, CancellationToken.None).ConfigureAwait(false);
-
-                ShutdownImpl();
-                await OnExitAsync();
-            }).ContinueWith(OnErroredEndAsync);
-        }
-
-        protected override void ShutdownRequestQueue()
-        {
-            _queue.RequestServerShutdown -= RequestExecutionQueue_Errored;
-            // if the queue requested shutdown via its event, it will have already shut itself down, but this
-            // won't cause any problems calling it again
-            _queue?.Shutdown();
         }
 
         internal TestAccessor GetTestAccessor()
@@ -138,10 +127,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 throw new NotImplementedException();
             }
 
-            internal RoslynRequestExecutionQueue.TestAccessor GetQueueAccessor()
-            {
-                throw new NotImplementedException();
-            }
+            //internal RoslynRequestExecutionQueue.TestAccessor GetQueueAccessor()
+            //{
+            //    throw new NotImplementedException();
+            //}
 
             internal T GetRequiredLspService<T>() where T : class, ILspService
             {

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             _versionedCache = new(this.GetType().Name);
         }
 
-        public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TParams requestParams);
+        public abstract Uri? GetTextDocumentIdentifier(TParams requestParams);
 
         /// <summary>
         /// Retrieve the previous results we reported.  Used so we can avoid resending data for unchanged files. Also

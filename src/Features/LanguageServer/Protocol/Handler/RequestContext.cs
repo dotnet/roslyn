@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// <summary>
     /// Context for requests handled by <see cref="IRequestHandler"/>
     /// </summary>
-    internal readonly struct RequestContext
+    internal class RequestContext : IRequestContext
     {
         /// <summary>
         /// This will be the <see cref="NonMutatingDocumentChangeTracker"/> for non-mutating requests because they're not allowed to change documents
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public static async Task<RequestContext?> CreateAsync(
             bool requiresLSPSolution,
             bool mutatesSolutionState,
-            TextDocumentIdentifier? textDocument,
+            Uri? textDocument,
             string serverKind,
             ClientCapabilities clientCapabilities,
             ImmutableArray<string> supportedLanguages,

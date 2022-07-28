@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams diagnosticsParams)
-            => diagnosticsParams.TextDocument;
+        public override Uri? GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams diagnosticsParams)
+            => diagnosticsParams.TextDocument.Uri;
 
         protected override VSInternalDiagnosticReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
             => new VSInternalDiagnosticReport

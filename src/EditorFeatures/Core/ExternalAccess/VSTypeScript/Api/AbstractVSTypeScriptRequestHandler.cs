@@ -22,7 +22,7 @@ internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TRespon
 
     bool IRequestHandler.RequiresLSPSolution => RequiresLSPSolution;
 
-    public TextDocumentIdentifier? GetTextDocumentIdentifier(TRequestType request)
+    public Uri? GetTextDocumentIdentifier(TRequestType request)
     {
         var typeScriptIdentifier = GetTypeSciptTextDocumentIdentifier(request);
         if (typeScriptIdentifier == null)
@@ -43,7 +43,7 @@ internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TRespon
             };
         }
 
-        return textDocumentIdentifier;
+        return textDocumentIdentifier.Uri;
     }
 
     public Task<TResponseType> HandleRequestAsync(TRequestType request, RequestContext context, CancellationToken cancellationToken)

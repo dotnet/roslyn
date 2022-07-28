@@ -168,19 +168,18 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// 
     /// This is always called serially in the <see cref="RequestExecutionQueue{RequestContextType}"/> when creating the <see cref="RequestContext"/>.
     /// </summary>
-    public async Task<Document?> GetLspDocumentAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
+    public async Task<Document?> GetLspDocumentAsync(Uri textDocumentUri, CancellationToken cancellationToken)
     {
-        var uri = textDocumentIdentifier.Uri;
-
         // Get the LSP view of all the workspace solutions.
         var lspSolutions = await GetLspSolutionsAsync(cancellationToken).ConfigureAwait(false);
 
         // Find the matching document from the LSP solutions.
         foreach (var (lspSolution, isForked) in lspSolutions)
         {
-            var documents = lspSolution.GetDocuments(uri);
+            var documents = lspSolution.GetDocuments(textDocumentUri);
             if (documents.Any())
             {
+                var textDocumentIdentifier = new TextDocumentIdentifier { Uri = textDocumentUri, };
                 var document = documents.FindDocumentInProjectContext(textDocumentIdentifier);
 
                 // Record metadata on how we got this document.
@@ -194,12 +193,12 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         }
 
         // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
-        var searchedWorkspaceKinds = string.Join(";", lspSolutions.SelectAsArray(lspSolution => lspSolution.Solution.WorkspaceKind));
-        _logger.TraceError($"Could not find '{uri}'.  Searched {searchedWorkspaceKinds}");
+        var searchedWorkspaceKinds = string.Join(";", lspSolutions.SelectAsArray(lspSolution => lspSolution.Solution.Workspace.Kind));
+        _logger.TraceError($"Could not find '{textDocumentUri}'.  Searched {searchedWorkspaceKinds}");
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
         // Add the document to our loose files workspace if its open.
-        var miscDocument = _trackedDocuments.ContainsKey(uri) ? _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, _trackedDocuments[uri], _logger) : null;
+        var miscDocument = _trackedDocuments.ContainsKey(textDocumentUri) ? _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(textDocumentUri, _trackedDocuments[textDocumentUri], _logger) : null;
         return miscDocument;
     }
 
