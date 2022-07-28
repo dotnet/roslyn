@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -660,14 +661,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnType: default);
 
             ArrayBuilder<ConstantValue?>? parameterDefaultValueBuilder = null;
-            foreach (var param in lambdaSymbol.Parameters)
+            for (int i = 0; i < lambdaSymbol.Parameters.Length; i++)
             {
+                var param = lambdaSymbol.Parameters[i];
                 var constVal = param.ExplicitDefaultConstantValue;
                 if (constVal != null)
                 {
                     if (parameterDefaultValueBuilder == null)
                     {
                         parameterDefaultValueBuilder = ArrayBuilder<ConstantValue?>.GetInstance(ParameterCount);
+
+                        // front fill the array with nulls because all the paremeters before this one must have been non-default.
+                        parameterDefaultValueBuilder.AddMany(null, i);
                     }
 
                     parameterDefaultValueBuilder.Add(param.ExplicitDefaultConstantValue);
@@ -1490,7 +1495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _defaultValues.IsDefault ? null : _defaultValues[index];
         }
 
-        public override ParameterSyntax? ParamSyntax(int index)
+        public override ParameterSyntax ParamSyntax(int index)
         {
             Debug.Assert(0 <= index && index < _parameterSyntaxList.Length);
             return _parameterSyntaxList[index];

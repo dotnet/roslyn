@@ -7460,6 +7460,22 @@ class Program
         }
 
         [Fact]
+        public void LambdaWithMultipleDefaultParams()
+        {
+            var source = """
+class Program
+{
+    public static void Main()
+    {
+        var lam = (int u, string v, object w, int x = 10, int y = 3, int z = 4) => x + y + z; 
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void LambdaDefaultParamUsageAnalysis()
         {
             var source = """
