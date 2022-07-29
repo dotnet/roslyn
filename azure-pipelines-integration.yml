@@ -37,7 +37,7 @@ jobs:
     configuration: Debug
     # TODO - $(poolName)?
     queueName: Build.Windows.Amd64.VS2022.Pre.Open
-    buildArguments: /p:Projects='"$(Agent.BuildDirectory)\src\VisualStudio\IntegrationTest\IntegrationTestBuildProject\IntegrationTestBuildProject.csproj";"$(Agent.BuildDirectory)\src\Tools\PrepareTests\PrepareTests.csproj";"$(Agent.BuildDirectory)\src\Tools\Source\RunTests\RunTests.csproj"'
+    buildArguments: /p:Projects='"$(Build.Repository.LocalPath)\src\VisualStudio\IntegrationTest\IntegrationTestBuildProject\IntegrationTestBuildProject.csproj";"$(Build.Repository.LocalPath)\src\Tools\PrepareTests\PrepareTests.csproj";"$(Build.Repository.LocalPath)\src\Tools\Source\RunTests\RunTests.csproj"'
 
 - template: eng/pipelines/build-windows-job.yml
   parameters:
@@ -46,7 +46,7 @@ jobs:
     configuration: Release
     # TODO - $(poolName)?
     queueName: Build.Windows.Amd64.VS2022.Pre.Open
-    buildArguments: /p:Projects='"$(Agent.BuildDirectory)\src\VisualStudio\IntegrationTest\IntegrationTestBuildProject\IntegrationTestBuildProject.csproj";"$(Agent.BuildDirectory)\src\Tools\PrepareTests\PrepareTests.csproj";"$(Agent.BuildDirectory)\src\Tools\Source\RunTests\RunTests.csproj"'
+    buildArguments: /p:Projects='"$(Build.Repository.LocalPath)\src\VisualStudio\IntegrationTest\IntegrationTestBuildProject\IntegrationTestBuildProject.csproj";"$(Build.Repository.LocalPath)\src\Tools\PrepareTests\PrepareTests.csproj";"$(Build.Repository.LocalPath)\src\Tools\Source\RunTests\RunTests.csproj"'
 
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - template: eng/pipelines/test-integration-helix-job.yml
