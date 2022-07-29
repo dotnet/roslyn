@@ -33,6 +33,100 @@ namespace N
         }
 
         [Fact]
+        public async Task TestExplicitProperty_NoAction1()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        private int f;
+
+        public int P 
+        {
+            get => f; 
+            init => f = value;
+        }
+    }
+}
+";
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestExplicitProperty_NoAction2()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        private int f;
+
+        public int P 
+        {
+            get
+            {
+                return f;
+            }
+
+            init
+            {
+                f = value;
+            }
+        }
+    }
+}
+";
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestExplicitProperty_NoAction3()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; } = 4;
+    }
+}
+";
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestReadonlyProperty_NoAction()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; }
+    }
+}
+";
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestPrivateGetProperty_NoAction()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { private get; init; }
+    }
+}
+";
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestSetterProperty_NoAction()
         {
             var initialMarkup = @"

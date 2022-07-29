@@ -171,11 +171,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             // for class records and readonly struct records, properties should be get; init; only
             // for non-readonly structs, they should be get; set;
+            // the get should be public
             // neither should have bodies (as it indicates more complex functionality)
             var accessors = property.AccessorList.Accessors;
 
-            if (accessors.Any(a => a.Body != null || a.ExpressionBody != null) &&
-                !accessors.Any(a => a.Kind() == SyntaxKind.GetAccessorDeclaration))
+            if (accessors.Any(a => a.Body != null || a.ExpressionBody != null) ||
+                !accessors.Any(a => a.Kind() == SyntaxKind.GetAccessorDeclaration && a.Modifiers.IsEmpty()))
             {
                 return false;
             }
