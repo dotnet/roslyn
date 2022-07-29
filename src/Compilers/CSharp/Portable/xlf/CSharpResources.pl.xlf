@@ -1572,9 +1572,14 @@
         <target state="translated">Element „{0}” ma atrybut „UnmanagedCallersOnly” i nie można go przekonwertować na typ delegowany. Uzyskaj wskaźnik funkcji do tej metody.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
-      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMethod">
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMember">
         <source>UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.</source>
         <target state="new">UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedParameter">
+        <source>UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.</source>
+        <target state="new">UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">

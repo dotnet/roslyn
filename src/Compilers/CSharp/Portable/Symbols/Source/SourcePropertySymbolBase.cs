@@ -1321,7 +1321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, arguments.AttributeSyntaxOpt.Location);
+                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, arguments.AttributeSyntaxOpt.Location);
                 }
             }
         }

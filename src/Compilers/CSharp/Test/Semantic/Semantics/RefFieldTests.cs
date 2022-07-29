@@ -12753,10 +12753,10 @@ struct S
             comp.VerifyDiagnostics(
                 // (6,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
                 //     [UnscopedRef] object P3 { get; init; } // 1
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, "UnscopedRef").WithLocation(6, 6),
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, "UnscopedRef").WithLocation(6, 6),
                 // (15,10): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
                 //         [UnscopedRef] init; // 2
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, "UnscopedRef").WithLocation(15, 10));
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, "UnscopedRef").WithLocation(15, 10));
         }
 
         [Theory]
@@ -12852,7 +12852,7 @@ struct B
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "value.F = ref this").WithArguments("F", "this").WithLocation(11, 16),
                 // (19,10): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
                 //         [UnscopedRef]
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, "UnscopedRef").WithLocation(19, 10),
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, "UnscopedRef").WithLocation(19, 10),
                 // (20,16): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
                 //         init { value.F = ref this; } // 2
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "value.F = ref this").WithArguments("F", "this").WithLocation(20, 16));
@@ -12889,7 +12889,7 @@ struct B
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r.F = ref this").WithArguments("F", "this").WithLocation(10, 9),
                 // (15,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
                 //     [UnscopedRef]
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, "UnscopedRef").WithLocation(15, 6),
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, "UnscopedRef").WithLocation(15, 6),
                 // (18,9): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
                 //         r.F = ref this; // 2
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r.F = ref this").WithArguments("F", "this").WithLocation(18, 9));
@@ -12910,13 +12910,13 @@ struct S
             comp.VerifyDiagnostics(
                 // (4,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
                 //     [UnscopedRef] static S() { } // 1
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, "UnscopedRef").WithLocation(4, 6),
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, "UnscopedRef").WithLocation(4, 6),
                 // (5,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
                 //     [UnscopedRef] static object F() => null; // 2
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, "UnscopedRef").WithLocation(5, 6),
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, "UnscopedRef").WithLocation(5, 6),
                 // (6,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
                 //     [UnscopedRef] static object P => null; // 3
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, "UnscopedRef").WithLocation(6, 6));
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, "UnscopedRef").WithLocation(6, 6));
         }
 
         [Fact]
@@ -12940,10 +12940,10 @@ record struct S
             comp.VerifyDiagnostics(
                 // (4,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
                 //     [UnscopedRef] object F1() => null; // 1
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, "UnscopedRef").WithLocation(4, 6),
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, "UnscopedRef").WithLocation(4, 6),
                 // (8,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
                 //     [UnscopedRef] object F2() => null; // 2
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, "UnscopedRef").WithLocation(8, 6));
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, "UnscopedRef").WithLocation(8, 6));
         }
 
         [WorkItem(62691, "https://github.com/dotnet/roslyn/issues/62691")]
@@ -13156,11 +13156,10 @@ public class A<T>
             VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "out System.Int32 t4", RefKind.Out, DeclarationScope.Unscoped);
         }
 
-        [CombinatorialData]
-        [Theory]
-        public void UnscopedRefAttribute_RefParameter(bool useCompilationReference)
+        [Fact]
+        public void UnscopedRefAttribute_RefParameter()
         {
-            var sourceA =
+            var source =
 @"using System.Diagnostics.CodeAnalysis;
 public class A<T>
 {
@@ -13168,13 +13167,8 @@ public class A<T>
     public ref T F2A(scoped ref T t2) => throw null;
     public ref T F3A([UnscopedRef] ref T t3) => ref t3;
     public ref T F4A([UnscopedRef] scoped ref T t4) => ref t4;
-}";
-            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition });
-            comp.VerifyEmitDiagnostics();
-            var refA = AsReference(comp, useCompilationReference);
-
-            var sourceB =
-@"class B : A<int>
+}
+class B : A<int>
 {
     ref int F1B()
     {
@@ -13197,26 +13191,32 @@ public class A<T>
         return ref F4A(ref i); // 3
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA });
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyEmitDiagnostics(
-                // (6,20): error CS8347: Cannot use a result of 'A<int>.F1A(ref int)' in this context because it may expose variables referenced by parameter 't1' outside of their declaration scope
+                // (6,23): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                //     public ref T F3A([UnscopedRef] ref T t3) => ref t3;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(6, 23),
+                // (7,23): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                //     public ref T F4A([UnscopedRef] scoped ref T t4) => ref t4;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(7, 23),
+                // (14,20): error CS8347: Cannot use a result of 'A<int>.F1A(ref int)' in this context because it may expose variables referenced by parameter 't1' outside of their declaration scope
                 //         return ref F1A(ref i); // 1
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F1A(ref i)").WithArguments("A<int>.F1A(ref int)", "t1").WithLocation(6, 20),
-                // (6,28): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F1A(ref i)").WithArguments("A<int>.F1A(ref int)", "t1").WithLocation(14, 20),
+                // (14,28): error CS8168: Cannot return local 'i' by reference because it is not a ref local
                 //         return ref F1A(ref i); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(6, 28),
-                // (16,20): error CS8347: Cannot use a result of 'A<int>.F3A(ref int)' in this context because it may expose variables referenced by parameter 't3' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(14, 28),
+                // (24,20): error CS8347: Cannot use a result of 'A<int>.F3A(ref int)' in this context because it may expose variables referenced by parameter 't3' outside of their declaration scope
                 //         return ref F3A(ref i); // 2
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(ref i)").WithArguments("A<int>.F3A(ref int)", "t3").WithLocation(16, 20),
-                // (16,28): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(ref i)").WithArguments("A<int>.F3A(ref int)", "t3").WithLocation(24, 20),
+                // (24,28): error CS8168: Cannot return local 'i' by reference because it is not a ref local
                 //         return ref F3A(ref i); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(16, 28),
-                // (21,20): error CS8347: Cannot use a result of 'A<int>.F4A(ref int)' in this context because it may expose variables referenced by parameter 't4' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(24, 28),
+                // (29,20): error CS8347: Cannot use a result of 'A<int>.F4A(ref int)' in this context because it may expose variables referenced by parameter 't4' outside of their declaration scope
                 //         return ref F4A(ref i); // 3
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F4A(ref i)").WithArguments("A<int>.F4A(ref int)", "t4").WithLocation(21, 20),
-                // (21,28): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F4A(ref i)").WithArguments("A<int>.F4A(ref int)", "t4").WithLocation(29, 20),
+                // (29,28): error CS8168: Cannot return local 'i' by reference because it is not a ref local
                 //         return ref F4A(ref i); // 3
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(21, 28));
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(29, 28));
 
             var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
             VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "ref System.Int32 t1", RefKind.Ref, DeclarationScope.Unscoped);
@@ -13225,11 +13225,10 @@ public class A<T>
             VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "ref System.Int32 t4", RefKind.Ref, DeclarationScope.Unscoped);
         }
 
-        [CombinatorialData]
-        [Theory]
-        public void UnscopedRefAttribute_InParameter(bool useCompilationReference)
+        [Fact]
+        public void UnscopedRefAttribute_InParameter()
         {
-            var sourceA =
+            var source =
 @"using System.Diagnostics.CodeAnalysis;
 public class A<T>
 {
@@ -13237,13 +13236,8 @@ public class A<T>
     public ref readonly T F2A(scoped in T t2) => throw null;
     public ref readonly T F3A([UnscopedRef] in T t3) => ref t3;
     public ref readonly T F4A([UnscopedRef] scoped in T t4) => ref t4;
-}";
-            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition });
-            comp.VerifyEmitDiagnostics();
-            var refA = AsReference(comp, useCompilationReference);
-
-            var sourceB =
-@"class B : A<int>
+}
+class B : A<int>
 {
     ref readonly int F1B()
     {
@@ -13266,26 +13260,32 @@ public class A<T>
         return ref F4A(in i); // 3
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA });
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyEmitDiagnostics(
-                // (6,20): error CS8347: Cannot use a result of 'A<int>.F1A(in int)' in this context because it may expose variables referenced by parameter 't1' outside of their declaration scope
+                // (6,32): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                //     public ref readonly T F3A([UnscopedRef] in T t3) => ref t3;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(6, 32),
+                // (7,32): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                //     public ref readonly T F4A([UnscopedRef] scoped in T t4) => ref t4;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(7, 32),
+                // (14,20): error CS8347: Cannot use a result of 'A<int>.F1A(in int)' in this context because it may expose variables referenced by parameter 't1' outside of their declaration scope
                 //         return ref F1A(in i); // 1
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F1A(in i)").WithArguments("A<int>.F1A(in int)", "t1").WithLocation(6, 20),
-                // (6,27): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F1A(in i)").WithArguments("A<int>.F1A(in int)", "t1").WithLocation(14, 20),
+                // (14,27): error CS8168: Cannot return local 'i' by reference because it is not a ref local
                 //         return ref F1A(in i); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(6, 27),
-                // (16,20): error CS8347: Cannot use a result of 'A<int>.F3A(in int)' in this context because it may expose variables referenced by parameter 't3' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(14, 27),
+                // (24,20): error CS8347: Cannot use a result of 'A<int>.F3A(in int)' in this context because it may expose variables referenced by parameter 't3' outside of their declaration scope
                 //         return ref F3A(in i); // 2
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(in i)").WithArguments("A<int>.F3A(in int)", "t3").WithLocation(16, 20),
-                // (16,27): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(in i)").WithArguments("A<int>.F3A(in int)", "t3").WithLocation(24, 20),
+                // (24,27): error CS8168: Cannot return local 'i' by reference because it is not a ref local
                 //         return ref F3A(in i); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(16, 27),
-                // (21,20): error CS8347: Cannot use a result of 'A<int>.F4A(in int)' in this context because it may expose variables referenced by parameter 't4' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(24, 27),
+                // (29,20): error CS8347: Cannot use a result of 'A<int>.F4A(in int)' in this context because it may expose variables referenced by parameter 't4' outside of their declaration scope
                 //         return ref F4A(in i); // 3
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F4A(in i)").WithArguments("A<int>.F4A(in int)", "t4").WithLocation(21, 20),
-                // (21,27): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F4A(in i)").WithArguments("A<int>.F4A(in int)", "t4").WithLocation(29, 20),
+                // (29,27): error CS8168: Cannot return local 'i' by reference because it is not a ref local
                 //         return ref F4A(in i); // 3
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(21, 27));
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(29, 27));
 
             var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
             VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "in System.Int32 t1", RefKind.In, DeclarationScope.Unscoped);
@@ -13294,11 +13294,10 @@ public class A<T>
             VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "in System.Int32 t4", RefKind.In, DeclarationScope.Unscoped);
         }
 
-        [CombinatorialData]
-        [Theory]
-        public void UnscopedRefAttribute_RefStructParameter(bool useCompilationReference)
+        [Fact]
+        public void UnscopedRefAttribute_RefStructParameter()
         {
-            var sourceA =
+            var source =
 @"using System.Diagnostics.CodeAnalysis;
 public ref struct R<T>
 {
@@ -13323,13 +13322,8 @@ public class A<T>
     {
         return ref r4.F;
     }
-}";
-            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition });
-            comp.VerifyEmitDiagnostics();
-            var refA = AsReference(comp, useCompilationReference);
-
-            var sourceB =
-@"class B : A<int>
+}
+class B : A<int>
 {
     ref int F1B()
     {
@@ -13356,26 +13350,32 @@ public class A<T>
         return ref F4A(r); // 3
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA });
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyEmitDiagnostics(
-                // (7,20): error CS8347: Cannot use a result of 'A<int>.F1A(R<int>)' in this context because it may expose variables referenced by parameter 'r1' outside of their declaration scope
+                // (17,23): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                //     public ref T F3A([UnscopedRef] R<T> r3)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(17, 23),
+                // (21,23): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                //     public ref T F4A([UnscopedRef] scoped R<T> r4)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(21, 23),
+                // (32,20): error CS8347: Cannot use a result of 'A<int>.F1A(R<int>)' in this context because it may expose variables referenced by parameter 'r1' outside of their declaration scope
                 //         return ref F1A(r); // 1
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F1A(r)").WithArguments("A<int>.F1A(R<int>)", "r1").WithLocation(7, 20),
-                // (7,24): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F1A(r)").WithArguments("A<int>.F1A(R<int>)", "r1").WithLocation(32, 20),
+                // (32,24): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref F1A(r); // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(7, 24),
-                // (19,20): error CS8347: Cannot use a result of 'A<int>.F3A(R<int>)' in this context because it may expose variables referenced by parameter 'r3' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(32, 24),
+                // (44,20): error CS8347: Cannot use a result of 'A<int>.F3A(R<int>)' in this context because it may expose variables referenced by parameter 'r3' outside of their declaration scope
                 //         return ref F3A(r); // 2
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(r)").WithArguments("A<int>.F3A(R<int>)", "r3").WithLocation(19, 20),
-                // (19,24): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(r)").WithArguments("A<int>.F3A(R<int>)", "r3").WithLocation(44, 20),
+                // (44,24): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref F3A(r); // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(19, 24),
-                // (25,20): error CS8347: Cannot use a result of 'A<int>.F4A(R<int>)' in this context because it may expose variables referenced by parameter 'r4' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(44, 24),
+                // (50,20): error CS8347: Cannot use a result of 'A<int>.F4A(R<int>)' in this context because it may expose variables referenced by parameter 'r4' outside of their declaration scope
                 //         return ref F4A(r); // 3
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F4A(r)").WithArguments("A<int>.F4A(R<int>)", "r4").WithLocation(25, 20),
-                // (25,24): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F4A(r)").WithArguments("A<int>.F4A(R<int>)", "r4").WithLocation(50, 20),
+                // (50,24): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref F4A(r); // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(25, 24));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(50, 24));
 
             var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
             VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "R<System.Int32> r1", RefKind.None, DeclarationScope.Unscoped);
@@ -13437,7 +13437,16 @@ class B2 : A<int>
 }
 ";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (5,32): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                //     internal abstract void F2([UnscopedRef] ref T t);
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(5, 32),
+                // (10,32): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                //     internal override void F2([UnscopedRef] ref int i) { }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(10, 32),
+                // (14,32): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                //     internal override void F1([UnscopedRef] ref int i) { }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(14, 32));
         }
 
         [Fact]
@@ -13533,8 +13542,8 @@ class C1 : I<int>
 }
 class C2 : I<int>
 {
-    public void F1([UnscopedRef] ref int i) { } // 1
-    public void F2(ref int i) { } // 2
+    public void F1([UnscopedRef] ref int i) { }
+    public void F2(ref int i) { }
 }
 class C3 : I<object>
 {
@@ -13543,12 +13552,27 @@ class C3 : I<object>
 }
 class C4 : I<object>
 {
-    void I<object>.F1([UnscopedRef] ref object o) { } // 3
-    void I<object>.F2(ref object o) { } // 4
+    void I<object>.F1([UnscopedRef] ref object o) { }
+    void I<object>.F2(ref object o) { }
 }
 ";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (5,14): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                //     void F2([UnscopedRef] ref T t);
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(5, 14),
+                // (10,21): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                //     public void F2([UnscopedRef] ref int i) { }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(10, 21),
+                // (14,21): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                //     public void F1([UnscopedRef] ref int i) { }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(14, 21),
+                // (20,24): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                //     void I<object>.F2([UnscopedRef] ref object o) { }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(20, 24),
+                // (24,24): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                //     void I<object>.F1([UnscopedRef] ref object o) { }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(24, 24));
         }
 
         [Fact]
@@ -13648,7 +13672,16 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (3,22): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                // delegate void D2<T>([UnscopedRef] ref T t);
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(3, 22),
+                // (10,16): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                //         d1 = ([UnscopedRef] ref int i2) => { };
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(10, 16),
+                // (13,16): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                //         d2 = ([UnscopedRef] ref object o2) => { };
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(13, 16));
         }
 
         [Fact]

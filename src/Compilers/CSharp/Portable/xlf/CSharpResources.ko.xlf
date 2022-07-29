@@ -1572,9 +1572,14 @@
         <target state="translated">'{0}'에는 'UnmanagedCallersOnly' 특성이 지정되어 있으며 이 항목은 대리자 형식으로 변환할 수 없습니다. 이 메서드에 대한 함수 포인터를 가져오세요.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
-      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMethod">
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMember">
         <source>UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.</source>
         <target state="new">UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedParameter">
+        <source>UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.</source>
+        <target state="new">UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">

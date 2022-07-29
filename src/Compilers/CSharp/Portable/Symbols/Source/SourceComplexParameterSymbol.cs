@@ -815,6 +815,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 DecodeInterpolatedStringHandlerArgumentAttribute(ref arguments, diagnostics, index);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.UnscopedRefAttribute))
+            {
+                if (!this.IsValidUnscopedRefAttributeTarget())
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, arguments.AttributeSyntaxOpt.Location);
+                }
+            }
+        }
+
+        private bool IsValidUnscopedRefAttributeTarget()
+        {
+            switch (RefKind)
+            {
+                case RefKind.Out:
+                    return true;
+                case RefKind.Ref:
+                    var type = Type;
+                    return type is null || type.IsErrorTypeOrRefLikeType();
+                default:
+                    return false;
+            }
         }
 
         private static bool? DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription description, CSharpAttributeData attribute)
