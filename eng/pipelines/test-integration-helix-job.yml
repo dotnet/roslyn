@@ -1,0 +1,95 @@
+# Test on Windows Desktop using Helix
+parameters:
+- name: jobName
+  type: string
+  default: ''
+- name: buildJobName
+  type: string
+  default: ''
+- name: testArtifactName
+  type: string
+  default: ''
+- name: configuration
+  type: string
+  default: 'Debug'
+- name: helixQueueName
+  type: string
+  default: 'windows.amd64.vs2022.pre.open'
+- name: oop64bit
+  # This is actually a boolean but must be defined as string.
+  # Parameters are evaluated at compile time, but all variables are strings at compile time.
+  # So in order to pass a parameter that comes from a variable these must be typed as string.
+  type: string
+  default: true
+- name: oopCoreClr
+  type: string
+  default: false
+- name: lspEditor
+  type: string
+  default: false
+
+jobs:
+- job: ${{ parameters.jobName }}
+  dependsOn: ${{ parameters.buildJobName }}
+  pool:
+    # Note that when helix is enabled, the agent running this job is essentially
+    # a thin client that kicks off a helix job and waits for it to complete.
+    # Thus we don't use a helix queue to run the job here, and instead use the plentiful AzDO vmImages.
+    vmImage: windows-2019
+  timeoutInMinutes: 120
+  steps:
+    - checkout: none
+
+    - task: DownloadPipelineArtifact@2
+      displayName: Download Test Payload
+      inputs:
+        artifact: ${{ parameters.testArtifactName }}
+        path: '$(Build.SourcesDirectory)'
+
+    - task: BatchScript@1
+      displayName: Rehydrate RunTests
+      inputs:
+        filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net6.0/rehydrate.cmd
+      env:
+        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
+    - task: PowerShell@2
+      displayName: Run Unit Tests
+      inputs:
+        filePath: eng/build.ps1
+        # TODO - pass pool name into helixqueuename
+        arguments: -ci -helix -configuration ${{ parameters.configuration }} -collectDumps -testVsi -oop64bit:$${{ parameters.oop64bit }} -oopCoreClr:$${{ parameters.oopCoreClr }} -lspEditor:$${{ parameters.lspEditor }} -helixQueueName "windows.amd64.vs2022.pre.open"
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
+    - template: publish-logs.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
+        jobName: ${{ parameters.jobName }}
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\${{ parameters.configuration }}'
+        ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} OOPCoreClr_${{ parameters.oopCoreClr }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Test Attachments
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\bin\Microsoft.VisualStudio.LanguageServices.New.IntegrationTests\${{ parameters.configuration }}\net472\TestResults'
+        ArtifactName: '$(System.JobAttempt)-Blame ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} OOPCoreClr_${{ parameters.oopCoreClr }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Screenshots and Test Attachments (Old Tests)
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\bin\Microsoft.VisualStudio.LanguageServices.IntegrationTests\${{ parameters.configuration }}\net472\TestResults'
+        ArtifactName: '$(System.JobAttempt)-Screenshots ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} OOPCoreClr_${{ parameters.oopCoreClr }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())

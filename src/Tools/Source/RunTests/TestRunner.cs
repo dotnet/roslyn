@@ -44,17 +44,6 @@ namespace RunTests
             _options = options;
         }
 
-        static void Copy(string sourceDir, string targetDir)
-        {
-            Directory.CreateDirectory(targetDir);
-
-            foreach (var file in Directory.GetFiles(sourceDir))
-                File.Copy(file, Path.Combine(targetDir, Path.GetFileName(file)), overwrite: true);
-
-            foreach (var directory in Directory.GetDirectories(sourceDir))
-                Copy(directory, Path.Combine(targetDir, Path.GetFileName(directory)));
-        }
-
         internal async Task<RunAllResult> RunAllOnHelixAsync(ImmutableArray<WorkItemInfo> workItems, Options options, CancellationToken cancellationToken)
         {
             var sourceBranch = Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCH");
@@ -190,18 +179,6 @@ namespace RunTests
                 return assemblyRelativePath;
             }
 
-            string MakeHelixIntegrationTestWorkItemProject(WorkItemInfo workItemInfo)
-            {
-                var command = new StringBuilder();
-                command.AppendLine("PowerShell.exe -command \"eng/build.ps1 -testVsi\"");
-
-                Debugger.Launch();
-
-                var payloadDirectory = Directory.GetParent(msbuildTestPayloadRoot);
-                return "";
-            }
-
-
             string MakeHelixWorkItemProject(WorkItemInfo workItemInfo)
             {
                 // Create a payload directory that contains all the assemblies in the work item in separate folders.
@@ -209,31 +186,11 @@ namespace RunTests
 
                 if (options.TestVsi)
                 {
-                    var vsSetupDir = Path.Combine(options.ArtifactsDirectory, "VSSetup");
-
-                    // Copy the vsix's to the test payload directory.
-                    Copy(vsSetupDir, Path.Combine(payloadDirectory, "VSSetup"));
-
-                    // Copy the integration test deployment powershell script and dependencies.
-                    var repoRoot = Path.GetDirectoryName(options.ArtifactsDirectory);
-                    var deployIntegrationTestVsixScript = Path.Combine(repoRoot, "eng", "run_integration_tests.ps1");
-
                     // Copy the vsix exp installer to the test payload directory.
                     var nugetPackagesPath = Environment.GetEnvironmentVariable("NUGET_PACKAGES") ??
                         Path.Combine(Environment.GetEnvironmentVariable("UserProfile"), ".nuget", "packages");
                     var expInstallerPath = Directory.EnumerateFiles(Path.Combine(nugetPackagesPath, "roslyntools.vsixexpinstaller"), "vsixexpinstaller.exe", SearchOption.AllDirectories).Last();
                     File.Copy(expInstallerPath, Path.Combine(payloadDirectory, "vsixexpinstaller.exe"), overwrite: true);
-
-                    // Copy all integration test assemblies in the work item to the test payload directory.
-                    foreach (var assembly in workItemInfo.Filters.Keys)
-                    {
-                        var assemblyPath = assembly.AssemblyPath;
-                        var tfmFolder = Path.GetDirectoryName(assemblyPath);
-                        var configurationFolder = Path.GetDirectoryName(tfmFolder);
-                        var testDirectory = Path.GetDirectoryName(configurationFolder);
-                        var newAssemblyDirectory = Path.Combine(payloadDirectory, Path.GetFileName(testDirectory));
-                        Copy(testDirectory, newAssemblyDirectory);
-                    }
                 }
 
                 // Currently, it's required for the client machine to use the same OS family as the target Helix queue.
@@ -265,9 +222,12 @@ namespace RunTests
                 {
                     command.AppendLine("time");
                     command.Append("dir");
-                    // TODO retry - may need to call via runtests without helix param?
-                    // TODO move WER dump configuration to this powershell script.
-                    command.AppendLine("PowerShell.exe -ExecutionPolicy Unrestricted -command \"./run_integration_tests.ps1 -vsixExpInstallerExe 'vsixexpinstaller.exe'\"");
+                    // We call into build.ps1 without passing in the helix flag which will call into run tests (without the helix flag).
+                    // This will trigger run tests to run the integration tests itself which is necessary to support the retry logic for the old integration test project.
+                    // TODO - when all integration tests have been migrated to the new project we can simply call into dotnet like we do for unit tests.
+                    // TODO - pass the current options into run tests.
+                    // TODO - pass in the partition information (rsp file) into run tests.
+                    command.AppendLine(@"PowerShell.exe -ExecutionPolicy Unrestricted -command ""./eng\build.ps1 -configuration Debug -testVsi\""");
                     command.AppendLine("time");
                 }
                 else

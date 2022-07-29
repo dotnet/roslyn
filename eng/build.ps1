@@ -179,11 +179,6 @@ function Process-Arguments() {
     exit 1
   }
 
-  if ($testVsi -and $helix) {
-    Write-Host "Cannot run integration tests on Helix"
-    exit 1
-  }
-
   if ($testVsi) {
     # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
     $script:runAnalyzers = $false
@@ -347,7 +342,7 @@ function TestUsingRunTests() {
   # Tests need to locate .NET Core SDK
   $dotnet = InitializeDotNetCli
 
-  if ($testVsi) {
+  if ($testVsi -and -not $helix) {
     Deploy-VsixViaTool
 
     if ($ci) {
@@ -406,12 +401,17 @@ function TestUsingRunTests() {
     }
 
   } elseif ($testVsi) {
+    $args += " --testVsi"
     $args += " --timeout 110"
     $args += " --tfm net472"
     $args += " --retry"
-    $args += " --sequential"
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
+
+    if (-not $helix)
+    {
+      $args += " --sequential"
+    }
 
     if ($lspEditor) {
       $args += " --testfilter Editor=LanguageServerProtocol"
@@ -461,7 +461,7 @@ function TestUsingRunTests() {
       Remove-Item env:\ROSLYN_TEST_USEDASSEMBLIES
     }
 
-    if ($testVsi) {
+    if ($testVsi -and -not $helix) {
       $serviceHubLogs = Join-Path $TempDir "servicehub\logs"
       if (Test-Path $serviceHubLogs) {
         Write-Host "Copying ServiceHub logs to $LogDir"
@@ -704,7 +704,7 @@ try {
     List-Processes
     Prepare-TempDir
     EnablePreviewSdks
-    if ($testVsi) {
+    if ($testVsi -and -not $helix) {
       Setup-IntegrationTestRun
     }
 

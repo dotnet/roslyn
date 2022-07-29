@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -53,12 +54,14 @@ internal static class MinimizeUtil
         Dictionary<Guid, List<FilePathInfo>> initialWalk()
         {
             IEnumerable<string> directories = new[] {
-                Path.Combine(sourceDirectory, "eng")
+                Path.Combine(sourceDirectory, "eng"),
+                Path.Combine(sourceDirectory, "artifacts", "VSSetup")
             };
             var artifactsDir = Path.Combine(sourceDirectory, "artifacts/bin");
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "*.UnitTests"));
+            directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "*.IntegrationTests"));
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "RunTests"));
-
+            Debugger.Launch();
             var idToFilePathMap = directories.AsParallel()
                 .SelectMany(unitDirPath => walkDirectory(unitDirPath, sourceDirectory, destinationDirectory))
                 .GroupBy(pair => pair.mvid)
