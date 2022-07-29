@@ -182,6 +182,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 _threadingContext.ThrowIfNotOnUIThread();
 
+                // This is also checked in InlineRenameSession (which should be the only thing that ever sets this).
+                // However, this just adds an extra level of safety to make sure nothing bad is about to happen.
+                Contract.ThrowIfTrue(_activeRenameSession != null && value != null, "Cannot assign an active rename session when one is already in progress.");
+
                 var previousSession = _activeRenameSession;
                 _activeRenameSession = value;
                 ActiveSessionChanged?.Invoke(this, new ActiveSessionChangedEventArgs(previousSession!));
