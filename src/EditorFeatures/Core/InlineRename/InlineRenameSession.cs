@@ -86,6 +86,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// </summary>
         public InlineRenameFileRenameInfo FileRenameInfo { get; }
 
+        /// <summary>
+        /// Task used to hold a session alive with the OOP server.  This allows us to pin the initial solution snapshot
+        /// over on the oop side, which is valuable for preventing it from constantly being dropped/synced on every
+        /// conflict resolution step.
+        /// </summary>
         private readonly Task _keepAliveSessionTask;
 
         /// <summary>
