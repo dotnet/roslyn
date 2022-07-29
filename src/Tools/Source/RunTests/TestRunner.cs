@@ -35,6 +35,12 @@ namespace RunTests
 
     internal sealed class TestRunner
     {
+        /// <summary>
+        /// Private contract for RunTests - helix work items will set this environment variable to the RSP file path
+        /// which RunTests can lookup later when its actually running on the helix machine.
+        /// </summary>
+        internal const string RoslynWorkItemRspPathEnvVar = "ROSLYN_WORKITEM_RESPONSEFILE";
+
         private readonly ProcessTestExecutor _testExecutor;
         private readonly Options _options;
 
@@ -188,7 +194,7 @@ namespace RunTests
                 {
                     // Copy the vsix exp installer to the test payload directory.
                     var nugetPackagesPath = Environment.GetEnvironmentVariable("NUGET_PACKAGES") ??
-                        Path.Combine(Environment.GetEnvironmentVariable("UserProfile"), ".nuget", "packages");
+                        Path.Combine(Environment.GetEnvironmentVariable("UserProfile")!, ".nuget", "packages");
                     var expInstallerPath = Directory.EnumerateFiles(Path.Combine(nugetPackagesPath, "roslyntools.vsixexpinstaller"), "vsixexpinstaller.exe", SearchOption.AllDirectories).Last();
                     File.Copy(expInstallerPath, Path.Combine(payloadDirectory, "vsixexpinstaller.exe"), overwrite: true);
                 }
@@ -220,26 +226,6 @@ namespace RunTests
 
                 AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);
 
-                if (options.TestVsi)
-                {
-                    // Set an env var with the file path of this work item RSP file - RunTests will find and read this file.
-
-                    command.AppendLine("time");
-                    command.Append("dir");
-                    // We call into build.ps1 without passing in the helix flag which will call into run tests (without the helix flag).
-                    // This will trigger run tests to run the integration tests itself which is necessary to support the retry logic for the old integration test project.
-                    //
-                    // When all integration tests have been migrated to the new project we should instead deploy the vsixes and set env vars via the script
-                    // then add the command to execute tests via vstest.console.dll like we do for unit tests below.
-
-                    // TODO pass partition information
-                    // TODO pass options (e.g. oop64bit).
-                    var commandArguments = $"-ci -configuration {options.Configuration} -testVsi -oop64bit:${true} -oopCoreClr:${false} -lspEditor:${false}";
-
-                    command.AppendLine(@"PowerShell.exe -ExecutionPolicy Unrestricted -command ""./eng\build.ps1 -configuration Debug -testVsi\""");
-                    command.AppendLine("time");
-                }
-
                 // Build an rsp file to send to dotnet test that contains all the assemblies and tests to run.
                 // This gets around command line length limitations and avoids weird escaping issues.
                 // See https://docs.microsoft.com/en-us/dotnet/standard/commandline/syntax#response-files
@@ -247,27 +233,52 @@ namespace RunTests
                 var rspFileName = $"vstest_{workItemInfo.PartitionIndex}.rsp";
                 File.WriteAllText(Path.Combine(payloadDirectory, rspFileName), rspFileContents);
 
-                // Build the command to run the rsp file.
-                // dotnet test does not pass rsp files correctly the vs test console, so we have to manually invoke vs test console.
-                // See https://github.com/microsoft/vstest/issues/3513
-                // The dotnet sdk includes the vstest.console.dll executable in the sdk folder in the installed version, so we look it up using the
-                // DOTNET_ROOT environment variable set by helix.
-                if (isUnix)
+                // When we run integration tests on the helix machine, we run them through build.ps1 -> RunTests
+                // This is required to both
+                //   1.  (build.ps1) Deploy the extension and setup environment variables, then calls
+                //   2.  (RunTests.exe) Run integration tests with retries for the old integration test framework.
+                // 
+                // Once we migrate all tests to the new integration test framework we should instead just deploy the extension and setup env vars
+                // via the script and then run tests directly via vstest.console.dll like we do for unit tests.
+                // At which point we can likely delete all test running logic from this project.
+                if (options.TestVsi)
                 {
-                    // $ is a special character in msbuild so we replace it with %24 in the helix project.
-                    // https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild-special-characters?view=vs-2022
-                    command.AppendLine("vstestConsolePath=%24(find %24{DOTNET_ROOT} -name \"vstest.console.dll\")");
-                    command.AppendLine("echo %24{vstestConsolePath}");
-                    command.AppendLine($"dotnet exec \"%24{{vstestConsolePath}}\" @{rspFileName}");
+                    // Set an env var with the file path of this work item RSP file - RunTests will find this env var and read this file.
+                    command.AppendLine($"{setEnvironmentVariable} {RoslynWorkItemRspPathEnvVar}={rspFileName}");
+
+                    command.AppendLine("time");
+                    command.Append("dir");
+                    // We call into build.ps1 without passing in the helix flag to indicate the tests should run on the current machine.
+                    // TODO pass partition information
+                    // TODO pass options (e.g. oop64bit).
+                    var commandArguments = $"-ci -configuration {options.Configuration} -testVsi -oop64bit:${true} -oopCoreClr:${false} -lspEditor:${false}";
+
+                    command.AppendLine(@"PowerShell.exe -ExecutionPolicy Unrestricted -command ""./eng\build.ps1 -configuration Debug -testVsi\""");
                 }
                 else
                 {
-                    // Windows cmd doesn't have an easy way to set the output of a command to a variable.
-                    // So send the output of the command to a file, then set the variable based on the file.
-                    command.AppendLine("where /r %DOTNET_ROOT% vstest.console.dll > temp.txt");
-                    command.AppendLine("set /p vstestConsolePath=<temp.txt");
-                    command.AppendLine("echo %vstestConsolePath%");
-                    command.AppendLine($"dotnet exec \"%vstestConsolePath%\" @{rspFileName}");
+                    // Build the command to run the rsp file.
+                    // dotnet test does not pass rsp files correctly the vs test console, so we have to manually invoke vs test console.
+                    // See https://github.com/microsoft/vstest/issues/3513
+                    // The dotnet sdk includes the vstest.console.dll executable in the sdk folder in the installed version, so we look it up using the
+                    // DOTNET_ROOT environment variable set by helix.
+                    if (isUnix)
+                    {
+                        // $ is a special character in msbuild so we replace it with %24 in the helix project.
+                        // https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild-special-characters?view=vs-2022
+                        command.AppendLine("vstestConsolePath=%24(find %24{DOTNET_ROOT} -name \"vstest.console.dll\")");
+                        command.AppendLine("echo %24{vstestConsolePath}");
+                        command.AppendLine($"dotnet exec \"%24{{vstestConsolePath}}\" @{rspFileName}");
+                    }
+                    else
+                    {
+                        // Windows cmd doesn't have an easy way to set the output of a command to a variable.
+                        // So send the output of the command to a file, then set the variable based on the file.
+                        command.AppendLine("where /r %DOTNET_ROOT% vstest.console.dll > temp.txt");
+                        command.AppendLine("set /p vstestConsolePath=<temp.txt");
+                        command.AppendLine("echo %vstestConsolePath%");
+                        command.AppendLine($"dotnet exec \"%vstestConsolePath%\" @{rspFileName}");
+                    }
                 }
 
                 // The command string contains characters like % which are not valid XML to pass into the helix csproj.
