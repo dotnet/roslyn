@@ -22,16 +22,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
     {
         private readonly ValueTrackingRoot _root = new();
 
+        [MemberNotNullWhen(returnValue: true, nameof(_workspace), nameof(_threadingContext), nameof(ViewModel))]
         public bool Initialized { get; private set; }
 
-        [MemberNotNullWhen(returnValue: true, nameof(Initialized))]
-        private Workspace? _workspace { get; set; }
+        private Workspace? _workspace;
 
-        [MemberNotNullWhen(returnValue: true, nameof(Initialized))]
-        private IThreadingContext? _threadingContext { get; set; }
+        private IThreadingContext? _threadingContext;
 
         private ValueTrackingTreeViewModel? _viewModel;
-        [MemberNotNullWhen(returnValue: true, nameof(Initialized))]
         public ValueTrackingTreeViewModel? ViewModel
         {
             get => _viewModel;
@@ -81,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             Contract.ThrowIfFalse(Initialized);
 
             if (e.Kind is WorkspaceChangeKind.SolutionCleared
-                or WorkspaceChangeKind.SolutionRemoved)
+                       or WorkspaceChangeKind.SolutionRemoved)
             {
                 RoslynDebug.AssertNotNull(_threadingContext);
                 RoslynDebug.AssertNotNull(ViewModel);
