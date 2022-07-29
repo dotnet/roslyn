@@ -84,55 +84,40 @@ namespace Microsoft.CodeAnalysis.Rename
 
             using (Logger.LogBlock(FunctionId.Renamer_FindRenameLocationsAsync, cancellationToken))
             {
-                var remoteLocations = await TryFindRemoteRenameLocationsAsync(symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
-                if (remoteLocations != null)
-                    return remoteLocations;
+                if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
+                {
+                    var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+                    if (client != null)
+                    {
+                        var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableRenameLocations?>(
+                            solution,
+                            (service, solutionInfo, callbackId, cancellationToken) => service.FindRenameLocationsAsync(solutionInfo, callbackId, serializedSymbol, options, cancellationToken),
+                            callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, fallbackOptions),
+                            cancellationToken).ConfigureAwait(false);
 
-                // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)
+                        if (result.HasValue && result.Value != null)
+                        {
+                            var rehydratedLocations = await result.Value.RehydrateLocationsAsync(solution, cancellationToken).ConfigureAwait(false);
+                            return new LightweightRenameLocations(
+                                solution, options, fallbackOptions,
+                                rehydratedLocations,
+                                result.Value.ImplicitLocations,
+                                result.Value.ReferencedSymbols);
+                        }
 
-                // Couldn't effectively search in OOP. Perform the search in-proc.
-                var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(
-                    symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
-
-                return new LightweightRenameLocations(
-                    solution, options, fallbackOptions, renameLocations.Locations,
-                    renameLocations.ImplicitLocations.SelectAsArray(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)),
-                    renameLocations.ReferencedSymbols.SelectAsArray(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)));
+                        // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)
+                    }
+                }
             }
-        }
 
-        private static async Task<LightweightRenameLocations?> TryFindRemoteRenameLocationsAsync(ISymbol symbol, Solution solution, SymbolRenameOptions options, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-        {
-            if (!SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
-                return null;
+            // Couldn't effectively search in OOP. Perform the search in-proc.
+            var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(
+                symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-                return null;
-
-            var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableRenameLocations?>(
-                solution,
-                (service, solutionInfo, callbackId, cancellationToken) => service.FindRenameLocationsAsync(solutionInfo, callbackId, serializedSymbol, options, cancellationToken),
-                callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, fallbackOptions),
-                cancellationToken).ConfigureAwait(false);
-
-            if (!result.HasValue || result.Value == null)
-                return null;
-
-            var serializableLocations = result.Value;
-            var rehydratedLocations = await serializableLocations.RehydrateLocationsAsync(solution, cancellationToken).ConfigureAwait(false);
-            if (rehydratedLocations == null)
-                return null;
-
-            // We successfully retrieved locations.  Pass the keep-alive connection to it.  It will up the ref-count to
-            // 2, which will then go back to 1 when we dispose it here.
             return new LightweightRenameLocations(
-                solution,
-                serializableLocations.Options,
-                fallbackOptions,
-                rehydratedLocations,
-                serializableLocations.ImplicitLocations,
-                serializableLocations.ReferencedSymbols);
+                solution, options, fallbackOptions, renameLocations.Locations,
+                renameLocations.ImplicitLocations.SelectAsArray(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)),
+                renameLocations.ReferencedSymbols.SelectAsArray(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)));
         }
 
         public Task<ConflictResolution> ResolveConflictsAsync(ISymbol symbol, string replacementText, ImmutableArray<SymbolKey> nonConflictSymbolKeys, CancellationToken cancellationToken)
