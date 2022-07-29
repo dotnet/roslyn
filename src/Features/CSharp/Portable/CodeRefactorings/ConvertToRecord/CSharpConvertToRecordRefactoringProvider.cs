@@ -256,6 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                                 {
                                     // if it is too complex to remove (param validation, error handling, side effects, not everything assigned)
                                     // we won't delete, and give a warning
+                                    // TODO: if parameter defaults in constructor, move those to primary constructor
                                     // TODO: Change warning string
                                     modifiedMembers.Add(
                                         constructor.WithAdditionalAnnotations(WarningAnnotation.Create("Placeholder Constructor warning")));
@@ -266,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                             if (constructorParamTypes.Length == 1 &&
                                 constructorParamTypes.First() == classDeclaration.Identifier.ToString())
                             {
-                                
+                                // TODO: Check to see whether it's worth deleting
                             }
 
                             // TODO: Can potentially refactor statements which initialize properties with a simple expression
