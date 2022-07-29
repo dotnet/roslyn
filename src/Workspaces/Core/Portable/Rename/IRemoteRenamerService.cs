@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
     internal partial class SymbolicRenameLocations
     {
-        internal static async Task<SymbolicRenameLocations> RehydrateAsync(
+        internal static async Task<SymbolicRenameLocations?> TryRehydrateAsync(
             ISymbol symbol, Solution solution, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations serializableLocations, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(serializableLocations);
@@ -167,6 +167,8 @@ namespace Microsoft.CodeAnalysis.Rename
 
             var referencedSymbols = await serializableLocations.ReferencedSymbols.SelectAsArrayAsync(
                 static (sym, solution, cancellationToken) => sym.TryRehydrateAsync(solution, cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+            if (referencedSymbols.Any(s => s is null))
+                return null;
 
             return new SymbolicRenameLocations(
                 symbol,
