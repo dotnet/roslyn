@@ -86,6 +86,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// </summary>
         public InlineRenameFileRenameInfo FileRenameInfo { get; }
 
+        private Task _keepAliveSessionTask;
+
         /// <summary>
         /// The task which computes the main rename locations against the original workspace
         /// snapshot.
@@ -179,6 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 FileRenameInfo = InlineRenameFileRenameInfo.NotAllowed;
             }
 
+            _keepAliveSessionTask = Renamer.CreateKeepAliveSessionAsync(_baseSolution, _cancellationTokenSource.Token);
             InitializeOpenBuffers(triggerSpan);
         }
 

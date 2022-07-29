@@ -221,35 +221,38 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         /// <summary>
-        /// Creates a session between the host and OOP, effectively pinning this <paramref name="solution"/> until <see
-        /// cref="IDisposable.Dispose"/> is called on the session.  By pinning the solution we ensure that all calls to
-        /// OOP for the same solution during the life of this rename session do not need to resync the solution.  Nor do
-        /// they then need to rebuild any compilations they've already built due to the solution going away and then
-        /// coming back.
+        /// Creates a session between the host and OOP, effectively pinning this <paramref name="solution"/> until the
+        /// supplied <paramref name="cancellationToken"/> is canceled..  By pinning the solution we ensure that all
+        /// calls to OOP for the same solution during the life of this rename session do not need to resync the
+        /// solution.  Nor do they then need to rebuild any compilations they've already built due to the solution going
+        /// away and then coming back.
         /// </summary>
-        internal static async Task<IKeepAliveSession> CreateKeepAliveSessionAsync(
+        internal static async Task CreateKeepAliveSessionAsync(
             Solution solution,
             CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                // Create an initial connection with a ref-count of 1.  This ensures that if we fail on any step below,
-                // we'll dispose of the connection.
-                var keepAliveConnection = new KeepAliveConnection();
-                using var refCountedConnection = new ReferenceCountedDisposable<KeepAliveConnection>(keepAliveConnection);
+                var taskCompletionSource = new TaskCompletionSource<bool>();
+                // make sure we transition to canceled if the caller cancels this work.
+                cancellationToken.Register(static s => ((TaskCompletionSource<bool>)s!).TrySetResult(true), taskCompletionSource);
 
-                // Kick off the keep alive task.  It will terminate when the above connection is finally disposed.
-                var keepAliveTask = client.TryInvokeAsync<IRemoteRenamerService>(
+                var keepAliveConnection = new KeepAliveConnection(taskCompletionSource);
+
+                // Kick off the keep alive task.  Once it has pinned the solution it will call back into
+                // KeepAliveConnection to let us know so that things can proceed. It will terminate when the provided
+                // cancellation token is actually canceled.
+                var unused = client.TryInvokeAsync<IRemoteRenamerService>(
                     solution,
                     (service, solutionInfo, callbackId, cancellationToken) => service.KeepAliveAsync(solutionInfo, callbackId, cancellationToken),
                     callbackTarget: keepAliveConnection,
-                    keepAliveConnection.CancellationToken);
+                    cancellationToken).AsTask();
 
-                return new KeepAliveSession(refCountedConnection.TryAddReference() ?? throw ExceptionUtilities.Unreachable, keepAliveConnection.KeepAliveCalledTask);
+                return await taskCompletionSource.Task.ConfigureAwait(false);
             }
 
-            return NoOpKeepAliveSession.Instance;
+            return Task.CompletedTask;
         }
     }
 }

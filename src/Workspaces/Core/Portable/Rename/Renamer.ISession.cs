@@ -68,33 +68,21 @@ namespace Microsoft.CodeAnalysis.Rename
             }
         }
 
-        internal sealed class KeepAliveConnection : IDisposable // , IKeepAliveConnection
+        internal sealed class KeepAliveConnection
         {
-            /// <summary>
-            /// Cancellation token we trigger once we're disposed.  When it is canceled, then oop will see that has
-            /// happened, and can return from the call to <see cref="IRemoteRenamerService.KeepAliveAsync"/> which it is
-            /// stuck inside of, keeping the current solution pinned.
-            /// </summary>
-            private readonly CancellationTokenSource _cancellationTokenSource = new();
-
             /// <summary>
             /// Used to keep track if <see cref="KeepAliveAsync"/> has been called by the oop server.
             /// </summary>
-            private readonly TaskCompletionSource<bool> _keepAliveCalledSource = new();
+            private readonly TaskCompletionSource<bool> _keepAliveCalledSource;
 
-            public CancellationToken CancellationToken => _cancellationTokenSource.Token;
-            public Task KeepAliveCalledTask => _keepAliveCalledSource.Task;
-
-            public void Dispose()
+            public KeepAliveConnection(TaskCompletionSource<bool> keepAliveCalledSource)
             {
-                _cancellationTokenSource.Cancel();
-                _cancellationTokenSource.Dispose();
+                _keepAliveCalledSource = keepAliveCalledSource;
             }
 
             /// <summary>
             /// Callback from OOP into the host side.  This allows OOP to tell us when it has successfully hydrated and
-            /// pinned the solution snapshot on its side and is now holding it until <see
-            /// cref="_cancellationTokenSource"/> is canceled.
+            /// pinned the solution snapshot on its side.
             /// </summary>
             public ValueTask KeepAliveAsync()
             {
