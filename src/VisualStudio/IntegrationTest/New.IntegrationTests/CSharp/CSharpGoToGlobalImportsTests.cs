@@ -45,7 +45,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 
             var document = await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken);
             RoslynDebug.AssertNotNull(document);
-            Assert.NotEqual(WorkspaceKind.MetadataAsSource, document.Project.Solution.Workspace.Kind);
+            Assert.NotEqual(WorkspaceKind.MetadataAsSource, document.Project.Solution.WorkspaceKind);
         }
     }
 }

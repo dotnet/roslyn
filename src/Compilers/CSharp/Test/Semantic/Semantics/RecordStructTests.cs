@@ -3933,7 +3933,7 @@ record struct B(int X)
 $@"
 record struct A(int X)
 {{
-    { accessibility } void Deconstruct(out int a)
+    {accessibility} void Deconstruct(out int a)
         => throw null;
 }}
 ";
@@ -4241,7 +4241,7 @@ record struct B;
 $@"
 record struct A
 {{
-    { accessibility } bool Equals(A x)
+    {accessibility} bool Equals(A x)
         => throw null;
 
     bool System.IEquatable<A>.Equals(A x) => throw null;
@@ -4271,7 +4271,7 @@ record struct A
 $@"
 record struct A
 {{
-    { accessibility } bool Equals(A x)
+    {accessibility} bool Equals(A x)
         => throw null;
 
     bool System.IEquatable<A>.Equals(A x) => throw null;

@@ -55,7 +55,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var subjectBuffer = args.SubjectBuffer;
+
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return;
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var services = solution.Workspace.Services;
+            var services = solution.Services;
             var formattingRuleService = services.GetService<IHostDependentFormattingRuleFactoryService>();
             if (formattingRuleService != null && formattingRuleService.ShouldNotFormatOrCommitOnPaste(document.Id))
             {
@@ -86,16 +88,16 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
-            var span = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot).Span.ToTextSpan();
+            var span = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot).Span.ToTextSpan();
 
             // Note: C# always completes synchronously, TypeScript is async
-            var changes = formattingService.GetFormattingChangesOnPasteAsync(document, args.SubjectBuffer, span, cancellationToken).WaitAndGetResult(cancellationToken);
+            var changes = formattingService.GetFormattingChangesOnPasteAsync(document, subjectBuffer, span, cancellationToken).WaitAndGetResult(cancellationToken);
             if (changes.IsEmpty)
             {
                 return;
             }
 
-            solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
+            subjectBuffer.ApplyChanges(changes);
         }
     }
 }

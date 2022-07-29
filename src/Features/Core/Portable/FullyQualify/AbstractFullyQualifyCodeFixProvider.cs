@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             cancellationToken.ThrowIfCancellationRequested();
 
             var project = document.Project;
-            var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+            var syntaxFacts = project.Services.GetRequiredService<ISyntaxFactsService>();
 
             syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out var arity);
             var looksGeneric = syntaxFacts.LooksGeneric(node);
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             SyntaxNode simpleName,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+            var syntaxFacts = project.Services.GetRequiredService<ISyntaxFactsService>();
             if (syntaxFacts.IsAttributeName(simpleName))
             {
                 return ImmutableArray<SymbolResult>.Empty;

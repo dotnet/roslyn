@@ -500,6 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion:
                 case ErrorCode.WRN_UnassignedThisSupportedVersion:
                 case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
+                case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
                     return 1;
                 default:
                     return 0;
@@ -2206,6 +2207,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FileTypeNameDisallowed:
                 case ErrorCode.ERR_FeatureNotAvailableInVersion11:
                 case ErrorCode.ERR_RefFieldInNonRefStruct:
+                case ErrorCode.ERR_BadParameterModifiersOrder:
+                case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
+                case ErrorCode.ERR_CannotMatchOnINumberBase:
+                case ErrorCode.ERR_MisplacedScoped:
+                case ErrorCode.ERR_ScopedTypeNameDisallowed:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

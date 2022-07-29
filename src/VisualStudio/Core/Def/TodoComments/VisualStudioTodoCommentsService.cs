@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             _listener = new TodoCommentsListener(
                 globalOptions,
-                workspace.Services,
+                workspace.Services.SolutionServices,
                 asynchronousOperationListenerProvider,
                 onTodoCommentsUpdated: (documentId, oldComments, newComments) =>
                 {

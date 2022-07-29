@@ -2500,6 +2500,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_BadParameterModifiers" xml:space="preserve">
     <value> The parameter modifier '{0}' cannot be used with '{1}'</value>
   </data>
+  <data name="ERR_BadParameterModifiersOrder" xml:space="preserve">
+    <value> The parameter modifier '{0}' cannot follow '{1}'</value>
+  </data>
   <data name="ERR_BadTypeforThis" xml:space="preserve">
     <value>The first parameter of an extension method cannot be of type '{0}'</value>
   </data>
@@ -6637,6 +6640,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_AnalyzerReferencesFramework_Title" xml:space="preserve">
     <value>The loaded assembly references .NET Framework, which is not supported.</value>
   </data>
+  <data name="WRN_AnalyzerReferencesNewerCompiler" xml:space="preserve">
+    <value>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
+  </data>
+  <data name="WRN_AnalyzerReferencesNewerCompiler_Title" xml:space="preserve">
+    <value>The analyzer assembly references a newer version of the compiler than the currently running version.</value>
+  </data>
   <data name="ERR_BadFieldTypeInRecord" xml:space="preserve">
     <value>The type '{0}' may not be used for a field of a record.</value>
   </data>
@@ -7180,5 +7189,20 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureFileTypes" xml:space="preserve">
     <value>file types</value>
+  </data>
+  <data name="ERR_CannotMatchOnINumberBase" xml:space="preserve">
+    <value>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</value>
+  </data>
+  <data name="IDS_ArrayAccess" xml:space="preserve">
+    <value>array access</value>
+  </data>
+  <data name="IDS_PointerElementAccess" xml:space="preserve">
+    <value>pointer element access</value>
+  </data>
+  <data name="ERR_MisplacedScoped" xml:space="preserve">
+    <value>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</value>
+  </data>
+  <data name="ERR_ScopedTypeNameDisallowed" xml:space="preserve">
+    <value>Types and aliases cannot be named 'scoped'.</value>
   </data>
 </root>
