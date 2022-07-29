@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,9 +60,9 @@ namespace Microsoft.CodeAnalysis
                     cancellationToken.ThrowIfCancellationRequested();
                     var parseOptionsChecksum = GetParseOptionsChecksum(serializer);
 
-                    var projectReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(ProjectReferences, _ => new ChecksumCollection(ProjectReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
-                    var metadataReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(MetadataReferences, _ => new ChecksumCollection(MetadataReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
-                    var analyzerReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(AnalyzerReferences, _ => new ChecksumCollection(AnalyzerReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
+                    var projectReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(ProjectReferences, _ => new ChecksumCollection(ProjectReferences.SelectAsArray(r => serializer.CreateChecksum(r, cancellationToken))));
+                    var metadataReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(MetadataReferences, _ => new ChecksumCollection(MetadataReferences.SelectAsArray(r => serializer.CreateChecksum(r, cancellationToken))));
+                    var analyzerReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(AnalyzerReferences, _ => new ChecksumCollection(AnalyzerReferences.SelectAsArray(r => serializer.CreateChecksum(r, cancellationToken))));
 
                     var documentChecksums = await Task.WhenAll(documentChecksumsTasks).ConfigureAwait(false);
                     var additionalChecksums = await Task.WhenAll(additionalDocumentChecksumTasks).ConfigureAwait(false);
@@ -71,12 +72,12 @@ namespace Microsoft.CodeAnalysis
                         infoChecksum,
                         compilationOptionsChecksum,
                         parseOptionsChecksum,
-                        documentChecksums: new ChecksumCollection(documentChecksums),
+                        documentChecksums: new ChecksumCollection(ImmutableArray.Create(documentChecksums)),
                         projectReferenceChecksums,
                         metadataReferenceChecksums,
                         analyzerReferenceChecksums,
-                        additionalDocumentChecksums: new ChecksumCollection(additionalChecksums),
-                        analyzerConfigDocumentChecksumCollection: new ChecksumCollection(analyzerConfigDocumentChecksums));
+                        additionalDocumentChecksums: new ChecksumCollection(ImmutableArray.Create(additionalChecksums)),
+                        analyzerConfigDocumentChecksumCollection: new ChecksumCollection(ImmutableArray.Create(analyzerConfigDocumentChecksums)));
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
