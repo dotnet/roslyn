@@ -218,21 +218,26 @@ namespace RunTests
                 // Update the assembly groups to test with the assembly paths in the context of the helix work item.
                 workItemInfo = workItemInfo with { Filters = workItemInfo.Filters.ToImmutableSortedDictionary(kvp => kvp.Key with { AssemblyPath = GetHelixRelativeAssemblyPath(kvp.Key.AssemblyPath) }, kvp => kvp.Value) };
 
+                AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);
+
                 if (options.TestVsi)
                 {
+                    // Set an env var with the file path of this work item RSP file - RunTests will find and read this file.
+
                     command.AppendLine("time");
                     command.Append("dir");
                     // We call into build.ps1 without passing in the helix flag which will call into run tests (without the helix flag).
                     // This will trigger run tests to run the integration tests itself which is necessary to support the retry logic for the old integration test project.
-                    // TODO - when all integration tests have been migrated to the new project we can simply call into dotnet like we do for unit tests.
-                    // TODO - pass the current options into run tests.
-                    // TODO - pass in the partition information (rsp file) into run tests.
+                    //
+                    // When all integration tests have been migrated to the new project we should instead deploy the vsixes and set env vars via the script
+                    // then add the command to execute tests via vstest.console.dll like we do for unit tests below.
+
+                    // TODO pass partition information
+                    // TODO pass options (e.g. oop64bit).
+                    var commandArguments = $"-ci -configuration {options.Configuration} -testVsi -oop64bit:${true} -oopCoreClr:${false} -lspEditor:${false}";
+
                     command.AppendLine(@"PowerShell.exe -ExecutionPolicy Unrestricted -command ""./eng\build.ps1 -configuration Debug -testVsi\""");
                     command.AppendLine("time");
-                }
-                else
-                {
-                    AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);
                 }
 
                 // Build an rsp file to send to dotnet test that contains all the assemblies and tests to run.

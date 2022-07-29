@@ -57,8 +57,7 @@ jobs:
       displayName: Run Unit Tests
       inputs:
         filePath: eng/build.ps1
-        # TODO - pass pool name into helixqueuename
-        arguments: -ci -helix -configuration ${{ parameters.configuration }} -collectDumps -testVsi -oop64bit:$${{ parameters.oop64bit }} -oopCoreClr:$${{ parameters.oopCoreClr }} -lspEditor:$${{ parameters.lspEditor }} -helixQueueName "windows.amd64.vs2022.pre.open"
+        arguments: -ci -helix -configuration ${{ parameters.configuration }} -collectDumps -testVsi -oop64bit:$${{ parameters.oop64bit }} -oopCoreClr:$${{ parameters.oopCoreClr }} -lspEditor:$${{ parameters.lspEditor }} -helixQueueName ${{ parameters.helixQueueName }}
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
