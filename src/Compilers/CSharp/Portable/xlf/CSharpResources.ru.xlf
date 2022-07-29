@@ -1572,6 +1572,11 @@
         <target state="translated">"{0}" имеет атрибут "UnmanagedCallersOnly" и не может быть преобразован в тип делегата. Получите указатель на функцию для этого метода.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMethod">
+        <source>UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.</source>
+        <target state="new">UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</source>
         <target state="translated">Для "{0}" требуется функция компилятора "{1}", которая не поддерживается в этой версии компилятора C#.</target>

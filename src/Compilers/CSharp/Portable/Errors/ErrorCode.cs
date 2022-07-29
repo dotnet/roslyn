@@ -2111,6 +2111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotMatchOnINumberBase = 9060,
         ERR_MisplacedScoped = 9061,
         ERR_ScopedTypeNameDisallowed = 9062,
+        ERR_UnscopedRefAttributeUnsupportedMethod = 9063,
 
         #endregion
 

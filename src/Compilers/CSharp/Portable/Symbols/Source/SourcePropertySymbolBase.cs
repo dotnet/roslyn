@@ -1315,7 +1315,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.UnscopedRefAttribute))
             {
-                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasUnscopedRefAttribute = true;
+                if (this.IsValidUnscopedRefAttributeTarget())
+                {
+                    arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasUnscopedRefAttribute = true;
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, arguments.AttributeSyntaxOpt.Location);
+                }
+            }
+        }
+
+        private bool IsValidUnscopedRefAttributeTarget()
+        {
+            return isNullOrValidAccessor(_getMethod) &&
+                isNullOrValidAccessor(_setMethod);
+
+            static bool isNullOrValidAccessor(MethodSymbol? accessor)
+            {
+                return accessor is null || accessor.IsValidUnscopedRefAttributeTarget();
             }
         }
 

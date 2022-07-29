@@ -181,13 +181,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var scope = DeclaredScope;
                 if (scope != DeclarationScope.Unscoped &&
-                    hasUnscopedRefAttribute(_containingMethod, _containingType as NamedTypeSymbol))
+                    hasUnscopedRefAttribute(_containingMethod))
                 {
                     return DeclarationScope.Unscoped;
                 }
                 return scope;
 
-                static bool hasUnscopedRefAttribute(MethodSymbol? containingMethod, NamedTypeSymbol? containingType)
+                static bool hasUnscopedRefAttribute(MethodSymbol? containingMethod)
                 {
                     if (containingMethod is SourceMethodSymbolWithAttributes { HasUnscopedRefAttribute: true })
                     {

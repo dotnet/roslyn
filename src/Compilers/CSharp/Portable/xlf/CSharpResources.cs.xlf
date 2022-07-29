@@ -1572,6 +1572,11 @@
         <target state="translated">{0} má atribut UnmanagedCallersOnly a nedá se převést na typ delegáta. Pro tuto metodu získejte ukazatel na funkci.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMethod">
+        <source>UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.</source>
+        <target state="new">UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</source>
         <target state="translated">{0} vyžaduje funkci kompilátoru {1}, což tato verze kompilátoru C# nepodporuje.</target>

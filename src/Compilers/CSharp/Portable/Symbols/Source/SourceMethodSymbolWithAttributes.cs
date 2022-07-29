@@ -572,7 +572,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.UnscopedRefAttribute))
             {
-                arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasUnscopedRefAttribute = true;
+                if (this.IsValidUnscopedRefAttributeTarget())
+                {
+                    arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasUnscopedRefAttribute = true;
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, arguments.AttributeSyntaxOpt.Location);
+                }
             }
             else
             {

@@ -1572,6 +1572,11 @@
         <target state="translated">'{0}' 使用 'UnmanagedCallersOnly' 屬性化，因此無法轉換為委派類型。取得此方法的函式指標。</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMethod">
+        <source>UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.</source>
+        <target state="new">UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</source>
         <target state="new">'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</target>

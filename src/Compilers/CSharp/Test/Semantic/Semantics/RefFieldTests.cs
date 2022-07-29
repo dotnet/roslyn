@@ -12728,6 +12728,224 @@ public struct S<T>
             comp.VerifyEmitDiagnostics();
         }
 
+        [Fact]
+        public void UnscopedRefAttribute_Property_03()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+struct S
+{
+    [UnscopedRef] object P1 { get; }
+    [UnscopedRef] object P2 { get; set; }
+    [UnscopedRef] object P3 { get; init; } // 1
+    object P5
+    {
+        [UnscopedRef] get;
+        [UnscopedRef] set;
+    }
+    object P6
+    {
+        [UnscopedRef] get;
+        [UnscopedRef] init; // 2
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition });
+            comp.VerifyDiagnostics(
+                // (6,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
+                //     [UnscopedRef] object P3 { get; init; } // 1
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, "UnscopedRef").WithLocation(6, 6),
+                // (15,10): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
+                //         [UnscopedRef] init; // 2
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, "UnscopedRef").WithLocation(15, 10));
+        }
+
+        [Theory]
+        [InlineData("struct")]
+        [InlineData("ref struct")]
+        public void UnscopedRefAttribute_Accessor_01(string type)
+        {
+            var source =
+$@"using System.Diagnostics.CodeAnalysis;
+{type} S<T>
+{{
+    private T _t;
+    ref T P1
+    {{
+        get => ref _t; // 1
+    }}
+    ref T P2
+    {{
+        [UnscopedRef]
+        get => ref _t;
+    }}
+}}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (7,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //         get => ref _t; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "_t").WithLocation(7, 20));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Accessor_02()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R<T>
+{
+    public ref T F;
+}
+struct A
+{
+    R<A> this[int i]
+    {
+        get { return default; }
+        set { value.F = ref this; } // 1
+    }
+}
+struct B
+{
+    R<B> this[int i]
+    {
+        get { return default; }
+        [UnscopedRef]
+        set { value.F = ref this; }
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
+                //         set { value.F = ref this; } // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "value.F = ref this").WithArguments("F", "this").WithLocation(11, 15));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Accessor_03()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R<T>
+{
+    public ref T F;
+}
+struct A
+{
+    R<A> this[int i]
+    {
+        get { return default; }
+        init { value.F = ref this; } // 1
+    }
+}
+struct B
+{
+    R<B> this[int i]
+    {
+        get { return default; }
+        [UnscopedRef]
+        init { value.F = ref this; } // 2
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition });
+            comp.VerifyDiagnostics(
+                // (11,16): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
+                //         init { value.F = ref this; } // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "value.F = ref this").WithArguments("F", "this").WithLocation(11, 16),
+                // (19,10): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
+                //         [UnscopedRef]
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, "UnscopedRef").WithLocation(19, 10),
+                // (20,16): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
+                //         init { value.F = ref this; } // 2
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "value.F = ref this").WithArguments("F", "this").WithLocation(20, 16));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_Constructor()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R<T>
+{
+    public ref T F;
+}
+struct A
+{
+    A(R<A> r)
+    {
+        r.F = ref this; // 1
+    }
+}
+struct B
+{
+    [UnscopedRef]
+    B(R<B> r)
+    {
+        r.F = ref this; // 2
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (10,9): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
+                //         r.F = ref this; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r.F = ref this").WithArguments("F", "this").WithLocation(10, 9),
+                // (15,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
+                //     [UnscopedRef]
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, "UnscopedRef").WithLocation(15, 6),
+                // (18,9): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
+                //         r.F = ref this; // 2
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r.F = ref this").WithArguments("F", "this").WithLocation(18, 9));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_StaticMembers()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+struct S
+{
+    [UnscopedRef] static S() { } // 1
+    [UnscopedRef] static object F() => null; // 2
+    [UnscopedRef] static object P => null; // 3
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (4,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
+                //     [UnscopedRef] static S() { } // 1
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, "UnscopedRef").WithLocation(4, 6),
+                // (5,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
+                //     [UnscopedRef] static object F() => null; // 2
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, "UnscopedRef").WithLocation(5, 6),
+                // (6,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
+                //     [UnscopedRef] static object P => null; // 3
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, "UnscopedRef").WithLocation(6, 6));
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_OtherTypes()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+class C
+{
+    [UnscopedRef] object F1() => null; // 1
+}
+record R
+{
+    [UnscopedRef] object F2() => null; // 2
+}
+record struct S
+{
+    [UnscopedRef] object F3() => null;
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (4,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
+                //     [UnscopedRef] object F1() => null; // 1
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, "UnscopedRef").WithLocation(4, 6),
+                // (8,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
+                //     [UnscopedRef] object F2() => null; // 2
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMethod, "UnscopedRef").WithLocation(8, 6));
+        }
+
         [WorkItem(62691, "https://github.com/dotnet/roslyn/issues/62691")]
         [Fact]
         public void UnscopedRefAttribute_RefRefStructParameter_01()
@@ -12791,25 +13009,25 @@ public class A<T>
             var sourceB =
 @"class B : A<int>
 {
-    ref int F1A()
+    ref int F1B()
     {
         int i = 1;
         var r = new R<int>(ref i);
         return ref F1A(ref r); // 1
     }
-    ref int F2A()
+    ref int F2B()
     {
         int i = 2;
         var r = new R<int>(ref i);
         return ref F2A(ref r);
     }
-    ref int F3A()
+    ref int F3B()
     {
         int i = 3;
         var r = new R<int>(ref i);
         return ref F3A(ref r); // 2
     }
-    ref int F4A()
+    ref int F4B()
     {
         int i = 4;
         var r = new R<int>(ref i);
@@ -13113,25 +13331,25 @@ public class A<T>
             var sourceB =
 @"class B : A<int>
 {
-    ref int F1A()
+    ref int F1B()
     {
         int i = 1;
         var r = new R<int>(ref i);
         return ref F1A(r); // 1
     }
-    ref int F2A()
+    ref int F2B()
     {
         int i = 2;
         var r = new R<int>(ref i);
         return ref F2A(r);
     }
-    ref int F3A()
+    ref int F3B()
     {
         int i = 3;
         var r = new R<int>(ref i);
         return ref F3A(r); // 2
     }
-    ref int F4A()
+    ref int F4B()
     {
         int i = 4;
         var r = new R<int>(ref i);
