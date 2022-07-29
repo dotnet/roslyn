@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             public AssetProvider(SerializationValidator validator)
                 => _validator = validator;
 
-            public override Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
-                => _validator.GetValueAsync<T>(checksum);
+            public override async ValueTask<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
+                => await _validator.GetValueAsync<T>(checksum).ConfigureAwait(false);
         }
 
         internal sealed class ChecksumObjectCollection<T> : IEnumerable<T> where T : ChecksumWithChildren
