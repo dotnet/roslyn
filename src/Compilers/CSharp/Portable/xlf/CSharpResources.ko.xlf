@@ -1387,6 +1387,11 @@
         <target state="translated">'scoped' 한정자는 ref 및 ref 구조체 값에만 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScopedTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'scoped'.</source>
+        <target state="new">Types and aliases cannot be named 'scoped'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
         <source>Required members are not allowed on the top level of a script or submission.</source>
         <target state="translated">필수 멤버는 스크립트 또는 제출의 최상위 수준에서 허용되지 않습니다.</target>

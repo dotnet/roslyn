@@ -1879,8 +1879,6 @@ ref scoped b;
             string source = @"
 class scoped { }
 ";
-            // Missing error
-            // Tracked by https://github.com/dotnet/roslyn/issues/62931
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
