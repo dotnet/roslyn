@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal partial class TemporaryStorageService
     {
-        [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageService), ServiceLayer.Default), Shared]
+        [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageServiceInternal), ServiceLayer.Default), Shared]
         internal partial class Factory : IWorkspaceServiceFactory
         {
             private readonly IWorkspaceThreadingService? _workspaceThreadingService;
