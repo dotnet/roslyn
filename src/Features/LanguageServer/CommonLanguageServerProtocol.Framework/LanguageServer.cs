@@ -15,32 +15,12 @@ using StreamJsonRpc;
 
 namespace CommonLanguageServerProtocol.Framework;
 
-public class LifeCycleManager<RequestContextType> : ILifeCycleManager where RequestContextType : IRequestContext
-{
-    private readonly LanguageServerTarget<RequestContextType> _target;
-
-    public LifeCycleManager(LanguageServerTarget<RequestContextType> languageServerTarget)
-    {
-        _target = languageServerTarget;
-    }
-
-    public void Exit()
-    {
-        _target.Exit();
-    }
-
-    public void Shutdown()
-    {
-        _target.Shutdown();
-    }
-}
-
-public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer where RequestContextType : IRequestContext
+public abstract class LanguageServer<RequestContextType> : ILanguageServer
 {
     private readonly JsonRpc _jsonRpc;
     private IRequestDispatcher<RequestContextType>? _requestDispatcher;
     protected readonly ILspLogger _logger;
-    private RequestExecutionQueue<RequestContextType>? _queue;
+    private IRequestExecutionQueue<RequestContextType>? _queue;
 
     protected readonly string _serverKind;
 
@@ -51,7 +31,7 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
 
     public bool HasShutdownStarted => _shuttingDown;
 
-    protected LanguageServerTarget(
+    protected LanguageServer(
         JsonRpc jsonRpc,
         ILspLogger logger,
         string serverKind)
@@ -73,9 +53,9 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
         GetRequestDispatcher();
     }
 
-    public abstract ILspServices GetLspServices();
+    protected abstract ILspServices GetLspServices();
 
-    public virtual IRequestDispatcher<RequestContextType> GetRequestDispatcher()
+    protected virtual IRequestDispatcher<RequestContextType> GetRequestDispatcher()
     {
         if (_requestDispatcher is null)
         {
@@ -145,27 +125,31 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
         IsInitialized = true;
     }
 
-    public virtual RequestExecutionQueue<RequestContextType> GetRequestExecutionQueue()
+    protected virtual IRequestExecutionQueue<RequestContextType> GetRequestExecutionQueue()
     {
         if (_queue is null)
         {
-            _queue = new RequestExecutionQueue<RequestContextType>(_serverKind, GetLspServices(), _logger);
+            var lspServices = GetLspServices();
+
+            _queue = new RequestExecutionQueue<RequestContextType>(_serverKind, _logger);
             _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
+
+            _queue.Start(lspServices);
         }
 
         return _queue;
     }
 
     /// <summary>
-    /// Wrapper class to hold the method and properties from the <see cref="LanguageServerTarget{RequestContextType}"/>
+    /// Wrapper class to hold the method and properties from the <see cref="LanguageServer{RequestContextType}"/>
     /// that the method info passed to streamjsonrpc is created from.
     /// </summary>
     private class DelegatingEntryPoint
     {
         private readonly string _method;
-        private readonly LanguageServerTarget<RequestContextType> _target;
+        private readonly LanguageServer<RequestContextType> _target;
 
-        public DelegatingEntryPoint(string method, LanguageServerTarget<RequestContextType> target)
+        public DelegatingEntryPoint(string method, LanguageServer<RequestContextType> target)
         {
             _method = method;
             _target = target;
@@ -256,7 +240,7 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
         _queue?.Shutdown();
     }
 
-    public abstract Task OnErroredEndAsync(object obj);
+    protected abstract Task OnErroredEndAsync(object obj);
 
     protected virtual void RequestExecutionQueueErroredInternal(string message)
     {
@@ -273,29 +257,10 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
         Exit();
     }
 
-    private enum MessageType
-    {
-        Error = 1,
-        Warning = 2,
-        Info = 3,
-        Log = 4,
-    }
-
-#nullable disable
-    [DataContract]
-    private class LogMessageParams
-    {
-        [DataMember(Name = "type")]
-        public MessageType MessageType;
-        [DataMember(Name = "message")]
-        public string Message;
-    }
-#nullable enable
-
     /// <summary>
     /// Cleanup the server if we encounter a json rpc disconnect so that we can be restarted later.
     /// </summary>
-    public void JsonRpc_Disconnected(object? sender, JsonRpcDisconnectedEventArgs e)
+    private void JsonRpc_Disconnected(object? sender, JsonRpcDisconnectedEventArgs e)
     {
         if (_shuttingDown)
         {
@@ -322,17 +287,24 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
 
     internal readonly struct TestAccessor
     {
-        private readonly LanguageServerTarget<RequestContextType> _server;
+        private readonly LanguageServer<RequestContextType> _server;
 
-        internal TestAccessor(LanguageServerTarget<RequestContextType> server)
+        internal TestAccessor(LanguageServer<RequestContextType> server)
         {
             _server = server;
         }
 
         public T GetRequiredLspService<T>() where T : class => _server.GetLspServices().GetRequiredService<T>();
 
-        internal RequestExecutionQueue<RequestContextType>.TestAccessor GetQueueAccessor()
-            => _server._queue!.GetTestAccessor();
+        internal RequestExecutionQueue<RequestContextType>.TestAccessor? GetQueueAccessor()
+        {
+            if (_server._queue is RequestExecutionQueue<RequestContextType> requestExecution)
+            {
+                return requestExecution.GetTestAccessor();
+            }
+
+            return null;
+        }
 
         internal JsonRpc GetServerRpc() => _server._jsonRpc;
 

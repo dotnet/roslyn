@@ -15,47 +15,31 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>, ILspService
+    internal class ServerInfoProvider
     {
-        private ImmutableArray<string>? _supportedLanguages;
-        private IRequestContextFactory<RequestContext>? _requestContextFactory;
-
-        public RoslynRequestExecutionQueue(string serverKind, ILspServices services, ILspLogger logger) : base(serverKind, services, logger)
+        public ServerInfoProvider(string serverKind, ImmutableArray<string> supportedLanguages)
         {
+            ServerKind = serverKind;
+            SupportedLanguages = supportedLanguages;
         }
 
-        public void SetSupportedLanguages(ImmutableArray<string> supportedLanguages)
-        {
-            _supportedLanguages = supportedLanguages;
-        }
-
-        public override IRequestContextFactory<RequestContext> GetRequestContextFactory(ILspServices lspServices)
-        {
-            if (_requestContextFactory is null)
-            {
-                if (_supportedLanguages is null)
-                {
-                    throw new ArgumentNullException(nameof(_supportedLanguages));
-                }
-
-                _requestContextFactory = new RequestContextFactory(lspServices, _supportedLanguages.Value, _serverKind);
-            }
-
-            return _requestContextFactory;
-        }
+        public readonly string ServerKind;
+        public readonly ImmutableArray<string> SupportedLanguages;
     }
 
     internal class RequestContextFactory : IRequestContextFactory<RequestContext>, ILspService
     {
-        private readonly ImmutableArray<string> _supportedLanguages;
+        //private readonly IServerInfoProvider _serverInfoProvider;
+        //private readonly ImmutableArray<string> _supportedLanguages;
         private readonly ILspServices _lspServices;
-        private readonly string _serverKind;
+        //private readonly string _serverKind;
 
-        public RequestContextFactory(ILspServices lspServices, ImmutableArray<string> supportedLanguages, string serverKind)
+        public RequestContextFactory(ILspServices lspServices)//, IServerInfoProvider serverInfoProvider, ImmutableArray<string> supportedLanguages, string serverKind)
         {
             _lspServices = lspServices;
-            _supportedLanguages = supportedLanguages;
-            _serverKind = serverKind;
+
+            //_supportedLanguages = supportedLanguages;
+            //_serverKind = serverKind;
         }
 
         public Task<RequestContext?> CreateRequestContextAsync(IQueueItem<RequestContext> queueItem, CancellationToken queueCancellationToken, CancellationToken requestCancellationToken)
@@ -63,18 +47,38 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var clientCapabilitiesManager = _lspServices.GetRequiredService<IClientCapabilitiesManager>();
             var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
             var logger = _lspServices.GetRequiredService<IRoslynLspLogger>();
+            var serverInfoProvider = _lspServices.GetRequiredService<ServerInfoProvider>();
 
             return RequestContext.CreateAsync(
                 queueItem.RequiresLSPSolution,
                 queueItem.MutatesSolutionState,
                 queueItem.TextDocument,
-                _serverKind,
+                serverInfoProvider.ServerKind,
                 clientCapabilities,
-                _supportedLanguages,
+                serverInfoProvider.SupportedLanguages,
                 _lspServices,
                 logger,
                 queueCancellationToken: queueCancellationToken,
                 requestCancellationToken: requestCancellationToken);
+        }
+    }
+
+    internal class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>, ILspService
+    {
+        private IRequestContextFactory<RequestContext>? _requestContextFactory;
+
+        public RoslynRequestExecutionQueue(string serverKind, ILspLogger logger) : base(serverKind, logger)
+        {
+        }
+
+        protected override IRequestContextFactory<RequestContext> GetRequestContextFactory(ILspServices lspServices)
+        {
+            if (_requestContextFactory is null)
+            {
+                _requestContextFactory = lspServices.GetRequiredService<IRequestContextFactory<RequestContext>>();
+            }
+
+            return _requestContextFactory;
         }
     }
 

@@ -7,10 +7,9 @@ using System.Threading.Tasks;
 
 #nullable enable
 
-namespace CommonLanguageServerProtocol.Framework
+namespace CommonLanguageServerProtocol.Framework;
+
+public interface IRequestContextFactory<TRequestContext>
 {
-    public interface IRequestContextFactory<TRequestContext> where TRequestContext : IRequestContext
-    {
-        Task<TRequestContext?> CreateRequestContextAsync(IQueueItem<TRequestContext> queueItem, CancellationToken queueCancellationToken, CancellationToken requestCancellationToken);
-    }
+    Task<TRequestContext?> CreateRequestContextAsync(IQueueItem<TRequestContext> queueItem, CancellationToken queueCancellationToken, CancellationToken requestCancellationToken);
 }

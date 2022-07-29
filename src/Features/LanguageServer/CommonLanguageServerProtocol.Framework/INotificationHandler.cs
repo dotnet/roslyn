@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace CommonLanguageServerProtocol.Framework;
 
-public interface INotificationHandler<RequestContextType> : IRequestHandler where RequestContextType : IRequestContext
+public interface INotificationHandler<RequestContextType> : IRequestHandler
 {
     Task HandleNotificationAsync(RequestContextType requestContext, CancellationToken cancellationToken);
 }
 
-public interface INotificationHandler<RequestType, RequestContextType> : IRequestHandler where RequestContextType : IRequestContext
+public interface INotificationHandler<RequestType, RequestContextType> : IRequestHandler
 {
     Task HandleNotificationAsync(RequestType request, RequestContextType requestContext, CancellationToken cancellationToken);
 }

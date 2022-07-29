@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             ICapabilitiesProvider capabilitiesProvider,
             IRoslynLspLogger logger)
         {
-            return new RoslynLanguageServerTarget(
+            return new RoslynLanguageServer(
                 _lspServiceProvider, jsonRpc,
                 capabilitiesProvider,
                 _listenerProvider,

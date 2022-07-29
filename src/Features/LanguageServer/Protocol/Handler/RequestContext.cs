@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// <summary>
     /// Context for requests handled by <see cref="IRequestHandler"/>
     /// </summary>
-    internal class RequestContext : IRequestContext
+    internal class RequestContext
     {
         /// <summary>
         /// This will be the <see cref="NonMutatingDocumentChangeTracker"/> for non-mutating requests because they're not allowed to change documents

@@ -5,12 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition.Hosting;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.Extensions.DependencyInjection;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -18,6 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal class LspServices : ILspServices
 {
     private readonly ImmutableDictionary<Type, Lazy<ILspService, LspServiceMetadataView>> _lazyLspServices;
+    private readonly IServiceProvider _serviceProvider;
 
     /// <summary>
     /// Gates access to <see cref="_servicesToDispose"/>.
@@ -29,7 +29,8 @@ internal class LspServices : ILspServices
         ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> mefLspServices,
         ImmutableArray<Lazy<ILspServiceFactory, LspServiceMetadataView>> mefLspServiceFactories,
         WellKnownLspServerKinds serverKind,
-        ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> baseServices)
+        ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> baseServices,
+        IServiceCollection serviceCollection)
     {
         // Convert MEF exported service factories to the lazy LSP services that they create.
         var servicesFromFactories = mefLspServiceFactories.Select(lz => new Lazy<ILspService, LspServiceMetadataView>(() => lz.Value.CreateILspService(this, serverKind), lz.Metadata));
@@ -43,6 +44,10 @@ internal class LspServices : ILspServices
         services = services.Concat(baseServices);
 
         _lazyLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.Type, lazyService => lazyService);
+
+        // Bit cheaky, but lets make an this ILspService available on the serviceCollection to make constructors that take an ILspServices instance possible.
+        serviceCollection = serviceCollection.AddSingleton<ILspServices>(this);
+        _serviceProvider = serviceCollection.BuildServiceProvider();
     }
 
     public T GetRequiredLspService<T>() where T : class, ILspService
@@ -52,7 +57,15 @@ internal class LspServices : ILspServices
 
     public T GetRequiredService<T>()
     {
-        var service = GetService<T>();
+        T? service;
+
+        // Check the ServiceProvider first
+        service = _serviceProvider.GetService<T>();
+        if (service is null)
+        {
+            service = GetService<T>();
+        }
+
         Contract.ThrowIfNull(service, $"Missing required LSP service {typeof(T).FullName}");
         return service;
     }

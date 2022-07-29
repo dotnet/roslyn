@@ -13,6 +13,21 @@ using System.Collections.Immutable;
 
 namespace CommonLanguageServerProtocol.Framework;
 
+public interface IRequestExecutionQueue<RequestContextType>
+{
+    Task ExecuteAsync<TRequestType>(bool mutatesSolutionState, bool requiresLSPSolution, INotificationHandler<TRequestType, RequestContextType> handler, TRequestType? request, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
+
+    Task ExecuteAsync(bool mutatesSolutionState, bool requiresLSPSolution, INotificationHandler<RequestContextType> handler, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
+
+    Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(bool mutatesSolutionState, bool requiresLSPSolution, IRequestHandler<TRequestType, TResponseType, RequestContextType> handler, TRequestType? request, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
+
+    void Start(ILspServices lspServices);
+
+    void Shutdown();
+
+    event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
+}
+
 /// <summary>
 /// Coordinates the exectution of LSP messages to ensure correct results are sent back.
 /// </summary>
@@ -46,11 +61,10 @@ namespace CommonLanguageServerProtocol.Framework;
 /// more messages, and a new queue will need to be created.
 /// </para>
 /// </remarks>
-public class RequestExecutionQueue<RequestContextType> where RequestContextType : IRequestContext
+public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<RequestContextType>
 {
     protected readonly string _serverKind;
     protected readonly ILspLogger _logger;
-    private readonly ILspServices _lspServices;
 
     /// <summary>
     /// The queue containing the ordered LSP requests along with a combined cancellation token
@@ -63,7 +77,7 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
     /// For test purposes only.
     /// A task that completes when the queue processing stops.
     /// </summary>
-    protected readonly Task _queueProcessingTask;
+    protected Task? _queueProcessingTask;
 
     public CancellationToken CancellationToken => _cancelSource.Token;
 
@@ -79,15 +93,10 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
 
     public RequestExecutionQueue(
         string serverKind,
-        ILspServices services,
         ILspLogger logger)
     {
         _serverKind = serverKind;
-        _lspServices = services;
         _logger = logger;
-
-        // Start the queue processing
-        _queueProcessingTask = ProcessQueueAsync();
     }
 
     /// <summary>
@@ -105,12 +114,19 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
         _queue.Complete();
     }
 
+    public void Start(ILspServices lspServices)
+    {
+        // Start the queue processing
+        _queueProcessingTask = ProcessQueueAsync(lspServices);
+    }
+
     public Task ExecuteAsync<TRequestType>(
         bool mutatesSolutionState,
         bool requiresLSPSolution,
         INotificationHandler<TRequestType, RequestContextType> handler,
         TRequestType request,
         string methodName,
+        ILspServices lspServices,
         CancellationToken requestCancellationToken)
     {
         var combinedTokenSource = _cancelSource.Token.CombineWith(requestCancellationToken);
@@ -122,6 +138,7 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
             textDocument: null,
             request,
             handler,
+            lspServices,
             combinedCancellationToken);
 
         _ = resultTask.ContinueWith(_ => combinedTokenSource.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
@@ -141,6 +158,7 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
         bool requiresLSPSolution,
         INotificationHandler<RequestContextType> handler,
         string methodName,
+        ILspServices lspServices,
         CancellationToken requestCancellationToken)
     {
         var combinedTokenSource = _cancelSource.Token.CombineWith(requestCancellationToken);
@@ -151,6 +169,7 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
             methodName,
             textDocument: null,
             handler,
+            lspServices,
             combinedCancellationToken);
 
         _ = resultTask.ContinueWith(_ => combinedTokenSource.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
@@ -187,6 +206,7 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
         IRequestHandler<TRequestType, TResponseType, RequestContextType> handler,
         TRequestType request,
         string methodName,
+        ILspServices lspServices,
         CancellationToken requestCancellationToken)
     {
         // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
@@ -204,6 +224,7 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
             textDocument,
             request,
             handler,
+            lspServices,
             combinedCancellationToken);
 
         // Run a continuation to ensure the cts is disposed of.
@@ -230,6 +251,7 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
         Uri? textDocument,
         TRequestType request,
         IRequestHandler<TRequestType, TResponseType, RequestContextType> handler,
+        ILspServices lspServices,
         CancellationToken cancellationToken)
     {
         return QueueItem<TRequestType, TResponseType, RequestContextType>.Create(mutatesSolutionState,
@@ -239,9 +261,9 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
             request,
             handler,
             _logger,
-            _lspServices,
             cancellationToken);
     }
+
     public virtual (IQueueItem<RequestContextType>, Task) CreateQueueItem<TRequestType>(
         bool mutatesSolutionState,
         bool requiresLSPSolution,
@@ -249,6 +271,7 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
         Uri? textDocument,
         TRequestType request,
         INotificationHandler<TRequestType, RequestContextType> handler,
+        ILspServices lspServices,
         CancellationToken cancellationToken)
     {
         return QueueItem<TRequestType, VoidReturn, RequestContextType>.Create(mutatesSolutionState,
@@ -258,7 +281,6 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
             request,
             handler,
             _logger,
-            _lspServices,
             cancellationToken);
     }
 
@@ -268,6 +290,7 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
         string methodName,
         Uri? textDocument,
         INotificationHandler<RequestContextType> handler,
+        ILspServices lspServices,
         CancellationToken cancellationToken)
     {
         return QueueItem<VoidReturn, VoidReturn, RequestContextType>.Create(mutatesSolutionState,
@@ -277,11 +300,10 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
             VoidReturn.Instance,
             handler,
             _logger,
-            _lspServices,
             cancellationToken);
     }
 
-    private async Task ProcessQueueAsync()
+    private async Task ProcessQueueAsync(ILspServices lspServices)
     {
         try
         {
@@ -307,7 +329,7 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
                     // Record when the work item was been de-queued and the request context preparation started.
                     work.OnExecutionStart();
 
-                    var requestContextFactory = GetRequestContextFactory(_lspServices);
+                    var requestContextFactory = lspServices.GetRequiredService<IRequestContextFactory<RequestContextType>>();
                     var context = await requestContextFactory.CreateRequestContextAsync(work, queueCancellationToken: this.CancellationToken, requestCancellationToken: cancellationToken);
 
                     if (work.MutatesSolutionState)
@@ -345,7 +367,7 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
         }
     }
 
-    public virtual IRequestContextFactory<RequestContextType> GetRequestContextFactory(ILspServices lspServices)
+    protected virtual IRequestContextFactory<RequestContextType> GetRequestContextFactory(ILspServices lspServices)
     {
         return lspServices.GetRequiredService<IRequestContextFactory<RequestContextType>>();
     }

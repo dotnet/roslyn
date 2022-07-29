@@ -18,7 +18,7 @@ namespace CommonLanguageServerProtocol.Framework;
 /// Aggregates handlers for the specified languages and dispatches LSP requests
 /// to the appropriate handler for the request.
 /// </summary>
-public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestContextType> where RequestContextType : IRequestContext
+public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestContextType>
 {
     private ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>>? _requestHandlers;
     protected ILspServices _lspServices;
@@ -28,7 +28,7 @@ public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestC
         _lspServices = lspServices;
     }
 
-    public virtual ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>> GetRequestHandlers()
+    protected virtual ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>> GetRequestHandlers()
     {
         if (_requestHandlers is null)
         {
@@ -41,7 +41,7 @@ public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestC
     public async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(
         string methodName,
         TRequestType request,
-        RequestExecutionQueue<RequestContextType> queue,
+        IRequestExecutionQueue<RequestContextType> queue,
         CancellationToken cancellationToken)
     {
         // Get the handler matching the requested method.
@@ -60,7 +60,7 @@ public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestC
         return result;
     }
 
-    public async Task ExecuteNotificationAsync<TRequestType>(string methodName, TRequestType request, RequestExecutionQueue<RequestContextType> queue, CancellationToken cancellationToken)
+    public async Task ExecuteNotificationAsync<TRequestType>(string methodName, TRequestType request, IRequestExecutionQueue<RequestContextType> queue, CancellationToken cancellationToken)
     {
         var handler = GetRequestHandler(methodName, typeof(TRequestType), responseType: null);
 
@@ -74,7 +74,7 @@ public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestC
     }
 
     protected virtual Task ExecuteNotificationAsync<TRequestType>(
-        RequestExecutionQueue<RequestContextType> queue,
+        IRequestExecutionQueue<RequestContextType> queue,
         bool mutatesSolutionState,
         bool requiresLSPSolution,
         INotificationHandler<TRequestType, RequestContextType> handler,
@@ -82,10 +82,10 @@ public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestC
         string methodName,
         CancellationToken cancellationToken)
     {
-        return queue.ExecuteAsync(mutatesSolutionState, requiresLSPSolution, handler, request, methodName, cancellationToken);
+        return queue.ExecuteAsync(mutatesSolutionState, requiresLSPSolution, handler, request, methodName, _lspServices, cancellationToken);
     }
 
-    public async Task ExecuteNotificationAsync(string methodName, RequestExecutionQueue<RequestContextType> queue, CancellationToken cancellationToken)
+    public async Task ExecuteNotificationAsync(string methodName, IRequestExecutionQueue<RequestContextType> queue, CancellationToken cancellationToken)
     {
         var handler = GetRequestHandler(methodName, requestType: null, responseType: null);
 
@@ -98,9 +98,9 @@ public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestC
         await ExecuteNotificationAsync(queue, handler.MutatesSolutionState, handler.RequiresLSPSolution, strongHandler, methodName, cancellationToken).ConfigureAwait(false);
     }
 
-    protected virtual Task ExecuteNotificationAsync(RequestExecutionQueue<RequestContextType> queue, bool mutatesSolutionState, bool requiresLSPSolution, INotificationHandler<RequestContextType> handler, string methodName, CancellationToken cancellationToken)
+    protected virtual Task ExecuteNotificationAsync(IRequestExecutionQueue<RequestContextType> queue, bool mutatesSolutionState, bool requiresLSPSolution, INotificationHandler<RequestContextType> handler, string methodName, CancellationToken cancellationToken)
     {
-        return queue.ExecuteAsync(mutatesSolutionState, requiresLSPSolution, handler, methodName, cancellationToken);
+        return queue.ExecuteAsync(mutatesSolutionState, requiresLSPSolution, handler, methodName, _lspServices, cancellationToken);
     }
 
     private IRequestHandler GetRequestHandler(string method, Type? requestType, Type? responseType)
@@ -114,7 +114,7 @@ public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestC
     }
 
     protected virtual Task<TResponseType> ExecuteRequestAsync<TRequestType, TResponseType>(
-        RequestExecutionQueue<RequestContextType> queue,
+        IRequestExecutionQueue<RequestContextType> queue,
         bool mutatesSolutionState,
         bool requiresLSPSolution,
         IRequestHandler<TRequestType, TResponseType, RequestContextType> handler,
@@ -122,7 +122,7 @@ public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestC
         string methodName,
         CancellationToken cancellationToken)
     {
-        return queue.ExecuteAsync(mutatesSolutionState, requiresLSPSolution, handler, request, methodName, cancellationToken);
+        return queue.ExecuteAsync(mutatesSolutionState, requiresLSPSolution, handler, request, methodName, _lspServices, cancellationToken);
     }
 
     public ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 internal class RoslynLifeCycleManager : LifeCycleManager<RequestContext>, ILspService
 {
-    public RoslynLifeCycleManager(LanguageServerTarget<RequestContext> languageServerTarget) : base(languageServerTarget)
+    public RoslynLifeCycleManager(LanguageServer<RequestContext> languageServerTarget) : base(languageServerTarget)
     {
     }
 }

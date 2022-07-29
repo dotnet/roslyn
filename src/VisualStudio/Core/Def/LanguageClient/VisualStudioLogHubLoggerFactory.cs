@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         public async Task<IRoslynLspLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken)
         {
             var logName = $"Roslyn.{serverTypeName}.{Interlocked.Increment(ref s_logHubSessionId)}";
-            var logId = new LogId(logName, new ServiceMoniker(typeof(LanguageServerTarget<>).FullName));
+            var logId = new LogId(logName, new ServiceMoniker(typeof(LanguageServer<>).FullName));
 
             var serviceContainer = await _asyncServiceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
             var service = serviceContainer.GetFullAccessServiceBroker();

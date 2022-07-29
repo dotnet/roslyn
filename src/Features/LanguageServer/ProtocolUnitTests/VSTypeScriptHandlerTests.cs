@@ -88,7 +88,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         return await TestLspServer.CreateAsync(testWorkspace, new ClientCapabilities(), languageServerTarget, clientStream);
     }
 
-    private static RoslynLanguageServerTarget CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace)
+    private static RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace)
     {
         var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
         var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
@@ -101,7 +101,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
 
         var logger = NoOpLspLogger.Instance;
 
-        var languageServer = new RoslynLanguageServerTarget(
+        var languageServer = new RoslynLanguageServer(
             servicesProvider, jsonRpc,
             capabilitiesProvider,
             listenerProvider,

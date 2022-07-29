@@ -19,7 +19,6 @@ internal record VoidReturn
 }
 
 public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueueItem<RequestContextType>
-    where RequestContextType : IRequestContext
 {
     private readonly ILspLogger _logger;
 
@@ -71,7 +70,6 @@ public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueue
         TRequestType request,
         IRequestHandler handler,
         ILspLogger logger,
-        ILspServices lspServices,
         CancellationToken cancellationToken)
     {
         var queueItem = new QueueItem<TRequestType, TResponseType, RequestContextType>(
@@ -130,6 +128,10 @@ public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueue
                     await parameterlessNotificationHandler.HandleNotificationAsync(context, cancellationToken).ConfigureAwait(false);
 
                     _completionSource.TrySetResult(default);
+                }
+                else
+                {
+                    throw new NotImplementedException($"Unrecognized {nameof(IRequestHandler)} implementation {_handler.GetType().Name}");
                 }
             }
         }

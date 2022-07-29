@@ -8,24 +8,24 @@ using System.Threading.Tasks;
 
 namespace CommonLanguageServerProtocol.Framework;
 
-public interface IRequestDispatcher<RequestContextType> where RequestContextType : IRequestContext
+public interface IRequestDispatcher<RequestContextType>
 {
     ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods();
 
     Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(
         string methodName,
         TRequestType request,
-        RequestExecutionQueue<RequestContextType> queue,
+        IRequestExecutionQueue<RequestContextType> queue,
         CancellationToken cancellationToken);
 
     Task ExecuteNotificationAsync<TRequestType>(
         string methodName,
         TRequestType request,
-        RequestExecutionQueue<RequestContextType> queue,
+        IRequestExecutionQueue<RequestContextType> queue,
         CancellationToken cancellationToken);
 
     Task ExecuteNotificationAsync(
         string methodName,
-        RequestExecutionQueue<RequestContextType> queue,
+        IRequestExecutionQueue<RequestContextType> queue,
         CancellationToken cancellationToken);
 }

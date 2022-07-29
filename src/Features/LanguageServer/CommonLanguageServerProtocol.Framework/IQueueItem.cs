@@ -10,21 +10,17 @@ namespace CommonLanguageServerProtocol.Framework;
 
 #nullable enable
 
-public interface IRequestContext
-{
-}
-
-public interface IQueueItem<RequestContextType> where RequestContextType : IRequestContext
+public interface IQueueItem<RequestContextType>
 {
     /// <summary>
     /// Begins executing the work specified by this queue item.
     /// </summary>
     Task CallbackAsync(RequestContextType? context, CancellationToken cancellationToken);
 
-    /// <inheritdoc cref="IRequestHandler{RequestContextType}.RequiresLSPSolution" />
+    /// <inheritdoc cref="IRequestHandler.RequiresLSPSolution" />
     bool RequiresLSPSolution { get; }
 
-    /// <inheritdoc cref="IRequestHandler{RequestContextType}.MutatesSolutionState" />
+    /// <inheritdoc cref="IRequestHandler.MutatesSolutionState" />
     bool MutatesSolutionState { get; }
 
     string MethodName { get; }

@@ -9,6 +9,7 @@ using StreamJsonRpc;
 
 namespace CommonLanguageServerProtocol.Framework;
 
+// TODO: Seems like we might not need it?
 public interface ILanguageServer : IAsyncDisposable
 {
 }

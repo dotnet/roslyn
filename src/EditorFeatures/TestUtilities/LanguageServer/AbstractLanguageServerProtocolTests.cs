@@ -481,7 +481,7 @@ namespace Roslyn.Test.Utilities
         {
             public readonly TestWorkspace TestWorkspace;
             private readonly Dictionary<string, IList<LSP.Location>> _locations;
-            private readonly RoslynLanguageServerTarget _languageServer;
+            private readonly RoslynLanguageServer _languageServer;
             private readonly JsonRpc _clientRpc;
 
             public LSP.ClientCapabilities ClientCapabilities { get; }
@@ -507,7 +507,7 @@ namespace Roslyn.Test.Utilities
                 TestWorkspace testWorkspace,
                 Dictionary<string, IList<LSP.Location>> locations,
                 LSP.ClientCapabilities clientCapabilities,
-                RoslynLanguageServerTarget target,
+                RoslynLanguageServer target,
                 Stream clientStream)
             {
                 TestWorkspace = testWorkspace;
@@ -552,7 +552,7 @@ namespace Roslyn.Test.Utilities
                 return server;
             }
 
-            internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, LSP.ClientCapabilities clientCapabilities, RoslynLanguageServerTarget target, Stream clientStream)
+            internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, LSP.ClientCapabilities clientCapabilities, RoslynLanguageServer target, Stream clientStream)
             {
                 var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
                 var server = new TestLspServer(testWorkspace, locations, clientCapabilities, target, clientStream);
@@ -565,7 +565,7 @@ namespace Roslyn.Test.Utilities
                 return server;
             }
 
-            private static RoslynLanguageServerTarget CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, WellKnownLspServerKinds serverKind)
+            private static RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, WellKnownLspServerKinds serverKind)
             {
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
                 var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
@@ -577,7 +577,7 @@ namespace Roslyn.Test.Utilities
                 };
 
                 var logger = NoOpLspLogger.Instance;
-                var languageServer = new RoslynLanguageServerTarget(
+                var languageServer = new RoslynLanguageServer(
                     servicesProvider, jsonRpc,
                     capabilitiesProvider,
                     listenerProvider,
@@ -660,7 +660,7 @@ namespace Roslyn.Test.Utilities
 
             internal LspWorkspaceManager GetManager() => GetRequiredLspService<LspWorkspaceManager>();
 
-            internal RoslynLanguageServerTarget.TestAccessor GetServerAccessor() => _languageServer.GetTestAccessor();
+            internal RoslynLanguageServer.TestAccessor GetServerAccessor() => _languageServer.GetTestAccessor();
 
             internal T GetRequiredLspService<T>() where T : class, ILspService => _languageServer.GetTestAccessor().GetRequiredLspService<T>();
 

@@ -57,13 +57,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                 _feedbackService = feedbackService;
             }
 
-            public override ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>> GetRequestHandlers()
+            protected override ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>> GetRequestHandlers()
             {
                 throw new NotImplementedException();
             }
 
             protected override async Task<TResponseType> ExecuteRequestAsync<TRequestType, TResponseType>(
-                RequestExecutionQueue<RequestContext> queue, bool mutatesSolutionState, bool requiresLSPSolution,
+                IRequestExecutionQueue<RequestContext> queue, bool mutatesSolutionState, bool requiresLSPSolution,
                 IRequestHandler<TRequestType, TResponseType, RequestContext> handler, TRequestType request, string methodName, CancellationToken cancellationToken)
             {
                 var textDocument = handler.GetTextDocumentUri(request);

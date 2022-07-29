@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -21,9 +22,11 @@ internal class AbstractLspServiceProvider
         _lspServiceFactories = lspServiceFactories.ToImmutableArray();
     }
 
-    public LspServices CreateServices(string serverKind, ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> baseServices)
+    public LspServices CreateServices(string serverKind, ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> baseServices, IServiceCollection serviceCollection)
     {
         var serverEnum = WellKnownLspServerExtensions.WellKnownLspServerKindsFromString(serverKind);
-        return new LspServices(_lspServices, _lspServiceFactories, serverEnum, baseServices);
+        var lspServices = new LspServices(_lspServices, _lspServiceFactories, serverEnum, baseServices, serviceCollection);
+
+        return lspServices;
     }
 }

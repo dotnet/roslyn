@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// <summary>
         /// Created when <see cref="ActivateAsync"/> is called.
         /// </summary>
-        private LanguageServerTarget<RequestContext>? _languageServer;
+        private LanguageServer<RequestContext>? _languageServer;
 
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-            _languageServer = (LanguageServerTarget<RequestContext>)await CreateAsync<RequestContext>(
+            _languageServer = (LanguageServer<RequestContext>)await CreateAsync<RequestContext>(
                 this,
                 serverStream,
                 serverStream,
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             Stream inputStream,
             Stream outputStream,
             IRoslynLspLoggerFactory lspLoggerFactory,
-            CancellationToken cancellationToken) where RequestContextType : IRequestContext
+            CancellationToken cancellationToken)
         {
             var jsonMessageFormatter = new JsonMessageFormatter();
             VSInternalExtensionUtilities.AddVSInternalExtensionConverters(jsonMessageFormatter.JsonSerializer);
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             ICapabilitiesProvider capabilitiesProvider,
             IRoslynLspLogger logger)
         {
-            return new RoslynLanguageServerTarget(
+            return new RoslynLanguageServer(
                 _lspServiceProvider,
                 jsonRpc,
                 capabilitiesProvider,

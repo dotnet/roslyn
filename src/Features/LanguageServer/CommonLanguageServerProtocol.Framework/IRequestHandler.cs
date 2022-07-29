@@ -31,7 +31,7 @@ public interface IRequestHandler
     bool RequiresLSPSolution { get; }
 }
 
-public interface IRequestHandler<RequestType, ResponseType, RequestContextType> : IRequestHandler where RequestContextType : IRequestContext
+public interface IRequestHandler<RequestType, ResponseType, RequestContextType> : IRequestHandler
 {
     /// <summary>
     /// Gets the <see cref="Uri"/> of the document from the request, if the request provides one.
