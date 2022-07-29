@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineRename;
@@ -172,11 +173,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             get
             {
+                _threadingContext.ThrowIfNotOnUIThread();
+
                 return _activeRenameSession;
             }
 
             set
             {
+                _threadingContext.ThrowIfNotOnUIThread();
+
                 var previousSession = _activeRenameSession;
                 _activeRenameSession = value;
                 ActiveSessionChanged?.Invoke(this, new ActiveSessionChangedEventArgs(previousSession!));
