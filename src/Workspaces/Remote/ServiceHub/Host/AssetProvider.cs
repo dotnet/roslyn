@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<List<ValueTuple<Checksum, T>>> GetAssetsAsync<T>(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<ValueTuple<Checksum, T>>> GetAssetsAsync<T>(HashSet<Checksum> checksums, CancellationToken cancellationToken)
         {
             // this only works when caller wants to get same kind of assets at once
 
@@ -60,16 +60,14 @@ namespace Microsoft.CodeAnalysis.Remote
             var syncer = new ChecksumSynchronizer(this);
             await syncer.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
 
-            var list = new List<ValueTuple<Checksum, T>>();
+            using var _ = ArrayBuilder<ValueTuple<Checksum, T>>.GetInstance(checksums.Count, out var list);
             foreach (var checksum in checksums)
-            {
                 list.Add(ValueTuple.Create(checksum, await GetAssetAsync<T>(checksum, cancellationToken).ConfigureAwait(false)));
-            }
 
-            return list;
+            return list.ToImmutable();
         }
 
-        public async Task SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             var timer = new Stopwatch();
             timer.Start();

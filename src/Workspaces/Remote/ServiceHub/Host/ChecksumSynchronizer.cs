@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public ChecksumSynchronizer(AssetProvider assetProvider)
             => _assetProvider = assetProvider;
 
-        public async Task SynchronizeAssetsAsync(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeAssetsAsync(HashSet<Checksum> checksums, CancellationToken cancellationToken)
         {
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Remote
             await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task SynchronizeAssets_NoLockAsync(IEnumerable<object> checksumOrCollections, CancellationToken cancellationToken)
+        private async ValueTask SynchronizeAssets_NoLockAsync(IReadOnlyCollection<object> checksumOrCollections, CancellationToken cancellationToken)
         {
             // get children of solution checksum object at once
             using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();

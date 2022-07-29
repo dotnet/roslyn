@@ -55,8 +55,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var stored = await provider.GetAssetAsync<object>(checksum, CancellationToken.None);
             Assert.Equal(data, stored);
 
-            var stored2 = await provider.GetAssetsAsync<object>(new[] { checksum }, CancellationToken.None);
-            Assert.Equal(1, stored2.Count);
+            var stored2 = await provider.GetAssetsAsync<object>(new HashSet<Checksum> { checksum }, CancellationToken.None);
+            Assert.Equal(1, stored2.Length);
 
             Assert.Equal(checksum, stored2[0].Item1);
             Assert.Equal(data, stored2[0].Item2);
