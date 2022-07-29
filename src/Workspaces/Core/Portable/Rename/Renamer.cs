@@ -235,10 +235,9 @@ namespace Microsoft.CodeAnalysis.Rename
             if (client != null)
             {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
-                // make sure we transition to canceled if the caller cancels this work.
+                // make sure we transition to canceled if the caller cancels this work.  This way even if OOP doesn't
+                // call back to complete us, we won't hang anyone awaiting on us.
                 cancellationToken.Register(static s => ((TaskCompletionSource<bool>)s!).TrySetResult(true), taskCompletionSource);
-
-                var keepAliveConnection = new KeepAliveConnection(taskCompletionSource);
 
                 // Kick off the keep alive task.  Once it has pinned the solution it will call back into
                 // KeepAliveConnection to let us know so that things can proceed. It will terminate when the provided
@@ -246,33 +245,10 @@ namespace Microsoft.CodeAnalysis.Rename
                 var unused = client.TryInvokeAsync<IRemoteRenamerService>(
                     solution,
                     (service, solutionInfo, callbackId, cancellationToken) => service.KeepAliveAsync(solutionInfo, callbackId, cancellationToken),
-                    callbackTarget: keepAliveConnection,
+                    callbackTarget: taskCompletionSource,
                     cancellationToken).AsTask();
 
                 await taskCompletionSource.Task.ConfigureAwait(false);
-            }
-        }
-
-        internal sealed class KeepAliveConnection
-        {
-            /// <summary>
-            /// Used to keep track if <see cref="KeepAliveAsync"/> has been called by the oop server.
-            /// </summary>
-            private readonly TaskCompletionSource<bool> _keepAliveCalledSource;
-
-            public KeepAliveConnection(TaskCompletionSource<bool> keepAliveCalledSource)
-            {
-                _keepAliveCalledSource = keepAliveCalledSource;
-            }
-
-            /// <summary>
-            /// Callback from OOP into the host side.  This allows OOP to tell us when it has successfully hydrated and
-            /// pinned the solution snapshot on its side.
-            /// </summary>
-            public ValueTask KeepAliveAsync()
-            {
-                _keepAliveCalledSource.TrySetResult(false);
-                return default;
             }
         }
     }
