@@ -19,6 +19,10 @@ namespace Microsoft.CodeAnalysis.Rename
         /// </summary>
         internal interface IKeepAliveSession : IDisposable
         {
+            /// <summary>
+            /// Task to await while waiting for the session to get ready.
+            /// </summary>
+            Task ReadyTask { get; }
         }
 
         /// <summary>
@@ -27,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Rename
         private sealed class NoOpKeepAliveSession : IKeepAliveSession
         {
             public static readonly IKeepAliveSession Instance = new NoOpKeepAliveSession();
+
+            public Task ReadyTask => Task.CompletedTask;
 
             private NoOpKeepAliveSession()
             {
@@ -41,9 +47,12 @@ namespace Microsoft.CodeAnalysis.Rename
         {
             private readonly ReferenceCountedDisposable<KeepAliveConnection> _keepAliveConnection;
 
-            public KeepAliveSession(ReferenceCountedDisposable<KeepAliveConnection> keepAliveConnection)
+            public Task ReadyTask { get; }
+
+            public KeepAliveSession(ReferenceCountedDisposable<KeepAliveConnection> keepAliveConnection, Task readyTask)
             {
                 _keepAliveConnection = keepAliveConnection;
+                ReadyTask = readyTask;
             }
 
             ~KeepAliveSession()

@@ -246,10 +246,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     callbackTarget: keepAliveConnection,
                     keepAliveConnection.CancellationToken);
 
-                // wait for OOP to call back into us.  Once they do, we'll know they've pinned this solution.
-                await keepAliveConnection.KeepAliveCalledTask.ConfigureAwait(false);
-
-                return new KeepAliveSession(refCountedConnection.TryAddReference() ?? throw ExceptionUtilities.Unreachable);
+                return new KeepAliveSession(refCountedConnection.TryAddReference() ?? throw ExceptionUtilities.Unreachable, keepAliveConnection.KeepAliveCalledTask);
             }
 
             return NoOpKeepAliveSession.Instance;
