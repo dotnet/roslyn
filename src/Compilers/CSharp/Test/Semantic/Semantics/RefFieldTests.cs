@@ -538,6 +538,220 @@ ref struct R
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "_v2").WithArguments("volatile").WithLocation(9, 31));
         }
 
+        [Fact, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
+        public void ScopedReserved_Alias_Escaped()
+        {
+            var source = """
+using @scoped = System.Int32;
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using @scoped = System.Int32;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @scoped = System.Int32;").WithLocation(1, 1)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using @scoped = System.Int32;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @scoped = System.Int32;").WithLocation(1, 1)
+                );
+        }
+
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
+        public void InitRefField_AutoDefault()
+        {
+            var source = """
+using System;
+
+var x = 42;
+scoped var r = new R();
+r.field = ref x;
+
+ref struct R
+{
+    public ref int field;
+
+    public R()
+    {
+        Console.WriteLine("explicit ctor");
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
+            verifier.VerifyIL("R..ctor()", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  stfld      ""ref int R.field""
+  IL_0008:  ldstr      ""explicit ctor""
+  IL_000d:  call       ""void System.Console.WriteLine(string)""
+  IL_0012:  ret
+}");
+        }
+
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
+        public void InitRefField_UnsafeNullRef()
+        {
+            var source = """
+using System;
+
+var x = 42;
+scoped var r = new R();
+r.field = ref x;
+
+ref struct R
+{
+    public ref int field;
+
+    public R()
+    {
+        field = ref System.Runtime.CompilerServices.Unsafe.NullRef<int>();
+        Console.WriteLine("explicit ctor");
+    }
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
+            verifier.VerifyIL("R..ctor()", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref int System.Runtime.CompilerServices.Unsafe.NullRef<int>()""
+  IL_0006:  stfld      ""ref int R.field""
+  IL_000b:  ldstr      ""explicit ctor""
+  IL_0010:  call       ""void System.Console.WriteLine(string)""
+  IL_0015:  ret
+}");
+        }
+
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
+        public void InitRefField_AutoDefault_RefReadonly()
+        {
+            var source = """
+using System;
+
+var x = 42;
+scoped var r = new R();
+r.field = ref x;
+
+ref struct R
+{
+    public ref readonly int field;
+
+    public R()
+    {
+        Console.WriteLine("explicit ctor");
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
+            verifier.VerifyIL("R..ctor()", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  stfld      ""ref readonly int R.field""
+  IL_0008:  ldstr      ""explicit ctor""
+  IL_000d:  call       ""void System.Console.WriteLine(string)""
+  IL_0012:  ret
+}");
+        }
+
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
+        public void InitRefField_AutoDefault_ReadonlyRef()
+        {
+            var source = """
+using System;
+
+var r = new R();
+
+ref struct R
+{
+    public readonly ref int field;
+
+    public R()
+    {
+        Console.WriteLine("explicit ctor");
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,29): warning CS0649: Field 'R.field' is never assigned to, and will always have its default value 0
+                //     public readonly ref int field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("R.field", "0").WithLocation(7, 29)
+                );
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
+            verifier.VerifyIL("R..ctor()", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  stfld      ""ref int R.field""
+  IL_0008:  ldstr      ""explicit ctor""
+  IL_000d:  call       ""void System.Console.WriteLine(string)""
+  IL_0012:  ret
+}");
+        }
+
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
+        public void InitRefField_AutoDefault_WithOtherFieldInitializer()
+        {
+            var source = """
+using System;
+
+var x = 42;
+scoped var r = new R();
+r.field = ref x;
+
+ref struct R
+{
+    public ref int field;
+    public int otherField = 42;
+
+    public R()
+    {
+        Console.WriteLine("explicit ctor");
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
+            verifier.VerifyIL("R..ctor()", @"
+ {
+  // Code size       27 (0x1b)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  stfld      ""ref int R.field""
+  IL_0008:  ldarg.0
+  IL_0009:  ldc.i4.s   42
+  IL_000b:  stfld      ""int R.otherField""
+  IL_0010:  ldstr      ""explicit ctor""
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ret
+}");
+        }
+
         /// <summary>
         /// Unexpected modreq().
         /// </summary>
@@ -12570,220 +12784,6 @@ using scoped = System.Int32;
                 // using scoped = System.Int32;
                 Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 7)
                 );
-        }
-
-        [Fact, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
-        public void ScopedReserved_Alias_Escaped()
-        {
-            var source = """
-using @scoped = System.Int32;
-""";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (1,1): hidden CS8019: Unnecessary using directive.
-                // using @scoped = System.Int32;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @scoped = System.Int32;").WithLocation(1, 1)
-                );
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
-            comp.VerifyDiagnostics(
-                // (1,1): hidden CS8019: Unnecessary using directive.
-                // using @scoped = System.Int32;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @scoped = System.Int32;").WithLocation(1, 1)
-                );
-        }
-
-        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
-        public void InitRefField_AutoDefault()
-        {
-            var source = """
-using System;
-
-var x = 42;
-scoped var r = new R();
-r.field = ref x;
-
-ref struct R
-{
-    public ref int field;
-
-    public R()
-    {
-        Console.WriteLine("explicit ctor");
-    }
-}
-""";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
-            verifier.VerifyIL("R..ctor()", @"
-{
-  // Code size       19 (0x13)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  conv.u
-  IL_0003:  stfld      ""ref int R.field""
-  IL_0008:  ldstr      ""explicit ctor""
-  IL_000d:  call       ""void System.Console.WriteLine(string)""
-  IL_0012:  ret
-}");
-        }
-
-        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
-        public void InitRefField_UnsafeNullRef()
-        {
-            var source = """
-using System;
-
-var x = 42;
-scoped var r = new R();
-r.field = ref x;
-
-ref struct R
-{
-    public ref int field;
-
-    public R()
-    {
-        field = ref System.Runtime.CompilerServices.Unsafe.NullRef<int>();
-        Console.WriteLine("explicit ctor");
-    }
-}
-""";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
-            comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
-            verifier.VerifyIL("R..ctor()", @"
-{
-  // Code size       22 (0x16)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""ref int System.Runtime.CompilerServices.Unsafe.NullRef<int>()""
-  IL_0006:  stfld      ""ref int R.field""
-  IL_000b:  ldstr      ""explicit ctor""
-  IL_0010:  call       ""void System.Console.WriteLine(string)""
-  IL_0015:  ret
-}");
-        }
-
-        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
-        public void InitRefField_AutoDefault_RefReadonly()
-        {
-            var source = """
-using System;
-
-var x = 42;
-scoped var r = new R();
-r.field = ref x;
-
-ref struct R
-{
-    public ref readonly int field;
-
-    public R()
-    {
-        Console.WriteLine("explicit ctor");
-    }
-}
-""";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
-            verifier.VerifyIL("R..ctor()", @"
-{
-  // Code size       19 (0x13)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  conv.u
-  IL_0003:  stfld      ""ref readonly int R.field""
-  IL_0008:  ldstr      ""explicit ctor""
-  IL_000d:  call       ""void System.Console.WriteLine(string)""
-  IL_0012:  ret
-}");
-        }
-
-        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
-        public void InitRefField_AutoDefault_ReadonlyRef()
-        {
-            var source = """
-using System;
-
-var r = new R();
-
-ref struct R
-{
-    public readonly ref int field;
-
-    public R()
-    {
-        Console.WriteLine("explicit ctor");
-    }
-}
-""";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (7,29): warning CS0649: Field 'R.field' is never assigned to, and will always have its default value 0
-                //     public readonly ref int field;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("R.field", "0").WithLocation(7, 29)
-                );
-
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
-            verifier.VerifyIL("R..ctor()", @"
-{
-  // Code size       19 (0x13)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  conv.u
-  IL_0003:  stfld      ""ref int R.field""
-  IL_0008:  ldstr      ""explicit ctor""
-  IL_000d:  call       ""void System.Console.WriteLine(string)""
-  IL_0012:  ret
-}");
-        }
-
-        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
-        public void InitRefField_AutoDefault_WithOtherFieldInitializer()
-        {
-            var source = """
-using System;
-
-var x = 42;
-scoped var r = new R();
-r.field = ref x;
-
-ref struct R
-{
-    public ref int field;
-    public int otherField = 42;
-
-    public R()
-    {
-        Console.WriteLine("explicit ctor");
-    }
-}
-""";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
-            comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
-            verifier.VerifyIL("R..ctor()", @"
- {
-  // Code size       27 (0x1b)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  conv.u
-  IL_0003:  stfld      ""ref int R.field""
-  IL_0008:  ldarg.0
-  IL_0009:  ldc.i4.s   42
-  IL_000b:  stfld      ""int R.otherField""
-  IL_0010:  ldstr      ""explicit ctor""
-  IL_0015:  call       ""void System.Console.WriteLine(string)""
-  IL_001a:  ret
-}");
         }
     }
 }
