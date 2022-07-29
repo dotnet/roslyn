@@ -1,1 +1,1 @@
-Metalama.Backstage=0.5.11-preview;PostSharp.Engineering=1.0.70-preview
+{"Dependencies":{"PostSharp.Engineering":"1.0.84","Metalama.Backstage":"0.5.13"}}
