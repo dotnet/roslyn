@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                                 prefix,
                                 suffix,
                                 renameDeclarationLocations: renameDeclarationLocations,
-                                isOriginalTextLocation: false,
+                                isOriginalTextLocation: token.ValueText == originalText,
                                 isNamespaceDeclarationReference: isNamespaceDeclarationReference,
                                 isInvocationExpression: false,
                                 isMemberGroupReference: isMemberGroupReference);
