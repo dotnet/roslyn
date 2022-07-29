@@ -5,7 +5,7 @@ set -e
 usage()
 {
     echo "Usage: $0 [BuildArch] [CodeName] [lldbx.y] [llvmx[.y]] [--skipunmount] --rootfsdir <directory>]"
-    echo "BuildArch can be: arm(default), armel, arm64, x86, x64"
+    echo "BuildArch can be: arm(default), arm64, armel, armv6, ppc64le, riscv64, s390x, x64, x86"
     echo "CodeName - optional, Code name for Linux, can be: xenial(default), zesty, bionic, alpine, alpine3.13 or alpine3.14. If BuildArch is armel, LinuxCodeName is jessie(default) or tizen."
     echo "                              for FreeBSD can be: freebsd12, freebsd13"
     echo "                              for illumos can be: illumos."
@@ -104,15 +104,6 @@ while :; do
             __AlpineArch=armv7
             __QEMUArch=arm
             ;;
-        armv6)
-            __BuildArch=armv6
-            __UbuntuArch=armhf
-            __QEMUArch=arm
-            __UbuntuRepo="http://raspbian.raspberrypi.org/raspbian/"
-            __CodeName=buster
-            __LLDB_Package="liblldb-6.0-dev"
-            __Keyring="--keyring /usr/share/keyrings/raspbian-archive-keyring.gpg"
-            ;;
         arm64)
             __BuildArch=arm64
             __UbuntuArch=arm64
@@ -127,6 +118,18 @@ while :; do
             __UbuntuRepo="http://ftp.debian.org/debian/"
             __CodeName=jessie
             ;;
+        armv6)
+            __BuildArch=armv6
+            __UbuntuArch=armhf
+            __QEMUArch=arm
+            __UbuntuRepo="http://raspbian.raspberrypi.org/raspbian/"
+            __CodeName=buster
+            __LLDB_Package="liblldb-6.0-dev"
+
+            if [[ -e "/usr/share/keyrings/raspbian-archive-keyring.gpg" ]]; then
+                __Keyring="--keyring /usr/share/keyrings/raspbian-archive-keyring.gpg"
+            fi
+            ;;
         ppc64le)
             __BuildArch=ppc64le
             __UbuntuArch=ppc64el
@@ -135,6 +138,18 @@ while :; do
             __UbuntuPackages=$(echo ${__UbuntuPackages} | sed 's/ libomp-dev//')
             __UbuntuPackages=$(echo ${__UbuntuPackages} | sed 's/ libomp5//')
             unset __LLDB_Package
+            ;;
+        riscv64)
+            __BuildArch=riscv64
+            __UbuntuArch=riscv64
+            __UbuntuRepo="http://deb.debian.org/debian-ports"
+            __CodeName=sid
+            __UbuntuPackages=$(echo ${__UbuntuPackages} | sed 's/ libunwind8-dev//')
+            unset __LLDB_Package
+
+            if [[ -e "/usr/share/keyrings/debian-ports-archive-keyring.gpg" ]]; then
+                __Keyring="--keyring /usr/share/keyrings/debian-ports-archive-keyring.gpg --include=debian-ports-archive-keyring"
+            fi
             ;;
         s390x)
             __BuildArch=s390x
@@ -390,7 +405,7 @@ elif [[ -n "$__CodeName" ]]; then
         popd
     fi
 elif [[ "$__Tizen" == "tizen" ]]; then
-    ROOTFS_DIR="$__RootfsDir $__CrossDir/$__BuildArch/tizen-build-rootfs.sh"
+    ROOTFS_DIR="$__RootfsDir" "$__CrossDir/$__BuildArch/tizen-build-rootfs.sh"
 else
     echo "Unsupported target platform."
     usage;
