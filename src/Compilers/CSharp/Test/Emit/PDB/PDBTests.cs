@@ -107,11 +107,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             result.Diagnostics.Verify();
             Assert.True(result.Success);
 
-            outputCompilation.VerifyPdb(@"
+            var path1 = Path.Combine("Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint1.cs");
+            var path2 = Path.Combine("Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint2.cs");
+
+            outputCompilation.VerifyPdb($@"
 <symbols>
   <files>
-    <file id=""1"" name=""Microsoft.CodeAnalysis.Test.Utilities\Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator\hint1.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""D8-87-89-A3-FE-EA-FD-AB-49-31-5A-25-B0-05-6B-6F-00-00-C2-DD"" />
-    <file id=""2"" name=""Microsoft.CodeAnalysis.Test.Utilities\Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator\hint2.cs"" language=""C#"" checksumAlgorithm=""SHA256"" checksum=""64-A9-4B-81-04-84-18-CD-73-F7-F8-3B-06-32-4B-9C-F9-36-D4-7A-7B-D0-2F-34-ED-8C-B7-AA-48-43-55-35"" />
+    <file id=""1"" name=""{path1}"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""D8-87-89-A3-FE-EA-FD-AB-49-31-5A-25-B0-05-6B-6F-00-00-C2-DD"" />
+    <file id=""2"" name=""{path2}"" language=""C#"" checksumAlgorithm=""SHA256"" checksum=""64-A9-4B-81-04-84-18-CD-73-F7-F8-3B-06-32-4B-9C-F9-36-D4-7A-7B-D0-2F-34-ED-8C-B7-AA-48-43-55-35"" />
   </files>
 </symbols>", options: PdbValidationOptions.ExcludeMethods);
         }
