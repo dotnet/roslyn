@@ -791,7 +791,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                         // Get all rename locations for the current document.
                         var textSpanRenameContexts = locationsInDocument
-                            .Where(location => ShouldIncludeLocation(renameLocations, location))
+                            .Where(location => RenameUtilities.ShouldIncludeLocation(renameLocations, location))
                             .SelectAsArray(location => new LocationRenameContext(location, symbolContext));
 
                         // All textspan in the document documentId, that requires rename in String or Comment
@@ -840,25 +840,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
-
-            /// We try to rewrite all locations that are invalid candidate locations. If there is only
-            /// one location it must be the correct one (the symbol is ambiguous to something else)
-            /// and we always try to rewrite it.  If there are multiple locations, we only allow it
-            /// if the candidate reason allows for it).
-            internal static bool ShouldIncludeLocation(ImmutableArray<RenameLocation> renameLocations, RenameLocation location)
-            {
-                if (location.IsRenameInStringOrComment)
-                {
-                    return false;
-                }
-
-                if (renameLocations.Length == 1)
-                {
-                    return true;
-                }
-
-                return RenameLocation.ShouldRename(location);
             }
         }
     }
