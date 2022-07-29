@@ -3160,10 +3160,4 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
     <value>required</value>
     <comment>Used in the object initializer completion.</comment>
   </data>
-  <data name="Convert_0_to_record" xml:space="preserve">
-    <value>Convert '{0}' to record</value>
-  </data>
-  <data name="Convert_to_positional_record" xml:space="preserve">
-    <value>Convert to positional record</value>
-  </data>
 </root>
