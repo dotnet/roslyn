@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Rename
     internal interface IRemoteRenamerService
     {
         // TODO https://github.com/microsoft/vs-streamjsonrpc/issues/789 
-        internal interface ICallback
+        internal interface ICallback : IRemoteOptionsCallback<CodeCleanupOptions>
         {
             ValueTask<CodeCleanupOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken);
             ValueTask KeepAliveAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
