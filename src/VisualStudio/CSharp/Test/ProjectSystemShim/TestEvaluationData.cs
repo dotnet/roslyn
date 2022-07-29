@@ -15,7 +15,7 @@ internal sealed class TestEvaluationData : EvaluationData
     public string TargetPath { get; }
     public string AssemblyName { get; }
 
-    public TestEvaluationData(string projectFilePath, string targetPath, string assemblyName) 
+    public TestEvaluationData(string projectFilePath, string targetPath, string assemblyName)
     {
         ProjectFilePath = projectFilePath;
         TargetPath = targetPath;

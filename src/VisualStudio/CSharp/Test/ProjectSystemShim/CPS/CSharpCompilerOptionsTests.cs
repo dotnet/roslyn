@@ -114,9 +114,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         public async Task InvalidProjectOutputBinPaths_CPS3()
         {
             using var environment = new TestEnvironment();
-            using var project3 = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test3", binOutputPath: "Test.dll");
-            // Non-rooted output path is not allowed, it gets reset to a temp rooted path.
-            Assert.Equal(Path.Combine(Path.GetTempPath(), "Test.dll"), project3.BinOutputPath);
+
+            // Non-rooted output path is not allowed, the project system will handle the exception:
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test3", binOutputPath: "Test.dll"));
         }
 
         [WpfFact]
