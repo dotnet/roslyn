@@ -1326,6 +1326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         private bool IsValidUnscopedRefAttributeTarget()
         {
             return isNullOrValidAccessor(_getMethod) &&
@@ -1336,6 +1337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return accessor is null || accessor.IsValidUnscopedRefAttributeTarget();
             }
         }
+#nullable disable
 
         internal bool HasDisallowNull
         {
