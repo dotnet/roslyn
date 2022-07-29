@@ -1145,9 +1145,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var oldLambda = GetLambda(oldEnclosingLambdaBody);
                         diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ActiveStatementLambdaRemoved, newSpan, oldLambda,
                             new[] { GetDisplayName(oldLambda) }));
-
-                        // The best we can do is use the body match for any further checks
-                        match = bodyMatch;
                     }
                     else
                     {
@@ -1163,17 +1160,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         }
                     }
 
-                    // exception handling around the statement:
-                    CalculateExceptionRegionsAroundActiveStatement(
-                        match,
-                        oldStatementSyntax,
-                        newStatementSyntax,
-                        newSpan,
-                        activeStatementIndex,
-                        isNonLeaf,
-                        newExceptionRegions,
-                        diagnostics,
-                        cancellationToken);
+                    // If there was a lambda, but we couldn't match its body to the new tree, then the lambda was
+                    // removed, so we don't need to check it for active statements. If there wasn't a lambda then
+                    // match here will be the same as bodyMatch.
+                    if (match is not null)
+                    {
+                        // exception handling around the statement:
+                        CalculateExceptionRegionsAroundActiveStatement(
+                            match,
+                            oldStatementSyntax,
+                            newStatementSyntax,
+                            newSpan,
+                            activeStatementIndex,
+                            isNonLeaf,
+                            newExceptionRegions,
+                            diagnostics,
+                            cancellationToken);
+                    }
 
                     // We have already calculated the new location of this active statement when analyzing another member declaration.
                     // This may only happen when two or more member declarations share the same body (VB AsNew clause).
