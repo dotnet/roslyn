@@ -1387,6 +1387,11 @@
         <target state="translated">Modifikátor scoped se dá použít jen pro hodnoty refs a ref struct.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScopedTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'scoped'.</source>
+        <target state="new">Types and aliases cannot be named 'scoped'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
         <source>Required members are not allowed on the top level of a script or submission.</source>
         <target state="translated">Povinní členové nejsou povoleni na nejvyšší úrovni skriptu nebo odeslání.</target>

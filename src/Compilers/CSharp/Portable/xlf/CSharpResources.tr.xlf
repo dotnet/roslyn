@@ -1387,6 +1387,11 @@
         <target state="translated">'scoped' değiştiricisi yalnızca başvurular ve başvuru yapı değerleri için kullanılabilir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScopedTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'scoped'.</source>
+        <target state="new">Types and aliases cannot be named 'scoped'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
         <source>Required members are not allowed on the top level of a script or submission.</source>
         <target state="translated">Bir betiğin veya gönderimin en üst düzeyinde gerekli üyelere izin verilmez.</target>
