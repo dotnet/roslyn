@@ -13406,6 +13406,7 @@ class B2 : A<int>
 }
 ";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            // https://github.com/dotnet/roslyn/issues/62340: Should allow removing [UnscopedRef] rather than reporting error 2.
             comp.VerifyDiagnostics(
                 // (14,28): error CS8987: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
                 //     internal override void F1([UnscopedRef] out int i) { i = 0; } // 1
@@ -13510,6 +13511,7 @@ class C4 : I<object>
 }
 ";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            // https://github.com/dotnet/roslyn/issues/62340: Should allow removing [UnscopedRef] rather than reporting error 2 and 4.
             comp.VerifyDiagnostics(
                 // (14,17): error CS8987: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
                 //     public void F1([UnscopedRef] out int i) { i = 0; } // 1
@@ -13634,6 +13636,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            // https://github.com/dotnet/roslyn/issues/62340: Should allow removing [UnscopedRef] rather than reporting error 2.
             comp.VerifyDiagnostics(
                 // (10,14): error CS8986: The 'scoped' modifier of parameter 'i2' doesn't match target 'D1<int>'.
                 //         d1 = ([UnscopedRef] out int i2) => { i2 = 2; }; // 1
