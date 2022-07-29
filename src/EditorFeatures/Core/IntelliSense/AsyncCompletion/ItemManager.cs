@@ -58,9 +58,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private static SegmentedList<VSCompletionItem> SortCompletionitems(AsyncCompletionSessionInitialDataSnapshot data, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var items = new SegmentedList<VSCompletionItem>(data.InitialItemList);
-            items.Sort(VSItemComparer.Instance);
+            var items = new SegmentedList<VSCompletionItem>(data.InitialItemList.Count);
+            foreach (var item in data.InitialItemList)
+            {
+                CompletionItemData.GetOrAddDummyRoslynItem(item);
+                items.Add(item);
+            }
 
+            items.Sort(VSItemComparer.Instance);
             return items;
         }
 
