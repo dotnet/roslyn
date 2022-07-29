@@ -146,7 +146,6 @@ End Module")
             }.RunAsync()
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)>
         Public Async Function TestChangeToYieldCodeFixProviderFunction() As Task
             Await VerifyCodeFixAsync(
