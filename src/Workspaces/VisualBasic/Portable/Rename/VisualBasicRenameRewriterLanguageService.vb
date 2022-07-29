@@ -53,18 +53,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             ''' <summary>
             ''' Mapping from the span of renaming token to the renaming context info.
             ''' </summary>
-            Private ReadOnly _textSpanToRenameContexts As Dictionary(Of TextSpan, LocationRenameContext)
+            Private ReadOnly _textSpanToRenameContexts As ImmutableDictionary(Of TextSpan, LocationRenameContext)
 
             ''' <summary>
             ''' Mapping from the symbolKey to all the possible symbols might be renamed in the document.
             ''' </summary>
-            Private ReadOnly _stringAndCommentRenameContexts As Dictionary(Of TextSpan, HashSet(Of LocationRenameContext))
+            Private ReadOnly _stringAndCommentRenameContexts As ImmutableDictionary(Of TextSpan, HashSet(Of LocationRenameContext))
 
             ''' <summary>
             ''' Mapping from the containgSpan of a common trivia/string identifier to a set of Locations needs to rename inside it.
             ''' It Is created by using a regex in to find the matched text when renaming inside a string/identifier.
             ''' </summary>
-            Private ReadOnly _renameContexts As Dictionary(Of SymbolKey, RenameSymbolContext)
+            Private ReadOnly _renameContexts As ImmutableDictionary(Of SymbolKey, RenameSymbolContext)
 
             Private ReadOnly Property AnnotateForComplexification As Boolean
                 Get

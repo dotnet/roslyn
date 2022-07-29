@@ -64,18 +64,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             /// <summary>
             /// Mapping from the span of renaming token to the renaming context info.
             /// </summary>
-            private readonly Dictionary<TextSpan, LocationRenameContext> _textSpanToRenameContexts;
+            private readonly ImmutableDictionary<TextSpan, LocationRenameContext> _textSpanToRenameContexts;
 
             /// <summary>
             /// Mapping from the symbolKey to all the possible symbols might be renamed in the document.
             /// </summary>
-            private readonly Dictionary<SymbolKey, RenameSymbolContext> _renameContexts;
+            private readonly ImmutableDictionary<SymbolKey, RenameSymbolContext> _renameContexts;
 
             /// <summary>
             /// Mapping from the containgSpan of a common trivia/string identifier to a set of Locations needs to rename inside it.
             /// It is created by using a regex in to find the matched text when renaming inside a string/identifier.
             /// </summary>
-            private readonly Dictionary<TextSpan, HashSet<LocationRenameContext>> _stringAndCommentRenameContexts;
+            private readonly ImmutableDictionary<TextSpan, HashSet<LocationRenameContext>> _stringAndCommentRenameContexts;
 
             private List<(TextSpan oldSpan, TextSpan newSpan)>? _modifiedSubSpans;
             private bool _isProcessingComplexifiedSpans;
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 _isProcessingComplexifiedSpans = false;
                 _skipRenameForComplexification = 0;
 
-                _renameContexts = GroupRenameContextBySymbolKey(parameters.RenameSymbolContexts, SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: false));
+                _renameContexts = GroupRenameContextBySymbolKey(parameters.RenameSymbolContexts, SymbolKey.GetComparer());
                 _textSpanToRenameContexts = GroupTextRenameContextsByTextSpan(parameters.TokenTextSpanRenameContexts);
                 _stringAndCommentRenameContexts = GroupStringAndCommentsTextSpanRenameContexts(parameters.StringAndCommentsTextSpanRenameContexts);
             }

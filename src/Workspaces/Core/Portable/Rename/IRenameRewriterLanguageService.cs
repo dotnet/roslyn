@@ -158,28 +158,30 @@ namespace Microsoft.CodeAnalysis.Rename
             }
         }
 
-        protected static Dictionary<SymbolKey, RenameSymbolContext> GroupRenameContextBySymbolKey(
+        protected static ImmutableDictionary<SymbolKey, RenameSymbolContext> GroupRenameContextBySymbolKey(
             ImmutableArray<RenameSymbolContext> symbolContexts, IEqualityComparer<SymbolKey> comparer)
         {
+            using var _ = PooledDictionary<SymbolKey, RenameSymbolContext>.GetInstance(out var builder);
+
             var renameContexts = new Dictionary<SymbolKey, RenameSymbolContext>(comparer);
             foreach (var context in symbolContexts)
             {
-                renameContexts[context.RenamedSymbol.GetSymbolKey()] = context;
+                builder[context.RenamedSymbol.GetSymbolKey()] = context;
             }
 
-            return renameContexts;
+            return renameContexts.ToImmutableDictionary(comparer);
         }
 
-        protected static Dictionary<TextSpan, LocationRenameContext> GroupTextRenameContextsByTextSpan(
+        protected static ImmutableDictionary<TextSpan, LocationRenameContext> GroupTextRenameContextsByTextSpan(
             ImmutableArray<LocationRenameContext> textSpanRenameContexts)
         {
-            var textSpanToRenameContext = new Dictionary<TextSpan, LocationRenameContext>();
+            using var _ = PooledDictionary<TextSpan, LocationRenameContext>.GetInstance(out var builder);
             foreach (var context in textSpanRenameContexts)
             {
                 var textSpan = context.RenameLocation.Location.SourceSpan;
-                if (!textSpanToRenameContext.TryGetValue(textSpan, out var existingRenameContext))
+                if (!builder.TryGetValue(textSpan, out var existingRenameContext))
                 {
-                    textSpanToRenameContext[textSpan] = context;
+                    builder[textSpan] = context;
                 }
                 else if (!existingRenameContext.Equals(context))
                 {
@@ -189,27 +191,27 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
             }
 
-            return textSpanToRenameContext;
+            return builder.ToImmutableDictionary();
         }
 
-        protected static Dictionary<TextSpan, HashSet<LocationRenameContext>> GroupStringAndCommentsTextSpanRenameContexts(
+        protected static ImmutableDictionary<TextSpan, HashSet<LocationRenameContext>> GroupStringAndCommentsTextSpanRenameContexts(
             ImmutableArray<LocationRenameContext> renameSymbolContexts)
         {
-            var textSpanToRenameContexts = new Dictionary<TextSpan, HashSet<LocationRenameContext>>();
+            using var _ = PooledDictionary<TextSpan, HashSet<LocationRenameContext>>.GetInstance(out var builder);
             foreach (var context in renameSymbolContexts)
             {
                 var containingSpan = context.RenameLocation.ContainingLocationForStringOrComment;
-                if (textSpanToRenameContexts.TryGetValue(containingSpan, out var existingContexts))
+                if (builder.TryGetValue(containingSpan, out var existingContexts))
                 {
                     existingContexts.Add(context);
                 }
                 else
                 {
-                    textSpanToRenameContexts[containingSpan] = new HashSet<LocationRenameContext>() { context };
+                    builder[containingSpan] = new HashSet<LocationRenameContext>() { context };
                 }
             }
 
-            return textSpanToRenameContexts;
+            return builder.ToImmutableDictionary();
         }
 
         protected static ImmutableHashSet<RenameSymbolContext> FilterRenameSymbolContexts(
