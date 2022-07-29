@@ -316,11 +316,11 @@ namespace Roslyn.Utilities
             if (source == null)
                 return ImmutableArray<TResult>.Empty;
 
-            var builder = ImmutableArray.CreateBuilder<TResult>(source.Count);
+            var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
             foreach (var item in source)
                 builder.Add(selector(item));
 
-            return builder.MoveToImmutable();
+            return builder.ToImmutableAndFree();
         }
 
         /// <summary>
