@@ -1578,8 +1578,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedParameter">
-        <source>UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.</source>
-        <target state="new">UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.</target>
+        <source>UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.</source>
+        <target state="new">UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">

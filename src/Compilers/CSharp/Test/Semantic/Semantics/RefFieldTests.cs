@@ -13193,10 +13193,10 @@ class B : A<int>
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyEmitDiagnostics(
-                // (6,23): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                // (6,23): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
                 //     public ref T F3A([UnscopedRef] ref T t3) => ref t3;
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(6, 23),
-                // (7,23): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                // (7,23): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
                 //     public ref T F4A([UnscopedRef] scoped ref T t4) => ref t4;
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(7, 23),
                 // (14,20): error CS8347: Cannot use a result of 'A<int>.F1A(ref int)' in this context because it may expose variables referenced by parameter 't1' outside of their declaration scope
@@ -13262,10 +13262,10 @@ class B : A<int>
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyEmitDiagnostics(
-                // (6,32): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                // (6,32): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
                 //     public ref readonly T F3A([UnscopedRef] in T t3) => ref t3;
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(6, 32),
-                // (7,32): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                // (7,32): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
                 //     public ref readonly T F4A([UnscopedRef] scoped in T t4) => ref t4;
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(7, 32),
                 // (14,20): error CS8347: Cannot use a result of 'A<int>.F1A(in int)' in this context because it may expose variables referenced by parameter 't1' outside of their declaration scope
@@ -13352,10 +13352,10 @@ class B : A<int>
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyEmitDiagnostics(
-                // (17,23): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                // (17,23): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
                 //     public ref T F3A([UnscopedRef] R<T> r3)
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(17, 23),
-                // (21,23): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                // (21,23): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
                 //     public ref T F4A([UnscopedRef] scoped R<T> r4)
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(21, 23),
                 // (32,20): error CS8347: Cannot use a result of 'A<int>.F1A(R<int>)' in this context because it may expose variables referenced by parameter 'r1' outside of their declaration scope
@@ -13439,13 +13439,13 @@ class B2 : A<int>
 ";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (5,32): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                // (5,32): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
                 //     internal abstract void F2([UnscopedRef] ref T t);
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(5, 32),
-                // (10,32): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                // (10,32): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
                 //     internal override void F2([UnscopedRef] ref int i) { }
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(10, 32),
-                // (14,32): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                // (14,32): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
                 //     internal override void F1([UnscopedRef] ref int i) { }
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(14, 32));
         }
@@ -13560,19 +13560,19 @@ class C4 : I<object>
 ";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (5,14): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                // (5,14): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
                 //     void F2([UnscopedRef] ref T t);
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(5, 14),
-                // (10,21): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                // (10,21): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
                 //     public void F2([UnscopedRef] ref int i) { }
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(10, 21),
-                // (14,21): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                // (14,21): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
                 //     public void F1([UnscopedRef] ref int i) { }
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(14, 21),
-                // (20,24): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                // (20,24): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
                 //     void I<object>.F2([UnscopedRef] ref object o) { }
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(20, 24),
-                // (24,24): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                // (24,24): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
                 //     void I<object>.F1([UnscopedRef] ref object o) { }
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(24, 24));
         }
@@ -13676,13 +13676,13 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (3,22): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                // (3,22): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
                 // delegate void D2<T>([UnscopedRef] ref T t);
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(3, 22),
-                // (10,16): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                // (10,16): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
                 //         d1 = ([UnscopedRef] ref int i2) => { };
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(10, 16),
-                // (13,16): error CS9064: UnscopedRefAttribute can only be applied to parameters that are passed by reference and implicitly scoped.
+                // (13,16): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
                 //         d2 = ([UnscopedRef] ref object o2) => { };
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(13, 16));
         }
