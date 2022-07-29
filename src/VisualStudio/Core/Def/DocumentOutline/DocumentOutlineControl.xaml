@@ -8,6 +8,7 @@
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:utils="clr-namespace:Microsoft.VisualStudio.LanguageServices.Utilities"
              xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:platformimaging="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
              mc:Ignorable="d" 
@@ -60,6 +61,8 @@
                 <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
                 <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
             </Style>
+
+            <utils:ReverseBooleanToVisibilityConverter x:Key="ReverseBooleanToVisibilityConverter" />
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
@@ -127,7 +130,8 @@
             Minimum="0"
             Maximum="100"
             Height="2"
-            IsIndeterminate="True"
+            IsIndeterminate="{Binding RelativeSource={RelativeSource Self}, Path=IsVisible}"
+            Visibility="{Binding SymbolTreeIsInitialized, Mode=OneWay, Converter={StaticResource ReverseBooleanToVisibilityConverter}}"
             Foreground="{DynamicResource {x:Static vsui:ProgressBarColors.IndicatorFillBrushKey}}"
             Background="{DynamicResource {x:Static vsui:ProgressBarColors.BackgroundBrushKey}}" />
         <TreeView Grid.Row="3" Name="SymbolTree">
