@@ -303,20 +303,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
                     case MethodDeclarationSyntax method:
                         {
-                            if (method.Identifier.Text == "Clone")
+                            var methodSymbol = semanticModel.GetDeclaredSymbol(method, cancellationToken);
+                            if (methodSymbol is null)
+                            {
+                                modifiedMembers.Add(method);
+                                continue;
+                            }
+
+                            if (methodSymbol.Name == "Clone")
                             {
                                 // delete any 'clone' method as it is reserved in records
                                 continue;
                             }
 
                             // TODO: Ensure the single param is a StringBuilder
-                            if (method.Identifier.Text == "PrintMembers" &&
-                                method.ReturnType == SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword)) &&
-                                method.ParameterList.Parameters.IsSingle())
+                            if (methodSymbol.Name == "PrintMembers" &&
+                                methodSymbol.ReturnType.SpecialType == SpecialType.System_Boolean &&
+                                methodSymbol.Parameters.Length == 1)
                             {
                                 if (type.TypeKind == TypeKind.Class && !type.IsSealed)
                                 {
                                     // ensure virtual and protected modifiers
+                                    // TODO: change from virtual to override if inheriting from a record
                                     modifiedMembers.Add(method.WithModifiers(SyntaxFactory.TokenList(
                                         SyntaxFactory.Token(SyntaxKind.ProtectedKeyword),
                                         SyntaxFactory.Token(SyntaxKind.VirtualKeyword))));
@@ -331,12 +339,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                                 continue;
                             }
 
-                            if (method.Identifier.Text == nameof(GetHashCode) &&
-                                method.ReturnType == SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)) &&
-                                method.ParameterList.Parameters.IsEmpty() &&
+                            if (methodSymbol.Name == nameof(GetHashCode) &&
+                                methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 &&
+                                methodSymbol.Parameters.IsEmpty &&
                                 UseSystemHashCode.Analyzer.TryGetAnalyzer(semanticModel.Compilation, out var analyzer))
                             {
-                                var methodSymbol = semanticModel.GetDeclaredSymbol(method, cancellationToken);
                                 var methodOperation = semanticModel.GetOperation(method, cancellationToken);
                                 if (methodSymbol != null && methodOperation is IMethodBodyOperation methodBodyOperation)
                                 {

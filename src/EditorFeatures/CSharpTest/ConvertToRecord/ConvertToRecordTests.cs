@@ -99,6 +99,82 @@ namespace N
         }
 
         [Fact]
+        public async Task TestMovePropertySimpleInheritance()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class B
+    {
+    }
+
+    public class [|C|] : B
+    {
+        public int P { get; init; }
+    }
+}
+";
+            // three of the same error on C because the generated
+            // EqualityConstract, Equals, and PrintMembers are all declared override
+            // and there's nothing to override.
+            // The other errors are copy constructor expected in B, and the
+            // "records can't inherit from class" on B as well
+            var changedMarkup = @"
+namespace N
+{
+    public class B
+    {
+    }
+
+    public record {|CS0115:{|CS0115:{|CS0115:{|CS8867:C|}|}|}|}(int P) : {|CS8864:B|};
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertySimpleInterfaceInheritance()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public interface IInterface
+    {
+        public int Foo();
+    }
+
+    public class [|C|] : IInterface
+    {
+        public int P { get; init; }
+
+        public int Foo()
+        {
+            return P;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public interface IInterface
+    {
+        public int Foo();
+    }
+
+    public record C(int P) : IInterface
+    {
+        public int Foo()
+        {
+            return P;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestMoveMultipleProperties()
         {
             var initialMarkup = @"
@@ -611,6 +687,150 @@ namespace N
         public static bool operator !=(C c1, object? c2)
         {
             return !(c1 == c1);
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteClone()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C Clone()
+        {
+            return this;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndModifyPrintMembersOnClass()
+        {
+            var initialMarkup = @"
+using System.Text;
+
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public bool PrintMembers(StringBuilder builder)
+        {
+            builder.Append(string.Format(""{{0}, {1}}"", P, B));
+            return true;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System.Text;
+
+namespace N
+{
+    public record C(int P, bool B)
+    {
+        protected virtual bool PrintMembers(StringBuilder builder)
+        {
+            builder.Append(string.Format(""{{0}, {1}}"", P, B));
+            return true;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndModifyPrintMembersOnSealedClass()
+        {
+            var initialMarkup = @"
+using System.Text;
+
+namespace N
+{
+    public sealed class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public bool PrintMembers(StringBuilder builder)
+        {
+            builder.Append(string.Format(""{{0}, {1}}"", P, B));
+            return true;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System.Text;
+
+namespace N
+{
+    public sealed record C(int P, bool B)
+    {
+        private bool PrintMembers(StringBuilder builder)
+        {
+            builder.Append(string.Format(""{{0}, {1}}"", P, B));
+            return true;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndModifyPrintMembersOnStruct()
+        {
+            var initialMarkup = @"
+using System.Text;
+
+namespace N
+{
+    public struct [|C|]
+    {
+        public int P { get; set; }
+        public bool B { get; set; }
+
+        public bool PrintMembers(StringBuilder builder)
+        {
+            builder.Append(string.Format(""{{0}, {1}}"", P, B));
+            return true;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System.Text;
+
+namespace N
+{
+    public record struct C(int P, bool B)
+    {
+        private bool PrintMembers(StringBuilder builder)
+        {
+            builder.Append(string.Format(""{{0}, {1}}"", P, B));
+            return true;
         }
     }
 }
