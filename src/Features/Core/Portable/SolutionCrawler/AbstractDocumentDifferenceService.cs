@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             try
             {
-                var syntaxFactsService = newDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFactsService = newDocument.Project.Services.GetService<ISyntaxFactsService>();
                 if (syntaxFactsService == null)
                 {
                     // somehow, we can't get the service. without it, there is nothing we can do.

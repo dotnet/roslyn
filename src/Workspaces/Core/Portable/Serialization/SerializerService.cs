@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         private readonly HostWorkspaceServices _workspaceServices;
 
-        private readonly ITemporaryStorageService _storageService;
+        private readonly ITemporaryStorageServiceInternal _storageService;
         private readonly ITextFactoryService _textService;
         private readonly IDocumentationProviderService? _documentationService;
         private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             _workspaceServices = workspaceServices;
 
-            _storageService = workspaceServices.GetRequiredService<ITemporaryStorageService>();
+            _storageService = workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
             _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
             _analyzerLoaderProvider = workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
             _documentationService = workspaceServices.GetService<IDocumentationProviderService>();

@@ -54,7 +54,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         [Theory]
         [CombinatorialData]
-        public async Task TestGetSolutionWithPrimaryFlag(bool fromPrimaryBranch)
+        public async Task TestGetSolutionWithPrimaryFlag(bool updatePrimaryBranch)
         {
             var code1 = @"class Test1 { void Method() { } }";
 
@@ -65,7 +65,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
             var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
 
-            var synched = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch, solution.WorkspaceVersion, cancellationToken: CancellationToken.None);
+            var synched = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch, solution.WorkspaceVersion, cancellationToken: CancellationToken.None);
             Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
 
             Assert.IsType<RemoteWorkspace>(synched.Workspace);
@@ -350,7 +350,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var remoteSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
 
             // get solution cralwer in remote host
-            var solutionCrawlerService = remoteSolution.Workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
+            var solutionCrawlerService = remoteSolution.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
             Assert.NotNull(solutionCrawlerService);
 
             // check remote workspace has enabled solution crawler in remote host

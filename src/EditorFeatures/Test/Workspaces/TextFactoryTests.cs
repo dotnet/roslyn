@@ -77,12 +77,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             using var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
 
-            var temporaryStorageService = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageService>());
+            var temporaryStorageService = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
 
             var text = SourceText.From("Hello, World!");
 
             // Create a temporary storage location
-            using var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None);
+            using var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
             // Write text into it
             await temporaryStorage.WriteTextAsync(text);
 
@@ -99,12 +99,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             using var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
 
-            var temporaryStorageService = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageService>());
+            var temporaryStorageService = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
 
             var text = SourceText.From("Hello, World!", Encoding.ASCII);
 
             // Create a temporary storage location
-            using var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None);
+            using var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
             // Write text into it
             await temporaryStorage.WriteTextAsync(text);
 

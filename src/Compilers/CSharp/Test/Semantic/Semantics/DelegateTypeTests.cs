@@ -10088,7 +10088,6 @@ class Program
 {
     static R F1(ref R r) { Console.WriteLine(r._i); return new R(); }
     static R F2(scoped ref R r) { Console.WriteLine(r._i); return new R(); }
-    static R F3(ref scoped R r) { Console.WriteLine(r._i); return new R(); }
     static R F4(scoped ref R r) { Console.WriteLine(r._i); return new R(); }
     static void Main()
     {
@@ -10100,10 +10099,6 @@ class Program
         var r2 = new R(2);
         d2(ref r2);
         Report(d2);
-        var d3 = F3;
-        var r3 = new R(3);
-        d3(ref r3);
-        Report(d3);
         var d4 = F4;
         var r4 = new R(4);
         d4(ref r4);
@@ -10116,8 +10111,6 @@ class Program
 <>f__AnonymousDelegate0
 2
 <>f__AnonymousDelegate1
-3
-<>f__AnonymousDelegate2
 4
 <>f__AnonymousDelegate1
 ");

@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             using (Logger.LogBlock(FunctionId.Renamer_FindRenameLocationsAsync, cancellationToken))
             {
+//<<<<<<< HEAD
                 var remoteLocations = await TryFindRemoteRenameLocationsAsync(symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
                 if (remoteLocations != null)
                     return remoteLocations;
@@ -143,6 +144,31 @@ namespace Microsoft.CodeAnalysis.Rename
                     solution, options, fallbackOptions, renameLocations.Locations,
                     renameLocations.ImplicitLocations.SelectAsArray(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)),
                     renameLocations.ReferencedSymbols.SelectAsArray(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)));
+//=======
+//                if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
+//                {
+//                    var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+//                    if (client != null)
+//                    {
+//                        var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableRenameLocations?>(
+//                            solution,
+//                            (service, solutionInfo, callbackId, cancellationToken) => service.FindRenameLocationsAsync(solutionInfo, callbackId, serializedSymbol, options, cancellationToken),
+//                            callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, fallbackOptions),
+//                            cancellationToken).ConfigureAwait(false);
+
+//                        if (result.HasValue && result.Value != null)
+//                        {
+//                            var rehydrated = await TryRehydrateAsync(
+//                                solution, fallbackOptions, result.Value, cancellationToken).ConfigureAwait(false);
+
+//                            if (rehydrated != null)
+//                                return rehydrated;
+//                        }
+
+//                        // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)
+//                    }
+//                }
+//>>>>>>> upstream/main
             }
         }
 

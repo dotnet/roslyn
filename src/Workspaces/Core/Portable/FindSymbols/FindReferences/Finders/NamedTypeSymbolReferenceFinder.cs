@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ArrayBuilder<Document> result,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+            var syntaxFacts = project.Services.GetRequiredService<ISyntaxFactsService>();
 
             var documentsWithName = await FindDocumentsAsync(
                 project, documents, cancellationToken, throughName).ConfigureAwait(false);
