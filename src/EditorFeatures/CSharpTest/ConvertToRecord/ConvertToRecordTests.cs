@@ -92,9 +92,7 @@ namespace N
             var changedMarkup = @"
 namespace N
 {
-    public record C(int P)
-    {
-    }
+    public record C(int P);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -116,9 +114,7 @@ namespace N
             var changedMarkup = @"
 namespace N
 {
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -140,9 +136,7 @@ namespace N
             var changedMarkup = @"
 namespace N
 {
-    public record struct C(int P, bool B)
-    {
-    }
+    public record struct C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -164,9 +158,7 @@ namespace N
             var changedMarkup = @"
 namespace N
 {
-    public readonly record struct C(int P, bool B)
-    {
-    }
+    public readonly record struct C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -188,9 +180,7 @@ namespace N
             var changedMarkup = @"
 namespace N
 {
-    public record C<TA, TB>(TA P, TB B)
-    {
-    }
+    public record C<TA, TB>(TA P, TB B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -221,9 +211,7 @@ using System.Collections.Generic;
 namespace N
 {
     public record C<TA, TB>(TA P, TB B)
-        where TA : Exception where TB : IEnumerable<TA>
-    {
-    }
+        where TA : Exception where TB : IEnumerable<TA>;
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -252,9 +240,7 @@ using System;
 
 namespace N
 {
-    public record C([property: Obsolete(""P is Obsolete"", error: true)] int P, [property: Obsolete(""B will be obsolete, error: false"")] bool B)
-    {
-    }
+    public record C([property: Obsolete(""P is Obsolete"", error: true)] int P, [property: Obsolete(""B will be obsolete, error: false"")] bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -284,9 +270,7 @@ namespace N
             var changedMarkup = @"
 namespace N
 {
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -316,9 +300,7 @@ namespace N
             var changedMarkup = @"
 namespace N
 {
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -348,9 +330,7 @@ namespace N
             var changedMarkup = @"
 namespace N
 {
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -380,9 +360,7 @@ namespace N
             var changedMarkup = @"
 namespace N
 {
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -412,9 +390,7 @@ namespace N
             var changedMarkup = @"
 namespace N
 {
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -444,9 +420,7 @@ namespace N
             var changedMarkup = @"
 namespace N
 {
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -677,9 +651,7 @@ namespace N
     /// </summary>
     /// <param name=""P""> P is an int </param>
     /// <param name=""B""> B is a bool </param>
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -717,21 +689,19 @@ namespace N
 }
 ";
             // this is what it should be
-//            var changedMarkup = @"
-//namespace N
-//{
-//    /** 
-//     * <summary>
-//     * some summary
-//     * </summary>
-//     * <param name=""P""> P is an int </param>
-//     * <param name=""B""> B is a bool </param>
-//     */
-//    public record C(int P, bool B)
-//    {
-//    }
-//}
-//";
+            //            var changedMarkup = @"
+            //namespace N
+            //{
+            //    /** 
+            //     * <summary>
+            //     * some summary
+            //     * </summary>
+            //     * <param name=""P""> P is an int </param>
+            //     * <param name=""B""> B is a bool </param>
+            //     */
+            //    public record C(int P, bool B);
+            //}
+            //";
 
             // this is what it is currently
             var changedMarkup = @"
@@ -744,9 +714,7 @@ namespace N
          * <param name=""P""> P is an int </param>
          * <param name=""B""> B is a bool </param>
          */
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -779,18 +747,16 @@ namespace N
 }
 ";
             // this is what it should be
-//            var changedMarkup = @"
-//namespace N
-//{
-//    /**
-//     * <param name=""P""> P is an int </param>
-//     * <param name=""B""> B is a bool </param>
-//     */
-//    public record C(int P, bool B)
-//    {
-//    }
-//}
-//";
+            //            var changedMarkup = @"
+            //namespace N
+            //{
+            //    /**
+            //     * <param name=""P""> P is an int </param>
+            //     * <param name=""B""> B is a bool </param>
+            //     */
+            //    public record C(int P, bool B);
+            //}
+            //";
             // this is what it is currently
             var changedMarkup = @"
 namespace N
@@ -799,9 +765,7 @@ namespace N
              *<param name=""P""> P is an int </param>
              * <param name=""B""> B is a bool </param>
     */
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -845,9 +809,7 @@ namespace N
     /// </summary>
     /// <param name=""P""> P is an int </param>
     /// <param name=""B""> B is a bool </param>
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -892,9 +854,7 @@ namespace N
             //     * <param name=""P""> P is an int </param>
             //     * <param name=""B""> B is a bool </param>
             //     */
-            //    public record C(int P, bool B)
-            //    {
-            //    }
+            //    public record C(int P, bool B);
             //}
             //";
 
@@ -909,9 +869,7 @@ namespace N
          * <param name=""P""> P is an int </param>
          * <param name=""B""> B is a bool </param>
          */
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -946,22 +904,20 @@ namespace N
 }
 ";
             // this is what it should be
-//            var changedMarkup = @"
-//namespace N
-//{
-//    /** 
-//     * <summary>
-//     * some summary
-//     * </summary>
-//     * <param name=""P""> P is an int
-//     * with a multiline comment </param>
-//     * <param name=""B""> B is a bool </param>
-//     */
-//    public record C(int P, bool B)
-//    {
-//    }
-//}
-//";
+            //            var changedMarkup = @"
+            //namespace N
+            //{
+            //    /** 
+            //     * <summary>
+            //     * some summary
+            //     * </summary>
+            //     * <param name=""P""> P is an int
+            //     * with a multiline comment </param>
+            //     * <param name=""B""> B is a bool </param>
+            //     */
+            //    public record C(int P, bool B);
+            //}
+            //";
 
             // this is what it actually is
             var changedMarkup = @"
@@ -975,9 +931,7 @@ namespace N
          * with a multiline comment </param>
          * <param name=""B""> B is a bool </param>
          */
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -1009,9 +963,7 @@ namespace N
 {
     /// <param name=""P""> P is an int </param>
     /// <param name=""B""> B is a bool </param>
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -1047,9 +999,7 @@ namespace N
     /// </summary>
     /// <param name=""P""></param>
     /// <param name=""B""> B is a bool </param>
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -1094,9 +1044,7 @@ namespace N
     /// <remarks>
     /// Some remarks as well
     /// </reamrks>
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -1137,9 +1085,7 @@ namespace N
     /// <param name=""P""> P is an int <see cref=""C.B""/> </param>
     /// <param name=""B""> B is a bool
     /// <c> Some code text </c> </param>
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -1185,9 +1131,7 @@ namespace N
     /// </summary>
     /// <param name=""P""> P is an int </param>
     /// <param name=""B""> B is a bool </param>
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -1233,9 +1177,7 @@ namespace N
     // Non-Doc comment after class
     // Non-Doc property comment for P
     // Non-Doc property comment for B
-    public record C(int P, bool B)
-    {
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);

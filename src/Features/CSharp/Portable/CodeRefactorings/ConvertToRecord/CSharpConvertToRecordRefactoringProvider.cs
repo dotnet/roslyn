@@ -444,7 +444,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             return (left != null && right != null && !left.Equals(right));
         }
 
-
         // matches form
         // c1.Equals(c2)
         // where one of c1 or c2 is the given type
