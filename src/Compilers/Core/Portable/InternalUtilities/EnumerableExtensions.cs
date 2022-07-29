@@ -311,6 +311,18 @@ namespace Roslyn.Utilities
             return builder.ToImmutableAndFree();
         }
 
+        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IReadOnlyCollection<TSource>? source, Func<TSource, TResult> selector)
+        {
+            if (source == null)
+                return ImmutableArray<TResult>.Empty;
+
+            var builder = ImmutableArray.CreateBuilder<TResult>(source.Count);
+            foreach (var item in source)
+                builder.Add(selector(item));
+
+            return builder.MoveToImmutable();
+        }
+
         /// <summary>
         /// Maps an immutable array through a function that returns ValueTask, returning the new ImmutableArray.
         /// </summary>
