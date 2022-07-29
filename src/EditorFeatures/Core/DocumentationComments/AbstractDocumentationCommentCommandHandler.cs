@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var options = subjectBuffer.GetDocumentationCommentOptions(_editorOptionsService, document.Project.LanguageServices);
+            var options = subjectBuffer.GetDocumentationCommentOptions(_editorOptionsService, document.Project.Services);
 
             // Apply snippet in reverse order so that the first applied snippet doesn't affect span of next snippets.
             var snapshots = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer).OrderByDescending(s => s.Span.Start);
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return;
             }
 
-            var options = subjectBuffer.GetDocumentationCommentOptions(_editorOptionsService, document.Project.LanguageServices);
+            var options = subjectBuffer.GetDocumentationCommentOptions(_editorOptionsService, document.Project.Services);
 
             var snippet = service.GetDocumentationCommentSnippetFromPreviousLine(options, currentLine, previousLine);
             if (snippet != null)

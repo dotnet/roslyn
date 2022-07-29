@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
             Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim project = workspace.CurrentSolution.Projects.First(Function(p) p.Language = LanguageNames.CSharp)
-                Dim classificationService = project.LanguageServices.GetService(Of IClassificationService)()
+                Dim classificationService = project.Services.GetService(Of IClassificationService)()
 
                 Dim wrongDocument = workspace.CurrentSolution.Projects.First(Function(p) p.Language = "NoCompilation").Documents.First()
                 Dim text = Await wrongDocument.GetTextAsync(CancellationToken.None)

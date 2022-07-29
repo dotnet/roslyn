@@ -4,6 +4,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.BraceMatching;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
 {

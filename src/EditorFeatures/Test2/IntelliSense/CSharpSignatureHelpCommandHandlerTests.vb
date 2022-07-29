@@ -884,7 +884,7 @@ class C
                               </Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 ' disable implicit sig help then type a trigger character -> no session should be available
-                state.Workspace.GetService(Of IGlobalOptionService).SetGlobalOption(New OptionKey(SignatureHelpViewOptions.ShowSignatureHelp, LanguageNames.CSharp), False)
+                state.Workspace.GetService(Of IGlobalOptionService).SetGlobalOption(New OptionKey(SignatureHelpViewOptionsStorage.ShowSignatureHelp, LanguageNames.CSharp), False)
 
                 state.SendTypeChars("(")
                 Await state.AssertNoSignatureHelpSession()

@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private static Compilation CreateCompilation(Project project, PortableExecutableReference reference)
         {
-            var compilationService = project.LanguageServices.GetRequiredService<ICompilationFactoryService>();
+            var compilationService = project.Services.GetRequiredService<ICompilationFactoryService>();
             var compilation = compilationService.CreateCompilation("TempAssembly", compilationService.GetDefaultCompilationOptions());
             return compilation.WithReferences(reference);
         }

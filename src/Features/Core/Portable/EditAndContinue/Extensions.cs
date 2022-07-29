@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Only depends on the language of the project and never changes.
         /// </summary>
         public static bool SupportsEditAndContinue(this Project project)
-            => project.LanguageServices.GetService<IEditAndContinueAnalyzer>() != null;
+            => project.Services.GetService<IEditAndContinueAnalyzer>() != null;
 
         // Note: source generated files have relative paths: https://github.com/dotnet/roslyn/issues/51998
         public static bool SupportsEditAndContinue(this TextDocumentState documentState)

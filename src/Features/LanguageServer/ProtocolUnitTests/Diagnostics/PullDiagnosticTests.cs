@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             await OpenDocumentAsync(testLspServer, document);
 
             // Ensure we get no diagnostics when feature flag is off.
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(DiagnosticOptions.LspPullDiagnosticsFeatureFlag), false);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag), false);
 
             await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics));
         }
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
             await OpenDocumentAsync(testLspServer, document);
 
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(DiagnosticOptions.LspPullDiagnosticsFeatureFlag), true);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag), true);
 
             var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
             Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);

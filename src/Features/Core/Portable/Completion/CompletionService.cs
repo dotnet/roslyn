@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     public abstract partial class CompletionService : ILanguageService
     {
-        private readonly HostWorkspaceServices _services;
+        private readonly HostSolutionServices _services;
         private readonly ProviderManager _providerManager;
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private bool _suppressPartialSemantics;
 
         // Prevent inheritance outside of Roslyn.
-        internal CompletionService(HostWorkspaceServices services)
+        internal CompletionService(HostSolutionServices services)
         {
             _services = services;
             _providerManager = new(this);
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet? options = null)
         {
             var document = text.GetOpenDocumentInCurrentContextWithChanges();
-            var languageServices = document?.Project.LanguageServices ?? _services.GetLanguageServices(Language);
+            var languageServices = document?.Project.Services ?? _services.GetProjectServices(Language);
 
             // Publicly available options do not affect this API.
             var completionOptions = CompletionOptions.Default;
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </remarks>
         internal virtual bool ShouldTriggerCompletion(
             Project? project,
-            HostLanguageServices languageServices,
+            HostProjectServices languageServices,
             SourceText text,
             int caretPosition,
             CompletionTrigger trigger,

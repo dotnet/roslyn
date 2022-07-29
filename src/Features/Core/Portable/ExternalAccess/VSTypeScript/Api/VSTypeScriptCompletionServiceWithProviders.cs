@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
     internal abstract class VSTypeScriptCompletionServiceWithProviders : CompletionService
     {
         internal VSTypeScriptCompletionServiceWithProviders(Workspace workspace)
-            : base(workspace.Services)
+            : base(workspace.Services.SolutionServices)
         {
         }
 

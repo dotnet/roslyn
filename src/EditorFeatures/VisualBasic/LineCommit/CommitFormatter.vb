@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 End If
 
                 ' create commit formatting cleanup provider that has line commit specific behavior
-                Dim formattingOptions = buffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.LanguageServices, isExplicitFormat)
+                Dim formattingOptions = buffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.Services, isExplicitFormat)
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
                     document.Id,
                     document.Project.Services,
