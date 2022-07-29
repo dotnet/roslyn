@@ -190,6 +190,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             return result.ToArray();
         }
 
-        public abstract Uri? GetTextDocumentIdentifier(TDiagnosticsParams request);
+        public abstract Uri? GetTextDocumentUri(TDiagnosticsParams request);
     }
 }

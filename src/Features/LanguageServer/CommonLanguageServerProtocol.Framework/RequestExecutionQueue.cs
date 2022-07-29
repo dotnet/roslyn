@@ -105,6 +105,66 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
         _queue.Complete();
     }
 
+    public Task ExecuteAsync<TRequestType>(
+        bool mutatesSolutionState,
+        bool requiresLSPSolution,
+        INotificationHandler<TRequestType, RequestContextType> handler,
+        TRequestType request,
+        string methodName,
+        CancellationToken requestCancellationToken)
+    {
+        var combinedTokenSource = _cancelSource.Token.CombineWith(requestCancellationToken);
+        var combinedCancellationToken = combinedTokenSource.Token;
+        var (item, resultTask) = CreateQueueItem(
+            mutatesSolutionState,
+            requiresLSPSolution,
+            methodName,
+            textDocument: null,
+            request,
+            handler,
+            combinedCancellationToken);
+
+        _ = resultTask.ContinueWith(_ => combinedTokenSource.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+
+        var didEnqueue = _queue.TryEnqueue((item, combinedCancellationToken));
+
+        if (!didEnqueue)
+        {
+            return Task.FromException(new InvalidOperationException($"{_serverKind} was requested to shut down."));
+        }
+
+        return resultTask;
+    }
+
+    public Task ExecuteAsync(
+        bool mutatesSolutionState,
+        bool requiresLSPSolution,
+        INotificationHandler<RequestContextType> handler,
+        string methodName,
+        CancellationToken requestCancellationToken)
+    {
+        var combinedTokenSource = _cancelSource.Token.CombineWith(requestCancellationToken);
+        var combinedCancellationToken = combinedTokenSource.Token;
+        var (item, resultTask) = CreateQueueItem(
+            mutatesSolutionState,
+            requiresLSPSolution,
+            methodName,
+            textDocument: null,
+            handler,
+            combinedCancellationToken);
+
+        _ = resultTask.ContinueWith(_ => combinedTokenSource.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+
+        var didEnqueue = _queue.TryEnqueue((item, combinedCancellationToken));
+
+        if (!didEnqueue)
+        {
+            return Task.FromException(new InvalidOperationException($"{_serverKind} was requested to shut down."));
+        }
+
+        return resultTask;
+    }
+
     /// <summary>
     /// Queues a request to be handled by the specified handler, with mutating requests blocking subsequent requests
     /// from starting until the mutation is complete.
@@ -131,7 +191,7 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
     {
         // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
 
-        var textDocument = handler.GetTextDocumentIdentifier(request);
+        var textDocument = handler.GetTextDocumentUri(request);
 
         // Create a combined cancellation token so either the client cancelling it's token or the queue
         // shutting down cancels the request.
@@ -177,6 +237,44 @@ public class RequestExecutionQueue<RequestContextType> where RequestContextType 
             methodName,
             textDocument,
             request,
+            handler,
+            _logger,
+            _lspServices,
+            cancellationToken);
+    }
+    public virtual (IQueueItem<RequestContextType>, Task) CreateQueueItem<TRequestType>(
+        bool mutatesSolutionState,
+        bool requiresLSPSolution,
+        string methodName,
+        Uri? textDocument,
+        TRequestType request,
+        INotificationHandler<TRequestType, RequestContextType> handler,
+        CancellationToken cancellationToken)
+    {
+        return QueueItem<TRequestType, VoidReturn, RequestContextType>.Create(mutatesSolutionState,
+            requiresLSPSolution,
+            methodName,
+            textDocument,
+            request,
+            handler,
+            _logger,
+            _lspServices,
+            cancellationToken);
+    }
+
+    public virtual (IQueueItem<RequestContextType>, Task) CreateQueueItem(
+        bool mutatesSolutionState,
+        bool requiresLSPSolution,
+        string methodName,
+        Uri? textDocument,
+        INotificationHandler<RequestContextType> handler,
+        CancellationToken cancellationToken)
+    {
+        return QueueItem<VoidReturn, VoidReturn, RequestContextType>.Create(mutatesSolutionState,
+            requiresLSPSolution,
+            methodName,
+            textDocument,
+            VoidReturn.Instance,
             handler,
             _logger,
             _lspServices,

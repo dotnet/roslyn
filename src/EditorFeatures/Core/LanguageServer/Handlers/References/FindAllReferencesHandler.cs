@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public Uri? GetTextDocumentIdentifier(ReferenceParams request) => request.TextDocument.Uri;
+        public Uri? GetTextDocumentUri(ReferenceParams request) => request.TextDocument.Uri;
 
         public async Task<LSP.VSInternalReferenceItem[]?> HandleRequestAsync(ReferenceParams referenceParams, RequestContext context, CancellationToken cancellationToken)
         {

@@ -11,95 +11,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(InitializedHandler)), Shared]
-[Method(Methods.InitializedName)]
-internal class InitializedHandler : IRoslynNotificationHandler<InitializedParams>
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public InitializedHandler()
-    {
-    }
-
-    public bool MutatesSolutionState => true;
-
-    public bool RequiresLSPSolution => false;
-
-    public Task HandleNotificationAsync(InitializedParams request, RequestContext requestContext, CancellationToken cancellationToken)
-    {
-        if (requestContext.ClientCapabilities is null)
-        {
-            throw new InvalidOperationException($"{Methods.InitializedName} called before {Methods.InitializeName}");
-        }
-
-        return Task.CompletedTask;
-    }
-}
-
-[ExportCSharpVisualBasicStatelessLspService(typeof(ShutdownHandler)), Shared]
-[Method(Methods.ShutdownName)]
-internal class ShutdownHandler : IRoslynNotificationHandler
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ShutdownHandler()
-    {
-    }
-
-    public bool MutatesSolutionState => true;
-
-    public bool RequiresLSPSolution => false;
-
-    public Task HandleNotificationAsync(RequestContext requestContext, CancellationToken _)
-    {
-        if (requestContext.ClientCapabilities is null)
-        {
-            throw new InvalidOperationException($"{Methods.InitializedName} called before {Methods.InitializeName}");
-        }
-
-        ShutdownServer();
-
-        return Task.CompletedTask;
-    }
-
-    private void ShutdownServer()
-    {
-        throw new NotImplementedException("How to shutdown");
-    }
-}
-
-[ExportCSharpVisualBasicStatelessLspService(typeof(ExitHandler)), Shared]
-[Method(Methods.ExitName)]
-internal class ExitHandler : IRoslynNotificationHandler
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ExitHandler()
-    {
-    }
-
-    public bool MutatesSolutionState => true;
-
-    public bool RequiresLSPSolution => false;
-
-    public Task HandleNotificationAsync(RequestContext requestContext, CancellationToken _)
-    {
-        if (requestContext.ClientCapabilities is null)
-        {
-            throw new InvalidOperationException($"{Methods.InitializedName} called before {Methods.InitializeName}");
-        }
-
-        Exit();
-
-        return Task.CompletedTask;
-    }
-
-    private void Exit()
-    {
-        throw new NotImplementedException("Exit not implemented");
-    }
-}
-
 [ExportCSharpVisualBasicStatelessLspService(typeof(InitializeHandler)), Shared]
 [Method(Methods.InitializeName)]
 internal class InitializeHandler : IRoslynRequestHandler<InitializeParams, InitializeResult>
@@ -114,7 +25,7 @@ internal class InitializeHandler : IRoslynRequestHandler<InitializeParams, Initi
 
     public bool RequiresLSPSolution => false;
 
-    public Uri? GetTextDocumentIdentifier(InitializeParams request)
+    public Uri? GetTextDocumentUri(InitializeParams request)
     {
         return null;
     }

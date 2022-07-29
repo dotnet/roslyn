@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         public override bool RequiresLSPSolution => true;
 
-        public override Uri? GetTextDocumentIdentifier(ExecuteCommandParams request)
+        public override Uri? GetTextDocumentUri(ExecuteCommandParams request)
             => ((JToken)request.Arguments.First()).ToObject<TextDocumentIdentifier>()?.Uri;
 
         public override async Task<object> HandleRequestAsync(ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)

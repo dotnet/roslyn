@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 
         public bool RequiresLSPSolution => true;
 
-        public Uri? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument.Uri;
+        public Uri? GetTextDocumentUri(TextDocumentPositionParams request) => request.TextDocument.Uri;
 
         public async Task<LSP.Location[]> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {

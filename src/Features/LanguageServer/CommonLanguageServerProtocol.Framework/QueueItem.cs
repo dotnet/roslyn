@@ -13,13 +13,18 @@ using Microsoft.VisualStudio.Threading;
 
 namespace CommonLanguageServerProtocol.Framework;
 
+internal record VoidReturn
+{
+    public static VoidReturn Instance = new();
+}
+
 public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueueItem<RequestContextType>
     where RequestContextType : IRequestContext
 {
     private readonly ILspLogger _logger;
 
     private readonly TRequestType _request;
-    private readonly IRequestHandler<TRequestType, TResponseType, RequestContextType> _handler;
+    private readonly IRequestHandler _handler;
 
     /// <summary>
     /// A task completion source representing the result of this queue item's work.
@@ -41,7 +46,7 @@ public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueue
         string methodName,
         Uri? textDocument,
         TRequestType request,
-        IRequestHandler<TRequestType, TResponseType, RequestContextType> handler,
+        IRequestHandler handler,
         ILspLogger logger,
         CancellationToken cancellationToken)
     {
@@ -64,7 +69,7 @@ public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueue
         string methodName,
         Uri? textDocument,
         TRequestType request,
-        IRequestHandler<TRequestType, TResponseType, RequestContextType> handler,
+        IRequestHandler handler,
         ILspLogger logger,
         ILspServices lspServices,
         CancellationToken cancellationToken)
@@ -108,8 +113,24 @@ public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueue
             }
             else
             {
-                var result = await _handler.HandleRequestAsync(_request, context, cancellationToken).ConfigureAwait(false);
-                _completionSource.TrySetResult(result);
+                if (_handler is IRequestHandler<TRequestType, TResponseType, RequestContextType> requestHandler)
+                {
+                    var result = await requestHandler.HandleRequestAsync(_request, context, cancellationToken).ConfigureAwait(false);
+
+                    _completionSource.TrySetResult(result);
+                }
+                else if (_handler is INotificationHandler<TRequestType, RequestContextType> notificationHandler)
+                {
+                    await notificationHandler.HandleNotificationAsync(_request, context, cancellationToken).ConfigureAwait(false);
+
+                    _completionSource.TrySetResult(default);
+                }
+                else if (_handler is INotificationHandler<RequestContextType> parameterlessNotificationHandler)
+                {
+                    await parameterlessNotificationHandler.HandleNotificationAsync(context, cancellationToken).ConfigureAwait(false);
+
+                    _completionSource.TrySetResult(default);
+                }
             }
         }
         catch (OperationCanceledException ex)

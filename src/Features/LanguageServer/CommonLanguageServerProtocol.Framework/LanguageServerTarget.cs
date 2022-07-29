@@ -7,12 +7,33 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using StreamJsonRpc;
 
 namespace CommonLanguageServerProtocol.Framework;
+
+public class LifeCycleManager<RequestContextType> : ILifeCycleManager where RequestContextType : IRequestContext
+{
+    private readonly LanguageServerTarget<RequestContextType> _target;
+
+    public LifeCycleManager(LanguageServerTarget<RequestContextType> languageServerTarget)
+    {
+        _target = languageServerTarget;
+    }
+
+    public void Exit()
+    {
+        _target.Exit();
+    }
+
+    public void Shutdown()
+    {
+        _target.Shutdown();
+    }
+}
 
 public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer where RequestContextType : IRequestContext
 {
@@ -29,10 +50,6 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
     private bool _shuttingDown;
 
     public bool HasShutdownStarted => _shuttingDown;
-
-    public event EventHandler<bool>? Shutdown;
-
-    public event EventHandler? Exit;
 
     protected LanguageServerTarget(
         JsonRpc jsonRpc,
@@ -133,7 +150,7 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
         if (_queue is null)
         {
             _queue = new RequestExecutionQueue<RequestContextType>(_serverKind, GetLspServices(), _logger);
-            //  _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
+            _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
         }
 
         return _queue;
@@ -156,20 +173,32 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
 
         public async Task NotificationEntryPointAsync<TRequestType>(TRequestType requestType, CancellationToken cancellationToken) where TRequestType : class
         {
-            throw new NotImplementedException();
+            CheckServerState();
+            var queue = _target.GetRequestExecutionQueue();
+
+            var requestDispatcher = _target.GetRequestDispatcher();
+            await requestDispatcher.ExecuteNotificationAsync(
+                _method,
+                requestType,
+                queue,
+                cancellationToken).ConfigureAwait(false);
         }
 
         public async Task ParameterlessNotificationEntryPointAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            CheckServerState();
+            var queue = _target.GetRequestExecutionQueue();
+
+            var requestDispatcher = _target.GetRequestDispatcher();
+            await requestDispatcher.ExecuteNotificationAsync(
+                _method,
+                queue,
+                cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<TResponseType?> EntryPointAsync<TRequestType, TResponseType>(TRequestType requestType, CancellationToken cancellationToken) where TRequestType : class
         {
-            if (_target.IsInitialized)
-            {
-                throw new InvalidOperationException($"'initialize' has not been called.");
-            }
+            CheckServerState();
             var queue = _target.GetRequestExecutionQueue();
 
             var requestDispatcher = _target.GetRequestDispatcher();
@@ -180,61 +209,18 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
                 cancellationToken).ConfigureAwait(false);
             return result;
         }
+
+        private void CheckServerState()
+        {
+            if (_target.IsInitialized)
+            {
+                throw new InvalidOperationException($"'initialize' has not been called.");
+            }
+
+        }
     }
 
-    /// <summary>
-    /// Handle the LSP initialize request by storing the client capabilities and responding with the server
-    /// capabilities.  The specification assures that the initialize request is sent only once.
-    /// </summary>
-    //[JsonRpcMethod(Methods.InitializeName, UseSingleObjectParameterDeserialization = true)]
-    //public virtual Task<InitializeResult> InitializeAsync(InitializeParams initializeParams, CancellationToken cancellationToken)
-    //{
-    //    try
-    //    {
-    //        _logger?.TraceStart("Initialize");
-
-    //        _clientSettings = initializeParams;
-
-    //        return Task.FromResult(new InitializeResult
-    //        {
-    //            Capabilities = _capabilitiesProvider.GetCapabilities(initializeParams.Capabilities),
-    //        });
-    //    }
-    //    finally
-    //    {
-    //        _logger?.TraceStop("Initialize");
-    //    }
-    //}
-
-    //[JsonRpcMethod(Methods.InitializedName)]
-    //public virtual Task InitializedAsync(CancellationToken cancellationToken)
-    //{
-    //    if (ClientSettings is null)
-    //    {
-    //        throw new InvalidOperationException(nameof(ClientSettings));
-    //    }
-
-    //    return Task.CompletedTask;
-    //}
-
-    //[JsonRpcMethod(Methods.ShutdownName)]
-    //public Task ShutdownAsync(CancellationToken _)
-    //{
-    //    try
-    //    {
-    //        _logger?.TraceStart("Shutdown");
-
-    //        ShutdownImpl();
-
-    //        return Task.CompletedTask;
-    //    }
-    //    finally
-    //    {
-    //        _logger?.TraceStop("Shutdown");
-    //    }
-    //}
-
-    protected virtual void ShutdownImpl()
+    public virtual void Shutdown()
     {
         if (_shuttingDown is true)
         {
@@ -246,26 +232,14 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
         ShutdownRequestQueue();
     }
 
-    //[JsonRpcMethod(Methods.ExitName)]
-    //public async Task ExitAsync(CancellationToken _)
-    //{
-    //    try
-    //    {
-    //        _logger?.TraceStart("Exit");
-
-    //        await OnExitAsync();
-    //    }
-    //    finally
-    //    {
-    //        _logger?.TraceStop("Exit");
-    //    }
-    //}
-
-    protected Task OnExitAsync()
+    public virtual void Exit()
     {
         try
         {
             ShutdownRequestQueue();
+
+            var lspServices = GetLspServices();
+            lspServices.Dispose();
 
             _jsonRpc.Disconnected -= JsonRpc_Disconnected;
             _jsonRpc.Dispose();
@@ -275,8 +249,6 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
             // Swallow exceptions thrown by disposing our JsonRpc object. Disconnected events can potentially throw their own exceptions so
             // we purposefully ignore all of those exceptions in an effort to shutdown gracefully.
         }
-
-        return Task.CompletedTask;
     }
 
     protected void ShutdownRequestQueue()
@@ -284,26 +256,41 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
         _queue?.Shutdown();
     }
 
-    /// <summary>
-    /// Specially handle the execute workspace command method as we have to deserialize the request
-    /// to figure out which <see cref="AbstractExecuteWorkspaceCommandHandler"/> actually handles it.
-    /// </summary>
-    //[JsonRpcMethod(Methods.WorkspaceExecuteCommandName, UseSingleObjectParameterDeserialization = true)]
-    //public async Task<object?> ExecuteWorkspaceCommandAsync(ExecuteCommandParams request, CancellationToken cancellationToken)
-    //{
-    //    Contract.ThrowIfNull(_clientCapabilitiesProvider, $"{nameof(InitializeAsync)} has not been called.");
-    //    var requestMethod = AbstractExecuteWorkspaceCommandHandler.GetRequestNameForCommandName(request.Command);
-
-    //    var result = await _requestDispatcher.ExecuteRequestAsync<LSP.ExecuteCommandParams, object>(
-    //        requestMethod,
-    //        request,
-    //        _clientCapabilitiesProvider.GetClientCapabilities(),
-    //        _queue,
-    //        cancellationToken).ConfigureAwait(false);
-    //    return result;
-    //}
-
     public abstract Task OnErroredEndAsync(object obj);
+
+    protected virtual void RequestExecutionQueueErroredInternal(string message)
+    {
+    }
+
+    private void RequestExecutionQueue_Errored(object? sender, RequestShutdownEventArgs e)
+    {
+        // log message and shut down
+        _logger?.TraceWarning($"Request queue is requesting shutdown due to error: {e.Message}");
+
+        RequestExecutionQueueErroredInternal(e.Message);
+
+        Shutdown();
+        Exit();
+    }
+
+    private enum MessageType
+    {
+        Error = 1,
+        Warning = 2,
+        Info = 3,
+        Log = 4,
+    }
+
+#nullable disable
+    [DataContract]
+    private class LogMessageParams
+    {
+        [DataMember(Name = "type")]
+        public MessageType MessageType;
+        [DataMember(Name = "message")]
+        public string Message;
+    }
+#nullable enable
 
     /// <summary>
     /// Cleanup the server if we encounter a json rpc disconnect so that we can be restarted later.
@@ -318,8 +305,8 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
 
         _logger?.TraceWarning($"Encountered unexpected jsonrpc disconnect, Reason={e.Reason}, Description={e.Description}, Exception={e.Exception}");
 
-        ShutdownImpl();
-        OnExitAsync();
+        Shutdown();
+        Exit();
     }
 
     public virtual async ValueTask DisposeAsync()
@@ -351,7 +338,7 @@ public abstract class LanguageServerTarget<RequestContextType> : ILanguageServer
 
         internal bool HasShutdownStarted() => _server.HasShutdownStarted;
 
-        internal void ShutdownServer() => _server.ShutdownImpl();
+        internal void ShutdownServer() => _server.Shutdown();
 
         internal void ExitServer() => throw new NotImplementedException(); // _server.ExitImpl();
     }

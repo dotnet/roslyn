@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             _versionedCache = new(this.GetType().Name);
         }
 
-        public abstract Uri? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
+        public abstract Uri? GetTextDocumentUri(TDiagnosticsParams diagnosticsParams);
 
         /// <summary>
         /// Retrieve the previous results we reported.  Used so we can avoid resending data for unchanged files. Also

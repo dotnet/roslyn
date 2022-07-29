@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         public bool MutatesSolutionState => true;
         public bool RequiresLSPSolution => true;
 
-        public Uri? GetTextDocumentIdentifier(TestRequest request) => null;
+        public Uri? GetTextDocumentUri(TestRequest request) => null;
 
         public async Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
         {

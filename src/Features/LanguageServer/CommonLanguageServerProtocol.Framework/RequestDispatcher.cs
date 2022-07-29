@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
@@ -43,10 +45,7 @@ public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestC
         CancellationToken cancellationToken)
     {
         // Get the handler matching the requested method.
-        var requestHandlerMetadata = new RequestHandlerMetadata(methodName, typeof(TRequestType), typeof(TResponseType));
-
-        var requestHandlers = GetRequestHandlers();
-        var handler = requestHandlers[requestHandlerMetadata].Value;
+        var handler = GetRequestHandler(methodName, typeof(TRequestType), typeof(TResponseType));
 
         var mutatesSolutionState = handler.MutatesSolutionState;
         var requiresLspSolution = handler.RequiresLSPSolution;
@@ -59,6 +58,59 @@ public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestC
 
         var result = await ExecuteRequestAsync(queue, mutatesSolutionState, requiresLspSolution, strongHandler, request, methodName, cancellationToken).ConfigureAwait(false);
         return result;
+    }
+
+    public async Task ExecuteNotificationAsync<TRequestType>(string methodName, TRequestType request, RequestExecutionQueue<RequestContextType> queue, CancellationToken cancellationToken)
+    {
+        var handler = GetRequestHandler(methodName, typeof(TRequestType), responseType: null);
+
+        var strongHandler = (INotificationHandler<TRequestType, RequestContextType>?)handler;
+        if (strongHandler is null)
+        {
+            throw new ArgumentOutOfRangeException(string.Format("Request handler not found for method {0}", methodName));
+        }
+
+        await ExecuteNotificationAsync(queue, handler.MutatesSolutionState, handler.RequiresLSPSolution, strongHandler, request, methodName, cancellationToken).ConfigureAwait(false);
+    }
+
+    protected virtual Task ExecuteNotificationAsync<TRequestType>(
+        RequestExecutionQueue<RequestContextType> queue,
+        bool mutatesSolutionState,
+        bool requiresLSPSolution,
+        INotificationHandler<TRequestType, RequestContextType> handler,
+        TRequestType request,
+        string methodName,
+        CancellationToken cancellationToken)
+    {
+        return queue.ExecuteAsync(mutatesSolutionState, requiresLSPSolution, handler, request, methodName, cancellationToken);
+    }
+
+    public async Task ExecuteNotificationAsync(string methodName, RequestExecutionQueue<RequestContextType> queue, CancellationToken cancellationToken)
+    {
+        var handler = GetRequestHandler(methodName, requestType: null, responseType: null);
+
+        var strongHandler = (INotificationHandler<RequestContextType>?)handler;
+        if (strongHandler is null)
+        {
+            throw new ArgumentOutOfRangeException(string.Format("Request handler not found for method {0}", methodName));
+        }
+
+        await ExecuteNotificationAsync(queue, handler.MutatesSolutionState, handler.RequiresLSPSolution, strongHandler, methodName, cancellationToken).ConfigureAwait(false);
+    }
+
+    protected virtual Task ExecuteNotificationAsync(RequestExecutionQueue<RequestContextType> queue, bool mutatesSolutionState, bool requiresLSPSolution, INotificationHandler<RequestContextType> handler, string methodName, CancellationToken cancellationToken)
+    {
+        return queue.ExecuteAsync(mutatesSolutionState, requiresLSPSolution, handler, methodName, cancellationToken);
+    }
+
+    private IRequestHandler GetRequestHandler(string method, Type? requestType, Type? responseType)
+    {
+        var requestHandlerMetadata = new RequestHandlerMetadata(method, requestType, responseType);
+
+        var requestHandlers = GetRequestHandlers();
+        var handler = requestHandlers[requestHandlerMetadata].Value;
+
+        return handler;
     }
 
     protected virtual Task<TResponseType> ExecuteRequestAsync<TRequestType, TResponseType>(

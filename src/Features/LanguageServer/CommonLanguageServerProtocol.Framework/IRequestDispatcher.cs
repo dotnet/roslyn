@@ -17,4 +17,15 @@ public interface IRequestDispatcher<RequestContextType> where RequestContextType
         TRequestType request,
         RequestExecutionQueue<RequestContextType> queue,
         CancellationToken cancellationToken);
+
+    Task ExecuteNotificationAsync<TRequestType>(
+        string methodName,
+        TRequestType request,
+        RequestExecutionQueue<RequestContextType> queue,
+        CancellationToken cancellationToken);
+
+    Task ExecuteNotificationAsync(
+        string methodName,
+        RequestExecutionQueue<RequestContextType> queue,
+        CancellationToken cancellationToken);
 }

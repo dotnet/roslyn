@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
-using StreamJsonRpc;
+using System.Collections.Generic;
+using System.Text;
 
 namespace CommonLanguageServerProtocol.Framework;
 
-public interface ILanguageServer : IAsyncDisposable
+public interface ILifeCycleManager
 {
+    void Shutdown();
+
+    void Exit();
 }

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
     [Method(VSInternalMethods.WorkspaceSpellCheckableRangesName)]
     internal class WorkspaceSpellCheckHandler : AbstractSpellCheckHandler<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport>
     {
-        public override Uri? GetTextDocumentIdentifier(VSInternalWorkspaceSpellCheckableParams request)
+        public override Uri? GetTextDocumentUri(VSInternalWorkspaceSpellCheckableParams request)
             => null;
 
         protected override VSInternalWorkspaceSpellCheckableReport CreateReport(TextDocumentIdentifier identifier, VSInternalSpellCheckableRange[]? ranges, string? resultId)

@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public Uri? GetTextDocumentIdentifier(DocumentOnTypeFormattingParams request) => request.TextDocument.Uri;
+        public Uri? GetTextDocumentUri(DocumentOnTypeFormattingParams request) => request.TextDocument.Uri;
 
         public async Task<TextEdit[]> HandleRequestAsync(DocumentOnTypeFormattingParams request, RequestContext context, CancellationToken cancellationToken)
         {

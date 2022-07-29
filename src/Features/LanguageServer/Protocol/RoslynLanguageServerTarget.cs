@@ -4,11 +4,14 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.RpcContracts;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
@@ -40,7 +43,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
 
             // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
-            _baseServices = GetBaseServices(jsonRpc, this, logger, capabilitiesProvider);
+            var lifeCycleManager = new RoslynLifeCycleManager(this);
+            _baseServices = GetBaseServices(jsonRpc, this, logger, capabilitiesProvider, lifeCycleManager);
             _supportedLanguages = supportedLanguages;
 
             Initialize();
@@ -59,13 +63,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             JsonRpc jsonRpc,
             IClientCapabilitiesProvider clientCapabilitiesProvider,
             IRoslynLspLogger logger,
-            ICapabilitiesProvider capabilitiesProvider)
+            ICapabilitiesProvider capabilitiesProvider,
+            RoslynLifeCycleManager lifeCycleManager)
         {
             var baseServices = ImmutableArray.Create(
                 CreateLspServiceInstance<IClientLanguageServerManager>(new ClientLanguageServerManager(jsonRpc)),
                 CreateLspServiceInstance(logger),
                 CreateLspServiceInstance<IClientCapabilitiesProvider>(clientCapabilitiesProvider),
-                CreateLspServiceInstance<ICapabilitiesProvider>(capabilitiesProvider));
+                CreateLspServiceInstance<ICapabilitiesProvider>(capabilitiesProvider),
+                CreateLspServiceInstance<RoslynLifeCycleManager>(lifeCycleManager));
 
             return baseServices;
 
@@ -74,6 +80,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 return new Lazy<ILspService, LspServiceMetadataView>(
                     () => lspServiceInstance, new LspServiceMetadataView(typeof(T)));
             }
+        }
+
+        protected override void RequestExecutionQueueErroredInternal(string message)
+        {
+            var messageParams = new LogMessageParams()
+            {
+                MessageType = MessageType.Error,
+                Message = message
+            };
+            var lspServices = (LspServices)GetLspServices();
+            var clientNotificationService = lspServices.GetRequiredLspService<IClientLanguageServerManager>();
+
+            var asyncToken = _listener.BeginAsyncOperation("RequestExecutionQueue_Errored");
+            _errorShutdownTask = Task.Run(async () =>
+            {
+                _logger?.TraceInformation("Shutting down language server.");
+
+                await clientNotificationService.SendNotificationAsync("window/logMessage", message, CancellationToken.None).ConfigureAwait(false);
+
+            }).CompletesAsyncOperation(asyncToken);
         }
 
         public override RequestExecutionQueue<RequestContext> GetRequestExecutionQueue()
@@ -97,38 +123,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             return _requestDispatcher;
         }
-
-        //protected override Task OnExitInternal()
-        //{
-        //    ShutdownRequestQueue();
-        //    return Task.CompletedTask;
-        //}
-
-        //public override void OnErroredStart()
-        //{
-        //    _erroredToken = _listener.BeginAsyncOperation("RequestExecutionQueue_Errored");
-        //    // log message and shut down
-        //    _logger?.TraceWarning($"Request queue is requesting shutdown due to error: {e.Message}");
-
-        //    var message = new LogMessageParams()
-        //    {
-        //        MessageType = MessageType.Error,
-        //        Message = e.Message
-        //    };
-
-        //    OnErroredStart();
-        //    _errorShutdownTask = Task.Run(async () =>
-        //    {
-        //        _logger?.TraceInformation("Shutting down language server.");
-        //        var lspServices = GetLspServices();
-        //        var clientNotificationService = lspServices.GetRequiredService<IClientLanguageServerManager>();
-
-        //        await clientNotificationService.SendNotificationAsync<LogMessageParams>(Methods.WindowLogMessageName, message, CancellationToken.None).ConfigureAwait(false);
-
-        //        ShutdownImpl();
-        //        await OnExitAsync();
-        //    }).ContinueWith(OnErroredEndAsync);
-        //}
 
         public ClientCapabilities GetClientCapabilities()
         {
@@ -191,9 +185,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             await base.DisposeAsync();
         }
-    }
-
-    internal interface IRoslynLspLogger : ILspLogger, ILspService
-    {
     }
 }

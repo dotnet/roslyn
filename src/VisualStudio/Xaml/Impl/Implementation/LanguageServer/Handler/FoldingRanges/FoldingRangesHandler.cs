@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public Uri? GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument.Uri;
+        public Uri? GetTextDocumentUri(FoldingRangeParams request) => request.TextDocument.Uri;
 
         public async Task<FoldingRange[]> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {

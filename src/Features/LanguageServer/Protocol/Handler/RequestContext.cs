@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public readonly string ServerKind;
 
         /// <summary>
-        /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType, TResponseContextType}.GetTextDocumentIdentifier(RequestType)"/>.
+        /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType, TResponseContextType}.GetTextDocumentUri(RequestType)"/>.
         /// </summary>
         public readonly Document? Document;
 

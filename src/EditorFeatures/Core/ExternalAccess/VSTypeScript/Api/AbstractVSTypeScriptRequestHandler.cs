@@ -22,7 +22,7 @@ internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TRespon
 
     bool IRequestHandler.RequiresLSPSolution => RequiresLSPSolution;
 
-    public Uri? GetTextDocumentIdentifier(TRequestType request)
+    public Uri? GetTextDocumentUri(TRequestType request)
     {
         var typeScriptIdentifier = GetTypeSciptTextDocumentIdentifier(request);
         if (typeScriptIdentifier == null)

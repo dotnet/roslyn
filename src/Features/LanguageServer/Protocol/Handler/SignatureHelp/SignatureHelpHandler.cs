@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public Uri? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument.Uri;
+        public Uri? GetTextDocumentUri(LSP.TextDocumentPositionParams request) => request.TextDocument.Uri;
 
         public async Task<LSP.SignatureHelp?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {

@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using StreamJsonRpc;
+using CommonLanguageServerProtocol.Framework;
 
-namespace CommonLanguageServerProtocol.Framework;
-
-public interface ILanguageServer : IAsyncDisposable
+namespace Microsoft.CodeAnalysis.LanguageServer
 {
+    internal interface IRoslynLspLogger : ILspLogger, ILspService
+    {
+    }
 }

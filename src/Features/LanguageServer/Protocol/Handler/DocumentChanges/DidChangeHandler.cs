@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         public bool MutatesSolutionState => true;
         public bool RequiresLSPSolution => false;
 
-        public Uri? GetTextDocumentIdentifier(LSP.DidChangeTextDocumentParams request) => request.TextDocument.Uri;
+        public Uri? GetTextDocumentUri(LSP.DidChangeTextDocumentParams request) => request.TextDocument.Uri;
 
         public Task<object?> HandleRequestAsync(LSP.DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {

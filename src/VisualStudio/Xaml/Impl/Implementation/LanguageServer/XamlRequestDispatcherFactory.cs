@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                 RequestExecutionQueue<RequestContext> queue, bool mutatesSolutionState, bool requiresLSPSolution,
                 IRequestHandler<TRequestType, TResponseType, RequestContext> handler, TRequestType request, string methodName, CancellationToken cancellationToken)
             {
-                var textDocument = handler.GetTextDocumentIdentifier(request);
+                var textDocument = handler.GetTextDocumentUri(request);
 
                 DocumentId? documentId = null;
                 if (textDocument.IsAbsoluteUri)

@@ -59,7 +59,7 @@ internal partial class InlineCompletionsHandler : IRoslynRequestHandler<VSIntern
         _globalOptions = globalOptions;
     }
 
-    public Uri? GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
+    public Uri? GetTextDocumentUri(VSInternalInlineCompletionRequest request)
     {
         return request.TextDocument.Uri;
     }
