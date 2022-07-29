@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async ValueTask SynchronizeProjectAssetsAsync(IEnumerable<Checksum> projectChecksums, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeProjectAssetsAsync(HashSet<Checksum> projectChecksums, CancellationToken cancellationToken)
         {
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async ValueTask SynchronizeProjectAssets_NoLockAsync(IEnumerable<Checksum> projectChecksums, CancellationToken cancellationToken)
+        private async ValueTask SynchronizeProjectAssets_NoLockAsync(IReadOnlyCollection<Checksum> projectChecksums, CancellationToken cancellationToken)
         {
             // get children of project checksum objects at once
             await SynchronizeProjectsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote
             await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
         }
 
-        private async ValueTask SynchronizeProjectsAsync(IEnumerable<Checksum> projectChecksums, CancellationToken cancellationToken)
+        private async ValueTask SynchronizeProjectsAsync(IReadOnlyCollection<Checksum> projectChecksums, CancellationToken cancellationToken)
         {
             // get children of project checksum objects at once
             using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Remote
             await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
         }
 
-        private async ValueTask CollectChecksumChildrenAsync(HashSet<Checksum> set, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        private async ValueTask CollectChecksumChildrenAsync(HashSet<Checksum> set, IReadOnlyCollection<Checksum> checksums, CancellationToken cancellationToken)
         {
             foreach (var checksum in checksums)
             {

@@ -378,7 +378,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 // 🔗 https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1365014
                 if (newMap.Count > 2)
                 {
-                    await _assetProvider.SynchronizeProjectAssetsAsync(new[] { projectChecksums.Checksum }, cancellationToken).ConfigureAwait(false);
+                    using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
+                    pooledObject.Object.Add(projectChecksums.Checksum);
+                    await _assetProvider.SynchronizeProjectAssetsAsync(pooledObject.Object, cancellationToken).ConfigureAwait(false);
                 }
 
                 // added document

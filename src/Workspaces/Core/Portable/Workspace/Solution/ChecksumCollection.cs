@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// <summary>
     /// collection which children is checksum.
     /// </summary>
-    internal class ChecksumCollection : ChecksumWithChildren, IEnumerable<Checksum>
+    internal class ChecksumCollection : ChecksumWithChildren, IReadOnlyCollection<Checksum>
     {
         public ChecksumCollection(Checksum[] checksums) : this((object[])checksums)
         {

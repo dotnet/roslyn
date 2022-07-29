@@ -135,7 +135,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            await service.SynchronizeProjectAssetsAsync(SpecializedCollections.SingletonEnumerable(await project.State.GetChecksumAsync(CancellationToken.None)), CancellationToken.None);
+            await service.SynchronizeProjectAssetsAsync(new HashSet<Checksum> { await project.State.GetChecksumAsync(CancellationToken.None) }, CancellationToken.None);
 
             TestUtils.VerifyAssetStorage(map, storage);
         }

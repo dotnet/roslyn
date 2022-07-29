@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async ValueTask SynchronizeProjectAssetsAsync(IEnumerable<Checksum> projectChecksums, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeProjectAssetsAsync(HashSet<Checksum> projectChecksums, CancellationToken cancellationToken)
         {
             // this will pull in assets that belong to the given project checksum to this remote host.
             // this one is not supposed to be used for functionality but only for perf. that is why it doesn't return anything.
