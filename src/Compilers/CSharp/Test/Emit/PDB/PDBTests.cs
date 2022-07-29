@@ -98,11 +98,11 @@ class D { void M() {} }
             comp.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name=""test.cs"" language=""C#"" />
-    <file id=""2"" name="""" language=""C#"" />
+    <file id=""1"" name="""" language=""C#"" />
+    <file id=""2"" name=""test.cs"" language=""C#"" />
   </files>
 </symbols>
-", options: PdbValidationOptions.ExcludeMethods);
+", format: DebugInformationFormat.PortablePdb, options: PdbValidationOptions.ExcludeMethods);
         }
 
         [WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")]

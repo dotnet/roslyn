@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis
             var newDocumentServiceProvider = documentServiceProvider.HasValue ? documentServiceProvider.Value : DocumentServiceProvider;
 
             if (newAttributes == Attributes &&
-                newLoader == TextLoader &&
+                newLoader == _textLoader &&
                 newDocumentServiceProvider == DocumentServiceProvider)
             {
                 return this;
