@@ -81,9 +81,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             if (e.Kind is WorkspaceChangeKind.SolutionCleared
                        or WorkspaceChangeKind.SolutionRemoved)
             {
-                RoslynDebug.AssertNotNull(_threadingContext);
-                RoslynDebug.AssertNotNull(ViewModel);
-
                 _ = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
