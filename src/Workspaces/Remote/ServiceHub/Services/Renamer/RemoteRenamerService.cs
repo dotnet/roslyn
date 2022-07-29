@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var locations = await SymbolicRenameLocations.TryRehydrateAsync(
                     symbol, solution, GetClientOptionsProvider(callbackId), serializableLocations, cancellationToken).ConfigureAwait(false);
-                if (locations == null)
+                if (locations is null)
                     return null;
 
                 var result = await ConflictResolver.ResolveSymbolicLocationConflictsInCurrentProcessAsync(
