@@ -11,5 +11,5 @@ internal sealed class SignatureHelpViewOptionsStorage
     private const string FeatureName = "SignatureHelpOptions";
 
     public static readonly PerLanguageOption2<bool> ShowSignatureHelp = new(
-        FeatureName, "ShowSignatureHelp", defaultValue: true, new LocalClientSettingsStorageLocation("TextEditor.%LANGUAGE%.Auto List Params"));
+        FeatureName, "ShowSignatureHelp", defaultValue: true, new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Auto List Params"));
 }

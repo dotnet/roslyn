@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 assetProvider,
                 solutionChecksum,
                 workspaceVersion,
-                fromPrimaryBranch: true,
+                updatePrimaryBranch: true,
                 static _ => ValueTaskFactory.FromResult(false),
                 cancellationToken).ConfigureAwait(false);
         }
@@ -116,14 +116,14 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
-            return RunWithSolutionAsync(assetProvider, solutionChecksum, workspaceVersion: -1, fromPrimaryBranch: false, implementation, cancellationToken);
+            return RunWithSolutionAsync(assetProvider, solutionChecksum, workspaceVersion: -1, updatePrimaryBranch: false, implementation, cancellationToken);
         }
 
         private async ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             int workspaceVersion,
-            bool fromPrimaryBranch,
+            bool updatePrimaryBranch,
             Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // Wasn't the same as the last thing we cached, actually get the corresponding solution and run the
             // requested callback against it.
             return await SlowGetSolutionAndRunAsync(
-                assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, implementation, cancellationToken).ConfigureAwait(false);
+                assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch, implementation, cancellationToken).ConfigureAwait(false);
 
             async ValueTask<(Solution? solution, T result)> TryFastGetSolutionAndRunAsync()
             {
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Remote
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             int workspaceVersion,
-            bool fromPrimaryBranch,
+            bool updatePrimaryBranch,
             Func<Solution, ValueTask<T>> doWorkAsync,
             CancellationToken cancellationToken)
         {
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // We may have just done a lot of work to determine the up to date primary branch solution.  See if we
             // can move the workspace forward to that solution snapshot.
-            if (fromPrimaryBranch)
+            if (updatePrimaryBranch)
                 (newSolution, _) = await this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, newSolution, cancellationToken).ConfigureAwait(false);
 
             // Store this around so that if another call comes through, they will see the solution we just computed.
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     // Quick caches of the last solutions we computed.  That way if return all the way out and something
                     // else calls back in, we have a likely chance of a cache hit.
                     _lastRequestedAnyBranchSolution = (solutionChecksum, solution);
-                    if (fromPrimaryBranch)
+                    if (updatePrimaryBranch)
                         _lastRequestedPrimaryBranchSolution = (solutionChecksum, solution);
                 }
             }
@@ -377,12 +377,12 @@ namespace Microsoft.CodeAnalysis.Remote
             public async ValueTask<Solution> GetSolutionAsync(
                 AssetProvider assetProvider,
                 Checksum solutionChecksum,
-                bool fromPrimaryBranch,
+                bool updatePrimaryBranch,
                 int workspaceVersion,
                 CancellationToken cancellationToken)
             {
                 var tuple = await _remoteWorkspace.RunWithSolutionAsync(
-                    assetProvider, solutionChecksum, workspaceVersion, fromPrimaryBranch, _ => ValueTaskFactory.FromResult(false), cancellationToken).ConfigureAwait(false);
+                    assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch, _ => ValueTaskFactory.FromResult(false), cancellationToken).ConfigureAwait(false);
                 return tuple.solution;
             }
         }
