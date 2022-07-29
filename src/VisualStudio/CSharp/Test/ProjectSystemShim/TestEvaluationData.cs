@@ -30,7 +30,4 @@ internal sealed class TestEvaluationData : EvaluationData
             "AssemblyName" => AssemblyName,
             _ => throw ExceptionUtilities.UnexpectedValue(name)
         };
-
-    public override IEnumerable<EvaluationItem> GetItems(string itemType)
-        => SpecializedCollections.EmptyEnumerable<EvaluationItem>();
 }
