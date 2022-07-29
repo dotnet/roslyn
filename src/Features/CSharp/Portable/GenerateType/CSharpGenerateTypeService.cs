@@ -687,14 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         internal override bool IsPublicOnlyAccessibility(ExpressionSyntax expression, Project project)
         {
             if (expression == null)
-            {
                 return false;
-            }
-
-            if (GeneratedTypesMustBePublic(project))
-            {
-                return true;
-            }
 
             var node = expression as SyntaxNode;
             SyntaxNode previousNode = null;

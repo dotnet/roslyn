@@ -7,6 +7,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -113,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                         if (document != null)
                         {
-                            var languageDebugInfo = document.Project.LanguageServices.GetService<ILanguageDebugInfoService>();
+                            var languageDebugInfo = document.Project.Services.GetService<ILanguageDebugInfoService>();
                             if (languageDebugInfo != null)
                             {
                                 var spanOpt = textSnapshot.TryGetSpan(textSpan);

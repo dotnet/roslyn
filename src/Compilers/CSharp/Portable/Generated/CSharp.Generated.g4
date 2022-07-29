@@ -420,7 +420,7 @@ predefined_type
   ;
 
 ref_type
-  : 'ref' 'readonly'? 'scoped'? type
+  : 'ref' 'readonly'? type
   ;
 
 tuple_type

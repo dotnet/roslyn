@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 return;
             }
 
-            var storageService = solution.Workspace.Services.GetPersistentStorageService();
+            var storageService = solution.Services.GetPersistentStorageService();
             await SearchCachedDocumentsInCurrentProcessAsync(
                 storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
         }

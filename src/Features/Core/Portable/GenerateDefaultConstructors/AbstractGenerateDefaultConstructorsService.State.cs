@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                 var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
                 var classConstructors = ClassType.InstanceConstructors;
 
-                var destinationProvider = semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(ClassType.Language);
+                var destinationProvider = semanticDocument.Project.Solution.Services.GetProjectServices(ClassType.Language);
                 var isCaseSensitive = syntaxFacts.IsCaseSensitive;
 
                 UnimplementedConstructors =
