@@ -47,33 +47,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-//#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-//        public static Task WithCancellation(this Task task, CancellationToken cancellationToken)
-//        {
-//            Contract.ThrowIfNull(task);
-//            if (!cancellationToken.CanBeCanceled || task.IsCompleted)
-//                return task;
-
-//            if (cancellationToken.IsCancellationRequested)
-//                return Task.FromCanceled(cancellationToken);
-
-//            return task.WithCancellationSlow(continueOnCapturedContext: false, cancellationToken);
-//        }
-
-//        private static async Task WithCancellationSlow(this Task task, bool continueOnCapturedContext, CancellationToken cancellationToken)
-//        {
-//            Contract.ThrowIfNull(task);
-//            var taskCompletionSource = new TaskCompletionSource<bool>();
-//            using (cancellationToken.Register(static s => ((TaskCompletionSource<bool>)s!).TrySetResult(true), taskCompletionSource))
-//            {
-//                if (task != await Task.WhenAny(task, taskCompletionSource.Task).ConfigureAwait(continueOnCapturedContext))
-//                    cancellationToken.ThrowIfCancellationRequested();
-//            }
-
-//            await task.ConfigureAwait(continueOnCapturedContext);
-//        }
-//#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
-
         // Following code is copied from Microsoft.VisualStudio.Threading.TplExtensions (renamed to avoid ambiguity)
         // https://github.com/microsoft/vs-threading/blob/main/src/Microsoft.VisualStudio.Threading/TplExtensions.cs
 
