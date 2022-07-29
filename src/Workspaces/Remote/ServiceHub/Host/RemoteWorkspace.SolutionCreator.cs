@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return solution;
             }
 
-            private async Task SynchronizeAssetsAsync(Dictionary<ProjectId, ProjectStateChecksums> oldMap, Dictionary<ProjectId, ProjectStateChecksums> newMap, CancellationToken cancellationToken)
+            private async ValueTask SynchronizeAssetsAsync(Dictionary<ProjectId, ProjectStateChecksums> oldMap, Dictionary<ProjectId, ProjectStateChecksums> newMap, CancellationToken cancellationToken)
             {
                 using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
 
