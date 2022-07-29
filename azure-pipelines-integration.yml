@@ -37,6 +37,7 @@ jobs:
     configuration: Debug
     # TODO - $(poolName)?
     queueName: Build.Windows.Amd64.VS2022.Pre.Open
+    usingToolVSSDK: true
     buildArguments: /p:Projects='"$(Build.Repository.LocalPath)\src\VisualStudio\IntegrationTest\IntegrationTestBuildProject\IntegrationTestBuildProject.csproj";"$(Build.Repository.LocalPath)\src\Tools\PrepareTests\PrepareTests.csproj";"$(Build.Repository.LocalPath)\src\Tools\Source\RunTests\RunTests.csproj"'
 
 - template: eng/pipelines/build-windows-job.yml
@@ -46,6 +47,7 @@ jobs:
     configuration: Release
     # TODO - $(poolName)?
     queueName: Build.Windows.Amd64.VS2022.Pre.Open
+    usingToolVSSDK: true
     buildArguments: /p:Projects='"$(Build.Repository.LocalPath)\src\VisualStudio\IntegrationTest\IntegrationTestBuildProject\IntegrationTestBuildProject.csproj";"$(Build.Repository.LocalPath)\src\Tools\PrepareTests\PrepareTests.csproj";"$(Build.Repository.LocalPath)\src\Tools\Source\RunTests\RunTests.csproj"'
 
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
