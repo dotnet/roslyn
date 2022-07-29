@@ -170,7 +170,6 @@ namespace Microsoft.CodeAnalysis.Remote
         private async Task<Solution> ComputeDisconnectedSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
-            Solution currentSolution,
             CancellationToken cancellationToken)
         {
             try
