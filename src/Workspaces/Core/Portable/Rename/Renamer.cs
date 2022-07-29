@@ -249,10 +249,31 @@ namespace Microsoft.CodeAnalysis.Rename
                     callbackTarget: keepAliveConnection,
                     cancellationToken).AsTask();
 
-                return await taskCompletionSource.Task.ConfigureAwait(false);
+                await taskCompletionSource.Task.ConfigureAwait(false);
+            }
+        }
+
+        internal sealed class KeepAliveConnection
+        {
+            /// <summary>
+            /// Used to keep track if <see cref="KeepAliveAsync"/> has been called by the oop server.
+            /// </summary>
+            private readonly TaskCompletionSource<bool> _keepAliveCalledSource;
+
+            public KeepAliveConnection(TaskCompletionSource<bool> keepAliveCalledSource)
+            {
+                _keepAliveCalledSource = keepAliveCalledSource;
             }
 
-            return Task.CompletedTask;
+            /// <summary>
+            /// Callback from OOP into the host side.  This allows OOP to tell us when it has successfully hydrated and
+            /// pinned the solution snapshot on its side.
+            /// </summary>
+            public ValueTask KeepAliveAsync()
+            {
+                _keepAliveCalledSource.TrySetResult(false);
+                return default;
+            }
         }
     }
 }
