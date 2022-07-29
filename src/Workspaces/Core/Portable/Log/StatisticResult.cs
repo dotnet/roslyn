@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Roslyn.Utilities;
@@ -85,6 +84,28 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             this.Range = range;
             this.Mode = mode;
             this.Count = count;
+        }
+
+        /// <summary>
+        /// Writes out these statistics to a property bag for sending to telemetry.
+        /// </summary>
+        /// <param name="prefix">The prefix given to any properties written. A period is used to delimit between the 
+        /// prefix and the value.</param>
+        public void WriteTelemetryPropertiesTo(Dictionary<string, object?> properties, string prefix)
+        {
+            prefix += ".";
+
+            properties.Add(prefix + nameof(Maximum), Maximum);
+            properties.Add(prefix + nameof(Minimum), Minimum);
+            properties.Add(prefix + nameof(Mean), Mean);
+            properties.Add(prefix + nameof(Range), Range);
+            properties.Add(prefix + nameof(Count), Count);
+
+            if (Median.HasValue)
+                properties.Add(prefix + nameof(Median), Median.Value);
+
+            if (Mode.HasValue)
+                properties.Add(prefix + nameof(Mode), Mode.Value);
         }
     }
 }

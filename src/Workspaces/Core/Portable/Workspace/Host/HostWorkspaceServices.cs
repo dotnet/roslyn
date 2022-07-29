@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         /// <summary>
         /// Obsolete.  Roslyn no longer supports a mechanism to perform arbitrary persistence of data.  If such functionality
-        /// is needed, consumers are resonsible for providing it themselves with whatever semantics are needed.
+        /// is needed, consumers are responsible for providing it themselves with whatever semantics are needed.
         /// </summary>
         [Obsolete("Roslyn no longer exports a mechanism to perform persistence.", error: true)]
         public virtual IPersistentStorageService PersistentStorage
@@ -67,8 +67,10 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         /// <summary>
-        /// A service for storing information in a temporary location that only lasts for the duration of the process.
+        /// Obsolete.  Roslyn no longer supports a mechanism to store arbitrary data in-memory.  If such functionality
+        /// is needed, consumers are responsible for providing it themselves with whatever semantics are needed.
         /// </summary>
+        [Obsolete("Roslyn no longer exports a mechanism to store arbitrary data in-memory.")]
         public virtual ITemporaryStorageService TemporaryStorage
         {
             get { return this.GetRequiredService<ITemporaryStorageService>(); }

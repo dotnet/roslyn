@@ -1387,6 +1387,11 @@
         <target state="translated">Der Modifikator ‚Scoped‘ kann nur für Refs und Ref-Strukturwerte verwendet werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScopedTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'scoped'.</source>
+        <target state="new">Types and aliases cannot be named 'scoped'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
         <source>Required members are not allowed on the top level of a script or submission.</source>
         <target state="translated">Erforderliche Mitglieder sind auf der obersten Ebene eines Skripts oder einer Übermittlung nicht zulässig.</target>

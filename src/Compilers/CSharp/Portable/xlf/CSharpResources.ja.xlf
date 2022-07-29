@@ -1387,6 +1387,11 @@
         <target state="translated">'scoped' 修飾子は refs および ref 構造体の値にのみ使用できます。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScopedTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'scoped'.</source>
+        <target state="new">Types and aliases cannot be named 'scoped'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
         <source>Required members are not allowed on the top level of a script or submission.</source>
         <target state="translated">必要なメンバーは、スクリプトまたは送信の最上位レベルでは許可されていません。</target>
