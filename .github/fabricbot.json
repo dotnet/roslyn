@@ -1090,6 +1090,12 @@
           "operator": "and",
           "operands": [
             {
+              "name": "hasLabel",
+              "parameters": {
+                "label": "vs-insertion"
+              }
+            },
+            {
               "name": "titleContains",
               "parameters": {
                 "titlePattern": "[Automated] PRs inserted in VS build"
@@ -1102,17 +1108,11 @@
           "issues",
           "project_card"
         ],
-        "taskName": "Close automatically generated Roslyn PR tagger issues",
+        "taskName": "Close automatically generated PR tagger issues",
         "actions": [
           {
             "name": "closeIssue",
             "parameters": {}
-          },
-          {
-            "name": "removeLabel",
-            "parameters": {
-              "label": "untriaged"
-            }
           }
         ]
       }
