@@ -10,7 +10,6 @@ using PostSharp.Engineering.BuildTools.Build;
 var product = new Product( Dependencies.MetalamaCompiler )
 {
     PrivateArtifactsDirectory = "artifacts\\packages\\$(MSSBuildConfiguration)\\Shipping",
-    EngineeringDirectory = "eng-Metalama",
     VersionsFilePath = "eng\\Versions.props",
     GenerateArcadeProperties = true,
     AdditionalDirectoriesToClean = new [] { "artifacts" },
