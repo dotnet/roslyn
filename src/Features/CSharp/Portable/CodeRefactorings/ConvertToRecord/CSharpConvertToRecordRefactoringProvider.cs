@@ -171,10 +171,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             // for class records and readonly struct records, properties should be get; init; only
             // for non-readonly structs, they should be get; set;
+            // this is bacause those are the defaults for properties generated from positional constructors
+            // for each respective class type, although we could decide to change this requirement
             // the get should be public
             // neither should have bodies (as it indicates more complex functionality)
             var accessors = property.AccessorList.Accessors;
-
             if (accessors.Any(a => a.Body != null || a.ExpressionBody != null) ||
                 !accessors.Any(a => a.Kind() == SyntaxKind.GetAccessorDeclaration && a.Modifiers.IsEmpty()))
             {
@@ -265,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                             if (constructorParamTypes.Length == 1 &&
                                 constructorParamTypes.First() == classDeclaration.Identifier.ToString())
                             {
-                                // TODO: warn that we're deleting 
+                                
                             }
 
                             // TODO: Can potentially refactor statements which initialize properties with a simple expression
@@ -527,10 +528,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             foreach (var bodyOperation in operation.BlockBody.Operations)
             {
-                if (bodyOperation is IExpressionStatementOperation statement &&
-                    statement.Operation is ISimpleAssignmentOperation assignment &&
-                    assignment.Target is IPropertyReferenceOperation propertyReference &&
-                    assignment.Value is IParameterReferenceOperation parameterReference)
+                if (bodyOperation is IExpressionStatementOperation
+                    {
+                        Operation: ISimpleAssignmentOperation
+                        {
+                            Target: IPropertyReferenceOperation propertyReference,
+                            Value: IParameterReferenceOperation parameterReference
+                        }
+                    })
                 {
                     var propertyName = propertyReference.Property.Name;
                     var propertyIndex = propertyNames.IndexOf(propertyName);

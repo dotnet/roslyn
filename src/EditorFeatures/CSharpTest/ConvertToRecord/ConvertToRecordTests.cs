@@ -816,6 +816,151 @@ namespace N
         }
 
         [Fact]
+        public async Task TestMovePropertiesAndDeleteSimplePrimaryConstructor()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(int p, bool b)
+        {
+            P = p;
+            B = b;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDontDeleteComplexPrimaryConstructor1()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(int p, bool b)
+        {
+            Console.WriteLine(""Constructing C..."");
+            P = p;
+            B = b;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+
+namespace N
+{
+    public record C(int P, bool B)
+    {
+        public {|CS0111:{|CS8862:C|}|}(int p, bool b)
+        {
+            Console.WriteLine(""Constructing C..."");
+            P = p;
+            B = b;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDontDeleteComplexPrimaryConstructor2()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(int p, bool b)
+        {
+            P = p + 1;
+            B = b;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+
+namespace N
+{
+    public record C(int P, bool B)
+    {
+        public {|CS0111:{|CS8862:C|}|}(int p, bool b)
+        {
+            P = p + 1;
+            B = b;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDontDeleteComplexPrimaryConstructor3()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(int p, bool b)
+        {
+            B = b;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+
+namespace N
+{
+    public record C(int P, bool B)
+    {
+        public {|CS0111:{|CS8862:C|}|}(int p, bool b)
+        {
+            B = b;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestMovePropertiesAndModifyPrintMembersOnClass()
         {
             var initialMarkup = @"
