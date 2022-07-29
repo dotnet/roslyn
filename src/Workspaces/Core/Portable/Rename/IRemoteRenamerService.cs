@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Rename
             => ((RemoteOptionsProvider<CodeCleanupOptions>)GetCallback(callbackId)).GetOptionsAsync(language, cancellationToken);
 
         public ValueTask KeepAliveAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
-            => ((LightweightRenameLocations.IKeepAliveConnection)GetCallback(callbackId)).KeepAliveAsync();
+            => ((Renamer.KeepAliveConnection)GetCallback(callbackId)).KeepAliveAsync();
     }
 
     [DataContract]

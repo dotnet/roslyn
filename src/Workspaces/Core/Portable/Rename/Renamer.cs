@@ -219,5 +219,40 @@ namespace Microsoft.CodeAnalysis.Rename
             var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(symbol, solution, options, cleanupOptions, cancellationToken).ConfigureAwait(false);
             return await ConflictResolver.ResolveSymbolicLocationConflictsInCurrentProcessAsync(renameLocations, newName, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
         }
+
+        /// <summary>
+        /// Creates a session between the host and OOP, effectively pinning this <paramref name="solution"/> until <see
+        /// cref="IDisposable.Dispose"/> is called on the session.  By pinning the solution we ensure that all calls to
+        /// OOP for the same solution during the life of this rename session do not need to resync the solution.  Nor do
+        /// they then need to rebuild any compilations they've already built due to the solution going away and then
+        /// coming back.
+        /// </summary>
+        internal static async Task<IKeepAliveSession> CreateKeepAliveSessionAsync(
+            Solution solution,
+            CancellationToken cancellationToken)
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+            if (client != null)
+            {
+                // Create an initial connection with a ref-count of 1.  This ensures that if we fail on any step below,
+                // we'll dispose of the connection.
+                var keepAliveConnection = new KeepAliveConnection();
+                using var refCountedConnection = new ReferenceCountedDisposable<KeepAliveConnection>(keepAliveConnection);
+
+                // Kick off the keep alive task.  It will terminate when the above connection is finally disposed.
+                var keepAliveTask = client.TryInvokeAsync<IRemoteRenamerService>(
+                    solution,
+                    (service, solutionInfo, callbackId, cancellationToken) => service.KeepAliveAsync(solutionInfo, callbackId, cancellationToken),
+                    callbackTarget: keepAliveConnection,
+                    keepAliveConnection.CancellationToken);
+
+                // wait for OOP to call back into us.  Once they do, we'll know they've pinned this solution.
+                await keepAliveConnection.KeepAliveCalledTask.ConfigureAwait(false);
+
+                return new KeepAliveSession(refCountedConnection.TryAddReference() ?? throw ExceptionUtilities.Unreachable);
+            }
+
+            return NoOpKeepAliveSession.Instance;
+        }
     }
 }
