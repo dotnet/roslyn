@@ -150,23 +150,32 @@ namespace Microsoft.CodeAnalysis.Rename
                 Locations.SelectAsArray(SerializableRenameLocation.Dehydrate),
                 _implicitLocations,
                 _referencedSymbols);
+    }
 
-        internal static async Task<LightweightRenameLocations?> TryRehydrateAsync(
-            Solution solution, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations serializableLocations, CancellationToken cancellationToken)
+    internal partial class SymbolicRenameLocations
+    {
+        internal static async Task<SymbolicRenameLocations> RehydrateAsync(
+            ISymbol symbol, Solution solution, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations serializableLocations, CancellationToken cancellationToken)
         {
-            if (serializableLocations == null)
-                return null;
+            Contract.ThrowIfNull(serializableLocations);
 
             var locations = await serializableLocations.Locations.SelectAsArrayAsync(
                 static (loc, solution, cancellationToken) => loc.RehydrateAsync(solution, cancellationToken), solution, cancellationToken).ConfigureAwait(false);
 
-            return new LightweightRenameLocations(
+            var implicitLocations = await serializableLocations.ImplicitLocations.SelectAsArrayAsync(
+            static (loc, solution, cancellationToken) => loc.RehydrateAsync(solution, cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+
+            var referencedSymbols = await serializableLocations.ReferencedSymbols.SelectAsArrayAsync(
+                static (sym, solution, cancellationToken) => sym.TryRehydrateAsync(solution, cancellationToken), solution, cancellationToken).ConfigureAwait(false);
+
+            return new SymbolicRenameLocations(
+                symbol,
                 solution,
                 serializableLocations.Options,
                 fallbackOptions,
                 locations,
-                serializableLocations.ImplicitLocations,
-                serializableLocations.ReferencedSymbols);
+                implicitLocations,
+                referencedSymbols);
         }
     }
 
@@ -197,6 +206,16 @@ namespace Microsoft.CodeAnalysis.Rename
             Locations = locations;
             ImplicitLocations = implicitLocations;
             ReferencedSymbols = referencedSymbols;
+        }
+
+        public async ValueTask<ImmutableArray<RenameLocation>> RehydrateLocationsAsync(
+            Solution solution, CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<RenameLocation>.GetInstance(this.Locations.Length, out var locBuilder);
+            foreach (var loc in this.Locations)
+                locBuilder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
+
+            return locBuilder.ToImmutable();
         }
     }
 

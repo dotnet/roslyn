@@ -79,12 +79,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (symbol == null)
                     return null;
 
-                var fallbackOptions = GetClientOptionsProvider(callbackId);
+                var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(
+                    symbol, solution, options, GetClientOptionsProvider(callbackId), cancellationToken).ConfigureAwait(false);
 
-                var result = await LightweightRenameLocations.FindRenameLocationsAsync(
-                    symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
-
-                return result.Dehydrate();
+                return new SerializableRenameLocations(
+                    options,
+                    renameLocations.Locations.SelectAsArray(SerializableRenameLocation.Dehydrate),
+                    renameLocations.ImplicitLocations.SelectAsArray(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)),
+                    renameLocations.ReferencedSymbols.SelectAsArray(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)));
             }, cancellationToken);
         }
 
@@ -103,12 +105,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (symbol is null)
                     return null;
 
-                var locations = await LightweightRenameLocations.TryRehydrateAsync(
-                    solution, GetClientOptionsProvider(callbackId), serializableLocations, cancellationToken).ConfigureAwait(false);
-                if (locations == null)
-                    return null;
+                var locations = await SymbolicRenameLocations.RehydrateAsync(
+                    symbol, solution, GetClientOptionsProvider(callbackId), serializableLocations, cancellationToken).ConfigureAwait(false);
 
-                var result = await locations.ResolveConflictsAsync(symbol, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+                var result = await ConflictResolver.ResolveSymbolicLocationConflictsInCurrentProcessAsync(
+                    locations, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
                 return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
