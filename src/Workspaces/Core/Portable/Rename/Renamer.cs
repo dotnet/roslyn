@@ -239,8 +239,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 // call back to complete us, we won't hang anyone awaiting on us.
                 cancellationToken.Register(static s => ((TaskCompletionSource<bool>)s!).TrySetResult(true), taskCompletionSource);
 
-                // Kick off the keep alive task.  Once it has pinned the solution it will call back into
-                // KeepAliveConnection to let us know so that things can proceed. It will terminate when the provided
+                // Kick off the keep alive task.  Once it has pinned the solution it will call back into the taskCompletionSource
+                // to mark it as completed so that things can proceed. It will terminate when the provided
                 // cancellation token is actually canceled.
                 var unused = client.TryInvokeAsync<IRemoteRenamerService>(
                     solution,
