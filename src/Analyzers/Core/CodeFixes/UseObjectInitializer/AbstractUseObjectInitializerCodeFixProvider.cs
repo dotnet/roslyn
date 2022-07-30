@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 }
 
                 document = document.WithSyntaxRoot(subEditor.GetChangedRoot());
-                semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             }
 
