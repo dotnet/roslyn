@@ -202,7 +202,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var scope = DeclaredScope;
+                var scope = (RefKind == RefKind.Out && DeclaredScope == DeclarationScope.Unscoped) ? DeclarationScope.RefScoped : DeclaredScope;
+
                 if (scope != DeclarationScope.Unscoped &&
                     HasUnscopedRefAttribute)
                 {
@@ -820,6 +821,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!this.IsValidUnscopedRefAttributeTarget())
                 {
                     diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, arguments.AttributeSyntaxOpt.Location);
+                }
+                else if (DeclaredScope != DeclarationScope.Unscoped)
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnscopedScoped, arguments.AttributeSyntaxOpt.Location);
                 }
             }
         }

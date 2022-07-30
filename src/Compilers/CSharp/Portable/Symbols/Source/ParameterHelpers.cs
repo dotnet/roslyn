@@ -145,10 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());
                 }
-                if (refKind == RefKind.Out && scope == DeclarationScope.Unscoped)
-                {
-                    scope = DeclarationScope.RefScoped;
-                }
 
                 if (parameterSyntax is ParameterSyntax concreteParam)
                 {

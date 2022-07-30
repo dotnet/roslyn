@@ -295,6 +295,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (_moduleSymbol.Module.HasUnscopedRefAttribute(_handle))
                 {
+                    if (_moduleSymbol.Module.HasScopedRefAttribute(_handle))
+                    {
+                        isBad = true;
+                    }
                     scope = DeclarationScope.Unscoped;
                 }
                 else if (refKind == RefKind.Out)

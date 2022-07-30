@@ -13166,7 +13166,7 @@ class Program
         }
 
         [CombinatorialData]
-        [Theory]
+        [Theory, WorkItem(63070, "https://github.com/dotnet/roslyn/issues/63070")]
         public void UnscopedRefAttribute_RefRefStructParameter_02(bool useCompilationReference)
         {
             var sourceA =
@@ -13189,10 +13189,6 @@ public class A<T>
     public ref T F3A([UnscopedRef] ref R<T> r3)
     {
         return ref r3.F;
-    }
-    public ref T F4A([UnscopedRef] scoped ref R<T> r4)
-    {
-        return ref r4.F;
     }
 }";
             var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
@@ -13220,12 +13216,6 @@ public class A<T>
         var r = new R<int>(ref i);
         return ref F3A(ref r); // 3
     }
-    ref int F4B()
-    {
-        int i = 4;
-        var r = new R<int>(ref i);
-        return ref F4A(ref r); // 4
-    }
 }";
             comp = CreateCompilation(sourceB1, references: new[] { refA });
             // https://github.com/dotnet/roslyn/issues/62791: Missing error // 2.
@@ -13241,19 +13231,12 @@ public class A<T>
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(ref r)").WithArguments("A<int>.F3A(ref R<int>)", "r3").WithLocation(19, 20),
                 // (19,28): error CS8168: Cannot return local 'r' by reference because it is not a ref local
                 //         return ref F3A(ref r); // 3
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(19, 28),
-                // (25,20): error CS8347: Cannot use a result of 'A<int>.F4A(ref R<int>)' in this context because it may expose variables referenced by parameter 'r4' outside of their declaration scope
-                //         return ref F4A(ref r); // 4
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F4A(ref r)").WithArguments("A<int>.F4A(ref R<int>)", "r4").WithLocation(25, 20),
-                // (25,28): error CS8168: Cannot return local 'r' by reference because it is not a ref local
-                //         return ref F4A(ref r); // 4
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(25, 28));
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(19, 28));
 
             var baseType = comp.GetMember<NamedTypeSymbol>("B1").BaseTypeNoUseSiteDiagnostics;
             VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "ref R<System.Int32> r1", RefKind.Ref, DeclarationScope.Unscoped);
             VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "scoped ref R<System.Int32> r2", RefKind.Ref, DeclarationScope.RefScoped);
             VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "ref R<System.Int32> r3", RefKind.Ref, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "ref R<System.Int32> r4", RefKind.Ref, DeclarationScope.Unscoped);
 
             var sourceB2 =
 @"class B2 : A<int>
@@ -13273,11 +13256,6 @@ public class A<T>
         var r = new R<int>(ref i);
         return ref F3A(ref r); // 2
     }
-    ref int F4B(ref int i)
-    {
-        var r = new R<int>(ref i);
-        return ref F4A(ref r); // 3
-    }
 }";
             comp = CreateCompilation(sourceB2, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
@@ -13292,13 +13270,202 @@ public class A<T>
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(ref r)").WithArguments("A<int>.F3A(ref R<int>)", "r3").WithLocation(16, 20),
                 // (16,28): error CS8168: Cannot return local 'r' by reference because it is not a ref local
                 //         return ref F3A(ref r); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(16, 28),
-                // (21,20): error CS8347: Cannot use a result of 'A<int>.F4A(ref R<int>)' in this context because it may expose variables referenced by parameter 'r4' outside of their declaration scope
-                //         return ref F4A(ref r); // 3
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F4A(ref r)").WithArguments("A<int>.F4A(ref R<int>)", "r4").WithLocation(21, 20),
-                // (21,28): error CS8168: Cannot return local 'r' by reference because it is not a ref local
-                //         return ref F4A(ref r); // 3
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(21, 28));
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(16, 28));
+        }
+
+        [Fact]
+        public void UnscopedScoped()
+        {
+            var sourceA =
+@"using System.Diagnostics.CodeAnalysis;
+public ref struct R<T>
+{
+    public ref T F;
+    public R(ref T t) { F = ref t; }
+}
+public class A<T>
+{
+    public ref T F1A(ref R<T> r1)
+    {
+        throw null;
+    }
+    public ref T F2A(scoped ref R<T> r2)
+    {
+        throw null;
+    }
+    public ref T F3A([UnscopedRef] ref R<T> r3)
+    {
+        return ref r3.F;
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            var dump = verifier.Dump();
+            var refA = AsReference(comp, true);
+
+            var sourceB =
+@"class B : A<int>
+{
+    ref int F1B()
+    {
+        int i = 1;
+        var r = new R<int>(ref i);
+        return ref F1A(ref r); // 1
+    }
+    ref int F2B()
+    {
+        int i = 2;
+        var r = new R<int>(ref i);
+        return ref F2A(ref r);
+    }
+    ref int F3B()
+    {
+        int i = 3;
+        var r = new R<int>(ref i);
+        return ref F3A(ref r); // 2
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (7,20): error CS8347: Cannot use a result of 'A<int>.F1A(ref R<int>)' in this context because it may expose variables referenced by parameter 'r1' outside of their declaration scope
+                //         return ref F1A(ref r); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F1A(ref r)").WithArguments("A<int>.F1A(ref R<int>)", "r1").WithLocation(7, 20),
+                // (7,28): error CS8168: Cannot return local 'r' by reference because it is not a ref local
+                //         return ref F1A(ref r); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(7, 28),
+                // (19,20): error CS8347: Cannot use a result of 'A<int>.F3A(ref R<int>)' in this context because it may expose variables referenced by parameter 'r3' outside of their declaration scope
+                //         return ref F3A(ref r); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(ref r)").WithArguments("A<int>.F3A(ref R<int>)", "r3").WithLocation(19, 20),
+                // (19,28): error CS8168: Cannot return local 'r' by reference because it is not a ref local
+                //         return ref F3A(ref r); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(19, 28));
+
+            var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
+            VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "ref R<System.Int32> r1", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "scoped ref R<System.Int32> r2", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "ref R<System.Int32> r3", RefKind.Ref, DeclarationScope.Unscoped);
+        }
+
+        [Fact, WorkItem(63057, "https://github.com/dotnet/roslyn/issues/63057")]
+        public void UnscopedScoped_Source()
+        {
+            var sourceA =
+@"using System.Diagnostics.CodeAnalysis;
+public ref struct R<T>
+{
+    public ref T F;
+    public R(ref T t) { F = ref t; }
+}
+public class A<T>
+{
+    public ref T F4A([UnscopedRef] scoped ref R<T> r4) // 1
+    {
+        return ref r4.F;
+    }
+    public ref T M([UnscopedRef] scoped out T t4) // 2
+    {
+        t4 = default;
+        return ref t4;
+    }
+    public ref T M2([UnscopedRef] scoped in R<T> t4) // 3
+    {
+        throw null;
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (9,23): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
+                //     public ref T F4A([UnscopedRef] scoped ref R<T> r4) // 1
+                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(9, 23),
+                // (13,21): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
+                //     public ref T M([UnscopedRef] scoped out T t4) // 2
+                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(13, 21),
+                // (18,22): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     public ref T M2([UnscopedRef] scoped in R<T> t4) // 3
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(18, 22)
+                );
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            VerifyParameterSymbol(type.GetMethod("F4A").Parameters[0], "ref R<T> r4", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(type.GetMethod("M").Parameters[0], "out T t4", RefKind.Out, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(type.GetMethod("M2").Parameters[0], "in R<T> t4", RefKind.In, DeclarationScope.Unscoped);
+        }
+
+        [Fact, WorkItem(63070, "https://github.com/dotnet/roslyn/issues/63070")]
+        public void UnscopedScoped_Metadata()
+        {
+            var ilSource = """
+.class public sequential ansi sealed beforefieldinit R`1<T>
+	extends [mscorlib]System.ValueType
+{
+	.method public hidebysig specialname rtspecialname instance void .ctor ( !T& t ) cil managed
+	{
+        IL_0000: ldnull
+        IL_0001: throw
+	}
+}
+
+.class public auto ansi beforefieldinit A`1<T>
+	extends [mscorlib]System.Object
+{
+    // [UnscopedRef] scoped parameter
+	.method public hidebysig instance !T& F4A ( valuetype R`1<!T>& r4 ) cil managed
+	{
+		.param [1]
+			.custom instance void System.Runtime.CompilerServices.ScopedRefAttribute::.ctor() = ( 01 00 00 00 )
+			.custom instance void System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = ( 01 00 00 00 )
+        IL_0000: ldnull
+        IL_0001: throw
+	}
+	.method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+	{
+        IL_0000: ldnull
+        IL_0001: throw
+	}
+}
+
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ScopedRefAttribute
+	extends [mscorlib]System.Attribute
+{
+	.method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+	{
+        IL_0000: ldnull
+        IL_0001: throw
+	}
+}
+
+.class public auto ansi sealed beforefieldinit System.Diagnostics.CodeAnalysis.UnscopedRefAttribute
+	extends [mscorlib]System.Attribute
+{
+	.method public hidebysig specialname rtspecialname
+		instance void .ctor () cil managed
+	{
+        IL_0000: ldnull
+        IL_0001: throw
+	}
+}
+""";
+            var refA = CompileIL(ilSource);
+
+            var sourceB =
+@"class B : A<int>
+{
+    ref int F4B()
+    {
+        int i = 4;
+        var r = new R<int>(ref i);
+        return ref F4A(ref r); // 1
+    }
+}";
+            var comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (7,20): error CS0570: 'A<T>.F4A(ref R<T>)' is not supported by the language
+                //         return ref F4A(ref r); // 1
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F4A").WithArguments("A<T>.F4A(ref R<T>)").WithLocation(7, 20));
+
+            var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
+            VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "ref R<System.Int32> r4", RefKind.Ref, DeclarationScope.Unscoped);
         }
 
         [Fact]
@@ -13350,11 +13517,6 @@ public class A<T>
         t3 = default;
         return ref t3;
     }
-    public ref T F4A([UnscopedRef] scoped out T t4)
-    {
-        t4 = default;
-        return ref t4;
-    }
 }";
             var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition });
             comp.VerifyEmitDiagnostics();
@@ -13378,11 +13540,6 @@ public class A<T>
         int i = 3;
         return ref F3A(out i); // 1
     }
-    ref int F4B()
-    {
-        int i = 4;
-        return ref F4A(out i); // 2
-    }
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA });
             // https://github.com/dotnet/roslyn/issues/62791: Missing errors.
@@ -13392,7 +13549,6 @@ public class A<T>
             VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "out System.Int32 t1", RefKind.Out, DeclarationScope.RefScoped);
             VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "out System.Int32 t2", RefKind.Out, DeclarationScope.RefScoped);
             VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "out System.Int32 t3", RefKind.Out, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "out System.Int32 t4", RefKind.Out, DeclarationScope.Unscoped);
         }
 
         [Fact]
