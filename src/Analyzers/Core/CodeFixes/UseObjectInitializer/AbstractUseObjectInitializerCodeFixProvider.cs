@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             // care about so we can find them across each edit.
             document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalObjectCreationNodes));
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             while (originalObjectCreationNodes.Count > 0)
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
 
                 var matches = UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                    semanticModel!, syntaxFacts!, objectCreation, cancellationToken);
+                    semanticModel, syntaxFacts!, objectCreation, cancellationToken);
 
                 if (matches == null || matches.Value.Length == 0)
                 {
