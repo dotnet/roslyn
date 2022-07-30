@@ -193,8 +193,12 @@ namespace RunTests
                 if (options.TestVsi)
                 {
                     // Copy the vsix exp installer to the test payload directory.
+                    Console.WriteLine($"nuget packages env var: {Environment.GetEnvironmentVariable("NUGET_PACKAGES")}");
                     var nugetPackagesPath = Environment.GetEnvironmentVariable("NUGET_PACKAGES") ??
                         Path.Combine(Environment.GetEnvironmentVariable("UserProfile")!, ".nuget", "packages");
+                    Console.WriteLine($"actual path used {nugetPackagesPath}");
+                    Console.WriteLine($"file in path: {string.Join(",", Directory.EnumerateDirectories(nugetPackagesPath, "*", SearchOption.TopDirectoryOnly))}");
+
                     var expInstallerPath = Directory.EnumerateFiles(Path.Combine(nugetPackagesPath, "roslyntools.vsixexpinstaller"), "vsixexpinstaller.exe", SearchOption.AllDirectories).Last();
                     File.Copy(expInstallerPath, Path.Combine(payloadDirectory, "vsixexpinstaller.exe"), overwrite: true);
                 }
