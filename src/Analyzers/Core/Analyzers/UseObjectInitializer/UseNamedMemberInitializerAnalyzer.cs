@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -54,18 +53,18 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         protected override bool ShouldAnalyze()
         {
             // Can't add member initializers if the object already has a collection initializer attached to it.
-            return !_syntaxFacts.IsObjectCollectionInitializer(_syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression));
+            return !_syntaxFacts!.IsObjectCollectionInitializer(_syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression!));
         }
 
         protected override void AddMatches(ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches)
         {
             // If containing statement is inside a block (e.g. method), than we need to iterate through its child statements.
             // If containing statement is in top-level code, than we need to iterate through child statements of containing compilation unit.
-            var containingBlockOrCompilationUnit = _containingStatement.Parent;
+            var containingBlockOrCompilationUnit = _containingStatement!.Parent;
 
             // In case of top-level code parent of the statement will be GlobalStatementSyntax,
             // so we need to get its parent in order to get CompilationUnitSyntax
-            if (_syntaxFacts.IsGlobalStatement(containingBlockOrCompilationUnit))
+            if (_syntaxFacts!.IsGlobalStatement(containingBlockOrCompilationUnit))
             {
                 containingBlockOrCompilationUnit = containingBlockOrCompilationUnit.Parent;
             }
@@ -74,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             using var _1 = PooledHashSet<string>.GetInstance(out var seenNames);
 
-            var initializer = _syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
+            var initializer = _syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression!);
             if (initializer != null)
             {
                 foreach (var init in _syntaxFacts.GetInitializersOfObjectMemberInitializer(initializer))
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 }
             }
 
-            foreach (var child in containingBlockOrCompilationUnit.ChildNodesAndTokens())
+            foreach (var child in containingBlockOrCompilationUnit!.ChildNodesAndTokens())
             {
                 if (child.IsToken)
                     continue;
@@ -115,24 +114,24 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 _syntaxFacts.GetPartsOfAssignmentStatement(
                     statement, out var left, out var right);
 
-                var rightExpression = right as TExpressionSyntax;
+                var rightExpression = (TExpressionSyntax)right;
                 var leftMemberAccess = left as TMemberAccessExpressionSyntax;
 
                 if (!_syntaxFacts.IsSimpleMemberAccessExpression(leftMemberAccess))
                     break;
 
-                var expression = (TExpressionSyntax)_syntaxFacts.GetExpressionOfMemberAccessExpression(leftMemberAccess);
+                var expression = (TExpressionSyntax?)_syntaxFacts.GetExpressionOfMemberAccessExpression(leftMemberAccess);
                 if (!ValuePatternMatches(expression))
                     break;
 
-                var leftSymbol = _semanticModel.GetSymbolInfo(leftMemberAccess, _cancellationToken).GetAnySymbol();
+                var leftSymbol = _semanticModel!.GetSymbolInfo(leftMemberAccess, _cancellationToken).GetAnySymbol();
                 if (leftSymbol?.IsStatic == true)
                 {
                     // Static members cannot be initialized through an object initializer.
                     break;
                 }
 
-                var type = _semanticModel.GetTypeInfo(_objectCreationExpression, _cancellationToken).Type;
+                var type = _semanticModel!.GetTypeInfo(_objectCreationExpression!, _cancellationToken).Type;
                 if (type == null)
                     break;
 
@@ -184,8 +183,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         private static bool IsExplicitlyImplemented(
             ITypeSymbol classOrStructType,
-            ISymbol member,
-            out ISymbol typeMember)
+            ISymbol? member,
+            [NotNullWhen(true)] out ISymbol? typeMember)
         {
             if (member != null && member.ContainingType.IsInterfaceType())
             {
@@ -207,21 +206,21 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 {
                     if (child.IsNode)
                     {
-                        if (ImplicitMemberAccessWouldBeAffected(child.AsNode()))
+                        if (ImplicitMemberAccessWouldBeAffected(child.AsNode()!))
                         {
                             return true;
                         }
                     }
                 }
 
-                if (_syntaxFacts.IsSimpleMemberAccessExpression(node))
+                if (_syntaxFacts!.IsSimpleMemberAccessExpression(node))
                 {
-                    var expression = _syntaxFacts.GetExpressionOfMemberAccessExpression(
+                    var expression = _syntaxFacts!.GetExpressionOfMemberAccessExpression(
                         node, allowImplicitTarget: true);
 
                     // If we're implicitly referencing some target that is before the 
                     // object creation expression, then our semantics will change.
-                    if (expression != null && expression.SpanStart < _objectCreationExpression.SpanStart)
+                    if (expression != null && expression.SpanStart < _objectCreationExpression!.SpanStart)
                     {
                         return true;
                     }

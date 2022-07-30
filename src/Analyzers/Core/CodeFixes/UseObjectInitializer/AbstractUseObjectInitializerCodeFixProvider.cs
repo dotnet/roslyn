@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
 
                 var matches = UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                    semanticModel, syntaxFacts, objectCreation, cancellationToken);
+                    semanticModel!, syntaxFacts!, objectCreation, cancellationToken);
 
                 if (matches == null || matches.Value.Length == 0)
                 {

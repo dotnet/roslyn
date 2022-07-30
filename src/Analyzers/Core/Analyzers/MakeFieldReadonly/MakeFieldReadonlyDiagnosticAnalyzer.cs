@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
@@ -113,7 +111,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     }
                 }
 
-                static bool IsCandidateField(IFieldSymbol symbol, INamedTypeSymbol threadStaticAttribute, INamedTypeSymbol dataContractAttribute, INamedTypeSymbol dataMemberAttribute) =>
+                static bool IsCandidateField(IFieldSymbol symbol, INamedTypeSymbol? threadStaticAttribute, INamedTypeSymbol? dataContractAttribute, INamedTypeSymbol? dataMemberAttribute) =>
                         symbol.DeclaredAccessibility == Accessibility.Private &&
                         !symbol.IsReadOnly &&
                         !symbol.IsConst &&
@@ -126,7 +124,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                            threadStaticAttribute) &&
                         !IsDataContractSerializable(symbol, dataContractAttribute, dataMemberAttribute);
 
-                static bool IsDataContractSerializable(IFieldSymbol symbol, INamedTypeSymbol dataContractAttribute, INamedTypeSymbol dataMemberAttribute)
+                static bool IsDataContractSerializable(IFieldSymbol symbol, INamedTypeSymbol? dataContractAttribute, INamedTypeSymbol? dataMemberAttribute)
                 {
                     if (dataContractAttribute is null || dataMemberAttribute is null)
                         return false;
@@ -162,7 +160,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 }
 
                 // Method to compute the initial field state.
-                static (bool isCandidate, bool written) ComputeInitialFieldState(IFieldSymbol field, AnalyzerOptions options, INamedTypeSymbol threadStaticAttribute, INamedTypeSymbol dataContractAttribute, INamedTypeSymbol dataMemberAttribute, CancellationToken cancellationToken)
+                static (bool isCandidate, bool written) ComputeInitialFieldState(IFieldSymbol field, AnalyzerOptions options, INamedTypeSymbol? threadStaticAttribute, INamedTypeSymbol? dataContractAttribute, INamedTypeSymbol? dataMemberAttribute, CancellationToken cancellationToken)
                 {
                     Debug.Assert(IsCandidateField(field, threadStaticAttribute, dataContractAttribute, dataMemberAttribute));
 
@@ -220,6 +218,6 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         }
 
         private static CodeStyleOption2<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options)
-            => options.GetAnalyzerOptions(field.Locations[0].SourceTree).PreferReadonly;
+            => options.GetAnalyzerOptions(field.Locations[0].SourceTree!).PreferReadonly;
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -119,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 // use the callback form as the next statement may be the place where we're
                 // inlining the declaration, and thus need to see the effects of that change.
                 editor.ReplaceNode(
-                    localDeclaration.GetNextStatement(),
+                    localDeclaration.GetNextStatement()!,
                     (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclaration));
 
                 removeStatement(localDeclaration);

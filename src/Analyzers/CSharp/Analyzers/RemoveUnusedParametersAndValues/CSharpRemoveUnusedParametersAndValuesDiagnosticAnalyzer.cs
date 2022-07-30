@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         {
         }
 
-        protected override bool IsRecordDeclaration(SyntaxNode node)
+        protected override bool IsRecordDeclaration([NotNullWhen(true)] SyntaxNode? node)
             => node is RecordDeclarationSyntax;
 
         protected override bool SupportsDiscard(SyntaxTree tree)

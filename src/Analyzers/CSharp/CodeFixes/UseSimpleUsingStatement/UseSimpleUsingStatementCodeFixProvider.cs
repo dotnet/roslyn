@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var topmostUsingStatements = diagnostics.Select(d => (UsingStatementSyntax)d.AdditionalLocations[0].FindNode(cancellationToken)).ToSet();
-            var blocks = topmostUsingStatements.Select(u => (BlockSyntax)u.Parent);
+            var blocks = topmostUsingStatements.Select(u => (BlockSyntax)u.Parent!);
 
             // Process blocks in reverse order so we rewrite from inside-to-outside with nested
             // usings.
@@ -168,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 usingStatement.AwaitKeyword,
                 usingStatement.UsingKeyword.WithAppendedTrailingTrivia(ElasticMarker),
                 modifiers: default,
-                usingStatement.Declaration,
+                usingStatement.Declaration!,
                 Token(SyntaxKind.SemicolonToken)).WithTrailingTrivia(usingStatement.CloseParenToken.TrailingTrivia);
         }
     }
