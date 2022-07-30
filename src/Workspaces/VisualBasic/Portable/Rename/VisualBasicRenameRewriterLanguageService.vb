@@ -390,7 +390,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                                 isRenameLocation:=True,
                                 prefix,
                                 suffix,
-                                isOriginalTextLocation:=False,
+                                isOriginalTextLocation:=token.ValueText = originalText,
                                 renameDeclarationLocations,
                                 isNamespaceDeclarationReference,
                                 isInvocationExpression:=False,

@@ -162,14 +162,12 @@ namespace Microsoft.CodeAnalysis.Rename
             ImmutableArray<RenameSymbolContext> symbolContexts, IEqualityComparer<SymbolKey> comparer)
         {
             using var _ = PooledDictionary<SymbolKey, RenameSymbolContext>.GetInstance(out var builder);
-
-            var renameContexts = new Dictionary<SymbolKey, RenameSymbolContext>(comparer);
             foreach (var context in symbolContexts)
             {
                 builder[context.RenamedSymbol.GetSymbolKey()] = context;
             }
 
-            return renameContexts.ToImmutableDictionary(comparer);
+            return builder.ToImmutableDictionary(comparer);
         }
 
         protected static ImmutableDictionary<TextSpan, LocationRenameContext> GroupTextRenameContextsByTextSpan(
