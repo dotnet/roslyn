@@ -57,9 +57,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneratorTelemetry
                 // We'll log one event per generator
                 Logger.Log(functionId, KeyValueLogMessage.Create(map =>
                 {
-                    map[nameof(telemetryKey.Identity.AssemblyName)] = telemetryKey.Identity.AssemblyName;
+                    // TODO: have a policy for when we don't have to hash them
+                    map[nameof(telemetryKey.Identity.AssemblyName) + "Hashed"] = AnalyzerNameForTelemetry.ComputeSha256Hash(telemetryKey.Identity.AssemblyName);
                     map[nameof(telemetryKey.Identity.AssemblyVersion)] = telemetryKey.Identity.AssemblyVersion.ToString();
-                    map[nameof(telemetryKey.Identity.TypeName)] = telemetryKey.Identity.TypeName;
+                    map[nameof(telemetryKey.Identity.TypeName) + "Hashed"] = AnalyzerNameForTelemetry.ComputeSha256Hash(telemetryKey.Identity.TypeName);
                     map[nameof(telemetryKey.FileVersion)] = telemetryKey.FileVersion;
 
                     var result = elapsedTimeCounter.GetStatisticResult();
