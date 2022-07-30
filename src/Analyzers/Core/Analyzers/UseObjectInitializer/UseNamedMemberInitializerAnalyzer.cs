@@ -53,18 +53,18 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         protected override bool ShouldAnalyze()
         {
             // Can't add member initializers if the object already has a collection initializer attached to it.
-            return !_syntaxFacts!.IsObjectCollectionInitializer(_syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression!));
+            return !_syntaxFacts.IsObjectCollectionInitializer(_syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression));
         }
 
         protected override void AddMatches(ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches)
         {
             // If containing statement is inside a block (e.g. method), than we need to iterate through its child statements.
             // If containing statement is in top-level code, than we need to iterate through child statements of containing compilation unit.
-            var containingBlockOrCompilationUnit = _containingStatement!.Parent;
+            var containingBlockOrCompilationUnit = _containingStatement.Parent;
 
             // In case of top-level code parent of the statement will be GlobalStatementSyntax,
             // so we need to get its parent in order to get CompilationUnitSyntax
-            if (_syntaxFacts!.IsGlobalStatement(containingBlockOrCompilationUnit))
+            if (_syntaxFacts.IsGlobalStatement(containingBlockOrCompilationUnit))
             {
                 containingBlockOrCompilationUnit = containingBlockOrCompilationUnit.Parent;
             }
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             using var _1 = PooledHashSet<string>.GetInstance(out var seenNames);
 
-            var initializer = _syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression!);
+            var initializer = _syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
             if (initializer != null)
             {
                 foreach (var init in _syntaxFacts.GetInitializersOfObjectMemberInitializer(initializer))
@@ -124,14 +124,14 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 if (!ValuePatternMatches(expression))
                     break;
 
-                var leftSymbol = _semanticModel!.GetSymbolInfo(leftMemberAccess, _cancellationToken).GetAnySymbol();
+                var leftSymbol = _semanticModel.GetSymbolInfo(leftMemberAccess, _cancellationToken).GetAnySymbol();
                 if (leftSymbol?.IsStatic == true)
                 {
                     // Static members cannot be initialized through an object initializer.
                     break;
                 }
 
-                var type = _semanticModel!.GetTypeInfo(_objectCreationExpression!, _cancellationToken).Type;
+                var type = _semanticModel.GetTypeInfo(_objectCreationExpression, _cancellationToken).Type;
                 if (type == null)
                     break;
 
@@ -213,14 +213,14 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     }
                 }
 
-                if (_syntaxFacts!.IsSimpleMemberAccessExpression(node))
+                if (_syntaxFacts.IsSimpleMemberAccessExpression(node))
                 {
-                    var expression = _syntaxFacts!.GetExpressionOfMemberAccessExpression(
+                    var expression = _syntaxFacts.GetExpressionOfMemberAccessExpression(
                         node, allowImplicitTarget: true);
 
                     // If we're implicitly referencing some target that is before the 
                     // object creation expression, then our semantics will change.
-                    if (expression != null && expression.SpanStart < _objectCreationExpression!.SpanStart)
+                    if (expression != null && expression.SpanStart < _objectCreationExpression.SpanStart)
                     {
                         return true;
                     }

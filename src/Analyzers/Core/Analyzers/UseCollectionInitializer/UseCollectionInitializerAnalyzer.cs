@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             // In case of top-level code parent of the statement will be GlobalStatementSyntax,
             // so we need to get its parent in order to get CompilationUnitSyntax
-            if (_syntaxFacts!.IsGlobalStatement(containingBlockOrCompilationUnit))
+            if (_syntaxFacts.IsGlobalStatement(containingBlockOrCompilationUnit))
             {
                 containingBlockOrCompilationUnit = containingBlockOrCompilationUnit.Parent!;
             }
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var seenInvocation = false;
             var seenIndexAssignment = false;
 
-            var initializer = _syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression!);
+            var initializer = _syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
             if (initializer != null)
             {
                 var firstInit = _syntaxFacts.GetExpressionsOfObjectCollectionInitializer(initializer).First();
@@ -121,15 +121,15 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected override bool ShouldAnalyze()
         {
-            if (_syntaxFacts!.IsObjectMemberInitializer(_syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression!)))
+            if (_syntaxFacts.IsObjectMemberInitializer(_syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression)))
                 return false;
 
-            var type = _semanticModel!.GetTypeInfo(_objectCreationExpression!, _cancellationToken).Type;
+            var type = _semanticModel.GetTypeInfo(_objectCreationExpression, _cancellationToken).Type;
             if (type == null)
                 return false;
 
-            var addMethods = _semanticModel!.LookupSymbols(
-                _objectCreationExpression!.SpanStart,
+            var addMethods = _semanticModel.LookupSymbols(
+                _objectCreationExpression.SpanStart,
                 container: type,
                 name: WellKnownMemberNames.CollectionInitializerAddMethodName,
                 includeReducedExtensionMethods: true);
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             [NotNullWhen(true)] out SyntaxNode? instance)
         {
             instance = null;
-            if (!_syntaxFacts!.SupportsIndexingInitializer(statement.SyntaxTree.Options))
+            if (!_syntaxFacts.SupportsIndexingInitializer(statement.SyntaxTree.Options))
                 return false;
 
             if (!_syntaxFacts.IsSimpleAssignmentStatement(statement))
