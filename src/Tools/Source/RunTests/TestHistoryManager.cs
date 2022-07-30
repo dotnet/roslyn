@@ -66,7 +66,7 @@ internal class TestHistoryManager
 
         using var buildClient = connection.GetClient<BuildHttpClient>();
 
-        Console.WriteLine($"Getting last successful build for branch {targetBranch}");
+        Console.WriteLine($"Getting last successful build for branch {targetBranch} in definition {definitionId}");
         var adoBranch = $"refs/heads/{targetBranch}";
         var builds = await buildClient.GetBuildsAsync2(project: "public", new int[] { int.Parse(definitionId) }, resultFilter: BuildResult.Succeeded, queryOrder: BuildQueryOrder.FinishTimeDescending, maxBuildsPerDefinition: 1, reasonFilter: BuildReason.IndividualCI, branchName: adoBranch, cancellationToken: cancellationToken);
         var lastSuccessfulBuild = builds?.FirstOrDefault();

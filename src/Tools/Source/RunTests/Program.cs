@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using System.Diagnostics.Contracts;
 using System.Runtime.InteropServices;
+using Newtonsoft.Json;
 
 namespace RunTests
 {
@@ -275,6 +276,14 @@ namespace RunTests
 
         private static async Task<ImmutableArray<WorkItemInfo>> GetWorkItemsAsync(Options options, CancellationToken cancellationToken)
         {
+            var workItemInfoPath = Environment.GetEnvironmentVariable(TestRunner.RoslynHelixWorkItem);
+            if (!string.IsNullOrEmpty(workItemInfoPath))
+            {
+                Contract.Assert(File.Exists(workItemInfoPath));
+                ConsoleUtil.WriteLine($"Found helix work item information {TestRunner.RoslynHelixWorkItem}={workItemInfoPath}");
+                return ImmutableArray.Create(JsonConvert.DeserializeObject<WorkItemInfo>(File.ReadAllText(workItemInfoPath)));
+            }
+
             var scheduler = new AssemblyScheduler(options);
             var assemblyPaths = GetAssemblyFilePaths(options);
             var workItems = await scheduler.ScheduleAsync(assemblyPaths, cancellationToken);

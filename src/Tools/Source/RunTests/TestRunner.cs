@@ -36,10 +36,10 @@ namespace RunTests
     internal sealed class TestRunner
     {
         /// <summary>
-        /// Private contract for RunTests - helix work items will set this environment variable to the RSP file path
-        /// which RunTests can lookup later when its actually running on the helix machine.
+        /// Private contract for RunTests - helix work items will set this environment variable to a json file containing the work item to run.
+        /// RunTests can look this up later when its actually running on the helix machine to figure out which tests should actually be run.
         /// </summary>
-        internal const string RoslynWorkItemRspPathEnvVar = "ROSLYN_WORKITEM_RESPONSEFILE";
+        internal const string RoslynHelixWorkItem = "ROSLYN_HELIX_WORKITEM";
 
         private readonly ProcessTestExecutor _testExecutor;
         private readonly Options _options;
@@ -226,13 +226,6 @@ namespace RunTests
 
                 AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);
 
-                // Build an rsp file to send to dotnet test that contains all the assemblies and tests to run.
-                // This gets around command line length limitations and avoids weird escaping issues.
-                // See https://docs.microsoft.com/en-us/dotnet/standard/commandline/syntax#response-files
-                var rspFileContents = ProcessTestExecutor.BuildRspFileContents(workItemInfo, options);
-                var rspFileName = $"vstest_{workItemInfo.PartitionIndex}.rsp";
-                File.WriteAllText(Path.Combine(payloadDirectory, rspFileName), rspFileContents);
-
                 // When we run integration tests on the helix machine, we run them through build.ps1 -> RunTests
                 // This is required to both
                 //   1.  (build.ps1) Deploy the extension and setup environment variables, then calls
@@ -243,13 +236,18 @@ namespace RunTests
                 // At which point we can likely delete all test running logic from this project.
                 if (options.TestVsi)
                 {
-                    // Set an env var with the file path of this work item RSP file - RunTests will find this env var and read this file.
-                    command.AppendLine($"{setEnvironmentVariable} {RoslynWorkItemRspPathEnvVar}={rspFileName}");
+                    // Since all of the work items have the same payload, we a way to pass the actual partition information back
+                    // to the copy of RunTests which is running on the helix machine.
+                    //
+                    // To do that we just write out the info to a file and set an env var which RunTests can read to get the information.
+                    // Once we stop using run tests we won't need to do this.
+                    var workItemFile = $"WorkItem_{workItemInfo.PartitionIndex}.txt";
+                    File.WriteAllText(Path.Combine(payloadDirectory, workItemFile), JsonConvert.SerializeObject(workItemInfo));
+                    command.AppendLine($"{setEnvironmentVariable} {RoslynHelixWorkItem}=%cd%\\{workItemFile}");
 
                     command.AppendLine("time");
                     command.Append("dir");
                     // We call into build.ps1 without passing in the helix flag to indicate the tests should run on the current machine.
-                    // TODO pass partition information
                     // TODO pass options (e.g. oop64bit).
                     var commandArguments = $"-ci -configuration {options.Configuration} -testVsi -oop64bit:${true} -oopCoreClr:${false} -lspEditor:${false}";
 
@@ -257,6 +255,13 @@ namespace RunTests
                 }
                 else
                 {
+                    // Build an rsp file to send to dotnet test that contains all the assemblies and tests to run.
+                    // This gets around command line length limitations and avoids weird escaping issues.
+                    // See https://docs.microsoft.com/en-us/dotnet/standard/commandline/syntax#response-files
+                    var rspFileContents = ProcessTestExecutor.BuildRspFileContents(workItemInfo, options);
+                    var rspFileName = $"vstest_{workItemInfo.PartitionIndex}.rsp";
+                    File.WriteAllText(Path.Combine(payloadDirectory, rspFileName), rspFileContents);
+
                     // Build the command to run the rsp file.
                     // dotnet test does not pass rsp files correctly the vs test console, so we have to manually invoke vs test console.
                     // See https://github.com/microsoft/vstest/issues/3513
