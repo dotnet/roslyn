@@ -798,7 +798,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundObjectCreationExpressionOperation(boundObjectCreationExpression As BoundObjectCreationExpression) As IObjectCreationOperation
-            Debug.Assert(boundObjectCreationExpression.ConstructorOpt IsNot Nothing OrElse boundObjectCreationExpression.Arguments.IsEmpty())
+            Debug.Assert(boundObjectCreationExpression.ConstructorOpt IsNot Nothing)
             Dim constructor As IMethodSymbol = boundObjectCreationExpression.ConstructorOpt
             Dim initializer As IObjectOrCollectionInitializerOperation = DirectCast(Create(boundObjectCreationExpression.InitializerOpt), IObjectOrCollectionInitializerOperation)
             Dim arguments as ImmutableArray(Of IArgumentOperation) = DeriveArguments(boundObjectCreationExpression)
