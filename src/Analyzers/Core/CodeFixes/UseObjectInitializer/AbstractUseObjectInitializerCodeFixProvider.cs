@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             // feature to keep track of all the object creation nodes as we make edits to
             // the tree.  If we didn't do this, then we wouldn't be able to find the 
             // second object-creation-node after we make the edit for the first one.
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var originalRoot = editor.OriginalRoot;
             var originalObjectCreationNodes = new Stack<TObjectCreationExpressionSyntax>();
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
 
                 var matches = UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                    semanticModel, syntaxFacts!, objectCreation, cancellationToken);
+                    semanticModel, syntaxFacts, objectCreation, cancellationToken);
 
                 if (matches == null || matches.Value.Length == 0)
                 {
