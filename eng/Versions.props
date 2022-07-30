@@ -287,11 +287,13 @@
     <SystemReflectionMetadataVersion>5.0.0</SystemReflectionMetadataVersion>
     <MicrosoftBclAsyncInterfacesVersion>6.0.0</MicrosoftBclAsyncInterfacesVersion>
   </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <UsingToolVSSDK>true</UsingToolVSSDK>
+  </PropertyGroup>
   <PropertyGroup>
     <UsingToolPdbConverter>true</UsingToolPdbConverter>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
     <UsingToolNuGetRepack>true</UsingToolNuGetRepack>
-    <UsingToolVSSDK>true</UsingToolVSSDK>
     <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
     <UsingToolIbcOptimization>true</UsingToolIbcOptimization>
     <UsingToolVisualStudioIbcTraining>true</UsingToolVisualStudioIbcTraining>
