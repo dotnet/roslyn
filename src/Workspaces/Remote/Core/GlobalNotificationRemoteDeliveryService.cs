@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return previousTask.Result;
             }
 
-            var client = await RemoteHostClient.TryGetClientAsync(_services, _cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(_services.SolutionServices, _cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 return previousTask.Result;
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return previousTask.Result;
             }
 
-            var client = await RemoteHostClient.TryGetClientAsync(_services, _cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(_services.SolutionServices, _cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 return previousTask.Result;

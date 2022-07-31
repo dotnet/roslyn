@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     Debug.Assert(oldProject.SupportsEditAndContinue());
                     Debug.Assert(newProject.SupportsEditAndContinue());
 
-                    var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+                    var analyzer = newProject.Services.GetRequiredService<IEditAndContinueAnalyzer>();
 
                     await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
                     {
@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<ActiveStatementSpan>.Empty;
                 }
 
-                var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+                var analyzer = newProject.Services.GetRequiredService<IEditAndContinueAnalyzer>();
 
                 using var _ = ArrayBuilder<ActiveStatementSpan>.GetInstance(out var adjustedMappedSpans);
 
@@ -940,7 +940,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                var analyzer = newDocument.Project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+                var analyzer = newDocument.Project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
                 var oldDocumentActiveStatements = await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
                 return oldDocumentActiveStatements.GetStatement(baseActiveStatement.Ordinal).ExceptionRegions.IsActiveStatementCovered;
             }
@@ -1039,7 +1039,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(oldProject.SupportsEditAndContinue());
             Debug.Assert(newProject.SupportsEditAndContinue());
 
-            var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            var analyzer = newProject.Services.GetRequiredService<IEditAndContinueAnalyzer>();
 
             await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
             {

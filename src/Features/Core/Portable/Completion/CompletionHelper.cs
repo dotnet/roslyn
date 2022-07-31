@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public static CompletionHelper GetHelper(Document document)
         {
-            return document.Project.Solution.Workspace.Services.GetRequiredService<ICompletionHelperService>()
+            return document.Project.Solution.Services.GetRequiredService<ICompletionHelperService>()
                 .GetCompletionHelper(document);
         }
 

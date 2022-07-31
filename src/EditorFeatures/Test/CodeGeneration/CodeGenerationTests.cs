@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 this.Document = Workspace.CurrentSolution.Projects.Single().Documents.Single();
                 this.SemanticModel = semanticModel;
                 this.SyntaxTree = SemanticModel.SyntaxTree;
-                this.Service = Document.Project.LanguageServices.GetService<ICodeGenerationService>();
+                this.Service = Document.Project.Services.GetService<ICodeGenerationService>();
             }
 
             public static async Task<TestContext> CreateAsync(string initial, string expected, string forceLanguage = null, bool ignoreResult = false)

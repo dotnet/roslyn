@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             End Sub
 
             Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-                Return New VisualBasicCompletionService(languageServices.WorkspaceServices.Workspace)
+                Return New VisualBasicCompletionService(languageServices.ProjectServices.SolutionServices)
             End Function
         End Class
 
@@ -36,8 +36,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
             defaultEnterKeyRule:=EnterKeyRule.Always)
 
-        Private Sub New(workspace As Workspace)
-            MyBase.New(workspace)
+        Private Sub New(services As HostSolutionServices)
+            MyBase.New(services)
         End Sub
 
         Public Overrides ReadOnly Property Language As String

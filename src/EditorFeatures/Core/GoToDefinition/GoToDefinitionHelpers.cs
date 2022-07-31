@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
 
             if (thirdPartyNavigationAllowed)
             {
-                var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
+                var factory = solution.Services.GetService<IDefinitionsAndReferencesFactory>();
                 if (factory != null)
                 {
                     var thirdPartyItem = await factory.GetThirdPartyDefinitionItemAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);

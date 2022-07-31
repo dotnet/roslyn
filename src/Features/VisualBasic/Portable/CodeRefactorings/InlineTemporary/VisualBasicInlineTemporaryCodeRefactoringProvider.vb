@@ -30,8 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Dim document = context.Document
             Dim cancellationToken = context.CancellationToken
 
-            Dim workspace = document.Project.Solution.Workspace
-            If workspace.Kind = WorkspaceKind.MiscellaneousFiles Then
+            If document.Project.Solution.WorkspaceKind = WorkspaceKind.MiscellaneousFiles Then
                 Return
             End If
 
@@ -183,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             updatedDocument = Await updatedDocument.ReplaceNodesAsync(
                 topMostStatements,
                 Function(o, n)
-                    Return Simplifier.Expand(DirectCast(n, StatementSyntax), semanticModel, document.Project.Solution.Workspace, cancellationToken:=cancellationToken)
+                    Return Simplifier.Expand(DirectCast(n, StatementSyntax), semanticModel, document.Project.Solution.Services, cancellationToken:=cancellationToken)
                 End Function,
                 cancellationToken).ConfigureAwait(False)
 
