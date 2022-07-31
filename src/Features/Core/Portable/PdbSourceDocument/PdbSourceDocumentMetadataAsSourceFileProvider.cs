@@ -57,6 +57,10 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, string tempPath, CancellationToken cancellationToken)
         {
+            // Check if the user wants to look for PDB source documents at all
+            if (!options.NavigateToSourceLinkAndEmbeddedSources)
+                return null;
+
             // we don't support signatures only mode
             if (signaturesOnly)
                 return null;

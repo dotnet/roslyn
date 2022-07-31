@@ -432,6 +432,11 @@
         <target state="translated">为诊断启用文件日志记录(记录在“%Temp%\Roslyn”文件夹中)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_navigation_to_sourcelink_and_embedded_sources">
+        <source>Enable navigation to Source Link and Embedded sources</source>
+        <target state="new">Enable navigation to Source Link and Embedded sources</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
         <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
         <target state="translated">启用“拉取”诊断(实验性，需要重启)</target>
