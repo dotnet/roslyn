@@ -189,13 +189,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 static bool hasUnscopedRefAttribute(MethodSymbol? containingMethod)
                 {
-                    if (containingMethod is SourceMethodSymbolWithAttributes { HasUnscopedRefAttribute: true })
+                    if (containingMethod is { })
                     {
-                        return true;
-                    }
-                    if (containingMethod?.AssociatedSymbol is SourcePropertySymbol { HasUnscopedRefAttribute: true })
-                    {
-                        return true;
+                        if (containingMethod.HasUnscopedRefAttribute == true)
+                        {
+                            return true;
+                        }
+                        if (containingMethod.AssociatedSymbol is PropertySymbol { HasUnscopedRefAttribute: true })
+                        {
+                            return true;
+                        }
                     }
                     return false;
                 }

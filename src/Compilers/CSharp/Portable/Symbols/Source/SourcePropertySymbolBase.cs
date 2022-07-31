@@ -1393,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal ImmutableArray<SourceAttributeData> MemberNotNullWhenAttributeIfExists
             => FindAttributes(AttributeDescription.MemberNotNullWhenAttribute);
 
-        internal bool HasUnscopedRefAttribute => GetDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
+        internal sealed override bool HasUnscopedRefAttribute => GetDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
 
         private SourceAttributeData FindAttribute(AttributeDescription attributeDescription)
             => (SourceAttributeData)GetAttributes().First(a => a.IsTargetAttribute(this, attributeDescription));

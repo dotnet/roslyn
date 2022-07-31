@@ -12858,6 +12858,132 @@ struct B
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "value.F = ref this").WithArguments("F", "this").WithLocation(20, 16));
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void UnscopedRefAttribute_SubstitutedMembers(bool useCompilationReference)
+        {
+            var sourceA =
+@"using System.Diagnostics.CodeAnalysis;
+public ref struct R1<T>
+{
+    private T _t;
+    public R1(T t) { _t = t; }
+    public ref T Get() => ref this[0];
+    public ref T this[int index] => throw null;
+}
+public ref struct R2<T>
+{
+    private T _t;
+    public R2(T t) { _t = t; }
+    [UnscopedRef] public ref T Get() => ref this[0];
+    [UnscopedRef] public ref T this[int index] => ref _t;
+}";
+            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition });
+            comp.VerifyEmitDiagnostics();
+
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class Program
+{
+    static ref int F1(bool b)
+    {
+        R1<int> r1 = new R1<int>(1);
+        if (b) return ref r1.Get();
+        return ref r1[0];
+    }
+    static ref int F2(bool b)
+    {
+        R2<int> r2 = new R2<int>(2);
+        if (b) return ref r2.Get(); // 1
+        return ref r2[0]; // 2
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            // https://github.com/dotnet/roslyn/issues/62791: Missing errors.
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.Text is "r1" or "r2").ToArray();
+            var types = decls.Select(d => (NamedTypeSymbol)model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>().Type).ToArray();
+
+            var type = types[0];
+            Assert.Equal("R1<System.Int32>", type.ToTestDisplayString());
+            VerifyParameterSymbol(type.GetMethod("Get").ThisParameter, "scoped ref R1<System.Int32> this", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(type.GetMethod("get_Item").ThisParameter, "scoped ref R1<System.Int32> this", RefKind.Ref, DeclarationScope.RefScoped);
+
+            type = types[1];
+            Assert.Equal("R2<System.Int32>", type.ToTestDisplayString());
+            VerifyParameterSymbol(type.GetMethod("Get").ThisParameter, "ref R2<System.Int32> this", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(type.GetMethod("get_Item").ThisParameter, "ref R2<System.Int32> this", RefKind.Ref, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        public void UnscopedRefAttribute_RetargetingMembers()
+        {
+            var sourceA =
+@"using System.Diagnostics.CodeAnalysis;
+public ref struct R1<T>
+{
+    private readonly T _t;
+    public R1(T t) { _t = t; }
+    public ref readonly T Get() => ref this[0];
+    public ref readonly T this[int index] => ref _t; // 1
+}
+public ref struct R2<T>
+{
+    private readonly T _t;
+    public R2(T t) { _t = t; }
+    [UnscopedRef] public ref readonly T Get() => ref this[0];
+    [UnscopedRef] public ref readonly T this[int index] => ref _t;
+}";
+            var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.Mscorlib40);
+            comp.VerifyDiagnostics(
+                // (7,50): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //     public ref readonly T this[int index] => ref _t; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "_t").WithLocation(7, 50));
+
+            var refA = comp.ToMetadataReference();
+
+            var sourceB =
+@"class Program
+{
+    static ref readonly int F1(bool b)
+    {
+        R1<int> r1 = new R1<int>(1);
+        if (b) return ref r1.Get();
+        return ref r1[0];
+    }
+    static ref readonly int F2(bool b)
+    {
+        R2<int> r2 = new R2<int>(2);
+        if (b) return ref r2.Get(); // 1
+        return ref r2[0]; // 2
+    }
+}";
+            comp = CreateCompilation(sourceB, new[] { refA }, targetFramework: TargetFramework.Mscorlib45);
+            // https://github.com/dotnet/roslyn/issues/62791: Missing errors.
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.Text is "r1" or "r2").ToArray();
+            var types = decls.Select(d => (NamedTypeSymbol)model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>().Type).ToArray();
+
+            var type = types[0];
+            var underlyingType = (RetargetingNamedTypeSymbol)type.OriginalDefinition;
+            Assert.Equal("R1<System.Int32>", type.ToTestDisplayString());
+            VerifyParameterSymbol(type.GetMethod("Get").ThisParameter, "scoped ref R1<System.Int32> this", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(type.GetMethod("get_Item").ThisParameter, "scoped ref R1<System.Int32> this", RefKind.Ref, DeclarationScope.RefScoped);
+
+            type = types[1];
+            underlyingType = (RetargetingNamedTypeSymbol)type.OriginalDefinition;
+            Assert.Equal("R2<System.Int32>", type.ToTestDisplayString());
+            VerifyParameterSymbol(type.GetMethod("Get").ThisParameter, "ref R2<System.Int32> this", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(type.GetMethod("get_Item").ThisParameter, "ref R2<System.Int32> this", RefKind.Ref, DeclarationScope.Unscoped);
+        }
+
         [Fact]
         public void UnscopedRefAttribute_Constructor()
         {
