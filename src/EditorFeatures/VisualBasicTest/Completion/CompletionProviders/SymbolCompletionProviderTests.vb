@@ -5718,6 +5718,38 @@ End
             Await VerifyItemExistsAsync(markup, "somestruct")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInherits_QualifiedNameAsGenericParameter() As Task
+            Const markup = "
+Namespace MyNameSpace
+    Structure somestruct
+    End Structure
+End Namespace
+
+Class SomeClass
+    Inherits List(Of MyNameSpace.$$)
+End Class
+"
+
+            Await VerifyItemExistsAsync(markup, "somestruct")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestImplements_QualifiedNameAsGenericParameter() As Task
+            Const markup = "
+Namespace MyNameSpace
+    Structure somestruct
+    End Structure
+End Namespace
+
+Class SomeClass
+    Implements IList(Of MyNameSpace.$$)
+End Class
+"
+
+            Await VerifyItemExistsAsync(markup, "somestruct")
+        End Function
+
 #End Region
 
         <WorkItem(715146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715146")>

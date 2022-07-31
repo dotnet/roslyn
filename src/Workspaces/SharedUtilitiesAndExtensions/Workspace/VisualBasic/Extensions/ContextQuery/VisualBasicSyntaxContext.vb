@@ -155,9 +155,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         End Function
 
         Private Shared Function ComputeIsBaseClassContext(targetToken As SyntaxToken) As Boolean
-            If targetToken.IsChildToken(Of InheritsStatementSyntax)(Function(n) n.InheritsKeyword) AndAlso targetToken.HasAncestor(Of ClassBlockSyntax)() Then
+            If targetToken.IsChildToken(Of InheritsStatementSyntax)(Function(n) n.InheritsKeyword) AndAlso
+               targetToken.HasAncestor(Of ClassBlockSyntax)() Then
                 Return True
             End If
+
+            If Not (targetToken.IsChildToken(Of QualifiedNameSyntax)(Function(n) n.DotToken) AndAlso
+                    targetToken.HasAncestor(Of ClassBlockSyntax)) Then
+                Return False
+            End If
+
+            Dim firstParent = targetToken.Parent
+
+            Return (TryCast(firstParent, QualifiedNameSyntax) IsNot Nothing AndAlso
+                        TryCast(firstParent.Parent, InheritsStatementSyntax) IsNot Nothing) OrElse ' Inherits System.$$
+                   (TryCast(firstParent, QualifiedNameSyntax) IsNot Nothing AndAlso
+                        TryCast(firstParent.Parent, QualifiedNameSyntax) IsNot Nothing AndAlso
+                        TryCast(firstParent.Parent.Parent, InheritsStatementSyntax) IsNot Nothing) ' Inherits System.$$.Threading
 
             Return targetToken.IsChildToken(Of QualifiedNameSyntax)(Function(n) n.DotToken) AndAlso
                    targetToken.Parent?.FirstAncestorOrSelf(Of InheritsStatementSyntax) IsNot Nothing AndAlso
@@ -166,18 +180,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
         Private Shared Function ComputeIsBaseInterfaceContext(targetToken As SyntaxToken) As Boolean
             ' Class/Structure Implements interface
-            If targetToken.IsChildToken(Of ImplementsStatementSyntax)(Function(n) n.ImplementsKeyword) AndAlso Not targetToken.HasAncestor(Of InterfaceBlockSyntax)() Then
+            If targetToken.IsChildToken(Of ImplementsStatementSyntax)(Function(n) n.ImplementsKeyword) AndAlso
+               Not targetToken.HasAncestor(Of InterfaceBlockSyntax)() Then
                 Return True
             End If
 
             ' Interface Inherits interface
-            If targetToken.IsChildToken(Of InheritsStatementSyntax)(Function(n) n.InheritsKeyword) AndAlso targetToken.HasAncestor(Of InterfaceBlockSyntax)() Then
+            If targetToken.IsChildToken(Of InheritsStatementSyntax)(Function(n) n.InheritsKeyword) AndAlso
+               targetToken.HasAncestor(Of InterfaceBlockSyntax)() Then
                 Return True
             End If
 
-            Return targetToken.IsChildToken(Of QualifiedNameSyntax)(Function(n) n.DotToken) AndAlso
-                   targetToken.Parent?.FirstAncestorOrSelf(Of ImplementsStatementSyntax) IsNot Nothing AndAlso
-                   Not targetToken.HasAncestor(Of InterfaceBlockSyntax)()
+            If Not (targetToken.IsChildToken(Of QualifiedNameSyntax)(Function(n) n.DotToken) AndAlso
+                    Not targetToken.HasAncestor(Of InterfaceBlockSyntax)) Then
+                Return False
+            End If
+
+            Dim firstParent = targetToken.Parent
+
+            Return (TryCast(firstParent, QualifiedNameSyntax) IsNot Nothing AndAlso
+                        TryCast(firstParent.Parent, ImplementsStatementSyntax) IsNot Nothing) OrElse ' Implements System.$$
+                   (TryCast(firstParent, QualifiedNameSyntax) IsNot Nothing AndAlso
+                        TryCast(firstParent.Parent, QualifiedNameSyntax) IsNot Nothing AndAlso
+                        TryCast(firstParent.Parent.Parent, ImplementsStatementSyntax) IsNot Nothing) ' Implements System.$$.Threading
         End Function
 
         Private Shared Function ComputeContainingTypeDeclaration(targetToken As SyntaxToken, position As Integer) As SyntaxNode
