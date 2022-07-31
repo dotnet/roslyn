@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
 
         public async Task<(ISymbol?, TextSpan)> GetSymbolAndBoundSpanAsync(Document document, int position, bool includeType, CancellationToken cancellationToken)
         {
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticInfo = await SymbolFinder.GetSemanticInfoAtPositionAsync(semanticModel, position, services, cancellationToken).ConfigureAwait(false);

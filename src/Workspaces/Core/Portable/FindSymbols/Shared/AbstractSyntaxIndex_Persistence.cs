@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IndexReader read,
             CancellationToken cancellationToken)
         {
-            var storageService = document.Project.Solution.Workspace.Services.GetPersistentStorageService();
+            var storageService = document.Project.Solution.Services.GetPersistentStorageService();
             var documentKey = DocumentKey.ToDocumentKey(document);
             var stringTable = SyntaxTreeIndex.GetStringTable(document.Project);
 
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistentStorageService = solution.Workspace.Services.GetPersistentStorageService();
+            var persistentStorageService = solution.Services.GetPersistentStorageService();
 
             try
             {
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document, Checksum textChecksum, Checksum textAndDirectivesChecksum, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistentStorageService = solution.Workspace.Services.GetPersistentStorageService();
+            var persistentStorageService = solution.Services.GetPersistentStorageService();
 
             // check whether we already have info for this document
             try

@@ -9266,7 +9266,7 @@ class C
     </Project>
 </Workspace>";
 
-            var expectedDescription = $"({ FeaturesResources.field }) int C.x";
+            var expectedDescription = $"({FeaturesResources.field}) int C.x";
             await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
         }
 

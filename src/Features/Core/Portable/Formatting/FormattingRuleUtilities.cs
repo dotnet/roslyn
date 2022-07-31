@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules;
 
 internal static class FormattingRuleUtilities
 {
-    public static ImmutableArray<AbstractFormattingRule> GetFormattingRules(ParsedDocument document, HostLanguageServices languageServices, TextSpan span, IEnumerable<AbstractFormattingRule>? additionalRules)
+    public static ImmutableArray<AbstractFormattingRule> GetFormattingRules(ParsedDocument document, HostProjectServices languageServices, TextSpan span, IEnumerable<AbstractFormattingRule>? additionalRules)
     {
-        var formattingRuleFactory = languageServices.WorkspaceServices.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
+        var formattingRuleFactory = languageServices.SolutionServices.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
         // Not sure why this is being done... there aren't any docs on CreateRule either.
         var position = (span.Start + span.End) / 2;
 

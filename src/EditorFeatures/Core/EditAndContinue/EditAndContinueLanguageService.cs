@@ -182,21 +182,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
         {
+            if (_disabled)
+            {
+                return;
+            }
+
+            var committedDesignTimeSolution = Interlocked.Exchange(ref _pendingUpdatedDesignTimeSolution, null);
+            Contract.ThrowIfNull(committedDesignTimeSolution);
+
             try
             {
-                var committedDesignTimeSolution = Interlocked.Exchange(ref _pendingUpdatedDesignTimeSolution, null);
-                Contract.ThrowIfNull(committedDesignTimeSolution);
                 SolutionCommitted?.Invoke(committedDesignTimeSolution);
-
-                _committedDesignTimeSolution = committedDesignTimeSolution;
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
             }
 
+            _committedDesignTimeSolution = committedDesignTimeSolution;
+
             try
             {
-                Contract.ThrowIfTrue(_disabled);
                 await GetDebuggingSession().CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -260,6 +265,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// will disappear once the debuggee is resumed - if they are caused by presence of active statements around the change.
         /// If the result is a false positive the debugger attempts to apply the changes, which will result in a delay but will correctly end up
         /// with no actual deltas to be applied.
+        /// 
+        /// If <paramref name="sourceFilePath"/> is specified checks for changes only in a document of the given path.
+        /// This is not supported (returns false) for source-generated documents.
         /// </summary>
         public async ValueTask<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
         {
@@ -293,9 +301,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var workspace = WorkspaceProvider.Value.Workspace;
-            var solution = GetCurrentCompileTimeSolution(_pendingUpdatedDesignTimeSolution = workspace.CurrentSolution);
+            var designTimeSolution = workspace.CurrentSolution;
+            var solution = GetCurrentCompileTimeSolution(designTimeSolution);
             var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
             var (updates, _, _, _) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+
+            // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
+            if (updates.Status == Contracts.ManagedModuleUpdateStatus.Ready)
+            {
+                _pendingUpdatedDesignTimeSolution = designTimeSolution;
+            }
+
             return updates.FromContract();
         }
 
@@ -307,8 +323,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var workspace = WorkspaceProvider.Value.Workspace;
-            var solution = GetCurrentCompileTimeSolution(_pendingUpdatedDesignTimeSolution = workspace.CurrentSolution);
+            var designTimeSolution = workspace.CurrentSolution;
+            var solution = GetCurrentCompileTimeSolution(designTimeSolution);
             var (moduleUpdates, diagnosticData, rudeEdits, syntaxError) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, s_noActiveStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+
+            // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
+            if (moduleUpdates.Status == Contracts.ManagedModuleUpdateStatus.Ready)
+            {
+                _pendingUpdatedDesignTimeSolution = designTimeSolution;
+            }
 
             var updates = moduleUpdates.Updates.SelectAsArray(
                 update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta, update.UpdatedTypes));

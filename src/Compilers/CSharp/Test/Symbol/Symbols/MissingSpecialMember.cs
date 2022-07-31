@@ -614,7 +614,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler:
                     case WellKnownType.System_Runtime_CompilerServices_RequiredMemberAttribute:
                     case WellKnownType.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute:
-                    case WellKnownType.System_Runtime_CompilerServices_LifetimeAnnotationAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute:
                     case WellKnownType.System_MemoryExtensions:
                     case WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute:
                         // Not yet in the platform.
@@ -976,7 +976,7 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear:
                     case WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor:
                     case WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor:
-                    case WellKnownMember.System_Runtime_CompilerServices_LifetimeAnnotationAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor:
                     case WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T:
                     case WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T:
                     case WellKnownMember.System_MemoryExtensions__AsSpan_String:
@@ -990,10 +990,10 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item:
                     case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length:
-                    case WellKnownMember.System_GC__AllocateUninitializedArray_T:
                         // Not always available.
                         continue;
                 }
+                if (wkm == WellKnownMember.Count) continue; // Not a real value.
 
                 var symbol = comp.GetWellKnownTypeMember(wkm);
                 Assert.True((object)symbol != null, $"Unexpected null for {wkm}");

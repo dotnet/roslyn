@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, currentSolution.Workspace.Services);
+            var editor = new SyntaxEditor(root, currentSolution.Services);
 
             foreach (var location in group)
             {

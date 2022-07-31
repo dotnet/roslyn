@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var errorLocation = new SourceLocation(firstIdentifier);
             DeclarationModifiers result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
-                isForTypeDeclaration: false, isForInterfaceMember: isInterface,
+                isOrdinaryMethod: false, isForInterfaceMember: isInterface,
                 modifiers, defaultAccess, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
 
             if ((result & DeclarationModifiers.Abstract) != 0)

@@ -248,8 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             this.UndoManager.CreateInitialState(this.ReplacementText, _triggerView.Selection, new SnapshotSpan(triggerSpan.Snapshot, startingSpan));
             _openTextBuffers[triggerSpan.Snapshot.TextBuffer].SetReferenceSpans(SpecializedCollections.SingletonEnumerable(startingSpan.ToTextSpan()));
 
-            UpdateReferenceLocationsTask(_threadingContext.JoinableTaskFactory.RunAsync(
-                () => _renameInfo.FindRenameLocationsAsync(_options, _cancellationTokenSource.Token)));
+            UpdateReferenceLocationsTask();
 
             RenameTrackingDismisser.DismissRenameTracking(_workspace, _workspace.GetOpenDocumentIds());
         }
@@ -293,20 +292,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        private void UpdateReferenceLocationsTask(JoinableTask<IInlineRenameLocationSet> findRenameLocationsTask)
+        private void UpdateReferenceLocationsTask()
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
             var asyncToken = _asyncListener.BeginAsyncOperation("UpdateReferencesTask");
+
+            var currentOptions = _options;
+            var currentRenameLocationsTask = _allRenameLocationsTask;
+            var cancellationToken = _cancellationTokenSource.Token;
+
             _allRenameLocationsTask = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                var inlineRenameLocations = await findRenameLocationsTask.JoinAsync().ConfigureAwaitRunInline();
+                // Join prior work before proceeding, since it performs a required state update.
+                // https://github.com/dotnet/roslyn/pull/34254#discussion_r267024593
+                if (currentRenameLocationsTask != null)
+                    await _allRenameLocationsTask.JoinAsync(cancellationToken).ConfigureAwait(false);
+
+                await TaskScheduler.Default;
+                var inlineRenameLocations = await _renameInfo.FindRenameLocationsAsync(currentOptions, cancellationToken).ConfigureAwait(false);
 
                 // It's unfortunate that _allRenameLocationsTask has a UI thread dependency (prevents continuations
                 // from running prior to the completion of the UI operation), but the implementation does not currently
                 // follow the originally-intended design.
                 // https://github.com/dotnet/roslyn/issues/40890
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationTokenSource.Token);
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
 
                 RaiseSessionSpansUpdated(inlineRenameLocations.Locations.ToImmutableArray());
 
@@ -348,21 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             VerifyNotDismissed();
 
             _options = newOptions;
-
-            var cancellationToken = _cancellationTokenSource.Token;
-
-            UpdateReferenceLocationsTask(_threadingContext.JoinableTaskFactory.RunAsync(async () =>
-            {
-                // Join prior work before proceeding, since it performs a required state update.
-                // https://github.com/dotnet/roslyn/pull/34254#discussion_r267024593
-                //
-                // The cancellation token is passed to the prior work when it starts, not when it's joined. This is
-                // the equivalent of TaskContinuationOptions.LazyCancellation.
-                await _allRenameLocationsTask.JoinAsync(CancellationToken.None).ConfigureAwait(false);
-                await TaskScheduler.Default;
-
-                return await _renameInfo.FindRenameLocationsAsync(_options, cancellationToken).ConfigureAwait(false);
-            }));
+            UpdateReferenceLocationsTask();
         }
 
         public void SetPreviewChanges(bool value)
@@ -715,19 +711,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public void Commit(bool previewChanges = false)
             => CommitWorker(previewChanges);
 
-        /// <returns><see langword="true"/> if the rename operation was commited, <see
+        /// <returns><see langword="true"/> if the rename operation was committed, <see
         /// langword="false"/> otherwise</returns>
         private bool CommitWorker(bool previewChanges)
         {
-            return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, CancellationToken.None));
+            // We're going to synchronously block the UI thread here.  So we can't use the background work indicator (as
+            // it needs the UI thread to update itself.  This will force us to go through the Threaded-Wait-Dialog path
+            // which at least will allow the user to cancel the rename if they want.
+            //
+            // In the future we should remove this entrypoint and have all callers use CommitAsync instead.
+            return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false, CancellationToken.None));
         }
 
         public Task CommitAsync(bool previewChanges, CancellationToken cancellationToken)
-           => CommitWorkerAsync(previewChanges, cancellationToken);
+           => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true, cancellationToken);
 
         /// <returns><see langword="true"/> if the rename operation was commited, <see
         /// langword="false"/> otherwise</returns>
-        private async Task<bool> CommitWorkerAsync(bool previewChanges, CancellationToken cancellationToken)
+        private async Task<bool> CommitWorkerAsync(bool previewChanges, bool canUseBackgroundWorkIndicator, CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             VerifyNotDismissed();
@@ -752,7 +753,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             try
             {
-                if (this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
+                if (canUseBackgroundWorkIndicator && this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
                 {
                     // We do not cancel on edit because as part of the rename system we have asynchronous work still
                     // occurring that itself may be asynchronously editing the buffer (for example, updating reference
@@ -764,7 +765,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         _triggerView, TriggerSpan, EditorFeaturesResources.Computing_Rename_information,
                         cancelOnEdit: false, cancelOnFocusLost: false);
 
-                    await CommitCoreAsync(context, previewChanges).ConfigureAwait(false);
+                    await CommitCoreAsync(context, previewChanges).ConfigureAwait(true);
                 }
                 else
                 {
@@ -774,7 +775,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         allowCancellation: true,
                         showProgress: false);
 
-                    await CommitCoreAsync(context, previewChanges).ConfigureAwait(false);
+                    // .ConfigureAwait(true); so we can return to the UI thread to dispose the operation context.  It
+                    // has a non-JTF threading dependency on the main thread.  So it can deadlock if you call it on a BG
+                    // thread when in a blocking JTF call.
+                    await CommitCoreAsync(context, previewChanges).ConfigureAwait(true);
                 }
             }
             catch (OperationCanceledException)
