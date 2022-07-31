@@ -3023,10 +3023,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // 1. Current base type must be the first in the base list, because class inheritance is valid only at the first position in the base list
-            // 2. The only available target token type is qualified names. If there is generic names or whatever else,
+            // 2. The only available target token type is a qualified name or an alias qualified name. If there is generic names or whatever else,
             // then it is not directly inheritance context and our restrictions are not valid there
             return possibleBaseListSyntax.Types[0].Equals(possibleBaseTypeSyntax) &&
-                   targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax or QualifiedNameSyntax };
+                   targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax or QualifiedNameSyntax { Parent: BaseTypeSyntax } }
+                                      or AliasQualifiedNameSyntax { Parent: BaseTypeSyntax or QualifiedNameSyntax { Parent: BaseTypeSyntax } };
         }
 
         /// <summary>
@@ -3048,9 +3049,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsBaseInterfaceContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
         {
             // The first part of condition checks for non-written base type, e.g. "class C : $$" or "class C : Base, $$"
-            // The second one checks quilified name cases, e.g. "class C : System.$$"
+            // The second one checks quilified name cases, e.g. "class C : System.$$" or "class C : global::$$"
             return (targetToken.IsKind(SyntaxKind.ColonToken, SyntaxKind.CommaToken) && targetToken.Parent is BaseListSyntax { Parent: not EnumDeclarationSyntax }) ||
-                    targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax or QualifiedNameSyntax };
+                    targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax or QualifiedNameSyntax { Parent: BaseTypeSyntax } }
+                                       or AliasQualifiedNameSyntax { Parent: BaseTypeSyntax or QualifiedNameSyntax { Parent: BaseTypeSyntax } };
         }
 
         /// <summary>
@@ -3077,10 +3079,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // 1. Current base type must be the first in the base list, because record inheritance is valid only at the first position in the base list
-            // 2. The only available target token type is qualified names. If there is generic names or whatever else,
+            // 2. The only available target token type is a qualified name or an alias qualified name. If there is generic names or whatever else,
             // then it is not directly inheritance context and our restrictions are not valid there
             return possibleBaseListSyntax.Types[0].Equals(possibleBaseTypeSyntax) &&
-                   targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax or QualifiedNameSyntax };
+                   targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax or QualifiedNameSyntax { Parent: BaseTypeSyntax } }
+                                      or AliasQualifiedNameSyntax { Parent: BaseTypeSyntax or QualifiedNameSyntax { Parent: BaseTypeSyntax } };
         }
     }
 }

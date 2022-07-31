@@ -1916,6 +1916,20 @@ namespace MyNameSpace.Segment
             await VerifyItemIsAbsentAsync(markup, "R");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_AliasQuilifiedName()
+        {
+            await VerifyItemIsAbsentAsync(@"
+class C : global::$$", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseList_AliasQuilifiedName_InTheMiddleOfQualifiedName()
+        {
+            await VerifyItemIsAbsentAsync(@"
+class C : global::$$.System", "C");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData("")]
         [InlineData("MyNameSpace.")]
@@ -1984,6 +1998,20 @@ namespace MyNameSpace.Segment
             await VerifyItemIsAbsentAsync(markup, "S");
             await VerifyItemIsAbsentAsync(markup, "E");
             await VerifyItemIsAbsentAsync(markup, "R");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListStruct_AliasQuilifiedName()
+        {
+            await VerifyItemIsAbsentAsync(@"
+struct S : global::$$", "S");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListStruct_AliasQuilifiedName_InTheMiddleOfQualifiedName()
+        {
+            await VerifyItemIsAbsentAsync(@"
+struct S : global::$$.System", "S");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2082,6 +2110,20 @@ namespace MyNameSpace.Segment
             await VerifyItemIsAbsentAsync(markup, "S");
             await VerifyItemIsAbsentAsync(markup, "E");
             await VerifyItemIsAbsentAsync(markup, "R");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListInterface_AliasQuilifiedName()
+        {
+            await VerifyItemIsAbsentAsync(@"
+interface I : global::$$", "I");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListInterface_AliasQuilifiedName_InTheMiddleOfQualifiedName()
+        {
+            await VerifyItemIsAbsentAsync(@"
+interface I : global::$$.System", "I");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2382,6 +2424,20 @@ namespace MyNameSpace.Segment
             await VerifyItemIsAbsentAsync(markup, "S");
             await VerifyItemIsAbsentAsync(markup, "E");
             await VerifyItemIsAbsentAsync(markup, "SealedRecord");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListRecord_AliasQuilifiedName()
+        {
+            await VerifyItemIsAbsentAsync(@"
+record R : global::$$", "R");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BaseListRecord_AliasQuilifiedName_InTheMiddleOfQualifiedName()
+        {
+            await VerifyItemIsAbsentAsync(@"
+record R : global::$$.System", "R");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
