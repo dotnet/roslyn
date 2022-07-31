@@ -4594,7 +4594,7 @@ class C
 using System;
 class C
 {
-    void F() { var x = new Action(() => {}); Console.WriteLine(1); }
+    void F() { var x = new Action(() => {}); Console.WriteLine(2); }
 }";
 
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20);
