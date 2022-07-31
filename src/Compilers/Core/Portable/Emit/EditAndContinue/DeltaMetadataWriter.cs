@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 // deleted in a generation, and then "added" in a subsequent one, but that is an update
                 // even if the collections at hand can't track it as such
                 if (methodChange == SymbolChange.Added &&
-                    !_changes.IsReplaced(methodDef.ContainingTypeDefinition) &&
+                    !_changes.IsReplaced(methodDef.ContainingTypeDefinition, checkEnclosingTypes: true) &&
                     TryGetExistingMethodDefIndex(methodDef, out _))
                 {
                     methodChange = SymbolChange.Updated;
