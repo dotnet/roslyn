@@ -32596,6 +32596,102 @@ interface IB<T> : IA<IQ<T>> { }
                 );
         }
 
+        [Fact]
+        [WorkItem(58424, "https://github.com/dotnet/roslyn/issues/58424")]
+        public void NestedTypes_53()
+        {
+            var source1 =
+@"
+public class Test : Test.IInner.IOuter
+{
+    public interface IInner : Other
+    {
+        public interface IOuter
+        {
+        }
+    }
+}
+
+public interface Other
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(58424, "https://github.com/dotnet/roslyn/issues/58424")]
+        public void NestedTypes_54()
+        {
+            var source1 =
+@"
+public class Test : Test.IInner.IOuter
+{
+    public interface IInner : Other
+    {
+    }
+}
+
+public interface Other
+{
+    public interface IOuter
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics(
+                // (2,33): error CS0426: The type name 'IOuter' does not exist in the type 'Test.IInner'
+                // public class Test : Test.IInner.IOuter
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "IOuter").WithArguments("IOuter", "Test.IInner").WithLocation(2, 33),
+                // (4,31): error CS0146: Circular base type dependency involving 'Test' and 'Test.IInner'
+                //     public interface IInner : Other
+                Diagnostic(ErrorCode.ERR_CircularBase, "Other").WithArguments("Test", "Test.IInner").WithLocation(4, 31)
+                );
+        }
+
+        [Fact]
+        [WorkItem(58424, "https://github.com/dotnet/roslyn/issues/58424")]
+        [WorkItem(62795, "https://github.com/dotnet/roslyn/issues/62795")]
+        public void NestedTypes_55()
+        {
+            var source1 =
+@"
+namespace Ns0
+{
+    public class Test : Test.IInner.IOuter
+    {
+        public interface IInner : global::Ns0.Other
+        {
+            new public interface IOuter
+            {
+            }
+        }
+    }
+
+    public interface Other
+    {
+        public interface IOuter
+        {
+            void M1();
+        }
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+        }
+
         [Theory]
         [CombinatorialData]
         [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             // constructor, operator and finalizer are excluded.
             var (document, _, cancellationToken) = context;
 
-            _service ??= document.Project.Solution.Workspace.Services.GetService<IPullMemberUpOptionsService>();
+            _service ??= document.Project.Solution.Services.GetService<IPullMemberUpOptionsService>();
             if (_service == null)
             {
                 return;

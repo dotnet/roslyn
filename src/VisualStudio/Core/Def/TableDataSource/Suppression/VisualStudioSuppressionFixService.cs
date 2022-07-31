@@ -302,7 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                 // We have different suppression fixers for every language.
                 // So we need to group diagnostics by the containing project language and apply fixes separately.
-                var languageServices = new HashSet<HostLanguageServices>(projectDiagnosticsToFixMap.Select(p => p.Key.LanguageServices).Concat(documentDiagnosticsToFixMap.Select(kvp => kvp.Key.Project.LanguageServices)));
+                var languageServices = projectDiagnosticsToFixMap.Select(p => p.Key.Services).Concat(documentDiagnosticsToFixMap.Select(kvp => kvp.Key.Project.Services)).ToHashSet();
 
                 foreach (var languageService in languageServices)
                 {

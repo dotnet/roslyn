@@ -81,7 +81,7 @@ class Program
 
             var service = document.GetLanguageService<ISyntaxClassificationService>();
             var classifiers = service.GetDefaultSyntaxClassifiers();
-            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
+            var extensionManager = document.Project.Solution.Services.GetService<IExtensionManager>();
 
             var results = ArrayBuilder<ClassifiedSpan>.GetInstance();
 

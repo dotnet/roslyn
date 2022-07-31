@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
 
         private static void ReportFailure(Document document)
         {
-            var notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
+            var notificationService = document.Project.Solution.Services.GetRequiredService<INotificationService>();
             notificationService.SendNotification(
                 FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, EditorFeaturesResources.Go_to_Definition, NotificationSeverity.Information);
         }
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
         {
             bool succeeded;
 
-            var indicatorFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+            var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
             using (var backgroundIndicator = indicatorFactory.Create(
                 args.TextView, new SnapshotSpan(args.SubjectBuffer.CurrentSnapshot, position, 1),
                 EditorFeaturesResources.Navigating_to_definition))

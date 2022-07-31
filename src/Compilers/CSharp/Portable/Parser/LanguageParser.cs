@@ -7302,25 +7302,19 @@ done:
                     readonlyKeyword = this.CheckFeatureAvailability(readonlyKeyword, MessageID.IDS_FeatureReadOnlyReferences);
                 }
 
-                SyntaxToken scopedKeyword = null;
+                SyntaxToken misplacedScoped = null;
                 if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword && mode == ParseTypeMode.Normal)
                 {
-                    var resetPoint = this.GetResetPoint();
-
-                    this.EatToken();
-                    bool shouldTreatAsModifier = ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
-
-                    this.Reset(ref resetPoint);
-                    this.Release(ref resetPoint);
-
-                    if (shouldTreatAsModifier)
-                    {
-                        scopedKeyword = this.EatContextualToken(SyntaxKind.ScopedKeyword);
-                    }
+                    misplacedScoped = this.AddError(this.EatContextualToken(SyntaxKind.ScopedKeyword), ErrorCode.ERR_MisplacedScoped);
                 }
 
                 var type = ParseTypeCore(ParseTypeMode.AfterRef);
-                return _syntaxFactory.RefType(refKeyword, readonlyKeyword, scopedKeyword, type);
+                if (misplacedScoped is not null)
+                {
+                    type = AddLeadingSkippedSyntax(type, misplacedScoped);
+                }
+
+                return _syntaxFactory.RefType(refKeyword, readonlyKeyword, type);
             }
 
             return ParseTypeCore(mode);

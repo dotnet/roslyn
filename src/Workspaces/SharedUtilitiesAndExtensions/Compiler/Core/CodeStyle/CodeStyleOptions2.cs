@@ -232,8 +232,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             "dotnet_style_prefer_simplified_interpolation",
             $"TextEditor.%LANGUAGE%.Specific.PreferSimplifiedInterpolation");
 
-        // TODO: https://github.com/dotnet/roslyn/issues/31225 tracks adding CodeQualityOption<T> and CodeQualityOptions
-        // and moving this option to CodeQualityOptions.
         internal static readonly PerLanguageOption2<CodeStyleOption2<UnusedParametersPreference>> UnusedParameters = CreateOption(
             CodeStyleOptionGroups.Parameter,
             nameof(UnusedParameters),

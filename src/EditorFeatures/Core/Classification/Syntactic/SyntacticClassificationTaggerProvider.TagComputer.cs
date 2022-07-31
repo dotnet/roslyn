@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Classification
             public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
             private IClassificationService? TryGetClassificationService(ITextSnapshot snapshot)
-                => _workspace?.Services.GetLanguageServices(snapshot.ContentType)?.GetService<IClassificationService>();
+                => _workspace?.Services.SolutionServices.GetProjectServices(snapshot.ContentType)?.GetService<IClassificationService>();
 
             #region Workspace Hookup
 
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 {
                     // If we have syntax available fast path the change computation without async or blocking.
                     if (previousRoot != null && currentRoot != null)
-                        return new(classificationService.ComputeSyntacticChangeRange(currentDocument.Project.Solution.Workspace, previousRoot, currentRoot, _diffTimeout, cancellationToken));
+                        return new(classificationService.ComputeSyntacticChangeRange(currentDocument.Project.Solution.Services, previousRoot, currentRoot, _diffTimeout, cancellationToken));
 
                     // Otherwise, fall back to the language to compute the difference based on the document contents.
                     if (previousDocument != null)
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 if (root == null)
                     classificationService.AddSyntacticClassificationsAsync(document, span.Span.ToTextSpan(), tempList, cancellationToken).Wait(cancellationToken);
                 else
-                    classificationService.AddSyntacticClassifications(document.Project.Solution.Workspace, root, span.Span.ToTextSpan(), tempList, cancellationToken);
+                    classificationService.AddSyntacticClassifications(document.Project.Solution.Services, root, span.Span.ToTextSpan(), tempList, cancellationToken);
 
                 _lastLineCache.Update(span, tempList);
                 classifiedSpans.AddRange(tempList);
