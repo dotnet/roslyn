@@ -163,9 +163,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // These types are special. They are not sealed, but trying to inherit from them
                 // produces compiler error both in C# and VB
                 if (namedType.SpecialType is
-                    SpecialType.System_Enum      or
+                    SpecialType.System_Enum or
                     SpecialType.System_ValueType or
-                    SpecialType.System_Delegate  or
+                    SpecialType.System_Delegate or
                     SpecialType.System_Array)
                 {
                     return false;
