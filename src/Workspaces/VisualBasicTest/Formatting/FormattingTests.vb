@@ -3081,14 +3081,14 @@ End Module"
                 Dim options = VisualBasicSyntaxFormattingOptions.Default
 
                 ' format first time
-                Dim result = Formatter.GetFormattedTextChanges(root, workspace.Services, options, CancellationToken.None)
+                Dim result = Formatter.GetFormattedTextChanges(root, workspace.Services.SolutionServices, options, CancellationToken.None)
                 AssertResult(inputOutput, Await document.GetTextAsync(), result)
 
                 Dim document2 = document.WithText((Await document.GetTextAsync()).WithChanges(result))
                 Dim root2 = Await document2.GetSyntaxRootAsync()
 
                 ' format second time
-                Dim result2 = Formatter.GetFormattedTextChanges(root, workspace.Services, options, CancellationToken.None)
+                Dim result2 = Formatter.GetFormattedTextChanges(root, workspace.Services.SolutionServices, options, CancellationToken.None)
                 AssertResult(inputOutput, Await document2.GetTextAsync(), result2)
             End Using
         End Function
@@ -3906,7 +3906,7 @@ End Class</text>.Value.Replace(vbLf, vbCrLf)
             root = root.ReplaceNode(method, method.NormalizeWhitespace(elasticTrivia:=True).WithAdditionalAnnotations(goo))
 
             Using workspace = New AdhocWorkspace()
-                Dim result = Formatter.Format(root, goo, workspace.Services, VisualBasicSyntaxFormattingOptions.Default, CancellationToken.None).ToString()
+                Dim result = Formatter.Format(root, goo, workspace.Services.SolutionServices, VisualBasicSyntaxFormattingOptions.Default, CancellationToken.None).ToString()
                 Assert.Equal(expected, result)
             End Using
         End Sub
@@ -4744,7 +4744,7 @@ End Class
                     }
                 }
 
-                Dim formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None)
+                Dim formatted = Formatter.Format(tree, workspace.Services.SolutionServices, options, CancellationToken.None)
                 Dim actual = formatted.ToFullString()
 
                 Dim expected = "Class C" & vbLf & "End Class"

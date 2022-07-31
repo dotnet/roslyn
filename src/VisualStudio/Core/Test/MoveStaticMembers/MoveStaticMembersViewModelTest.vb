@@ -29,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
                 End If
 
                 Dim tree = Await workspaceDoc.GetSyntaxTreeAsync().ConfigureAwait(False)
-                Dim syntaxFacts = workspaceDoc.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
+                Dim syntaxFacts = workspaceDoc.Project.Services.GetService(Of ISyntaxFactsService)()
                 Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, syntaxFacts, CancellationToken.None).ConfigureAwait(False)
                 Dim memberSymbol = (Await workspaceDoc.GetRequiredSemanticModelAsync(CancellationToken.None)).GetDeclaredSymbol(token.Parent)
                 Return VisualStudioMoveStaticMembersOptionsService.GetViewModel(

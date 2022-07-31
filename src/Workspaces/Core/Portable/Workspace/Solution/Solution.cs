@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            : this(new SolutionState(workspace.PrimaryBranchId, new SolutionServices(workspace), solutionAttributes, options, analyzerReferences))
+            : this(new SolutionState(workspace.PrimaryBranchId, workspace.Kind, workspace.Services, solutionAttributes, options, analyzerReferences))
         {
         }
 
@@ -46,7 +47,11 @@ namespace Microsoft.CodeAnalysis
 
         internal int WorkspaceVersion => _state.WorkspaceVersion;
 
-        internal SolutionServices Services => _state.Services;
+        // TODO(cyrusn): Make public.  Tracked through https://github.com/dotnet/roslyn/issues/62914
+        // Obsolete (or ban) Solution.Workspace as it can be used to acquire the Workspace from a project.
+        internal HostSolutionServices Services => _state.Services.SolutionServices;
+
+        internal string? WorkspaceKind => _state.WorkspaceKind;
 
         internal BranchId BranchId => _state.BranchId;
 

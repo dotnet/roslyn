@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Project project, Checksum checksum, bool loadOnly, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-            var services = solution.Workspace.Services;
+            var services = solution.Services;
             var solutionKey = SolutionKey.ToSolutionKey(solution);
             var projectFilePath = project.FilePath ?? "";
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // changed.  The only thing that can make those source-symbols change in that manner are if
             // the text of any document changes, or if options for the project change.  So we build our
             // checksum out of that data.
-            var serializer = projectState.LanguageServices.WorkspaceServices.GetService<ISerializerService>();
+            var serializer = projectState.LanguageServices.ProjectServices.SolutionServices.GetService<ISerializerService>();
             var projectStateChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
             // Order the documents by FilePath.  Default ordering in the RemoteWorkspace is
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, s_getMembersNoPrivate);
 
             var solution = project.Solution;
-            var services = solution.Workspace.Services;
+            var services = solution.Services;
             var solutionKey = SolutionKey.ToSolutionKey(solution);
 
             return CreateSymbolTreeInfo(
