@@ -268,3 +268,17 @@ jobs:
       parameters:
         jobName: Correctness_Rebuild
         configuration: Release
+
+- job: Correctness_Analyzers
+  pool:
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+  timeoutInMinutes: 35
+  steps:
+    - template: eng/pipelines/checkout-windows-task.yml
+
+    - task: PowerShell@2 
+      displayName: Build with analyzers
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -restore -build -configuration Debug -prepareMachine -ci -binaryLog -runAnalyzers:$true -warnAsError:$true -properties "/p:RoslynEnforceCodeStyle=true"
