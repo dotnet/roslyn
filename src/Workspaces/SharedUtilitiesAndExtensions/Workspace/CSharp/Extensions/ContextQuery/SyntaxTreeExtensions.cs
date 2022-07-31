@@ -2999,6 +2999,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                    targetToken == functionPointerType.AsteriskToken;
         }
 
+        /// <summary>
+        /// Tells if in a position of a base list, where class name is a valid completion.
+        /// For instatnce, this flag will be <see langword="true" /> for
+        /// <code>class C : $$</code>
+        /// but not for
+        /// <code>class C : A, $$</code>
+        /// </summary>
         public static bool IsBaseClassContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
         {
             var possibleBaseListSyntax = targetToken.GetAncestor<BaseListSyntax>();
@@ -3022,12 +3029,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                    targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax or QualifiedNameSyntax };
         }
 
+        /// <summary>
+        /// Computes <see cref="CSharpSyntaxContext.IsBaseEnumContext"/>
+        /// </summary>
         public static bool IsBaseEnumContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
         {
             // We don't care about qualified names, generics or whatever else, because in base list of enum can only contain one item of byte, short etc.
             return targetToken.GetAncestor<BaseListSyntax>() is { Parent: EnumDeclarationSyntax };
         }
 
+        /// <summary>
+        /// Tells if in a position of a base list, where interface name is a valid completion.
+        /// For instatnce, this flag will be <see langword="true" /> for
+        /// <code>class C : $$</code>
+        /// or
+        /// <code>interface I : $$</code>
+        /// </summary>
         public static bool IsBaseInterfaceContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
         {
             // The first part of condition checks for non-written base type, e.g. "class C : $$" or "class C : Base, $$"
@@ -3036,6 +3053,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax or QualifiedNameSyntax };
         }
 
+        /// <summary>
+        /// Tells if in a position of a base list, where record name is a valid completion.
+        /// For instatnce, this flag will be <see langword="true" /> for
+        /// <code>record R : $$</code>
+        /// but not for
+        /// <code>record R : A, $$</code>
+        /// </summary>
         public static bool IsBaseRecordContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
         {
             var possibleBaseListSyntax = targetToken.GetAncestor<BaseListSyntax>();

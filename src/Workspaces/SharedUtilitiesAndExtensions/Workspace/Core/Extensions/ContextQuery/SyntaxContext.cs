@@ -34,8 +34,29 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsAtStartOfPattern { get; }
         public bool IsAttributeNameContext { get; }
         public bool IsAwaitKeywordContext { get; }
+        /// <summary>
+        /// Tells if in a position of a base list, where class name is a valid completion.
+        /// For instatnce, this flag will be <see langword="true" /> for
+        /// <code>class C : $$</code>
+        /// but not for
+        /// <code>class C : A, $$</code>
+        /// </summary>
         public bool IsBaseClassContext { get; }
+        /// <summary>
+        /// Tells if in a position of a base list, where interface name is a valid completion.
+        /// For instatnce, this flag will be <see langword="true" /> for
+        /// <code>class C : $$</code>
+        /// or
+        /// <code>interface I : $$</code>
+        /// </summary>
         public bool IsBaseInterfaceContext { get; }
+        /// <summary>
+        /// Tells if in a position of a base list, where record name is a valid completion.
+        /// For instatnce, this flag will be <see langword="true" /> for
+        /// <code>record R : $$</code>
+        /// but not for
+        /// <code>record R : A, $$</code>
+        /// </summary>
         public bool IsBaseRecordContext { get; }
         public bool IsEnumTypeMemberAccessContext { get; }
         public bool IsGenericConstraintContext { get; }

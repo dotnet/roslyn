@@ -14,6 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
     internal sealed class CSharpSyntaxContext : SyntaxContext
     {
+        /// <summary>
+        /// Tells if in a position of a base list of an enum, e.g.
+        /// <code>enum E : $$</code>
+        /// </summary>
         public readonly bool IsBaseEnumContext;
         public readonly bool IsCatchFilterContext;
         public readonly bool IsConstantExpressionContext;
