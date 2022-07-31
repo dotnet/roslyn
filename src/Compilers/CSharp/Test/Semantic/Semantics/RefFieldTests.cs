@@ -13113,11 +13113,11 @@ public class A<T>
 {
     public ref T F1A(ref R<T> r1)
     {
-        throw null;
+        return ref r1.F;
     }
     public ref T F2A(scoped ref R<T> r2)
     {
-        throw null;
+        return ref r2.F;
     }
     public ref T F3A([UnscopedRef] ref R<T> r3)
     {
@@ -13132,8 +13132,8 @@ public class A<T>
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
-            var sourceB =
-@"class B : A<int>
+            var sourceB1 =
+@"class B1 : A<int>
 {
     ref int F1B()
     {
@@ -13145,22 +13145,23 @@ public class A<T>
     {
         int i = 2;
         var r = new R<int>(ref i);
-        return ref F2A(ref r);
+        return ref F2A(ref r); // 2
     }
     ref int F3B()
     {
         int i = 3;
         var r = new R<int>(ref i);
-        return ref F3A(ref r); // 2
+        return ref F3A(ref r); // 3
     }
     ref int F4B()
     {
         int i = 4;
         var r = new R<int>(ref i);
-        return ref F4A(ref r); // 3
+        return ref F4A(ref r); // 4
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp = CreateCompilation(sourceB1, references: new[] { refA });
+            // https://github.com/dotnet/roslyn/issues/62791: Missing error // 2.
             comp.VerifyEmitDiagnostics(
                 // (7,20): error CS8347: Cannot use a result of 'A<int>.F1A(ref R<int>)' in this context because it may expose variables referenced by parameter 'r1' outside of their declaration scope
                 //         return ref F1A(ref r); // 1
@@ -13169,23 +13170,68 @@ public class A<T>
                 //         return ref F1A(ref r); // 1
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(7, 28),
                 // (19,20): error CS8347: Cannot use a result of 'A<int>.F3A(ref R<int>)' in this context because it may expose variables referenced by parameter 'r3' outside of their declaration scope
-                //         return ref F3A(ref r); // 2
+                //         return ref F3A(ref r); // 3
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(ref r)").WithArguments("A<int>.F3A(ref R<int>)", "r3").WithLocation(19, 20),
                 // (19,28): error CS8168: Cannot return local 'r' by reference because it is not a ref local
-                //         return ref F3A(ref r); // 2
+                //         return ref F3A(ref r); // 3
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(19, 28),
                 // (25,20): error CS8347: Cannot use a result of 'A<int>.F4A(ref R<int>)' in this context because it may expose variables referenced by parameter 'r4' outside of their declaration scope
-                //         return ref F4A(ref r); // 3
+                //         return ref F4A(ref r); // 4
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F4A(ref r)").WithArguments("A<int>.F4A(ref R<int>)", "r4").WithLocation(25, 20),
                 // (25,28): error CS8168: Cannot return local 'r' by reference because it is not a ref local
-                //         return ref F4A(ref r); // 3
+                //         return ref F4A(ref r); // 4
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(25, 28));
 
-            var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
+            var baseType = comp.GetMember<NamedTypeSymbol>("B1").BaseTypeNoUseSiteDiagnostics;
             VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "ref R<System.Int32> r1", RefKind.Ref, DeclarationScope.Unscoped);
             VerifyParameterSymbol(baseType.GetMethod("F2A").Parameters[0], "scoped ref R<System.Int32> r2", RefKind.Ref, DeclarationScope.RefScoped);
             VerifyParameterSymbol(baseType.GetMethod("F3A").Parameters[0], "ref R<System.Int32> r3", RefKind.Ref, DeclarationScope.Unscoped);
             VerifyParameterSymbol(baseType.GetMethod("F4A").Parameters[0], "ref R<System.Int32> r4", RefKind.Ref, DeclarationScope.Unscoped);
+
+            var sourceB2 =
+@"class B2 : A<int>
+{
+    ref int F1B(ref int i)
+    {
+        var r = new R<int>(ref i);
+        return ref F1A(ref r); // 1
+    }
+    ref int F2B(ref int i)
+    {
+        var r = new R<int>(ref i);
+        return ref F2A(ref r);
+    }
+    ref int F3B(ref int i)
+    {
+        var r = new R<int>(ref i);
+        return ref F3A(ref r); // 2
+    }
+    ref int F4B(ref int i)
+    {
+        var r = new R<int>(ref i);
+        return ref F4A(ref r); // 3
+    }
+}";
+            comp = CreateCompilation(sourceB2, references: new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (6,20): error CS8347: Cannot use a result of 'A<int>.F1A(ref R<int>)' in this context because it may expose variables referenced by parameter 'r1' outside of their declaration scope
+                //         return ref F1A(ref r); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F1A(ref r)").WithArguments("A<int>.F1A(ref R<int>)", "r1").WithLocation(6, 20),
+                // (6,28): error CS8168: Cannot return local 'r' by reference because it is not a ref local
+                //         return ref F1A(ref r); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(6, 28),
+                // (16,20): error CS8347: Cannot use a result of 'A<int>.F3A(ref R<int>)' in this context because it may expose variables referenced by parameter 'r3' outside of their declaration scope
+                //         return ref F3A(ref r); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(ref r)").WithArguments("A<int>.F3A(ref R<int>)", "r3").WithLocation(16, 20),
+                // (16,28): error CS8168: Cannot return local 'r' by reference because it is not a ref local
+                //         return ref F3A(ref r); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(16, 28),
+                // (21,20): error CS8347: Cannot use a result of 'A<int>.F4A(ref R<int>)' in this context because it may expose variables referenced by parameter 'r4' outside of their declaration scope
+                //         return ref F4A(ref r); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F4A(ref r)").WithArguments("A<int>.F4A(ref R<int>)", "r4").WithLocation(21, 20),
+                // (21,28): error CS8168: Cannot return local 'r' by reference because it is not a ref local
+                //         return ref F4A(ref r); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(21, 28));
         }
 
         [Fact]
