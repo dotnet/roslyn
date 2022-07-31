@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
                 {
-                    var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                    var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
                     if (client != null)
                     {
                         var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(

@@ -93,10 +93,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TokenSemanticInfo GetSemanticInfo(
             this SemanticModel semanticModel,
             SyntaxToken token,
-            HostWorkspaceServices services,
+            HostSolutionServices services,
             CancellationToken cancellationToken)
         {
-            var languageServices = services.GetLanguageServices(token.Language);
+            var languageServices = services.GetProjectServices(token.Language);
             var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
             if (!syntaxFacts.IsBindableToken(token))
             {
