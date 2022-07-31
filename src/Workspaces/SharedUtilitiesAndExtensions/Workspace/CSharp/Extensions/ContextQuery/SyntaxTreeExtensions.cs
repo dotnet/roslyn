@@ -245,8 +245,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             CancellationToken cancellationToken)
         {
             var typeDecl = contextOpt != null
-                ? contextOpt.ContainingTypeOrEnumDeclaration
-                : syntaxTree.GetContainingTypeOrEnumDeclaration(position, cancellationToken);
+                ? contextOpt.ContainingTypeDeclaration
+                : syntaxTree.GetContainingTypeDeclaration(position, cancellationToken);
 
             if (typeDecl == null)
             {
@@ -3056,7 +3056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // 2. The only available target token type is qualified names. If there is generic names or whatever else,
             // then it is not directly inheritance context and our restrictions are not valid there
             return possibleBaseListSyntax.Types[0].Equals(possibleBaseTypeSyntax) &&
-                   targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax or QualifiedNameSyntax};
+                   targetToken.Parent is QualifiedNameSyntax { Parent: BaseTypeSyntax or QualifiedNameSyntax };
         }
     }
 }

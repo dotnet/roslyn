@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => syntaxTree.GetPrecedingModifiers(position, cancellationToken, out _);
 
         public static ISet<SyntaxKind> GetPrecedingModifiers(
-#pragma warning disable IDE0060 // Remove unused parameter - Unused this parameter for consistency with other extension methods.
             this SyntaxTree syntaxTree,
-#pragma warning restore IDE0060 // Remove unused parameter
             int position,
             CancellationToken cancellationToken,
             out int positionBeforeModifiers)
@@ -74,32 +72,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return result;
         }
 
-        public static TypeDeclarationSyntax? GetContainingTypeDeclaration(
+        public static BaseTypeDeclarationSyntax? GetContainingTypeDeclaration(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             return syntaxTree.GetContainingTypeDeclarations(position, cancellationToken).FirstOrDefault();
         }
 
-        public static BaseTypeDeclarationSyntax? GetContainingTypeOrEnumDeclaration(
-            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            return syntaxTree.GetContainingTypeOrEnumDeclarations(position, cancellationToken).FirstOrDefault();
-        }
-
-        public static IEnumerable<TypeDeclarationSyntax> GetContainingTypeDeclarations(
+        public static IEnumerable<BaseTypeDeclarationSyntax> GetContainingTypeDeclarations(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
-            return token.GetAncestors<TypeDeclarationSyntax>().Where(t =>
-            {
-                return BaseTypeDeclarationContainsPosition(t, position);
-            });
+            return token.GetAncestors<BaseTypeDeclarationSyntax>().Where(t => BaseTypeDeclarationContainsPosition(t, position));
         }
 
         private static bool BaseTypeDeclarationContainsPosition(BaseTypeDeclarationSyntax declaration, int position)
         {
-            if (position <= declaration.OpenBraceToken.SpanStart)
+            if (declaration is TypeDeclarationSyntax typeDeclaration &&
+                position <= typeDeclaration.Keyword.SpanStart)
+            {
+                return false;
+            }
+
+            if (declaration is EnumDeclarationSyntax enumDeclaration &&
+                position <= enumDeclaration.EnumKeyword.SpanStart)
             {
                 return false;
             }
@@ -110,14 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return position <= declaration.CloseBraceToken.SpanStart;
-        }
-
-        public static IEnumerable<BaseTypeDeclarationSyntax> GetContainingTypeOrEnumDeclarations(
-            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-
-            return token.GetAncestors<BaseTypeDeclarationSyntax>().Where(t => BaseTypeDeclarationContainsPosition(t, position));
         }
 
         private static readonly Func<SyntaxKind, bool> s_isDotOrArrow = k => k is SyntaxKind.DotToken or SyntaxKind.MinusGreaterThanToken;

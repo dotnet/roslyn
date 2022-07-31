@@ -14,9 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
     internal sealed class CSharpSyntaxContext : SyntaxContext
     {
-        public readonly TypeDeclarationSyntax? ContainingTypeDeclaration;
-        public readonly BaseTypeDeclarationSyntax? ContainingTypeOrEnumDeclaration;
-
         public readonly bool IsBaseEnumContext;
         public readonly bool IsCatchFilterContext;
         public readonly bool IsConstantExpressionContext;
@@ -55,8 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             int position,
             SyntaxToken leftToken,
             SyntaxToken targetToken,
-            TypeDeclarationSyntax? containingTypeDeclaration,
-            BaseTypeDeclarationSyntax? containingTypeOrEnumDeclaration,
+            SyntaxNode? containingTypeDeclaration,
             bool isAnyExpressionContext,
             bool isAtEndOfPattern,
             bool isAtStartOfPattern,
@@ -113,7 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isTypeOfExpressionContext,
             bool isWithinAsyncMethod,
             ISet<SyntaxKind> precedingModifiers,
-            SyntaxNode? declarationOfInheritingSymbol,
             CancellationToken cancellationToken)
             : base(
                   document,
@@ -121,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                   position,
                   leftToken,
                   targetToken,
+                  containingTypeDeclaration: containingTypeDeclaration,
                   isAnyExpressionContext: isAnyExpressionContext,
                   isAtEndOfPattern: isAtEndOfPattern,
                   isAtStartOfPattern: isAtStartOfPattern,
@@ -147,13 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                   isTaskLikeTypeContext: isTaskLikeTypeContext,
                   isTypeContext: isTypeContext,
                   isWithinAsyncMethod: isWithinAsyncMethod,
-                  declarationOfInheritingSymbol: declarationOfInheritingSymbol,
                   cancellationToken)
         {
             this.IsBaseEnumContext = isBaseEnumContext;
-
-            this.ContainingTypeDeclaration = containingTypeDeclaration;
-            this.ContainingTypeOrEnumDeclaration = containingTypeOrEnumDeclaration;
 
             this.IsCatchFilterContext = isCatchFilterContext;
             this.IsConstantExpressionContext = isConstantExpressionContext;
@@ -253,7 +245,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 leftToken: leftToken,
                 targetToken: targetToken,
                 containingTypeDeclaration: syntaxTree.GetContainingTypeDeclaration(position, cancellationToken),
-                containingTypeOrEnumDeclaration: syntaxTree.GetContainingTypeOrEnumDeclaration(position, cancellationToken),
                 isAnyExpressionContext: isAnyExpressionContext,
                 isAtEndOfPattern: syntaxTree.IsAtEndOfPattern(leftToken, position),
                 isAtStartOfPattern: syntaxTree.IsAtStartOfPattern(leftToken, position),
@@ -310,7 +301,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isTypeOfExpressionContext: syntaxTree.IsTypeOfExpressionContext(position, leftToken),
                 isWithinAsyncMethod: ComputeIsWithinAsyncMethod(),
                 precedingModifiers: precedingModifiers,
-                declarationOfInheritingSymbol: targetToken.GetAncestor<BaseListSyntax>()?.Parent,
                 cancellationToken: cancellationToken);
         }
 

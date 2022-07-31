@@ -55,6 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             position As Integer,
             leftToken As SyntaxToken,
             targetToken As SyntaxToken,
+            containingTypeDeclaration As SyntaxNode,
             isAttributeNameContext As Boolean,
             isAwaitKeywordContext As Boolean,
             isBaseClassContext As Boolean,
@@ -80,7 +81,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isTaskLikeTypeContext As Boolean,
             isTypeContext As Boolean,
             isWithinAsyncMethod As Boolean,
-            declarationOfInheritingSymbol As SyntaxNode,
             cancellationToken As CancellationToken
         )
             MyBase.New(
@@ -89,6 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 position,
                 leftToken,
                 targetToken,
+                containingTypeDeclaration:=containingTypeDeclaration,
                 isAnyExpressionContext:=isAnyExpressionContext,
                 isAtEndOfPattern:=False,
                 isAtStartOfPattern:=False,
@@ -115,7 +116,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isTaskLikeTypeContext:=isTaskLikeTypeContext,
                 isTypeContext:=isTypeContext,
                 isWithinAsyncMethod:=isWithinAsyncMethod,
-                declarationOfInheritingSymbol:=declarationOfInheritingSymbol,
                 cancellationToken:=cancellationToken)
 
             Dim syntaxTree = semanticModel.SyntaxTree
@@ -180,19 +180,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                    Not targetToken.HasAncestor(Of InterfaceBlockSyntax)()
         End Function
 
-        Private Shared Function ComputeDeclarationOfInheritingSymbol(targetToken As SyntaxToken) As SyntaxNode
-            Dim inheritsStatementAncestor = targetToken.GetAncestor(Of InheritsStatementSyntax)()
-            Dim implementsStatementAncestor = targetToken.GetAncestor(Of ImplementsStatementSyntax)()
-
-            If inheritsStatementAncestor IsNot Nothing Then
-                Return inheritsStatementAncestor.Parent
+        Private Shared Function ComputeContainingTypeDeclaration(targetToken As SyntaxToken, position As Integer) As SyntaxNode
+            Dim possibleTypeBlockSyntax = targetToken.GetAncestors(Of TypeBlockSyntax)().FirstOrDefault(Function(t) t.BlockStatement.SpanStart <= position AndAlso (t.EndBlockStatement Is Nothing OrElse t.EndBlockStatement.SpanStart >= position))
+            If possibleTypeBlockSyntax IsNot Nothing Then
+                Return possibleTypeBlockSyntax
             End If
-
-            If implementsStatementAncestor IsNot Nothing Then
-                Return implementsStatementAncestor.Parent
-            End If
-
-            Return Nothing
+            Return targetToken.GetAncestors(Of EnumBlockSyntax)().FirstOrDefault(Function(t) t.EnumStatement.SpanStart <= position AndAlso (t.EndEnumStatement IsNot Nothing OrElse t.EndEnumStatement.SpanStart >= position))
         End Function
 
         Private Shared Shadows Function ComputeIsWithinAsyncMethod(targetToken As SyntaxToken) As Boolean
@@ -215,6 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 position,
                 leftToken,
                 targetToken,
+                containingTypeDeclaration:=ComputeContainingTypeDeclaration(targetToken, position),
                 isAnyExpressionContext:=isAnyExpressionContext,
                 isAttributeNameContext:=syntaxTree.IsAttributeNameContext(position, targetToken, cancellationToken),
                 isAwaitKeywordContext:=ComputeIsAwaitKeywordContext(targetToken, isAnyExpressionContext, isInQuery, isStatementContext),
@@ -240,7 +234,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isTaskLikeTypeContext:=ComputeIsTaskLikeTypeContext(targetToken),
                 isTypeContext:=syntaxTree.IsTypeContext(position, targetToken, cancellationToken, semanticModel),
                 isWithinAsyncMethod:=ComputeIsWithinAsyncMethod(targetToken),
-                declarationOfInheritingSymbol:=ComputeDeclarationOfInheritingSymbol(targetToken),
                 cancellationToken:=cancellationToken)
         End Function
 

@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
             else if (context.IsInheritanceContext)
             {
-                Debug.Assert(context.DeclarationOfInheritingSymbol is not null, $"{nameof(context.DeclarationOfInheritingSymbol)} must never be null here");
+                Debug.Assert(context.ContainingTypeDeclaration is not null, $"{nameof(context.ContainingTypeDeclaration)} must never be null here");
 
-                var inheritingFrom = context.SemanticModel.GetDeclaredSymbol(context.DeclarationOfInheritingSymbol, cancellationToken) as INamedTypeSymbol;
+                var inheritingFrom = context.SemanticModel.GetDeclaredSymbol(context.ContainingTypeDeclaration, cancellationToken) as INamedTypeSymbol;
                 return recommendedSymbols.NamedSymbols.SelectAsArray(s => IsValidForInheritanceContext(s, inheritingFrom, context), s => (s, preselect: false));
             }
             else
