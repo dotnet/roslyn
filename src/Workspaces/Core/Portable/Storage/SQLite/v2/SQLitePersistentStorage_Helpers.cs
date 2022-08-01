@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using static System.FormattableString;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
@@ -20,7 +21,22 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private static long CombineInt32ValuesToInt64(int v1, int v2)
             => ((long)v1 << 32) | (long)v2;
 
-        private static (byte[] bytes, int length, bool fromPool) GetBytes(Stream stream)
+        private static (byte[] bytes, int length, bool fromPool) GetCompressedBytes(Stream stream)
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                using (var zipStream = new GZipStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true))
+                {
+                    stream.CopyTo(zipStream);
+                    zipStream.Flush();
+                }
+
+                memoryStream.Position = 0;
+                return GetBytesWorker(memoryStream);
+            }
+        }
+
+        private static (byte[] bytes, int length, bool fromPool) GetBytesWorker(Stream stream)
         {
             // Attempt to copy into a pooled byte[] if the stream length is known and it's 
             // less than 128k.  This accounts for 99%+ of all of our streams while keeping

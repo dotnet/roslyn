@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Host;
@@ -279,7 +280,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         {
             return ReadBlob_MustRunInTransaction(
                 database, table, Column.Data, rowId,
-                static (self, blobHandle) => new Optional<Stream>(self.ReadBlob(blobHandle)));
+                static (self, blobHandle) => new Optional<Stream>(self.ReadAndUncompressBlob(blobHandle)));
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
@@ -302,7 +303,19 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                 });
         }
 
-        private Stream ReadBlob(SafeSqliteBlobHandle blob)
+        private Stream ReadAndUncompressBlob(SafeSqliteBlobHandle blob)
+        {
+            var memoryStream = new MemoryStream();
+
+            using var blobStream = ReadBlobWorker(blob);
+            using var zipStream = new GZipStream(blobStream, CompressionMode.Decompress);
+            zipStream.CopyTo(memoryStream);
+
+            memoryStream.Position = 0;
+            return memoryStream;
+        }
+
+        private Stream ReadBlobWorker(SafeSqliteBlobHandle blob)
         {
             var length = NativeMethods.sqlite3_blob_bytes(blob);
 

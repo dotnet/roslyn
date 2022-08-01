@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             ExtraLarge,
         }
 
-        private const int Iterations = 20;
+        private const int Iterations = 1;
 
-        private const int NumThreads = 10;
+        private const int NumThreads = 1;
         private const string PersistentFolderPrefix = "PersistentStorageTests_";
 
         private readonly Encoding _encoding = Encoding.UTF8;
@@ -323,6 +323,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             _ = iteration;
 
+            var solution = CreateOrOpenSolution();
+            var streamName1 = "PersistentService_Document_SimultaneousReads1";
+
+            await using var storage = await GetStorageAsync(solution);
+            Assert.True(await storage.WriteStreamAsync(solution.Projects.Single().Documents.Single(), streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
+            DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single().Documents.Single(), streamName1, GetChecksum1(withChecksum))), GetData1(size));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task PersistentService_Document_SimultaneousReads_Fact(Size size, bool withChecksum)
+        {
             var solution = CreateOrOpenSolution();
             var streamName1 = "PersistentService_Document_SimultaneousReads1";
 

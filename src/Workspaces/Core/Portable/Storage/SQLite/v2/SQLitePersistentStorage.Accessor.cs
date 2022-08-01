@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                         Span<byte> checksumBytes = stackalloc byte[Checksum.HashSize];
                         checksum.WriteTo(checksumBytes);
 
-                        var (dataBytes, dataLength, dataPooled) = GetBytes(stream);
+                        var (dataBytes, dataLength, dataPooled) = GetCompressedBytes(stream);
 
                         // Write the information into the in-memory write-cache.  Later on a background task
                         // will move it from the in-memory cache to the on-disk db in a bulk transaction.
