@@ -432,6 +432,11 @@
         <target state="translated">Włącz rejestrowanie plików w celach diagnostycznych (rejestrowane w folderze „%Temp%\Roslyn”)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_navigation_to_sourcelink_and_embedded_sources">
+        <source>Enable navigation to Source Link and Embedded sources</source>
+        <target state="new">Enable navigation to Source Link and Embedded sources</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
         <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
         <target state="translated">Włącz diagnostykę operacji „pull” (eksperymentalne, wymaga ponownego uruchomienia)</target>

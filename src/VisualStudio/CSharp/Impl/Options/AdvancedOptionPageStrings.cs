@@ -69,6 +69,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Enable_navigation_to_decompiled_sources
             => ServicesVSResources.Enable_navigation_to_decompiled_sources;
 
+        public static string Option_Enable_navigation_to_sourcelink_and_embedded_sources
+            => ServicesVSResources.Enable_navigation_to_sourcelink_and_embedded_sources;
+
         public static string Option_Always_use_default_symbol_servers_for_navigation
             => ServicesVSResources.Always_use_default_symbol_servers_for_navigation;
 

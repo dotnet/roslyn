@@ -432,6 +432,11 @@
         <target state="translated">診断のファイル ログを有効にする (' %Temp%/Roslyn ' フォルダーにログインしています)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_navigation_to_sourcelink_and_embedded_sources">
+        <source>Enable navigation to Source Link and Embedded sources</source>
+        <target state="new">Enable navigation to Source Link and Embedded sources</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
         <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
         <target state="translated">'pull' 診断を有効にする (試験段階、再起動が必要)</target>

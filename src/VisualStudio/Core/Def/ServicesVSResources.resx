@@ -2004,6 +2004,9 @@ Additional information: {1}</value>
   <data name="Document_Outline" xml:space="preserve">
     <value>Document Outline</value>
   </data>
+  <data name="Enable_navigation_to_sourcelink_and_embedded_sources" xml:space="preserve">
+    <value>Enable navigation to Source Link and Embedded sources</value>
+  </data>
   <data name="Show_UI_as_dashboard_in_top_right" xml:space="preserve">
     <value>Show UI as a dashboard in top right</value>
     <comment>"UI" is an acronym for "User Interface"</comment>
