@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.Remote
         private int _currentRemoteWorkspaceVersion = -1;
 
         // internal for testing purposes.
-        internal RemoteWorkspace(HostServices hostServices, string? workspaceKind)
-            : base(hostServices, workspaceKind)
+        internal RemoteWorkspace(HostServices hostServices)
+            : base(hostServices, WorkspaceKind.RemoteWorkspace)
         {
         }
 

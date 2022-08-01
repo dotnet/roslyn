@@ -33,7 +33,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
     public class SolutionServiceTests
     {
         private static RemoteWorkspace CreateRemoteWorkspace()
-            => new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices(), WorkspaceKind.RemoteWorkspace);
+            => new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
 
         [Fact]
         public async Task TestCreation()
