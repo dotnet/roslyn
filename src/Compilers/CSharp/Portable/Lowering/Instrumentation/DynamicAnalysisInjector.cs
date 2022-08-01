@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (method != methodBeforeRedirection)
                 {
                     // We need to emit the entry point based on the original declaration, because the transformed declaration is not in source code.
-                    syntax = method.DeclaringSyntaxReferences.Select(x=>x.GetSyntax()).Single(HasBody));
+                    syntax = method.DeclaringSyntaxReferences.Select(x=>x.GetSyntax()).Single(HasBody);
                 }
                 // </Metalama>
                 _methodEntryInstrumentation = AddAnalysisPoint(syntax, SkipAttributes(syntax), methodBodyFactory);

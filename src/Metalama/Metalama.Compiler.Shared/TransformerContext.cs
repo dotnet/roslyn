@@ -225,7 +225,9 @@ namespace Metalama.Compiler
             RequiresCodeCoverageAnnotations = requiresCodeCoverageAnnotations;
         }
 
-        internal TransformerOptions() { }
+        private TransformerOptions() { }
+
+        public static TransformerOptions Default { get; } = new();
     }
 
 }
