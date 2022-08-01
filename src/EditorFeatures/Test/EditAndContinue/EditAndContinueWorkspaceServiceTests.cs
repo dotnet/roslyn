@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // changes in the project are ignored:
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-            Assert.Equal(ManagedModuleUpdateStatus.None, updates.Status);
+            Assert.Equal(ModuleUpdateStatus.None, updates.Status);
             Assert.Empty(updates.Updates);
             Assert.Empty(emitDiagnostics);
 
@@ -865,7 +865,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EmitLibrary(source2);
 
             var (updates2, emitDiagnostics2) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-            Assert.Equal(ManagedModuleUpdateStatus.Ready, updates2.Status);
+            Assert.Equal(ModuleUpdateStatus.Ready, updates2.Status);
             Assert.Empty(emitDiagnostics2);
 
             CommitSolutionUpdate(debuggingSession);

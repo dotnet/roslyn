@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var (moduleUpdates, diagnosticData, rudeEdits, syntaxError) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
 
             // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
-            if (moduleUpdates.Status == Contracts.ManagedModuleUpdateStatus.Ready)
+            if (moduleUpdates.Status == ModuleUpdateStatus.Ready)
             {
                 _pendingUpdatedDesignTimeSolution = designTimeSolution;
             }
