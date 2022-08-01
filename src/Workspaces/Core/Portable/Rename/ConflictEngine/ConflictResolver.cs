@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var session = new Session(
+            var session = new SingleSymbolRenameSession(
                 renameLocationSet, renameSymbolDeclarationLocation,
                 replacementText, nonConflictSymbolKeys, cancellationToken);
             return session.ResolveConflictsAsync();
