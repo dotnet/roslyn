@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private readonly CancellationToken _cancellationToken;
 
             // Contains Strings like Bar -> BarAttribute ; Property Bar -> Bar , get_Bar, set_Bar
-            private readonly ImmutableArray<string> _possibleNameConflicts = new();
-            private readonly ImmutableHashSet<DocumentId> _documentsIdsToBeCheckedForConflict = new();
+            private readonly ImmutableArray<string> _possibleNameConflicts;
+            private readonly ImmutableHashSet<DocumentId> _documentsIdsToBeCheckedForConflict;
             private readonly AnnotationTable<RenameAnnotation> _renameAnnotations;
             private readonly ImmutableArray<ProjectId> _topologicallySortedProjects;
             private readonly bool _replacementTextValid;
@@ -123,24 +123,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private SymbolRenameOptions RenameOptions => _renameLocationSet.Options;
             private CodeCleanupOptionsProvider FallbackOptions => _renameLocationSet.FallbackOptions;
 
-            private struct ConflictLocationInfo
-            {
-                // The span of the Node that needs to be complexified 
-                public readonly TextSpan ComplexifiedSpan;
-                public readonly DocumentId DocumentId;
-
-                // The identifier span that needs to be checked for conflict
-                public readonly TextSpan OriginalIdentifierSpan;
-
-                public ConflictLocationInfo(RelatedLocation location)
-                {
-                    Debug.Assert(location.ComplexifiedTargetSpan.Contains(location.ConflictCheckSpan) || location.Type == RelatedLocationType.UnresolvableConflict);
-                    this.ComplexifiedSpan = location.ComplexifiedTargetSpan;
-                    this.DocumentId = location.DocumentId;
-                    this.OriginalIdentifierSpan = location.ConflictCheckSpan;
-                }
-            }
-
             // The method which performs rename, resolves the conflict locations and returns the result of the rename operation
             public async Task<MutableConflictResolution> ResolveConflictsAsync()
             {
@@ -157,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         baseSolution,
                         renamedSpansTracker,
                         _replacementText,
-                        _replacementTextValid);
+                        ImmutableDictionary<ISymbol, bool>.Empty.Add(_renameLocationSet.Symbol, _replacementTextValid));
 
                     var intermediateSolution = conflictResolution.OldSolution;
                     foreach (var documentsByProject in documentsGroupedByTopologicallySortedProjectId)
@@ -254,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     // foreach/for each statement
                     var renamedSymbolInNewSolution = await GetRenamedSymbolInCurrentSolutionAsync(conflictResolution).ConfigureAwait(false);
 
-                    if (IsRenameValid(conflictResolution, renamedSymbolInNewSolution))
+                    if (IsRenameValid(conflictResolution, renamedSymbolInNewSolution, _renameLocationSet.Symbol))
                     {
                         await AddImplicitConflictsAsync(
                             renamedSymbolInNewSolution,
@@ -321,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 ignoreErrorCodes.Add("CS5001"); // CS5001 - Missing Main in C# Project
 
                 // only check if rename thinks it was successful
-                if (conflictResolution.ReplacementTextValid && conflictResolution.RelatedLocations.All(loc => (loc.Type & RelatedLocationType.UnresolvableConflict) == 0))
+                if (conflictResolution.SymbolToReplacementTextValid[_renameLocationSet.Symbol] && conflictResolution.RelatedLocations.All(loc => (loc.Type & RelatedLocationType.UnresolvableConflict) == 0))
                 {
                     foreach (var documentId in documents)
                     {
@@ -357,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     // if the text replacement is invalid, we just did a simple token replacement.
                     // Therefore we don't need more mapping information and can skip the rest of 
                     // the loop body.
-                    if (!IsRenameValid(conflictResolution, renamedSymbolInNewSolution))
+                    if (!IsRenameValid(conflictResolution, renamedSymbolInNewSolution, _renameLocationSet.Symbol))
                     {
                         foreach (var documentId in documentIdsForConflictResolution)
                         {

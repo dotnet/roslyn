@@ -15,17 +15,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             private readonly ConflictResolution _conflicts;
 
-            public InlineRenameReplacementInfo(ConflictResolution conflicts)
+            public InlineRenameReplacementInfo(
+                ISymbol renameSymbol,
+                ConflictResolution conflicts)
             {
                 Contract.ThrowIfFalse(conflicts.IsSuccessful);
                 _conflicts = conflicts;
+                ReplacementTextValid = _conflicts.SymbolToReplacementTextValid[renameSymbol];
             }
 
             public IEnumerable<DocumentId> DocumentIds => _conflicts.DocumentIds;
 
             public Solution NewSolution => _conflicts.NewSolution!;
 
-            public bool ReplacementTextValid => _conflicts.ReplacementTextValid!.Value;
+            public bool ReplacementTextValid { get; }
 
             public IEnumerable<InlineRenameReplacement> GetReplacements(DocumentId documentId)
             {

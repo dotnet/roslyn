@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return resolution.ToConflictResolution();
         }
 
-        private static Task<MutableConflictResolution> ResolveMutableConflictsAsync(
+        private static async Task<MutableConflictResolution> ResolveMutableConflictsAsync(
             SymbolicRenameLocations renameLocationSet,
             Location renameSymbolDeclarationLocation,
             string replacementText,
@@ -119,10 +119,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var session = new SingleSymbolRenameSession(
+            var session = await SingleSymbolRenameSession.CreateAsync(
                 renameLocationSet, renameSymbolDeclarationLocation,
-                replacementText, nonConflictSymbolKeys, cancellationToken);
-            return session.ResolveConflictsAsync();
+                replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+            return await session.ResolveConflictsAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -150,11 +150,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return isConflict;
         }
 
-        private static bool IsRenameValid(MutableConflictResolution conflictResolution, ISymbol renamedSymbol)
+        private static bool IsRenameValid(
+            MutableConflictResolution conflictResolution,
+            ISymbol renamedSymbol,
+            ISymbol originalRenameSymbol)
         {
             // if we rename an identifier and it now binds to a symbol from metadata this should be treated as
             // an invalid rename.
-            return renamedSymbol != null && conflictResolution.SymbolToReplacementTextValid[renamedSymbol] && renamedSymbol.Locations.Any(static loc => loc.IsInSource);
+            return renamedSymbol != null && conflictResolution.SymbolToReplacementTextValid[originalRenameSymbol] && renamedSymbol.Locations.Any(static loc => loc.IsInSource);
         }
 
         private static async Task AddImplicitConflictsAsync(

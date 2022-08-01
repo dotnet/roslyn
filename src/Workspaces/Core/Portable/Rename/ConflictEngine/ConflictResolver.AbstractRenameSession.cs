@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
@@ -21,6 +23,24 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     {
         private abstract class AbstractRenameSession
         {
+            protected readonly struct ConflictLocationInfo
+            {
+                // The span of the Node that needs to be complexified 
+                public readonly TextSpan ComplexifiedSpan;
+                public readonly DocumentId DocumentId;
+
+                // The identifier span that needs to be checked for conflict
+                public readonly TextSpan OriginalIdentifierSpan;
+
+                public ConflictLocationInfo(RelatedLocation location)
+                {
+                    Debug.Assert(location.ComplexifiedTargetSpan.Contains(location.ConflictCheckSpan) || location.Type == RelatedLocationType.UnresolvableConflict);
+                    this.ComplexifiedSpan = location.ComplexifiedTargetSpan;
+                    this.DocumentId = location.DocumentId;
+                    this.OriginalIdentifierSpan = location.ConflictCheckSpan;
+                }
+            }
+
             /// <summary>
             /// The method determines the set of documents that need to be processed for Rename and also determines
             ///  the possible set of names that need to be checked for conflicts.
