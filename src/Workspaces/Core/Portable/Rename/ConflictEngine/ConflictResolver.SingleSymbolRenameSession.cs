@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 _renameAnnotations = new AnnotationTable<RenameAnnotation>(RenameAnnotation.Kind);
                 _documentsIdsToBeCheckedForConflict = documentsIdsToBeCheckedForConflict;
                 _topologicallySortedProjects = topologicallySortedProjects;
-                _conflictLocations = SpecializedCollections.EmptySet<ConflictLocationInfo>();;
+                _conflictLocations = SpecializedCollections.EmptySet<ConflictLocationInfo>();
                 _replacementTextValid = replacementTextValid;
                 _documentOfRenameSymbolHasBeenRenamed = false;
             }
