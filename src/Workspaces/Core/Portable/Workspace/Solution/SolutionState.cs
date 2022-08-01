@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis
             BranchId branchId,
             string? workspaceKind,
             int workspaceVersion,
+            bool partialSemanticsEnabled,
             HostWorkspaceServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
             IReadOnlyList<ProjectId> projectIds,
@@ -95,6 +96,7 @@ namespace Microsoft.CodeAnalysis
             _branchId = branchId;
             WorkspaceKind = workspaceKind;
             _workspaceVersion = workspaceVersion;
+            PartialSemanticsEnabled = partialSemanticsEnabled;
             _solutionAttributes = solutionAttributes;
             Services = solutionServices;
             ProjectIds = projectIds;
@@ -121,6 +123,7 @@ namespace Microsoft.CodeAnalysis
         public SolutionState(
             BranchId primaryBranchId,
             string? workspaceKind,
+            bool partialSemanticsEnabled,
             HostWorkspaceServices services,
             SolutionInfo.SolutionAttributes solutionAttributes,
             SolutionOptionSet options,
@@ -130,6 +133,7 @@ namespace Microsoft.CodeAnalysis
                 primaryBranchId,
                 workspaceKind,
                 workspaceVersion: 0,
+                partialSemanticsEnabled,
                 services,
                 solutionAttributes,
                 projectIds: SpecializedCollections.EmptyBoxedImmutableArray<ProjectId>(),
@@ -160,6 +164,8 @@ namespace Microsoft.CodeAnalysis
         public ImmutableDictionary<ProjectId, ProjectState> ProjectStates => _projectIdToProjectStateMap;
 
         public string? WorkspaceKind { get; }
+
+        public bool PartialSemanticsEnabled { get; }
 
         public int WorkspaceVersion => _workspaceVersion;
 
@@ -268,6 +274,7 @@ namespace Microsoft.CodeAnalysis
                 branchId,
                 WorkspaceKind,
                 _workspaceVersion,
+                PartialSemanticsEnabled,
                 Services,
                 solutionAttributes,
                 projectIds,
@@ -300,6 +307,7 @@ namespace Microsoft.CodeAnalysis
                 branchId,
                 workspaceKind,
                 workspaceVersion,
+                PartialSemanticsEnabled,
                 services,
                 _solutionAttributes,
                 ProjectIds,
