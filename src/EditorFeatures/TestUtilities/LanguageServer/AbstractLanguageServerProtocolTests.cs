@@ -606,7 +606,7 @@ namespace Roslyn.Test.Utilities
                 {
                     // LSP open files don't care about the project context, just the file contents with the URI.
                     // So pick any of the linked documents to get the text from.
-                    var sourceText = await TestWorkspace.CurrentSolution.GetDocuments(documentUri).First().GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+                    var sourceText = await TestWorkspace.CurrentSolution.GetTextDocuments<TextDocument>(documentUri).First().GetTextAsync(CancellationToken.None).ConfigureAwait(false);
                     text = sourceText.ToString();
                 }
 

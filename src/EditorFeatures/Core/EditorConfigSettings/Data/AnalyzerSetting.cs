@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
@@ -77,9 +78,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             return Description;
         }
 
-        public string[] GetSettingValues(OptionSet optionSet)
+        public ImmutableArray<string>? GetSettingValues(OptionSet _)
         {
-            return new string[] { "silent", "suggestion", "warning", "error" };
+            return ImmutableArray.Create(new string[] { "none", "silent", "suggestion", "warning", "error" });
         }
     }
 }

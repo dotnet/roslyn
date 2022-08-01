@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -28,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public abstract bool IsDefinedInEditorConfig { get; }
         public abstract SettingLocation Location { get; protected set; }
         public abstract string? GetSettingName();
-        public abstract string? GetDocumentation();
-        public abstract string[]? GetSettingValues(OptionSet optionSet);
+        public abstract string GetDocumentation();
+        public abstract ImmutableArray<string>? GetSettingValues(OptionSet optionSet);
 
         public CodeStyleSetting(string description, OptionUpdater updater)
         {
@@ -102,6 +104,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             where T : Enum
         {
             return new PerLanguageEnumCodeStyleSetting<T>(option, description, enumValues, valueDescriptions, editorConfigOptions, visualStudioOptions, updater, fileName);
+        }
+
+        internal static IEditorConfigStorageLocation2? GetEditorConfigStorageLocation<T>(T option) where T : IOptionWithGroup
+        {
+            return option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
         }
     }
 }

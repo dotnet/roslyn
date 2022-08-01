@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -61,25 +62,18 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
             public override string? GetSettingName()
             {
-                // Could change to op.GetType().Name == "EditorConfigStorageLocation`1" but not sure if it applies for all editorconfig settings
-                var option = _option.StorageLocations.FirstOrDefault(op => op.GetType().Name != "RoamingProfileStorageLocation");
-
-                if (option == null)
-                {
-                    return null;
-                }
-
-                return ((IEditorConfigStorageLocation2)option).KeyName;
+                var storageLocation = GetEditorConfigStorageLocation(_option);
+                return storageLocation?.KeyName;
             }
 
-            public override string? GetDocumentation()
+            public override string GetDocumentation()
             {
                 return Description;
             }
 
-            public override string[]? GetSettingValues(OptionSet optionSet)
+            public override ImmutableArray<string>? GetSettingValues(OptionSet optionSet)
             {
-                return new string[] { "true", "false" };
+                return ImmutableArray.Create(new string[] { "true", "false" });
             }
         }
     }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -67,40 +68,36 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
             public override string? GetSettingName()
             {
-                // Could change to op.GetType().Name == "EditorConfigStorageLocation`1" but not sure if it applies for all editorconfig settings
-                var option = _option.StorageLocations.FirstOrDefault(op => op.GetType().Name != "RoamingProfileStorageLocation");
-
-                if (option == null)
-                {
-                    return null;
-                }
-
-                return ((IEditorConfigStorageLocation2)option).KeyName;
+                var storageLocation = GetEditorConfigStorageLocation(_option);
+                return storageLocation?.KeyName;
             }
 
-            public override string? GetDocumentation()
+            public override string GetDocumentation()
             {
                 return Description;
             }
 
-            public override string[]? GetSettingValues(OptionSet optionSet)
+            public override ImmutableArray<string>? GetSettingValues(OptionSet optionSet)
             {
                 var type = typeof(T);
                 var strings = new List<string>();
-                var enumName = type.GetEnumValues();
+                var enumValues = type.GetEnumValues();
 
-                foreach (var enumValue in enumName)
+                foreach (var enumValue in enumValues)
                 {
                     if (enumValue != null)
                     {
-                        // GetEditorConfigStringValue only returns the first part (first:second) of the setting so the NotificationOption we set here does not matter
-                        var codeStyleOption= new CodeStyleOption2<T>((T)enumValue, NotificationOption2.Silent);
-                        var option = ((IEditorConfigStorageLocation2)_option.StorageLocations.First()).GetEditorConfigStringValue(codeStyleOption, optionSet);
-                        strings.Add(option);
+                        var storageLocation = GetEditorConfigStorageLocation(_option);
+                        var codeStyleSetting = new CodeStyleOption2<T>((T)enumValue, NotificationOption2.Silent);
+                        var option = storageLocation?.GetEditorConfigStringValue(codeStyleSetting, optionSet);
+                        if (option != null)
+                        {
+                            strings.Add(option);
+                        }
                     }
                 }
 
-                return strings.ToArray();
+                return strings.ToImmutableArray();
             }
         }
     }

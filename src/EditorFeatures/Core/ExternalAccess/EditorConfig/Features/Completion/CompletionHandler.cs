@@ -21,13 +21,28 @@ using Microsoft.CodeAnalysis.EditorConfigSettings.Data;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
 using System.Net.WebSockets;
+using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
+using Microsoft.CodeAnalysis.Collections.Internal;
+using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 {
     [ExportStatelessLspService(typeof(CompletionHandler), ProtocolConstants.EditorConfigLanguageContract), Shared]
     [Method(Methods.TextDocumentCompletionName)]
-    internal class CompletionHandler : IRequestHandler<CompletionParams, CompletionList?>
+    internal sealed class CompletionHandler : IRequestHandler<CompletionParams, CompletionList?>
     {
+        private static readonly ImmutableArray<string> _settingNameCommitCharacters = ImmutableArray.Create(new string[] { " ", "=" });
+        private static readonly ImmutableArray<string> _multipleValuesCommitCharacters = ImmutableArray.Create(new string[] { "," });
+
+        private struct SettingsSnapshots
+        {
+            public ImmutableArray<CodeStyleSetting>? codeStyleSnapshot;
+            public ImmutableArray<WhitespaceSetting>? whitespaceSnapshot;
+            public ImmutableArray<AnalyzerSetting>? analyzerSnapshot;
+        }
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompletionHandler()
@@ -44,10 +59,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             var document = context.AdditionalDocument;
             Contract.ThrowIfNull(document);
 
-            var workspace = context.Solution?.Workspace;
-            Contract.ThrowIfNull(workspace);
+            var workspace = document.Project.Solution.Workspace;
 
-            Contract.ThrowIfNull(request.Context);
+            if (request.Context == null)
+            {
+                return null;
+            }
 
             var filePath = document.FilePath;
             Contract.ThrowIfNull(filePath);
@@ -64,43 +81,90 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             var whitespaceProvider = settingsAggregator.GetSettingsProvider<WhitespaceSetting>(filePath);
             var analyzerProvider = settingsAggregator.GetSettingsProvider<AnalyzerSetting>(filePath);
 
-            var codeStyleSnapshot = codeStyleProvider?.GetCurrentDataSnapshot();
-            var whitespaceSnapshot = whitespaceProvider?.GetCurrentDataSnapshot();
-            var analyzerSnapshot = analyzerProvider?.GetCurrentDataSnapshot();
+            // Correct syntax is setting_name = setting_value_1, setting_value2, setting_value3... or setting_name = setting_value 
 
-            // Check if the user has written a name and not a value
-            if (textInLine.Contains(' ') && !textInLine.Contains('='))
+            // When there exists more then one '=' it is incorrect and we should not suggest any completion 
+            if (textInLine.Count(c => c == '=') > 1)
             {
                 return null;
             }
 
-            // Check if we need to show the name of the setting or the values
-            if (textInLine.Contains('='))
+            var textToCheck = textInLine[..request.Position.Character];
+            var textToCheck2 = textToCheck.Reverse();
+            var splittedText = textToCheck.Split(' ').Reverse();
+            bool showValueComma = false, showValueEqual = false, showName = false;
+
+            // Check if we need to display values of the settings
+            // |setting_name = (caret is here)
+            // |setting_name = setting_value_1, (caret is here)
+            var seenWhitespace = false;
+            foreach (var element in textToCheck2)
             {
-                if (textInLine.Count(c => c == '=') > 1 || textInLine.Count(c => c == ':') > 1)
+                if (element == ' ')
+                {
+                    seenWhitespace = true;
+                }
+                else if (element == ',')
+                {
+                    showValueComma = true;
+                    break;
+                }
+                else if (element == '=')
+                {
+                    showValueEqual = true;
+                    break;
+                }
+                else
+                {
+                    if (seenWhitespace)
+                    {
+                        showValueEqual = false;
+                        break;
+                    }
+                }
+            }
+
+            // Check if we need to suggest completion for the setting name
+            // Show completion |indent(caret is here)
+            // Don't show completion |indent_size (caret is here)
+            if (!showValueComma && !showValueEqual)
+            {
+                seenWhitespace = false;
+                foreach (var element in textToCheck2)
+                {
+                    if (seenWhitespace && !(element == ' '))
+                    {
+                        showName = false;
+                        break;
+                    }
+                    seenWhitespace = element == ' ';
+                    showName = true;
+                }
+            }
+
+            // Show completion additional values (after a comma)
+            if (showValueComma)
+            {
+                var settingName = textInLine.Split('=').First().Trim();
+                var settingsSnapshots1 = GetSettingsSnapshots(codeStyleProvider, whitespaceProvider, analyzerProvider);
+                var options = GetSettingValues(settingName, settingsSnapshots1.codeStyleSnapshot, settingsSnapshots1.whitespaceSnapshot, settingsSnapshots1.analyzerSnapshot, optionSet, multipleValues: true);
+                if (options == null)
                 {
                     return null;
                 }
 
-                var settingName = textInLine.Split('=').FirstOrDefault().Trim();
-
-                // Check if we need to show severities (only for code style settings)
-                if (textInLine.Contains(':'))
+                return new CompletionList
                 {
-                    var severities = GetSettingValues(settingName, codeStyleSnapshot, whitespaceSnapshot, analyzerSnapshot, true, optionSet);
-                    if (severities == null)
-                    {
-                        return null;
-                    }
+                    Items = options,
+                };
+            }
 
-                    return new CompletionList
-                    {
-                        Items = severities,
-                    };
-                }
-
-                // Generate completion for setting values
-                var values = GetSettingValues(settingName, codeStyleSnapshot, whitespaceSnapshot, analyzerSnapshot, false, optionSet);
+            // Show completion for setting values (after equal)
+            if (showValueEqual)
+            {
+                var settingName = textInLine.Split('=').First().Trim();
+                var settingsSnapshots2 = GetSettingsSnapshots(codeStyleProvider, whitespaceProvider, analyzerProvider);
+                var values = GetSettingValues(settingName, settingsSnapshots2.codeStyleSnapshot, settingsSnapshots2.whitespaceSnapshot, settingsSnapshots2.analyzerSnapshot, optionSet);
                 if (values == null)
                 {
                     return null;
@@ -112,20 +176,26 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                 };
             }
 
-            // Generate completion for settings names
-            var codeStyleSettingsItems = codeStyleSnapshot?.Select(GenerateSettingNameCompletionItem);
-            var whitespaceSettingsItems = whitespaceSnapshot?.Select(GenerateSettingNameCompletionItem);
-            var analyzerSettingsItems = analyzerSnapshot?.Select(GenerateSettingNameCompletionItem);
-            var settingsItems = codeStyleSettingsItems.Concat(whitespaceSettingsItems).Concat(analyzerSettingsItems).Where(item => item != null) as IEnumerable<CompletionItem>;
-            if (settingsItems == null)
+            // Show completion for the setting name
+            if (showName)
             {
-                return null;
+                var settingsSnapshots3 = GetSettingsSnapshots(codeStyleProvider, whitespaceProvider, analyzerProvider);
+                var codeStyleSettingsItems = settingsSnapshots3.codeStyleSnapshot?.Select(GenerateSettingNameCompletionItem);
+                var whitespaceSettingsItems = settingsSnapshots3.whitespaceSnapshot?.Select(GenerateSettingNameCompletionItem);
+                var analyzerSettingsItems = settingsSnapshots3.analyzerSnapshot?.Select(GenerateSettingNameCompletionItem);
+                var settingsItems = codeStyleSettingsItems.Concat(whitespaceSettingsItems).Concat(analyzerSettingsItems).Where(item => item != null) as IEnumerable<CompletionItem>;
+                if (settingsItems == null)
+                {
+                    return null;
+                }
+
+                return new CompletionList
+                {
+                    Items = settingsItems.ToArray(),
+                };
             }
 
-            return new CompletionList
-            {
-                Items = settingsItems.ToArray(),
-            };
+            return null;
         }
 
         private static CompletionItem? GenerateSettingNameCompletionItem<T>(T setting) where T : IEditorConfigSettingInfo
@@ -136,28 +206,31 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                 return null;
             }
             var documentation = setting.GetDocumentation();
-            var commitCharacters = new string[] { " ", "=" };
+            var commitCharacters = _settingNameCommitCharacters;
 
             return CreateCompletionItem(name, name, CompletionItemKind.Property, documentation, commitCharacters);
         }
 
-        private static CompletionItem[]? GenerateSettingValuesCompletionItem<T>(T setting, bool additional, bool isCodeStyle, OptionSet optionSet) where T : IEditorConfigSettingInfo
+        private static SettingsSnapshots GetSettingsSnapshots(ISettingsProvider<CodeStyleSetting>? codeStyleProvider, ISettingsProvider<WhitespaceSetting>? whitespaceProvider, ISettingsProvider<AnalyzerSetting>? analyzerProvider)
+        {
+            var codeStyleSnapshot = codeStyleProvider?.GetCurrentDataSnapshot();
+            var whitespaceSnapshot = whitespaceProvider?.GetCurrentDataSnapshot();
+            var analyzerSnapshot = analyzerProvider?.GetCurrentDataSnapshot();
+
+            return new SettingsSnapshots
+            {
+                codeStyleSnapshot = codeStyleSnapshot,
+                whitespaceSnapshot = whitespaceSnapshot,
+                analyzerSnapshot = analyzerSnapshot,
+            };
+        }
+
+        private static CompletionItem[]? GenerateSettingValuesCompletionItem<T>(T setting, bool additional, OptionSet optionSet, bool allowsMultipleValues = false) where T : IEditorConfigSettingInfo
         {
             var values = new List<CompletionItem>();
 
-            // Create severities list only if there exists ':' and we are in a code style setting
-            if (additional && isCodeStyle)
-            {
-                values.Add(CreateCompletionItem("silent", "silent", CompletionItemKind.Value, null, null));
-                values.Add(CreateCompletionItem("suggestion", "suggestion", CompletionItemKind.Value, null, null));
-                values.Add(CreateCompletionItem("warning", "warning", CompletionItemKind.Value, null, null));
-                values.Add(CreateCompletionItem("error", "error", CompletionItemKind.Value, null, null));
-
-                return values.ToArray();
-            }
-
-            // User may type a ':' but not in a code style setting
-            if (additional && !isCodeStyle)
+            // User may type a ',' but not in a setting that allows multiple values
+            if (additional && (!allowsMultipleValues))
             {
                 return null;
             }
@@ -171,14 +244,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 
             foreach (var value in settingValues)
             {
-                var commitCharacters = isCodeStyle ? new string[] { ":" } : Array.Empty<string>();
+                var commitCharacters = allowsMultipleValues ? _multipleValuesCommitCharacters : ImmutableArray.Create(Array.Empty<string>());
                 values.Add(CreateCompletionItem(value, value, CompletionItemKind.Value, null, commitCharacters));
             }
 
             return values.ToArray();
         }
 
-        private static CompletionItem CreateCompletionItem(string label, string insertText, CompletionItemKind kind, string? documentation, string[]? commitCharacters)
+        private static CompletionItem CreateCompletionItem(string label, string insertText, CompletionItemKind kind, string? documentation, ImmutableArray<string> commitCharacters)
         {
             var item = new CompletionItem
             {
@@ -186,29 +259,30 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                 InsertText = insertText,
                 Kind = kind,
                 Documentation = documentation,
-                CommitCharacters = commitCharacters,
+                CommitCharacters = commitCharacters.ToArray(),
             };
             return item;
         }
 
-        private static CompletionItem[]? GetSettingValues(string settingName, ImmutableArray<CodeStyleSetting>? cs, ImmutableArray<WhitespaceSetting>? ws, ImmutableArray<AnalyzerSetting>? a, bool additional, OptionSet optionSet)
+        private static CompletionItem[]? GetSettingValues(string settingName, ImmutableArray<CodeStyleSetting>? cs, ImmutableArray<WhitespaceSetting>? ws, ImmutableArray<AnalyzerSetting>? a, OptionSet optionSet, bool multipleValues = false)
         {
             var codestyleSettings = cs?.Where(setting => setting.GetSettingName() == settingName);
             if (codestyleSettings.Any())
             {
-                return GenerateSettingValuesCompletionItem(codestyleSettings.First(), additional, true, optionSet);
+                return GenerateSettingValuesCompletionItem(codestyleSettings.First(), multipleValues, optionSet);
             }
 
             var whitespaceSettings = ws?.Where(setting => setting.GetSettingName() == settingName);
             if (whitespaceSettings.Any())
             {
-                return GenerateSettingValuesCompletionItem(whitespaceSettings.First(), additional, false, optionSet);
+                var allowsMultipleValues = settingName == "csharp_new_line_before_open_brace" || settingName == "csharp_space_between_parentheses";
+                return GenerateSettingValuesCompletionItem(whitespaceSettings.First(), multipleValues, optionSet, allowsMultipleValues: allowsMultipleValues);
             }
 
             var analyzerSettings = a?.Where(setting => setting.GetSettingName() == settingName);
             if (analyzerSettings.Any())
             {
-                return GenerateSettingValuesCompletionItem(analyzerSettings.First(), additional, false, optionSet);
+                return GenerateSettingValuesCompletionItem(analyzerSettings.First(), multipleValues, optionSet);
             }
 
             return null;

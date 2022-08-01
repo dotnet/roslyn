@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
                 CompletionProvider = new CompletionOptions
                 {
                     ResolveProvider = true,
-                    TriggerCharacters = new string[] { " ", ":", ".", "=", "\"", "'", "{", "," },
-                    AllCommitCharacters = new string[] { "=", " " },
+                    TriggerCharacters = new string[] { " ", "=", "," },
+                    AllCommitCharacters = new string[] { "=", " ", "," },
                 },
             };
 
