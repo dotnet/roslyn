@@ -305,10 +305,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
 
         private Stream ReadAndUncompressBlob(SafeSqliteBlobHandle blob)
         {
-            var memoryStream = new MemoryStream();
-
             using var blobStream = ReadBlobWorker(blob);
             using var zipStream = new GZipStream(blobStream, CompressionMode.Decompress);
+
+            var memoryStream = new MemoryStream();
             zipStream.CopyTo(memoryStream);
 
             memoryStream.Position = 0;
