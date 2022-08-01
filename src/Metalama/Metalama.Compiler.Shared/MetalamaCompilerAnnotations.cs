@@ -5,7 +5,6 @@
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
-
 namespace Metalama.Compiler;
 
 /// <summary>
@@ -99,8 +98,7 @@ public static class MetalamaCompilerAnnotations
 #endif
 
     internal const string IgnoreCodeCoverageAnnotationKind = "Metalama.Compiler.IgnoreCodeCoverage";
-    internal const string RedirectCodeCoverageAnnotationKind = "Metalama.Compiler.RedirectCodeCoverage";
-    
+    internal const string RedirectCodeCoverageAnnotationKind = "Metalama.Compiler.RedirectCodeCoverage";    
 
     private static readonly SyntaxAnnotation _ignoreCodeCoverageAnnotation = new SyntaxAnnotation(IgnoreCodeCoverageAnnotationKind);
 

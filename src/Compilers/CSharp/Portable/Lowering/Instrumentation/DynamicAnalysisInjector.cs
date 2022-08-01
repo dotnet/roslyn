@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Follow redirections from annotations.
-            var originalMethod = method;
+            var methodBeforeRedirection = method;
             if (methodBody.Syntax.Parent!.TryGetCodeCoverageRedirectionFromAnnotation( methodBodyFactory.Compilation, out var redirectedMethod))
             {
                 var publicMethodSymbol = (PublicMethodSymbol) redirectedMethod!;
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new DynamicAnalysisInjector(
                 method,
-                originalMethod, // <Metalama />
+                methodBeforeRedirection, // <Metalama />
                 methodBody,
                 methodBodyFactory,
                 createPayloadForMethodsSpanningSingleFile,
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DynamicAnalysisInjector(
             MethodSymbol method,
-            MethodSymbol originalMethod, // <Metalama />
+            MethodSymbol methodBeforeRedirection, // <Metalama />
             BoundStatement methodBody,
             SyntheticBoundNodeFactory methodBodyFactory,
             MethodSymbol createPayloadForMethodsSpanningSingleFile,
@@ -156,10 +156,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!method.IsImplicitlyDeclared && !(method is SynthesizedSimpleProgramEntryPointSymbol))
             {
                 // <Metalama>
-                if (method != originalMethod)
+                if (method != methodBeforeRedirection)
                 {
                     // We need to emit the entry point based on the original declaration, because the transformed declaration is not in source code.
-                    syntax = method.DeclaringSyntaxReferences.Select(x=>x.GetSyntax()).Single(x => HasBody(x));
+                    syntax = method.DeclaringSyntaxReferences.Select(x=>x.GetSyntax()).Single(HasBody));
                 }
                 // </Metalama>
                 _methodEntryInstrumentation = AddAnalysisPoint(syntax, SkipAttributes(syntax), methodBodyFactory);

@@ -175,7 +175,7 @@ public class C
             }
         }
 
-              [Fact]
+         [Fact]
         public void MoveMethodBody()
         {
             string source = @"

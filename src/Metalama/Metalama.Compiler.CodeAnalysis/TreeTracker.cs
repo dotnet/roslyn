@@ -498,7 +498,6 @@ namespace Metalama.Compiler
         public static TextSpan GetSourceSpan(this SyntaxToken token, bool throwOnTransforcedCode = true)
          => GetSourceSyntaxToken(token)?.Span ?? (throwOnTransforcedCode ? throw new InvalidOperationException() : default);
 
-        // TODO: improve
         public static TextSpan GetSourceSpan(this SyntaxTokenList list, bool throwOnTransforcedCode = true)
         {
             if ( list.Count == 0 )
