@@ -127,7 +127,7 @@ namespace N
         }
 
         [Fact]
-        public async Task TestSetterProperty_NoAction()
+        public async Task TestSetProperty_NoAction()
         {
             var initialMarkup = @"
 namespace N
