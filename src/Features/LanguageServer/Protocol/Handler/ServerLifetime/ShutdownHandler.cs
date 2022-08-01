@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(ShutdownHandler)), Shared]
+[ExportGeneralStatelessLspService(typeof(ShutdownHandler)), Shared]
 [Method(Methods.ShutdownName)]
 internal class ShutdownHandler : IRoslynNotificationHandler
 {

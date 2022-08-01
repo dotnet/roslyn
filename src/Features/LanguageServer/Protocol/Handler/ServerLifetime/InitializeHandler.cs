@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(InitializeHandler)), Shared]
+[ExportGeneralStatelessLspService(typeof(InitializeHandler)), Shared]
 [Method(Methods.InitializeName)]
 internal class InitializeHandler : IRoslynRequestHandler<InitializeParams, InitializeResult>
 {

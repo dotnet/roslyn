@@ -19,7 +19,7 @@ internal class RoslynLifeCycleManager : LifeCycleManager<RequestContext>, ILspSe
     }
 }
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(ExitHandler)), Shared]
+[ExportGeneralStatelessLspService(typeof(ExitHandler)), Shared]
 [Method(Methods.ExitName)]
 internal class ExitHandler : IRoslynNotificationHandler
 {

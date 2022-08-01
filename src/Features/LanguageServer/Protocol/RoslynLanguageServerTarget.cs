@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         private readonly IServiceCollection _serviceCollection;
         private readonly ImmutableArray<string> _supportedLanguages;
         private Task? _errorShutdownTask;
-        private IRequestDispatcher<RequestContext>? _requestDispatcher;
         private LspServices? _lspServices;
 
         public RoslynLanguageServer(
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return _lspServices;
         }
 
-        private static IServiceCollection GetServiceCollection(
+        private IServiceCollection GetServiceCollection(
             JsonRpc jsonRpc,
             IClientCapabilitiesProvider clientCapabilitiesProvider,
             IRoslynLspLogger logger,
@@ -79,7 +78,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 .AddSingleton<ILifeCycleManager>(lifeCycleManager)
                 .AddSingleton(new ServerInfoProvider(serverKind, supportedLanguages))
                 .AddSingleton<IRequestContextFactory<RequestContext>, RequestContextFactory>()
-                .AddSingleton<IRequestExecutionQueue<RequestContext>>((serviceProvider) => new RoslynRequestExecutionQueue(serverKind, logger));
+                // TODO: Are these dangerous because of capturing?
+                .AddSingleton<IRequestExecutionQueue<RequestContext>>((serviceProvider) => GetRequestExecutionQueue())
+                .AddSingleton<IRequestDispatcher<RequestContext>>((serviceProvider) => GetRequestDispatcher())
+                .AddSingleton<IClientCapabilitiesManager, ClientCapabilitiesManager>();
 
             return serviceCollection;
         }
@@ -92,19 +94,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             RoslynLifeCycleManager lifeCycleManager)
         {
             var baseServices = ImmutableArray.Create<Lazy<ILspService, LspServiceMetadataView>>();
-                //CreateLspServiceInstance<IClientLanguageServerManager>(),
-                //CreateLspServiceInstance(logger),
-                //CreateLspServiceInstance<IClientCapabilitiesProvider>(clientCapabilitiesProvider),
-                //CreateLspServiceInstance<ICapabilitiesProvider>(capabilitiesProvider),
-                //CreateLspServiceInstance<RoslynLifeCycleManager>(lifeCycleManager));
 
             return baseServices;
-
-            static Lazy<ILspService, LspServiceMetadataView> CreateLspServiceInstance<T>(T lspServiceInstance) where T : ILspService
-            {
-                return new Lazy<ILspService, LspServiceMetadataView>(
-                    () => lspServiceInstance, new LspServiceMetadataView(typeof(T)));
-            }
         }
 
         protected override void RequestExecutionQueueErroredInternal(string message)
@@ -127,26 +118,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }).CompletesAsyncOperation(asyncToken);
         }
 
-        protected override IRequestExecutionQueue<RequestContext> GetRequestExecutionQueue()
+        protected override IRequestDispatcher<RequestContext> ConstructDispatcher()
         {
             var lspServices = GetLspServices();
-            var requestExecutionQueue = new RoslynRequestExecutionQueue(_serverKind, _logger);
-            requestExecutionQueue.Start(lspServices);
+            var requestDispatcher = lspServices.GetRequiredService<RoslynRequestDispatcher>();
 
-            return requestExecutionQueue;
+            SetupRequestDispatcher(requestDispatcher);
+
+            return requestDispatcher;
         }
 
-        protected override IRequestDispatcher<RequestContext> GetRequestDispatcher()
+        protected override IRequestExecutionQueue<RequestContext> ConstructRequestExecutionQueue()
         {
-            if (_requestDispatcher is null)
-            {
-                var lspServices = GetLspServices();
-                _requestDispatcher = lspServices.GetRequiredService<RoslynRequestDispatcher>();
+            var queue = new RoslynRequestExecutionQueue(_serverKind, _logger);
 
-                SetupRequestDispatcher(_requestDispatcher);
-            }
+            var lspServices = GetLspServices();
+            queue.Start(lspServices);
 
-            return _requestDispatcher;
+            return queue;
         }
 
         public ClientCapabilities GetClientCapabilities()
@@ -164,41 +153,49 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return Task.CompletedTask;
         }
 
-        internal TestAccessor GetTestAccessor()
-        {
-            throw new NotImplementedException();
-        }
+        internal TestAccessor GetTestAccessor() => new(this);
 
         internal class TestAccessor
         {
-            internal void ExitServer()
+            private readonly RoslynLanguageServer _server;
+
+            internal TestAccessor(RoslynLanguageServer server)
             {
-                throw new NotImplementedException();
+                _server = server;
             }
 
-            //internal RoslynRequestExecutionQueue.TestAccessor GetQueueAccessor()
-            //{
-            //    throw new NotImplementedException();
-            //}
+            internal void ExitServer()
+            {
+                _server.Exit();
+            }
+
+            internal RoslynRequestExecutionQueue.TestAccessor GetQueueAccessor()
+            {
+                var queue = _server.GetRequestExecutionQueue();
+                var concreteQueue = (RequestExecutionQueue<RequestContext>)queue;
+                return concreteQueue.GetTestAccessor();
+            }
 
             internal T GetRequiredLspService<T>() where T : class, ILspService
             {
-                throw new NotImplementedException();
+                var lspServices = _server.GetLspServices();
+
+                return lspServices.GetRequiredService<T>();
             }
 
             internal JsonRpc GetServerRpc()
             {
-                throw new NotImplementedException();
+                return ((LanguageServer<RequestContext>)_server).GetTestAccessor().GetServerRpc();
             }
 
             internal bool HasShutdownStarted()
             {
-                throw new NotImplementedException();
+                return _server.HasShutdownStarted;
             }
 
             internal void ShutdownServer()
             {
-                throw new NotImplementedException();
+                _server.Shutdown();
             }
         }
 

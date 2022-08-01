@@ -203,5 +203,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             return _lspServices.GetRequiredService<T>();
         }
+
+        public T GetRequiredService<T>() where T : class
+        {
+            return _lspServices.GetRequiredService<T>();
+        }
     }
 }

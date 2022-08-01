@@ -10,10 +10,6 @@
       .NET Compiler Platform ("Roslyn") support for Language Server Protocol.
     </PackageDescription>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="Handler\NewFolder\**" />
-    <EmbeddedResource Remove="Handler\NewFolder\**" />
-  </ItemGroup>
 
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />

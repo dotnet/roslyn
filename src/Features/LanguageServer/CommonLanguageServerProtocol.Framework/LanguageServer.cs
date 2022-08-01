@@ -19,8 +19,8 @@ public abstract class LanguageServer<RequestContextType> : ILanguageServer
 {
     private readonly JsonRpc _jsonRpc;
     private IRequestDispatcher<RequestContextType>? _requestDispatcher;
-    protected readonly ILspLogger _logger;
     private IRequestExecutionQueue<RequestContextType>? _queue;
+    protected readonly ILspLogger _logger;
 
     protected readonly string _serverKind;
 
@@ -55,15 +55,22 @@ public abstract class LanguageServer<RequestContextType> : ILanguageServer
 
     protected abstract ILspServices GetLspServices();
 
-    protected virtual IRequestDispatcher<RequestContextType> GetRequestDispatcher()
+    protected virtual IRequestDispatcher<RequestContextType> ConstructDispatcher()
+    {
+        var lspServices = GetLspServices();
+        var dispatcher = new RequestDispatcher<RequestContextType>(lspServices);
+        SetupRequestDispatcher(_requestDispatcher);
+
+        return dispatcher;
+    }
+
+    protected IRequestDispatcher<RequestContextType> GetRequestDispatcher()
     {
         if (_requestDispatcher is null)
         {
-            var lspServices = GetLspServices();
-            _requestDispatcher = new RequestDispatcher<RequestContextType>(lspServices);
-
-            SetupRequestDispatcher(_requestDispatcher);
+            _requestDispatcher = ConstructDispatcher();
         }
+
         return _requestDispatcher;
     }
 
@@ -125,16 +132,23 @@ public abstract class LanguageServer<RequestContextType> : ILanguageServer
         IsInitialized = true;
     }
 
-    protected virtual IRequestExecutionQueue<RequestContextType> GetRequestExecutionQueue()
+    protected virtual IRequestExecutionQueue<RequestContextType> ConstructRequestExecutionQueue()
+    {
+        var lspServices = GetLspServices();
+
+        var queue = new RequestExecutionQueue<RequestContextType>(_serverKind, _logger);
+        queue.RequestServerShutdown += RequestExecutionQueue_Errored;
+
+        queue.Start(lspServices);
+
+        return queue;
+    }
+
+    protected IRequestExecutionQueue<RequestContextType> GetRequestExecutionQueue()
     {
         if (_queue is null)
         {
-            var lspServices = GetLspServices();
-
-            _queue = new RequestExecutionQueue<RequestContextType>(_serverKind, _logger);
-            _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
-
-            _queue.Start(lspServices);
+            _queue = ConstructRequestExecutionQueue();
         }
 
         return _queue;
@@ -200,7 +214,6 @@ public abstract class LanguageServer<RequestContextType> : ILanguageServer
             {
                 throw new InvalidOperationException($"'initialize' has not been called.");
             }
-
         }
     }
 

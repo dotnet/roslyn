@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(InitializedHandler)), Shared]
+[ExportGeneralStatelessLspService(typeof(InitializedHandler)), Shared]
 [Method(Methods.InitializedName)]
 internal class InitializedHandler : IRoslynNotificationHandler<InitializedParams>
 {

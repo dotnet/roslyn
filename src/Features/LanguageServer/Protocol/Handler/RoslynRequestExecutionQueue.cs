@@ -13,117 +13,23 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 #nullable enable
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
+
+internal class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>, ILspService
 {
-    internal class ServerInfoProvider
-    {
-        public ServerInfoProvider(string serverKind, ImmutableArray<string> supportedLanguages)
-        {
-            ServerKind = serverKind;
-            SupportedLanguages = supportedLanguages;
-        }
+    private IRequestContextFactory<RequestContext>? _requestContextFactory;
 
-        public readonly string ServerKind;
-        public readonly ImmutableArray<string> SupportedLanguages;
+    public RoslynRequestExecutionQueue(string serverKind, ILspLogger logger) : base(serverKind, logger)
+    {
     }
 
-    internal class RequestContextFactory : IRequestContextFactory<RequestContext>, ILspService
+    protected override IRequestContextFactory<RequestContext> GetRequestContextFactory(ILspServices lspServices)
     {
-        //private readonly IServerInfoProvider _serverInfoProvider;
-        //private readonly ImmutableArray<string> _supportedLanguages;
-        private readonly ILspServices _lspServices;
-        //private readonly string _serverKind;
-
-        public RequestContextFactory(ILspServices lspServices)//, IServerInfoProvider serverInfoProvider, ImmutableArray<string> supportedLanguages, string serverKind)
+        if (_requestContextFactory is null)
         {
-            _lspServices = lspServices;
-
-            //_supportedLanguages = supportedLanguages;
-            //_serverKind = serverKind;
+            _requestContextFactory = lspServices.GetRequiredService<IRequestContextFactory<RequestContext>>();
         }
 
-        public Task<RequestContext?> CreateRequestContextAsync(IQueueItem<RequestContext> queueItem, CancellationToken queueCancellationToken, CancellationToken requestCancellationToken)
-        {
-            var clientCapabilitiesManager = _lspServices.GetRequiredService<IClientCapabilitiesManager>();
-            var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
-            var logger = _lspServices.GetRequiredService<IRoslynLspLogger>();
-            var serverInfoProvider = _lspServices.GetRequiredService<ServerInfoProvider>();
-
-            return RequestContext.CreateAsync(
-                queueItem.RequiresLSPSolution,
-                queueItem.MutatesSolutionState,
-                queueItem.TextDocument,
-                serverInfoProvider.ServerKind,
-                clientCapabilities,
-                serverInfoProvider.SupportedLanguages,
-                _lspServices,
-                logger,
-                queueCancellationToken: queueCancellationToken,
-                requestCancellationToken: requestCancellationToken);
-        }
-    }
-
-    internal class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>, ILspService
-    {
-        private IRequestContextFactory<RequestContext>? _requestContextFactory;
-
-        public RoslynRequestExecutionQueue(string serverKind, ILspLogger logger) : base(serverKind, logger)
-        {
-        }
-
-        protected override IRequestContextFactory<RequestContext> GetRequestContextFactory(ILspServices lspServices)
-        {
-            if (_requestContextFactory is null)
-            {
-                _requestContextFactory = lspServices.GetRequiredService<IRequestContextFactory<RequestContext>>();
-            }
-
-            return _requestContextFactory;
-        }
-    }
-
-    /// <summary>
-    /// </summary>
-    /// <remarks>This is not actually stateless, but we need to be sure it doesn't re-construct each time it is retrieved 
-    /// and the only state will be wiped out on Server startup</remarks>
-    [ExportCSharpVisualBasicStatelessLspService(typeof(IClientCapabilitiesManager)), Shared]
-    internal class ClientCapabilitiesManager : IClientCapabilitiesManager
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ClientCapabilitiesManager()
-        {
-        }
-
-        private ClientCapabilities? _clientCapabilities;
-
-        public ClientCapabilities GetClientCapabilities()
-        {
-            if (_clientCapabilities is null)
-            {
-                throw new InvalidOperationException($"Tried to get required {nameof(ClientCapabilities)} before it was set");
-            }
-
-            return _clientCapabilities;
-        }
-
-        public void SetClientCapabilities(ClientCapabilities clientCapabilities)
-        {
-            _clientCapabilities = clientCapabilities;
-        }
-
-        public ClientCapabilities? TryGetClientCapabilities()
-        {
-            return _clientCapabilities;
-        }
-    }
-
-    internal interface IClientCapabilitiesManager : ILspService
-    {
-        ClientCapabilities GetClientCapabilities();
-
-        ClientCapabilities? TryGetClientCapabilities();
-
-        void SetClientCapabilities(ClientCapabilities clientCapabilities);
+        return _requestContextFactory;
     }
 }
