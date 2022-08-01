@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             private ISet<ConflictLocationInfo> _conflictLocations;
             private bool _replacementTextValid;
-            private List<ProjectId>? _topologicallySortedProjects;
+            private readonly List<ProjectId>? _topologicallySortedProjects;
             private bool _documentOfRenameSymbolHasBeenRenamed;
 
             public SingleSymbolRenameSession(
@@ -74,6 +74,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 _documentIdOfRenameSymbolDeclaration = renameLocationSet.Solution.GetRequiredDocument(renameSymbolDeclarationLocation.SourceTree!).Id;
 
                 _renameAnnotations = new AnnotationTable<RenameAnnotation>(RenameAnnotation.Kind);
+
+                var dependencyGraph = renameLocationSet.Solution.GetProjectDependencyGraph();
+                _topologicallySortedProjects = dependencyGraph.GetTopologicallySortedProjects(_cancellationToken).ToList();
             }
 
             private SymbolRenameOptions RenameOptions => _renameLocationSet.Options;
