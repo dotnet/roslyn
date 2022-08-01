@@ -2,32 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
     internal abstract class AbstractForLoopSnippetProvider : AbstractSnippetProvider
     {
-        public override string SnippetIdentifier => "for";
-
-        public override string SnippetDisplayName => FeaturesResources.Insert_a_for_loop;
         protected abstract Task<SyntaxNode> CreateForLoopStatementSyntaxAsync(Document document, CancellationToken cancellationToken);
-        protected abstract ImmutableArray<SnippetPlaceholder> GetForLoopSnippetPlaceholders(SyntaxNode node, ISyntaxFacts syntaxFacts);
-        protected abstract int GetCaretPosition(SyntaxNode caretTarget);
+
+        public override string SnippetIdentifier => "for";
+        public override string SnippetDisplayName => FeaturesResources.Insert_a_for_loop;
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -39,23 +31,9 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var snippetTextChange = await GenerateSnippetTextChangeAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return ImmutableArray.Create(snippetTextChange);
-        }
-
-        private async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
-        {
             var forLoopSyntax = await CreateForLoopStatementSyntaxAsync(document, cancellationToken).ConfigureAwait(false);
-            return new TextChange(TextSpan.FromBounds(position, position), forLoopSyntax.NormalizeWhitespace().ToFullString());
-        }
-
-        /// <summary>
-        /// Tries to get the location after the open parentheses in the argument list.
-        /// If it can't, then we default to the end of the snippet's span.
-        /// </summary>
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
-        {
-            return GetCaretPosition(caretTarget);
+            var snippetTextChange = new TextChange(TextSpan.FromBounds(position, position), forLoopSyntax.NormalizeWhitespace().ToFullString());
+            return ImmutableArray.Create(snippetTextChange);
         }
 
         protected override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
@@ -63,26 +41,26 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts);
-            if (snippetExpressionNode is null)
+            var snippetStatementNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts);
+            if (snippetStatementNode is null)
             {
                 return root;
             }
 
-            var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, Formatter.Annotation);
-            return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
-        }
-
-        protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-        {
-            return GetForLoopSnippetPlaceholders(node, syntaxFacts);
+            var reformatSnippetNode = snippetStatementNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, Formatter.Annotation);
+            return root.ReplaceNode(snippetStatementNode, reformatSnippetNode);
         }
 
         protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts)
         {
             var closestNode = root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true);
-            var nearestStatement = closestNode.DescendantNodesAndSelf(syntaxFacts.IsForStatement).FirstOrDefault();
-            if (nearestStatement is null)
+
+            if (closestNode is null)
+            {
+                return null;
+            }
+
+            if (!syntaxFacts.IsForStatement(closestNode))
             {
                 return null;
             }
@@ -90,12 +68,12 @@ namespace Microsoft.CodeAnalysis.Snippets
             // Checking to see if that expression statement that we found is
             // starting at the same position as the position we inserted
             // the for statement.
-            if (nearestStatement.SpanStart != position)
+            if (closestNode.SpanStart != position)
             {
                 return null;
             }
 
-            return nearestStatement;
+            return closestNode;
         }
     }
 }

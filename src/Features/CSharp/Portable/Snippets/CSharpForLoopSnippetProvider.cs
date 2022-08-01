@@ -6,31 +6,24 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Humanizer.In;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal class CSharpForLoopSnippetProvider : AbstractForLoopSnippetProvider
+    internal sealed class CSharpForLoopSnippetProvider : AbstractForLoopSnippetProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -46,34 +39,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var generator = SyntaxGenerator.GetGenerator(document);
-            var options = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var varBuiltInType = false;
-
-            if (options != null)
-            {
-                varBuiltInType = options.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Value;
-            }
 
             var indexVariable = generator.Identifier("i");
-            var varIdentifier = SyntaxFactory.IdentifierName("var");
 
             // Creating the variable declaration based on if the user has
             // 'var for built in types' set in their editorconfig.
-            var variableDeclarationSyntax = varBuiltInType
-                ? SyntaxFactory.VariableDeclaration(varIdentifier,
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(
-                            indexVariable,
-                            argumentList: null,
-                            SyntaxFactory.EqualsValueClause((ExpressionSyntax)generator.LiteralExpression(0)))))
-                : SyntaxFactory.VariableDeclaration(compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(allowVar: false),
+            var variableDeclarationSyntax =
+                 SyntaxFactory.VariableDeclaration(compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(allowVar: false),
                     SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.VariableDeclarator(
                             indexVariable,
                             argumentList: null,
                             SyntaxFactory.EqualsValueClause((ExpressionSyntax)generator.LiteralExpression(0)))));
 
-            var forLoopSyntax = SyntaxFactory.ForStatement(variableDeclarationSyntax,
+            var forLoopSyntax = SyntaxFactory.ForStatement(
+                variableDeclarationSyntax,
                 SyntaxFactory.SeparatedList<ExpressionSyntax>(),
                 (ExpressionSyntax)generator.LessThanExpression(
                     generator.IdentifierName(indexVariable),
@@ -92,58 +72,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         /// Goes through each piece of the for statement and extracts the identifiers
         /// as well as their locations to create SnippetPlaceholder's of each.
         /// </summary>
-        protected override ImmutableArray<SnippetPlaceholder> GetForLoopSnippetPlaceholders(SyntaxNode node, ISyntaxFacts syntaxFacts)
+        protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
-            var placeHolderBuilder = new Dictionary<string, List<int>>();
+            var placeHolderBuilder = new MultiDictionary<string, int>();
             GetPartsOfForStatement(node, out var declaration, out var condition, out var incrementor, out var _1);
 
             // Retrieves the placeholder present in the variable declaration as well as its location.
-            if (declaration != null)
-            {
-                var variableDeclarator = ((VariableDeclarationSyntax)declaration).Variables.FirstOrDefault();
-                if (variableDeclarator != null)
-                {
-                    var declaratorIdentifier = variableDeclarator.Identifier;
-                    placeHolderBuilder.Add(declaratorIdentifier.ToString(), new List<int>() { declaratorIdentifier.SpanStart });
-                }
-            }
+            // The declaration is constructed so it can't be null.
+            var variableDeclarator = ((VariableDeclarationSyntax)declaration!).Variables.FirstOrDefault();
+            var declaratorIdentifier = variableDeclarator!.Identifier;
+            placeHolderBuilder.Add(declaratorIdentifier.ValueText, declaratorIdentifier.SpanStart);
 
             // Gets the placeholders present in the left and right side of the conditional.
-            if (condition != null)
-            {
-                var conditionExpression = (BinaryExpressionSyntax)condition;
-                var left = conditionExpression.Left;
-                if (!placeHolderBuilder.TryGetValue(left.ToString(), out var incrementorList))
-                {
-                    incrementorList = new List<int>();
-                    placeHolderBuilder.Add(left.ToString(), incrementorList);
-                }
+            // The conditional is not null since it is constructed.
+            var conditionExpression = (BinaryExpressionSyntax)condition!;
+            var left = conditionExpression.Left;
+            placeHolderBuilder.Add(left.ToString(), left.SpanStart);
 
-                incrementorList.Add(left.SpanStart);
-
-                var right = conditionExpression.Right;
-                if (!placeHolderBuilder.TryGetValue(right.ToString(), out var lengthList))
-                {
-                    lengthList = new List<int>();
-                    placeHolderBuilder.Add(right.ToString(), lengthList);
-                }
-
-                lengthList.Add(right.SpanStart);
-            }
+            var right = conditionExpression.Right;
+            placeHolderBuilder.Add(right.ToString(), right.SpanStart);
 
             // Gets the placeholder present in the incrementor.
-            if (incrementor != null)
-            {
-                var operand = ((PostfixUnaryExpressionSyntax)incrementor).Operand;
-                if (!placeHolderBuilder.TryGetValue(operand.ToString(), out var incrementorList))
-                {
-                    incrementorList = new List<int>();
-                    placeHolderBuilder.Add(operand.ToString(), incrementorList);
-                }
-
-                incrementorList.Add(operand.SpanStart);
-            }
+            // The incrementor is constructed so it can't be null.
+            var operand = ((PostfixUnaryExpressionSyntax)incrementor!).Operand;
+            placeHolderBuilder.Add(operand.ToString(), operand.SpanStart);
 
             foreach (var kvp in placeHolderBuilder)
             {
@@ -151,18 +104,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             }
 
             return arrayBuilder.ToImmutableArray();
-
         }
 
         /// <summary>
         /// Gets the start of the BlockSyntax of the for statement
         /// to be able to insert the caret position at that location.
         /// </summary>
-        protected override int GetCaretPosition(SyntaxNode caretTarget)
+        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
         {
             GetPartsOfForStatement(caretTarget, out _, out _, out _, out var statement);
             return statement.SpanStart + 1;
-
         }
 
         private static void GetPartsOfForStatement(SyntaxNode node, out SyntaxNode? declaration, out SyntaxNode? condition,
