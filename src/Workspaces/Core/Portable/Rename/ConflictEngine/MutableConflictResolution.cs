@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// </summary>
         private readonly Dictionary<DocumentId, string> RenamedDocuments = new();
 
+        private readonly HashSet<DocumentId> ChangedDocuments = new();
+
         /// <summary>
         /// The solution snapshot as it is being updated with specific rename steps.
         /// </summary>
@@ -71,6 +73,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             RelatedLocations.RemoveAll(r => conflictLocationDocumentIds.Contains(r.DocumentId));
             _renamedSpansTracker.ClearDocuments(conflictLocationDocumentIds);
         }
+
+        internal void DocumentsChanged(HashSet<DocumentId> changedDocuments)
+            => ChangedDocuments.AddRange(changedDocuments);
+
+        internal void ResetChangedDocuments()
+            => ChangedDocuments.Clear();
 
         internal void UpdateCurrentSolution(Solution solution)
             => CurrentSolution = solution;
