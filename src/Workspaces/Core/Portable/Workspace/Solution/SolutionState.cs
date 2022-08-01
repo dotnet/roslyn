@@ -812,7 +812,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            if (Workspace.PartialSemanticsEnabled)
+            if (this.PartialSemanticsEnabled)
             {
                 // don't fork tracker with queued action since access via partial semantics can become inconsistent (throw).
                 // Since changing options is rare event, it is okay to start compilation building from scratch.
