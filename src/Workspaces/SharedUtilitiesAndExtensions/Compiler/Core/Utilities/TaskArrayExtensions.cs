@@ -12,10 +12,10 @@ namespace Roslyn.Utilities
     internal static partial class TaskExtensions
     {
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods.  This is an explicit task management method.
-        public static async ValueTask<ImmutableArray<TResult>> WhenAll<TResult>(this ImmutableArray<Task<TResult>> tasks)
+        public static async ValueTask<ImmutableArray<TResult>> WhenAll<TResult>(this IReadOnlyCollection<Task<TResult>> tasks)
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
-            using var _ = ArrayBuilder<TResult>.GetInstance(tasks.Length, out var result);
+            using var _ = ArrayBuilder<TResult>.GetInstance(tasks.Count, out var result);
 
             // Explicit cast to IEnumerable<Task> so we call the overload that doesn't allocate an array as the result.
             await Task.WhenAll((IEnumerable<Task>)tasks).ConfigureAwait(false);
