@@ -1317,14 +1317,14 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="diagnostics">A collection of <see cref="Diagnostic"/>s to be sorted.</param>
         /// <returns>A collection containing the input <paramref name="diagnostics"/>, sorted by
         /// <see cref="Diagnostic.Location"/> and <see cref="Diagnostic.Id"/>.</returns>
-        private static (Project project, Diagnostic diagnostic)[] SortDistinctDiagnostics(IEnumerable<(Project project, Diagnostic diagnostic)> diagnostics)
+        protected virtual ImmutableArray<(Project project, Diagnostic diagnostic)> SortDistinctDiagnostics(IEnumerable<(Project project, Diagnostic diagnostic)> diagnostics)
         {
             return diagnostics
                 .OrderBy(d => d.diagnostic.Location.GetLineSpan().Path, StringComparer.Ordinal)
                 .ThenBy(d => d.diagnostic.Location.SourceSpan.Start)
                 .ThenBy(d => d.diagnostic.Location.SourceSpan.End)
                 .ThenBy(d => d.diagnostic.Id)
-                .ThenBy(d => GetArguments(d.diagnostic), LexicographicComparer.Instance).ToArray();
+                .ThenBy(d => GetArguments(d.diagnostic), LexicographicComparer.Instance).ToImmutableArray();
         }
 
         private static IReadOnlyList<object?> GetArguments(Diagnostic diagnostic)
