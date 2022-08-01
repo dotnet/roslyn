@@ -15,6 +15,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="3.8.0" />
+
+    <!-- Use PrivateAssets=compile to avoid exposing our DiffPlex dependency downstream as public API. -->
+    <PackageReference Include="DiffPlex" Version="$(DiffPlexVersion)" PrivateAssets="compile" />
   </ItemGroup>
 
   <ItemGroup>

@@ -37,6 +37,42 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Fact]
+        public async Task MultipleFilesAllowEitherOrder()
+        {
+            await new CSharpSourceGeneratorTest<AddTwoEmptyFiles>
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"// Comment",
+                    },
+                    GeneratedSources =
+                    {
+                        (typeof(AddTwoEmptyFiles), "EmptyGeneratedFile1.cs", SourceText.From(string.Empty, Encoding.UTF8)),
+                        (typeof(AddTwoEmptyFiles), "EmptyGeneratedFile2.cs", SourceText.From(string.Empty, Encoding.UTF8)),
+                    },
+                },
+            }.RunAsync();
+
+            await new CSharpSourceGeneratorTest<AddTwoEmptyFiles>
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"// Comment",
+                    },
+                    GeneratedSources =
+                    {
+                        (typeof(AddTwoEmptyFiles), "EmptyGeneratedFile2.cs", SourceText.From(string.Empty, Encoding.UTF8)),
+                        (typeof(AddTwoEmptyFiles), "EmptyGeneratedFile1.cs", SourceText.From(string.Empty, Encoding.UTF8)),
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task AddSimpleFileByGeneratorType()
         {
             await new CSharpSourceGeneratorTest<AddEmptyFile>
@@ -110,6 +146,7 @@ namespace Microsoft.CodeAnalysis.Testing
             });
 
             var expectedMessage = @"Context: Source generator application
+Context: Verifying source generated files
 encoding of 'Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests\Microsoft.CodeAnalysis.Testing.TestGenerators.AddEmptyFile\EmptyGeneratedFile.cs' was expected to be 'utf-16' but was 'utf-8'";
             new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message);
         }

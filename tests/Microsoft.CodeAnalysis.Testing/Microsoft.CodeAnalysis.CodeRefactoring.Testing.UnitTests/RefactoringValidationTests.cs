@@ -243,6 +243,27 @@ Actual and expected values differ. Expected shown in baseline of diff:
         }
 
         [Fact]
+        [WorkItem(991, "https://github.com/dotnet/roslyn-sdk/issues/991")]
+        public async Task TestErrorForLackOfTriggerSpan()
+        {
+            var failure = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await new ReplaceThisWithBaseTest<ReplaceThisWithBaseShiftWhitespaceFix>
+                {
+                    TestCode = @"
+class TestClass {
+  void TestMethod() { this.Equals(null); }
+}
+",
+                }.RunAsync();
+            });
+
+            Assert.Equal(
+                @"Expected the refactoring test to specify the refactoring result in 'FixedState'",
+                failure.Message);
+        }
+
+        [Fact]
         [WorkItem(149, "https://github.com/dotnet/roslyn-sdk/pull/149")]
         public async Task TestSemanticValidationPassesFull()
         {

@@ -7,11 +7,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeRefactorings;
+using DiffPlex;
+using DiffPlex.Chunkers;
+using DiffPlex.DiffBuilder;
+using DiffPlex.DiffBuilder.Model;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
@@ -81,29 +82,151 @@ namespace Microsoft.CodeAnalysis.Testing
             // After applying the source generator, compare the resulting string to the inputted one
             if (!TestBehaviors.HasFlag(TestBehaviors.SkipGeneratedSourcesCheck))
             {
-                var updatedDocuments = project.Documents.ToArray();
-                var expectedSources = testState.Sources.Concat(testState.GeneratedSources).ToArray();
                 var numOriginalSources = testState.Sources.Count;
+                var updatedOriginalDocuments = project.Documents.Take(numOriginalSources).ToArray();
+                var generatedDocuments = project.Documents.Skip(numOriginalSources).ToArray();
 
-                verifier.Equal(expectedSources.Length, updatedDocuments.Length, $"expected '{nameof(testState)}.{nameof(SolutionState.Sources)}' with '{nameof(testState)}.{nameof(SolutionState.GeneratedSources)}' to match '{nameof(updatedDocuments)}', but '{nameof(testState)}.{nameof(SolutionState.Sources)}' with '{nameof(testState)}.{nameof(SolutionState.GeneratedSources)}' contains '{expectedSources.Length}' documents and '{nameof(updatedDocuments)}' contains '{updatedDocuments.Length}' documents");
-
-                for (var i = 0; i < updatedDocuments.Length; i++)
+                // Verify no changes occurred to the original documents
+                var updatedOriginalDocumentsWithTextBuilder = ImmutableArray.CreateBuilder<(Document document, SourceText content)>();
+                foreach (var updatedOriginalDocument in updatedOriginalDocuments)
                 {
-                    var actual = await GetSourceTextFromDocumentAsync(updatedDocuments[i], cancellationToken).ConfigureAwait(false);
-                    verifier.EqualOrDiff(expectedSources[i].content.ToString(), actual.ToString(), $"content of '{expectedSources[i].filename}' did not match. Diff shown with expected as baseline:");
-                    verifier.Equal(expectedSources[i].content.Encoding, actual.Encoding, $"encoding of '{expectedSources[i].filename}' was expected to be '{expectedSources[i].content.Encoding?.WebName}' but was '{actual.Encoding?.WebName}'");
-                    verifier.Equal(expectedSources[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{expectedSources[i].filename}' was expected to be '{expectedSources[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
-
-                    // Source-generated sources are implicitly in a subtree, so they have a different folders calculation.
-                    var (fileName, folders) = i < numOriginalSources
-                        ? GetNameAndFoldersFromPath(DefaultFilePathPrefix, expectedSources[i].filename)
-                        : GetNameAndFoldersFromSourceGeneratedFilePath(expectedSources[i].filename);
-                    verifier.Equal(fileName, updatedDocuments[i].Name, $"file name was expected to be '{fileName}' but was '{updatedDocuments[i].Name}'");
-                    verifier.SequenceEqual(folders, updatedDocuments[i].Folders, message: $"folders was expected to be '{string.Join("/", folders)}' but was '{string.Join("/", updatedDocuments[i].Folders)}'");
+                    updatedOriginalDocumentsWithTextBuilder.Add((updatedOriginalDocument, await GetSourceTextFromDocumentAsync(updatedOriginalDocument, CancellationToken.None).ConfigureAwait(false)));
                 }
+
+                VerifyDocuments(
+                    verifier.PushContext("Original files after running source generators"),
+                    updatedOriginalDocumentsWithTextBuilder.ToImmutable(),
+                    testState.Sources.ToImmutableArray(),
+                    allowReordering: false,
+                    DefaultFilePathPrefix,
+                    GetNameAndFoldersFromPath,
+                    MatchDiagnosticsTimeout);
+
+                // Verify the source generated documents match expectations
+                var generatedDocumentsWithTextBuilder = ImmutableArray.CreateBuilder<(Document document, SourceText content)>();
+                foreach (var generatedDocument in generatedDocuments)
+                {
+                    generatedDocumentsWithTextBuilder.Add((generatedDocument, await GetSourceTextFromDocumentAsync(generatedDocument, CancellationToken.None).ConfigureAwait(false)));
+                }
+
+                VerifyDocuments(
+                    verifier.PushContext("Verifying source generated files"),
+                    generatedDocumentsWithTextBuilder.ToImmutable(),
+                    testState.GeneratedSources.ToImmutableArray(),
+                    allowReordering: true,
+                    DefaultFilePathPrefix,
+                    static (_, path) => GetNameAndFoldersFromSourceGeneratedFilePath(path),
+                    MatchDiagnosticsTimeout);
             }
 
             return diagnostics;
+
+            static void VerifyDocuments(
+                IVerifier verifier,
+                ImmutableArray<(Document document, SourceText content)> actualDocuments,
+                ImmutableArray<(string filename, SourceText content)> expectedDocuments,
+                bool allowReordering,
+                string defaultFilePathPrefix,
+                Func<string, string, (string fileName, IEnumerable<string> folders)> getNameAndFolders,
+                TimeSpan matchTimeout)
+            {
+                ImmutableArray<WeightedMatch.Result<(string filename, SourceText content), (Document document, SourceText content)>> matches;
+                if (allowReordering)
+                {
+                    matches = WeightedMatch.Match(
+                        expectedDocuments,
+                        actualDocuments,
+                        ImmutableArray.Create<Func<(string filename, SourceText content), (Document document, SourceText content), bool, double>>(
+                            static (expected, actual, exactOnly) =>
+                            {
+                                if (actual.content.ToString() == expected.content.ToString())
+                                {
+                                    return 0.0;
+                                }
+
+                                if (exactOnly)
+                                {
+                                    // Avoid expensive diff calculation when exact match was requested.
+                                    return 1.0;
+                                }
+
+                                var diffBuilder = new InlineDiffBuilder(new Differ());
+                                var diff = diffBuilder.BuildDiffModel(expected.content.ToString(), actual.content.ToString(), ignoreWhitespace: true, ignoreCase: false, new LineChunker());
+                                var changeCount = diff.Lines.Count(static line => line.Type is ChangeType.Inserted or ChangeType.Deleted);
+                                if (changeCount == 0)
+                                {
+                                    // We have a failure caused only by line ending or whitespace differences. Make sure
+                                    // to use a non-zero value so it can be distinguished from exact matches.
+                                    changeCount = 1;
+                                }
+
+                                // Apply a multiplier to the content distance to account for its increased importance
+                                // over encoding and checksum algorithm changes.
+                                var priority = 3;
+
+                                return priority * changeCount / (double)diff.Lines.Count;
+                            },
+                            static (expected, actual, exactOnly) =>
+                            {
+                                return actual.content.Encoding == expected.content.Encoding ? 0.0 : 1.0;
+                            },
+                            static (expected, actual, exactOnly) =>
+                            {
+                                return actual.content.ChecksumAlgorithm == expected.content.ChecksumAlgorithm ? 0.0 : 1.0;
+                            },
+                            (expected, actual, exactOnly) =>
+                            {
+                                var distance = 0.0;
+                                var (fileName, folders) = getNameAndFolders(defaultFilePathPrefix, expected.filename);
+                                if (fileName != actual.document.Name)
+                                {
+                                    distance += 1.0;
+                                }
+
+                                if (!folders.SequenceEqual(actual.document.Folders))
+                                {
+                                    distance += 1.0;
+                                }
+
+                                return distance;
+                            }),
+                        matchTimeout);
+                }
+                else
+                {
+                    // Matching with an empty set of matching functions always takes the 1:1 alignment without reordering
+                    matches = WeightedMatch.Match(
+                        expectedDocuments,
+                        actualDocuments,
+                        ImmutableArray<Func<(string filename, SourceText content), (Document document, SourceText content), bool, double>>.Empty,
+                        matchTimeout);
+                }
+
+                // Use EqualOrDiff to verify the actual and expected filenames (and total collection length) in a convenient manner
+                verifier.EqualOrDiff(
+                    string.Join(Environment.NewLine, matches.Select(match => match.TryGetExpected(out var expected) ? expected.filename : string.Empty)),
+                    string.Join(Environment.NewLine, matches.Select(match => match.TryGetActual(out var actual) ? actual.document.FilePath : string.Empty)),
+                    $"Expected source file list to match");
+
+                // Follow by verifying each property of interest
+                foreach (var result in matches)
+                {
+                    if (!result.TryGetExpected(out var expected)
+                        || !result.TryGetActual(out var actual))
+                    {
+                        throw new InvalidOperationException("Unexpected state: should have failed during the previous assertion.");
+                    }
+
+                    verifier.EqualOrDiff(expected.content.ToString(), actual.content.ToString(), $"content of '{expected.filename}' did not match. Diff shown with expected as baseline:");
+                    verifier.Equal(expected.content.Encoding, actual.content.Encoding, $"encoding of '{expected.filename}' was expected to be '{expected.content.Encoding?.WebName}' but was '{actual.content.Encoding?.WebName}'");
+                    verifier.Equal(expected.content.ChecksumAlgorithm, actual.content.ChecksumAlgorithm, $"checksum algorithm of '{expected.filename}' was expected to be '{expected.content.ChecksumAlgorithm}' but was '{actual.content.ChecksumAlgorithm}'");
+
+                    // Source-generated sources are implicitly in a subtree, so they have a different folders calculation.
+                    var (fileName, folders) = getNameAndFolders(defaultFilePathPrefix, expected.filename);
+                    verifier.Equal(fileName, actual.document.Name, $"file name was expected to be '{fileName}' but was '{actual.document.Name}'");
+                    verifier.SequenceEqual(folders, actual.document.Folders, message: $"folders was expected to be '{string.Join("/", folders)}' but was '{string.Join("/", actual.document.Folders)}'");
+                }
+            }
         }
 
         private static (string fileName, IEnumerable<string> folders) GetNameAndFoldersFromSourceGeneratedFilePath(string filePath)

@@ -54,7 +54,7 @@ namespace Roslyn.ComponentDebugger
 
             public Task<ICollection<IEnumValue>> GetListedValuesAsync()
             {
-                var values = _referencingProjects.Select(p => new PageEnumValue(new EnumValue() { DisplayName = p.display, Name = p.path})).Cast<IEnumValue>().ToImmutableArray();
+                var values = _referencingProjects.Select(p => new PageEnumValue(new EnumValue() { DisplayName = p.display, Name = p.path })).Cast<IEnumValue>().ToImmutableArray();
                 return Task.FromResult<ICollection<IEnumValue>>(values);
             }
 

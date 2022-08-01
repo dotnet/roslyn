@@ -268,7 +268,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
                         var activeSemanticModel = ThreadHelper.JoinableTaskFactory.Run(() => document.GetSemanticModelAsync());
 
                         // Display the SyntaxTree.
-                        if (( contentType.IsOfType(VisualBasicContentType) || contentType.IsOfType(CSharpContentType) ) && activeSyntaxTree is not null)
+                        if ((contentType.IsOfType(VisualBasicContentType) || contentType.IsOfType(CSharpContentType)) && activeSyntaxTree is not null)
                         {
                             syntaxVisualizer.DisplaySyntaxTree(activeSyntaxTree, activeSemanticModel, workspace: document.Project.Solution.Workspace);
                         }
