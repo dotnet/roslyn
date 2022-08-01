@@ -25,7 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     internal sealed class VisualStudioWorkspaceServiceHubConnector : IEventListener<object>, IEventListenerStoppable
     {
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-        private readonly IThreadingContext _threadingContext;
         private readonly CancellationTokenSource _disposalCancellationSource = new();
 
         private GlobalNotificationRemoteDeliveryService? _globalNotificationDelivery;
@@ -35,16 +34,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioWorkspaceServiceHubConnector(
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IThreadingContext threadingContext)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _listenerProvider = listenerProvider;
-            _threadingContext = threadingContext;
         }
 
         public void StartListening(Workspace workspace, object serviceOpt)
         {
-            if (workspace is not VisualStudioWorkspace || IVsShellExtensions.IsInCommandLineMode(_threadingContext.JoinableTaskFactory))
+            if (workspace is not VisualStudioWorkspace)
             {
                 return;
             }
@@ -61,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public void StopListening(Workspace workspace)
         {
-            if (workspace is not VisualStudioWorkspace || IVsShellExtensions.IsInCommandLineMode(_threadingContext.JoinableTaskFactory))
+            if (workspace is not VisualStudioWorkspace)
             {
                 return;
             }

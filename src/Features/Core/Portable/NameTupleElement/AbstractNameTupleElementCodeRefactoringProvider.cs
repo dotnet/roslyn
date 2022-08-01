@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
         private static async Task<(SyntaxNode root, TArgumentSyntax argument, string argumentName)> TryGetArgumentInfoAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return default;
             }

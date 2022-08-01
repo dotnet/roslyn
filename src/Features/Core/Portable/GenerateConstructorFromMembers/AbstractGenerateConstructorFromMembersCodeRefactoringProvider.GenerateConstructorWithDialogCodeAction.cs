@@ -56,8 +56,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var workspace = _document.Project.Solution.Workspace;
-                var service = _service._pickMembersService_forTesting ?? workspace.Services.GetRequiredService<IPickMembersService>();
+                var service = _service._pickMembersService_forTesting ?? _document.Project.Solution.Services.GetRequiredService<IPickMembersService>();
 
                 return service.PickMembers(
                     FeaturesResources.Pick_members_to_be_used_as_constructor_parameters,
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     // If we presented the 'Add null check' option, then persist whatever value
                     // the user chose.  That way we'll keep that as the default for the next time
                     // the user opens the dialog.
-                    var globalOptions = _document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+                    var globalOptions = _document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
                     globalOptions.SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(_document.Project.Language, addNullChecksOption.Value);
                 }
 

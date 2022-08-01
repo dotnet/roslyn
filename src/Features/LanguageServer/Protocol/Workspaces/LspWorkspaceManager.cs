@@ -157,7 +157,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Ensure we have the latest lsp solutions
         var updatedSolutions = await GetLspSolutionsAsync(cancellationToken).ConfigureAwait(false);
 
-        var (hostWorkspaceSolution, isForked) = updatedSolutions.FirstOrDefault(lspSolution => lspSolution.Solution.Workspace.Kind == _hostWorkspaceKind);
+        var (hostWorkspaceSolution, isForked) = updatedSolutions.FirstOrDefault(lspSolution => lspSolution.Solution.WorkspaceKind == _hostWorkspaceKind);
         _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
 
         return hostWorkspaceSolution;
@@ -204,7 +204,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 var document = textDocuments.FindTextDocumentInProjectContext(textDocumentIdentifier);
 
                 // Record metadata on how we got this document.
-                var workspaceKind = document.Project.Solution.Workspace.Kind;
+                var workspaceKind = document.Project.Solution.WorkspaceKind;
                 _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
                 _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
                 _logger.TraceInformation($"{document.FilePath} found in workspace {workspaceKind}");
@@ -214,7 +214,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         }
 
         // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
-        var searchedWorkspaceKinds = string.Join(";", lspSolutions.SelectAsArray(lspSolution => lspSolution.Solution.Workspace.Kind));
+        var searchedWorkspaceKinds = string.Join(";", lspSolutions.SelectAsArray(lspSolution => lspSolution.Solution.WorkspaceKind));
         _logger.TraceError($"Could not find '{uri}'.  Searched {searchedWorkspaceKinds}");
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
@@ -311,7 +311,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
             if (!isTextEquivalent)
             {
-                _logger.TraceWarning($"Text for {uriInWorkspace} did not match document text {firstDocument.Id} in workspace's {firstDocument.Project.Solution.Workspace.Kind} current solution");
+                _logger.TraceWarning($"Text for {uriInWorkspace} did not match document text {firstDocument.Id} in workspace's {firstDocument.Project.Solution.WorkspaceKind} current solution");
                 return false;
             }
         }

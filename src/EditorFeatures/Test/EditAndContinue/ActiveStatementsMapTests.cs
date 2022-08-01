@@ -91,7 +91,7 @@ S5();
 
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
-            var analyzer = project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            var analyzer = project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
 
             var documentPathMap = new Dictionary<string, ImmutableArray<ActiveStatement>>();
 
@@ -146,7 +146,7 @@ S1();
 
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
-            var analyzer = project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            var analyzer = project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
 
             var documentPathMap = new Dictionary<string, ImmutableArray<ActiveStatement>>();
 
@@ -197,7 +197,7 @@ class C
 
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
-            var analyzer = project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            var analyzer = project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
 
             var documentPathMap = new Dictionary<string, ImmutableArray<ActiveStatement>>();
 

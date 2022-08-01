@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             private static IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object> GetCacheService(Project project)
-                => project.Solution.Workspace.Services.GetRequiredService<IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object>>();
+                => project.Solution.Services.GetRequiredService<IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object>>();
 
             private static string? GetPEReferenceCacheKey(PortableExecutableReference peReference)
                 => peReference.FilePath ?? peReference.Display;

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         internal static ImmutableArray<ISymbol> GetSymbolsTouchingPosition(
-            int position, SemanticModel semanticModel, HostWorkspaceServices services, CancellationToken cancellationToken)
+            int position, SemanticModel semanticModel, HostSolutionServices services, CancellationToken cancellationToken)
         {
             var bindableToken = semanticModel.SyntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
             var semanticInfo = semanticModel.GetSemanticInfo(bindableToken, services, cancellationToken);

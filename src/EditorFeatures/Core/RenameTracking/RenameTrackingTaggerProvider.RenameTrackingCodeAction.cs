@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                             // The rename tracking could be dismissed while a codefix is still cached
                             // in the lightbulb. If this happens, do not perform the rename requested
                             // and instead let the user know their fix will not be applied. 
-                            _document.Project.Solution.Workspace.Services.GetService<INotificationService>()
+                            _document.Project.Solution.Services.GetService<INotificationService>()
                                 ?.SendNotification(EditorFeaturesResources.The_rename_tracking_session_was_cancelled_and_is_no_longer_available, severity: NotificationSeverity.Error);
                             return false;
                         }
