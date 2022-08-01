@@ -210,6 +210,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 _text = text;
             }
 
+            internal override SourceHashAlgorithm ChecksumAlgorithm
+                => _hostDocument.ChecksumAlgorithm;
+
             internal override string? FilePath
                 => _hostDocument.FilePath;
 
