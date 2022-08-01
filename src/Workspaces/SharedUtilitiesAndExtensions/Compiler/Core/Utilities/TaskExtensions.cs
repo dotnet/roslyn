@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -11,7 +10,6 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Roslyn.Utilities
@@ -384,19 +382,6 @@ namespace Roslyn.Utilities
 
             // Propagate any exceptions that may have been thrown.
             task.GetAwaiter().GetResult();
-        }
-
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods.  This is an explicit task management method.
-        public static async ValueTask<ImmutableArray<TResult>> WhenAll<TResult>(this ImmutableArray<Task<TResult>> tasks)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
-        {
-            using var _ = ArrayBuilder<TResult>.GetInstance(out var result);
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-            foreach (var task in tasks)
-                result.Add(await task.ConfigureAwait(false));
-
-            return result.ToImmutableAndClear();
         }
     }
 }
