@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote
             foreach (var checksum in checksums)
                 list.Add(ValueTuple.Create(checksum, await GetAssetAsync<T>(checksum, cancellationToken).ConfigureAwait(false)));
 
-            return list.ToImmutable();
+            return list.ToImmutableAndClear();
         }
 
         public async ValueTask SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
