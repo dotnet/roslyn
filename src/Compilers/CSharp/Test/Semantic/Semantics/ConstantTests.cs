@@ -3444,7 +3444,7 @@ class C
                 );
         }
 
-        [Fact]
+        [Fact( Skip = "Metalama: very long and irrelevant to us")]
         [WorkItem(24869, "https://github.com/dotnet/roslyn/issues/24869")]
         public void TestSelfReferencingViaLambda2()
         {

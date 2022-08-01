@@ -5,11 +5,13 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Test.Utilities.CSharpInstrumentationChecker;
 
@@ -3536,6 +3538,14 @@ static void Test()
 
             var compilation = CreateCompilation(trees.ToArray(), options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true));
             trees.Free();
+
+            // <Metalama>
+            if ( MetalamaCompilerTest.ShouldExecuteTransformer )
+            {
+                compilation = (CSharpCompilation)MetalamaCompilerTest.ExecuteTransformer(compilation, new MetalamaCompilerTest.TokenPerLineTransformer());
+            }
+            // </Metalama>
+
             return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
         }
 

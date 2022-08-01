@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.PortableExecutable;
@@ -68,6 +69,28 @@ public class C
     public static int Pebbles { get; set; }
 }
 ";
+        // <Metalama>
+        private static new CSharpCompilation CreateCompilation(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            TargetFramework targetFramework = TargetFramework.Standard,
+            string assemblyName = "",
+            string sourceFileName = "",
+            bool skipUsesIsNullable = false)
+        {
+            var compilation = CSharpTestBase.CreateCompilation( source, references, options, parseOptions,
+                targetFramework, assemblyName, sourceFileName, skipUsesIsNullable);
+
+            if (MetalamaCompilerTest.ShouldExecuteTransformer)
+            {
+                compilation = (CSharpCompilation)MetalamaCompilerTest.ExecuteTransformer(compilation, new MetalamaCompilerTest.TokenPerLineTransformer());
+            }
+
+            return compilation;
+        }
+        // </Metalama>
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void TestSpansPresentInResource()

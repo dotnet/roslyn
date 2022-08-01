@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Metalama.Compiler;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
@@ -442,6 +443,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement AddDynamicAnalysis(BoundStatement original, BoundStatement rewritten)
         {
+            // <Metalama>
+            if ( TreeTracker.IsTransformedSyntaxNode(original.Syntax) )
+            {
+                return rewritten;
+            }
+            // </Metalama>
             if (!original.WasCompilerGenerated)
             {
                 // Do not instrument implicit constructor initializers
@@ -463,7 +470,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static Cci.DebugSourceDocument GetSourceDocument(DebugDocumentProvider debugDocumentProvider, SyntaxNode syntax)
         {
-            return GetSourceDocument(debugDocumentProvider, syntax, syntax.GetLocation().GetMappedLineSpan());
+            // <Metalama> - changed GetLocation() to GetSourceLocation()
+            return GetSourceDocument(debugDocumentProvider, syntax, syntax.GetSourceLocation().GetMappedLineSpan());
+            // </Metalama>
         }
 
         private static Cci.DebugSourceDocument GetSourceDocument(DebugDocumentProvider debugDocumentProvider, SyntaxNode syntax, FileLinePositionSpan span)
@@ -480,12 +489,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement AddAnalysisPoint(SyntaxNode syntaxForSpan, Text.TextSpan alternateSpan, SyntheticBoundNodeFactory statementFactory)
         {
-            return AddAnalysisPoint(syntaxForSpan, syntaxForSpan.SyntaxTree.GetMappedLineSpan(alternateSpan), statementFactory);
+            // <Metalama/>: Replace .SyntaxTree by .GetSourceSyntaxTree()
+            return AddAnalysisPoint(syntaxForSpan, syntaxForSpan.GetSourceSyntaxTree().GetMappedLineSpan(alternateSpan), statementFactory);
         }
 
         private BoundStatement AddAnalysisPoint(SyntaxNode syntaxForSpan, SyntheticBoundNodeFactory statementFactory)
         {
-            return AddAnalysisPoint(syntaxForSpan, syntaxForSpan.GetLocation().GetMappedLineSpan(), statementFactory);
+            // <Metalama> - changed GetLocation() to GetSourceLocation()
+            return AddAnalysisPoint(syntaxForSpan, syntaxForSpan.GetSourceLocation().GetMappedLineSpan(), statementFactory);
+            // </Metalama>
         }
 
         private BoundStatement AddAnalysisPoint(SyntaxNode syntaxForSpan, FileLinePositionSpan span, SyntheticBoundNodeFactory statementFactory)
@@ -605,19 +617,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SkipAttributes(syntax, operatorSyntax.AttributeLists, operatorSyntax.Modifiers, operatorSyntax.OperatorKeyword, null);
             }
 
-            return syntax.Span;
+            // <Metalama>
+            // return syntax.Span;
+            return syntax.GetSourceSpan();
+            // </Metalama>
         }
 
         private static Text.TextSpan SkipAttributes(SyntaxNode syntax, SyntaxList<AttributeListSyntax> attributes, SyntaxTokenList modifiers, SyntaxToken keyword, TypeSyntax type)
         {
-            Text.TextSpan originalSpan = syntax.Span;
+            // <Metalama> - Change .Span to .GetSourceSpan
+            Text.TextSpan originalSpan = syntax.GetSourceSpan();
             if (attributes.Count > 0)
             {
-                Text.TextSpan startSpan = modifiers.Node != null ? modifiers.Span : (keyword.Node != null ? keyword.Span : type.Span);
+                Text.TextSpan startSpan = modifiers.Node != null ? modifiers.GetSourceSpan() : (keyword.Node != null ? keyword.GetSourceSpan() : type.GetSourceSpan());
                 return new Text.TextSpan(startSpan.Start, originalSpan.Length - (startSpan.Start - originalSpan.Start));
             }
+            // </Metalama>
 
             return originalSpan;
+            
         }
     }
 }
