@@ -52,13 +52,15 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         internal IMefHostExportProvider HostExportProvider => _exportProvider;
 
+        internal string WorkspaceKind => _workspace.Kind;
+
         public override Workspace Workspace
         {
             get
             {
-#if !CODE_STYLE
-                Contract.ThrowIfTrue(_workspace.Kind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace MefWorkspaceServices is not supported.");
-#endif
+//#if !CODE_STYLE
+//                Contract.ThrowIfTrue(_workspace.Kind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace MefWorkspaceServices is not supported.");
+//#endif
                 return _workspace;
             }
         }

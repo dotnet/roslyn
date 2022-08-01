@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis
             // my reasonings are
             // 1. it seems there is no-one who needs sub branches.
             // 2. this lets us to branch without explicit branch API
-            return _branchId == Workspace.PrimaryBranchId ? BranchId.GetNextId() : _branchId;
+            return _branchId == _primaryBranchId ? BranchId.GetNextId() : _branchId;
         }
 
         /// <summary>
