@@ -30,8 +30,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// </summary>
         private class SingleSymbolRenameSession : AbstractRenameSession
         {
-            //private readonly SolutionRenameInfo _solutionRenameInfo;
-
             // Set of All Locations that will be renamed (does not include non-reference locations that need to be checked for conflicts)
             private readonly SymbolicRenameLocations _renameLocationSet;
 
@@ -41,16 +39,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private readonly string _originalText;
             private readonly string _replacementText;
             private readonly ImmutableArray<SymbolKey> _nonConflictSymbolKeys;
-            private readonly CancellationToken _cancellationToken;
 
             // Contains Strings like Bar -> BarAttribute ; Property Bar -> Bar , get_Bar, set_Bar
             private readonly ImmutableArray<string> _possibleNameConflicts;
             private readonly ImmutableHashSet<DocumentId> _documentsIdsToBeCheckedForConflict;
-            private readonly AnnotationTable<RenameAnnotation> _renameAnnotations;
-            private readonly ImmutableArray<ProjectId> _topologicallySortedProjects;
             private readonly bool _replacementTextValid;
 
-            private ISet<ConflictLocationInfo> _conflictLocations;
             private bool _documentOfRenameSymbolHasBeenRenamed;
 
             public static async Task<SingleSymbolRenameSession> CreateAsync(
@@ -67,9 +61,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     originalText,
                     cancellationToken).ConfigureAwait(false);
 
-                var dependencyGraph = renameLocationSet.Solution.GetProjectDependencyGraph();
-                var topologicallySortedProjects = dependencyGraph.GetTopologicallySortedProjects(cancellationToken).ToImmutableArray();
-
                 var replacementTextValid = IsIdentifierValid_Worker(
                     renameLocationSet.Solution,
                     replacementText,
@@ -83,7 +74,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     nonConflictSymbolKeys,
                     possibleNameConflicts,
                     documentsIdsToBeCheckedForConflict,
-                    topologicallySortedProjects,
                     replacementTextValid,
                     cancellationToken);
             }
@@ -98,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 ImmutableHashSet<DocumentId> documentsIdsToBeCheckedForConflict,
                 ImmutableArray<ProjectId> topologicallySortedProjects,
                 bool replacementTextValid,
-                CancellationToken cancellationToken)
+                CancellationToken cancellationToken) : base(renameLocationSet.Solution, cancellationToken)
 
             {
                 _renameLocationSet = renameLocationSet;
@@ -109,12 +99,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 _originalText = originalText;
                 _replacementText = replacementText;
                 _nonConflictSymbolKeys = nonConflictSymbolKeys;
-                _cancellationToken = cancellationToken;
                 _possibleNameConflicts = possibleNameConflicts;
 
-                _renameAnnotations = new AnnotationTable<RenameAnnotation>(RenameAnnotation.Kind);
                 _documentsIdsToBeCheckedForConflict = documentsIdsToBeCheckedForConflict;
-                _topologicallySortedProjects = topologicallySortedProjects;
                 _conflictLocations = SpecializedCollections.EmptySet<ConflictLocationInfo>();
                 _replacementTextValid = replacementTextValid;
                 _documentOfRenameSymbolHasBeenRenamed = false;
@@ -710,13 +697,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
             // The rename process and annotation for the bookkeeping is performed in one-step
-            private async Task<Solution> AnnotateAndRename_WorkerAsync(
+            protected override async Task<(Solution, ImmutableHashSet<DocumentId>)> AnnotateAndRename_WorkerAsync(
                 Solution originalSolution,
                 Solution partiallyRenamedSolution,
                 HashSet<DocumentId> documentIdsToRename,
-                ImmutableArray<RenameLocation> renameLocations,
-                RenamedSpansTracker renameSpansTracker,
-                bool replacementTextValid)
+                RenamedSpansTracker renameSpansTracker)
             {
                 try
                 {
@@ -727,8 +712,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         PossibleNameConflicts: _possibleNameConflicts,
                         RenamedSymbol: _renameLocationSet.Symbol,
                         AliasSymbol: _renameLocationSet.Symbol as IAliasSymbol,
-                        ReplacementTextValid: replacementTextValid
+                        ReplacementTextValid: _replacementTextValid
                     );
+
+                    using var _1 = PooledHashSet<DocumentId>.GetInstance(out var unchangedDocumentIds);
+                    var renameLocations = _renameLocationSet.Locations;
 
                     foreach (var documentId in documentIdsToRename.ToList())
                     {
@@ -738,7 +726,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var semanticModel = await document.GetRequiredSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                         var originalSyntaxRoot = await semanticModel.SyntaxTree.GetRootAsync(_cancellationToken).ConfigureAwait(false);
 
-                        using var _ = ArrayBuilder<RenameLocation>.GetInstance(out var locationsInDocument);
+                        using var _2 = ArrayBuilder<RenameLocation>.GetInstance(out var locationsInDocument);
                         foreach (var location in renameLocations)
                         {
                             if (location.DocumentId == documentId)
@@ -782,7 +770,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         {
                             // Update the list for the current phase, some files with strings containing the original or replacement
                             // text may have been filtered out.
-                            documentIdsToRename.Remove(documentId);
+                            unchangedDocumentIds.Add(documentId);
                         }
                         else
                         {
@@ -790,7 +778,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         }
                     }
 
-                    return partiallyRenamedSolution;
+                    return (partiallyRenamedSolution, unchangedDocumentIds.ToImmutableHashSet());
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
