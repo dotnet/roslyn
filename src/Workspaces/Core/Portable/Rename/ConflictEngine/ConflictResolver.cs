@@ -150,22 +150,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return isConflict;
         }
 
-        private static bool IsIdentifierValid_Worker(Solution solution, string replacementText, IEnumerable<ProjectId> projectIds)
-        {
-            foreach (var language in projectIds.Select(p => solution.GetRequiredProject(p).Language).Distinct())
-            {
-                var languageServices = solution.Workspace.Services.GetLanguageServices(language);
-                var renameRewriterLanguageService = languageServices.GetRequiredService<IRenameRewriterLanguageService>();
-                var syntaxFactsLanguageService = languageServices.GetRequiredService<ISyntaxFactsService>();
-                if (!renameRewriterLanguageService.IsIdentifierValid(replacementText, syntaxFactsLanguageService))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         private static bool IsRenameValid(MutableConflictResolution conflictResolution, ISymbol renamedSymbol)
         {
             // if we rename an identifier and it now binds to a symbol from metadata this should be treated as

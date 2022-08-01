@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -113,6 +114,21 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
             }
 
+            protected static bool IsIdentifierValid_Worker(Solution solution, string replacementText, IEnumerable<ProjectId> projectIds)
+            {
+                foreach (var language in projectIds.Select(p => solution.GetRequiredProject(p).Language).Distinct())
+                {
+                    var languageServices = solution.Workspace.Services.GetLanguageServices(language);
+                    var renameRewriterLanguageService = languageServices.GetRequiredService<IRenameRewriterLanguageService>();
+                    var syntaxFactsLanguageService = languageServices.GetRequiredService<ISyntaxFactsService>();
+                    if (!renameRewriterLanguageService.IsIdentifierValid(replacementText, syntaxFactsLanguageService))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
     }
 }
