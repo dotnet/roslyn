@@ -60,7 +60,14 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The Workspace this solution is associated with.
         /// </summary>
-        public Workspace Workspace => _state.Workspace;
+        public Workspace Workspace
+        {
+            get
+            {
+                Contract.ThrowIfTrue(this.WorkspaceKind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace Solution is not supported.");
+                return _state.Workspace;
+            }
+        }
 
         /// <summary>
         /// The Id of the solution. Multiple solution instances may share the same Id.
