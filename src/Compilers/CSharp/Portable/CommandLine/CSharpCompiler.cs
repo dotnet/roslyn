@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private protected override TransformersResult RunTransformers(
             Compilation inputCompilation, IServiceProvider serviceProvider,  ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
-            ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics, CancellationToken cancellationToken)
+            ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, TransformerOptions transformerOptions, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             // If there are no transformers, don't do anything, not even annotate.
             if (transformers.IsEmpty)
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
              ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
 
             var result = RunTransformers(inputCompilation, transformers, sourceOnlyAnalyzersOptions, plugins,
-                analyzerConfigProvider, diagnostics, resources, AssemblyLoader, serviceProvider, cancellationToken);
+                analyzerConfigProvider, transformerOptions, diagnostics, resources, AssemblyLoader, serviceProvider, cancellationToken);
 
             Arguments.ManifestResources = resources.AddRange(result.AdditionalResources);
 
@@ -480,6 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceOnlyAnalyzersOptions? sourceOnlyAnalyzersOptions,
             ImmutableArray<object> plugins,
             AnalyzerConfigOptionsProvider analyzerConfigProvider,
+            TransformerOptions? transformerOptions,
             DiagnosticBag diagnostics,
             ImmutableArray<ResourceDescription> manifestResources,
             IAnalyzerAssemblyLoader assemblyLoader,
@@ -491,6 +492,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return TransformersResult.Empty(inputCompilation, analyzerConfigProvider);
             }
+
+            transformerOptions ??= new TransformerOptions();
 
             Dictionary<SyntaxTree, (SyntaxTree NewTree,bool IsModified)> oldTreeToNewTrees = new();
             Dictionary<SyntaxTree, SyntaxTree?> newTreesToOldTrees = new();
@@ -544,14 +547,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Execute the transformers.
             var outputCompilation = annotatedInputCompilation;
-
+            
+            
             foreach (var transformer in transformers)
             {
                 try
                 {
                     var context = new TransformerContext(outputCompilation,
                         plugins,
-                        analyzerConfigProvider.GlobalOptions,
+                        analyzerConfigProvider,
+                        transformerOptions,
                         inputResources.AddRange(addedResources),
                         services,
                         diagnostics,

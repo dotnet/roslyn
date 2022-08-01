@@ -15,6 +15,8 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
+using PublicMethodSymbol = Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel.MethodSymbol;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -44,6 +46,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             DebugDocumentProvider debugDocumentProvider,
             Instrumenter previous)
         {
+            
+            // <Metalama>
+            // Do not instrument generated methods.
+            if ( methodBody.Syntax.IsTransformedSyntaxNode())
+            {
+                return null;
+            }
+
+            // Do not instrument methods marked to be ignored.
+            if (methodBody.Syntax.Parent!.HasAnnotations(MetalamaCompilerAnnotations.IgnoreCodeCoverageAnnotationKind))
+            {
+                return null;
+            }
+
+            // Follow redirections from annotations.
+            var originalMethod = method;
+            if (methodBody.Syntax.Parent!.TryGetCodeCoverageRedirectionFromAnnotation( methodBodyFactory.Compilation, out var redirectedMethod))
+            {
+                var publicMethodSymbol = (PublicMethodSymbol) redirectedMethod!;
+                method = publicMethodSymbol.UnderlyingMethodSymbol;
+            }
+            
+            
+            // </Metalama>
+            
             // Do not instrument implicitly-declared methods, except for constructors.
             // Instrument implicit constructors in order to instrument member initializers.
             if (method.IsImplicitlyDeclared && !method.IsImplicitConstructor)
@@ -56,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return null;
             }
+
 
             MethodSymbol createPayloadForMethodsSpanningSingleFile = GetCreatePayloadOverload(
                 methodBodyFactory.Compilation,
@@ -84,6 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new DynamicAnalysisInjector(
                 method,
+                originalMethod, // <Metalama />
                 methodBody,
                 methodBodyFactory,
                 createPayloadForMethodsSpanningSingleFile,
@@ -95,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DynamicAnalysisInjector(
             MethodSymbol method,
+            MethodSymbol originalMethod, // <Metalama />
             BoundStatement methodBody,
             SyntheticBoundNodeFactory methodBodyFactory,
             MethodSymbol createPayloadForMethodsSpanningSingleFile,
@@ -121,14 +151,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodPayload = methodBodyFactory.SynthesizedLocal(_payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
             // The first point indicates entry into the method and has the span of the method definition.
             SyntaxNode syntax = MethodDeclarationIfAvailable(methodBody.Syntax);
+            
+            
             if (!method.IsImplicitlyDeclared && !(method is SynthesizedSimpleProgramEntryPointSymbol))
             {
+                // <Metalama>
+                if (method != originalMethod)
+                {
+                    // We need to emit the entry point based on the original declaration, because the transformed declaration is not in source code.
+                    syntax = method.DeclaringSyntaxReferences.Select(x=>x.GetSyntax()).Single(x => HasBody(x));
+                }
+                // </Metalama>
                 _methodEntryInstrumentation = AddAnalysisPoint(syntax, SkipAttributes(syntax), methodBodyFactory);
             }
 
             // Restore context
             methodBodyFactory.CurrentFunction = oldMethod;
         }
+        
+        // <Metalama>
+        static bool HasBody(SyntaxNode node)
+            => node switch
+            {
+                BaseMethodDeclarationSyntax method => method.Body != null || method.ExpressionBody != null,
+                PropertyDeclarationSyntax property => property.ExpressionBody != null,
+                AccessorDeclarationSyntax accessor => accessor.Body != null || accessor.ExpressionBody != null,
+                _ => true
+            };
+        // </Metalama>
 
         private static bool IsExcludedFromCodeCoverage(MethodSymbol method)
         {
@@ -444,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement AddDynamicAnalysis(BoundStatement original, BoundStatement rewritten)
         {
             // <Metalama>
-            if ( TreeTracker.IsTransformedSyntaxNode(original.Syntax) )
+            if ( original.Syntax.IsTransformedSyntaxNode() )
             {
                 return rewritten;
             }

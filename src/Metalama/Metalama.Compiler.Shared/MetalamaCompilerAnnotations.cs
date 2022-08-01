@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
+
 namespace Metalama.Compiler;
 
 /// <summary>
@@ -96,5 +97,34 @@ public static class MetalamaCompilerAnnotations
         }
     }
 #endif
+
+    internal const string IgnoreCodeCoverageAnnotationKind = "Metalama.Compiler.IgnoreCodeCoverage";
+    internal const string RedirectCodeCoverageAnnotationKind = "Metalama.Compiler.RedirectCodeCoverage";
+    
+
+    private static readonly SyntaxAnnotation _ignoreCodeCoverageAnnotation = new SyntaxAnnotation(IgnoreCodeCoverageAnnotationKind);
+
+    public static T WithIgnoreCodeCoverageAnnotation<T>(this T syntaxNode)
+    where T : SyntaxNode
+        => syntaxNode.WithAdditionalAnnotations(_ignoreCodeCoverageAnnotation);
+    public static T WithRedirectCodeCoverageAnnotation<T>(this T syntaxNode, ISymbol originalSymbol)
+        where T : SyntaxNode
+        => syntaxNode.WithAdditionalAnnotations(new SyntaxAnnotation(RedirectCodeCoverageAnnotationKind, DocumentationCommentId.CreateDeclarationId(originalSymbol)));
+
+    public static bool TryGetCodeCoverageRedirectionFromAnnotation(this SyntaxNode syntaxNode, Compilation compilation,
+        out ISymbol? redirectedSymbol)
+    {
+        var annotation = syntaxNode.GetAnnotations(RedirectCodeCoverageAnnotationKind).SingleOrDefault();
+        if (annotation != null)
+        {
+            redirectedSymbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(annotation.Data!, compilation);
+            return true;
+        }
+        else
+        {
+            redirectedSymbol = null;
+            return false;
+        }
+    }
 
 }

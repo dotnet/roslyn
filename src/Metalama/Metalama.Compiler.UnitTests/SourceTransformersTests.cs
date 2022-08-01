@@ -167,7 +167,7 @@ config_transformer_class_name = ConfigTestClass
         {
             public void Execute(TransformerContext context)
             {
-                context.GlobalOptions.TryGetValue("config_transformer_class_name", out var className);
+                context.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue("config_transformer_class_name", out var className);
 
                 context.ReplaceSyntaxTree(context.Compilation.SyntaxTrees.Single(), SyntaxFactory.ParseSyntaxTree($"class {className} {{}}"));
             }
