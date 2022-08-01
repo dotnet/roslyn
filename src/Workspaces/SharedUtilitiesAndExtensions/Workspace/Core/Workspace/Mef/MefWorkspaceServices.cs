@@ -58,9 +58,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             get
             {
-//#if !CODE_STYLE
-//                Contract.ThrowIfTrue(_workspace.Kind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace MefWorkspaceServices is not supported.");
-//#endif
+                //#if !CODE_STYLE
+                //                Contract.ThrowIfTrue(_workspace.Kind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace MefWorkspaceServices is not supported.");
+                //#endif
                 return _workspace;
             }
         }
