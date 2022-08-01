@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal partial class SolutionState
     {
+        private readonly BranchId _primaryBranchId;
+
         // branch id for this solution
         private readonly BranchId _branchId;
 
@@ -73,6 +75,7 @@ namespace Microsoft.CodeAnalysis
         private readonly SourceGeneratedDocumentState? _frozenSourceGeneratedDocumentState;
 
         private SolutionState(
+            BranchId primaryBranchId,
             BranchId branchId,
             string? workspaceKind,
             int workspaceVersion,
@@ -88,6 +91,7 @@ namespace Microsoft.CodeAnalysis
             Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers,
             SourceGeneratedDocumentState? frozenSourceGeneratedDocument)
         {
+            _primaryBranchId = primaryBranchId;
             _branchId = branchId;
             WorkspaceKind = workspaceKind;
             _workspaceVersion = workspaceVersion;
@@ -122,6 +126,7 @@ namespace Microsoft.CodeAnalysis
             SolutionOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences)
             : this(
+                primaryBranchId,
                 primaryBranchId,
                 workspaceKind,
                 workspaceVersion: 0,
@@ -174,6 +179,8 @@ namespace Microsoft.CodeAnalysis
         /// version only has a meaning between primary solution and branched one or between solutions from same branch.
         /// </summary>
         public BranchId BranchId => _branchId;
+
+        public BranchId PrimaryBranchId => _primaryBranchId;
 
         /// <summary>
         /// The Workspace this solution is associated with.
@@ -257,6 +264,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new SolutionState(
+                _primaryBranchId,
                 branchId,
                 WorkspaceKind,
                 _workspaceVersion,
@@ -288,6 +296,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new SolutionState(
+                branchId,
                 branchId,
                 workspaceKind,
                 workspaceVersion,
