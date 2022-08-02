@@ -192,14 +192,14 @@ namespace Microsoft.CodeAnalysis.Remote
                     // If we were the request that decremented the in-flight-count to 0, then ensure we wait for all the
                     // solution-computation tasks to finish.  If we do not do this then it's possible for this call to
                     // return all the way back to the host side unpinning the solution we have pinned there.  This may
-                    // happen concurrently with the solution-computation calls calling back into the host which will then
-                    // crash due to that solution no longer being pinned there.  While this does force this caller to wait
-                    // for those tasks to stop, this should ideally be fast as they will have been cancelled when the
-                    // in-flight-count went to 0.
+                    // happen concurrently with the solution-computation calls calling back into the host which will
+                    // then crash due to that solution no longer being pinned there.  While this does force this caller
+                    // to wait for those tasks to stop, this should ideally be fast as they will have been cancelled
+                    // when the in-flight-count went to 0.
                     //
                     // Use a NoThrowAwaitable as we want to await all tasks here regardless of how individual ones may cancel.
                     foreach (var task in solutionComputationTasks)
-                        await task.NoThrowAwaitable();
+                        await task.NoThrowAwaitable(false);
                 }
                 catch (Exception ex) when (FatalError.ReportAndPropagate(ex, ErrorSeverity.Critical))
                 {

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -103,23 +104,32 @@ namespace Microsoft.CodeAnalysis.Remote
             /// <param name="updatePrimaryBranchAsync"></param>
             public void TryKickOffPrimaryBranchWork_NoLock(Func<Solution, CancellationToken, Task<Solution>> updatePrimaryBranchAsync)
             {
-                Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
-                Contract.ThrowIfNull(updatePrimaryBranchAsync);
-                Contract.ThrowIfTrue(this._cancellationTokenSource_doNotAccessDirectly.IsCancellationRequested);
+                try
+                {
+                    Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
+                    Contract.ThrowIfNull(updatePrimaryBranchAsync);
+                    Contract.ThrowIfTrue(this._cancellationTokenSource_doNotAccessDirectly.IsCancellationRequested);
 
-                // Already set up the work to update the primary branch
-                if (_primaryBranchTask != null)
-                    return;
+                    // Already set up the work to update the primary branch
+                    if (_primaryBranchTask != null)
+                        return;
 
-                // Grab the cancellation token up front while we know we are holding the lock and mutating state.  We
-                // don't want to potentially grab it at some undefined point at the future when this type has already
-                // had its in-flight-count reduced to 0 and thus had our CTS be disposed.
-                //
-                // Also kick this off in a dedicated task.  The state mutation updating of this InFlightSolution and the
-                // cache state in RemoteWorkspace must always run fully to completion without issue. We don't want
-                // anything we call in this method to possibly prevent the method from running to completion.
-                var cancellationToken = this.CancellationToken;
-                _primaryBranchTask = Task.Run(() => ComputePrimaryBranchAsync(cancellationToken), cancellationToken);
+                    // Grab the cancellation token up front while we know we are holding the lock and mutating state.  We
+                    // don't want to potentially grab it at some undefined point at the future when this type has already
+                    // had its in-flight-count reduced to 0 and thus had our CTS be disposed.
+                    //
+                    // Also kick this off in a dedicated task.  The state mutation updating of this InFlightSolution and the
+                    // cache state in RemoteWorkspace must always run fully to completion without issue. We don't want
+                    // anything we call in this method to possibly prevent the method from running to completion.
+                    var cancellationToken = this.CancellationToken;
+                    _primaryBranchTask = Task.Run(() => ComputePrimaryBranchAsync(cancellationToken), cancellationToken);
+                }
+                catch (Exception ex) when (FatalError.ReportAndPropagate(ex, ErrorSeverity.General))
+                {
+                    // The above must never throw.  If it does our caller will not properly update the cache state
+                    // properly and can leave things invalid.
+                }
+
                 return;
 
                 async Task<Solution> ComputePrimaryBranchAsync(CancellationToken cancellationToken)

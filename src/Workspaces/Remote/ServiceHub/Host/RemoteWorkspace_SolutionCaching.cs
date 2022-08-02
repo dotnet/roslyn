@@ -35,6 +35,9 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private readonly Dictionary<Checksum, InFlightSolution> _solutionChecksumToSolution = new();
 
+        /// <summary>
+        /// Deliberately not cancellable.  This code must always run fully to completion.
+        /// </summary>
         private InFlightSolution GetOrCreateSolutionAndAddInFlightCount_NoLock(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
