@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public void Method()
     {
-        var i = 0;
+        var i, j, k, a, b, c = 0;
         Ins$$
     }
 }";
