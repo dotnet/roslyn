@@ -14,6 +14,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -171,7 +172,7 @@ namespace RunTests
             }
         }
 
-        private static ImmutableArray<WorkItemInfo> BuildWorkItems<T>(
+        private ImmutableArray<WorkItemInfo> BuildWorkItems<T>(
             ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> typeInfos,
             Func<T, bool> isOverLimitFunc,
             Func<TestMethodInfo, T, T> addFunc) where T : struct
