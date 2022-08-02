@@ -119,6 +119,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 inFlightSolution = GetOrCreateSolutionAndAddInFlightCount_NoLock(
                     assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch);
                 solutionTask = inFlightSolution.PreferredSolutionTask_NoLock;
+
+                // We must have at least 1 for the in-flight-count (representing this current in-flight call).
+                Contract.ThrowIfTrue(inFlightSolution.InFlightCount < 1);
             }
 
             try
