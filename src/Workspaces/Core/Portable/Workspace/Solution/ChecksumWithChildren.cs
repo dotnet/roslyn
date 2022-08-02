@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Serialization
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal abstract class ChecksumWithChildren : IChecksummedObject
     {
-        public ChecksumWithChildren(object[] children)
+        public ChecksumWithChildren(ImmutableArray<object> children)
         {
             Checksum = CreateChecksum(children);
             Children = children;
@@ -20,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         public Checksum Checksum { get; }
 
-        public IReadOnlyList<object> Children { get; }
+        public ImmutableArray<object> Children { get; }
 
-        private static Checksum CreateChecksum(object[] children)
+        private static Checksum CreateChecksum(ImmutableArray<object> children)
         {
             // given children must be either Checksum or Checksums (collection of a checksum)
             return Checksum.Create(children.Select(c => c as Checksum ?? ((ChecksumCollection)c).Checksum));
