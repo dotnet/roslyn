@@ -37,9 +37,22 @@ namespace Metalama.Compiler
             }
 
             this.Version = version;
-            this.IsPrerelease = version.Contains("-");
             this.BuildDate = DateTime.Parse(buildDate, CultureInfo.InvariantCulture);
             this.IsLongRunningProcess = isLongRunningProcess;
+
+            // Parse the version set properties that depend on the kind of version.
+            var versionParts = version.Split('-');
+
+            if (versionParts.Length == 1)
+            {
+                this.IsPrerelease = false;
+                this.IsTelemetryEnabled = true;
+            }
+            else
+            {
+                this.IsPrerelease = true;
+                this.IsTelemetryEnabled = versionParts[1] is not ("dev" or "local");
+            }
         }
 
         /// <inheritdoc />
@@ -64,11 +77,6 @@ namespace Metalama.Compiler
         public bool IsPrerelease { get; }
 
         /// <inheritdoc />
-        public bool IsTelemetryEnabled =>
-#if DEBUG
-            false;
-#else
-            true;
-#endif
+        public bool IsTelemetryEnabled { get; }
     }
 }
