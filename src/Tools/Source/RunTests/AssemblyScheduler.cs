@@ -289,7 +289,7 @@ namespace RunTests
         {
             var assemblyDirectory = Path.GetDirectoryName(assemblyInfo.AssemblyPath);
             var testListPath = Path.Combine(assemblyDirectory!, "testlist.json");
-            Contract.Assert(File.Exists(testListPath));
+            Contract.Assert(File.Exists(testListPath), $"could not get test list for {assemblyInfo.AssemblyPath}");
 
             var deserialized = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(testListPath));
             Contract.Assert(deserialized != null);

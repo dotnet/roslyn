@@ -18,4 +18,16 @@
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="$(MicrosoftTeamFoundationServerClientVersion)"/>
   </ItemGroup>
+
+  <!-- Copy the vsix exp installer to the output directory so that we can use it later on when deploying the integration tests. -->
+  <ItemGroup>
+    <PackageReference Include="RoslynTools.VSIXExpInstaller" Version="$(RoslynToolsVSIXExpInstallerVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <_CopyItems Include="$(NuGetPackageRoot)roslyntools.vsixexpinstaller\$(RoslynToolsVSIXExpInstallerVersion)\tools\*.*" />
+  </ItemGroup>
+  <Target Name="CopyCustomContent" AfterTargets="AfterBuild" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <Copy SourceFiles="@(_CopyItems)" DestinationFolder="$(OutDir)" />
+  </Target>
+
 </Project>

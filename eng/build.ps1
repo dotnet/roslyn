@@ -510,8 +510,7 @@ function EnablePreviewSdks() {
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to
 # deploying at build time.
 function Deploy-VsixViaTool() {
-  $vsixDir = Get-PackageDir "RoslynTools.VSIXExpInstaller"
-  $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
+  $vsixExe = GetProjectOutputBinary "VSIXExpInstaller.exe" "RunTests" -tfm "net6.0"
 
   $vsInfo = LocateVisualStudio
   if ($vsInfo -eq $null) {

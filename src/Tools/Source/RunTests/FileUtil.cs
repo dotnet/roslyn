@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.Contracts;
 using System.IO;
+using System.Linq;
 
 namespace RunTests
 {
@@ -65,6 +67,23 @@ namespace RunTests
             }
 
             return false;
+        }
+
+        internal static void CopyDirectory(string sourceDirectory, string destinationDirectory)
+        {
+            var directory = new DirectoryInfo(sourceDirectory);
+            Contract.Assert(directory.Exists);
+
+            var subDirectories = directory.GetDirectories();
+
+            // Create the destination directory
+            Directory.CreateDirectory(destinationDirectory);
+
+            // Copy all files in the directory to the new directory.
+            directory.GetFiles().ToList().ForEach(f => f.CopyTo(Path.Combine(destinationDirectory, f.Name), overwrite: true));
+            
+            // Copy all subdirectories recursively.
+            subDirectories.ToList().ForEach(d => CopyDirectory(d.FullName, Path.Combine(destinationDirectory, d.Name)));
         }
     }
 }
