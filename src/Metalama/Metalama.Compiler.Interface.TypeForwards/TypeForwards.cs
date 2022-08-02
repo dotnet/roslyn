@@ -11,6 +11,7 @@ using Metalama.Compiler;
 [assembly: TypeForwardedTo(typeof(ManagedResource))]
 [assembly: TypeForwardedTo(typeof(MetalamaPlugInAttribute))]
 [assembly: TypeForwardedTo(typeof(MetalamaCompilerAnnotations))]
+[assembly: TypeForwardedTo(typeof(TransformerOptions))]
 
 namespace Metalama.Compiler.Interface.TypeForwards
 {
