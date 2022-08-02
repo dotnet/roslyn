@@ -843,7 +843,7 @@ class Program
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/63152")]
         public void Overrides_01()
         {
             var sourceA =
@@ -890,7 +890,7 @@ class A4 : IA
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/63152")]
         public void Overloads_01()
         {
             var sourceA =
@@ -970,7 +970,7 @@ class B4 : A
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/63152")]
         public void Constraints_01()
         {
             var sourceA =
@@ -1384,7 +1384,7 @@ class Program
             }
         }
 
-        [Theory, CombinatorialData]
+        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/63152"), CombinatorialData]
         public void BuiltInConversions_NativeIntegers(bool useCompilationReference, bool useLatest, bool useSystemTypes)
         {
             var nintType = useSystemTypes ? "System.IntPtr" : "nint";
@@ -1497,7 +1497,7 @@ public class A
 }");
         }
 
-        [Theory, CombinatorialData]
+        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/63152"), CombinatorialData]
         public void BuiltInOperators_NativeIntegers(bool useCompilationReference, bool useSystemTypes)
         {
             var nintType = useSystemTypes ? "System.IntPtr" : "nint";
@@ -2752,7 +2752,7 @@ class A
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "(UIntPtr)4").WithArguments("y").WithLocation(13, 59));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/63152")]
         public void ParameterDefaultValue_02()
         {
             var sourceA =
