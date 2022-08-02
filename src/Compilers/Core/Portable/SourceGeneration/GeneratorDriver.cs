@@ -36,6 +36,12 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, GeneratorDriverOptions driverOptions)
         {
+            if (generators.GroupBy(s => s.GetGeneratorType()).Count() != generators.Length)
+            {
+                var types = generators.Select(s => s.GetGeneratorType().AssemblyQualifiedName).Join("\r\n");
+                Debug.Fail(types);
+            }
+
             var incrementalGenerators = GetIncrementalGenerators(generators, SourceExtension);
             _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), DriverStateTable.Empty, SyntaxStore.Empty, driverOptions.DisabledOutputs, runtime: TimeSpan.Zero, driverOptions.TrackIncrementalGeneratorSteps);
         }
