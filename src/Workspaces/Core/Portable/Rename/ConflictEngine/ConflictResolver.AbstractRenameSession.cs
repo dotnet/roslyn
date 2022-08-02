@@ -181,17 +181,20 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 #endif
 
                     // Step 5: Rename declaration files
-                    if (RenameOptions.RenameFile)
+                    foreach (var (_, originalSymbolRenameLocations, _, _) in validRenamedSymbolsInfoInNewSolution)
                     {
-                        var definitionLocations = _renameLocationSet.Symbol.Locations;
-                        var definitionDocuments = definitionLocations
-                            .Select(l => conflictResolution.OldSolution.GetRequiredDocument(l.SourceTree))
-                            .Distinct();
-
-                        if (definitionDocuments.Count() == 1 && _replacementTextValid)
+                        if (originalSymbolRenameLocations.Options.RenameFile)
                         {
-                            // At the moment, only single document renaming is allowed
-                            conflictResolution.RenameDocumentToMatchNewSymbol(definitionDocuments.Single());
+                            var definitionLocations = originalSymbolRenameLocations.Symbol.Locations;
+                            var definitionDocuments = definitionLocations
+                                .Select(l => conflictResolution.OldSolution.GetRequiredDocument(l.SourceTree))
+                                .Distinct();
+
+                            if (definitionDocuments.Count() == 1)
+                            {
+                                // At the moment, only single document renaming is allowed
+                                conflictResolution.RenameDocumentToMatchNewSymbol(definitionDocuments.Single());
+                            }
                         }
                     }
 
