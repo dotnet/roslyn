@@ -112,6 +112,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 async Task<Solution> ComputePrimaryBranchAsync(CancellationToken cancellationToken)
                 {
                     var solution = await _disconnectedSolutionTask.ConfigureAwait(false);
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     return await updatePrimaryBranchAsync(solution, cancellationToken).ConfigureAwait(false);
                 }
             }
