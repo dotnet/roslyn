@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.Rename
 
         ValueTask<SerializableRenameLocations?> FindRenameLocationsAsync(
             Checksum solutionChecksum,
-            RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             SymbolRenameOptions options,
             CancellationToken cancellationToken);
@@ -152,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 _referencedSymbols);
 
         internal static async Task<LightweightRenameLocations?> TryRehydrateAsync(
-            Solution solution, CodeCleanupOptionsProvider fallbackOptions, SerializableRenameLocations serializableLocations, CancellationToken cancellationToken)
+            Solution solution, SerializableRenameLocations serializableLocations, CancellationToken cancellationToken)
         {
             if (serializableLocations == null)
                 return null;
@@ -163,7 +162,6 @@ namespace Microsoft.CodeAnalysis.Rename
             return new LightweightRenameLocations(
                 solution,
                 serializableLocations.Options,
-                fallbackOptions,
                 locations,
                 serializableLocations.ImplicitLocations,
                 serializableLocations.ReferencedSymbols);

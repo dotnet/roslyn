@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             LightweightRenameLocations lightweightRenameLocations,
             string replacementText,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
+            CodeCleanupOptionsProvider fallBackOptions,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
                         solution,
                         (service, solutionInfo, callbackId, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, callbackId, serializableSymbol, serializableLocationSet, replacementText, nonConflictSymbolKeys, cancellationToken),
-                        callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, lightweightRenameLocations.FallbackOptions),
+                        callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, fallBackOptions),
                         cancellationToken).ConfigureAwait(false);
 
                     if (result.HasValue && result.Value != null)
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 return new ConflictResolution(WorkspacesResources.Failed_to_resolve_rename_conflicts);
 
             return await ResolveSymbolicLocationConflictsInCurrentProcessAsync(
-                heavyweightLocations, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+                heavyweightLocations, replacementText, nonConflictSymbolKeys, fallBackOptions, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -95,6 +96,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             SymbolicRenameLocations renameLocations,
             string replacementText,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
+            CodeCleanupOptionsProvider fallBackOptions,
             CancellationToken cancellationToken)
         {
             // when someone e.g. renames a symbol from metadata through the API (IDE blocks this), we need to return
@@ -106,7 +108,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
             var resolution = await ResolveMutableConflictsAsync(
-                renameLocations, renameSymbolDeclarationLocation, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+                renameLocations,
+                renameSymbolDeclarationLocation,
+                replacementText,
+                nonConflictSymbolKeys,
+                fallBackOptions,
+                cancellationToken).ConfigureAwait(false);
 
             return resolution.ToConflictResolution();
         }
@@ -116,12 +123,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             Location renameSymbolDeclarationLocation,
             string replacementText,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
+            CodeCleanupOptionsProvider fallBackOptions,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var session = await SingleSymbolRenameSession.CreateAsync(
                 renameLocationSet, renameSymbolDeclarationLocation,
-                replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+                replacementText, nonConflictSymbolKeys, fallBackOptions, cancellationToken).ConfigureAwait(false);
             return await session.ResolveConflictsAsync().ConfigureAwait(false);
         }
 

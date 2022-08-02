@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 Location renameSymbolDeclarationLocation,
                 string replacementText,
                 ImmutableArray<SymbolKey> nonConflictSymbolKeys,
+                CodeCleanupOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 var originalText = renameLocationSet.Symbol.Name;
@@ -67,6 +69,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     possibleNameConflicts,
                     documentsIdsToBeCheckedForConflict,
                     replacementTextValid,
+                    fallbackOptions,
                     cancellationToken);
             }
 
@@ -79,8 +82,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 ImmutableArray<string> possibleNameConflicts,
                 ImmutableHashSet<DocumentId> documentsIdsToBeCheckedForConflict,
                 bool replacementTextValid,
+                CodeCleanupOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken) : base(
-                    renameLocationSet.Solution, nonConflictSymbolKeys, renameLocationSet.FallbackOptions, cancellationToken)
+                    renameLocationSet.Solution, nonConflictSymbolKeys, fallbackOptions, cancellationToken)
 
             {
                 _renameLocationSet = renameLocationSet;

@@ -66,7 +66,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public ValueTask<SerializableRenameLocations?> FindRenameLocationsAsync(
             Checksum solutionChecksum,
-            RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             SymbolRenameOptions options,
             CancellationToken cancellationToken)
@@ -79,10 +78,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (symbol == null)
                     return null;
 
-                var fallbackOptions = GetClientOptionsProvider(callbackId);
-
                 var result = await LightweightRenameLocations.FindRenameLocationsAsync(
-                    symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    symbol, solution, options, cancellationToken).ConfigureAwait(false);
 
                 return result.Dehydrate();
             }, cancellationToken);
@@ -104,11 +101,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     return null;
 
                 var locations = await LightweightRenameLocations.TryRehydrateAsync(
-                    solution, GetClientOptionsProvider(callbackId), serializableLocations, cancellationToken).ConfigureAwait(false);
+                    solution, serializableLocations, cancellationToken).ConfigureAwait(false);
                 if (locations == null)
                     return null;
-
-                var result = await locations.ResolveConflictsAsync(symbol, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+                var fallBackOptions = GetClientOptionsProvider(callbackId);
+                var result = await locations.ResolveConflictsAsync(symbol, replacementText, nonConflictSymbolKeys, fallBackOptions, cancellationToken).ConfigureAwait(false);
                 return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }

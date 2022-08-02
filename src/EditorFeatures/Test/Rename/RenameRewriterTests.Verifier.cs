@@ -147,7 +147,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                                 solution,
                                 renameSymbol,
                                 options,
-                                CodeActionOptions.DefaultProvider,
                                 cancellationToken).ConfigureAwait(false);
 
                             var locationsInDocument = renameLocationsSet.Locations.Where(location => location.DocumentId == document.Id).ToImmutableArray();
