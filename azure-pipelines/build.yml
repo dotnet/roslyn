@@ -11,6 +11,7 @@ parameters:
 jobs:
 - job: Windows
   pool: ${{ parameters.windowsPool }}
+  timeoutInMinutes: 180 # Give plenty of time due to real signing
   variables:
   - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     # https://dev.azure.com/devdiv/DevDiv/_wiki/wikis/DevDiv.wiki/25351/APIScan-step-by-step-guide-to-setting-up-a-Pipeline
