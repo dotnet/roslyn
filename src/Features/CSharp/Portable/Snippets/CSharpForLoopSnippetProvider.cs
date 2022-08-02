@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Roslyn.Utilities;
@@ -35,12 +36,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         /// Creates the for loop statement syntax.
         /// Must be done in language specific file since there is no generic way to generate the syntax.
         /// </summary>
-        protected override async Task<SyntaxNode> CreateForLoopStatementSyntaxAsync(Document document, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> CreateForLoopStatementSyntaxAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var generator = SyntaxGenerator.GetGenerator(document);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var indexVariable = generator.Identifier("i");
+            var iteratorName = NameGenerator.GenerateUniqueName(
+                "i",
+                n => semanticModel.LookupSymbols(position, name: n).IsEmpty);
+            var indexVariable = generator.Identifier(iteratorName);
 
             // Creating the variable declaration based on if the user has
             // 'var for built in types' set in their editorconfig.

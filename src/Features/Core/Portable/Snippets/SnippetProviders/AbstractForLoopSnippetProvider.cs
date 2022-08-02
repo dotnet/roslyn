@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal abstract class AbstractForLoopSnippetProvider : AbstractSnippetProvider
     {
-        protected abstract Task<SyntaxNode> CreateForLoopStatementSyntaxAsync(Document document, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode> CreateForLoopStatementSyntaxAsync(Document document, int position, CancellationToken cancellationToken);
 
         public override string SnippetIdentifier => "for";
         public override string SnippetDisplayName => FeaturesResources.Insert_a_for_loop;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var forLoopSyntax = await CreateForLoopStatementSyntaxAsync(document, cancellationToken).ConfigureAwait(false);
+            var forLoopSyntax = await CreateForLoopStatementSyntaxAsync(document, position, cancellationToken).ConfigureAwait(false);
             var snippetTextChange = new TextChange(TextSpan.FromBounds(position, position), forLoopSyntax.NormalizeWhitespace().ToFullString());
             return ImmutableArray.Create(snippetTextChange);
         }
