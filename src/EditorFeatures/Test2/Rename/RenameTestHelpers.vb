@@ -71,13 +71,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Public Async Function VerifyTagsAreCorrect(workspace As TestWorkspace, newIdentifierName As String) As Task
             Await WaitForRename(workspace)
             For Each document In workspace.Documents
-                For Each selectedSpan In document.SelectedSpans
-                    Dim trackingSpan = document.InitialTextSnapshot.CreateTrackingSpan(selectedSpan.ToSpan(), SpanTrackingMode.EdgeInclusive)
-                    Assert.Equal(newIdentifierName, trackingSpan.GetText(document.GetTextBuffer().CurrentSnapshot).Trim)
-                Next
-            Next
-
-            For Each document In workspace.Documents
                 For Each annotations In document.AnnotatedSpans
                     Dim expectedReplacementText = annotations.Key
 

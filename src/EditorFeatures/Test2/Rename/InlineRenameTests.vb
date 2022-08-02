@@ -1137,28 +1137,20 @@ End Class
                 previewService.ReturnsNull = True
 
                 Dim session = StartSession(workspace)
-                ' Type a bit in the file
-                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
-
-                textBuffer.Insert(caretPosition, "Bar")
-
+                session.ApplyReplacementText("BarGoo", propagateEditImmediately:=True)
                 session.Commit(previewChanges:=True)
 
                 Await VerifyTagsAreCorrect(workspace, "BarGoo")
                 Assert.True(previewService.Called)
 
-                ' Session should still be up; type some more
-                caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                textBuffer.Insert(caretPosition, "Cat")
+                ' Session should still be up
+                session.ApplyReplacementText("CatBarGoo", propagateEditImmediately:=True)
 
                 previewService.ReturnsNull = False
                 previewService.Called = False
                 session.Commit(previewChanges:=True)
                 Await VerifyTagsAreCorrect(workspace, "CatBarGoo")
                 Assert.True(previewService.Called)
-
-                VerifyFileName(workspace, "Test1.cs")
             End Using
         End Function
 
