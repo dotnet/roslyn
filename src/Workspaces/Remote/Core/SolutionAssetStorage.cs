@@ -37,7 +37,6 @@ internal partial class SolutionAssetStorage
         {
             if (!_checksumToScope.ContainsKey(solutionChecksum))
             {
-                Debugger.Launch();
                 Debug.Fail($"Request for solution-checksum '{solutionChecksum}' that was not pinned on the host side.");
                 throw new InvalidOperationException($"Request for solution-checksum '{solutionChecksum}' that was not pinned on the host side.");
             }
