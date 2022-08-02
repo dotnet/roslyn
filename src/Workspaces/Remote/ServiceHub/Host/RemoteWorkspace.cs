@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Intentionally not cancellable.  We must do the decrement to ensure our cache state is consistent.
                 // This will block the calling thread.  However, this should only be for a short amount of time as
                 // nothing in RemoteWorkspace should ever hold this lock for long periods of time.
-                ImmutableArray<Task<Solution>> solutionComputationTasks;
+                ImmutableArray<Task> solutionComputationTasks;
                 using (await _gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false))
                 {
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // happen concurrently with the solution-computation calls calling back into the host which will then
                 // crash due to that solution no longer being pinned there.  While this does force this caller to wait
                 // for those tasks to stop, this should ideally be fast as they will have been cancelled when the
-                // in-flict-count went to 0.
+                // in-flight-count went to 0.
                 foreach (var task in solutionComputationTasks)
                     await task.NoThrowAwaitable();
             }

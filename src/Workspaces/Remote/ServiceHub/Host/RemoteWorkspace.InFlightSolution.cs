@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Remote
             /// unpinning the solution on the host) while the solution-computation tasks are still running and may still
             /// attempt to call into the host.
             /// </summary>
-            public ImmutableArray<Task<Solution>> DecrementInFlightCount_NoLock()
+            public ImmutableArray<Task> DecrementInFlightCount_NoLock()
             {
                 Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
                 Contract.ThrowIfTrue(InFlightCount < 1);
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 _workspace.CheckCacheInvariants_NoLock();
 
-                using var solutions = TemporaryArray<Task<Solution>>.Empty;
+                using var solutions = TemporaryArray<Task>.Empty;
 
                 solutions.Add(_disconnectedSolutionTask);
                 solutions.AsRef().AddIfNotNull(_primaryBranchTask);
