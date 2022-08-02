@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private readonly DocumentId _documentIdOfRenameSymbolDeclaration;
             private readonly string _originalText;
             private readonly string _replacementText;
+            private readonly ImmutableHashSet<DocumentId> _documentsIdsToBeCheckedForConflict;
 
             // Contains Strings like Bar -> BarAttribute ; Property Bar -> Bar , get_Bar, set_Bar
             private readonly ImmutableArray<string> _possibleNameConflicts;
@@ -100,16 +102,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 _replacementTextValid = replacementTextValid;
             }
 
-            protected override async Task<ImmutableHashSet<ISymbol>> GetNonConflictSymbolsAsync(Project currentProject)
-            {
-                if (NonConflictSymbolKeys.IsDefault)
-                    return ImmutableHashSet<ISymbol>.Empty;
-
-                var compilation = await currentProject.GetRequiredCompilationAsync(CancellationToken).ConfigureAwait(false);
-                return ImmutableHashSet.CreateRange(
-                    NonConflictSymbolKeys.Select(s => s.Resolve(compilation).GetAnySymbol()).WhereNotNull());
-            }
-
             private async Task<ISymbol> GetRenamedSymbolInCurrentSolutionAsync(
                 MutableConflictResolution conflictResolution)
             {
@@ -129,6 +121,27 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     throw ExceptionUtilities.Unreachable;
                 }
             }
+
+            public override Task<MutableConflictResolution> ResolveConflictsAsync()
+            {
+                var baseSolution = _renameLocationSet.Solution;
+                var symbol = _renameLocationSet.Symbol;
+                var symbolToReplacementText = ImmutableDictionary.Create<ISymbol, string>().Add(symbol, _replacementText);
+                var symbolToReplacementTextValid = ImmutableDictionary.Create<ISymbol, bool>().Add(symbol, _replacementTextValid);
+                return ResolveConflictsCoreAsync(
+                    baseSolution, symbolToReplacementText, symbolToReplacementTextValid, _documentsIdsToBeCheckedForConflict);
+            }
+
+            protected override async Task<ImmutableHashSet<ISymbol>> GetNonConflictSymbolsAsync(Project currentProject)
+            {
+                if (NonConflictSymbolKeys.IsDefault)
+                    return ImmutableHashSet<ISymbol>.Empty;
+
+                var compilation = await currentProject.GetRequiredCompilationAsync(CancellationToken).ConfigureAwait(false);
+                return ImmutableHashSet.CreateRange(
+                    NonConflictSymbolKeys.Select(s => s.Resolve(compilation).GetAnySymbol()).WhereNotNull());
+            }
+
 
             // The rename process and annotation for the bookkeeping is performed in one-step
             protected override async Task<(Solution, ImmutableHashSet<DocumentId>)> AnnotateAndRename_WorkerAsync(

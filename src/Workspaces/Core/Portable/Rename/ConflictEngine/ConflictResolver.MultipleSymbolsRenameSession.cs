@@ -59,6 +59,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 throw new NotImplementedException();
             }
+
+            public override Task<MutableConflictResolution> ResolveConflictsAsync()
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     // There also might be language specific rules we need to include
                     var languageRenameService = projectOpt.LanguageServices.GetRequiredService<IRenameRewriterLanguageService>();
                     var languageConflicts = await languageRenameService.ComputeDeclarationConflictsAsync(
-                        conflictResolution.ReplacementText,
+                        conflictResolution.SymbolToReplacementText[renameSymbol],
                         renamedSymbol,
                         renameSymbol,
                         referencedSymbols,

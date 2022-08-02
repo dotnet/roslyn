@@ -46,8 +46,26 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 _fallbackOptions = fallBackOptions;
             }
 
+            public abstract Task<MutableConflictResolution> ResolveConflictsAsync();
+
+            protected abstract Task<(Solution partiallyRenamedSolution, ImmutableHashSet<DocumentId> unchangedDocuments)> AnnotateAndRename_WorkerAsync(
+                Solution originalSolution,
+                Solution partiallyRenamedSolution,
+                HashSet<DocumentId> documentIdsThatGetsAnnotatedAndRenamed,
+                RenamedSpansTracker renamedSpansTracker);
+
+            protected abstract ImmutableArray<ISymbol> GetSymbolRenamedInProjects(ProjectId projectId);
+
+            protected abstract Task<ImmutableHashSet<ISymbol>> GetNonConflictSymbolsAsync(Project projectProject);
+
+            protected abstract Task<ImmutableHashSet<RenamedSymbolInfo>> GetValidRenamedSymbolsInfoInCurrentSolutionAsync(MutableConflictResolution conflictResolution);
+
+            protected abstract Task<ImmutableArray<RenamedSymbolInfo>> GetDeclarationChangedSymbolsInfoAsync(MutableConflictResolution conflictResolution, ProjectId projectId);
+
+            protected abstract bool HasConflictForMetadataReference(RenameDeclarationLocationReference renameDeclarationLocationReference, ISymbol newReferencedSymbol);
+
             // The method which performs rename, resolves the conflict locations and returns the result of the rename operation
-            public async Task<MutableConflictResolution> ResolveConflictsCoreAsync(
+            protected async Task<MutableConflictResolution> ResolveConflictsCoreAsync(
                 Solution baseSolution,
                 ImmutableDictionary<ISymbol, string> symbolToReplacementText,
                 ImmutableDictionary<ISymbol, bool> symbolToReplacementTextValid,
@@ -226,22 +244,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     throw ExceptionUtilities.Unreachable;
                 }
             }
-
-            protected abstract Task<(Solution partiallyRenamedSolution, ImmutableHashSet<DocumentId> unchangedDocuments)> AnnotateAndRename_WorkerAsync(
-                Solution originalSolution,
-                Solution partiallyRenamedSolution,
-                HashSet<DocumentId> documentIdsThatGetsAnnotatedAndRenamed,
-                RenamedSpansTracker renamedSpansTracker);
-
-            protected abstract ImmutableArray<ISymbol> GetSymbolRenamedInProjects(ProjectId projectId);
-
-            protected abstract Task<ImmutableHashSet<ISymbol>> GetNonConflictSymbolsAsync(Project projectProject);
-
-            protected abstract Task<ImmutableHashSet<RenamedSymbolInfo>> GetValidRenamedSymbolsInfoInCurrentSolutionAsync(MutableConflictResolution conflictResolution);
-
-            protected abstract Task<ImmutableArray<RenamedSymbolInfo>> GetDeclarationChangedSymbolsInfoAsync(MutableConflictResolution conflictResolution, ProjectId projectId);
-
-            protected abstract bool HasConflictForMetadataReference(RenameDeclarationLocationReference renameDeclarationLocationReference, ISymbol newReferencedSymbol);
 
             /// <summary>
             /// Find conflicts in the new solution
