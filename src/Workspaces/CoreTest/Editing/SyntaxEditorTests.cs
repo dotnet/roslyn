@@ -512,14 +512,9 @@ public class C
             var cls = cu.Members[0];
 
             var editor = GetEditor(cu);
-            var methodX = editor.Generator.GetMembers(cls)[0];
+            var methodX = (MethodDeclarationSyntax)editor.Generator.GetMembers(cls)[0];
 
-            if (methodX is not MethodDeclarationSyntax method)
-            {
-                return;
-            }
-
-            var param = method.ParameterList.Parameters[0];
+            var param = methodX.ParameterList.Parameters[0];
 
             var syntaxGenerator = editor.Generator;
             var args = new[] { syntaxGenerator.AttributeArgument(syntaxGenerator.MemberAccessExpression(syntaxGenerator.DottedName("Sample"), "Attribute")) };
