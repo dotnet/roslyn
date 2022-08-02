@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 //
                 // Use a NoThrowAwaitable as we want to await all tasks here regardless of how individual ones may cancel.
                 foreach (var task in solutionComputationTasks)
-                    await task.NoThrowAwaitable();
+                    await task.NoThrowAwaitable(false);
             }
         }
 
