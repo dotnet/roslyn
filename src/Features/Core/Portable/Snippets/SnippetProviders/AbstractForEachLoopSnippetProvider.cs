@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal abstract class AbstractForEachLoopSnippetProvider : AbstractSnippetProvider
     {
-        public override string SnippetIdentifier => "foreach";
+        protected abstract Task<SyntaxNode> CreateForEachLoopStatementSyntaxAsync(Document document, int position, CancellationToken cancellationToken);
 
+        public override string SnippetIdentifier => "foreach";
         public override string SnippetDisplayName => FeaturesResources.Insert_a_foreach_loop;
-        protected abstract SyntaxNode CreateForEachLoopStatementSyntax();
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var forEachStatementSyntax = CreateForEachLoopStatementSyntax();
+            var forEachStatementSyntax = await CreateForEachLoopStatementSyntaxAsync(document, position, cancellationToken).ConfigureAwait(false);
             var snippetTextChange = new TextChange(TextSpan.FromBounds(position, position), forEachStatementSyntax.NormalizeWhitespace().ToFullString());
             return ImmutableArray.Create(snippetTextChange);
         }
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             // Checking to see if that expression statement that we found is
             // starting at the same position as the position we inserted
             // the for statement.
-            if (nearestStatement.SpanStart != position)
+            if (closestNode.SpanStart != position)
             {
                 return null;
             }

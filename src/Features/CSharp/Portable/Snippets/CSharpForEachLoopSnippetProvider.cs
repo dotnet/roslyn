@@ -6,10 +6,13 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
@@ -28,11 +31,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         /// Creates the foreach statement syntax.
         /// Must be done in language specific file since there is no generic way to generate the syntax.
         /// </summary>
-        protected override SyntaxNode CreateForEachLoopStatementSyntax()
+        protected override async Task<SyntaxNode> CreateForEachLoopStatementSyntaxAsync(Document document, int position, CancellationToken cancellationToken)
         {
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var varIdentifier = SyntaxFactory.IdentifierName("var");
             var collectionIdentifier = SyntaxFactory.IdentifierName("collection");
-            var foreachLoopSyntax = SyntaxFactory.ForEachStatement(varIdentifier, "item", collectionIdentifier, SyntaxFactory.Block());
+            var itemString = NameGenerator.GenerateUniqueName(
+                "item", n => semanticModel.LookupSymbols(position, name: n).IsEmpty);
+            var foreachLoopSyntax = SyntaxFactory.ForEachStatement(varIdentifier, itemString, collectionIdentifier, SyntaxFactory.Block());
 
             return foreachLoopSyntax;
         }
