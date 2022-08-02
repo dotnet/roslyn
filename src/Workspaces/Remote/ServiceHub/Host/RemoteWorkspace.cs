@@ -116,9 +116,21 @@ namespace Microsoft.CodeAnalysis.Remote
             Task<Solution> solutionTask;
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                inFlightSolution = GetOrCreateSolutionAndAddInFlightCount_NoLock(
-                    assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch);
-                solutionTask = inFlightSolution.PreferredSolutionTask_NoLock;
+                try
+                {
+                    inFlightSolution = GetOrCreateSolutionAndAddInFlightCount_NoLock(
+                        assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch);
+                    solutionTask = inFlightSolution.PreferredSolutionTask_NoLock;
+
+                    // We must have at least 1 for the in-flight-count (representing this current in-flight call).
+                    Contract.ThrowIfTrue(inFlightSolution.InFlightCount < 1);
+                }
+                catch (Exception ex) when (FatalError.ReportAndPropagate(ex, ErrorSeverity.Critical))
+                {
+                    // Any exception thrown in the above is critical and unrecoverable.  We will have potentially
+                    // started work, while also leaving ourselves in some inconsistent state.
+                    throw ExceptionUtilities.Unreachable;
+                }
             }
 
             try
@@ -161,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 //
                 // Use a NoThrowAwaitable as we want to await all tasks here regardless of how individual ones may cancel.
                 foreach (var task in solutionComputationTasks)
-                    await task.NoThrowAwaitable();
+                    await task.NoThrowAwaitable(false);
             }
         }
 

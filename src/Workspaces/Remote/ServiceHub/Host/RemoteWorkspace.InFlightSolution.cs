@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -25,7 +26,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public readonly Checksum SolutionChecksum;
 
-            private readonly CancellationTokenSource _cancellationTokenSource = new();
+            /// <summary>
+            /// CancellationTokenSource controlling the execution of <see cref="_disconnectedSolutionTask"/> and <see
+            /// cref="_primaryBranchTask"/>.
+            /// </summary>
+            private readonly CancellationTokenSource _cancellationTokenSource_doNotAccessDirectly = new();
 
             /// <summary>
             /// Background work to just compute the disconnected solution associated with this <see cref="SolutionChecksum"/>
@@ -51,10 +56,31 @@ namespace Microsoft.CodeAnalysis.Remote
                 Checksum solutionChecksum,
                 Func<CancellationToken, Task<Solution>> computeDisconnectedSolutionAsync)
             {
+                Contract.ThrowIfFalse(workspace._gate.CurrentCount == 0);
+
                 _workspace = workspace;
                 SolutionChecksum = solutionChecksum;
 
-                _disconnectedSolutionTask = computeDisconnectedSolutionAsync(_cancellationTokenSource.Token);
+                // Grab the cancellation token up front while we know we are holding the lock and mutating state.  We
+                // don't want to potentially grab it at some undefined point at the future when this type has already
+                // had its in-flight-count reduced to 0 and thus had our CTS be disposed.
+                //
+                // Also kick this off in a dedicated task.  The state mutation updating of this InFlightSolution and the
+                // cache state in RemoteWorkspace must always run fully to completion without issue.  We don't want
+                // anything we call in the constructor to possibly prevent the constructor from running to completion.
+                var cancellationToken = this.CancellationToken;
+                _disconnectedSolutionTask = Task.Run(() => computeDisconnectedSolutionAsync(cancellationToken), cancellationToken);
+            }
+
+            private CancellationToken CancellationToken
+            {
+                get
+                {
+                    // Only safe to get this when the lock is being held.  That way nothing is racing against the work
+                    // in DecrementInFlightCount_NoLock which cancels this CTS. 
+                    Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
+                    return _cancellationTokenSource_doNotAccessDirectly.Token;
+                }
             }
 
             public Task<Solution> PreferredSolutionTask_NoLock
@@ -78,20 +104,40 @@ namespace Microsoft.CodeAnalysis.Remote
             /// <param name="updatePrimaryBranchAsync"></param>
             public void TryKickOffPrimaryBranchWork_NoLock(Func<Solution, CancellationToken, Task<Solution>> updatePrimaryBranchAsync)
             {
-                Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
-                Contract.ThrowIfNull(updatePrimaryBranchAsync);
+                try
+                {
+                    Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
+                    Contract.ThrowIfNull(updatePrimaryBranchAsync);
+                    Contract.ThrowIfTrue(this._cancellationTokenSource_doNotAccessDirectly.IsCancellationRequested);
 
-                // Already set up the work to update the primary branch
-                if (_primaryBranchTask != null)
-                    return;
+                    // Already set up the work to update the primary branch
+                    if (_primaryBranchTask != null)
+                        return;
 
-                _primaryBranchTask = ComputePrimaryBranchAsync();
+                    // Grab the cancellation token up front while we know we are holding the lock and mutating state.  We
+                    // don't want to potentially grab it at some undefined point at the future when this type has already
+                    // had its in-flight-count reduced to 0 and thus had our CTS be disposed.
+                    //
+                    // Also kick this off in a dedicated task.  The state mutation updating of this InFlightSolution and the
+                    // cache state in RemoteWorkspace must always run fully to completion without issue. We don't want
+                    // anything we call in this method to possibly prevent the method from running to completion.
+                    var cancellationToken = this.CancellationToken;
+                    _primaryBranchTask = Task.Run(() => ComputePrimaryBranchAsync(cancellationToken), cancellationToken);
+                }
+                catch (Exception ex) when (FatalError.ReportAndPropagate(ex, ErrorSeverity.General))
+                {
+                    // The above must never throw.  If it does our caller will not properly update the cache state
+                    // properly and can leave things invalid.
+                }
+
                 return;
 
-                async Task<Solution> ComputePrimaryBranchAsync()
+                async Task<Solution> ComputePrimaryBranchAsync(CancellationToken cancellationToken)
                 {
                     var solution = await _disconnectedSolutionTask.ConfigureAwait(false);
-                    return await updatePrimaryBranchAsync(solution, _cancellationTokenSource.Token).ConfigureAwait(false);
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    return await updatePrimaryBranchAsync(solution, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -117,8 +163,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (InFlightCount != 0)
                     return ImmutableArray<Task>.Empty;
 
-                _cancellationTokenSource.Cancel();
-                _cancellationTokenSource.Dispose();
+                _cancellationTokenSource_doNotAccessDirectly.Cancel();
+                _cancellationTokenSource_doNotAccessDirectly.Dispose();
 
                 // If we're going away, then we absolutely must not be pointed at in the _lastRequestedSolution field.
                 Contract.ThrowIfTrue(_workspace._lastAnyBranchSolution == this);
