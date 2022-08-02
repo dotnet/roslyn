@@ -158,6 +158,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // crash due to that solution no longer being pinned there.  While this does force this caller to wait
                 // for those tasks to stop, this should ideally be fast as they will have been cancelled when the
                 // in-flight-count went to 0.
+                //
+                // Use a NoThrowAwaitable as we want to await all tasks here regardless of how individual ones may cancel.
                 foreach (var task in solutionComputationTasks)
                     await task.NoThrowAwaitable();
             }
