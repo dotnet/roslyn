@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ''' <summary>
         ''' Ref field in ref struct.
         ''' </summary>
+        <WorkItem(62121, "https://github.com/dotnet/roslyn/issues/62121")>
         <Fact>
         Public Sub RefField_01()
             Dim sourceA =
@@ -28,7 +29,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             compA.VerifyDiagnostics()
             Dim refA = compA.EmitToImageReference()
 
-            Dim sourceB =
+            Dim sourceB1 =
+"Imports System
+Module Program
+    Sub Main()
+        Dim s = New S(Of Integer)()
+        Console.WriteLine(s)
+    End Sub
+End Module"
+
+            Dim compB = CreateCompilation(sourceB1, references:={refA})
+            compB.AssertTheseDiagnostics(<expected>
+BC30668: 'S(Of Integer)' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'.
+        Dim s = New S(Of Integer)()
+                    ~~~~~~~~~~~~~
+</expected>)
+
+            Dim field = compB.GetMember(Of FieldSymbol)("S.F")
+            VerifyFieldSymbol(field, "S(Of T).F As T", Microsoft.CodeAnalysis.RefKind.None, {})
+            Assert.Equal(ERRID.ERR_UnsupportedField1, field.GetUseSiteErrorInfo().Code)
+
+            Dim sourceB2 =
 "Imports System
 Module Program
     Sub Main()
@@ -37,22 +58,25 @@ Module Program
     End Sub
 End Module"
 
-            Dim compB = CreateCompilation(sourceB, references:={refA})
+            compB = CreateCompilation(sourceB2, references:={refA})
             compB.AssertTheseDiagnostics(<expected>
 BC30668: 'S(Of Integer)' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'.
         Dim s = New S(Of Integer)()
                     ~~~~~~~~~~~~~
+BC30656: Field 'Public F As T' is of an unsupported type.
+        Console.WriteLine(s.F)
+                          ~~~
 </expected>)
 
-            ' https://github.com/dotnet/roslyn/issues/62121: RefKind should be RefKind.Ref, or a use-site diagnostic should be generated, or both.
-            Dim field = compB.GetMember(Of FieldSymbol)("S.F")
+            field = compB.GetMember(Of FieldSymbol)("S.F")
             VerifyFieldSymbol(field, "S(Of T).F As T", Microsoft.CodeAnalysis.RefKind.None, {})
-            Assert.Null(field.GetUseSiteErrorInfo())
+            Assert.Equal(ERRID.ERR_UnsupportedField1, field.GetUseSiteErrorInfo().Code)
         End Sub
 
         ''' <summary>
         ''' Ref field in class.
         ''' </summary>
+        <WorkItem(62121, "https://github.com/dotnet/roslyn/issues/62121")>
         <Fact>
         Public Sub RefField_02()
             Dim sourceA =
@@ -63,7 +87,23 @@ BC30668: 'S(Of Integer)' is obsolete: 'Types with embedded references are not su
 }"
             Dim refA = CompileIL(sourceA)
 
-            Dim sourceB =
+            Dim sourceB1 =
+"Imports System
+Module Program
+    Sub Main()
+        Dim a = New A(Of Integer)()
+        Console.WriteLine(a)
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(sourceB1, references:={refA})
+            comp.AssertTheseDiagnostics(<expected></expected>)
+
+            Dim field = comp.GetMember(Of FieldSymbol)("A.F")
+            VerifyFieldSymbol(field, "A(Of T).F As T", Microsoft.CodeAnalysis.RefKind.None, {})
+            Assert.Equal(ERRID.ERR_UnsupportedField1, field.GetUseSiteErrorInfo().Code)
+
+            Dim sourceB2 =
 "Imports System
 Module Program
     Sub Main()
@@ -72,14 +112,16 @@ Module Program
     End Sub
 End Module"
 
-            Dim comp = CreateCompilation(sourceB, references:={refA})
-            ' https://github.com/dotnet/roslyn/issues/62121: RefKind should be RefKind.Ref, or a use-site diagnostic should be generated, or both.
-            comp.AssertTheseDiagnostics(<expected></expected>)
+            comp = CreateCompilation(sourceB2, references:={refA})
+            comp.AssertTheseDiagnostics(<expected>
+BC30656: Field 'Public F As T' is of an unsupported type.
+        Console.WriteLine(a.F)
+                          ~~~
+                                        </expected>)
 
-            ' https://github.com/dotnet/roslyn/issues/62121: RefKind should be RefKind.Ref, or a use-site diagnostic should be generated, or both.
-            Dim field = comp.GetMember(Of FieldSymbol)("A.F")
+            field = comp.GetMember(Of FieldSymbol)("A.F")
             VerifyFieldSymbol(field, "A(Of T).F As T", Microsoft.CodeAnalysis.RefKind.None, {})
-            Assert.Null(field.GetUseSiteErrorInfo())
+            Assert.Equal(ERRID.ERR_UnsupportedField1, field.GetUseSiteErrorInfo().Code)
         End Sub
 
         Private Shared Sub VerifyFieldSymbol(field As FieldSymbol, expectedDisplayString As String, expectedRefKind As RefKind, expectedRefCustomModifiers As String())
@@ -142,8 +184,9 @@ End Module"
                 }
             AssertEx.Equal(expectedMembers, fieldMembers.Select(Function(f) f.ToTestDisplayString()))
 
-            ' https://github.com/dotnet/roslyn/issues/62121: Not differentiating fields that differ by RefKind or RefCustomModifiers.
-            ' See MemberRefMetadataDecoder.FindFieldBySignature().
+            ' PEFieldSymbol.RefKind is RefKind.None and RefCustomModifiers is empty in all cases,
+            ' including ref fields, so we cannot differentiate fields that differ by RefKind or
+            ' RefCustomModifiers in MemberRefMetadataDecoder.FindFieldBySignature().
             Dim expectedReferences =
                 {
                 "R(Of System.Object).F1 As System.Object",

@@ -345,6 +345,60 @@ ref struct B
         }
 
         [Fact]
+        public void NonRefStructContainingType()
+        {
+            var sourceA =
+@".class public A<T>
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .field public !0 F1
+  .field public !0& F2
+}
+.class public sealed S<T> extends [mscorlib]System.ValueType
+{
+  .field public !0 F1
+  .field public !0& F2
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB1 =
+@"#pragma warning disable 169
+class Program
+{
+    static void Main()
+    {
+        var a = new A<int>();
+        _ = a.F1;
+        var s = new S<object>();
+        _ = s.F1;
+    }
+}";
+            var comp = CreateCompilation(sourceB1, new[] { refA });
+            comp.VerifyEmitDiagnostics();
+
+            var sourceB2 =
+@"#pragma warning disable 169
+class Program
+{
+    static void Main()
+    {
+        var a = new A<int>();
+        _ = a.F2;
+        var s = new S<object>();
+        _ = s.F2;
+    }
+}";
+            comp = CreateCompilation(sourceB2, new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (7,15): error CS0570: 'A<T>.F2' is not supported by the language
+                //         _ = a.F2;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F2").WithArguments("A<T>.F2").WithLocation(7, 15),
+                // (9,15): error CS0570: 'S<T>.F2' is not supported by the language
+                //         _ = s.F2;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F2").WithArguments("S<T>.F2").WithLocation(9, 15));
+        }
+
+        [Fact]
         public void TupleField()
         {
             var sourceA =
