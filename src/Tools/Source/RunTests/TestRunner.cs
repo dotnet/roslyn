@@ -103,8 +103,6 @@ namespace RunTests
 
             var buildNumber = Environment.GetEnvironmentVariable("BUILD_BUILDNUMBER") ?? "0";
 
-            Debugger.Launch();
-
             var helixWorkItems = workItems.Select(workItem => MakeHelixWorkItemProject(workItem));
 
             var globalJson = JsonConvert.DeserializeAnonymousType(File.ReadAllText(getGlobalJsonPath()), new { sdk = new { version = "" } })
