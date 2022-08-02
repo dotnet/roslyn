@@ -12751,12 +12751,12 @@ struct S
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition, IsExternalInitTypeDefinition });
             comp.VerifyDiagnostics(
-                // (6,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
+                // (6,6): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     [UnscopedRef] object P3 { get; init; } // 1
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, "UnscopedRef").WithLocation(6, 6),
-                // (15,10): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(6, 6),
+                // (15,10): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //         [UnscopedRef] init; // 2
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, "UnscopedRef").WithLocation(15, 10));
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(15, 10));
         }
 
         [Theory]
@@ -12850,9 +12850,9 @@ struct B
                 // (11,16): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
                 //         init { value.F = ref this; } // 1
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "value.F = ref this").WithArguments("F", "this").WithLocation(11, 16),
-                // (19,10): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
+                // (19,10): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //         [UnscopedRef]
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, "UnscopedRef").WithLocation(19, 10),
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(19, 10),
                 // (20,16): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
                 //         init { value.F = ref this; } // 2
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "value.F = ref this").WithArguments("F", "this").WithLocation(20, 16));
@@ -13013,9 +13013,9 @@ struct B
                 // (10,9): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
                 //         r.F = ref this; // 1
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r.F = ref this").WithArguments("F", "this").WithLocation(10, 9),
-                // (15,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
+                // (15,6): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     [UnscopedRef]
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, "UnscopedRef").WithLocation(15, 6),
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(15, 6),
                 // (18,9): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
                 //         r.F = ref this; // 2
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r.F = ref this").WithArguments("F", "this").WithLocation(18, 9));
@@ -13034,15 +13034,15 @@ struct S
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (4,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
+                // (4,6): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     [UnscopedRef] static S() { } // 1
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, "UnscopedRef").WithLocation(4, 6),
-                // (5,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(4, 6),
+                // (5,6): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     [UnscopedRef] static object F() => null; // 2
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, "UnscopedRef").WithLocation(5, 6),
-                // (6,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(5, 6),
+                // (6,6): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     [UnscopedRef] static object P => null; // 3
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, "UnscopedRef").WithLocation(6, 6));
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(6, 6));
         }
 
         [Fact]
@@ -13064,12 +13064,12 @@ record struct S
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (4,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
+                // (4,6): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     [UnscopedRef] object F1() => null; // 1
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, "UnscopedRef").WithLocation(4, 6),
-                // (8,6): error CS9063: UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(4, 6),
+                // (8,6): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     [UnscopedRef] object F2() => null; // 2
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMember, "UnscopedRef").WithLocation(8, 6));
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(8, 6));
         }
 
         [WorkItem(62691, "https://github.com/dotnet/roslyn/issues/62691")]
@@ -13365,12 +13365,12 @@ class B : A<int>
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyEmitDiagnostics(
-                // (6,23): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
+                // (6,23): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     public ref T F3A([UnscopedRef] ref T t3) => ref t3;
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(6, 23),
-                // (7,23): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(6, 23),
+                // (7,23): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     public ref T F4A([UnscopedRef] scoped ref T t4) => ref t4;
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(7, 23),
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(7, 23),
                 // (14,20): error CS8347: Cannot use a result of 'A<int>.F1A(ref int)' in this context because it may expose variables referenced by parameter 't1' outside of their declaration scope
                 //         return ref F1A(ref i); // 1
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F1A(ref i)").WithArguments("A<int>.F1A(ref int)", "t1").WithLocation(14, 20),
@@ -13434,12 +13434,12 @@ class B : A<int>
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyEmitDiagnostics(
-                // (6,32): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
+                // (6,32): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     public ref readonly T F3A([UnscopedRef] in T t3) => ref t3;
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(6, 32),
-                // (7,32): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(6, 32),
+                // (7,32): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     public ref readonly T F4A([UnscopedRef] scoped in T t4) => ref t4;
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(7, 32),
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(7, 32),
                 // (14,20): error CS8347: Cannot use a result of 'A<int>.F1A(in int)' in this context because it may expose variables referenced by parameter 't1' outside of their declaration scope
                 //         return ref F1A(in i); // 1
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F1A(in i)").WithArguments("A<int>.F1A(in int)", "t1").WithLocation(14, 20),
@@ -13524,12 +13524,12 @@ class B : A<int>
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyEmitDiagnostics(
-                // (17,23): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
+                // (17,23): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     public ref T F3A([UnscopedRef] R<T> r3)
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(17, 23),
-                // (21,23): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(17, 23),
+                // (21,23): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     public ref T F4A([UnscopedRef] scoped R<T> r4)
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(21, 23),
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(21, 23),
                 // (32,20): error CS8347: Cannot use a result of 'A<int>.F1A(R<int>)' in this context because it may expose variables referenced by parameter 'r1' outside of their declaration scope
                 //         return ref F1A(r); // 1
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F1A(r)").WithArguments("A<int>.F1A(R<int>)", "r1").WithLocation(32, 20),
@@ -13611,15 +13611,15 @@ class B2 : A<int>
 ";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (5,32): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
+                // (5,32): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     internal abstract void F2([UnscopedRef] ref T t);
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(5, 32),
-                // (10,32): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(5, 32),
+                // (10,32): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     internal override void F2([UnscopedRef] ref int i) { }
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(10, 32),
-                // (14,32): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(10, 32),
+                // (14,32): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     internal override void F1([UnscopedRef] ref int i) { }
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(14, 32));
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(14, 32));
         }
 
         [Fact]
@@ -13732,21 +13732,21 @@ class C4 : I<object>
 ";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (5,14): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
+                // (5,14): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     void F2([UnscopedRef] ref T t);
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(5, 14),
-                // (10,21): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(5, 14),
+                // (10,21): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     public void F2([UnscopedRef] ref int i) { }
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(10, 21),
-                // (14,21): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(10, 21),
+                // (14,21): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     public void F1([UnscopedRef] ref int i) { }
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(14, 21),
-                // (20,24): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(14, 21),
+                // (20,24): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     void I<object>.F2([UnscopedRef] ref object o) { }
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(20, 24),
-                // (24,24): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(20, 24),
+                // (24,24): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //     void I<object>.F1([UnscopedRef] ref object o) { }
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(24, 24));
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(24, 24));
         }
 
         [Fact]
@@ -13848,15 +13848,15 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (3,22): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
+                // (3,22): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 // delegate void D2<T>([UnscopedRef] ref T t);
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(3, 22),
-                // (10,16): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(3, 22),
+                // (10,16): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //         d1 = ([UnscopedRef] ref int i2) => { };
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(10, 16),
-                // (13,16): error CS9064: UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(10, 16),
+                // (13,16): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
                 //         d2 = ([UnscopedRef] ref object o2) => { };
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, "UnscopedRef").WithLocation(13, 16));
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(13, 16));
         }
 
         [Fact]

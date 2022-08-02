@@ -819,7 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!this.IsValidUnscopedRefAttributeTarget())
                 {
-                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedParameter, arguments.AttributeSyntaxOpt.Location);
+                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, arguments.AttributeSyntaxOpt.Location);
                 }
             }
         }

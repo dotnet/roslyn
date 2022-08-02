@@ -1572,14 +1572,9 @@
         <target state="translated">'{0}' は 'UnmanagedCallersOnly' 属性が設定されているため、デリゲート型に変換できません。このメソッドへの関数ポインターを取得してください。</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
-      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMember">
-        <source>UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.</source>
-        <target state="new">UnscopedRefAttribute can only be applied to instance methods and properties on struct types, not including constructors or 'init' accessors.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedParameter">
-        <source>UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.</source>
-        <target state="new">UnscopedRefAttribute can only be applied to 'out' parameters and to 'ref' parameters that refer to 'ref struct' types.</target>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
+        <source>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</source>
+        <target state="new">UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
