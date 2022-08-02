@@ -78,11 +78,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     _lastRequestedPrimaryBranchSolution.checksum == solutionChecksum ? _lastRequestedPrimaryBranchSolution.solution :
                     _lastRequestedAnyBranchSolution.checksum == solutionChecksum ? _lastRequestedAnyBranchSolution.solution : null;
 
-                // We're the first call that is asking about this checksum.  Create a lazy to compute it with a
-                // in-flight-count of 1 to represent our caller. 
+                // We're the first call that is asking about this checksum.  Kick off async computation to compute it
+                // (or use an existing cached value we already have).  Start with an in-flight-count of 1 to represent
+                // our caller. 
                 solution = new InFlightSolution(
                     this, solutionChecksum,
-                    cancellationToken => ComputeDisconnectedSolutionAsync(assetProvider, solutionChecksum, cancellationToken));
+                    async cancellationToken => cachedSolution ?? await ComputeDisconnectedSolutionAsync(assetProvider, solutionChecksum, cancellationToken).ConfigureAwait(false));
                 Contract.ThrowIfFalse(solution.InFlightCount == 1);
 
                 _solutionChecksumToSolution.Add(solutionChecksum, solution);

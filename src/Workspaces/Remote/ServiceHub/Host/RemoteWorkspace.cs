@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Syncs over the solution corresponding to <paramref name="solutionChecksum"/> and sets it as the current
         /// solution for <see langword="this"/> workspace.  This will also end up updating <see
-        /// cref="_lastRequestedAnyBranchSolution"/> and <see cref="_lastRequestedPrimaryBranchSolution"/>, allowing them to be pre-populated for
-        /// feature requests that come in soon after this call completes.
+        /// cref="_lastRequestedAnyBranchSolution"/> and <see cref="_lastRequestedPrimaryBranchSolution"/>, allowing
+        /// them to be pre-populated for feature requests that come in soon after this call completes.
         /// </summary>
         public async Task UpdatePrimaryBranchSolutionAsync(
             AssetProvider assetProvider, Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)
