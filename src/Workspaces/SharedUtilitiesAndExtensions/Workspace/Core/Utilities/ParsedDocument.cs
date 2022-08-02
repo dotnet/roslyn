@@ -25,6 +25,13 @@ internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, S
 {
     public SyntaxTree SyntaxTree => Root.SyntaxTree;
 
+#if !CODE_STYLE
+    // #if can be removed once these types are public: https://github.com/dotnet/roslyn/issues/62914
+
+    public HostProjectServices ProjectServices => LanguageServices.ProjectServices;
+    public HostSolutionServices SolutionServices => ProjectServices.SolutionServices;
+#endif
+
     public static async ValueTask<ParsedDocument> CreateAsync(Document document, CancellationToken cancellationToken)
     {
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

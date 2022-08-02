@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var delegates = new MultiDictionary<Document, DeclaredSymbolInfo>();
 
                 var namedTypes = new MultiDictionary<string, (Document, DeclaredSymbolInfo)>(
-                    project.LanguageServices.GetRequiredService<ISyntaxFactsService>().StringComparer);
+                    project.Services.GetRequiredService<ISyntaxFactsService>().StringComparer);
 
                 foreach (var document in project.Documents)
                 {

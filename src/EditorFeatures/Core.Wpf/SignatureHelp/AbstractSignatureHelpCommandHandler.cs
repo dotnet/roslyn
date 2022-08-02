@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             var languageName = args.SubjectBuffer.GetLanguageName();
             if (args is not InvokeSignatureHelpCommandArgs &&
                 languageName != null &&
-                !_globalOptions.GetOption(SignatureHelpViewOptions.ShowSignatureHelp, languageName))
+                !_globalOptions.GetOption(SignatureHelpViewOptionsStorage.ShowSignatureHelp, languageName))
             {
                 controller = null;
                 return false;

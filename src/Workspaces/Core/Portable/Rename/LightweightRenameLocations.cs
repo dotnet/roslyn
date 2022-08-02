@@ -97,11 +97,12 @@ namespace Microsoft.CodeAnalysis.Rename
 
                         if (result.HasValue && result.Value != null)
                         {
-                            var rehydrated = await TryRehydrateAsync(
-                                solution, fallbackOptions, result.Value, cancellationToken).ConfigureAwait(false);
-
-                            if (rehydrated != null)
-                                return rehydrated;
+                            var rehydratedLocations = await result.Value.RehydrateLocationsAsync(solution, cancellationToken).ConfigureAwait(false);
+                            return new LightweightRenameLocations(
+                                solution, options, fallbackOptions,
+                                rehydratedLocations,
+                                result.Value.ImplicitLocations,
+                                result.Value.ReferencedSymbols);
                         }
 
                         // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)

@@ -198,8 +198,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             // For anything that was a type parameter, just use the name (if we haven't already
             // used it).  Otherwise, synthesize new names for the parameters.
-            using var namesDisposer = ArrayBuilder<string>.GetInstance(arity, out var names);
-            using var isFixedDisposer = ArrayBuilder<bool>.GetInstance(arity, out var isFixed);
+            using var _1 = ArrayBuilder<string>.GetInstance(arity, out var names);
+            using var _2 = ArrayBuilder<bool>.GetInstance(arity, out var isFixed);
             for (var i = 0; i < arity; i++)
             {
                 var argument = i < arguments.Count ? arguments[i] : null;

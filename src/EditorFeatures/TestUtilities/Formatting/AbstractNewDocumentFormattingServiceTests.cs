@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting
             var solution = workspace.CurrentSolution;
 
             var document = workspace.CurrentSolution.Projects.First().Documents.First();
-            var languageServices = document.Project.LanguageServices;
+            var languageServices = document.Project.Services;
 
             var cleanupOptions =
                 options?.ToAnalyzerConfigOptions(languageServices).GetCodeCleanupOptions(allowImportsInHiddenRegions: false, fallbackOptions: null, languageServices) ??

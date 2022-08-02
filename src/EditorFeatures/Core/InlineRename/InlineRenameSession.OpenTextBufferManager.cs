@@ -589,7 +589,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _session._threadingContext.ThrowIfNotOnUIThread();
 
                 var textDiffService = preMergeDocument.Project.Solution.Services.GetService<IDocumentTextDifferencingService>();
-                var contentType = preMergeDocument.Project.LanguageServices.GetService<IContentTypeLanguageService>().GetDefaultContentType();
+                var contentType = preMergeDocument.Project.Services.GetService<IContentTypeLanguageService>().GetDefaultContentType();
 
                 // TODO: Track all spans at once
 

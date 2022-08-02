@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -22,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Host
         {
             _services = services;
         }
+
+        internal IMefHostExportProvider ExportProvider => (IMefHostExportProvider)_services.HostServices;
 
         /// <inheritdoc cref="HostWorkspaceServices.GetService"/>
         public TWorkspaceService? GetService<TWorkspaceService>() where TWorkspaceService : IWorkspaceService

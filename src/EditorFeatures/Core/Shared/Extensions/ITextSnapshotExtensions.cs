@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
 
-            var options = textBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.LanguageServices, explicitFormat: false);
+            var options = textBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.Services, explicitFormat: false);
             var result = formatter.GetFormattingResult(documentSyntax.Root, SpecializedCollections.SingletonEnumerable(span), options, rules, cancellationToken);
             var changes = result.GetTextChanges(cancellationToken);
 
