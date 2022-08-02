@@ -1107,7 +1107,6 @@ namespace System.Diagnostics.CodeAnalysis
             return comp;
         }
 
-
         internal static CSharpCompilation CreateByRefFieldsCompilation(
               CSharpTestSource source,
               IEnumerable<MetadataReference> references = null,
