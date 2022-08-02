@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (!_flags.TryGetHasUnscopedRefAttribute(out bool hasUnscopedRefAttribute))
                 {
                     var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
-                    hasUnscopedRefAttribute = containingPEModuleSymbol.Module.HasAttribute(_handle, AttributeDescription.UnscopedRefAttribute);
+                    hasUnscopedRefAttribute = containingPEModuleSymbol.Module.HasUnscopedRefAttribute(_handle);
                     _flags.SetHasUnscopedRefAttribute(hasUnscopedRefAttribute);
                 }
 
