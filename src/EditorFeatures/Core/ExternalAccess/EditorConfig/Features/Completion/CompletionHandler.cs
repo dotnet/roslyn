@@ -183,7 +183,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                 var codeStyleSettingsItems = settingsSnapshots3.codeStyleSnapshot?.Select(GenerateSettingNameCompletionItem);
                 var whitespaceSettingsItems = settingsSnapshots3.whitespaceSnapshot?.Select(GenerateSettingNameCompletionItem);
                 var analyzerSettingsItems = settingsSnapshots3.analyzerSnapshot?.Select(GenerateSettingNameCompletionItem);
-                var settingsItems = codeStyleSettingsItems.Concat(whitespaceSettingsItems).Concat(analyzerSettingsItems).Where(item => item != null) as IEnumerable<CompletionItem>;
+                var settingsItems = codeStyleSettingsItems.Concat(whitespaceSettingsItems).Concat(analyzerSettingsItems).Where(item => item != null)
+                                                                                                                        .GroupBy(x => x?.Label).Select(grp => grp.First()) as IEnumerable<CompletionItem>;
                 if (settingsItems == null)
                 {
                     return null;
