@@ -158,16 +158,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return isConflict;
         }
 
-        private static bool IsRenameValid(
-            MutableConflictResolution conflictResolution,
-            ISymbol renamedSymbol,
-            ISymbol originalRenameSymbol)
-        {
-            // if we rename an identifier and it now binds to a symbol from metadata this should be treated as
-            // an invalid rename.
-            return renamedSymbol != null && conflictResolution.SymbolToReplacementTextValid[originalRenameSymbol] && renamedSymbol.Locations.Any(static loc => loc.IsInSource);
-        }
-
         private static async Task AddImplicitConflictsAsync(
             ISymbol renamedSymbol,
             ISymbol originalSymbol,

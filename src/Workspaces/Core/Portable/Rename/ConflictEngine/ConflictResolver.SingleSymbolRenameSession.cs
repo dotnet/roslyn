@@ -97,7 +97,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 _possibleNameConflicts = possibleNameConflicts;
 
                 _documentsIdsToBeCheckedForConflict = documentsIdsToBeCheckedForConflict;
-                _conflictLocations = SpecializedCollections.EmptySet<ConflictLocationInfo>();
                 _replacementTextValid = replacementTextValid;
             }
 
@@ -131,22 +130,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     baseSolution, symbolToReplacementText, symbolToReplacementTextValid, _documentsIdsToBeCheckedForConflict);
             }
 
-            protected override async Task<ImmutableHashSet<ISymbol>> GetNonConflictSymbolsAsync(Project currentProject)
-            {
-                if (NonConflictSymbolKeys.IsDefault)
-                    return ImmutableHashSet<ISymbol>.Empty;
-
-                var compilation = await currentProject.GetRequiredCompilationAsync(CancellationToken).ConfigureAwait(false);
-                return ImmutableHashSet.CreateRange(
-                    NonConflictSymbolKeys.Select(s => s.Resolve(compilation).GetAnySymbol()).WhereNotNull());
-            }
-
             // The rename process and annotation for the bookkeeping is performed in one-step
             protected override async Task<(Solution, ImmutableHashSet<DocumentId>)> AnnotateAndRename_WorkerAsync(
                 Solution originalSolution,
                 Solution partiallyRenamedSolution,
                 HashSet<DocumentId> documentIdsToRename,
-                RenamedSpansTracker renameSpansTracker)
+                ISet<ConflictLocationInfo> conflictLocations,
+                RenamedSpansTracker renameSpansTracker,
+                AnnotationTable<RenameAnnotation> annotationTable)
             {
                 try
                 {
@@ -188,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             .Where(l => l.IsRenameInStringOrComment)
                             .SelectAsArray(location => new LocationRenameContext(location, symbolContext));
 
-                        var conflictLocationSpans = _conflictLocations
+                        var conflictLocationSpans = conflictLocations
                                                     .Where(t => t.DocumentId == documentId)
                                                     .Select(t => t.ComplexifiedSpan).ToSet();
 
@@ -202,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             originalSyntaxRoot,
                             document,
                             semanticModel,
-                            RenameAnnotations,
+                            annotationTable,
                             textSpanRenameContexts,
                             stringAndCommentTextSpanContexts,
                             ImmutableArray.Create(symbolContext),
@@ -267,7 +258,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 return ImmutableArray<RenamedSymbolInfo>.Empty;
             }
 
-            protected override bool HasConflictForMetadataReference(RenameDeclarationLocationReference renameDeclarationLocationReference, ISymbol newReferencedSymbol)
+            protected override bool HasConflictForMetadataReference(
+                RenameDeclarationLocationReference renameDeclarationLocationReference, ISymbol newReferencedSymbol)
             {
                 var newMetadataName = newReferencedSymbol.ToDisplayString(s_metadataSymbolDisplayFormat);
                 var oldMetadataName = renameDeclarationLocationReference.Name;
