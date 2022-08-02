@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -13,12 +11,14 @@ namespace Microsoft.CodeAnalysis.Remote
     internal sealed partial class RemoteWorkspace
     {
         /// <summary>
-        /// The last solution for the primary branch fetched from the client.
+        /// The last solution for the primary branch fetched from the client.  Cached as it's very common to have a
+        /// flurry of requests for the same checksum that don't run concurrently.
         /// </summary>
         private (Checksum checksum, Solution solution) _lastRequestedPrimaryBranchSolution;
 
         /// <summary>
-        /// The last solution requested by a service.
+        /// The last solution requested by a service.  Cached as it's very common to have a flurry of requests for the
+        /// same checksum that don't run concurrently.
         /// </summary>
         private (Checksum checksum, Solution solution) _lastRequestedAnyBranchSolution;
 
@@ -49,13 +49,8 @@ namespace Microsoft.CodeAnalysis.Remote
             // to compute the primary branch as well, let it know so it can start that now.
             if (updatePrimaryBranch)
             {
-                solution.TryKickOffPrimaryBranchWork_NoLock(async (disconnectedSolution, cancellationToken) =>
-                {
-                    // compute the primary workspace, and then cache it as well to help with future requests.
-                    var result = await this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, disconnectedSolution, cancellationToken).ConfigureAwait(false);
-                    await SetLastRequestedSolutionAsync(result, primary: true, cancellationToken).ConfigureAwait(false);
-                    return result;
-                });
+                solution.TryKickOffPrimaryBranchWork_NoLock((disconnectedSolution, cancellationToken) =>
+                    this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, disconnectedSolution, cancellationToken));
             }
 
             CheckCacheInvariants_NoLock();
@@ -87,31 +82,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 // in-flight-count of 1 to represent our caller. 
                 solution = new InFlightSolution(
                     this, solutionChecksum,
-                    async cancellationToken =>
-                    {
-                        // Compute the solution (or use one we already cached) then cache it to help with future requests.
-                        var result = cachedSolution ?? await ComputeDisconnectedSolutionAsync(assetProvider, solutionChecksum, cancellationToken).ConfigureAwait(false);
-                        await SetLastRequestedSolutionAsync(result, primary: false, cancellationToken).ConfigureAwait(false);
-                        return result;
-                    });
+                    cancellationToken => ComputeDisconnectedSolutionAsync(assetProvider, solutionChecksum, cancellationToken));
                 Contract.ThrowIfFalse(solution.InFlightCount == 1);
 
                 _solutionChecksumToSolution.Add(solutionChecksum, solution);
 
                 return solution;
-            }
-
-            async Task SetLastRequestedSolutionAsync(Solution solution, bool primary, CancellationToken cancellationToken)
-            {
-                // it's fine if we end up not setting this due to cancellation.  this is just a helper cache to speed up
-                // future requests.
-                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    if (primary)
-                        _lastRequestedPrimaryBranchSolution = (solutionChecksum, solution);
-                    else
-                        _lastRequestedAnyBranchSolution = (solutionChecksum, solution);
-                }
             }
         }
 

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Syncs over the solution corresponding to <paramref name="solutionChecksum"/> and sets it as the current
         /// solution for <see langword="this"/> workspace.  This will also end up updating <see
-        /// cref="_lastAnyBranchSolution"/> and <see cref="_lastPrimaryBranchSolution"/>, allowing them to be pre-populated for
+        /// cref="_lastRequestedAnyBranchSolution"/> and <see cref="_lastRequestedPrimaryBranchSolution"/>, allowing them to be pre-populated for
         /// feature requests that come in soon after this call completes.
         /// </summary>
         public async Task UpdatePrimaryBranchSolutionAsync(
@@ -130,6 +130,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 // computing. Note: we use our own cancellation token here as the task is currently operating using a
                 // private CTS token that inFlightSolution controls.
                 var solution = await solutionTask.WithCancellation(cancellationToken).ConfigureAwait(false);
+
+                // now that we've computed the solution, cache it to help out future requests.
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    if (updatePrimaryBranch)
+                        _lastRequestedPrimaryBranchSolution = (solutionChecksum, solution);
+                    else
+                        _lastRequestedAnyBranchSolution = (solutionChecksum, solution);
+                }
 
                 // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
                 // using this same solution as well
