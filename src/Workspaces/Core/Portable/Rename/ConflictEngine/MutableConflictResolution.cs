@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// <summary>
         /// The original text that is the rename replacement.
         /// </summary>
-        public readonly string ReplacementText;
+        public readonly ImmutableDictionary<ISymbol, string> SymbolToReplacementText;
 
         /// <summary>
         /// The mapping from DocumentId of renamed document to the newName.
@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         public MutableConflictResolution(
             Solution oldSolution,
             RenamedSpansTracker renamedSpansTracker,
-            string replacementText,
+            ImmutableDictionary<ISymbol, string> symbolToReplacementText,
             ImmutableDictionary<ISymbol, bool> symbolToReplacementTextValid)
         {
             OldSolution = oldSolution;
             CurrentSolution = oldSolution;
             _renamedSpansTracker = renamedSpansTracker;
-            ReplacementText = replacementText;
+            SymbolToReplacementText = symbolToReplacementText;
             SymbolToReplacementTextValid = symbolToReplacementTextValid;
             RelatedLocations = new List<RelatedLocation>();
         }
@@ -113,10 +113,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return intermediateSolution;
         }
 
-        internal void RenameDocumentToMatchNewSymbol(Document document)
+        internal void RenameDocumentToMatchNewSymbol(ISymbol originalSymbol, Document document)
         {
+            var replacementText = SymbolToReplacementText[originalSymbol];
             var extension = Path.GetExtension(document.Name);
-            var newName = Path.ChangeExtension(ReplacementText, extension);
+            var newName = Path.ChangeExtension(replacementText, extension);
 
             // If possible, check that the new file name is unique to on disk files as well 
             // as solution items.
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             return;
                         }
 
-                        var nameWithoutExtension = ReplacementText + $"_{versionNumber++}";
+                        var nameWithoutExtension = replacementText + $"_{versionNumber++}";
                         newName = Path.ChangeExtension(nameWithoutExtension, extension);
                         newDocumentFilePath = Path.Combine(directory, newName);
                     }

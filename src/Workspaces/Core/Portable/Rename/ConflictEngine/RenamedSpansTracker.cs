@@ -150,7 +150,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
         }
 
-        internal async Task<Solution> SimplifyAsync(Solution solution, IEnumerable<DocumentId> documentIds, bool replacementTextValid, AnnotationTable<RenameAnnotation> renameAnnotations, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        internal async Task<Solution> SimplifyAsync(
+            Solution solution,
+            IEnumerable<DocumentId> documentIds,
+            bool allRenamedSymbolsValid,
+            AnnotationTable<RenameAnnotation> renameAnnotations,
+            CodeCleanupOptionsProvider fallbackOptions,
+            CancellationToken cancellationToken)
         {
             foreach (var documentId in documentIds)
             {
@@ -158,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     var document = solution.GetRequiredDocument(documentId);
 
-                    if (replacementTextValid)
+                    if (allRenamedSymbolsValid)
                     {
                         var cleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 

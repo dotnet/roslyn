@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -24,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         private abstract class AbstractRenameSession
         {
             private readonly ImmutableArray<SymbolKey> _nonConflictSymbolKeys;
+            private readonly CodeCleanupOptionsProvider _fallbackOptions;
+
             protected readonly ImmutableArray<ProjectId> TopologicallySortedProjects;
             protected readonly CancellationToken CancellationToken;
             protected readonly AnnotationTable<RenameAnnotation> RenameAnnotations = new(RenameAnnotation.Kind);
@@ -32,15 +35,21 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             protected AbstractRenameSession(
                 Solution solution,
+                ImmutableArray<SymbolKey> nonConflictSymbolKeys,
+                CodeCleanupOptionsProvider fallBackOptions,
                 CancellationToken cancellationToken)
             {
                 var dependencyGraph = solution.GetProjectDependencyGraph();
                 TopologicallySortedProjects = dependencyGraph.GetTopologicallySortedProjects(cancellationToken).ToImmutableArray();
                 CancellationToken = cancellationToken;
+                _nonConflictSymbolKeys = nonConflictSymbolKeys;
+                _fallbackOptions = fallBackOptions;
             }
 
             public async Task<MutableConflictResolution> ResolveConflictsCoreAsync(
                 Solution baseSolution,
+                ImmutableDictionary<ISymbol, string> symbolToReplacementText,
+                ImmutableDictionary<ISymbol, bool> symbolToReplacementTextValid,
                 ImmutableHashSet<DocumentId> documentsIdsToBeCheckedForConflict)
             {
                 try
@@ -54,14 +63,15 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var conflictResolution = new MutableConflictResolution(
                         baseSolution,
                         renamedSpansTracker,
-                        _replacementText,
-                        ImmutableDictionary<ISymbol, bool>.Empty.Add(_renameLocationSet.Symbol, _replacementTextValid));
+                        symbolToReplacementText,
+                        symbolToReplacementTextValid);
 
                     var intermediateSolution = conflictResolution.OldSolution;
                     foreach (var documentsByProject in documentsGroupedByTopologicallySortedProjectId)
                     {
                         var documentIdsThatGetsAnnotatedAndRenamed = new HashSet<DocumentId>(documentsByProject);
-                        using (baseSolution.Services.CacheService?.EnableCaching(documentsByProject.Key))
+                        var projectId = documentsByProject.Key;
+                        using (baseSolution.Services.CacheService?.EnableCaching(projectId))
                         {
                             // Rename is going to be in 5 phases.
                             // 1st phase - Does a simple token replacement
@@ -94,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                 var foundResolvableConflicts = await IdentifyConflictsAsync(
                                     documentIdsForConflictResolution: documentIdsThatGetsAnnotatedAndRenamed,
                                     allDocumentIdsInProject: documentsByProject,
-                                    projectId: documentsByProject.Key,
+                                    projectId: projectId,
                                     conflictResolution: conflictResolution).ConfigureAwait(false);
 
                                 if (!foundResolvableConflicts || phase == 3)
@@ -143,8 +153,15 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                 conflictResolution.ResetChangedDocuments();
                             }
 
+                            var symbolsRenamedInProject = GetSymbolRenamedInProjects(projectId);
+                            var allRenamedSymbolsValid = symbolsRenamedInProject.All(symbol => conflictResolution.SymbolToReplacementTextValid[symbol]);
                             // Step 3: Simplify the project
-                            conflictResolution.UpdateCurrentSolution(await renamedSpansTracker.SimplifyAsync(conflictResolution.CurrentSolution, documentsByProject, _replacementTextValid, RenameAnnotations, FallbackOptions, CancellationToken).ConfigureAwait(false));
+                            conflictResolution.UpdateCurrentSolution(await renamedSpansTracker.SimplifyAsync(
+                                conflictResolution.CurrentSolution,
+                                documentsByProject,
+                                allRenamedSymbolsValid,
+                                RenameAnnotations,
+                                _fallbackOptions, CancellationToken).ConfigureAwait(false));
                             intermediateSolution = await conflictResolution.RemoveAllRenameAnnotationsAsync(
                                 intermediateSolution, documentsByProject, RenameAnnotations, CancellationToken).ConfigureAwait(false);
                             conflictResolution.UpdateCurrentSolution(intermediateSolution);
@@ -195,7 +212,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             if (definitionDocuments.Count() == 1)
                             {
                                 // At the moment, only single document renaming is allowed
-                                conflictResolution.RenameDocumentToMatchNewSymbol(definitionDocuments.Single());
+                                conflictResolution.RenameDocumentToMatchNewSymbol(
+                                    originalSymbolRenameLocations.Symbol, definitionDocuments.Single());
                             }
                         }
                     }
@@ -213,6 +231,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 Solution partiallyRenamedSolution,
                 HashSet<DocumentId> documentIdsThatGetsAnnotatedAndRenamed,
                 RenamedSpansTracker renamedSpansTracker);
+
+            protected abstract ImmutableArray<ISymbol> GetSymbolRenamedInProjects(ProjectId projectId);
 
             protected abstract Task<ImmutableHashSet<ISymbol>> GetNonConflictSymbolsAsync(Project projectProject);
 
