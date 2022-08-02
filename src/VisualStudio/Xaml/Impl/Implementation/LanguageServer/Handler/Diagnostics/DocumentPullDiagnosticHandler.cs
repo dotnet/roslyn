@@ -26,8 +26,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             : base(xamlPullDiagnosticService)
         { }
 
-        public override Uri? GetTextDocumentUri(VSInternalDocumentDiagnosticsParams request)
-            => request.TextDocument.Uri;
+        public override object? GetTextDocumentUri(VSInternalDocumentDiagnosticsParams request)
+            => request.TextDocument;
 
         protected override VSInternalDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
             => new VSInternalDiagnosticReport { Diagnostics = diagnostics, ResultId = resultId };

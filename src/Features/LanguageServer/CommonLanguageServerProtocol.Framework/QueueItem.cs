@@ -37,13 +37,13 @@ public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueue
 
     public string MethodName { get; }
 
-    public Uri? TextDocument { get; }
+    public object? TextDocument { get; }
 
     public QueueItem(
         bool mutatesSolutionState,
         bool requiresLSPSolution,
         string methodName,
-        Uri? textDocument,
+        object? textDocument,
         TRequestType request,
         IRequestHandler handler,
         ILspLogger logger,
@@ -66,7 +66,7 @@ public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueue
         bool mutatesSolutionState,
         bool requiresLSPSolution,
         string methodName,
-        Uri? textDocument,
+        object? textDocument,
         TRequestType request,
         IRequestHandler handler,
         ILspLogger logger,

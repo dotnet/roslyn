@@ -36,7 +36,7 @@ public interface IRequestHandler<RequestType, ResponseType, RequestContextType> 
     /// <summary>
     /// Gets the <see cref="Uri"/> of the document from the request, if the request provides one.
     /// </summary>
-    Uri? GetTextDocumentUri(RequestType request);
+    object? GetTextDocumentUri(RequestType request);
 
     /// <summary>
     /// Handles an LSP request in the context of the supplied document and/or solutuion.

@@ -68,10 +68,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             {
                 var textDocument = handler.GetTextDocumentUri(request);
 
-                DocumentId? documentId = null;
-                if (textDocument.IsAbsoluteUri)
+                Uri textDocumentUri;
+                if(textDocument is Uri uri)
                 {
-                    documentId = _projectService.TrackOpenDocument(textDocument.LocalPath);
+                    textDocumentUri = uri;
+                }
+                else if (textDocument is TextDocumentIdentifier textDocumentIdentifier)
+                {
+                    textDocumentUri = textDocumentIdentifier.Uri;
+                }
+                else
+                {
+                    throw new NotImplementedException($"TextDocument was set to an unsupported value for method {methodName}");
+                }
+
+                DocumentId? documentId = null;
+                if (textDocumentUri.IsAbsoluteUri)
+                {
+                    documentId = _projectService.TrackOpenDocument(textDocumentUri.LocalPath);
                 }
 
                 using (var requestScope = _feedbackService?.CreateRequestScope(documentId, methodName))

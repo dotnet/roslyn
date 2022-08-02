@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public Uri? GetTextDocumentUri(TextDocumentPositionParams request) => request.TextDocument.Uri;
+        public object? GetTextDocumentUri(TextDocumentPositionParams request) => request.TextDocument;
 
         public async Task<DocumentHighlight[]?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {

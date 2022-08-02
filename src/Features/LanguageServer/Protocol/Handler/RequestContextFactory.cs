@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 #nullable enable
 
@@ -12,17 +14,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     internal class RequestContextFactory : IRequestContextFactory<RequestContext>, ILspService
     {
-        //private readonly IServerInfoProvider _serverInfoProvider;
-        //private readonly ImmutableArray<string> _supportedLanguages;
         private readonly ILspServices _lspServices;
-        //private readonly string _serverKind;
 
-        public RequestContextFactory(ILspServices lspServices)//, IServerInfoProvider serverInfoProvider, ImmutableArray<string> supportedLanguages, string serverKind)
+        public RequestContextFactory(ILspServices lspServices)
         {
             _lspServices = lspServices;
-
-            //_supportedLanguages = supportedLanguages;
-            //_serverKind = serverKind;
         }
 
         public Task<RequestContext?> CreateRequestContextAsync(IQueueItem<RequestContext> queueItem, CancellationToken queueCancellationToken, CancellationToken requestCancellationToken)
@@ -32,10 +28,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var logger = _lspServices.GetRequiredService<IRoslynLspLogger>();
             var serverInfoProvider = _lspServices.GetRequiredService<ServerInfoProvider>();
 
+            TextDocumentIdentifier? textDocumentIdentifier;
+            if (queueItem.TextDocument is TextDocumentIdentifier t)
+            {
+                textDocumentIdentifier = t;
+            }
+            else if (queueItem.TextDocument is Uri uri)
+            {
+                textDocumentIdentifier = new TextDocumentIdentifier
+                {
+                    Uri = uri,
+                };
+            }
+            else if (queueItem.TextDocument is null)
+            {
+                textDocumentIdentifier = null;
+            }
+            else
+            {
+                throw new NotImplementedException($"TextDocument in an unrecognized type for method: {queueItem.MethodName}");
+            }
+
             return RequestContext.CreateAsync(
                 queueItem.RequiresLSPSolution,
                 queueItem.MutatesSolutionState,
-                queueItem.TextDocument,
+                textDocumentIdentifier,
                 serverInfoProvider.ServerKind,
                 clientCapabilities,
                 serverInfoProvider.SupportedLanguages,

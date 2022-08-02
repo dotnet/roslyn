@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public static async Task<RequestContext?> CreateAsync(
             bool requiresLSPSolution,
             bool mutatesSolutionState,
-            Uri? textDocument,
+            TextDocumentIdentifier? textDocument,
             string serverKind,
             ClientCapabilities? clientCapabilities,
             ImmutableArray<string> supportedLanguages,

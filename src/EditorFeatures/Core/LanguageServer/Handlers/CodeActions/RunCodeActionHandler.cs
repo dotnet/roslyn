@@ -61,12 +61,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override bool MutatesSolutionState => true;
         public override bool RequiresLSPSolution => true;
 
-        public override Uri? GetTextDocumentUri(LSP.ExecuteCommandParams request)
+        public override object? GetTextDocumentUri(LSP.ExecuteCommandParams request)
         {
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
             Assumes.Present(runRequest);
 
-            return runRequest.TextDocument.Uri;
+            return runRequest.TextDocument;
         }
 
         public override async Task<object> HandleRequestAsync(LSP.ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)

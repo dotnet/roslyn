@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public Uri? GetTextDocumentUri(FoldingRangeParams request) => request.TextDocument.Uri;
+        public object? GetTextDocumentUri(FoldingRangeParams request) => request.TextDocument;
 
         public async Task<FoldingRange[]?> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {

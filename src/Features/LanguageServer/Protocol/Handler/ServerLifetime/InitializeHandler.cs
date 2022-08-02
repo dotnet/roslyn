@@ -25,7 +25,7 @@ internal class InitializeHandler : IRoslynRequestHandler<InitializeParams, Initi
 
     public bool RequiresLSPSolution => false;
 
-    public Uri? GetTextDocumentUri(InitializeParams request)
+    public object? GetTextDocumentUri(InitializeParams request)
     {
         return null;
     }

@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public Uri? GetTextDocumentUri(VSInternalDocumentOnAutoInsertParams request) => request.TextDocument.Uri;
+        public object? GetTextDocumentUri(VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
 
         public async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, RequestContext context, CancellationToken cancellationToken)
         {

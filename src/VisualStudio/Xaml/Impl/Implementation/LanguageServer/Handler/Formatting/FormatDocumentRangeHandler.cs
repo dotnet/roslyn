@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override Uri? GetTextDocumentUri(DocumentRangeFormattingParams request) => request.TextDocument.Uri;
+        public override object? GetTextDocumentUri(DocumentRangeFormattingParams request) => request.TextDocument;
 
         public override Task<TextEdit[]> HandleRequestAsync(DocumentRangeFormattingParams request, RequestContext context, CancellationToken cancellationToken)
             => GetTextEditsAsync(request.Options, context, cancellationToken, range: request.Range);

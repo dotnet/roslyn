@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             _versionedCache = new(this.GetType().Name);
         }
 
-        public abstract Uri? GetTextDocumentUri(TParams requestParams);
+        public abstract object? GetTextDocumentUri(TParams requestParams);
 
         /// <summary>
         /// Retrieve the previous results we reported.  Used so we can avoid resending data for unchanged files. Also

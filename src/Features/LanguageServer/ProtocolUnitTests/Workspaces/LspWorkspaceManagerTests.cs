@@ -481,7 +481,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
     private static Task<Document?> GetLspDocumentAsync(Uri uri, TestLspServer testLspServer)
     {
-        return testLspServer.GetManager().GetLspDocumentAsync(uri, CancellationToken.None);
+        return testLspServer.GetManager().GetLspDocumentAsync(CreateTextDocumentIdentifier(uri), CancellationToken.None);
     }
 
     private static Task<Solution?> GetLspHostSolutionAsync(TestLspServer testLspServer)

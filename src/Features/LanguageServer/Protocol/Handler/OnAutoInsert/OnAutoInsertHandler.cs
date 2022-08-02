@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public Uri? GetTextDocumentUri(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument.Uri;
+        public object? GetTextDocumentUri(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
 
         public async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
             LSP.VSInternalDocumentOnAutoInsertParams request,

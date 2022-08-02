@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _completionListCache = completionListCache;
         }
 
-        public Uri? GetTextDocumentUri(LSP.CompletionItem request)
-            => GetCompletionListCacheEntry(request)?.TextDocument.Uri;
+        public object? GetTextDocumentUri(LSP.CompletionItem request)
+            => GetCompletionListCacheEntry(request)?.TextDocument;
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
