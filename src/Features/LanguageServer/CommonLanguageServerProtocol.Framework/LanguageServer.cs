@@ -253,8 +253,6 @@ public abstract class LanguageServer<RequestContextType> : ILanguageServer
         _queue?.Shutdown();
     }
 
-    protected abstract Task OnErroredEndAsync(object obj);
-
     protected virtual void RequestExecutionQueueErroredInternal(string message)
     {
     }

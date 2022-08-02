@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         private readonly AbstractLspServiceProvider _lspServiceProvider;
         private readonly IAsynchronousOperationListener _listener;
-        private IAsyncToken? _erroredToken;
         private readonly ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> _baseServices;
         private readonly IServiceCollection _serviceCollection;
         private readonly ImmutableArray<string> _supportedLanguages;
@@ -145,12 +144,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var clientCapabilities = clientCapabilitiesManager.GetClientCapabilities();
 
             return clientCapabilities;
-        }
-
-        protected override Task OnErroredEndAsync(object obj)
-        {
-            _erroredToken?.Dispose();
-            return Task.CompletedTask;
         }
 
         internal TestAccessor GetTestAccessor() => new(this);
