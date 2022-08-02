@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     {
         private abstract class AbstractRenameSession
         {
-            private readonly ImmutableArray<SymbolKey> _nonConflictSymbolKeys;
             private readonly CodeCleanupOptionsProvider _fallbackOptions;
 
+            protected readonly ImmutableArray<SymbolKey> NonConflictSymbolKeys;
             protected readonly ImmutableArray<ProjectId> TopologicallySortedProjects;
             protected readonly CancellationToken CancellationToken;
             protected readonly AnnotationTable<RenameAnnotation> RenameAnnotations = new(RenameAnnotation.Kind);
@@ -42,10 +42,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 var dependencyGraph = solution.GetProjectDependencyGraph();
                 TopologicallySortedProjects = dependencyGraph.GetTopologicallySortedProjects(cancellationToken).ToImmutableArray();
                 CancellationToken = cancellationToken;
-                _nonConflictSymbolKeys = nonConflictSymbolKeys;
+                NonConflictSymbolKeys = nonConflictSymbolKeys;
                 _fallbackOptions = fallBackOptions;
             }
 
+            // The method which performs rename, resolves the conflict locations and returns the result of the rename operation
             public async Task<MutableConflictResolution> ResolveConflictsCoreAsync(
                 Solution baseSolution,
                 ImmutableDictionary<ISymbol, string> symbolToReplacementText,
@@ -238,9 +239,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             protected abstract Task<ImmutableHashSet<RenamedSymbolInfo>> GetValidRenamedSymbolsInfoInCurrentSolutionAsync(MutableConflictResolution conflictResolution);
 
-            protected abstract Task<ImmutableArray<RenamedSymbolInfo>> GetDeclarationChangedSymbolsInfoAsync(ProjectId projectId);
+            protected abstract Task<ImmutableArray<RenamedSymbolInfo>> GetDeclarationChangedSymbolsInfoAsync(MutableConflictResolution conflictResolution, ProjectId projectId);
 
-            protected abstract bool HasConflictForMetadataReference(RenameActionAnnotation conflictAnnotation, ISymbol newReferencedSymbol);
+            protected abstract bool HasConflictForMetadataReference(RenameDeclarationLocationReference renameDeclarationLocationReference, ISymbol newReferencedSymbol);
 
             /// <summary>
             /// Find conflicts in the new solution
@@ -379,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         }
                     }
 
-                    var declarationChangedSymbolsInfo = await GetDeclarationChangedSymbolsInfoAsync(projectId).ConfigureAwait(false);
+                    var declarationChangedSymbolsInfo = await GetDeclarationChangedSymbolsInfoAsync(conflictResolution, projectId).ConfigureAwait(false);
                     // there are more conflicts that cannot be identified by checking if the tokens still reference the same
                     // symbol. These conflicts are mostly language specific. A good example is a member with the same name
                     // as the parent (yes I know, this is a simplification).
@@ -582,7 +583,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                                 if (newLocation == null
                                     || newLocation.IsInSource
-                                    || HasConflictForMetadataReference(conflictAnnotation, symbol))
+                                    || HasConflictForMetadataReference(conflictAnnotation.RenameDeclarationLocationReferences[symbolIndex], symbol))
                                 {
 
                                     hasConflict = true;
@@ -760,7 +761,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         // fixed them because of rename).  Also, don't bother checking if a custom
                         // callback was provided.  The caller might be ok with a rename that introduces
                         // errors.
-                        if (!documentIdErrorStateLookup[documentId] && _nonConflictSymbolKeys.IsDefault)
+                        if (!documentIdErrorStateLookup[documentId] && NonConflictSymbolKeys.IsDefault)
                         {
                             await conflictResolution.CurrentSolution.GetRequiredDocument(documentId).VerifyNoErrorsAsync("Rename introduced errors in error-free code", CancellationToken, ignoreErrorCodes).ConfigureAwait(false);
                         }

@@ -19,13 +19,15 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 ImmutableArray<(SymbolicRenameLocations, string, SymbolRenameOptions)> renameSymbolsInfo,
                 CancellationToken cancellationToken)
             {
-
+                throw new NotImplementedException();
             }
 
             private MultipleSymbolRenameSession(
                 Solution solution,
-                CancellationToken cancellationToken) : base(solution, cancellationToken)
+                CancellationToken cancellationToken) : base(solution, ImmutableArray<SymbolKey>.Empty, default, cancellationToken)
             {
+                // TODO: fall back option should be a global value among rename symbols
+                throw new NotImplementedException();
             }
 
             protected override Task<(Solution partiallyRenamedSolution, ImmutableHashSet<DocumentId> unchangedDocuments)> AnnotateAndRename_WorkerAsync(Solution originalSolution, Solution partiallyRenamedSolution, HashSet<DocumentId> documentIdsThatGetsAnnotatedAndRenamed, RenamedSpansTracker renamedSpansTracker)
@@ -33,7 +35,27 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 throw new NotImplementedException();
             }
 
-            protected override Task<bool> IdentifyConflictsAsync(HashSet<DocumentId> documentIdsForConflictResolution, IEnumerable<DocumentId> allDocumentIdsInProject, ProjectId projectId, MutableConflictResolution conflictResolution)
+            protected override ImmutableArray<ISymbol> GetSymbolRenamedInProjects(ProjectId projectId)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override Task<ImmutableHashSet<ISymbol>> GetNonConflictSymbolsAsync(Project projectProject)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override Task<ImmutableHashSet<RenamedSymbolInfo>> GetValidRenamedSymbolsInfoInCurrentSolutionAsync(MutableConflictResolution conflictResolution)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override Task<ImmutableArray<RenamedSymbolInfo>> GetDeclarationChangedSymbolsInfoAsync(MutableConflictResolution conflictResolution, ProjectId projectId)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override bool HasConflictForMetadataReference(RenameDeclarationLocationReference renameDeclarationLocationReference, ISymbol newReferencedSymbol)
             {
                 throw new NotImplementedException();
             }

@@ -9,6 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -79,6 +81,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         internal void ResetChangedDocuments()
             => ChangedDocuments.Clear();
+
+        internal bool HasDocumentChanged(DocumentId documentId)
+            => ChangedDocuments.Contains(documentId);
 
         internal void UpdateCurrentSolution(Solution solution)
             => CurrentSolution = solution;
