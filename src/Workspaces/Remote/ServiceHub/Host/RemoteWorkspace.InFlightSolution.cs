@@ -25,7 +25,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public readonly Checksum SolutionChecksum;
 
-            private readonly CancellationTokenSource _cancellationTokenSource = new();
+            /// <summary>
+            /// CancellationTokenSource controlling the execution of <see cref="_disconnectedSolutionTask"/> and <see
+            /// cref="_primaryBranchTask"/>.
+            /// </summary>
+            private readonly CancellationTokenSource _cancellationTokenSource_doNotAccessDirectly = new();
 
             /// <summary>
             /// Background work to just compute the disconnected solution associated with this <see cref="SolutionChecksum"/>
@@ -51,10 +55,23 @@ namespace Microsoft.CodeAnalysis.Remote
                 Checksum solutionChecksum,
                 Func<CancellationToken, Task<Solution>> computeDisconnectedSolutionAsync)
             {
+                Contract.ThrowIfFalse(workspace._gate.CurrentCount == 0);
+
                 _workspace = workspace;
                 SolutionChecksum = solutionChecksum;
 
-                _disconnectedSolutionTask = computeDisconnectedSolutionAsync(_cancellationTokenSource.Token);
+                _disconnectedSolutionTask = computeDisconnectedSolutionAsync(this.CancellationToken);
+            }
+
+            private CancellationToken CancellationToken
+            {
+                get
+                {
+                    // Only safe to get this when the lock is being held.  That way nothing is racing against the work
+                    // in DecrementInFlightCount_NoLock which cancels this CTS. 
+                    Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
+                    return _cancellationTokenSource_doNotAccessDirectly.Token;
+                }
             }
 
             public Task<Solution> PreferredSolutionTask_NoLock
@@ -85,13 +102,17 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (_primaryBranchTask != null)
                     return;
 
-                _primaryBranchTask = ComputePrimaryBranchAsync();
+                // Grab the cancellation token up front.  We don't want to potentially grab it at some undefined point
+                // at the future when this type has already had its in-flight-count reduced to 0 and thus had our CTS be
+                // disposed.
+                var token = this.CancellationToken;
+                _primaryBranchTask = ComputePrimaryBranchAsync(token);
                 return;
 
-                async Task<Solution> ComputePrimaryBranchAsync()
+                async Task<Solution> ComputePrimaryBranchAsync(CancellationToken cancellationToken)
                 {
                     var solution = await _disconnectedSolutionTask.ConfigureAwait(false);
-                    return await updatePrimaryBranchAsync(solution, _cancellationTokenSource.Token).ConfigureAwait(false);
+                    return await updatePrimaryBranchAsync(solution, cancellationToken).ConfigureAwait(false);
                 }
             }
 
