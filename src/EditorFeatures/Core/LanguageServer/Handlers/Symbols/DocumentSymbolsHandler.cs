@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public TextDocumentIdentifier GetTextDocumentIdentifier(RoslynDocumentSymbolParams request) => request.TextDocument;
+        public object? GetTextDocumentIdentifier(RoslynDocumentSymbolParams request) => request.TextDocument;
 
         public async Task<object[]> HandleRequestAsync(RoslynDocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
         {
