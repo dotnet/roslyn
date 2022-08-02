@@ -480,11 +480,67 @@ namespace Metalama.Compiler
             }
         }
 
-        public static bool IsTransformedLocation(Location location)
+        public static bool IsTransformedLocation(this Location location)
             => GetPreTransformationLocationInfo(location).Location == null;
 
-        public static Location GetSourceLocation(Location location) =>
+        public static Location GetSourceLocation(this Location location) =>
             GetPreTransformationLocationInfo(location).Location ?? Location.Create(location.SourceTree!, default);
+
+        public static Location GetSourceLocation(this SyntaxNode node) =>
+            node.GetLocation().GetSourceLocation();
+
+        public static bool IsTransformedSyntaxNode(this SyntaxNode node)
+            => GetSourceSyntaxNode(node) == null;
+
+        public static TextSpan GetSourceSpan(this SyntaxNode node, bool throwOnTransforcedCode = true)
+            => GetSourceSyntaxNode( node)?.Span ?? (throwOnTransforcedCode ? throw new InvalidOperationException() : default);
+
+        public static TextSpan GetSourceSpan(this SyntaxToken token, bool throwOnTransforcedCode = true)
+         => GetSourceSyntaxToken(token)?.Span ?? (throwOnTransforcedCode ? throw new InvalidOperationException() : default);
+
+        public static TextSpan GetSourceSpan(this SyntaxTokenList list, bool throwOnTransforcedCode = true)
+        {
+            if ( list.Count == 0 )
+            {
+                return default;
+            }
+
+            var firstSpan = list[0].GetSourceSpan(throwOnTransforcedCode);
+            if ( list.Count == 1 )
+            {
+                return firstSpan;
+            }
+            else
+            {
+                var lastSpan = list[list.Count - 1].GetSourceSpan(throwOnTransforcedCode);
+                return TextSpan.FromBounds(firstSpan.Start, lastSpan.End);
+            }
+            
+        }
+
+        
+        public static SyntaxTree GetSourceSyntaxTree(this SyntaxNode node, bool throwOnTransforcedCode = true)
+        {
+            var sourceRoot = GetSourceSyntaxNode(node.SyntaxTree.GetRoot());
+
+            if (sourceRoot == null)
+            {
+                if (throwOnTransforcedCode)
+                {
+                    throw new InvalidOperationException();
+                }
+                else
+                {
+                    return node.SyntaxTree;
+                }
+            }
+            else
+            {
+                return sourceRoot.SyntaxTree;
+            }
+
+        }
+
 
         private static (Location? Location, SyntaxNode? SyntaxNode) GetPreTransformationLocationInfo(Location location)
         {

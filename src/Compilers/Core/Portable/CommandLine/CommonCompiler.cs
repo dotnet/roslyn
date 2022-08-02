@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis
 
         private protected virtual TransformersResult RunTransformers(
             Compilation inputCompilation, IServiceProvider serviceProvider, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
-            ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics, CancellationToken cancellationToken)
+            ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, TransformerOptions transformerOptions, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             return TransformersResult.Empty(inputCompilation, analyzerConfigProvider);
         }
@@ -1512,10 +1512,12 @@ namespace Microsoft.CodeAnalysis
                         analyzerOptions, sourceOnlyAnalyzers, severityFilter, Arguments.ReportAnalyzer);
 
                     // Execute transformers.
+                    var transformerOptions = new TransformerOptions(
+                        this.Arguments.EmitOptions.InstrumentationKinds.Contains(InstrumentationKind.TestCoverage));
                     var compilationBeforeTransformation = compilation;
                     var transformersDiagnostics = new DiagnosticBag();
                     var transformersResult = RunTransformers(compilationBeforeTransformation, serviceProvider,
-                        transformers, sourceOnlyAnalyzerOptions, plugins, analyzerConfigProvider,
+                        transformers, sourceOnlyAnalyzerOptions, plugins, analyzerConfigProvider, transformerOptions,
                         transformersDiagnostics, cancellationToken);
 
                     if (HasUnsuppressableErrors(transformersDiagnostics))
@@ -1525,7 +1527,7 @@ namespace Microsoft.CodeAnalysis
                         return;
                     }
 
-                compilation = transformersResult.TransformedCompilation;
+                    compilation = transformersResult.TransformedCompilation;
                     var mappedAnalyzerOptions = transformersResult.MappedAnalyzerOptions;
 
                     // Map diagnostics to the final compilation, because suppressors need it.

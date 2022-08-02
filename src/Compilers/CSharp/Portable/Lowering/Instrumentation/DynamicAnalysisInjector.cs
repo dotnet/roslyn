@@ -7,12 +7,15 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Metalama.Compiler;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+
+using PublicMethodSymbol = Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel.MethodSymbol;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -43,6 +46,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             DebugDocumentProvider debugDocumentProvider,
             Instrumenter previous)
         {
+            
+            // <Metalama>
+            var methodBeforeRedirection = method;
+            SyntaxNode? declarationNode = methodBody.Syntax.Parent;
+            if (declarationNode != null)
+            {
+                // Do not instrument methods marked to be ignored.
+                if (declarationNode.HasAnnotations(MetalamaCompilerAnnotations.IgnoreCodeCoverageAnnotationKind))
+                {
+                    return null;
+                }
+                
+                // Follow redirections from annotations.
+                if (declarationNode.TryGetCodeCoverageRedirectionFromAnnotation( methodBodyFactory.Compilation, out var redirectedMethod))
+                {
+                    var publicMethodSymbol = (PublicMethodSymbol) redirectedMethod!;
+                    method = publicMethodSymbol.UnderlyingMethodSymbol;
+                }
+            }
+            else
+            {
+                // We have a top-level statement.
+            }
+            
+            // Do not instrument methods that do not have any source code.
+            if ( !SourceCodeDetector.Instance.Visit(methodBody.Syntax))
+            {
+                return null;
+            }
+
+            
+            
+            // </Metalama>
+            
             // Do not instrument implicitly-declared methods, except for constructors.
             // Instrument implicit constructors in order to instrument member initializers.
             if (method.IsImplicitlyDeclared && !method.IsImplicitConstructor)
@@ -55,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return null;
             }
+
 
             MethodSymbol createPayloadForMethodsSpanningSingleFile = GetCreatePayloadOverload(
                 methodBodyFactory.Compilation,
@@ -83,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new DynamicAnalysisInjector(
                 method,
+                methodBeforeRedirection, // <Metalama />
                 methodBody,
                 methodBodyFactory,
                 createPayloadForMethodsSpanningSingleFile,
@@ -94,6 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DynamicAnalysisInjector(
             MethodSymbol method,
+            MethodSymbol methodBeforeRedirection, // <Metalama />
             BoundStatement methodBody,
             SyntheticBoundNodeFactory methodBodyFactory,
             MethodSymbol createPayloadForMethodsSpanningSingleFile,
@@ -120,14 +160,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodPayload = methodBodyFactory.SynthesizedLocal(_payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
             // The first point indicates entry into the method and has the span of the method definition.
             SyntaxNode syntax = MethodDeclarationIfAvailable(methodBody.Syntax);
+            
+            
             if (!method.IsImplicitlyDeclared && !(method is SynthesizedSimpleProgramEntryPointSymbol))
             {
+                // <Metalama>
+                if (method != methodBeforeRedirection)
+                {
+                    // We need to emit the entry point based on the original declaration, because the transformed declaration is not in source code.
+                    syntax = method.DeclaringSyntaxReferences.Select(x=>x.GetSyntax()).Single(HasBody);
+                }
+                // </Metalama>
                 _methodEntryInstrumentation = AddAnalysisPoint(syntax, SkipAttributes(syntax), methodBodyFactory);
             }
 
             // Restore context
             methodBodyFactory.CurrentFunction = oldMethod;
         }
+        
+        // <Metalama>
+        static bool HasBody(SyntaxNode node)
+            => node switch
+            {
+                BaseMethodDeclarationSyntax method => method.Body != null || method.ExpressionBody != null,
+                PropertyDeclarationSyntax property => property.ExpressionBody != null,
+                AccessorDeclarationSyntax accessor => accessor.Body != null || accessor.ExpressionBody != null,
+                _ => true
+            };
+        // </Metalama>
 
         private static bool IsExcludedFromCodeCoverage(MethodSymbol method)
         {
@@ -442,6 +502,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement AddDynamicAnalysis(BoundStatement original, BoundStatement rewritten)
         {
+            // <Metalama>
+            if ( original.Syntax.IsTransformedSyntaxNode() )
+            {
+                return rewritten;
+            }
+            // </Metalama>
             if (!original.WasCompilerGenerated)
             {
                 // Do not instrument implicit constructor initializers
@@ -463,7 +529,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static Cci.DebugSourceDocument GetSourceDocument(DebugDocumentProvider debugDocumentProvider, SyntaxNode syntax)
         {
-            return GetSourceDocument(debugDocumentProvider, syntax, syntax.GetLocation().GetMappedLineSpan());
+            // <Metalama> - changed GetLocation() to GetSourceLocation()
+            return GetSourceDocument(debugDocumentProvider, syntax, syntax.GetSourceLocation().GetMappedLineSpan());
+            // </Metalama>
         }
 
         private static Cci.DebugSourceDocument GetSourceDocument(DebugDocumentProvider debugDocumentProvider, SyntaxNode syntax, FileLinePositionSpan span)
@@ -480,12 +548,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement AddAnalysisPoint(SyntaxNode syntaxForSpan, Text.TextSpan alternateSpan, SyntheticBoundNodeFactory statementFactory)
         {
-            return AddAnalysisPoint(syntaxForSpan, syntaxForSpan.SyntaxTree.GetMappedLineSpan(alternateSpan), statementFactory);
+            // <Metalama/>: Replace .SyntaxTree by .GetSourceSyntaxTree()
+            return AddAnalysisPoint(syntaxForSpan, syntaxForSpan.GetSourceSyntaxTree().GetMappedLineSpan(alternateSpan), statementFactory);
         }
 
         private BoundStatement AddAnalysisPoint(SyntaxNode syntaxForSpan, SyntheticBoundNodeFactory statementFactory)
         {
-            return AddAnalysisPoint(syntaxForSpan, syntaxForSpan.GetLocation().GetMappedLineSpan(), statementFactory);
+            // <Metalama> - changed GetLocation() to GetSourceLocation()
+            return AddAnalysisPoint(syntaxForSpan, syntaxForSpan.GetSourceLocation().GetMappedLineSpan(), statementFactory);
+            // </Metalama>
         }
 
         private BoundStatement AddAnalysisPoint(SyntaxNode syntaxForSpan, FileLinePositionSpan span, SyntheticBoundNodeFactory statementFactory)
@@ -605,19 +676,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SkipAttributes(syntax, operatorSyntax.AttributeLists, operatorSyntax.Modifiers, operatorSyntax.OperatorKeyword, null);
             }
 
-            return syntax.Span;
+            // <Metalama>
+            // return syntax.Span;
+            return syntax.GetSourceSpan();
+            // </Metalama>
         }
 
         private static Text.TextSpan SkipAttributes(SyntaxNode syntax, SyntaxList<AttributeListSyntax> attributes, SyntaxTokenList modifiers, SyntaxToken keyword, TypeSyntax type)
         {
-            Text.TextSpan originalSpan = syntax.Span;
+            // <Metalama> - Change .Span to .GetSourceSpan
+            Text.TextSpan originalSpan = syntax.GetSourceSpan();
             if (attributes.Count > 0)
             {
-                Text.TextSpan startSpan = modifiers.Node != null ? modifiers.Span : (keyword.Node != null ? keyword.Span : type.Span);
+                Text.TextSpan startSpan = modifiers.Node != null ? modifiers.GetSourceSpan() : (keyword.Node != null ? keyword.GetSourceSpan() : type.GetSourceSpan());
                 return new Text.TextSpan(startSpan.Start, originalSpan.Length - (startSpan.Start - originalSpan.Start));
             }
+            // </Metalama>
 
             return originalSpan;
+            
         }
+        
+        // <Metalama>
+        private class SourceCodeDetector : CSharpSyntaxVisitor<bool>
+        {
+            public static SourceCodeDetector Instance { get; } = new();
+            
+            public override bool DefaultVisit(SyntaxNode node)
+            {
+                if (!node.IsTransformedSyntaxNode())
+                {
+                    return true;
+                }
+
+                // We are iterating over ChildNodesAndTokens because it does not allocate memory.
+                foreach (var child in node.ChildNodesAndTokens())
+                {
+                    if (child.IsNode && this.Visit(child.AsNode()))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+        // </Metalama>
     }
 }

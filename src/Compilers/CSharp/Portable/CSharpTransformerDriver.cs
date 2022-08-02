@@ -17,11 +17,11 @@ namespace Metalama.Compiler
     {
         public static (Compilation, ImmutableArray<Diagnostic>) RunTransformers(
             Compilation input, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
-            ImmutableArray<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader)
+            ImmutableArray<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader, TransformerOptions? options = null)
         {
             var diagnostics = DiagnosticBag.GetInstance();
             var serviceProviderBuilder = new ServiceProviderBuilder();
-            var results = CSharpCompiler.RunTransformers(input, transformers, null, plugins, analyzerConfigProvider, diagnostics, manifestResources, assemblyLoader, serviceProviderBuilder.ServiceProvider, CancellationToken.None);
+            var results = CSharpCompiler.RunTransformers(input, transformers, null, plugins, analyzerConfigProvider, options, diagnostics, manifestResources, assemblyLoader, serviceProviderBuilder.ServiceProvider, CancellationToken.None);
             return (results.TransformedCompilation, diagnostics.ToReadOnlyAndFree());
         }
 

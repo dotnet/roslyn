@@ -33,7 +33,8 @@ namespace Metalama.Compiler
         internal TransformerContext(
             Compilation compilation,
             ImmutableArray<object> plugins,
-            AnalyzerConfigOptions globalOptions,
+            AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider,
+            TransformerOptions options,
             ImmutableArray<ManagedResource> manifestResources,
             IServiceProvider services,
             DiagnosticBag diagnostics,
@@ -41,7 +42,8 @@ namespace Metalama.Compiler
         {
             Compilation = compilation;
             Plugins = plugins;
-            GlobalOptions = globalOptions;
+            Options = options;
+            this.AnalyzerConfigOptionsProvider = analyzerConfigOptionsProvider;
             Resources = manifestResources;
             Services = services;
             _diagnostics = diagnostics;
@@ -95,7 +97,7 @@ namespace Metalama.Compiler
                     {
                         throw new InvalidOperationException($"The original compilation does not contain the syntax tree '{transformation.OldTree.FilePath}'.");
                     }
-                    
+
                     TrackTreeReplacement(transformation.OldTree, transformation.NewTree);
                 }
                 this.TransformedTrees.Add(transformation);
@@ -128,10 +130,14 @@ namespace Metalama.Compiler
         public ImmutableArray<object> Plugins { get; }
 
         /// <summary>
-        /// Allows access to global options provided by an analyzer config,
-        /// which can in turn come from the csproj file.
+        /// Gets options of the current <see cref="TransformerContext"/>.
         /// </summary>
-        public AnalyzerConfigOptions GlobalOptions { get; }
+        public TransformerOptions Options { get; }
+
+        /// <summary>
+        /// Gets the <see cref="AnalyzerConfigOptionsProvider"/>, which allows to access <c>.editorconfig</c> options.
+        /// </summary>
+        public AnalyzerConfigOptionsProvider AnalyzerConfigOptionsProvider { get; }
 
         /// <summary>
         /// Gets the list of managed resources. 
@@ -202,4 +208,26 @@ namespace Metalama.Compiler
         }
 
     }
+    
+    /// <summary>
+    /// Options of a <see cref="ISourceTransformer"/>, exposed on <see cref="TransformerContext.Options"/>.
+    /// </summary>
+    public sealed class TransformerOptions
+    {
+        /// <summary>
+        /// Gets or sets a value indicating that transformers should annotate
+        /// the code with code coverage annotations from <see cref="MetalamaCompilerAnnotations"/>.
+        /// </summary>
+        public bool RequiresCodeCoverageAnnotations { get; }
+
+        internal TransformerOptions(bool requiresCodeCoverageAnnotations)
+        {
+            RequiresCodeCoverageAnnotations = requiresCodeCoverageAnnotations;
+        }
+
+        private TransformerOptions() { }
+
+        public static TransformerOptions Default { get; } = new();
+    }
+
 }
