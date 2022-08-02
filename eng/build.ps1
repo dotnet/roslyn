@@ -659,6 +659,7 @@ function Setup-IntegrationTestRun() {
   $env:ROSLYN_OOP64BIT = "$oop64bit"
   $env:ROSLYN_OOPCORECLR = "$oopCoreClr"
   $env:ROSLYN_LSPEDITOR = "$lspEditor"
+  $env:ServiceHubTraceLevel = "All"
 }
 
 function Prepare-TempDir() {
