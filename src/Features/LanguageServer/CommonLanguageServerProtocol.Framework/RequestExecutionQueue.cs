@@ -13,21 +13,6 @@ using System.Collections.Immutable;
 
 namespace CommonLanguageServerProtocol.Framework;
 
-public interface IRequestExecutionQueue<RequestContextType>
-{
-    Task ExecuteAsync<TRequestType>(bool mutatesSolutionState, bool requiresLSPSolution, INotificationHandler<TRequestType, RequestContextType> handler, TRequestType? request, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
-
-    Task ExecuteAsync(bool mutatesSolutionState, bool requiresLSPSolution, INotificationHandler<RequestContextType> handler, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
-
-    Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(bool mutatesSolutionState, bool requiresLSPSolution, IRequestHandler<TRequestType, TResponseType, RequestContextType> handler, TRequestType? request, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
-
-    void Start(ILspServices lspServices);
-
-    void Shutdown();
-
-    event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
-}
-
 /// <summary>
 /// Coordinates the exectution of LSP messages to ensure correct results are sent back.
 /// </summary>

@@ -210,10 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             var logger = await lspLoggerFactory.CreateLoggerAsync(serverTypeName, jsonRpc, cancellationToken).ConfigureAwait(false);
 
-            if (logger is not IRoslynLspLogger roslynLogger)
-            {
-                throw new NotImplementedException();
-            }
+            Contract.ThrowIfFalse(loger is IRoslynLspLogger roslynLogger);
 
             var server = languageClient.Create(
                 jsonRpc,
