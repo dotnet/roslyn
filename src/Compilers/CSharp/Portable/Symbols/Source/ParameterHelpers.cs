@@ -605,6 +605,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int firstDefault,
             BindingDiagnosticBag diagnostics)
         {
+            // This method may be called early, before parameter.Type has been resolved,
+            // so code below should use parameter.TypeWithAnnotations instead if unsure.
+
             int parameterIndex = parameter.Ordinal;
             bool isDefault = parameterSyntax is ParameterSyntax { Default: { } };
 
