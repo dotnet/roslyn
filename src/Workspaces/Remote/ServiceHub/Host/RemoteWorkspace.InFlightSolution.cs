@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -137,12 +138,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 // likely not necessary as all that task does is take the _disconnectedSolutionTask and make it the
                 // primary branch of hte workspace (which doesn't involve a call back from OOP to the host).  However,
                 // this is just safer to return both, esp. if that might ever change in the future.
-                using var solutions = TemporaryArray<Task>.Empty;
+                var solutions = ImmutableArray.CreateBuilder<Task>();
 
                 solutions.Add(_disconnectedSolutionTask);
-                solutions.AsRef().AddIfNotNull(_primaryBranchTask);
+                if (_primaryBranchTask != null)
+                    solutions.Add(_primaryBranchTask);
 
-                return solutions.ToImmutableAndClear();
+                return solutions.ToImmutable();
             }
         }
     }
