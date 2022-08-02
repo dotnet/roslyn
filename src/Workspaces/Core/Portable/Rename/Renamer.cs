@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// solution.  Nor do they then need to rebuild any compilations they've already built due to the solution going
         /// away and then coming back.
         /// </summary>
-        internal static async Task CreateKeepAliveSessionAsync(
+        internal static async Task CreateRemoteKeepAliveSessionAsync(
             Solution solution,
             CancellationToken cancellationToken)
         {

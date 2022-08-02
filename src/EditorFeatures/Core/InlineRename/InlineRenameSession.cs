@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             // Open a session to oop, syncing our solution to it and pinning it there.  The connection will close once
             // _cancellationTokenSource is canceled (which we always do when the session is finally ended).
-            _keepAliveSessionTask = Renamer.CreateKeepAliveSessionAsync(_baseSolution, _cancellationTokenSource.Token);
+            _keepAliveSessionTask = Renamer.CreateRemoteKeepAliveSessionAsync(_baseSolution, _cancellationTokenSource.Token);
             InitializeOpenBuffers(triggerSpan);
         }
 
