@@ -29,6 +29,7 @@ steps:
     # Exclude any patterns from the Contents (e.g. `!**/git2*`) that we have symbols for but do not need to run APIScan on.
     Contents: |
       **
+      !**/arm64/**
     TargetFolder: $(Build.ArtifactStagingDirectory)/APIScanInputs
   condition: and(succeeded(), ${{ parameters.EnableAPIScan }}, ne(variables.ApiScanClientId, ''))
 
