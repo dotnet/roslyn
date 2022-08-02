@@ -48,10 +48,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             
             // <Metalama>
-            // Do not instrument methods marked to be ignored.
-            if (methodBody.Syntax.Parent!.HasAnnotations(MetalamaCompilerAnnotations.IgnoreCodeCoverageAnnotationKind))
+            var methodBeforeRedirection = method;
+            SyntaxNode? declarationNode = methodBody.Syntax.Parent;
+            if (declarationNode != null)
             {
-                return null;
+                // Do not instrument methods marked to be ignored.
+                if (declarationNode.HasAnnotations(MetalamaCompilerAnnotations.IgnoreCodeCoverageAnnotationKind))
+                {
+                    return null;
+                }
+                
+                // Follow redirections from annotations.
+                if (declarationNode.TryGetCodeCoverageRedirectionFromAnnotation( methodBodyFactory.Compilation, out var redirectedMethod))
+                {
+                    var publicMethodSymbol = (PublicMethodSymbol) redirectedMethod!;
+                    method = publicMethodSymbol.UnderlyingMethodSymbol;
+                }
+            }
+            else
+            {
+                // We have a top-level statement.
             }
             
             // Do not instrument methods that do not have any source code.
@@ -60,13 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            // Follow redirections from annotations.
-            var methodBeforeRedirection = method;
-            if (methodBody.Syntax.Parent!.TryGetCodeCoverageRedirectionFromAnnotation( methodBodyFactory.Compilation, out var redirectedMethod))
-            {
-                var publicMethodSymbol = (PublicMethodSymbol) redirectedMethod!;
-                method = publicMethodSymbol.UnderlyingMethodSymbol;
-            }
             
             
             // </Metalama>
