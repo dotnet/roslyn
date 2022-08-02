@@ -184,5 +184,27 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             return name;
         }
+
+        public static string GenerateUniqueName(List<string> baseNames, Func<string, bool> canUse)
+        {
+            foreach (var name in baseNames)
+            {
+                if (canUse(name))
+                {
+                    return name;
+                }
+            }
+
+            var index = 1;
+            var baseName = baseNames.FirstOrDefault();
+
+            while (!canUse(baseName))
+            {
+                baseName = baseName + index;
+                index++;
+            }
+
+            return baseName;
+        }
     }
 }

@@ -65,6 +65,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     public void Method()
     {
         var i = 0;
+        for (int j = 0; j < length; j++)
+        {$$
+        }
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertForSnippetInMethodUsedIncrementorsTest()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public void Method()
+    {
+        var i = 0;
+        Ins$$
+    }
+}";
+
+            var expectedCodeAfterCommit =
+@"class Program
+{
+    public void Method()
+    {
+        var i, j, k, a, b, c = 0;
         for (int i1 = 0; i1 < length; i1++)
         {$$
         }

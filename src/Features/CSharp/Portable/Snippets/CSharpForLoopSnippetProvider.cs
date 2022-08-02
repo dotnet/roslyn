@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var iteratorName = NameGenerator.GenerateUniqueName(
-                "i",
+                new List<string> { "i", "j", "k", "a", "b", "c" },
                 n => semanticModel.LookupSymbols(position, name: n).IsEmpty);
             var indexVariable = generator.Identifier(iteratorName);
 
