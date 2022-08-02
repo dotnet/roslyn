@@ -5975,17 +5975,15 @@ class C
     {
         switch (true)
         {
-            case identifier$$
+            case identifier $$
         }
     }
 }
                               </Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.SendTypeChars(" ")
-                Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
-
                 state.SendTypeChars("z")
+                Await state.AssertCompletionItemsContain(displayText:="identifier", displayTextSuffix:=Nothing)
                 state.AssertSuggestedItemSelected(displayText:="z")
 
                 state.SendBackspace()
@@ -6291,12 +6289,12 @@ class C
 
                 state.SendTypeChars("xyzz")
                 Await state.AssertCompletionSession()
-                state.AssertSuggestedItemSelected(displayText:="xyzz")
+                state.AssertSuggestedItemSelected(displayText:="sxyzz")
                 Await state.AssertSelectedCompletionItem(displayText:="sxyzz", isSoftSelected:=True)
 
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
-                state.AssertSuggestedItemSelected(displayText:="xyz")
+                state.AssertSuggestedItemSelected(displayText:="sxyz")
                 Await state.AssertSelectedCompletionItem(displayText:="sxyz", isSoftSelected:=True)
 
                 state.SendBackspace()

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             private readonly Action<IReadOnlyList<(RoslynCompletionItem, PatternMatch?)>, string, IList<RoslynCompletionItem>> _filterMethod;
 
-            private bool ShouldSelectSuggestionItem
+            private bool ShouldSelectSuggestionItemWhenNoItemMatchesFilterText
                 => _snapshotData.DisplaySuggestionItem && _filterText.Length > 0;
 
             private CompletionTriggerReason InitialTriggerReason => _snapshotData.InitialTrigger.Reason;
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     {
                         // When we are in suggestion mode and there's nothing in the list matches what user has typed in any ways,
                         // we should select the SuggestionItem instead.
-                        if (ShouldSelectSuggestionItem)
+                        if (ShouldSelectSuggestionItemWhenNoItemMatchesFilterText)
                             return new ItemSelection(SelectedItemIndex: SuggestionItemIndex, SelectionHint: UpdateSelectionHint.SoftSelected, UniqueItem: null);
 
                         // We do not have matches: pick the one with longest common prefix.
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         return null;
 
                     // If we are in suggestion mode and nothing matches filter text, we should soft select SuggestionItem.
-                    if (ShouldSelectSuggestionItem)
+                    if (ShouldSelectSuggestionItemWhenNoItemMatchesFilterText)
                         indexToSelect = SuggestionItemIndex;
                 }
                 else
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
 
                 // If we are in suggestion mode then we should select the SuggestionItem instead.
-                var selectedItemIndex = ShouldSelectSuggestionItem ? SuggestionItemIndex : 0;
+                var selectedItemIndex = ShouldSelectSuggestionItemWhenNoItemMatchesFilterText ? SuggestionItemIndex : 0;
 
                 // If the user has turned on some filtering states, and we filtered down to
                 // nothing, then we do want the UI to show that to them.  That way the user
