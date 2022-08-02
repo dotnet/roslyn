@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var exportProviderFactory = CreateExportProviderFactory(catalog);
             var exportProvider = exportProviderFactory.CreateExportProvider();
 
-            return new RemoteWorkspace(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.RemoteWorkspace);
+            return new RemoteWorkspace(VisualStudioMefHostServices.Create(exportProvider));
         }
 
         public virtual RemoteWorkspace GetWorkspace()
