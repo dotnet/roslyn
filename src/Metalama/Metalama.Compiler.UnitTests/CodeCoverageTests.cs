@@ -42,8 +42,7 @@ namespace Microsoft.CodeAnalysis.Runtime
     }
 }
 ";
-
-        ITestOutputHelper _log;
+        private readonly ITestOutputHelper _log;
 
         public CodeCoverageTests(ITestOutputHelper log)
         {
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Runtime
         [Fact]
         public void InsertStatement()
         {
-            string source = @"
+            var source = @"
 using System;
 
 public class C
@@ -70,14 +69,14 @@ public class C
 ";
 
             var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
-            c = (CSharpCompilation)MetalamaCompilerTest.ExecuteTransformer(c, new InsertConditionTransformer());
+            c = (CSharpCompilation)MetalamaCompilerTest.ExecuteTransformer(c, new InsertStatementTransformer());
 
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
 
-            string[] sourceLines = source.Split('\n');
+            var sourceLines = source.Split('\n');
 
             VerifySpans(reader, reader.Methods[0], sourceLines,
                 new SpanResult(5, 4, 11, 5, "public static void Main("),
@@ -85,7 +84,7 @@ public class C
                 new SpanResult(7, 13, 7, 29, "args.Length == 1") );
         }
 
-        private class InsertConditionTransformer : CSharpSyntaxRewriter, ISourceTransformer
+        private class InsertStatementTransformer : CSharpSyntaxRewriter, ISourceTransformer
         {
             public void Execute(TransformerContext context)
             {
@@ -110,10 +109,77 @@ public class C
             }
         }
 
+
+        [Fact]
+        public void WrapWithIf()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public static void Main(string[] args)                           
+    {
+        if ( args.Length == 1 )
+        {
+            Console.WriteLine(""X"");
+        }
+    }
+}
+
+";
+
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            c = (CSharpCompilation)MetalamaCompilerTest.ExecuteTransformer(c, new WrapWithIfTransformer());
+
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+
+            var peReader = new PEReader(peImage);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
+
+            var sourceLines = source.Split('\n');
+
+            VerifySpans(reader, reader.Methods[0], sourceLines,
+                new SpanResult(5, 4, 11, 5, "public static void Main("),
+                new SpanResult(9, 12, 9, 35, "Console.WriteLine"),
+                new SpanResult(7, 13, 7, 29, "args.Length == 1") );
+        }
+
+        private class WrapWithIfTransformer : CSharpSyntaxRewriter, ISourceTransformer
+        {
+            public void Execute(TransformerContext context)
+            {
+                foreach ( var tree in context.Compilation.SyntaxTrees )
+                {
+                    var transformedTree = tree.WithRootAndOptions( this.Visit( tree.GetRoot()), tree.Options);
+                    context.ReplaceSyntaxTree(tree, transformedTree);
+                }
+            }
+
+            public override SyntaxNode? VisitMethodDeclaration(MethodDeclarationSyntax node)
+            {
+                if (node.Identifier.Text == "Main")
+                {
+                    var ifStatement = IfStatement(
+                        BinaryExpression(
+                            SyntaxKind.EqualsExpression,
+                            IdentifierName("args"),
+                            LiteralExpression(
+                                SyntaxKind.NullLiteralExpression)),
+                        node.Body);
+                    return node.WithBody(Block(ifStatement));
+                }
+                else
+                {
+                    return node;
+                }
+            }
+        }
+        
         [Fact]
         public void InsertMethod()
         {
-            string source = @"
+            var source = @"
 using System;
 
 public class C
@@ -178,7 +244,7 @@ public class C
          [Fact]
         public void MoveMethodBody()
         {
-            string source = @"
+            var source = @"
 using System;
 
 public class C
@@ -356,8 +422,8 @@ public class C
                 _log.WriteLine(
             $"({s.StartLine},{s.StartColumn})-({s.EndLine},{s.EndColumn}): >>{sourceLines[s.StartLine].Substring(s.StartColumn).Trim()}<<" );
             }
-            List<string> expectedSpanSpellings = new List<string>();
-            foreach (SpanResult expectedSpanResult in expected)
+            var expectedSpanSpellings = new List<string>();
+            foreach (var expectedSpanResult in expected)
             {
                 var text = sourceLines[expectedSpanResult.StartLine].Substring(expectedSpanResult.StartColumn);
                 Assert.True(text.StartsWith(expectedSpanResult.TextStart), $"Text doesn't start with {expectedSpanResult.TextStart}. Text is: {text}");

@@ -48,14 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             
             // <Metalama>
-            // Do not instrument generated methods.
-            if ( methodBody.Syntax.IsTransformedSyntaxNode())
+            // Do not instrument methods marked to be ignored.
+            if (methodBody.Syntax.Parent!.HasAnnotations(MetalamaCompilerAnnotations.IgnoreCodeCoverageAnnotationKind))
             {
                 return null;
             }
-
-            // Do not instrument methods marked to be ignored.
-            if (methodBody.Syntax.Parent!.HasAnnotations(MetalamaCompilerAnnotations.IgnoreCodeCoverageAnnotationKind))
+            
+            // Do not instrument methods that do not have any source code.
+            if ( !SourceCodeDetector.Instance.Visit(methodBody.Syntax))
             {
                 return null;
             }
@@ -687,5 +687,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             return originalSpan;
             
         }
+        
+        // <Metalama>
+        private class SourceCodeDetector : CSharpSyntaxVisitor<bool>
+        {
+            public static SourceCodeDetector Instance { get; } = new();
+            
+            public override bool DefaultVisit(SyntaxNode node)
+            {
+                if (!node.IsTransformedSyntaxNode())
+                {
+                    return true;
+                }
+
+                // We are iterating over ChildNodesAndTokens because it does not allocate memory.
+                foreach (var child in node.ChildNodesAndTokens())
+                {
+                    if (child.IsNode && this.Visit(child.AsNode()))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+        // </Metalama>
     }
 }
