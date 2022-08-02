@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
@@ -100,29 +102,43 @@ namespace Microsoft.CodeAnalysis.Remote
                 InFlightCount++;
             }
 
-            public void DecrementInFlightCount_NoLock()
+            /// <summary>
+            /// Returns the in-flight solution computations <em>when</em> the in-flight-count is decremented to 0. This
+            /// allows the caller to wait for those computations to complete (which will hopefully be quickly as they
+            /// will have just been canceled).  This ensures the caller doesn't return back to the host (potentially
+            /// unpinning the solution on the host) while the solution-computation tasks are still running and may still
+            /// attempt to call into the host.
+            /// </summary>
+            public ImmutableArray<Task<Solution>> DecrementInFlightCount_NoLock()
             {
                 Contract.ThrowIfFalse(_workspace._gate.CurrentCount == 0);
                 Contract.ThrowIfTrue(InFlightCount < 1);
                 InFlightCount--;
-                if (InFlightCount == 0)
-                {
-                    _cancellationTokenSource.Cancel();
-                    _cancellationTokenSource.Dispose();
+                if (InFlightCount != 0)
+                    return ImmutableArray<Task<Solution>>.Empty;
 
-                    // If we're going away, then we absolutely must not be pointed at in the _lastRequestedSolution field.
-                    Contract.ThrowIfTrue(_workspace._lastAnyBranchSolution == this);
-                    Contract.ThrowIfTrue(_workspace._lastPrimaryBranchSolution == this);
+                _cancellationTokenSource.Cancel();
+                _cancellationTokenSource.Dispose();
 
-                    // If we're going away, we better find ourself in the mapping for this checksum.
-                    Contract.ThrowIfFalse(_workspace._solutionChecksumToSolution.TryGetValue(SolutionChecksum, out var existingSolution));
-                    Contract.ThrowIfFalse(existingSolution == this);
+                // If we're going away, then we absolutely must not be pointed at in the _lastRequestedSolution field.
+                Contract.ThrowIfTrue(_workspace._lastAnyBranchSolution == this);
+                Contract.ThrowIfTrue(_workspace._lastPrimaryBranchSolution == this);
 
-                    // And we better succeed at actually removing.
-                    Contract.ThrowIfFalse(_workspace._solutionChecksumToSolution.Remove(SolutionChecksum));
+                // If we're going away, we better find ourself in the mapping for this checksum.
+                Contract.ThrowIfFalse(_workspace._solutionChecksumToSolution.TryGetValue(SolutionChecksum, out var existingSolution));
+                Contract.ThrowIfFalse(existingSolution == this);
 
-                    _workspace.CheckCacheInvariants_NoLock();
-                }
+                // And we better succeed at actually removing.
+                Contract.ThrowIfFalse(_workspace._solutionChecksumToSolution.Remove(SolutionChecksum));
+
+                _workspace.CheckCacheInvariants_NoLock();
+
+                using var solutions = TemporaryArray<Task<Solution>>.Empty;
+
+                solutions.Add(_disconnectedSolutionTask);
+                solutions.AsRef().AddIfNotNull(_primaryBranchTask);
+
+                return solutions.ToImmutableAndClear();
             }
         }
     }
