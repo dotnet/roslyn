@@ -102,9 +102,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (_primaryBranchTask != null)
                     return;
 
-                // Grab the cancellation token up front.  We don't want to potentially grab it at some undefined point
-                // at the future when this type has already had its in-flight-count reduced to 0 and thus had our CTS be
-                // disposed.
+                // Grab the cancellation token up front while we know we are holding the lock and mutating state.  We
+                // don't want to potentially grab it at some undefined point at the future when this type has already
+                // had its in-flight-count reduced to 0 and thus had our CTS be disposed.
                 var token = this.CancellationToken;
                 _primaryBranchTask = ComputePrimaryBranchAsync(token);
                 return;
@@ -138,8 +138,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (InFlightCount != 0)
                     return ImmutableArray<Task>.Empty;
 
-                _cancellationTokenSource.Cancel();
-                _cancellationTokenSource.Dispose();
+                _cancellationTokenSource_doNotAccessDirectly.Cancel();
+                _cancellationTokenSource_doNotAccessDirectly.Dispose();
 
                 // If we're going away, then we absolutely must not be pointed at in the _lastRequestedSolution field.
                 Contract.ThrowIfTrue(_workspace._lastAnyBranchSolution == this);
