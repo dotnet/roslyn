@@ -156,12 +156,12 @@ namespace RunTests
                 throw new IOException($@"Could not find global.json by walking up from ""{AppContext.BaseDirectory}"".");
             }
 
-            static void AddRehydrateTestFoldersCommand(StringBuilder commandBuilder, WorkItemInfo workItemInfo, bool isUnix, string relativePathToTestAssemblies)
+            static void AddRehydrateTestFoldersCommand(StringBuilder commandBuilder, WorkItemInfo workItemInfo, bool isUnix)
             {
                 // Rehydrate assemblies that we need to run as part of this work item.
                 foreach (var testAssembly in workItemInfo.Filters.Keys)
                 {
-                    var directoryName = Path.Combine(relativePathToTestAssemblies, Path.GetDirectoryName(testAssembly.AssemblyPath)!);
+                    var directoryName = Path.Combine(Path.GetDirectoryName(testAssembly.AssemblyPath)!);
                     if (isUnix)
                     {
                         // If we're on unix make sure we have permissions to run the rehydrate script.
@@ -229,7 +229,7 @@ namespace RunTests
                 // Update the assembly groups to test with the assembly paths in the context of the helix work item.
                 workItemInfo = workItemInfo with { Filters = workItemInfo.Filters.ToImmutableSortedDictionary(kvp => kvp.Key with { AssemblyPath = GetHelixRelativeAssemblyPath(kvp.Key.AssemblyPath, relativePathToTestAssemblies) }, kvp => kvp.Value) };
 
-                AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix, relativePathToTestAssemblies);
+                AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);
 
                 // When we run integration tests on the helix machine, we run them through build.ps1 -> RunTests
                 // This is required to both
@@ -246,7 +246,7 @@ namespace RunTests
                     command.AppendLine($"{setEnvironmentVariable} {RoslynHelixWorkItem}=%cd%\\{workItemFile}");
 
                     command.AppendLine(value: "time /t");
-                    command.Append("dir");
+                    command.AppendLine("dir");
 
                     // These environment variables are set by build.ps1 -testVsi.
                     var oop64Bit = Environment.GetEnvironmentVariable("ROSLYN_OOP64BIT");
