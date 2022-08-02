@@ -531,6 +531,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return computedItems.SuggestionItem IsNot Nothing
         End Function
 
+        Public Function AssertSuggestedItemSelected() As Boolean
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            Assert.NotNull(session)
+            Dim computedItems = session.GetComputedItems(CancellationToken.None)
+            Assert.True(computedItems.SuggestionItemSelected)
+        End Function
+
         Public Function IsSoftSelected() As Boolean
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             Assert.NotNull(session)

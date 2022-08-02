@@ -6285,6 +6285,23 @@ class C
                 Await state.AssertCompletionSession()
                 Assert.True(state.HasSuggestedItem())
                 Await state.AssertSelectedCompletionItem(displayText:="sbyte", isSoftSelected:=True)
+
+                state.SendTypeChars("xyzz")
+                Await state.AssertCompletionSession()
+                state.AssertSuggestedItemSelected()
+                Await state.AssertSelectedCompletionItem(displayText:="sxyzz", isSoftSelected:=True)
+
+                state.SendBackspace()
+                Await state.AssertCompletionSession()
+                state.AssertSuggestedItemSelected()
+                Await state.AssertSelectedCompletionItem(displayText:="sxyz", isSoftSelected:=True)
+
+                state.SendBackspace()
+                state.SendBackspace()
+                state.SendBackspace()
+                Await state.AssertCompletionSession()
+                Assert.True(state.HasSuggestedItem())
+                Await state.AssertSelectedCompletionItem(displayText:="sbyte", isSoftSelected:=True)
             End Using
         End Function
 
