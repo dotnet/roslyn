@@ -32,6 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// </summary>
         private sealed class CompletionListUpdater
         {
+            // Index used for selecting suggestion item when in suggestion mode.
+            private const int SuggestionItemIndex = -1;
+
             private readonly CompletionSessionData _sessionData;
             private readonly AsyncCompletionSessionDataSnapshot _snapshotData;
             private readonly RecentItemsManager _recentItemsManager;
@@ -47,6 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             private readonly bool _showCompletionItemFilters;
 
             private readonly Action<IReadOnlyList<(RoslynCompletionItem, PatternMatch?)>, string, IList<RoslynCompletionItem>> _filterMethod;
+
+            private bool ShouldSelectSuggestionItem
+                => _snapshotData.DisplaySuggestionItem && _filterText.Length > 0;
 
             private CompletionTriggerReason InitialTriggerReason => _snapshotData.InitialTrigger.Reason;
             private CompletionTriggerReason UpdateTriggerReason => _snapshotData.Trigger.Reason;
@@ -268,8 +274,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     {
                         // When we are in suggestion mode and there's nothing in the list matches what user has typed in any ways,
                         // we should select the SuggestionItem instead.
-                        if (_snapshotData.DisplaySuggestionItem)
-                            return new ItemSelection(SelectedItemIndex: -1, SelectionHint: UpdateSelectionHint.SoftSelected, UniqueItem: null);
+                        if (ShouldSelectSuggestionItem)
+                            return new ItemSelection(SelectedItemIndex: SuggestionItemIndex, SelectionHint: UpdateSelectionHint.SoftSelected, UniqueItem: null);
 
                         // We do not have matches: pick the one with longest common prefix.
                         // If we can't find such an item, just return the first item from the list.
@@ -406,8 +412,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         return null;
 
                     // If we are in suggestion mode and nothing matches filter text, we should soft select SuggestionItem.
-                    if (_snapshotData.DisplaySuggestionItem)
-                        indexToSelect = -1;
+                    if (ShouldSelectSuggestionItem)
+                        indexToSelect = SuggestionItemIndex;
                 }
                 else
                 {
@@ -488,7 +494,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
 
                 // If we are in suggestion mode then we should select the SuggestionItem instead.
-                var selectedItemIndex = _snapshotData.DisplaySuggestionItem ? -1 : 0;
+                var selectedItemIndex = ShouldSelectSuggestionItem ? SuggestionItemIndex : 0;
 
                 // If the user has turned on some filtering states, and we filtered down to
                 // nothing, then we do want the UI to show that to them.  That way the user
@@ -683,7 +689,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             private ItemSelection UpdateSelectionBasedOnSuggestedDefaults(IReadOnlyList<MatchResult<VSCompletionItem>> items, ItemSelection itemSelection, CancellationToken cancellationToken)
             {
                 // Editor doesn't provide us a list of "default" items, or we select SuggestionItem (because we are in suggestion mode and have no match in the list)
-                if (_snapshotData.Defaults.IsDefaultOrEmpty || itemSelection.SelectedItemIndex < 0)
+                if (_snapshotData.Defaults.IsDefaultOrEmpty || itemSelection.SelectedItemIndex == SuggestionItemIndex)
                     return itemSelection;
 
                 // "Preselect" is only used when we have high confidence with the selection, so don't override it.
