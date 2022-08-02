@@ -5,17 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -142,7 +137,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     NonConflictSymbolKeys.Select(s => s.Resolve(compilation).GetAnySymbol()).WhereNotNull());
             }
 
-
             // The rename process and annotation for the bookkeeping is performed in one-step
             protected override async Task<(Solution, ImmutableHashSet<DocumentId>)> AnnotateAndRename_WorkerAsync(
                 Solution originalSolution,
@@ -243,8 +237,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     return ImmutableHashSet<RenamedSymbolInfo>.Empty;
                 }
 
+                // if we rename an identifier and it now binds to a symbol from metadata this should be treated as
+                // an invalid rename.
                 var renamedSymbolInNewSolution = await GetRenamedSymbolInCurrentSolutionAsync(conflictResolution).ConfigureAwait(false);
-                if (renamedSymbolInNewSolution.Locations.Any(location => !location.IsInSource))
+                if (renamedSymbolInNewSolution == null || renamedSymbolInNewSolution.Locations.All(location => !location.IsInSource))
                 {
                     return ImmutableHashSet<RenamedSymbolInfo>.Empty;
                 }

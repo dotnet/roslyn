@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +14,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
@@ -605,7 +603,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
             }
 
-#region Helpers
+            #region Helpers
 
             /// <summary>
             /// The method determines the set of documents that need to be processed for Rename and also determines
@@ -732,7 +730,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 // Just do the default check.
                 return false;
             }
-#endregion
+            #endregion
 
 #if DEBUG
             private async Task DebugVerifyNoErrorsAsync(MutableConflictResolution conflictResolution, IEnumerable<DocumentId> documents)
