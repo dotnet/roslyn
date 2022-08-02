@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfTrue(InFlightCount < 1);
                 InFlightCount--;
                 if (InFlightCount != 0)
-                    return ImmutableArray<Task<Solution>>.Empty;
+                    return ImmutableArray<Task>.Empty;
 
                 _cancellationTokenSource.Cancel();
                 _cancellationTokenSource.Dispose();
@@ -133,6 +133,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 _workspace.CheckCacheInvariants_NoLock();
 
+                // Return the solutions we were in the process of computing.  Note, returning the _primaryBranchTask is
+                // likely not necessary as all that tasks does is take the _disconnectedSolutionTask and make it the
+                // primary branch of hte workspace (which doesn't involve a call back from OOP to the host).  However,
+                // this is just safer to return both, esp. if that might ever change in the future.
                 using var solutions = TemporaryArray<Task>.Empty;
 
                 solutions.Add(_disconnectedSolutionTask);
