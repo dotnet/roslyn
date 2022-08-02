@@ -156,12 +156,12 @@ namespace RunTests
                 throw new IOException($@"Could not find global.json by walking up from ""{AppContext.BaseDirectory}"".");
             }
 
-            static void AddRehydrateTestFoldersCommand(StringBuilder commandBuilder, WorkItemInfo workItemInfo, bool isUnix)
+            static void AddRehydrateTestFoldersCommand(StringBuilder commandBuilder, WorkItemInfo workItemInfo, bool isUnix, string relativePathToTestAssemblies)
             {
                 // Rehydrate assemblies that we need to run as part of this work item.
                 foreach (var testAssembly in workItemInfo.Filters.Keys)
                 {
-                    var directoryName = Path.GetDirectoryName(testAssembly.AssemblyPath);
+                    var directoryName = Path.Combine(relativePathToTestAssemblies, Path.GetDirectoryName(testAssembly.AssemblyPath)!);
                     if (isUnix)
                     {
                         // If we're on unix make sure we have permissions to run the rehydrate script.
@@ -173,26 +173,35 @@ namespace RunTests
                 }
             }
 
-            static string GetHelixRelativeAssemblyPath(string assemblyPath)
+            static string GetHelixRelativeAssemblyPath(string assemblyPath, string relativePathToTestAssemblies)
             {
                 var tfmDir = Path.GetDirectoryName(assemblyPath)!;
                 var configurationDir = Path.GetDirectoryName(tfmDir)!;
                 var projectDir = Path.GetDirectoryName(configurationDir)!;
 
-                var assemblyRelativePath = Path.Combine(Path.GetFileName(projectDir), Path.GetFileName(configurationDir), Path.GetFileName(tfmDir), Path.GetFileName(assemblyPath));
+                var assemblyRelativePath = Path.Combine(relativePathToTestAssemblies, Path.GetFileName(projectDir), Path.GetFileName(configurationDir), Path.GetFileName(tfmDir), Path.GetFileName(assemblyPath));
                 return assemblyRelativePath;
             }
 
             string MakeHelixWorkItemProject(WorkItemInfo workItemInfo)
             {
+                // TODO - we have lots of special code in here to deal with the fact that current integration tests
+                // need to run via RunTests in order for retry logic to work properly.  The new integration test harness
+                // does not require it, so once we have fully switched over we should unify the integration test logic
+                // with the unit test logic by just running them all via the vstest.console directly.
+
                 // Create a payload directory that contains all the assemblies in the work item in separate folders.
                 var payloadDirectory = Path.Combine(msbuildTestPayloadRoot, "artifacts", "bin");
+                var relativePathToTestAssemblies = string.Empty;
 
                 if (options.TestVsi)
                 {
                     // For integration tests we'll need the whole test payload directory which includes
                     // the eng/ folder (to run setup scripts) and the artifacts/VSSetup/ folder which includes the vsixes
                     payloadDirectory = msbuildTestPayloadRoot;
+
+                    // Since our payload root is not in the artifacts directory, we have to set the relative path to the test assemblies.
+                    relativePathToTestAssemblies = Path.Combine("artifacts", "bin");
                 }
 
                 // Currently, it's required for the client machine to use the same OS family as the target Helix queue.
@@ -218,36 +227,36 @@ namespace RunTests
                 }
 
                 // Update the assembly groups to test with the assembly paths in the context of the helix work item.
-                workItemInfo = workItemInfo with { Filters = workItemInfo.Filters.ToImmutableSortedDictionary(kvp => kvp.Key with { AssemblyPath = GetHelixRelativeAssemblyPath(kvp.Key.AssemblyPath) }, kvp => kvp.Value) };
+                workItemInfo = workItemInfo with { Filters = workItemInfo.Filters.ToImmutableSortedDictionary(kvp => kvp.Key with { AssemblyPath = GetHelixRelativeAssemblyPath(kvp.Key.AssemblyPath, relativePathToTestAssemblies) }, kvp => kvp.Value) };
 
-                AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);
+                AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix, relativePathToTestAssemblies);
 
                 // When we run integration tests on the helix machine, we run them through build.ps1 -> RunTests
                 // This is required to both
                 //   1.  (build.ps1) Deploy the extension and setup environment variables, then calls
                 //   2.  (RunTests.exe) Run integration tests with retries for the old integration test framework.
-                // 
-                // Once we migrate all tests to the new integration test framework we should instead just deploy the extension and setup env vars
-                // via the script and then run tests directly via vstest.console.dll like we do for unit tests.
-                // At which point we can likely delete all test running logic from this project.
                 if (options.TestVsi)
                 {
-                    // Since all of the work items have the same payload, we a way to pass the actual partition information back
+                    // Since all of the work items have the same payload, we need a way to pass the actual partition information back
                     // to the copy of RunTests which is running on the helix machine.
                     //
                     // To do that we just write out the info to a file and set an env var which RunTests can read to get the information.
-                    // Once we stop using run tests we won't need to do this.
                     var workItemFile = $"WorkItem_{workItemInfo.PartitionIndex}.txt";
                     File.WriteAllText(Path.Combine(payloadDirectory, workItemFile), JsonConvert.SerializeObject(workItemInfo));
                     command.AppendLine($"{setEnvironmentVariable} {RoslynHelixWorkItem}=%cd%\\{workItemFile}");
 
-                    command.AppendLine("time");
+                    command.AppendLine(value: "time /t");
                     command.Append("dir");
-                    // We call into build.ps1 without passing in the helix flag to indicate the tests should run on the current machine.
-                    // TODO pass options (e.g. oop64bit).
-                    var commandArguments = $"-ci -configuration {options.Configuration} -testVsi -oop64bit:${true} -oopCoreClr:${false} -lspEditor:${false}";
 
-                    command.AppendLine(@"PowerShell.exe -ExecutionPolicy Unrestricted -command ""./eng\build.ps1 -configuration Debug -testVsi\""");
+                    // These environment variables are set by build.ps1 -testVsi.
+                    var oop64Bit = Environment.GetEnvironmentVariable("ROSLYN_OOP64BIT");
+                    var oopCoreClr = Environment.GetEnvironmentVariable("ROSLYN_OOPCORECLR");
+                    var lspEditor = Environment.GetEnvironmentVariable("ROSLYN_LSPEDITOR");
+
+                    // We call into build.ps1 without passing in the helix flag to indicate the tests should run on the current machine.
+                    var commandArguments = $"-ci -configuration {options.Configuration} -testVsi -oop64bit:${oop64Bit} -oopCoreClr:${oopCoreClr} -lspEditor:${lspEditor}";
+
+                    command.AppendLine($@"PowerShell.exe -ExecutionPolicy Unrestricted -command ""./eng\build.ps1 {commandArguments}\""");
                 }
                 else
                 {
