@@ -89,16 +89,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                 return null;
             }
 
-            var textToCheck = textInLine[..request.Position.Character];
-            var textToCheck2 = textToCheck.Reverse();
-            var splittedText = textToCheck.Split(' ').Reverse();
+            var textToCheck = textInLine[..request.Position.Character].Reverse();
             bool showValueComma = false, showValueEqual = false, showName = false;
 
             // Check if we need to display values of the settings
             // |setting_name = (caret is here)
             // |setting_name = setting_value_1, (caret is here)
             var seenWhitespace = false;
-            foreach (var element in textToCheck2)
+            foreach (var element in textToCheck)
             {
                 if (element == ' ')
                 {
@@ -130,7 +128,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             if (!showValueComma && !showValueEqual)
             {
                 seenWhitespace = false;
-                foreach (var element in textToCheck2)
+                foreach (var element in textToCheck)
                 {
                     if (seenWhitespace && !(element == ' '))
                     {
@@ -183,8 +181,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                 var codeStyleSettingsItems = settingsSnapshots3.codeStyleSnapshot?.Select(GenerateSettingNameCompletionItem);
                 var whitespaceSettingsItems = settingsSnapshots3.whitespaceSnapshot?.Select(GenerateSettingNameCompletionItem);
                 var analyzerSettingsItems = settingsSnapshots3.analyzerSnapshot?.Select(GenerateSettingNameCompletionItem);
-                var settingsItems = codeStyleSettingsItems.Concat(whitespaceSettingsItems).Concat(analyzerSettingsItems).Where(item => item != null)
-                                                                                                                        .GroupBy(x => x?.Label).Select(grp => grp.First()) as IEnumerable<CompletionItem>;
+                var settingsItems = codeStyleSettingsItems.Concat(whitespaceSettingsItems)
+                                                          .Concat(analyzerSettingsItems).WhereNotNull()
+                                                          .GroupBy(x => x?.Label).Select(grp => grp.First());
                 if (settingsItems == null)
                 {
                     return null;
