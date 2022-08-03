@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -458,6 +459,183 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             }
             return null;
         }
+
+        private static ImmutableArray<ISymbol> GetEqualizedMembers(
+            MethodDeclarationSyntax methodDeclaration,
+            IMethodSymbol methodSymbol,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            var type = methodSymbol.ContainingType;
+
+            if (semanticModel.GetOperation(methodDeclaration, cancellationToken) is not IMethodBodyOperation operation)
+            {
+                return ImmutableArray<ISymbol>.Empty;
+            }
+
+            var body = operation.BlockBody ?? operation.ExpressionBody;
+
+            if (body == null || !methodSymbol.Parameters.IsSingle())
+            {
+                return ImmutableArray<ISymbol>.Empty;
+            }
+
+            // see whether we are calling on a param of the same type or of object
+            if (methodSymbol.Parameters.First().Type.SpecialType == SpecialType.System_Object)
+            {
+                // we could look for some cast which rebinds a local to a C such as any of the following:
+                // var otherc = other as C; *null and additional equality checks*
+                // if (other is C otherc) { *additional equality checks* } (optional else) return false;
+                // if (other is not C otherc) { return false; } (optional else) { *additional equality checks* }
+                // if (other is C) { otherc = (C) other;  *additional equality checks* } (optional else) return false;
+                // if (other is not C) { return false; } (optional else) { otherc = (C) other;  *additional equality checks* }
+                var bodyOps = body.Operations;
+                if (bodyOps.IsEmpty)
+                {
+                    return ImmutableArray<ISymbol>.Empty;
+                }
+                switch (bodyOps.First())
+                {
+                    case IVariableDeclarationGroupOperation
+                    {
+                        Declarations: [IVariableDeclarationOperation
+                        {
+                            Declarators: [IVariableDeclaratorOperation
+                            {
+                                Symbol: ILocalSymbol castOther,
+                                Initializer: IVariableInitializerOperation
+                                {
+                                    Value: IConversionOperation { IsTryCast: true, Operand: IParameterReferenceOperation }
+                                }
+                            }]
+                        }]
+                    }:
+
+                    default:
+                        break;
+                }
+            }
+            return ImmutableArray<ISymbol>.Empty;
+        }
+
+        /// <summary>
+        /// looks just at conditional expressions such as "A == other.A &amp;&amp; B == other.B..."
+        /// To determine which properties were accessed and compared
+        /// </summary>
+        /// <param name="builder">Builder to add members to</param>
+        /// <param name="condition">Condition to look at, should be a boolean expression</param>
+        /// <param name="successRequirement">Whether to look for operators that would indicate equality success
+        /// (==, .Equals, &amp;&amp;) or inequality operators (!=, ||)</param>
+        /// <param name="currentObject">Symbol that would be referenced with this</param>
+        /// <param name="otherObject">symbol representing other object, either from a param or cast as a local</param>
+        /// <returns>true if addition was successful, false if we see something odd 
+        /// (equality checking in the wrong order, side effects, etc)</returns>
+        private static bool TryAddEqualizedMembersForCondition(
+            ArrayBuilder<IPropertySymbol> builder,
+            IOperation condition,
+            bool successRequirement,
+            ISymbol currentObject,
+            ISymbol otherObject)
+        => (successRequirement, condition) switch
+        {
+            // if we see a not we want to invert the current success status
+            // e.g !(A != other.A || B != other.B) is equivalent to (A == other.A && B == other.B)
+            // using DeMorgans law. We recurse to see any properties accessed
+            (_, IUnaryOperation { OperatorKind: UnaryOperatorKind.Not })
+                => TryAddEqualizedMembersForCondition(builder, condition, !successRequirement, currentObject, otherObject),
+            // We want our equality check to be exhaustive, i.e. all checks must pass for the condition to pass
+            // we recurse into each operand to try to find some props to bind
+            (true, IBinaryOperation { OperatorKind: BinaryOperatorKind.ConditionalAnd } andOp)
+                => TryAddEqualizedMembersForCondition(builder, andOp.LeftOperand, successRequirement, currentObject, otherObject) &&
+                    TryAddEqualizedMembersForCondition(builder, andOp.RightOperand, successRequirement, currentObject, otherObject),
+            // Exhaustive binary operator for inverted checks via DeMorgan's law
+            // We see an or here, but we're in a context where this being true will return false
+            // for example: return !(expr || expr)
+            // or: if (expr || expr) return false;
+            (false, IBinaryOperation { OperatorKind: BinaryOperatorKind.ConditionalAnd } orOp)
+                => TryAddEqualizedMembersForCondition(builder, orOp.LeftOperand, successRequirement, currentObject, otherObject) &&
+                    TryAddEqualizedMembersForCondition(builder, orOp.RightOperand, successRequirement, currentObject, otherObject),
+            // we are actually comparing two values that are potentially properties,
+            // e.g: return A == other.A;
+            (true, IBinaryOperation
+            {
+                OperatorKind: BinaryOperatorKind.Equals,
+                LeftOperand: IMemberReferenceOperation leftMemberReference,
+                RightOperand: IMemberReferenceOperation rightMemberReference,
+            }) => TryAddPropertyFromComparison(leftMemberReference, rightMemberReference, currentObject, otherObject, builder),
+            // we are comparing two potential properties, but in a context where if the expression is true, we return false
+            // e.g: return !(A != other.A); 
+            (false, IBinaryOperation
+            {
+                OperatorKind: BinaryOperatorKind.NotEquals,
+                LeftOperand: IMemberReferenceOperation leftMemberReference,
+                RightOperand: IMemberReferenceOperation rightMemberReference,
+            }) => TryAddPropertyFromComparison(leftMemberReference, rightMemberReference, currentObject, otherObject, builder),
+            // equals invocation, something like: A.Equals(other.A)
+            (true, IInvocationOperation
+            {
+                TargetMethod.Name: nameof(Equals),
+                Instance: IMemberReferenceOperation invokedOn,
+                Arguments: [IMemberReferenceOperation arg]
+            }) => TryAddPropertyFromComparison(invokedOn, arg, currentObject, otherObject, builder),
+            // some other operation, or an incorrect operation (!= when we expect == based on context, etc).
+            // If one of the conditions is just a null check on the "otherObject", then it's valid but doesn't check any properties
+            // Otherwise we fail as it has unknown behavior
+            _ => IsNullCheck(condition, successRequirement, otherObject)
+        };
+
+        // checks for binary expressions of the type otherC == null or null == otherC
+        // and "otherC" is a reference to otherObject
+        // takes successRequirement so that if we're in a constext where the operation evaluating to true
+        // would end up being false within the equals method, we look for != instead
+        private static bool IsNullCheck(
+            IOperation operation,
+            bool successRequirement,
+            ISymbol otherObject)
+        {
+            return operation is IBinaryOperation { LeftOperand: IOperation leftOperation, RightOperand: IOperation rightOperation } binaryOperation &&
+                binaryOperation.OperatorKind == (successRequirement ? BinaryOperatorKind.NotEquals : BinaryOperatorKind.Equals) &&
+                    // one of the objects must be a reference to the "otherObject" and the other must be a constant null literal
+                    ((otherObject.Equals(GetReferencedSymbolObject(leftOperation)) &&
+                        rightOperation.IsNullLiteral()) ||
+                    (otherObject.Equals(GetReferencedSymbolObject(rightOperation)) &&
+                        leftOperation.IsNullLiteral()));
+        }
+
+        private static bool TryAddPropertyFromComparison(
+            IMemberReferenceOperation memberReference1,
+            IMemberReferenceOperation memberReference2,
+            ISymbol currentObject,
+            ISymbol otherObject,
+            ArrayBuilder<IPropertySymbol> builder)
+        {
+            var leftObject = GetReferencedSymbolObject(memberReference1.Instance!);
+            var rightObject = GetReferencedSymbolObject(memberReference2.Instance!);
+            if (memberReference1.Member.Equals(memberReference2.Member) &&
+                memberReference1.Member is IPropertySymbol prop &&
+                leftObject != null &&
+                rightObject != null &&
+                !leftObject.Equals(rightObject) &&
+                (leftObject.Equals(currentObject) || leftObject.Equals(otherObject)) &&
+                (rightObject.Equals(currentObject) || rightObject.Equals(otherObject)))
+            {
+                builder.Add(prop);
+                return true;
+            }
+            return false;
+        }
+
+        private static ISymbol? GetReferencedSymbolObject(IOperation reference)
+        {
+            return reference switch
+            {
+                IInstanceReferenceOperation thisReference => thisReference.Type,
+                ILocalReferenceOperation localReference => localReference.Local,
+                IParameterReferenceOperation paramReference => paramReference.Parameter,
+                _ => null,
+            };
+        }
+
 
         /// <summary>
         /// Matches constructors where each statement simply assigns one of the provided parameters to one of the provided properties
