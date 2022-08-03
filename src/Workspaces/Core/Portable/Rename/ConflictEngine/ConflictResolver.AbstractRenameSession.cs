@@ -60,10 +60,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 RenamedSpansTracker renamedSpansTracker,
                 AnnotationTable<RenameAnnotation> annotationTable);
 
-            /// <summary>
-            /// Get symbols get renamed in <paramref name="projectId"/>
-            /// </summary>
-            protected abstract ImmutableArray<ISymbol> GetSymbolRenamedInProjects(ProjectId projectId);
+            protected abstract bool ShouldSimplifyTheProject(ProjectId projectId);
 
             /// <summary>
             /// Get all the valid renamed symbols information in the new solution.
@@ -190,15 +187,15 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                 conflictResolution.ResetChangedDocuments();
                             }
 
-                            var symbolsRenamedInProject = GetSymbolRenamedInProjects(projectId);
-                            var allRenamedSymbolsValid = symbolsRenamedInProject.All(symbol => conflictResolution.SymbolToReplacementTextValid[symbol]);
+                            var shouldSymplify = ShouldSimplifyTheProject(projectId);
                             // Step 3: Simplify the project
                             conflictResolution.UpdateCurrentSolution(await renamedSpansTracker.SimplifyAsync(
                                 conflictResolution.CurrentSolution,
                                 documentsByProject,
-                                allRenamedSymbolsValid,
+                                shouldSymplify,
                                 _renameAnnotations,
                                 _fallbackOptions, CancellationToken).ConfigureAwait(false));
+
                             intermediateSolution = await conflictResolution.RemoveAllRenameAnnotationsAsync(
                                 intermediateSolution, documentsByProject, _renameAnnotations, CancellationToken).ConfigureAwait(false);
                             conflictResolution.UpdateCurrentSolution(intermediateSolution);

@@ -222,9 +222,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
             }
 
-            protected override ImmutableArray<ISymbol> GetSymbolRenamedInProjects(ProjectId projectId)
-                => ImmutableArray.Create(_renameLocationSet.Symbol);
-
             protected override async Task<ImmutableHashSet<RenamedSymbolInfo>> GetValidRenamedSymbolsInfoInCurrentSolutionAsync(MutableConflictResolution conflictResolution)
             {
                 if (!_replacementTextValid)
@@ -265,6 +262,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 var oldMetadataName = renameDeclarationLocationReference.Name;
                 return !HeuristicMetadataNameEquivalenceCheck(oldMetadataName, newMetadataName, _originalText, _replacementText);
             }
+
+            protected override bool ShouldSimplifyTheProject(ProjectId projectId)
+                => _replacementTextValid;
         }
     }
 }
