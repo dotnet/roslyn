@@ -1204,9 +1204,9 @@ namespace System.Diagnostics.CodeAnalysis
             string assemblyName = "",
             string sourceFileName = "",
             bool skipUsesIsNullable = false,
-            RuntimeFlag runtimeFeature = RuntimeFlag.None)
+            RuntimeOption runtimeFeature = RuntimeOption.None)
         {
-            if (runtimeFeature == RuntimeFlag.ByRefFields)
+            if (runtimeFeature == RuntimeOption.ByRefFields)
             {
                 // Avoid sharing mscorlib symbols with other tests since we are about to change
                 // RuntimeSupportsByRefFields property for it.
