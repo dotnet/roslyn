@@ -5283,6 +5283,7 @@ ref struct S<T>
     ref readonly T F2;
 }"
             Dim comp = CreateCSharpCompilation(GetUniqueName(), source, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.Preview))
+            ' error CS9063: Target runtime doesn't support ref fields.
             comp.VerifyDiagnostics(
                 {
                    Diagnostic(9063, "F1").WithLocation(4, 11),
