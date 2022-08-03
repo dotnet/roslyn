@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         {
             var (document, span, cancellationToken) = context;
 
-            var service = document.Project.Solution.Workspace.Services.GetService<IMoveStaticMembersOptionsService>();
+            var service = document.Project.Solution.Services.GetService<IMoveStaticMembersOptionsService>();
             if (service == null)
             {
                 return;

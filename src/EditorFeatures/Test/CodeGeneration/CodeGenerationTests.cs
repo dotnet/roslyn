@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
@@ -427,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default,
             bool isIndexer = false,
             CodeGenerationContext context = null,
-            IDictionary<OptionKey2, object> options = null)
+            OptionsCollection options = null)
         {
             // This assumes that tests will not use place holders for get/set statements at the same time
             if (getStatements != null)
@@ -442,14 +443,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 
             using var testContext = await TestContext.CreateAsync(initial, expected);
             var workspace = testContext.Workspace;
-            if (options != null)
-            {
-                var optionSet = workspace.Options;
-                foreach (var (key, value) in options)
-                    optionSet = optionSet.WithChangedOption(key, value);
-
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(optionSet));
-            }
+            options?.SetGlobalOptions(workspace.GlobalOptions);
 
             var typeSymbol = GetTypeSymbol(type)(testContext.SemanticModel);
             var getParameterSymbols = GetParameterSymbols(parameters, testContext);
@@ -884,7 +878,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 this.Document = Workspace.CurrentSolution.Projects.Single().Documents.Single();
                 this.SemanticModel = semanticModel;
                 this.SyntaxTree = SemanticModel.SyntaxTree;
-                this.Service = Document.Project.LanguageServices.GetService<ICodeGenerationService>();
+                this.Service = Document.Project.Services.GetService<ICodeGenerationService>();
             }
 
             public static async Task<TestContext> CreateAsync(string initial, string expected, string forceLanguage = null, bool ignoreResult = false)

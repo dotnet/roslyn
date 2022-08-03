@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineRename;
@@ -172,11 +173,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             get
             {
+                _threadingContext.ThrowIfNotOnUIThread();
+
                 return _activeRenameSession;
             }
 
             set
             {
+                _threadingContext.ThrowIfNotOnUIThread();
+
+                // This is also checked in InlineRenameSession (which should be the only thing that ever sets this).
+                // However, this just adds an extra level of safety to make sure nothing bad is about to happen.
+                Contract.ThrowIfTrue(_activeRenameSession != null && value != null, "Cannot assign an active rename session when one is already in progress.");
+
                 var previousSession = _activeRenameSession;
                 _activeRenameSession = value;
                 ActiveSessionChanged?.Invoke(this, new ActiveSessionChangedEventArgs(previousSession!));

@@ -131,7 +131,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using var listener = new TodoCommentsListener(
                 workspace.GlobalOptions,
-                workspace.Services,
+                workspace.Services.SolutionServices,
                 workspace.GetService<IAsynchronousOperationListenerProvider>(),
                 onTodoCommentsUpdated: (documentId, _, newComments) => resultSource.SetResult((documentId, newComments)),
                 disposalToken: cancellationTokenSource.Token);
@@ -392,7 +392,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                             metadataReferences: new [] { MetadataReference.CreateFromFile(file.Path) })
                 });
 
-            using var remoteWorkspace = new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices(), WorkspaceKind.RemoteWorkspace);
+            using var remoteWorkspace = new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
 
             // this shouldn't throw exception
             var (solution, updated) = await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceCurrentSolutionAsync(
@@ -465,8 +465,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private static void VerifyStates(Solution solution1, Solution solution2, string projectName, ImmutableArray<string> documentNames)
         {
-            Assert.True(solution1.Workspace is RemoteWorkspace);
-            Assert.True(solution2.Workspace is RemoteWorkspace);
+            Assert.Equal(WorkspaceKind.RemoteWorkspace, solution1.WorkspaceKind);
+            Assert.Equal(WorkspaceKind.RemoteWorkspace, solution2.WorkspaceKind);
 
             SetEqual(solution1.ProjectIds, solution2.ProjectIds);
 

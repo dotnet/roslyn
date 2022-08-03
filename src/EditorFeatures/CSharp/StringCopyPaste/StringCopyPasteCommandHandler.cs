@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 if (selectionsBeforePaste.Count != 1)
                     return default;
 
-                var copyPasteService = documentBeforePaste.Project.Solution.Workspace.Services.GetRequiredService<IStringCopyPasteService>();
+                var copyPasteService = documentBeforePaste.Project.Solution.Services.GetRequiredService<IStringCopyPasteService>();
                 var clipboardData = copyPasteService.TryGetClipboardData(KeyAndVersion);
                 var copyPasteData = StringCopyPasteData.FromJson(clipboardData);
 
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // Otherwise, we have a single-line raw string.  Determine the default indentation desired here.
             // We'll use that if we have to convert this single-line raw string to a multi-line one.
-            var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsService, documentBeforePaste.LanguageServices, explicitFormat: false);
+            var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsService, documentBeforePaste.ProjectServices, explicitFormat: false);
             return stringExpressionBeforePaste.GetFirstToken().GetPreferredIndentation(documentBeforePaste, indentationOptions, cancellationToken);
         }
 

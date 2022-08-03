@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Host
         internal sealed class RecoverableSyntaxRoot<TRoot> : WeaklyCachedRecoverableValueSource<TRoot>
             where TRoot : SyntaxNode
         {
-            private ITemporaryStreamStorage? _storage;
+            private ITemporaryStreamStorageInternal? _storage;
 
             private readonly IRecoverableSyntaxTree<TRoot> _containingTree;
             private readonly AbstractSyntaxTreeFactoryService _service;
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Host
                 root.SerializeTo(stream, cancellationToken);
                 stream.Position = 0;
 
-                _storage = _service.LanguageServices.WorkspaceServices.GetRequiredService<ITemporaryStorageService>().CreateTemporaryStreamStorage(cancellationToken);
+                _storage = _service.SolutionServices.GetRequiredService<ITemporaryStorageServiceInternal>().CreateTemporaryStreamStorage();
                 await _storage.WriteStreamAsync(stream, cancellationToken).ConfigureAwait(false);
             }
 

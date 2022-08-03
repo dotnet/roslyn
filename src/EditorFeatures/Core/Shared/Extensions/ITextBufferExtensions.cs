@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
@@ -58,6 +61,34 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             }
 
             return service != null;
+        }
+
+        public static ITextSnapshot ApplyChange(this ITextBuffer buffer, TextChange change)
+        {
+            if (buffer.Properties.TryGetProperty<IContainedDocument>(typeof(IContainedDocument), out var containedDocument))
+            {
+                return containedDocument.ApplyChanges(new[] { change });
+            }
+
+            using var edit = buffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
+            edit.Replace(change.Span.ToSpan(), change.NewText);
+            return edit.Apply();
+        }
+
+        public static ITextSnapshot ApplyChanges(this ITextBuffer buffer, IEnumerable<TextChange> changes)
+        {
+            if (buffer.Properties.TryGetProperty<IContainedDocument>(typeof(IContainedDocument), out var containedDocument))
+            {
+                return containedDocument.ApplyChanges(changes);
+            }
+
+            using var edit = buffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
+            foreach (var change in changes)
+            {
+                edit.Replace(change.Span.ToSpan(), change.NewText);
+            }
+
+            return edit.Apply();
         }
     }
 }

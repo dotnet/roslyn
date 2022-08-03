@@ -342,7 +342,7 @@ Friend Class RedNodeFactoryWriter
 
             Dim kindsList = String.Join(", ", From kind In nodeStructure.NodeKinds Select kind.Name)
 
-            GenerateParameterXmlComment(_writer, "kind", String.Format("A <cref c=""SyntaxKind""/> representing the specific kind of {0}. One of {1}.", nodeStructure.Name, kindsList))
+            GenerateParameterXmlComment(_writer, "kind", String.Format("A <see cref=""SyntaxKind""/> representing the specific kind of {0}. One of {1}.", nodeStructure.Name, kindsList))
         End If
 
         If nodeStructure.IsTerminal Then
@@ -668,7 +668,7 @@ Friend Class RedNodeFactoryWriter
 
             Dim kindsList = String.Join(", ", From kind In nodeStructure.NodeKinds Select kind.Name)
 
-            GenerateParameterXmlComment(_writer, "kind", String.Format("A <cref c=""SyntaxKind""/> representing the specific kind of {0}. One of {1}.", nodeStructure.Name, kindsList))
+            GenerateParameterXmlComment(_writer, "kind", String.Format("A <see cref=""SyntaxKind""/> representing the specific kind of {0}. One of {1}.", nodeStructure.Name, kindsList))
         End If
 
         If nodeStructure.IsTerminal Then

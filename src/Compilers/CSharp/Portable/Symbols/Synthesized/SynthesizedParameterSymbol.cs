@@ -160,9 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type.Type));
             }
 
-            if (ParameterHelpers.RequiresLifetimeAnnotationAttribute(this))
+            if (ParameterHelpers.RequiresScopedRefAttribute(this))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeLifetimeAnnotationAttribute(this, Scope));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeScopedRefAttribute(this, DeclaredScope));
             }
 
             if (type.Type.ContainsTupleNames() &&
@@ -188,7 +188,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasInterpolatedStringHandlerArgumentError => false;
 
-        internal sealed override DeclarationScope Scope => _scope;
+        internal sealed override DeclarationScope DeclaredScope => _scope;
+
+        internal sealed override DeclarationScope EffectiveScope => DeclaredScope;
     }
 
     internal sealed class SynthesizedParameterSymbol : SynthesizedParameterSymbolBase
@@ -251,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     oldParam.Ordinal,
                     oldParam.RefKind,
                     oldParam.Name,
-                    oldParam.Scope,
+                    oldParam.DeclaredScope,
                     oldParam.RefCustomModifiers,
                     baseParameterForAttributes: null));
             }

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             Document document, TextSpan textSpan, InlineTypeHintsOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         {
             // TODO: https://github.com/dotnet/roslyn/issues/57283
-            var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+            var globalOptions = document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
             var displayAllOverride = globalOptions.InlineHintsOptionsDisplayAllOverride;
 
             var enabledForTypes = options.EnabledForTypes;

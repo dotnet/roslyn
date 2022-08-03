@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
         {
             get
             {
-                return (TestExtractInterfaceOptionsService)ExtractFromDocument.Project.Solution.Workspace.Services.GetService<IExtractInterfaceOptionsService>();
+                return (TestExtractInterfaceOptionsService)ExtractFromDocument.Project.Solution.Services.GetService<IExtractInterfaceOptionsService>();
             }
         }
 
