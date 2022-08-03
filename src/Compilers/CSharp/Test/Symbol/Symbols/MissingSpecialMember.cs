@@ -617,6 +617,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute:
                     case WellKnownType.System_MemoryExtensions:
                     case WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute:
+                    case WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -981,6 +982,7 @@ namespace System
                     case WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T:
                     case WellKnownMember.System_MemoryExtensions__AsSpan_String:
                     case WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor:
+                    case WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
