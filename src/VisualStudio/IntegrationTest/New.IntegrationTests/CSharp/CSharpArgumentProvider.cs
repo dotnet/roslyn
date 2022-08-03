@@ -236,7 +236,7 @@ public class TestClass
             await TestServices.EditorVerifier.CurrentLineTextAsync("        Test(0$$, 0)", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63174")]
         public async Task ImplicitArgumentSwitching()
         {
             await SetUpEditorAsync(@"
