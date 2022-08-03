@@ -152,8 +152,8 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             ImmutableArray<ExtractClassMemberAnalysisResult> memberAnalysisResults,
             CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<(ISymbol member, bool makeAbstract)>.GetInstance(out var pullMembersBuilder);
-            using var _1 = ArrayBuilder<ExtractClassMemberAnalysisResult>.GetInstance(memberAnalysisResults.Length, out var remainingResults);
+            using var _1 = ArrayBuilder<(ISymbol member, bool makeAbstract)>.GetInstance(out var pullMembersBuilder);
+            using var _2 = ArrayBuilder<ExtractClassMemberAnalysisResult>.GetInstance(memberAnalysisResults.Length, out var remainingResults);
             remainingResults.AddRange(memberAnalysisResults);
 
             // For each document in the symbol mappings, we want to find the annotated nodes
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                using var _2 = ArrayBuilder<ExtractClassMemberAnalysisResult>.GetInstance(remainingResults.Count, out var resultsToRemove);
+                using var _3 = ArrayBuilder<ExtractClassMemberAnalysisResult>.GetInstance(remainingResults.Count, out var resultsToRemove);
 
                 // Out of the remaining members that we need to move, does this
                 // document contain the definition for that symbol? If so, add it to the builder

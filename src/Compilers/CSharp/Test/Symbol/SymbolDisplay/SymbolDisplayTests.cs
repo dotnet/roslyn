@@ -8314,6 +8314,32 @@ unsafe class Program
         }
 
         [Fact]
+        public void ScopedParameter_04()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R { }
+class Program
+{
+    static void F1(out int i1, [UnscopedRef] out int i2) => throw null;
+    static void F2(ref R r1, [UnscopedRef] ref R r2) => throw null;
+}";
+
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics();
+
+            var format = SymbolDisplayFormat.TestFormat.
+                WithParameterOptions(SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut).
+                WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped);
+
+            Verify(comp.GetMember<MethodSymbol>("Program.F1").ToDisplayParts(format),
+                "void Program.F1(out System.Int32 i1, out System.Int32 i2)");
+
+            Verify(comp.GetMember<MethodSymbol>("Program.F2").ToDisplayParts(format),
+                "void Program.F2(ref R r1, ref R r2)");
+        }
+
+        [Fact]
         public void ScopedLocal()
         {
             var source =
