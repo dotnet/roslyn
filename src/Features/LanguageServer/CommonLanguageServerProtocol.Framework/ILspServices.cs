@@ -12,7 +12,7 @@ public interface ILspServices : IDisposable
 {
     T GetRequiredService<T>();
 
-    bool TryGetService(Type @type, out object service);
+    bool TryGetService(Type @type, out object? service);
 
     ImmutableArray<Type> GetRegisteredServices();
 }
