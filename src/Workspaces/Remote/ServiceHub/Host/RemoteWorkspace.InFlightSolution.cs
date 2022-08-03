@@ -166,10 +166,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 _cancellationTokenSource_doNotAccessDirectly.Cancel();
                 _cancellationTokenSource_doNotAccessDirectly.Dispose();
 
-                // If we're going away, then we absolutely must not be pointed at in the _lastRequestedSolution field.
-                Contract.ThrowIfTrue(_workspace._lastAnyBranchSolution == this);
-                Contract.ThrowIfTrue(_workspace._lastPrimaryBranchSolution == this);
-
                 // If we're going away, we better find ourself in the mapping for this checksum.
                 Contract.ThrowIfFalse(_workspace._solutionChecksumToSolution.TryGetValue(SolutionChecksum, out var existingSolution));
                 Contract.ThrowIfFalse(existingSolution == this);
