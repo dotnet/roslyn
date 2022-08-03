@@ -19,12 +19,10 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
         protected AbstractOrderModifiersDiagnosticAnalyzer(
             ISyntaxFacts syntaxFacts,
             Option2<CodeStyleOption2<string>> option,
-            AbstractOrderModifiersHelpers helpers,
-            string language)
+            AbstractOrderModifiersHelpers helpers)
             : base(IDEDiagnosticIds.OrderModifiersDiagnosticId,
                    EnforceOnBuildValues.OrderModifiers,
                    option,
-                   language,
                    new LocalizableResourceString(nameof(AnalyzersResources.Order_modifiers), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Modifiers_are_not_ordered), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {

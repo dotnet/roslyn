@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 cacheEntry.Checksum != checksum ||
                 cacheEntry.Language != project.Language)
             {
-                var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+                var syntaxFacts = project.Services.GetRequiredService<ISyntaxFactsService>();
                 var builder = new ExtensionMethodImportCompletionCacheEntry.Builder(checksum, project.Language, syntaxFacts.StringComparer);
 
                 foreach (var document in project.Documents)

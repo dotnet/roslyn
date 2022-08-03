@@ -10,14 +10,14 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 {
     internal readonly struct CommonQuickInfoContext
     {
-        public readonly HostWorkspaceServices Services;
+        public readonly HostSolutionServices Services;
         public readonly SemanticModel SemanticModel;
         public readonly int Position;
         public readonly SymbolDescriptionOptions Options;
         public readonly CancellationToken CancellationToken;
 
         public CommonQuickInfoContext(
-            HostWorkspaceServices services,
+            HostSolutionServices services,
             SemanticModel semanticModel,
             int position,
             SymbolDescriptionOptions options,

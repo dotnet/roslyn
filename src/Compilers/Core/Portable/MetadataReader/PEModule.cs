@@ -1087,16 +1087,14 @@ namespace Microsoft.CodeAnalysis
             return TryExtractBoolArrayValueFromAttribute(info.Handle, out transformFlags);
         }
 
-        internal bool HasLifetimeAnnotationAttribute(EntityHandle token, out (bool IsRefScoped, bool IsValueScoped) value)
+        internal bool HasScopedRefAttribute(EntityHandle token)
         {
-            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.LifetimeAnnotationAttribute);
-            if (!info.HasValue)
-            {
-                value = default;
-                return false;
-            }
+            return FindTargetAttribute(token, AttributeDescription.ScopedRefAttribute).HasValue;
+        }
 
-            return TryExtractValueFromAttribute(info.Handle, out value, CrackBoolAndBoolInAttributeValue);
+        internal bool HasUnscopedRefAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.UnscopedRefAttribute).HasValue;
         }
 
         internal bool HasTupleElementNamesAttribute(EntityHandle token, out ImmutableArray<string> tupleElementNames)

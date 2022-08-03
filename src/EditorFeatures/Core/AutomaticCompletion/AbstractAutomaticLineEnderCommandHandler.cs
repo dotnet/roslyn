@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                 if (endingInsertionPosition != null)
                 {
                     using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
-                    var formattingOptions = args.SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.Project.LanguageServices, explicitFormat: false);
+                    var formattingOptions = args.SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.Project.Services, explicitFormat: false);
                     InsertEnding(args.TextView, document, endingInsertionPosition.Value, caretPosition, formattingOptions, cancellationToken);
                     NextAction(operations, nextHandler);
                     transaction.Complete();

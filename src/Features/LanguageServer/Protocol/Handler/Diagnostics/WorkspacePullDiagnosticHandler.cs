@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             var solution = context.Solution;
 
-            var documentTrackingService = solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            var documentTrackingService = solution.Services.GetRequiredService<IDocumentTrackingService>();
 
             // Collect all the documents from the solution in the order we'd like to get diagnostics for.  This will
             // prioritize the files from currently active projects, but then also include all other docs in all projects
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
                 // If all features are enabled for source generated documents, make sure they are included when FSA is on or a file in the project is open.
                 // This is done because for either scenario we've already run generators, so there shouldn't be much cost in getting the diagnostics.
-                if ((isFSAOn || isOpen) && solution.Workspace.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true)
+                if ((isFSAOn || isOpen) && solution.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true)
                 {
                     var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
                     documents = documents.AddRange(sourceGeneratedDocuments);

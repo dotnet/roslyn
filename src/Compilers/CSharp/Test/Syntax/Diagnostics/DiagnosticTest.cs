@@ -353,6 +353,7 @@ class X
                         case ErrorCode.WRN_UseDefViolationPropertySupportedVersion:
                         case ErrorCode.WRN_UseDefViolationFieldSupportedVersion:
                         case ErrorCode.WRN_UseDefViolationThisSupportedVersion:
+                        case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

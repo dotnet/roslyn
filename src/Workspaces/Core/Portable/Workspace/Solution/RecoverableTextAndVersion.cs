@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal class RecoverableTextAndVersion : ValueSource<TextAndVersion>, ITextVersionable
     {
-        private readonly ITemporaryStorageService _storageService;
+        private readonly ITemporaryStorageServiceInternal _storageService;
 
         private SemaphoreSlim? _lazyGate;
         private ValueSource<TextAndVersion>? _initialSource;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
 
         public RecoverableTextAndVersion(
             ValueSource<TextAndVersion> initialTextAndVersion,
-            ITemporaryStorageService storageService)
+            ITemporaryStorageServiceInternal storageService)
         {
             _initialSource = initialTextAndVersion;
             _storageService = storageService;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
 
         private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _lazyGate, SemaphoreSlimFactory.Instance);
 
-        public ITemporaryTextStorage? Storage => _text?.Storage;
+        public ITemporaryTextStorageInternal? Storage => _text?.Storage;
 
         public override bool TryGetValue([MaybeNullWhen(false)] out TextAndVersion value)
         {
@@ -111,7 +111,9 @@ namespace Microsoft.CodeAnalysis
         {
             _initialSource = null;
             _version = textAndVersion.Version;
+#pragma warning disable CS0618 // Type or member is obsolete
             _filePath = textAndVersion.FilePath;
+#pragma warning restore
             _loadDiagnostic = textAndVersion.LoadDiagnostic;
             _text = new RecoverableText(this, textAndVersion.Text);
             _text.GetValue(CancellationToken.None); // force access to trigger save
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis
         private sealed class RecoverableText : WeaklyCachedRecoverableValueSource<SourceText>
         {
             private readonly RecoverableTextAndVersion _parent;
-            private ITemporaryTextStorage? _storage;
+            private ITemporaryTextStorageInternal? _storage;
 
             public RecoverableText(RecoverableTextAndVersion parent, SourceText text)
                 : base(new ConstantValueSource<SourceText>(text))
@@ -129,7 +131,7 @@ namespace Microsoft.CodeAnalysis
                 _parent = parent;
             }
 
-            public ITemporaryTextStorage? Storage => _storage;
+            public ITemporaryTextStorageInternal? Storage => _storage;
 
             protected override async Task<SourceText> RecoverAsync(CancellationToken cancellationToken)
             {
@@ -155,7 +157,7 @@ namespace Microsoft.CodeAnalysis
             {
                 Contract.ThrowIfFalse(_storage == null); // Cannot save more than once
 
-                var storage = _parent._storageService.CreateTemporaryTextStorage(cancellationToken);
+                var storage = _parent._storageService.CreateTemporaryTextStorage();
                 await storage.WriteTextAsync(text, cancellationToken).ConfigureAwait(false);
 
                 // make sure write is done before setting _storage field

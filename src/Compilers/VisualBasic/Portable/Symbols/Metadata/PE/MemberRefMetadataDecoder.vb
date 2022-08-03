@@ -92,13 +92,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' <summary> 
         ''' Search through the members of the <see cref="_containingType"/> type symbol to find the method that matches a particular signature. 
         ''' </summary> 
-        ''' <param name="memberRef">A MemberRef handle that can be used to obtain the name and signature of the method</param> 
+        ''' <param name="memberRefOrMethodDef">A MemberRef or a MethodDef handle that can be used to obtain the name and signature of the method</param> 
         ''' <param name="methodsOnly">True to only return a method.</param> 
         ''' <returns>The matching method symbol, or null if the inputs do not correspond to a valid method.</returns>
-        Friend Function FindMember(memberRef As MemberReferenceHandle, methodsOnly As Boolean) As Symbol
+        Friend Function FindMember(memberRefOrMethodDef As EntityHandle, methodsOnly As Boolean) As Symbol
             Try
-                Dim memberName As String = [Module].GetMemberRefNameOrThrow(memberRef)
-                Dim signatureHandle = [Module].GetSignatureOrThrow(memberRef)
+                Dim memberName As String
+                Dim signatureHandle As BlobHandle
+
+                Select Case memberRefOrMethodDef.Kind
+                    Case HandleKind.MemberReference
+                        Dim memberRef = CType(memberRefOrMethodDef, MemberReferenceHandle)
+                        memberName = [Module].GetMemberRefNameOrThrow(memberRef)
+                        signatureHandle = [Module].GetSignatureOrThrow(memberRef)
+
+                    Case HandleKind.MethodDefinition
+                        Dim methodDef = CType(memberRefOrMethodDef, MethodDefinitionHandle)
+                        memberName = [Module].GetMethodDefNameOrThrow(methodDef)
+                        signatureHandle = [Module].GetMethodSignatureOrThrow(methodDef)
+
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(memberRefOrMethodDef.Kind)
+                End Select
+
                 Dim signatureHeader As SignatureHeader
                 Dim signaturePointer As BlobReader = Me.DecodeSignatureHeaderOrThrow(signatureHandle, signatureHeader)
 

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var document = context.Document;
             Contract.ThrowIfNull(document);
 
-            var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
+            var completionService = document.Project.Services.GetRequiredService<CompletionService>();
 
             var cacheEntry = GetCompletionListCacheEntry(completionItem);
             if (cacheEntry == null)

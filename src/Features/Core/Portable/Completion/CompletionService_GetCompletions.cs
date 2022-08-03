@@ -158,9 +158,9 @@ namespace Microsoft.CodeAnalysis.Completion
                     case CompletionTriggerKind.Insertion:
                     case CompletionTriggerKind.Deletion:
 
-                        if (ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, caretPosition, trigger, options, passThroughOptions, roles))
+                        if (ShouldTriggerCompletion(document.Project, document.Project.Services, text, caretPosition, trigger, options, passThroughOptions, roles))
                         {
-                            var triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(document.Project.LanguageServices, text, caretPosition, trigger, options, passThroughOptions)).ToImmutableArrayOrEmpty();
+                            var triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(document.Project.Services, text, caretPosition, trigger, options, passThroughOptions)).ToImmutableArrayOrEmpty();
 
                             Debug.Assert(ValidatePossibleTriggerCharacterSet(trigger.Kind, triggeredProviders, document, text, caretPosition, options));
                             return triggeredProviders.IsEmpty ? providers.ToImmutableArray() : triggeredProviders;
