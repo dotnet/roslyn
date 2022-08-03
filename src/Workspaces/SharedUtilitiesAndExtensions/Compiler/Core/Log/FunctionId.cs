@@ -564,6 +564,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_DocumentRemoved = 587,
         ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_TextChangeConflict = 588,
 
+        Completion_SemanticSnippets = 589,
         // please leave the range up through 600 free in case we need to add more items to learn more about ApplyChangesOperation results.
 
         SpellCheckFixer_CouldNotFindDocument = 600,
