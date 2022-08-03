@@ -1111,9 +1111,7 @@ namespace System.Diagnostics.CodeAnalysis
               CSharpTestSource source,
               IEnumerable<MetadataReference> references = null,
               CSharpCompilationOptions options = null,
-              CSharpParseOptions parseOptions = null,
-              string assemblyName = "",
-              string sourceFileName = "")
+              CSharpParseOptions parseOptions = null)
         {
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsByRefFields property for it.
@@ -1126,7 +1124,7 @@ namespace System.Diagnostics.CodeAnalysis
 
             // Note: we use skipUsesIsNullable and skipExtraValidation so that nobody pulls
             // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
-            var comp = CreateCompilationCore(source, references, options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable: true, experimentalFeature: null, skipExtraValidation: true);
+            var comp = CreateCompilationCore(source, references, options, parseOptions, assemblyName: null, sourceFileName: null, skipUsesIsNullable: true, experimentalFeature: null, skipExtraValidation: true);
             comp.Assembly.RuntimeSupportsByRefFields = true;
             return comp;
         }
