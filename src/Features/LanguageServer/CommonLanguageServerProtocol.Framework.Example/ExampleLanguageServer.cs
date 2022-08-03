@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Extensions.DependencyInjection;
+using StreamJsonRpc;
 
 namespace CommonLanguageServerProtocol.Framework.Example;
 
@@ -16,7 +17,10 @@ internal class ExampleLanguageServer : LanguageServer<ExampleRequestContext>
 
     protected override ILspServices GetLspServices()
     {
-        var serviceProvider = Microsoft.Extensions.DependencyInjection.ServiceProvider();
+        var serviceCollection = new ServiceCollection();
+        serviceCollection.AddSingleton<InitializeHandler>();
+
+        var serviceProvider = serviceCollection.BuildServiceProvider();
 
         var lspServices = new ExampleLspServices(serviceProvider);
 
