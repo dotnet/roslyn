@@ -480,17 +480,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         /// <returns>the referenced parameter or null if unable to find</returns>
         private static IParameterSymbol? GetParamFromArgument(IOperation arg)
         {
-            return arg switch
+            var bottom = arg.WalkDownConversion();
+            if (bottom is IParameterReferenceOperation parameterReference)
             {
-                IParameterReferenceOperation directParameterReference => directParameterReference.Parameter,
-                // if the invocation parameter was an object and the argument was the type, there is an implicit cast
-                IConversionOperation
-                {
-                    IsImplicit: true,
-                    Operand: IParameterReferenceOperation castParameterReference
-                } => castParameterReference.Parameter,
-                _ => null,
-            };
+                return parameterReference.Parameter;
+            }
+            return null;
         }
 
         /// <summary>
@@ -513,9 +508,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return false;
             }
 
+            var body = operation.BlockBody ?? operation.ExpressionBody;
+
             // We expect the constructor to have exactly one statement per parameter,
             // where the statement is a simple assignment from the parameter to the property
-            if (operation.BlockBody == null || operation.BlockBody.Operations.Length != parameters.Count)
+            if (body == null || body.Operations.Length != parameters.Count)
             {
                 return false;
             }
@@ -524,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             var propertyNamesAlreadyAssigned = new HashSet<string>();
             var parameterNames = parameters.SelectAsArray(p => p.Identifier.ToString());
 
-            foreach (var bodyOperation in operation.BlockBody.Operations)
+            foreach (var bodyOperation in body.Operations)
             {
                 if (bodyOperation is IExpressionStatementOperation
                     {

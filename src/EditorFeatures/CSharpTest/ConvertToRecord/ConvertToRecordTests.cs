@@ -884,6 +884,30 @@ namespace N
         }
 
         [Fact]
+        public async Task TestMovePropertiesAndDeleteSimpleExpressionPrimaryConstructor()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+
+        public C(int p)
+            => P = p;
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestMovePropertiesAndDontDeleteComplexPrimaryConstructor1()
         {
             var initialMarkup = @"
