@@ -96,9 +96,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 _conflictLocations = parameters.ConflictLocationSpans
                 _cancellationToken = parameters.CancellationToken
                 _semanticModel = parameters.SemanticModel
-                _simplificationService = document.Project.LanguageServices.GetRequiredService(Of ISimplificationService)()
-                _syntaxFactsService = document.Project.LanguageServices.GetRequiredService(Of ISyntaxFactsService)()
-                _semanticFactsService = document.Project.LanguageServices.GetRequiredService(Of ISemanticFactsService)()
+                _simplificationService = document.Project.Services.GetRequiredService(Of ISimplificationService)()
+                _syntaxFactsService = document.Project.Services.GetRequiredService(Of ISyntaxFactsService)()
+                _semanticFactsService = document.Project.Services.GetRequiredService(Of ISemanticFactsService)()
                 _renameAnnotations = parameters.RenameAnnotations
                 _renameSpansTracker = parameters.RenameSpansTracker
 
@@ -271,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 End If
 
                 Dim isNamespaceDeclarationReference = token.GetPreviousToken().Kind = SyntaxKind.NamespaceKeyword
-                Dim symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Workspace.Services, _cancellationToken)
+                Dim symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Services, _cancellationToken)
                 If symbols.Length = 1 Then
                     If TypeOf symbols(0) Is INamespaceSymbol AndAlso isNamespaceDeclarationReference Then
                         Return newToken
@@ -326,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     Return newToken
                 End If
 
-                Dim symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Workspace.Services, _cancellationToken)
+                Dim symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Services, _cancellationToken)
 
                 ' this is the compiler generated backing field of a non custom event. We need to store a "Event" suffix to properly rename it later on.
                 Dim prefix = If(isRenamableAccessor, newToken.ValueText.Substring(0, newToken.ValueText.IndexOf("_"c) + 1), String.Empty)

@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             using var _ = ArrayBuilder<LSP.TextEdit>.GetInstance(out var edits);
 
             var document = context.Document;
-            var formattingService = document?.Project.LanguageServices.GetService<IXamlFormattingService>();
+            var formattingService = document?.Project.Services.GetService<IXamlFormattingService>();
 
             if (document != null && formattingService != null)
             {

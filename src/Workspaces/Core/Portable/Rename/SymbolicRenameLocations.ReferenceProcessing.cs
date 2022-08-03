@@ -328,8 +328,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 foreach (var documentsGroupedByLanguage in RenameUtilities.GetDocumentsAffectedByRename(originalSymbol, solution, renameLocations).GroupBy(d => d.Project.Language))
                 {
                     var languageName = documentsGroupedByLanguage.Key;
-                    var syntaxFactsLanguageService = solution.Workspace.Services.GetLanguageServices(languageName).GetRequiredService<ISyntaxFactsService>();
-                    var renameRewriterLanguageService = solution.Workspace.Services.GetLanguageServices(languageName).GetRequiredService<IRenameRewriterLanguageService>();
+                    var syntaxFactsLanguageService = solution.Services.GetProjectServices(languageName).GetRequiredService<ISyntaxFactsService>();
+                    var renameRewriterLanguageService = solution.Services.GetProjectServices(languageName).GetRequiredService<IRenameRewriterLanguageService>();
 
                     foreach (var document in documentsGroupedByLanguage)
                     {

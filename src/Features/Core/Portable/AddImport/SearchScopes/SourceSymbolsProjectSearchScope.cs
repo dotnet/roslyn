@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
                 SymbolFilter filter, SearchQuery searchQuery)
             {
-                var service = _project.Solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
+                var service = _project.Solution.Services.GetService<ISymbolTreeInfoCacheService>();
                 var info = await service.TryGetSourceSymbolTreeInfoAsync(_project, CancellationToken).ConfigureAwait(false);
                 if (info == null)
                 {

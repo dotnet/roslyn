@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         return newToken;
                     }
 
-                    var symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Workspace.Services, _cancellationToken);
+                    var symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Services, _cancellationToken);
 
                     string? suffix = null;
                     var prefix = isRenamableAccessor
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             private async Task<SyntaxToken> AnnotateForConflictCheckAsync(SyntaxToken token, SyntaxToken newToken, bool isOldText)
             {
-                var symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Workspace.Services, _cancellationToken);
+                var symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Services, _cancellationToken);
                 var isNamespaceDeclarationReference = token.GetPreviousToken().IsKind(SyntaxKind.NamespaceKeyword);
                 if (symbols.Length == 1)
                 {

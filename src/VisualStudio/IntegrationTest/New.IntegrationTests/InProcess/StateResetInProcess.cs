@@ -45,7 +45,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
             ResetOption(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
             ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace);
-            ResetPerLanguageOption(globalOptions, NavigationBarViewOptions.ShowNavigationBar);
+            ResetPerLanguageOption(globalOptions, NavigationBarViewOptionsStorage.ShowNavigationBar);
             ResetPerLanguageOption(globalOptions, VisualStudioNavigationOptions.NavigateToObjectBrowser);
             ResetPerLanguageOption(globalOptions, FeatureOnOffOptions.AddImportsOnPaste);
             ResetPerLanguageOption(globalOptions, FeatureOnOffOptions.PrettyListing);

@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static void GetLocationInfo(TextDocument document, Location location, out TextSpan sourceSpan, out FileLinePositionSpan originalLineInfo, out FileLinePositionSpan mappedLineInfo)
         {
-            var diagnosticSpanMappingService = document.Project.Solution.Workspace.Services.GetService<IWorkspaceVenusSpanMappingService>();
+            var diagnosticSpanMappingService = document.Project.Solution.Services.GetService<IWorkspaceVenusSpanMappingService>();
             if (diagnosticSpanMappingService != null)
             {
                 diagnosticSpanMappingService.GetAdjustedDiagnosticSpan(document.Id, location, out sourceSpan, out originalLineInfo, out mappedLineInfo);

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             SyntaxNode container,
             CancellationToken cancellationToken)
         {
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles
                 || document.IsGeneratedCode(cancellationToken))
             {
                 return default;
