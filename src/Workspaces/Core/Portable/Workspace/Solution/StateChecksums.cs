@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             ChecksumCollection metadataReferenceChecksums,
             ChecksumCollection analyzerReferenceChecksums,
             ChecksumCollection additionalDocumentChecksums,
-            ChecksumCollection analyzerConfigDocumentChecksumCollection)
+            ChecksumCollection analyzerConfigDocumentChecksums)
             : this(ImmutableArray.Create<object>(
                 infoChecksum,
                 compilationOptionsChecksum,
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 metadataReferenceChecksums,
                 analyzerReferenceChecksums,
                 additionalDocumentChecksums,
-                analyzerConfigDocumentChecksumCollection))
+                analyzerConfigDocumentChecksums))
         {
         }
 
