@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
         }
 
-        private readonly ICallback _callback;
-
         private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
         private readonly HashSet<ProjectId> _lastScannedProjectIds = new();
@@ -36,15 +34,10 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         /// </summary>
         private readonly ConcurrentDictionary<DocumentId, (string? category, VersionStamp projectVersion)> _documentToLastReportedInformation = new();
 
-        public DesignerAttributeComputer(ICallback callback)
-        {
-            _callback = callback;
-        }
-
         /// <summary>
         /// Must always be called serially.
         /// </summary>
-        public async Task ProcessSolutionAsync(Solution solution, DocumentId? priorityDocumentId, CancellationToken cancellationToken)
+        public async ValueTask ProcessSolutionAsync(Solution solution, DocumentId? priorityDocumentId, ICallback callback, CancellationToken cancellationToken)
         {
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -52,7 +45,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 foreach (var oldProjectId in _lastScannedProjectIds)
                 {
                     if (!solution.ContainsProject(oldProjectId))
-                        await _callback.ReportProjectRemovedAsync(oldProjectId, cancellationToken).ConfigureAwait(false);
+                        await callback.ReportProjectRemovedAsync(oldProjectId, cancellationToken).ConfigureAwait(false);
                 }
 
                 _lastScannedProjectIds.Clear();
@@ -68,10 +61,10 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 var priorityDocument = solution.GetDocument(priorityDocumentId);
                 if (priorityDocument != null)
                 {
-                    await ProcessProjectAsync(priorityDocument.Project, priorityDocument, cancellationToken).ConfigureAwait(false);
+                    await ProcessProjectAsync(priorityDocument.Project, priorityDocument, callback, cancellationToken).ConfigureAwait(false);
 
                     // now scan all the other files from that project.
-                    await ProcessProjectAsync(priorityDocument.Project, specificDocument: null, cancellationToken).ConfigureAwait(false);
+                    await ProcessProjectAsync(priorityDocument.Project, specificDocument: null, callback, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Process the rest of the projects in dependency order so that their data is ready when we hit the 
@@ -80,12 +73,12 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
                 {
                     if (projectId != priorityDocumentId?.ProjectId)
-                        await ProcessProjectAsync(solution.GetRequiredProject(projectId), specificDocument: null, cancellationToken).ConfigureAwait(false);
+                        await ProcessProjectAsync(solution.GetRequiredProject(projectId), specificDocument: null, callback, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
 
-        private async Task ProcessProjectAsync(Project project, Document? specificDocument, CancellationToken cancellationToken)
+        private async Task ProcessProjectAsync(Project project, Document? specificDocument, ICallback callback, CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
                 return;
@@ -110,9 +103,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 }).ToImmutableArray();
 
             if (!changedData.IsEmpty)
-            {
-                await _callback.ReportDesignerAttributeDataAsync(changedData.SelectAsArray(d => d.data), cancellationToken).ConfigureAwait(false);
-            }
+                await callback.ReportDesignerAttributeDataAsync(changedData.SelectAsArray(d => d.data), cancellationToken).ConfigureAwait(false);
 
             // Now, keep track of what we've reported to the host so we won't report unchanged files in the future.
             foreach (var (document, info) in latestData)

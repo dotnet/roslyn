@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioDesignerAttributeService :
         ForegroundThreadAffinitizedObject,
-        IRemoteDesignerAttributeDiscoveryService.ICallback,
+        DesignerAttributeComputer.ICallback,
         IEventListener<object>,
         IDisposable
     {
@@ -408,7 +408,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return ValueTaskFactory.CompletedTask;
         }
 
-        public ValueTask OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
+        public ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
             _cpsProjects.TryRemove(projectId, out _);
             return ValueTaskFactory.CompletedTask;
