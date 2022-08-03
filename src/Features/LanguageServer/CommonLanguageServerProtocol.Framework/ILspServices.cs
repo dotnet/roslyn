@@ -13,7 +13,7 @@ namespace CommonLanguageServerProtocol.Framework;
 
 public interface ILspServices : IDisposable
 {
-    T GetRequiredService<T>();
+    T GetRequiredService<T>() where T : notnull;
 
     bool TryGetService(Type @type, out object? service);
 

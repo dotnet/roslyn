@@ -7,13 +7,17 @@ namespace CommonLanguageServerProtocol.Framework.UnitTests;
 
 public class RequestExecutionQueueTests
 {
+    private const string _serverKind = "ServerKind";
+
     private RequestExecutionQueue<TestRequestContext> GetRequestExecutionQueue()
     {
-        throw new NotImplementedException();
+        var executionQueue = new RequestExecutionQueue<TestRequestContext>(_serverKind, NoOpLspLogger.Instance);
+
+        return executionQueue;
     }
 
     [Fact]
-    public void CreateQueueItem()
+    public async Task ExecuteAsync_CompletesTask()
     {
         var requestExecutionQueue = GetRequestExecutionQueue();
 
@@ -21,10 +25,8 @@ public class RequestExecutionQueueTests
     }
 
     [Fact]
-    public async Task ExecuteAsync()
+    public async Task Queue_DrainsOnShutdown()
     {
-        var requestExecutionQueue = GetRequestExecutionQueue();
-
         throw new NotImplementedException();
     }
 

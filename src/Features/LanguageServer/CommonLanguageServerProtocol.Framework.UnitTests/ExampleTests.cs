@@ -18,14 +18,39 @@ using Xunit;
 
 namespace CommonLanguageServerProtocol.Framework.UnitTests
 {
-    public class ExampleTests
+    public partial class ExampleTests
     {
         [Fact]
-        public async Task InitializeServer()
+        public async Task InitializeServer_SerializesCorrectly()
         {
             var logger = GetLogger();
             var server = CreateLanguageServer(logger);
 
+            var result = await InitializeServerAsync(server);
+            Assert.True(result.Capabilities.SemanticTokensOptions.Range.Value.First);
+        }
+
+        [Fact]
+        public async Task ShutdownServer_Succeeds()
+        {
+            var logger = GetLogger();
+            var server = CreateLanguageServer(logger);
+
+            _ = InitializeServerAsync(server);
+
+            await ShutdownServerAsync(server);
+
+            var result = await server.WaitForShutdown();
+            Assert.True(0 == result, "Server failed to shut down properly");
+        }
+
+        private static async Task ShutdownServerAsync(TestExampleLanguageServer server)
+        {
+            await server.ExecuteNotificationAsync(Methods.ShutdownName, CancellationToken.None);
+        }
+
+        private static async Task<InitializeResult> InitializeServerAsync(TestExampleLanguageServer server)
+        {
             var request = new InitializeParams
             {
                 Capabilities = new ClientCapabilities
@@ -36,7 +61,7 @@ namespace CommonLanguageServerProtocol.Framework.UnitTests
 
             var result = await server.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, request, CancellationToken.None);
 
-            Assert.True(result.Capabilities.SemanticTokensOptions.Range.Value.First);
+            return result;
         }
 
         private static ILspLogger GetLogger()
@@ -71,16 +96,29 @@ namespace CommonLanguageServerProtocol.Framework.UnitTests
                 _clientRpc.Disconnected += _clientRpc_Disconnected;
             }
 
-            public async Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, RequestType request, CancellationToken cancellationToken)
+            public async Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, RequestType request, CancellationToken cancellationToken)
             {
                 var result = await _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(methodName, request, cancellationToken);
 
                 return result;
             }
 
+            internal async Task ExecuteNotificationAsync(string methodName, CancellationToken cancellationToken)
+            {
+                await _clientRpc.NotifyAsync(methodName);
+            }
+
+            private TaskCompletionSource<int> _shuttingDown = new TaskCompletionSource<int>();
+
             private void _clientRpc_Disconnected(object sender, JsonRpcDisconnectedEventArgs e)
             {
                 throw new NotImplementedException();
+            }
+
+            public override void Shutdown()
+            {
+                base.Shutdown();
+                _shuttingDown.SetResult(0);
             }
 
             public void InitializeTest()
@@ -88,11 +126,17 @@ namespace CommonLanguageServerProtocol.Framework.UnitTests
                 _clientRpc.StartListening();
             }
 
+            public async Task<int> WaitForShutdown()
+            {
+                return await _shuttingDown.Task;
+            }
+
             public override ValueTask DisposeAsync()
             {
                 _clientRpc.Dispose();
                 return base.DisposeAsync();
             }
+
         }
 
         private static JsonMessageFormatter CreateJsonMessageFormatter()
@@ -100,36 +144,6 @@ namespace CommonLanguageServerProtocol.Framework.UnitTests
             var messageFormatter = new JsonMessageFormatter();
             VSInternalExtensionUtilities.AddVSInternalExtensionConverters(messageFormatter.JsonSerializer);
             return messageFormatter;
-        }
-
-        private class NoOpLspLogger : ILspLogger
-        {
-            public static NoOpLspLogger Instance = new NoOpLspLogger();
-
-            public void TraceError(string message)
-            {
-            }
-
-            public void TraceException(Exception exception)
-            {
-                throw exception;
-            }
-
-            public void TraceInformation(string message)
-            {
-            }
-
-            public void TraceStart(string message)
-            {
-            }
-
-            public void TraceStop(string message)
-            {
-            }
-
-            public void TraceWarning(string message)
-            {
-            }
         }
     }
 }
