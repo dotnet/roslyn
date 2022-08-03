@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     IsRecord: false,
                     // records can't be static and so if the class is static we probably shouldn't convert it
                     IsStatic: false
-
                 } type ||
                 // make sure that there is at least one positional parameter we can introduce
                 !typeDeclaration.Members.Any(m => ShouldConvertProperty(m, type)))
@@ -65,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             var positional = CodeAction.Create(
                 positionalTitle,
                 cancellationToken => ConvertToParameterRecordAsync(document, type, typeDeclaration, cancellationToken),
-                positionalTitle);
+                nameof(CSharpFeaturesResources.Convert_to_positional_record));
             // note: when adding nested actions, use string.Format(CSharpFeaturesResources.Convert_0_to_record, type.Name) as title string
             context.RegisterRefactoring(positional);
         }
@@ -100,41 +99,60 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // if struct, split trivia and leading goes to record, trailing goes to struct
             var recordKeyword = SyntaxFactory.Token(SyntaxKind.RecordKeyword);
             recordKeyword = originalType.TypeKind == TypeKind.Class
-                    ? recordKeyword.WithTriviaFrom(originalDeclarationNode.Keyword)
-                    : recordKeyword.WithLeadingTrivia(originalDeclarationNode.Keyword.LeadingTrivia);
+                ? recordKeyword.WithTriviaFrom(originalDeclarationNode.Keyword)
+                : recordKeyword.WithLeadingTrivia(originalDeclarationNode.Keyword.LeadingTrivia);
 
-            var changedTypeDeclaration = SyntaxFactory.RecordDeclaration(
-                originalType.TypeKind == TypeKind.Class
-                    ? SyntaxKind.RecordDeclaration
-                    : SyntaxKind.RecordStructDeclaration,
-                originalDeclarationNode.AttributeLists,
-                originalDeclarationNode.Modifiers,
-                recordKeyword,
-                originalType.TypeKind == TypeKind.Class
-                    ? default
-                    : originalDeclarationNode.Keyword.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-                // remove trailing trivia from places where we would want to insert the parameter list before a line break
-                originalDeclarationNode.Identifier.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-                originalDeclarationNode.TypeParameterList?.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-                SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(propertiesToAddAsParams)),
-                // TODO: inheritance in the case where we inherit from a record (because we previously activated on one)
-                originalDeclarationNode.BaseList,
-                originalDeclarationNode.ConstraintClauses,
-                originalDeclarationNode.OpenBraceToken,
-                SyntaxFactory.List(membersToKeep),
-                originalDeclarationNode.CloseBraceToken,
-                semicolonToken: default)
-                .NormalizeWhitespace()
-                .WithLeadingTrivia(modifiedClassTrivia)
-                .WithAdditionalAnnotations(Formatter.Annotation);
-
-            // if we have no members, use semicolon instead
+            RecordDeclarationSyntax changedTypeDeclaration;
+            // if we have no members, use semicolon instead of braces
             if (membersToKeep.IsEmpty)
             {
-                changedTypeDeclaration = changedTypeDeclaration
-                    .WithOpenBraceToken(default)
-                    .WithCloseBraceToken(default)
-                    .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                changedTypeDeclaration = SyntaxFactory.RecordDeclaration(
+                    originalType.TypeKind == TypeKind.Class
+                        ? SyntaxKind.RecordDeclaration
+                        : SyntaxKind.RecordStructDeclaration,
+                    originalDeclarationNode.AttributeLists,
+                    originalDeclarationNode.Modifiers,
+                    recordKeyword,
+                    originalType.TypeKind == TypeKind.Class
+                        ? default
+                        : originalDeclarationNode.Keyword.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
+                    // remove trailing trivia from places where we would want to insert the parameter list before a line break
+                    originalDeclarationNode.Identifier.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
+                    originalDeclarationNode.TypeParameterList?.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
+                    SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(propertiesToAddAsParams)),
+                    originalDeclarationNode.BaseList,
+                    originalDeclarationNode.ConstraintClauses,
+                    openBraceToken: default,
+                    SyntaxFactory.List(membersToKeep),
+                    closeBraceToken: default,
+                    semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                    .WithLeadingTrivia(modifiedClassTrivia)
+                    .WithAdditionalAnnotations(Formatter.Annotation);
+            }
+            else
+            {
+                changedTypeDeclaration = SyntaxFactory.RecordDeclaration(
+                    originalType.TypeKind == TypeKind.Class
+                        ? SyntaxKind.RecordDeclaration
+                        : SyntaxKind.RecordStructDeclaration,
+                    originalDeclarationNode.AttributeLists,
+                    originalDeclarationNode.Modifiers,
+                    recordKeyword,
+                    originalType.TypeKind == TypeKind.Class
+                        ? default
+                        : originalDeclarationNode.Keyword.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
+                    // remove trailing trivia from places where we would want to insert the parameter list before a line break
+                    originalDeclarationNode.Identifier.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
+                    originalDeclarationNode.TypeParameterList?.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
+                    SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(propertiesToAddAsParams)),
+                    originalDeclarationNode.BaseList,
+                    originalDeclarationNode.ConstraintClauses,
+                    originalDeclarationNode.OpenBraceToken,
+                    SyntaxFactory.List(membersToKeep),
+                    originalDeclarationNode.CloseBraceToken,
+                    semicolonToken: default)
+                    .WithLeadingTrivia(modifiedClassTrivia)
+                    .WithAdditionalAnnotations(Formatter.Annotation);
             }
 
             var changedDocument = await document.ReplaceNodeAsync(
@@ -145,12 +163,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
         private static bool ShouldConvertProperty(MemberDeclarationSyntax member, INamedTypeSymbol containingType)
         {
-            if (member is not PropertyDeclarationSyntax property)
-            {
-                return false;
-            }
-
-            if (property.Initializer != null || property.ExpressionBody != null)
+            if (member is not PropertyDeclarationSyntax
+                {
+                    Initializer: null,
+                    ExpressionBody: null,
+                } property)
             {
                 return false;
             }
@@ -169,12 +186,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return false;
             }
 
-            // for class records and readonly struct records, properties should be get; init; only
-            // for non-readonly structs, they should be get; set;
-            // this is bacause those are the defaults for properties generated from positional constructors
-            // for each respective class type, although we could decide to change this requirement
-            // the get should be public
-            // neither should have bodies (as it indicates more complex functionality)
+            // When we convert to primary constructor parameters, the auto-generated properties have default behavior
+            // in this iteration, we will only move if it would not change the default behavior.
+            // - No accessors can have any explicit implementation or modifiers
+            //   - This is because it would indicate complex functionality or explicit hiding which is not default 
+            // - class records and readonly struct records must have:
+            //   - public get accessor (with no explicit impl)
+            //   - optionally a public init accessor (again w/ no impl)
+            //     - note: if this is not provided the user can still initialize the property in the constructor,
+            //             so it's like init but without the user ability to initialize outside the constructor
+            // - for non-readonly structs, we must have:
+            //   - public get accessor (with no explicit impl)
+            //   - public set accessor (with no explicit impl)
             var accessors = property.AccessorList.Accessors;
             if (accessors.Any(a => a.Body != null || a.ExpressionBody != null) ||
                 !accessors.Any(a => a.Kind() == SyntaxKind.GetAccessorDeclaration && a.Modifiers.IsEmpty()))
@@ -191,8 +214,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             }
             else
             {
-                // either we are a class or readonly struct
-                if (!accessors.Any(a => a.IsKind(SyntaxKind.InitAccessorDeclaration)))
+                // either we are a class or readonly struct, we only want to convert init setters, not normal ones
+                if (accessors.Any(a => a.IsKind(SyntaxKind.SetAccessorDeclaration)))
                 {
                     return false;
                 }
@@ -217,14 +240,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 }
             }));
 
+        /// <summary>
+        /// Removes or modifies members in preparation of adding to a record with a primary constructor (positional parameters)
+        /// Deletes properties that we move to positional params
+        /// Deletes methods, constructors, and operators that would be generated by default if we believe they currently have a
+        /// similar effect to the generated ones
+        /// modifies constructors and some method modifiers to fall in line with record requirements (e.g. this() initializer)
+        /// </summary>
+        /// <param name="type">Original type symbol</param>
+        /// <param name="typeDeclaration">Original type declaration</param>
+        /// <param name="semanticModel">Semantic model</param>
+        /// <param name="propertiesToMove">Properties we decided to move</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns></returns>
         private static ImmutableArray<MemberDeclarationSyntax> GetModifiedMembersForPositionalRecord(
             INamedTypeSymbol type,
-            TypeDeclarationSyntax classDeclaration,
+            TypeDeclarationSyntax typeDeclaration,
             SemanticModel semanticModel,
             ImmutableArray<PropertyDeclarationSyntax> propertiesToMove,
             CancellationToken cancellationToken)
         {
-            var oldMembers = classDeclaration.Members;
+            var oldMembers = typeDeclaration.Members;
             // create capture variables for the equality operators, since we want to check both of them at the same time
             // to make sure they can be deleted
             OperatorDeclarationSyntax? equals = null;
@@ -265,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                             }
 
                             if (constructorParamTypes.Length == 1 &&
-                                constructorParamTypes.First() == classDeclaration.Identifier.ToString())
+                                constructorParamTypes.First() == typeDeclaration.Identifier.ToString())
                             {
                                 // TODO: Check to see whether it's worth deleting
                             }

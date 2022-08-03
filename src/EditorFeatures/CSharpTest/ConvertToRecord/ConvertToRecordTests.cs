@@ -97,21 +97,6 @@ namespace N
         }
 
         [Fact]
-        public async Task TestReadonlyProperty_NoAction()
-        {
-            var initialMarkup = @"
-namespace N
-{
-    public class [|C|]
-    {
-        public int P { get; }
-    }
-}
-";
-            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
-        }
-
-        [Fact]
         public async Task TestPrivateGetProperty_NoAction()
         {
             var initialMarkup = @"
@@ -135,21 +120,6 @@ namespace N
     public class [|C|]
     {
         public int P { get; set; }
-    }
-}
-";
-            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
-        }
-
-        [Fact]
-        public async Task TestSetterPropertyOnReadonlyStruct_NoAction()
-        {
-            var initialMarkup = @"
-namespace N
-{
-    public readonly struct [|C|]
-    {
-        public int P { get; }
     }
 }
 ";
@@ -190,6 +160,48 @@ namespace N
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestReadonlyProperty()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; }
+    }
+}
+";
+            var fixedMarkup = @"
+namespace N
+{
+    public class [|C|](int P);
+}
+";
+            await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestInitPropertyOnReadonlyStruct()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public readonly struct [|C|]
+    {
+        public int P { get; init; }
+    }
+}
+";
+            var fixedMarkup = @"
+namespace N
+{
+    public readonly struct [|C|](int P);
+}
+";
+            await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1641,6 +1653,130 @@ namespace N
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
+
+        #region selection
+
+        [Fact]
+        public async Task TestSelectOnProperty_NoAction()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class C
+    {
+        public int [|P|] { get; init; }
+    }
+}
+";
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestSelectOnNamespace_NoAction()
+        {
+            var initialMarkup = @"
+namespace [|N|]
+{
+    public class C
+    {
+        public int P { get; init; }
+    }
+}
+";
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestSelectLargeRegionIncludingNamespace_NoAction()
+        {
+            var initialMarkup = @"
+namespace [|N
+{
+    public clas|]s C
+    {
+        public int P { get; init; }
+    }
+}
+";
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestSelectMultipleMembersWithinClass()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class C
+    {
+        [|public int P { get; init; }
+
+        public int Foo()
+        {
+            return 0;
+        }|]
+    }
+}
+";
+            var fixedMarkup = @"
+namespace N
+{
+    public class C(int P)
+    {
+
+        public int Foo()
+        {
+            return 0;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestSelectRegionIncludingClass()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C
+    {
+        public int P { get; init; }|]
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestSelectClassKeyword()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public cl[||]ass C
+    {
+        public int P { get; init; }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        #endregion
 
         private class Test : VerifyCS.Test
         {
