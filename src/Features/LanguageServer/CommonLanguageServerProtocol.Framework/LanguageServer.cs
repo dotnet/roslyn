@@ -21,6 +21,7 @@ public abstract class LanguageServer<RequestContextType> : ILanguageServer
     private IRequestDispatcher<RequestContextType>? _requestDispatcher;
     private IRequestExecutionQueue<RequestContextType>? _queue;
     protected readonly ILspLogger _logger;
+    private ILspServices? _lspServices;
 
     protected readonly string _serverKind;
 
@@ -53,13 +54,23 @@ public abstract class LanguageServer<RequestContextType> : ILanguageServer
         GetRequestDispatcher();
     }
 
-    protected abstract ILspServices GetLspServices();
+    protected abstract ILspServices ConstructLspServices();
+
+    internal ILspServices GetLspServices()
+    {
+        if (_lspServices is null)
+        {
+            _lspServices = ConstructLspServices();
+        }
+
+        return _lspServices;
+    }
 
     protected virtual IRequestDispatcher<RequestContextType> ConstructDispatcher()
     {
         var lspServices = GetLspServices();
         var dispatcher = new RequestDispatcher<RequestContextType>(lspServices);
-        SetupRequestDispatcher(_requestDispatcher);
+        SetupRequestDispatcher(dispatcher);
 
         return dispatcher;
     }

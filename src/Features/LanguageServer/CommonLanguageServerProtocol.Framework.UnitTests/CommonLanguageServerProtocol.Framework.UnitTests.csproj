@@ -11,5 +11,6 @@
   
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities.csproj" />
+    <ProjectReference Include="..\CommonLanguageServerProtocol.Framework.Example\CommonLanguageServerProtocol.Framework.Example.csproj" />
   </ItemGroup>
 </Project>

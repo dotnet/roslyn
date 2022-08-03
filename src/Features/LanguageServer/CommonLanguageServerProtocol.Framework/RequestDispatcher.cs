@@ -135,24 +135,48 @@ public class RequestDispatcher<RequestContextType> : IRequestDispatcher<RequestC
     {
         var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, Lazy<IRequestHandler>>();
 
-        var requestHandlerTypes = lspServices.GetRegisteredServices().Where(type => IsTypeRequestHandler(type));
-
-        foreach (var handlerType in requestHandlerTypes)
+        // Probably can do some consolidation here
+        if (lspServices.SupportsGetRequiredServices())
         {
-            var (requestType, responseType, requestContext) = ConvertHandlerTypeToRequestResponseTypes(handlerType);
-            var method = GetRequestHandlerMethod(handlerType);
+            var handlers = lspServices.GetRequiredServices<IRequestHandler>();
 
-            // Using the lazy set of handlers, create a lazy instance that will resolve the set of handlers for the provider
-            // and then lookup the correct handler for the specified method.
-            requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestType, responseType), new Lazy<IRequestHandler>(() =>
+            foreach (var handler in handlers)
             {
-                if (!lspServices.TryGetService(handlerType, out var lspService))
-                {
-                    throw new InvalidOperationException($"{handlerType} could not be retrieved from service");
-                }
+                var handlerType = handler.GetType();
+                var (requestType, responseType, requestContext) = ConvertHandlerTypeToRequestResponseTypes(handlerType);
+                var method = GetRequestHandlerMethod(handlerType);
 
-                return (IRequestHandler)lspService;
-            }));
+                requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestType, responseType), new Lazy<IRequestHandler>(() =>
+                {
+                    return handler;
+                }));
+            }
+        }
+        else if (lspServices.SupportsGetRegisteredServices())
+        {
+            var requestHandlerTypes = lspServices.GetRegisteredServices().Where(type => IsTypeRequestHandler(type));
+
+            foreach (var handlerType in requestHandlerTypes)
+            {
+                var (requestType, responseType, requestContext) = ConvertHandlerTypeToRequestResponseTypes(handlerType);
+                var method = GetRequestHandlerMethod(handlerType);
+
+                // Using the lazy set of handlers, create a lazy instance that will resolve the set of handlers for the provider
+                // and then lookup the correct handler for the specified method.
+                requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestType, responseType), new Lazy<IRequestHandler>(() =>
+                {
+                    if (!lspServices.TryGetService(handlerType, out var lspService))
+                    {
+                        throw new InvalidOperationException($"{handlerType} could not be retrieved from service");
+                    }
+
+                    return (IRequestHandler)lspService;
+                }));
+            }
+        }
+        else
+        {
+            throw new NotImplementedException($"{nameof(ILspServices)} needs to support either {nameof(ILspServices.GetRegisteredServices)} or {nameof(ILspServices.GetRequiredServices)}");
         }
 
         return requestHandlerDictionary.ToImmutable();

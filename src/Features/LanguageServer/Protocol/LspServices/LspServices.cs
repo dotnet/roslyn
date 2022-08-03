@@ -76,6 +76,11 @@ internal class LspServices : ILspServices
         return TryGetService(type, out var service) ? (T)service : default(T);
     }
 
+    public IEnumerable<T> GetRequiredServices<T>()
+    {
+        throw new NotImplementedException();
+    }
+
     public bool TryGetService(Type type, [NotNullWhen(true)] out object? lspService)
     {
         if (_lazyLspServices.TryGetValue(type, out var lazyService))
@@ -122,5 +127,15 @@ internal class LspServices : ILspServices
             {
             }
         }
+    }
+
+    public bool SupportsGetRegisteredServices()
+    {
+        return false;
+    }
+
+    public bool SupportsGetRequiredServices()
+    {
+        return true;
     }
 }

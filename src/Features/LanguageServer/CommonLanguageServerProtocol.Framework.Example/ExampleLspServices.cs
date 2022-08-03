@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
 
 #nullable enable
 
@@ -35,13 +36,34 @@ internal class ExampleLspServices : ILspServices
         return obj is not null;
     }
 
+    public IEnumerable<ServiceType> GetServices<ServiceType>()
+    {
+        return _serviceProvider.GetServices<ServiceType>();
+    }
+
+    public void Dispose()
+    {
+    }
+
+    public IEnumerable<T> GetRequiredServices<T>()
+    {
+        var services = _serviceProvider.GetServices<T>();
+
+        return services;
+    }
+
     public ImmutableArray<Type> GetRegisteredServices()
     {
         throw new NotImplementedException();
     }
 
-    public void Dispose()
+    public bool SupportsGetRegisteredServices()
     {
-        throw new NotImplementedException();
+        return false;
+    }
+
+    public bool SupportsGetRequiredServices()
+    {
+        return true;
     }
 }

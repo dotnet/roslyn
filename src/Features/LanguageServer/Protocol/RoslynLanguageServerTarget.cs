@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         private readonly IServiceCollection _serviceCollection;
         private readonly ImmutableArray<string> _supportedLanguages;
         private Task? _errorShutdownTask;
-        private LspServices? _lspServices;
 
         public RoslynLanguageServer(
             AbstractLspServiceProvider lspServiceProvider,
@@ -49,14 +48,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             Initialize();
         }
 
-        protected override ILspServices GetLspServices()
+        protected override ILspServices ConstructLspServices()
         {
-            if (_lspServices is null)
-            {
-                _lspServices = _lspServiceProvider.CreateServices(_serverKind, _baseServices, _serviceCollection);
-            }
-
-            return _lspServices;
+            return _lspServiceProvider.CreateServices(_serverKind, _baseServices, _serviceCollection);
         }
 
         private IServiceCollection GetServiceCollection(

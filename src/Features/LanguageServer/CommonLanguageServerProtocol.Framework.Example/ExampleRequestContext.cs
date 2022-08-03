@@ -4,7 +4,7 @@
 
 namespace CommonLanguageServerProtocol.Framework.Example;
 
-internal class ExampleRequestContext
+public class ExampleRequestContext
 {
     public ILspServices LspServices;
     public ILspLogger Logger;

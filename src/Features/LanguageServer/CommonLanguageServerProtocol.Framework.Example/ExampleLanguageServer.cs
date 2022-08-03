@@ -7,18 +7,19 @@ using StreamJsonRpc;
 
 namespace CommonLanguageServerProtocol.Framework.Example;
 
-internal class ExampleLanguageServer : LanguageServer<ExampleRequestContext>
+public class ExampleLanguageServer : LanguageServer<ExampleRequestContext>
 {
     private const string ExampleServerKindName = "ExampleLanguageServer";
 
     public ExampleLanguageServer(JsonRpc jsonRpc, ILspLogger logger) : base(jsonRpc, logger, serverKind: ExampleServerKindName)
     {
+        Initialize();
     }
 
-    protected override ILspServices GetLspServices()
+    protected override ILspServices ConstructLspServices()
     {
         var serviceCollection = new ServiceCollection();
-        serviceCollection.AddSingleton<InitializeHandler>();
+        serviceCollection.AddSingleton<IRequestHandler, InitializeHandler>();
 
         var serviceProvider = serviceCollection.BuildServiceProvider();
 

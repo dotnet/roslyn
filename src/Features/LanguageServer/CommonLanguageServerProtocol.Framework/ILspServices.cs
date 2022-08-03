@@ -4,9 +4,12 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace CommonLanguageServerProtocol.Framework;
+
+#nullable enable
 
 public interface ILspServices : IDisposable
 {
@@ -14,5 +17,11 @@ public interface ILspServices : IDisposable
 
     bool TryGetService(Type @type, out object? service);
 
+    IEnumerable<T> GetRequiredServices<T>();
+
     ImmutableArray<Type> GetRegisteredServices();
+
+    bool SupportsGetRegisteredServices();
+
+    bool SupportsGetRequiredServices();
 }
