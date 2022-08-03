@@ -1424,9 +1424,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             throw ExceptionUtilities.UnexpectedValue(trivia.Kind());
         }
 
-        public bool IsIsPatternExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node.IsKind(SyntaxKind.IsPatternExpression);
-
         public void GetPartsOfAnyIsTypeExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode type)
         {
             var isPatternExpression = (BinaryExpressionSyntax)node;
