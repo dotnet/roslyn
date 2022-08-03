@@ -625,6 +625,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Se si elimina {0}, è necessario riavviare l'applicazione.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
+        <source>Deleting {0} requires restarting the application because is not supported by the runtime.</source>
+        <target state="new">Deleting {0} requires restarting the application because is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
         <source>Deleting captured variable '{0}' requires restarting the application.</source>
         <target state="translated">Se si elimina la variabile catturata '{0}', è necessario riavviare l'applicazione.</target>
@@ -2650,6 +2655,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">L'assembly '{0}' che contiene il tipo '{1}' fa riferimento a .NET Framework, che non è supportato.</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="new">The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
         <target state="translated">La selezione contiene una chiamata di funzione locale senza la relativa dichiarazione.</target>
@@ -2893,16 +2903,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="Updating_the_variance_of_0_requires_restarting_the_application">
         <source>Updating the variance of {0} requires restarting the application.</source>
         <target state="translated">Se si aggiorna la varianza di {0}, è necessario riavviare l'applicazione.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_lambda_expressions">
-        <source>Use block body for lambda expressions</source>
-        <target state="translated">Usa il corpo del blocco per le espressioni lambda</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_lambda_expressions">
-        <source>Use expression body for lambda expressions</source>
-        <target state="translated">Usa il corpo dell'espressione per le espressioni lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_colon">

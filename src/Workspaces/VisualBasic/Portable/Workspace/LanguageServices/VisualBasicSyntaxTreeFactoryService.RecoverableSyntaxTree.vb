@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private Sub New(service As AbstractSyntaxTreeFactoryService, cacheKey As ProjectId, root As CompilationUnitSyntax, info As SyntaxTreeInfo)
                     _recoverableRoot = New RecoverableSyntaxRoot(Of CompilationUnitSyntax)(service, root, Me)
                     _info = info
-                    _projectCacheService = service.LanguageServices.WorkspaceServices.GetService(Of IProjectCacheHostService)
+                    _projectCacheService = service.SolutionServices.GetService(Of IProjectCacheHostService)
                     _cacheKey = cacheKey
                 End Sub
 

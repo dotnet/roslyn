@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return completionService.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, caretPosition, trigger, options.ToCompletionOptions(), document.Project.Solution.Options, roles);
+            return completionService.ShouldTriggerCompletion(document.Project, document.Project.Services, text, caretPosition, trigger, options.ToCompletionOptions(), document.Project.Solution.Options, roles);
         }
 
         public static Task<CompletionList> GetCompletionsAsync(

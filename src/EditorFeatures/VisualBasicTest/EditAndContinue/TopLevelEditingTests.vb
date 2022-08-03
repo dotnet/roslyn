@@ -3925,34 +3925,26 @@ End Class
 
         <Fact, WorkItem(51011, "https://github.com/dotnet/roslyn/issues/51011")>
         Public Sub PartialMember_RenameInsertDelete()
-            ' The syntactic analysis for A And B produce rename edits since it  doesn't see that the member was in fact moved.
-            ' TODO: Currently, we don't even pass rename edits to semantic analysis where we could handle them as updates.
-
             Dim srcA1 = "Partial Class C" + vbCrLf + "Sub F1() : End Sub : End Class"
             Dim srcB1 = "Partial Class C" + vbCrLf + "Sub F2() : End Sub : End Class"
             Dim srcA2 = "Partial Class C" + vbCrLf + "Sub F2() : End Sub : End Class"
             Dim srcB2 = "Partial Class C" + vbCrLf + "Sub F1() : End Sub : End Class"
 
-            ' current outcome
-            GetTopEdits(srcA1, srcA2).VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Renamed, "Sub F2()", FeaturesResources.method))
-            GetTopEdits(srcB1, srcB2).VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Renamed, "Sub F1()", FeaturesResources.method))
-
-            ' correct outcome
-            'EditAndContinueValidation.VerifySemantics(
-            '     { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
-            '    
-            '    {
-            '        DocumentResults(semanticEdits:=
-            '            {
-            '                SemanticEdit(SemanticEditKind.Update, c => c.GetMember(Of NamedTypeSymbol)("C").GetMember("F2")),
-            '            }),
-            '
-            '        DocumentResults(
-            '            semanticEdits:=
-            '            {
-            '                SemanticEdit(SemanticEditKind.Update, c => c.GetMember(Of NamedTypeSymbol)("C").GetMember("F1")),
-            '            })
-            '    })
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F2"))
+                        }),
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F1"))
+                        })
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -4687,8 +4679,13 @@ Imports System.Runtime.InteropServices
             edits.VerifyEdits(
                 "Update [Sub Goo]@11 -> [Sub Bar]@11")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "Sub Bar", FeaturesResources.method))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.Goo"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.Bar"))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -5694,8 +5691,13 @@ End Class
                 "Insert [b As Integer]@37",
                 "Insert [b]@37")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "b As Integer", FeaturesResources.parameter))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C..ctor").FirstOrDefault(Function(m) m.GetParameters().Length = 1), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMembers("C..ctor").FirstOrDefault(Function(m) m.GetParameters().Length = 2))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact, WorkItem(789577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789577")>
@@ -7957,8 +7959,13 @@ End Class"
             edits.VerifyEdits(
                 "Update [ReadOnly Property P As Integer]@10 -> [ReadOnly Property Q As Integer]@10")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "ReadOnly Property Q", FeaturesResources.property_))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.get_Q"))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -7970,8 +7977,13 @@ End Class"
             edits.VerifyEdits(
                 "Update [ReadOnly Property P As Integer]@10 -> [ReadOnly Property Q As Integer]@10")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "ReadOnly Property Q", FeaturesResources.property_))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.get_Q"))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -10184,8 +10196,17 @@ End Class
             edits.VerifyEdits(
                 "Update [Custom Event E As Action]@10 -> [Custom Event F As Action]@10")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "Event F", FeaturesResources.event_))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.add_E"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.remove_E"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.raise_E"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.add_F")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.remove_F")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.raise_F"))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -10228,9 +10249,7 @@ End Class
                 "Update [value As Action]@142 -> [value As Action(Of String)]@164")
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "Event E", FeaturesResources.event_),
-                Diagnostic(RudeEditKind.TypeUpdate, "value As Action(Of String)", FeaturesResources.parameter),
-                Diagnostic(RudeEditKind.TypeUpdate, "value As Action(Of String)", FeaturesResources.parameter))
+                Diagnostic(RudeEditKind.TypeUpdate, "Event E", FeaturesResources.event_))
         End Sub
 
         <Fact>
@@ -10263,7 +10282,8 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemantics(
-                semanticEdits:={SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("E"))})
+                semanticEdits:={SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("E"))},
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -10479,8 +10499,18 @@ End Class
             edits.VerifyEdits(
                 "Update [a As Integer]@38 -> [a As Object]@38")
 
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.get_P").FirstOrDefault(Function(m) m.GetParameters().Any(Function(p) p.Type.SpecialType = SpecialType.System_Int32)), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMembers("C.get_P").FirstOrDefault(Function(m) m.GetParameters().Any(Function(p) p.Type.SpecialType = SpecialType.System_Object)))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
+
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "a As Object", FeaturesResources.parameter))
+                {Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "a As Object", FeaturesResources.parameter)},
+                capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
 
         <Fact>
@@ -10492,8 +10522,18 @@ End Class
             edits.VerifyEdits(
                 "Update [a As Integer]@38 -> [a]@38")
 
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.get_P").FirstOrDefault(Function(m) m.GetParameters().Any(Function(p) p.Type.SpecialType = SpecialType.System_Int32)), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMembers("C.get_P").FirstOrDefault(Function(m) m.GetParameters().Any(Function(p) p.Type.SpecialType = SpecialType.System_Object)))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
+
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "a", FeaturesResources.parameter))
+                {Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "a", FeaturesResources.parameter)},
+                capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
 
         <Fact>
@@ -10532,8 +10572,13 @@ End Class
                 "Insert [a As Integer]@24",
                 "Insert [a]@24")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "a As Integer", FeaturesResources.parameter))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.M").FirstOrDefault(Function(m) m.GetParameters().Length = 0), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMembers("C.M").FirstOrDefault(Function(m) m.GetParameters().Length = 1))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -10547,8 +10592,13 @@ End Class
                 "Insert [ByRef b As Integer]@38",
                 "Insert [b]@44")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "ByRef b As Integer", FeaturesResources.parameter))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.M").FirstOrDefault(Function(m) m.GetParameters().Length = 1), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMembers("C.M").FirstOrDefault(Function(m) m.GetParameters().Length = 2))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -10574,8 +10624,13 @@ End Class
                 "Insert [a As Integer]@24",
                 "Insert [a]@24")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "a As Integer", FeaturesResources.parameter))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.M").FirstOrDefault(Function(m) m.GetParameters().Length = 0), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMembers("C.M").FirstOrDefault(Function(m) m.GetParameters().Length = 1))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -10588,8 +10643,17 @@ End Class
                 "Delete [a As Integer]@24",
                 "Delete [a]@24")
 
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.M").FirstOrDefault(Function(m) m.GetParameters().Length = 1), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMembers("C.M").FirstOrDefault(Function(m) m.GetParameters().Length = 0))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
+
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Public Sub M()", DeletedSymbolDisplay(FeaturesResources.parameter, "a As Integer")))
+                {Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Public Sub M()", DeletedSymbolDisplay(FeaturesResources.parameter, "a As Integer"))},
+                capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
 
         <Fact>
@@ -10603,8 +10667,17 @@ End Class
                 "Delete [a As Integer]@24",
                 "Delete [a]@24")
 
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.M").FirstOrDefault(Function(m) m.GetParameters().Length = 2), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMembers("C.M").FirstOrDefault(Function(m) m.GetParameters().Length = 1))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
+
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Public Sub M(b As Integer)", DeletedSymbolDisplay(FeaturesResources.parameter, "a As Integer")))
+                {Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Public Sub M(b As Integer)", DeletedSymbolDisplay(FeaturesResources.parameter, "a As Integer"))},
+                capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
 
         <Fact>
@@ -10630,8 +10703,13 @@ End Class
                 "Delete [a As Integer]@24",
                 "Delete [a]@24")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Public Sub M", DeletedSymbolDisplay(FeaturesResources.parameter, "a As Integer")))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.M").FirstOrDefault(Function(m) m.GetParameters().Length = 1), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMembers("C.M").FirstOrDefault(Function(m) m.GetParameters().Length = 0))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>

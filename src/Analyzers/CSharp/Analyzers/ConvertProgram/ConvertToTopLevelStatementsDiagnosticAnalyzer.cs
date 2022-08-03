@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
                   IDEDiagnosticIds.UseTopLevelStatementsId,
                   EnforceOnBuildValues.UseTopLevelStatements,
                   CSharpCodeStyleOptions.PreferTopLevelStatements,
-                  LanguageNames.CSharp,
                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_to_top_level_statements), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }

@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var document = documentLookup.Key;
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var editor = new SyntaxEditor(syntaxRoot, solution.Workspace.Services);
+                var editor = new SyntaxEditor(syntaxRoot, solution.Services);
                 var generator = editor.Generator;
                 foreach (var methodDeclaration in documentLookup)
                 {

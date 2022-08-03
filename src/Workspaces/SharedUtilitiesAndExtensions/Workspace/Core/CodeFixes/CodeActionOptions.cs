@@ -31,7 +31,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
     [DataContract]
     internal sealed record class CodeActionOptions
     {
+#if CODE_STYLE
         public static readonly CodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(GetDefault);
+#else
+        public static readonly CodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(static ls => GetDefault(ls.ProjectServices));
+#endif
 
         /// <summary>
         /// Default value of 120 was picked based on the amount of code in a github.com diff at 1080p.
@@ -68,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             CodeStyleOptions = codeStyleOptions;
         }
 
-        public static CodeActionOptions GetDefault(HostLanguageServices languageServices)
+        public static CodeActionOptions GetDefault(HostProjectServices languageServices)
             => new(
                 CodeCleanupOptions.GetDefault(languageServices),
                 CodeGenerationOptions.GetDefault(languageServices),

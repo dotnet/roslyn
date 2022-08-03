@@ -3626,7 +3626,7 @@ public class C : IDisposable
             var newDecl = Generator.AddInterfaceType(decl, Generator.IdentifierName("IDisposable"));
             var newRoot = root.ReplaceNode(decl, newDecl);
 
-            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _workspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None).ToFullString();
+            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _workspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None).ToFullString();
             Assert.Equal(expected, elasticOnlyFormatted);
         }
 

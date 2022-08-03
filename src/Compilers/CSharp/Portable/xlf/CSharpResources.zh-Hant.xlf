@@ -207,6 +207,11 @@
         <target state="translated">運算子 '{0}' 不可套用至運算元 '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadParameterModifiersOrder">
+        <source> The parameter modifier '{0}' cannot follow '{1}'</source>
+        <target state="new"> The parameter modifier '{0}' cannot follow '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">模式比對運算元無效; 需要值，但找到 '{0}'。</target>
@@ -255,6 +260,11 @@
       <trans-unit id="ERR_CannotInferDelegateType">
         <source>The delegate type could not be inferred.</source>
         <target state="translated">無法推斷委派類型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotMatchOnINumberBase">
+        <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</source>
+        <target state="new">Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -917,6 +927,11 @@
         <target state="translated">未預期的關鍵字 'record'。您是指 'record struct' 或 'record class'?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MisplacedScoped">
+        <source>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</source>
+        <target state="new">Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">切片模式只能在清單模式中使用一次且直接使用。</target>
@@ -1372,6 +1387,11 @@
         <target state="translated">'scoped' 修飾元只能用於 refs 和 ref 結構值。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScopedTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'scoped'.</source>
+        <target state="new">Types and aliases cannot be named 'scoped'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
         <source>Required members are not allowed on the top level of a script or submission.</source>
         <target state="translated">指令碼或提交的頂層不允許必要的成員。</target>
@@ -1552,6 +1572,11 @@
         <target state="translated">'{0}' 使用 'UnmanagedCallersOnly' 屬性化，因此無法轉換為委派類型。取得此方法的函式指標。</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
+        <source>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</source>
+        <target state="new">UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</source>
         <target state="new">'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</target>
@@ -1600,6 +1625,11 @@
       <trans-unit id="HDN_DuplicateWithGlobalUsing_Title">
         <source>The using directive appeared previously as global using</source>
         <target state="translated">Using 指示詞先前顯示為全域 using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_ArrayAccess">
+        <source>array access</source>
+        <target state="new">array access</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_AsyncMethodBuilderOverride">
@@ -1767,6 +1797,11 @@
         <target state="new">pattern matching ReadOnly/Span&lt;char&gt; on constant string</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_PointerElementAccess">
+        <source>pointer element access</source>
+        <target state="new">pointer element access</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">包含類型 '{1}' 的組件 '{0}' 參考了 .NET Framework，此情形不受支援。</target>
@@ -1775,6 +1810,16 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">載入的組件參考了 .NET Framework，此情形不受支援。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="new">The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
+        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
+        <target state="new">The analyzer assembly references a newer version of the compiler than the currently running version.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttrDependentTypeNotAllowed">

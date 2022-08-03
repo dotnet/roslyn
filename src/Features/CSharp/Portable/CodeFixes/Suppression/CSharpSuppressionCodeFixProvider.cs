@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             ISymbol targetSymbol,
             INamedTypeSymbol suppressMessageAttribute,
             Diagnostic diagnostic,
-            HostWorkspaceServices services,
+            HostSolutionServices services,
             SyntaxFormattingOptions options,
             IAddImportsService addImportsService,
             CancellationToken cancellationToken)

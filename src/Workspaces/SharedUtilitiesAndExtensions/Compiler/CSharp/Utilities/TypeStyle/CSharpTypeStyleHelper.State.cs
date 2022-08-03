@@ -11,12 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal partial class CSharpTypeStyleHelper

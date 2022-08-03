@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.AddMissingReference
             else
             {
                 // We didn't have any project, so we need to try adding a metadata reference
-                var factoryService = _project.Solution.Workspace.Services.GetRequiredService<IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService>();
+                var factoryService = _project.Solution.Services.GetRequiredService<IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService>();
                 var operation = factoryService.CreateAddMetadataReferenceOperation(_project.Id, _missingAssemblyIdentity);
                 return Task.FromResult(SpecializedCollections.SingletonEnumerable(operation));
             }

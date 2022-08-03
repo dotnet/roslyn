@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 #if CODE_STYLE
                 var provider = GetSyntaxFormatting();
 #else
-                var provider = document.Project.Solution.Workspace.Services;
+                var provider = document.Project.Solution.Services;
 #endif
                 var spans = new List<TextSpan>();
                 AddFormattingSpans(newRoot, spans, cancellationToken);
