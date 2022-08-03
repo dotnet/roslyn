@@ -87,6 +87,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public InlineRenameFileRenameInfo FileRenameInfo { get; }
 
         /// <summary>
+        /// Task used to hold a session alive with the OOP server.  This allows us to pin the initial solution snapshot
+        /// over on the oop side, which is valuable for preventing it from constantly being dropped/synced on every
+        /// conflict resolution step.
+        /// </summary>
+        private readonly Task _keepAliveSessionTask;
+
+        /// <summary>
         /// The task which computes the main rename locations against the original workspace
         /// snapshot.
         /// </summary>
@@ -96,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// The cancellation token for most work being done by the inline rename session. This
         /// includes the <see cref="_allRenameLocationsTask"/> tasks.
         /// </summary>
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
 
         /// <summary>
         /// This task is a continuation of the <see cref="_allRenameLocationsTask"/> that is the result of computing
@@ -179,6 +186,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 FileRenameInfo = InlineRenameFileRenameInfo.NotAllowed;
             }
 
+            // Open a session to oop, syncing our solution to it and pinning it there.  The connection will close once
+            // _cancellationTokenSource is canceled (which we always do when the session is finally ended).
+            _keepAliveSessionTask = Renamer.CreateRemoteKeepAliveSessionAsync(_baseSolution, _cancellationTokenSource.Token);
             InitializeOpenBuffers(triggerSpan);
         }
 
@@ -304,6 +314,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             _allRenameLocationsTask = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
+                // Ensure that our keep-alive session is up and running.
+                await _keepAliveSessionTask.ConfigureAwait(false);
+
                 // Join prior work before proceeding, since it performs a required state update.
                 // https://github.com/dotnet/roslyn/pull/34254#discussion_r267024593
                 if (currentRenameLocationsTask != null)
