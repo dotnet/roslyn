@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DesignerAttribute
@@ -78,7 +77,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 // Process the rest of the projects in dependency order so that their data is ready when we hit the 
                 // projects that depend on them.
                 var dependencyGraph = solution.GetProjectDependencyGraph();
-                foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects())
+                foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
                 {
                     if (projectId != priorityDocumentId?.ProjectId)
                         await ProcessProjectAsync(solution.GetRequiredProject(projectId), specificDocument: null, cancellationToken).ConfigureAwait(false);
