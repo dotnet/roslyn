@@ -24,7 +24,7 @@ internal class InitializeHandler : IRequestHandler<InitializeParams, InitializeR
     {
         var capabilities = request.Capabilities;
 
-        var capabilitiesProvider = context.LspServices.GetRequiredService<IClientCapabilitiesProvider>();
+        var capabilitiesProvider = context.LspServices.GetRequiredService<ClientCapabilitiesProvider>();
 
         capabilitiesProvider.SetClientCapabilities(capabilities);
 

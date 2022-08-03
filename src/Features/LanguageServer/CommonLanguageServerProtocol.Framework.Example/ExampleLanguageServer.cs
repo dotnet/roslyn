@@ -19,11 +19,13 @@ public class ExampleLanguageServer : LanguageServer<ExampleRequestContext>
     protected override ILspServices ConstructLspServices()
     {
         var serviceCollection = new ServiceCollection();
-        serviceCollection.AddSingleton<IRequestHandler, InitializeHandler>();
+        serviceCollection
+            .AddSingleton<IRequestHandler, InitializeHandler>()
+            .AddSingleton<ILspLogger>(_logger)
+            .AddSingleton<IRequestContextFactory<ExampleRequestContext>, ExampleRequestContextFactory>()
+            .AddSingleton<ClientCapabilitiesProvider>();
 
-        var serviceProvider = serviceCollection.BuildServiceProvider();
-
-        var lspServices = new ExampleLspServices(serviceProvider);
+        var lspServices = new ExampleLspServices(serviceCollection);
 
         return lspServices;
     }

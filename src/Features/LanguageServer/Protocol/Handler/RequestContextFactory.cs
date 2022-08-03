@@ -10,56 +10,55 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 #nullable enable
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
+
+internal class RequestContextFactory : IRequestContextFactory<RequestContext>, ILspService
 {
-    internal class RequestContextFactory : IRequestContextFactory<RequestContext>, ILspService
+    private readonly ILspServices _lspServices;
+
+    public RequestContextFactory(ILspServices lspServices)
     {
-        private readonly ILspServices _lspServices;
+        _lspServices = lspServices;
+    }
 
-        public RequestContextFactory(ILspServices lspServices)
+    public Task<RequestContext?> CreateRequestContextAsync(IQueueItem<RequestContext> queueItem, CancellationToken queueCancellationToken, CancellationToken requestCancellationToken)
+    {
+        var clientCapabilitiesManager = _lspServices.GetRequiredService<IClientCapabilitiesManager>();
+        var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
+        var logger = _lspServices.GetRequiredService<IRoslynLspLogger>();
+        var serverInfoProvider = _lspServices.GetRequiredService<ServerInfoProvider>();
+
+        TextDocumentIdentifier? textDocumentIdentifier;
+        if (queueItem.TextDocument is TextDocumentIdentifier t)
         {
-            _lspServices = lspServices;
+            textDocumentIdentifier = t;
+        }
+        else if (queueItem.TextDocument is Uri uri)
+        {
+            textDocumentIdentifier = new TextDocumentIdentifier
+            {
+                Uri = uri,
+            };
+        }
+        else if (queueItem.TextDocument is null)
+        {
+            textDocumentIdentifier = null;
+        }
+        else
+        {
+            throw new NotImplementedException($"TextDocument in an unrecognized type for method: {queueItem.MethodName}");
         }
 
-        public Task<RequestContext?> CreateRequestContextAsync(IQueueItem<RequestContext> queueItem, CancellationToken queueCancellationToken, CancellationToken requestCancellationToken)
-        {
-            var clientCapabilitiesManager = _lspServices.GetRequiredService<IClientCapabilitiesManager>();
-            var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
-            var logger = _lspServices.GetRequiredService<IRoslynLspLogger>();
-            var serverInfoProvider = _lspServices.GetRequiredService<ServerInfoProvider>();
-
-            TextDocumentIdentifier? textDocumentIdentifier;
-            if (queueItem.TextDocument is TextDocumentIdentifier t)
-            {
-                textDocumentIdentifier = t;
-            }
-            else if (queueItem.TextDocument is Uri uri)
-            {
-                textDocumentIdentifier = new TextDocumentIdentifier
-                {
-                    Uri = uri,
-                };
-            }
-            else if (queueItem.TextDocument is null)
-            {
-                textDocumentIdentifier = null;
-            }
-            else
-            {
-                throw new NotImplementedException($"TextDocument in an unrecognized type for method: {queueItem.MethodName}");
-            }
-
-            return RequestContext.CreateAsync(
-                queueItem.RequiresLSPSolution,
-                queueItem.MutatesSolutionState,
-                textDocumentIdentifier,
-                serverInfoProvider.ServerKind,
-                clientCapabilities,
-                serverInfoProvider.SupportedLanguages,
-                _lspServices,
-                logger,
-                queueCancellationToken: queueCancellationToken,
-                requestCancellationToken: requestCancellationToken);
-        }
+        return RequestContext.CreateAsync(
+            queueItem.RequiresLSPSolution,
+            queueItem.MutatesSolutionState,
+            textDocumentIdentifier,
+            serverInfoProvider.ServerKind,
+            clientCapabilities,
+            serverInfoProvider.SupportedLanguages,
+            _lspServices,
+            logger,
+            queueCancellationToken: queueCancellationToken,
+            requestCancellationToken: requestCancellationToken);
     }
 }
