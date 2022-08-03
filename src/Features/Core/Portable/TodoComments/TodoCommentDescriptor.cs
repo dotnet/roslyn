@@ -6,7 +6,9 @@
 
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Linq.Expressions;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
@@ -24,28 +26,18 @@ namespace Microsoft.CodeAnalysis.TodoComments
             Priority = priority;
         }
 
-        public static ImmutableArray<TodoCommentDescriptor> Parse(string data)
+        public static ImmutableArray<TodoCommentDescriptor> Parse(ImmutableArray<string> items)
         {
-            if (string.IsNullOrWhiteSpace(data))
-                return ImmutableArray<TodoCommentDescriptor>.Empty;
-
-            var tuples = data.Split('|');
             using var _ = ArrayBuilder<TodoCommentDescriptor>.GetInstance(out var result);
 
-            foreach (var tuple in tuples)
+            foreach (var item in items)
             {
-                if (string.IsNullOrWhiteSpace(tuple))
-                    continue;
-
-                var pair = tuple.Split(':');
-
-                if (pair.Length != 2 || string.IsNullOrWhiteSpace(pair[0]))
-                    continue;
-
-                if (!int.TryParse(pair[1], NumberStyles.None, CultureInfo.InvariantCulture, out var priority))
-                    continue;
-
-                result.Add(new TodoCommentDescriptor(pair[0].Trim(), priority));
+                if (item.Split(':') is [var token, var priorityString] &&
+                    !string.IsNullOrWhiteSpace(token) &&
+                    int.TryParse(priorityString, NumberStyles.None, CultureInfo.InvariantCulture, out var priority))
+                {
+                    result.Add(new TodoCommentDescriptor(token, priority));
+                }
             }
 
             return result.ToImmutable();
