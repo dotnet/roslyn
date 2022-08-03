@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -3468,31 +3469,58 @@ class C
                 Handle(5, TableIndex.CustomAttribute));
         }
 
-        [Fact]
-        public void ReplaceType()
+        public static string MetadataUpdateOriginalTypeAttributeSource = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Struct, AllowMultiple=false, Inherited=false)]
+    public class MetadataUpdateOriginalTypeAttribute : Attribute
+    {
+        public MetadataUpdateOriginalTypeAttribute(Type originalType) => OriginalType = originalType;
+        public Type OriginalType { get; }
+    }
+}
+";
+
+        public static string BadMetadataUpdateOriginalTypeAttributeSource = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Struct, AllowMultiple=false, Inherited=false)]
+    public class MetadataUpdateOriginalTypeAttribute : Attribute
+    {
+        public MetadataUpdateOriginalTypeAttribute(object originalType) => OriginalType = (Type)originalType;
+        public Type OriginalType { get; }
+    }
+}
+";
+
+        [Theory]
+        [CombinatorialData]
+        public void ReplaceType(bool hasAttribute)
         {
+            // using incorrect definition of the attribute so that it's easier to compare the two emit results (having and attribute and not having one):
+            var attributeSource = hasAttribute ? MetadataUpdateOriginalTypeAttributeSource : BadMetadataUpdateOriginalTypeAttributeSource;
+
             var source0 = @"
 class C 
 {
     void F(int x) {}
-}
-";
+}" + attributeSource;
             var source1 = @"
 class C
 {
     void F(int x, int y) { }
-}";
+}" + attributeSource;
             var source2 = @"
 class C
 {
     void F(int x, int y) { System.Console.WriteLine(1); }
-}";
+}" + attributeSource;
             var source3 = @"
 [System.Obsolete]
 class C
 {
     void F(int x, int y) { System.Console.WriteLine(2); }
-}";
+}" + attributeSource;
 
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20);
             var compilation1 = compilation0.WithSource(source1);
@@ -3511,11 +3539,21 @@ class C
             using var md0 = ModuleMetadata.CreateFromImage(bytes0);
             var reader0 = md0.MetadataReader;
 
-            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "MetadataUpdateOriginalTypeAttribute");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(
                 md0,
                 EmptyLocalsProvider);
+
+            var baseTypeCount = reader0.TypeDefinitions.Count;
+            var baseMethodCount = reader0.MethodDefinitions.Count;
+            var baseAttributeCount = reader0.CustomAttributes.Count;
+            var baseParameterCount = reader0.GetParameters().Count();
+
+            Assert.Equal(3, baseTypeCount);
+            Assert.Equal(4, baseMethodCount);
+            Assert.Equal(7, baseAttributeCount);
+            Assert.Equal(2, baseParameterCount);
 
             // This update emulates "Reloadable" type behavior - a new type is generated instead of updating the existing one.
             var diff1 = compilation1.EmitDifference(
@@ -3523,65 +3561,65 @@ class C
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Replace, null, c1)));
 
-            // Verify delta metadata contains expected rows.
             using var md1 = diff1.GetMetadata();
-            var reader1 = md1.Reader;
-            var readers = new[] { reader0, reader1 };
+            ValidateReplacedType(diff1, new[] { reader0, md1.Reader });
 
-            CheckNames(readers, reader1.GetTypeDefNames(), "C#1");
-            CheckNames(readers, diff1.EmitResult.ChangedTypes, "C#1");
-
-            CheckEncLogDefinitions(reader1,
-                Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(3, TableIndex.Param, EditAndContinueOperation.Default));
-
-            CheckEncMapDefinitions(reader1,
-                Handle(3, TableIndex.TypeDef),
-                Handle(3, TableIndex.MethodDef),
-                Handle(4, TableIndex.MethodDef),
-                Handle(2, TableIndex.Param),
-                Handle(3, TableIndex.Param));
-
-            // This update emulates "Reloadable" type behavior - a new type is generated instead of updating the existing one.
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Replace, null, c2)));
 
-            // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
-            var reader2 = md2.Reader;
-            readers = new[] { reader0, reader1, reader2 };
+            ValidateReplacedType(diff2, new[] { reader0, md1.Reader, md2.Reader });
 
-            CheckNames(readers, reader2.GetTypeDefNames(), "C#2");
-            CheckNames(readers, diff2.EmitResult.ChangedTypes, "C#2");
+            void ValidateReplacedType(CompilationDifference diff, MetadataReader[] readers)
+            {
+                var generation = diff.NextGeneration.Ordinal;
+                var reader = readers[generation];
 
-            CheckEncLogDefinitions(reader2,
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(5, TableIndex.Param, EditAndContinueOperation.Default));
+                CheckNames(readers, diff.EmitResult.ChangedTypes, "C#" + generation);
+                CheckNames(readers, reader.GetTypeDefNames(), "C#" + generation);
 
-            CheckEncMapDefinitions(reader2,
-                Handle(4, TableIndex.TypeDef),
-                Handle(5, TableIndex.MethodDef),
-                Handle(6, TableIndex.MethodDef),
-                Handle(4, TableIndex.Param),
-                Handle(5, TableIndex.Param));
+                CheckEncLogDefinitions(reader,
+                    Row(baseTypeCount + generation, TableIndex.TypeDef, EditAndContinueOperation.Default), // adding a type def
+                    Row(baseTypeCount + generation, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                    Row(baseMethodCount + generation * 2 - 1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                    Row(baseTypeCount + generation, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                    Row(baseMethodCount + generation * 2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                    Row(baseMethodCount + generation * 2 - 1, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                    Row(baseParameterCount + generation * 2 - 1, TableIndex.Param, EditAndContinueOperation.Default),
+                    Row(baseMethodCount + generation * 2 - 1, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                    Row(baseParameterCount + generation * 2, TableIndex.Param, EditAndContinueOperation.Default),
+                    hasAttribute ? Row(baseAttributeCount + generation, TableIndex.CustomAttribute, EditAndContinueOperation.Default) : default);  // adding a new attribute row for attribute on C#* definition
 
-            // This update is an EnC update - even reloadable types are update in-place
+                CheckEncMapDefinitions(reader,
+                    Handle(baseTypeCount + generation, TableIndex.TypeDef),
+                    Handle(baseMethodCount + generation * 2 - 1, TableIndex.MethodDef),
+                    Handle(baseMethodCount + generation * 2, TableIndex.MethodDef),
+                    Handle(baseParameterCount + generation * 2 - 1, TableIndex.Param),
+                    Handle(baseParameterCount + generation * 2, TableIndex.Param),
+                    hasAttribute ? Handle(baseAttributeCount + generation, TableIndex.CustomAttribute) : default);
+
+                var newTypeDefHandle = reader.TypeDefinitions.Single();
+                var newTypeDef = reader.GetTypeDefinition(newTypeDefHandle);
+                CheckStringValue(readers, newTypeDef.Name, "C#" + generation);
+
+                if (hasAttribute)
+                {
+                    var attribute = reader.GetCustomAttribute(reader.CustomAttributes.Single());
+
+                    // parent should be C#1
+                    var aggregator = GetAggregator(readers);
+                    var parentHandle = aggregator.GetGenerationHandle(attribute.Parent, out var parentGeneration);
+                    Assert.Equal(generation, parentGeneration);
+                    Assert.Equal(newTypeDefHandle, parentHandle);
+
+                    // the serialized type name should be the base name, not `C#1`
+                    CheckBlobValue(readers, attribute.Value, new byte[] { 0x01, 0x00, 0x01, (byte)'C', 0x00, 0x00 });
+                }
+            }
+
+            // This update is an EnC update - even reloadable types are updated in-place
             var diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
                 ImmutableArray.Create(
@@ -3591,24 +3629,28 @@ class C
             // Verify delta metadata contains expected rows.
             using var md3 = diff3.GetMetadata();
             var reader3 = md3.Reader;
-            readers = new[] { reader0, reader1, reader2, reader3 };
+            var readers = new[] { reader0, md1.Reader, md2.Reader, reader3 };
 
             CheckNames(readers, reader3.GetTypeDefNames(), "C#2");
             CheckNames(readers, diff3.EmitResult.ChangedTypes, "C#2");
 
+            // Obsolete attribute is added. MetadataUpdateOriginalTypeAttribute is still present on the type.
             CheckEncLogDefinitions(reader3,
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(5, TableIndex.Param, EditAndContinueOperation.Default),
-                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(6, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(hasAttribute ? 9 : 8, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             CheckEncMapDefinitions(reader3,
-                Handle(4, TableIndex.TypeDef),
-                Handle(5, TableIndex.MethodDef),
-                Handle(4, TableIndex.Param),
+                Handle(5, TableIndex.TypeDef),
+                Handle(7, TableIndex.MethodDef),
                 Handle(5, TableIndex.Param),
-                Handle(4, TableIndex.CustomAttribute));
+                Handle(6, TableIndex.Param),
+                Handle(hasAttribute ? 9 : 8, TableIndex.CustomAttribute));
+
+            // Obsolete attribute:
+            CheckBlobValue(readers, reader3.GetCustomAttribute(reader3.CustomAttributes.First()).Value, new byte[] { 0x01, 0x00, 0x00, 0x00 });
         }
 
         [Fact]
