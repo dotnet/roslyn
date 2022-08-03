@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
                 glyph: glyph,
+                filterText: snippetIdentifier,
                 properties: props,
                 isComplexTextEdit: true,
                 rules: CompletionItemRules.Default);
