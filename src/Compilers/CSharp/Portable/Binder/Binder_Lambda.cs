@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, defaultValues, isAsync, isStatic);
+            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, parameterSyntaxList, defaultValues, isAsync, isStatic);
 
             static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
             {
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var hasTypes = parameterSyntaxList[0].Type != null;
 
-                // Implicitly Typed Default Parameters are not allowed
+                // Implicitly typed default parameters are not allowed
                 if (!hasTypes && parameterSyntaxList[0].Default != null)
                 {
                     diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedDefaultParameter,
@@ -275,7 +275,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!parameter.Identifier.IsMissing)
                     {
                         var thisParameterHasType = parameter.Type != null;
-                        var thisParameterHasDefault = parameter.Default != null;
 
                         if (hasTypes != thisParameterHasType)
                         {
@@ -283,10 +282,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 parameter.Type?.GetLocation() ?? parameter.Identifier.GetLocation());
                         }
 
-                        // Implicitly Typed Default Parameters are not allowed
-                        if (!thisParameterHasType && thisParameterHasDefault)
+                        // Implicitly typed default parameters are not allowed
+                        if (!thisParameterHasType && parameter.Default != null)
                         {
-                            // Error here.
                             diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedDefaultParameter,
                                 parameter.Identifier.GetLocation(), parameter.Identifier.Text);
                         }
@@ -308,15 +306,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < lambda.ParameterCount; i++)
                 {
                     // paramSyntax should not be null here; we should always be operating on an anonymous function which will have parameter information
-                    var paramSyntax = lambda.ParamSyntax(i);
-                    if (paramSyntax!.Default != null && firstDefault == -1)
+                    var paramSyntax = lambda.ParameterSyntax(i);
+                    Debug.Assert(paramSyntax is { });
+                    if (paramSyntax.Default != null && firstDefault == -1)
                     {
                         firstDefault = i;
                     }
 
                     // UNDONE: Where do we report improper use of pointer types?
-                    ParameterHelpers.ReportParameterErrors(owner: null, paramSyntax!, ordinal: i, isParams: false, lambda.ParameterTypeWithAnnotations(i),
-                        lambda.ParameterType(i), lambda.RefKind(i), lambda.Scope(i), paramContainingSymbol: null, thisKeyword: default, paramsKeyword: default, firstDefault, diagnostics);
+                    ParameterHelpers.ReportParameterErrors(owner: null, paramSyntax, ordinal: i, isParams: false, lambda.ParameterTypeWithAnnotations(i),
+                         lambda.RefKind(i), lambda.Scope(i), containingSymbol: null, thisKeyword: default, paramsKeyword: default, firstDefault, diagnostics);
                 }
             }
 

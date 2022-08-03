@@ -7163,44 +7163,6 @@ class Program
         }
 
         [Fact]
-        public void LambdaWithDefaultTypeMismatchConstantExpression()
-        {
-            var source = """
-class Program
-{
-    public static void Main()
-    {
-        var lam = (string s = 7*9) => s.Split(' ');
-    }
-}
-""";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                    // (5,27): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'string'
-                    //         var lam = (string s = 7*9) => s.Split(' ');
-                    Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "string").WithLocation(5, 27));
-        }
-
-        [Fact]
-        public void AnonymousMethodWithDefaultTypeMismatchConstantExpression()
-        {
-            var source = """
-class Program
-{
-    public static void Main()
-    {
-        var lam = delegate(string s = 7*9) { return s.Split(' '); };
-    }
-}
-""";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (5,35): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'string'
-                //         var lam = delegate(string s = 7*9) { return s.Split(' '); };
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "string").WithLocation(5, 35));
-        }
-
-        [Fact]
         public void LambdaWithNonConstantDefault()
         {
             var source = """
