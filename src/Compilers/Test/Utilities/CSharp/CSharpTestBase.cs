@@ -625,6 +625,15 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
+        protected const string UnscopedRefAttributeDefinition =
+@"namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = false)]
+    public sealed class UnscopedRefAttribute : Attribute
+    {
+    }
+}";
+
         protected const string RequiredMemberAttribute = @"
 namespace System.Runtime.CompilerServices
 {
