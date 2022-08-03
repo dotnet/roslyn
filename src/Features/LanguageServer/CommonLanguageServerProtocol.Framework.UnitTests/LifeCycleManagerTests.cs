@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CommonLanguageServerProtocol.Framework.Example;
 using Xunit;
 
 namespace CommonLanguageServerProtocol.Framework.UnitTests;
@@ -14,14 +15,31 @@ namespace CommonLanguageServerProtocol.Framework.UnitTests;
 public class LifeCycleManagerTests
 {
     [Fact]
-    public void Shutdown()
+    public async Task Shutdown()
     {
-        throw new NotImplementedException();
+        var logger = NoOpLspLogger.Instance;
+        var server = TestExampleLanguageServer.CreateLanguageServer(logger);
+        await server.InitializeServerAsync();
+        var lifeCycleManager = new LifeCycleManager<ExampleRequestContext>(server);
+
+        lifeCycleManager.Shutdown();
+
+        var result = await server.WaitForShutdown();
+        Assert.Equal(0, result);
     }
 
     [Fact]
-    public void Exit()
+    public async void Exit()
     {
-        throw new NotImplementedException();
+        var logger = NoOpLspLogger.Instance;
+        var server = TestExampleLanguageServer.CreateLanguageServer(logger);
+        await server.InitializeServerAsync();
+        var lifeCycleManager = new LifeCycleManager<ExampleRequestContext>(server);
+
+        lifeCycleManager.Exit();
+
+        var result = await server.WaitForExit();
+
+        Assert.Equal(0, result);
     }
 }
