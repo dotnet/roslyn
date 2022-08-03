@@ -1475,14 +1475,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _parameterScopes.IsDefault ? DeclarationScope.Unscoped : _parameterScopes[index];
         }
 
-        /*
-        public override EqualsValueClauseSyntax? DefaultValue(int index)
-        {
-            Debug.Assert(_defaultValues.IsDefault || (0 <= index && index < _defaultValues.Length));
-            return _defaultValues.IsDefault ? null : _defaultValues[index];
-        }
-        */
-
         public override ParameterSyntax ParameterSyntax(int index)
         {
 
