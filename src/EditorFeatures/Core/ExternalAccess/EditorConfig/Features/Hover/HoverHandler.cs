@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.CodeAnalysis.QuickInfo;
 using StreamJsonRpc;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 {
@@ -52,10 +53,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 
             var equalPosition = textInLine.IndexOf('=');
             var caretPosition = request.Position.Character;
+            var len = textInLine.Length;
+            if (caretPosition >= textInLine.Length)
+            {
+                return null;
+            }
 
             // We don't want to show hovering description if we are over these symbols
             var character = textInLine.ElementAt(caretPosition);
-            if (character == ' ' || character == '=' || character == ',')
+            if (character == ' ' || character == '=' || character == ',' || character == ':')
             {
                 return null;
             }
@@ -64,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             if (equalPosition != -1 && caretPosition < equalPosition)
             {
                 var settingName = textInLine[..equalPosition].Replace(" ", "");
-                var description = FindDescriptionForSetting(document, settingName);
+                var description = FindDescriptionForSettingName(document, settingName);
 
                 if (description != null)
                 {
@@ -73,7 +79,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                         Contents = new MarkupContent
                         {
                             Kind = MarkupKind.Markdown,
-                            Value = description,
+                            Value = $"Description: {description}",
                         },
                     };
                 }
@@ -83,8 +89,44 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             else if (equalPosition != -1 && caretPosition > equalPosition)
             {
                 var settingName = textInLine[..equalPosition].Replace(" ", "");
-                var description = FindDescriptionForSetting(document, settingName, nameDescription: false);
+                var colonPosition = textInLine.IndexOf(':');
+                var commaPosition = textInLine.IndexOf(',');
 
+                var settingValue = "";
+                if (colonPosition == -1 && commaPosition == -1)
+                {
+                    settingValue = textInLine[(equalPosition + 1)..].Replace(" ", "");
+                }
+                else if (colonPosition != -1)
+                {
+                    var values = textInLine[(equalPosition + 1)..].Split(':');
+                    var cont = equalPosition + 1;
+                    foreach (var element in values)
+                    {
+                        cont += element.Length + 1;
+                        if (caretPosition < cont)
+                        {
+                            settingValue = element.Replace(" ", "");
+                            break;
+                        }
+                    }
+                }
+                else if (commaPosition != -1)
+                {
+                    var values = textInLine[(equalPosition + 1)..].Split(',');
+                    var cont = equalPosition + 1;
+                    foreach (var element in values)
+                    {
+                        cont += element.Length + 1;
+                        if (caretPosition < cont)
+                        {
+                            settingValue = element.Replace(" ", "");
+                            break;
+                        }
+                    }
+                }
+
+                var description = FindDescriptionForSettingValues(document, settingName, settingValue);
                 if (description != null)
                 {
                     return new Hover
@@ -92,7 +134,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                         Contents = new MarkupContent
                         {
                             Kind = MarkupKind.Markdown,
-                            Value = description,
+                            Value = $"Type: {description}",
                         },
                     };
                 }
@@ -101,7 +143,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             return null;
         }
 
-        private static string? FindDescriptionForSetting(TextDocument document, string settingName, bool nameDescription = true)
+        private static string? FindDescriptionForSettingName(TextDocument document, string settingName)
         {
             var workspace = document.Project.Solution.Workspace;
             var filePath = document.FilePath;
@@ -112,21 +154,56 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             if (codeStyleSetting.Any())
             {
                 var setting = codeStyleSetting.First();
-                return nameDescription ? setting.GetDocumentation() : setting.Type.ToString();
+                return setting.GetDocumentation();
             }
 
             var whitespaceSetting = settingsSnapshots.whitespaceSnapshot?.Where(sett => sett.GetSettingName() == settingName);
             if (whitespaceSetting.Any())
             {
                 var setting = whitespaceSetting.First();
-                return nameDescription ? setting.GetDocumentation() : setting.Type.ToString();
+                return setting.GetDocumentation();
             }
 
             var analyzerSetting = settingsSnapshots.analyzerSnapshot?.Where(sett => sett.GetSettingName() == settingName);
             if (analyzerSetting.Any())
             {
                 var setting = analyzerSetting.First();
-                return nameDescription ? setting.GetDocumentation() : "Analyzer setting value";
+                return setting.GetDocumentation();
+            }
+
+            return null;
+        }
+
+        private static string? FindDescriptionForSettingValues(TextDocument document, string settingName, string settingValue)
+        {
+            var workspace = document.Project.Solution.Workspace;
+            var optionSet = workspace.Options;
+            var filePath = document.FilePath;
+            Contract.ThrowIfNull(filePath);
+
+            var settingsSnapshots = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
+            var codeStyleSetting = settingsSnapshots.codeStyleSnapshot?.Where(sett => sett.GetSettingName() == settingName);
+            if (codeStyleSetting.Any())
+            {
+                var setting = codeStyleSetting.First();
+                var value = setting.GetSettingValues(optionSet)?.Where(val => val == settingValue).FirstOrDefault();
+                return value != null ? setting.Type.ToString() : null;
+            }
+
+            var whitespaceSetting = settingsSnapshots.whitespaceSnapshot?.Where(sett => sett.GetSettingName() == settingName);
+            if (whitespaceSetting.Any())
+            {
+                var setting = whitespaceSetting.First();
+                var value = setting.GetSettingValues(optionSet)?.Where(val => val == settingValue).FirstOrDefault();
+                return value != null ? setting.Type.ToString() : null;
+            }
+
+            var analyzerSetting = settingsSnapshots.analyzerSnapshot?.Where(sett => sett.GetSettingName() == settingName);
+            if (analyzerSetting.Any())
+            {
+                var setting = analyzerSetting.First();
+                var value = setting.GetSettingValues(optionSet)?.Where(val => val == settingValue).FirstOrDefault();
+                return value != null ? typeof(DiagnosticSeverity).ToString() : null;
             }
 
             return null;
