@@ -31,18 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static string IncludeExpectedOutput(string expectedOutput) => IsNet70OrGreater() ? expectedOutput : null;
 
-        private static MetadataReference MscorlibRefWithoutSharingCachedSymbols
-        {
-            get
-            {
-                // Avoid sharing mscorlib symbols with other tests since we are about to change
-                // RuntimeSupportsByRefFields property for it.
-
-                return ((AssemblyMetadata)((MetadataImageReference)MscorlibRef).GetMetadata()).CopyWithoutSharingCachedSymbols().
-                    GetReference(display: "mscorlib.v4_0_30319.dll");
-            }
-        }
-
         private static IEnumerable<MetadataReference> CopyWithoutSharingCachedSymbols(IEnumerable<MetadataReference> references)
         {
             foreach (var reference in references)
@@ -111,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         M2(ref s5.F1);
     }
 }";
-            var mscorlibRefWithRefFields = MscorlibRefWithoutSharingCachedSymbols;
+            var mscorlibRefWithRefFields = GetMscorlibRefWithoutSharingCachedSymbols();
 
             // Note: we use skipUsesIsNullable and skipExtraValidation so that nobody pulls
             // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
@@ -194,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsByRefFields property for it.
-            var mscorlibRefWithRefFields = MscorlibRefWithoutSharingCachedSymbols;
+            var mscorlibRefWithRefFields = GetMscorlibRefWithoutSharingCachedSymbols();
 
             // Note: we use skipUsesIsNullable and skipExtraValidation so that nobody pulls
             // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
@@ -269,7 +257,7 @@ class Program
 }";
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsByRefFields property for it.
-            var mscorlibRefWithRefFields = MscorlibRefWithoutSharingCachedSymbols;
+            var mscorlibRefWithRefFields = GetMscorlibRefWithoutSharingCachedSymbols();
 
             // Note: we use skipUsesIsNullable and skipExtraValidation so that nobody pulls
             // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
@@ -460,7 +448,7 @@ ref struct B
     public fixed ref int F1[3];
     public fixed ref readonly int F2[3];
 }";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (3,26): error CS9049: A fixed field must not be a ref field.
                 //     public fixed ref int F1[3];
@@ -498,7 +486,7 @@ class Program
         Console.WriteLine(s.F[1]);
     }
 }";
-            var comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.UnsafeReleaseExe, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.UnsafeReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,29): error CS0570: 'S.F' is not supported by the language
                 //         Console.WriteLine(s.F[1]);
@@ -528,7 +516,7 @@ class Program
         Console.WriteLine(r.F2);
     }
 }";
-            var comp = CreateCompilation(sourceB, references: new[] { refA }, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(sourceB, references: new[] { refA }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,29): error CS0570: 'R.F1' is not supported by the language
                 //         Console.WriteLine(r.F1);
@@ -552,7 +540,7 @@ ref struct R
     volatile ref int _v1;
     volatile ref readonly int _v2;
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (4,20): error CS0106: The modifier 'static' is not valid for this item
                 //     static ref int _s1;
@@ -604,7 +592,7 @@ class Program
         Console.WriteLine(a.F);
     }
 }";
-            var comp = CreateCompilation(sourceB, new[] { refA }, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(sourceB, new[] { refA }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,29): error CS0570: 'A.F' is not supported by the language
                 //         Console.WriteLine(a.F);
@@ -636,7 +624,7 @@ class Program
         Console.WriteLine(a.F);
     }
 }";
-            var comp = CreateCompilation(sourceB, new[] { refA }, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(sourceB, new[] { refA }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,29): error CS0570: 'A.F' is not supported by the language
                 //         Console.WriteLine(a.F);
@@ -676,7 +664,7 @@ class Program
         Console.WriteLine(b.F);
     }
 }";
-            var comp = CreateCompilation(sourceC, new[] { refB }, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(sourceC, new[] { refB }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,29): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         Console.WriteLine(b.F);
@@ -706,7 +694,7 @@ class Program
     static object F2() => new R<object>().F2;
     static int F3() => new R<object>().F3;
 }";
-            var compB = CreateCompilation(sourceB, references: new[] { refA }, runtimeFeature: RuntimeOption.ByRefFields);
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(compB, verify: Verification.Skipped);
             // MemberRefMetadataDecoder.FindFieldBySignature() is used to find fields when realIL: true.
             verifier.VerifyIL("B.F1", realIL: true, expectedIL:
@@ -774,7 +762,7 @@ $@"#pragma warning disable 169
     ref int F;
 }}";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (4,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     ref int F;
@@ -783,7 +771,7 @@ $@"#pragma warning disable 169
                 //     ref int F;
                 Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "F").WithLocation(4, 13));
 
-            comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (4,13): error CS9059: A ref field can only be declared in a ref struct.
                 //     ref int F;
@@ -931,7 +919,7 @@ class Program
         r2.F = ref r1;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,12): error CS9050: A ref field cannot refer to a ref struct.
                 //     public ref R1<T> F;
@@ -966,7 +954,7 @@ class Program
         r2.F = ref r1;
     }
 }";
-            var comp = CreateCompilation(sourceB, references: new[] { refA }, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(sourceB, references: new[] { refA }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (6,12): error CS0570: 'R2.F' is not supported by the language
                 //         r2.F = ref r1;
@@ -992,7 +980,7 @@ class Program
         return ref r2.F;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (3,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     ref T F;
@@ -1001,7 +989,7 @@ class Program
                 //         return ref r2.F;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "r2.F").WithArguments("r2").WithLocation(13, 20));
 
-            comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (13,20): error CS8352: Cannot use variable 'r2' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref r2.F;
@@ -1033,7 +1021,7 @@ class Program
         return r2;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (3,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     ref T F;
@@ -1043,7 +1031,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r2.F = ref t").WithArguments("F", "t").WithLocation(18, 9)
                 );
 
-            comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (18,9): error CS8374: Cannot ref-assign 't' to 'F' because 't' has a narrower escape scope than 'F'.
                 //         r2.F = ref t;
@@ -2571,7 +2559,7 @@ class Program
 {
     static ref T F2<T>(ref R<T> r) => ref r.F0();
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -2622,7 +2610,7 @@ class Program
         s = new S<T> { F = t4 };
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (12,16): error CS8347: Cannot use a result of 'S<T>.S(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //         this = new S<T>(ref t0);
@@ -2690,7 +2678,7 @@ class Program
         new S4<T>().F = t;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (27,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         new S1<T>().F = ref t;
@@ -2720,7 +2708,7 @@ class Program
         F = t;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -2759,7 +2747,7 @@ class Program
         y.F4 = ref t;
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (10,9): error CS8374: Cannot ref-assign 't' to 'F1' because 't' has a narrower escape scope than 'F1'.
                 //         F1 = ref t;
@@ -2827,7 +2815,7 @@ class Program
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -2859,7 +2847,7 @@ class Program
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
                 //         F = tValue; // 1
@@ -2912,7 +2900,7 @@ class Program
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -2944,7 +2932,7 @@ class Program
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,9): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
                 //         F = tValue; // 1
@@ -2996,7 +2984,7 @@ class Program
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,9): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //         F = ref tValue; // 1
@@ -3042,7 +3030,7 @@ class Program
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,9): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //         F = ref tValue; // 1
@@ -3082,7 +3070,7 @@ class Program
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,9): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //         F = ref tValue; // 1
@@ -3128,7 +3116,7 @@ class Program
     static ref T GetRef() => throw null;
     static ref readonly T GetRefReadonly() => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (7,9): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //         F = ref tValue; // 1
@@ -3249,7 +3237,7 @@ class Program
         Console.WriteLine(s.F);
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
@@ -3494,7 +3482,7 @@ class Program
     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = tOut; } // 15
     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = tIn; } // 16
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (9,59): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
                 //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = tValue; } // 1
@@ -3654,7 +3642,7 @@ class Program
         Console.WriteLine(s.F);
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
@@ -3899,7 +3887,7 @@ class Program
     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = tOut; } // 15
     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = tIn; } // 16
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (9,59): error CS8331: Cannot assign to field 'S<T>.F' because it is a readonly variable
                 //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = tValue; } // 1
@@ -3983,7 +3971,7 @@ class Program
     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 12
     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 13
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (9,59): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; } // 1
@@ -4064,7 +4052,7 @@ class Program
         Console.WriteLine(s.F);
     }
 }";
-            comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"1
 4
@@ -4133,7 +4121,7 @@ class Program
     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 9
     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 10
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (9,59): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; } // 1
@@ -4220,7 +4208,7 @@ class Program
         Console.WriteLine(s.F);
     }
 }";
-            comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"1
 1
@@ -4321,7 +4309,7 @@ class Program
     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 15
     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 16
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (9,59): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; } // 1
@@ -4405,7 +4393,7 @@ class Program
     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 15
     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 16
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (9,59): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; } // 1
@@ -4492,7 +4480,7 @@ class Program
     static void FromInReadonlyRef<T>(in S<T> s, out T t)         { t = s.ReadonlyRef; }
     static void FromInReadonlyRefReadonly<T>(in S<T> s, out T t) { t = s.ReadonlyRefReadonly; }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -4530,7 +4518,7 @@ class Program
     static void FromInReadonlyRef<T>(in S<T> s)         { ref T t = ref s.ReadonlyRef; }
     static void FromInReadonlyRefReadonly<T>(in S<T> s) { ref T t = ref s.ReadonlyRefReadonly; } // 8
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (12,73): error CS8329: Cannot use field 'S<T>.RefReadonly' as a ref or out value because it is a readonly variable
                 //     static void FromValueRefReadonly<T>(S<T> s)         { ref T t = ref s.RefReadonly; } // 1
@@ -4592,7 +4580,7 @@ class Program
     static void FromInReadonlyRef<T>(in S<T> s)         { ref readonly T t = ref s.ReadonlyRef; }
     static void FromInReadonlyRefReadonly<T>(in S<T> s) { ref readonly T t = ref s.ReadonlyRefReadonly; }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -4651,7 +4639,7 @@ class Program
     static ref readonly T F9<T>(out S<T> s) { s = default; return ref s.F; }
     static ref readonly T F10<T>(in S<T> s) => ref s.F;
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -4676,7 +4664,7 @@ class Program
     static ref readonly T F9<T>(out S<T> s) { s = default; return ref s.F; }
     static ref readonly T F10<T>(in S<T> s) => ref s.F;
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (4,30): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
                 //     public ref T F1() => ref F;
@@ -4716,7 +4704,7 @@ class Program
     static ref readonly T F9<T>(out S<T> s) { s = default; return ref s.F; }
     static ref readonly T F10<T>(in S<T> s) => ref s.F;
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -4741,7 +4729,7 @@ class Program
     static ref readonly T F9<T>(out S<T> s) { s = default; return ref s.F; }
     static ref readonly T F10<T>(in S<T> s) => ref s.F;
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (4,30): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
                 //     public ref T F1() => ref F;
@@ -4800,7 +4788,7 @@ class Program
     static void M3(out T t) { t = default; }
     static void M4(in T t) { }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -4844,7 +4832,7 @@ class Program
     static void M3(out T t) { t = default; }
     static void M4(in T t) { }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (8,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
                 //         M2(ref F); // 1
@@ -4906,7 +4894,7 @@ class Program
     static void M3(out T t) { t = default; }
     static void M4(in T t) { }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -4950,7 +4938,7 @@ class Program
     static void M3(out T t) { t = default; }
     static void M4(in T t) { }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (8,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
                 //         M2(ref F); // 1
@@ -5012,7 +5000,7 @@ class Program
     static void FromIn4A<T>(in S<T> s) { M4(in s.F); }
     static void FromIn4B<T>(in S<T> s) { M4(s.F); }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -5056,7 +5044,7 @@ class Program
     static void FromIn4A<T>(in S<T> s) { M4(in s.F); }
     static void FromIn4B<T>(in S<T> s) { M4(s.F); }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (14,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
                 //     static void FromValue2<T>(S<T> s)  { M2(ref s.F); } // 1
@@ -5124,7 +5112,7 @@ class Program
     static void FromIn4A<T>(in S<T> s) { M4(in s.F); }
     static void FromIn4B<T>(in S<T> s) { M4(s.F); }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -5168,7 +5156,7 @@ class Program
     static void FromIn4A<T>(in S<T> s) { M4(in s.F); }
     static void FromIn4B<T>(in S<T> s) { M4(s.F); }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (14,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
                 //     static void FromValue2<T>(S<T> s)  { M2(ref s.F); } // 1
@@ -5227,7 +5215,7 @@ class Program
     static void FromIn4A<T>(in S<T> s) { M4(in s.F); }
     static void FromIn4B<T>(in S<T> s) { M4(s.F); }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("peverify-compat"), runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("peverify-compat"), runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -5261,7 +5249,7 @@ class Program
         r.S = new S<T>();
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"42
 42
@@ -5307,7 +5295,7 @@ class Program
         s.F = value;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"42
 42
@@ -5378,7 +5366,7 @@ class Program
         return r2In.R1.F;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (9,12): error CS9050: A ref field cannot refer to a ref struct.
                 //     public ref R1<T> R1;
@@ -5406,7 +5394,7 @@ class Program
         return new S<T>(1).F = ref t;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (11,16): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         return new S<T>().F = ref t;
@@ -5451,7 +5439,7 @@ class Program
             // https://github.com/dotnet/roslyn/issues/62122: The dereference of a ref field
             // should be emitted to IL, even if the value is ignored, because the behavior
             // may be observable as a NullReferenceException.
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(""));
             verifier.VerifyIL("Program.ReadAndDiscard1<T>",
 @"{
@@ -5499,7 +5487,7 @@ class Program
     static ref T RefReturn<T>(S<T> s) => ref s.F;
     static ref readonly T RefReadonlyReturn<T>(S<T> s) => ref s.F;
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
             var expectedIL =
 @"{
@@ -5536,7 +5524,7 @@ class Program
     static ref T RefReturn<T>(ref S<T> s) => ref s.F;
     static ref readonly T RefReadonlyReturn<T>(ref S<T> s) => ref s.F;
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
             var expectedIL =
 @"{
@@ -5573,7 +5561,7 @@ class Program
     static ref T RefReturn<T>(in S<T> s) => ref s.F;
     static ref readonly T RefReadonlyReturn<T>(in S<T> s) => ref s.F;
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
             var expectedIL =
 @"{
@@ -5618,7 +5606,7 @@ class Program
         return ref s.F;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
             var expectedIL =
 @"{
@@ -5668,7 +5656,7 @@ class Program
         s.F -= offset;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"43
 43
@@ -5737,7 +5725,7 @@ class Program
         Console.WriteLine(x);
     }}
 }}";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"43
 43
@@ -5808,7 +5796,7 @@ class Program
         return ref b ? ref sx.F : ref sy.F;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"1
 2
@@ -5871,7 +5859,7 @@ class Program
         return s.F?.ToString();
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"1
 2
@@ -6009,7 +5997,7 @@ class Program
         Console.WriteLine(y);
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"1
 2
@@ -6100,7 +6088,7 @@ class Program
         r.Next = ref r;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             // https://github.com/dotnet/roslyn/issues/62098: Allow ref field of the containing type.
             comp.VerifyEmitDiagnostics(
                 // (3,12): error CS9050: A ref field cannot refer to a ref struct.
@@ -6313,7 +6301,7 @@ class Program
         Console.WriteLine(s.t);
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
@@ -7176,7 +7164,7 @@ ref struct R2
     scoped ref int F3;
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (5,15): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped R1 F1;
@@ -7188,7 +7176,7 @@ ref struct R2
                 //     scoped ref int F3;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "F3").WithArguments("scoped").WithLocation(6, 20));
 
-            comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (5,15): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped R1 F1;
@@ -8610,7 +8598,7 @@ class Program
         R r2 = F2(new B());
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (13,23): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     public override R F1(R r) => r;
@@ -8649,7 +8637,7 @@ class Program
         R r2 = F2((scoped R x) => default);
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (18,16): error CS8347: Cannot use a result of 'D2.Invoke(R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return d2(new R(ref i));
@@ -9040,7 +9028,7 @@ class Program
         Console.WriteLine(x);
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("Program.Main",
                 source: source,
@@ -9495,7 +9483,7 @@ class Program
     public ref T GetRef() => ref F;
     public ref readonly T GetRefReadonly() => ref F;
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
         }
 
@@ -9510,7 +9498,7 @@ class Program
     public ref T GetRef() => ref F; // 1
     public ref readonly T GetRefReadonly() => ref F;
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (5,34): error CS8333: Cannot return field 'R<T>.F' by writable reference because it is a readonly variable
                 //     public ref T GetRef() => ref F; // 1
@@ -9587,7 +9575,7 @@ class Program
     static T F6<T>(scoped out R<T> r) {{ r = default; return r.F; }}
     static T F7<T>(scoped in R<T> r) => r.F;
 }}";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
         }
 
@@ -9613,7 +9601,7 @@ class Program
     static {refOrRefReadonly} T F6<T>(scoped out R<T> r) {{ r = default; return ref r.F; }}
     static {refOrRefReadonly} T F7<T>(scoped in R<T> r) => ref r.F;
 }}";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (12,55): error CS8352: Cannot use variable 'R<T>' in this context because it may expose referenced variables outside of their declaration scope
                 //     static ref          T F4<T>(scoped R<T> r) => ref r.F; // 1
@@ -9643,7 +9631,7 @@ class Program
         return ref r2.F;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (11,20): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref r1.F; // 1
@@ -9678,7 +9666,7 @@ class Program
         return ref r2.F; // 2
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (11,20): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref r1.F; // 1
@@ -9704,7 +9692,7 @@ class Program
     static R<T> F3<T>(scoped ref T t) => new R<T>(ref t); // 2
     static R<T> F4<T>(scoped out T t, T tValue) { t = tValue; return new R<T>(ref t); } // 3
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (9,63): error CS8347: Cannot use a result of 'R<T>.R(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     static R<T> F2<T>(out T t, T tValue) { t = tValue; return new R<T>(ref t); } // 1
@@ -9747,7 +9735,7 @@ class Program
     static R0<T> F2<T>(ref R1<T> r2) => r2.F1;
     static R0<T> F3<T>(scoped ref R1<T> r3) => r3.F1;
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (14,44): error CS8352: Cannot use variable 'R1<T>' in this context because it may expose referenced variables outside of their declaration scope
                 //     static R0<T> F1<T>(scoped R1<T> r1) => r1.F1; // 1
@@ -9775,7 +9763,7 @@ class Program
     static ref R0<T> F2<T>(ref R1<T> r2) => ref r2.F1;
     static ref R0<T> F3<T>(scoped ref R1<T> r3) => ref r3.F1; // 3
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (13,45): error CS8167: Cannot return by reference a member of parameter 'r0' because it is not a ref or out parameter
                 //     static ref R0<T> F0<T>(R1<T> r0) => ref r0.F1; // 1
@@ -9813,7 +9801,7 @@ class Program
         return ref F0(new R<T>(ref t)); // error
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (19,20): error CS8347: Cannot use a result of 'Program.F0<T>(R<T>)' in this context because it may expose variables referenced by parameter 'r0' outside of their declaration scope
                 //         return ref F0(new R<T>(ref t)); // error
@@ -9857,7 +9845,7 @@ class C
         return c[new R(ref i4), y4]; // 2
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (16,16): error CS8347: Cannot use a result of 'C.this[R, R]' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
                 //         return this[x2, new R(ref i2)]; // 1
@@ -9910,7 +9898,7 @@ class C
         return c[x4, y4]; // 2
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (16,16): error CS8347: Cannot use a result of 'C.this[in int, in int]' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
                 //         return this[x2, y2]; // 1
@@ -9957,7 +9945,7 @@ class C
         return ref c[new R(ref i4), y4]; // 2
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (16,20): error CS8347: Cannot use a result of 'C.this[R, R]' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
                 //         return ref this[x2, new R(ref i2)]; // 1
@@ -10096,7 +10084,7 @@ class Program
         return r8.F;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (29,9): error CS8374: Cannot ref-assign 't' to 'F' because 't' has a narrower escape scope than 'F'.
                 //         r3.F = ref t;
@@ -10173,7 +10161,7 @@ class Program
         return r8.F;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (26,9): error CS8374: Cannot ref-assign 't' to 'F' because 't' has a narrower escape scope than 'F'.
                 //         r3.F = ref t;
@@ -10258,7 +10246,7 @@ class Program
         return r8;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (16,16): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return r1;
@@ -10353,7 +10341,7 @@ class Program
         return r8;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (15,16): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return r1;
@@ -10476,7 +10464,7 @@ class Program
         M(this);
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (11,16): error CS8347: Cannot use a result of 'R<T>.R(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //         this = new R<T>(ref t1);
@@ -10532,7 +10520,7 @@ class Program
         M(this);
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (10,16): error CS8347: Cannot use a result of 'R<T>.R(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //         this = new R<T>(ref t1);
@@ -10574,7 +10562,7 @@ class Program
         M(this);
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (13,16): error CS8347: Cannot use a result of 'R<T>.R(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //         this = new R<T>(ref t2);
@@ -10603,7 +10591,7 @@ class Program
         M(this);
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (4,19): warning CS0169: The field 'R<T>.F' is never used
                 //     private ref T F;
@@ -10630,7 +10618,7 @@ class Program
         return r.F;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (12,13): error CS8374: Cannot ref-assign 't' to 'F' because 't' has a narrower escape scope than 'F'.
                 //             r.F = ref t;
@@ -10684,7 +10672,7 @@ class Program
         r1.F(out r);
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (13,9): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
                 //         r1.F(out r);
@@ -10777,14 +10765,14 @@ ref struct R
     public ref int field;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (7,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref int field;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(7, 12)
                 );
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11, runtimeFeature: RuntimeOption.ByRefFields);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
         }
 
@@ -10805,9 +10793,9 @@ var r2 = new R() { field = x }; // 2
 R r3 = default;
 _ = r3 with { field = ref x }; // 3
 ";
-            var lib = CreateCompilation(lib_cs, parseOptions: TestOptions.Regular11, runtimeFeature: RuntimeOption.ByRefFields);
+            var lib = CreateCompilation(lib_cs, parseOptions: TestOptions.Regular11, runtimeFeature: RuntimeFlag.ByRefFields);
 
-            var comp = CreateCompilation(source, references: new[] { lib.EmitToImageReference() }, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, references: new[] { lib.EmitToImageReference() }, parseOptions: TestOptions.Regular10, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (3,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // var r1 = new R() { field = ref x }; // 1
@@ -10866,7 +10854,7 @@ ref struct R
     }
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
             verifier.VerifyIL("C.Main",
@@ -10913,7 +10901,7 @@ ref struct R
     }
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (3,31): error CS0165: Use of unassigned local variable 'x'
                 // var r = new R() { field = ref x };
@@ -10938,7 +10926,7 @@ ref struct R
     }
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (3,31): error CS8173: The expression must be of type 'int' because it is being assigned by reference
                 // var r = new R() { field = ref x };
@@ -10968,7 +10956,7 @@ ref struct R
     }
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (3,31): error CS8173: The expression must be of type 'S2' because it is being assigned by reference
                 // var r = new R() { field = ref x };
@@ -10992,7 +10980,7 @@ ref struct R
     }
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (3,19): error CS1914: Static field or property 'R.field' cannot be assigned in an object initializer
                 // var r = new R() { field = ref x };
@@ -11014,7 +11002,7 @@ ref struct R
     public ref int field;
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (2,31): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 // var r = new R() { field = ref var() };
@@ -11037,7 +11025,7 @@ ref struct R
     public readonly ref int field;
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (3,19): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 // var r = new R() { field = ref x };
@@ -11057,7 +11045,7 @@ ref struct R
     public ref readonly int field;
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
         }
 
@@ -11083,7 +11071,7 @@ ref struct R
 ";
             // Confusing error message
             // Tracked by https://github.com/dotnet/roslyn/issues/62756
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (8,39): error CS8331: Cannot assign to method 'C.Value()' because it is a readonly variable
                 //         var r = new R() { field = ref Value() };
@@ -11116,7 +11104,7 @@ ref struct R2
 ";
             // Diagnostic is missing parameter name
             // Tracked by https://github.com/dotnet/roslyn/issues/62096
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (7,31): error CS8331: Cannot assign to variable 'in int' because it is a readonly variable
                 //         _ = new R2 { _f = ref i }; // 1
@@ -11254,7 +11242,7 @@ ref struct R
     public ref int field;
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (8,39): error CS1510: A ref or out value must be an assignable variable
                 //         var r = new R() { field = ref Value() };
@@ -11281,7 +11269,7 @@ ref struct R
     public ref readonly int field;
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
         }
 
@@ -11302,7 +11290,7 @@ interface I
     public ref int field;
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (12,20): error CS0525: Interfaces cannot contain instance fields
                 //     public ref int field;
@@ -11621,7 +11609,7 @@ ref struct Item
     public ref int field;
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
             verifier.VerifyIL("C.M", @"
@@ -11674,7 +11662,7 @@ ref struct R<T>
     public ref S<T> field;
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (8,33): warning CS8619: Nullability of reference types in value of type 'S<object?>' doesn't match target type 'S<object>'.
                 // _ = new R<object> { field = ref x2 }; // 1
@@ -11707,7 +11695,7 @@ ref struct R
     public ref S field;
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (2,5): warning CS0219: The variable 'x' is assigned but its value is never used
                 // int x = 42;
@@ -11765,7 +11753,7 @@ ref struct R<T>
     public ref T F;
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (3,34): error CS8173: The expression must be of type 'dynamic' because it is being assigned by reference
                 // var r = new R<dynamic> { F = ref i }; // 1
@@ -11923,9 +11911,9 @@ ref struct R<T>
     public ref T F;
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
-            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeOption.ByRefFields);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("4242"));
             verifier.VerifyIL("C.Main", """
 {
@@ -12083,7 +12071,7 @@ public ref struct R
     public ref int field;
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (8,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
                 //         return r; // 1
@@ -12145,7 +12133,7 @@ public ref struct R
     public R(ref int i) { }
 }
 ";
-            comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (8,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
                 //         return r; // 1
@@ -12216,7 +12204,7 @@ ref struct Item
     public ref int field;
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (9,17): error CS0136: A local or parameter named 'r' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             var r = new Container { item = { field = ref x } }; // 1
@@ -12256,7 +12244,7 @@ ref struct R
     }
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
             verifier.VerifyIL("C.Main",
@@ -12333,7 +12321,7 @@ public ref struct R
     public ref int field;
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (8,16): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
                 //         return r; // 1
@@ -12358,7 +12346,7 @@ public ref struct R
 {
     ref scoped R field;
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeOption.ByRefFields);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (3,5): error CS9050: A ref field cannot refer to a ref struct.
                 //     ref scoped R field;

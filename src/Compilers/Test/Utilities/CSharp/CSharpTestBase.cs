@@ -1204,16 +1204,13 @@ namespace System.Diagnostics.CodeAnalysis
             string assemblyName = "",
             string sourceFileName = "",
             bool skipUsesIsNullable = false,
-            RuntimeOption runtimeFeature = RuntimeOption.None)
+            RuntimeFlag runtimeFeature = RuntimeFlag.None)
         {
-            if (runtimeFeature == RuntimeOption.ByRefFields)
+            if (runtimeFeature == RuntimeFlag.ByRefFields)
             {
                 // Avoid sharing mscorlib symbols with other tests since we are about to change
                 // RuntimeSupportsByRefFields property for it.
-                var mscorlibWithoutSharing = new[] {
-                    ((AssemblyMetadata)((MetadataImageReference)MscorlibRef).GetMetadata()).CopyWithoutSharingCachedSymbols().
-                         GetReference(display: "mscorlib.v4_0_30319.dll")
-                };
+                var mscorlibWithoutSharing = new[] { GetMscorlibRefWithoutSharingCachedSymbols() };
 
                 // Note: we use skipUsesIsNullable and skipExtraValidation so that nobody pulls
                 // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
@@ -1226,6 +1223,15 @@ namespace System.Diagnostics.CodeAnalysis
             }
 
             return CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable);
+        }
+
+        public static MetadataReference GetMscorlibRefWithoutSharingCachedSymbols()
+        {
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsByRefFields property for it.
+
+            return ((AssemblyMetadata)((MetadataImageReference)MscorlibRef).GetMetadata()).CopyWithoutSharingCachedSymbols().
+                GetReference(display: "mscorlib.v4_0_30319.dll");
         }
 
         public static CSharpCompilation CreateEmptyCompilation(
