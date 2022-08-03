@@ -254,9 +254,26 @@ namespace RunTests
                     var lspEditor = Environment.GetEnvironmentVariable("ROSLYN_LSPEDITOR");
 
                     // We call into build.ps1 without passing in the helix flag to indicate the tests should run on the current machine.
-                    var commandArguments = $"-ci -configuration {options.Configuration} -testVsi -oop64bit:${oop64Bit} -oopCoreClr:${oopCoreClr} -lspEditor:${lspEditor}";
+                    var commandArguments = new StringBuilder();
+                    commandArguments.Append($"-ci -configuration {options.Configuration} -testVsi");
+                    if (!string.IsNullOrEmpty(oop64Bit))
+                    {
+                        commandArguments.Append($" -oop64bit:${oop64Bit}");
+                    }
 
-                    command.AppendLine($@"PowerShell.exe -ExecutionPolicy Unrestricted -command ""./eng\build.ps1 {commandArguments}\""");
+                    if (!string.IsNullOrEmpty(oopCoreClr))
+                    {
+                        commandArguments.Append($" -oopCoreClr:${oopCoreClr}");
+                    }
+
+                    if (!string.IsNullOrEmpty(lspEditor))
+                    {
+                        commandArguments.Append($" -lspEditor:${lspEditor}");
+                    }
+
+                    ConsoleUtil.WriteLine($"build.ps1 arguments: {commandArguments}");
+
+                    command.AppendLine($@"PowerShell.exe -ExecutionPolicy Unrestricted -command ""./eng\build.ps1 {commandArguments}""");
                 }
                 else
                 {
