@@ -214,12 +214,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
             await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
 
-            var callback = new DesignerAttributeListener();
+            var callback = new DesignerAttributeComputerCallback();
 
             using var connection = client.CreateConnection<IRemoteDesignerAttributeDiscoveryService>(callback);
 
             var invokeTask = connection.TryInvokeAsync(
-                (service, callbackId, cancellationToken) => service.StartScanningForDesignerAttributesAsync(callbackId, cancellationToken),
+                solution,
+                (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(callbackId, checksum, priorityDocument: null, cancellationToken),
                 cancellationTokenSource.Token);
 
             var infos = await callback.Infos;
@@ -234,13 +235,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.True(await invokeTask);
         }
 
-        private class DesignerAttributeListener : IDesignerAttributeListener
+        private class DesignerAttributeComputerCallback : DesignerAttributeComputer.ICallback
         {
             private readonly TaskCompletionSource<ImmutableArray<DesignerAttributeData>> _infosSource = new();
 
             public Task<ImmutableArray<DesignerAttributeData>> Infos => _infosSource.Task;
 
-            public ValueTask OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
+            public ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
                 => ValueTaskFactory.CompletedTask;
 
             public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
