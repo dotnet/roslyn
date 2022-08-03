@@ -1076,4 +1076,43 @@ Do you want to proceed?</value>
   <data name="Rename_operation_could_not_complete_due_to_external_change_to_workspace" xml:space="preserve">
     <value>Rename operation could not complete due to external change to workspace</value>
   </data>
+  <data name="Label_Positioning_Flush_Left" xml:space="preserve">
+    <value>Placed in the Zeroth column of the text editor</value>
+  </data>
+  <data name="Label_Positioning_No_Change" xml:space="preserve">
+    <value>Placed at the same indent as the current context</value>
+  </data>
+  <data name="Label_Positioning_One_Less_Than_Current" xml:space="preserve">
+    <value>Placed at one less indent to the current context</value>
+  </data>
+  <data name="Operator_Placement_When_Wrapping_Beginning_Of_Line" xml:space="preserve">
+    <value>Adds the operator at the beginning of the line</value>
+  </data>
+  <data name="Operator_Placement_When_Wrapping_End_Of_Line" xml:space="preserve">
+    <value>Adds the operator at the end of the line</value>
+  </data>
+  <data name="Severities_Error" xml:space="preserve">
+    <value>Offending code is underlined with a red squiggle and marked by a small red box in the scroll bar</value>
+  </data>
+  <data name="Severities_None" xml:space="preserve">
+    <value>Suppressed completely</value>
+  </data>
+  <data name="Severities_Silent" xml:space="preserve">
+    <value>Non-visible to user. The diagnostic is reported to the IDE diagnostic engine, however</value>
+  </data>
+  <data name="Severities_Suggestion" xml:space="preserve">
+    <value>Offending code is underlined with a gray squiggle and marked by a small gray box in the scroll bar</value>
+  </data>
+  <data name="Severities_Warning" xml:space="preserve">
+    <value>Offending code is underlined with a green squiggle and marked by a small green box in the scroll bar</value>
+  </data>
+  <data name="Spacing_Around_Binary_Operator_Before_And_After" xml:space="preserve">
+    <value>Single spacing</value>
+  </data>
+  <data name="Spacing_Around_Binary_Operator_Ignore" xml:space="preserve">
+    <value>Ignores formatting</value>
+  </data>
+  <data name="Spacing_Around_Binary_Operator_None" xml:space="preserve">
+    <value>Removes spacing</value>
+  </data>
 </root>

@@ -75,6 +75,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             {
                 return ImmutableArray.Create(new string[] { "true", "false" });
             }
+
+            public override string? GetValueDocumentation(string value)
+            {
+                return GetCurrentValue();
+            }
         }
     }
 }

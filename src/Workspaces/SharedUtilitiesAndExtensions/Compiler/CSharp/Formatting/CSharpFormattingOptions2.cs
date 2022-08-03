@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 KeyValuePairUtil.Create("object_collection_array_initalizers", NewLineOption.ObjectCollectionsArrayInitializers),
             });
-        private static readonly BidirectionalMap<string, NewLineOption> s_newLineOptionsEditorConfigMap =
+        internal static readonly BidirectionalMap<string, NewLineOption> s_newLineOptionsEditorConfigMap =
             new(new[]
             {
                 KeyValuePairUtil.Create("accessors", NewLineOption.Accessors),

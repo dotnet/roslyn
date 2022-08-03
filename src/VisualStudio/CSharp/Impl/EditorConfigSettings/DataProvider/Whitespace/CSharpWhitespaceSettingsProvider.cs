@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.Whitespace
 {
-    internal class CSharpWhitespaceSettingsProvider : SettingsProviderBase<WhitespaceSetting, OptionUpdater, IOption2, object>
+    internal partial class CSharpWhitespaceSettingsProvider : SettingsProviderBase<WhitespaceSetting, OptionUpdater, IOption2, object>
     {
         public CSharpWhitespaceSettingsProvider(string filePath, OptionUpdater updaterService, Workspace workspace)
             : base(filePath, updaterService, workspace)
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
             yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBeforeComma, CSharpVSResources.Insert_space_before_comma, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBeforeDot, CSharpVSResources.Insert_space_before_dot, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement, CSharpVSResources.Insert_space_before_semicolon_in_for_statement, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpacingAroundBinaryOperator, CSharpVSResources.Set_spacing_for_operators, editorConfigOptions, visualStudioOptions, updaterService, FileName);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpacingAroundBinaryOperator, CSharpVSResources.Set_spacing_for_operators, editorConfigOptions, visualStudioOptions, updaterService, FileName, SpacingAroundBinaryOperatorValuesDescription);
         }
 
         private IEnumerable<WhitespaceSetting> GetNewLineOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)
@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
             yield return WhitespaceSetting.Create(CSharpFormattingOptions2.IndentSwitchCaseSection, CSharpVSResources.Indent_case_contents, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return WhitespaceSetting.Create(CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock, CSharpVSResources.Indent_case_contents_when_block, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return WhitespaceSetting.Create(CSharpFormattingOptions2.IndentSwitchSection, CSharpVSResources.Indent_case_labels, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.LabelPositioning, CSharpVSResources.Label_Indentation, editorConfigOptions, visualStudioOptions, updaterService, FileName);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.LabelPositioning, CSharpVSResources.Label_Indentation, editorConfigOptions, visualStudioOptions, updaterService, FileName, LabelPositioningValuesDescription);
         }
 
         private IEnumerable<WhitespaceSetting> GetWrappingOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)

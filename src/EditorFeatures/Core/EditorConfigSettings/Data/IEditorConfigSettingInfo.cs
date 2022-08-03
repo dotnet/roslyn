@@ -20,5 +20,8 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings.Data
 
         // Gets the possible values for the editorconfig setting, returns null if there are no possible values or if it couldn't find the setting
         ImmutableArray<string>? GetSettingValues(OptionSet optionSet);
+
+        // Gets the description of editorconfig setting values, returns null if the value doesn't have a description
+        string? GetValueDocumentation(string value);
     }
 }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
@@ -58,8 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                  AnalyzerConfigOptions options,
                                  OptionSet visualStudioOptions,
                                  OptionUpdater updater,
-                                 SettingLocation location)
-            : base(description, updater, location)
+                                 SettingLocation location,
+                                 ImmutableDictionary<string, string>? valuesDescription)
+            : base(description, updater, location, valuesDescription)
         {
             _option = option;
             _options = options;

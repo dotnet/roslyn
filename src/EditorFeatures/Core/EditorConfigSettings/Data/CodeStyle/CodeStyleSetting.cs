@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public abstract string? GetSettingName();
         public abstract string GetDocumentation();
         public abstract ImmutableArray<string>? GetSettingValues(OptionSet optionSet);
+        public abstract string? GetValueDocumentation(string value);
 
         public CodeStyleSetting(string description, OptionUpdater updater)
         {

@@ -82,5 +82,18 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         {
             return ImmutableArray.Create(new string[] { "none", "silent", "suggestion", "warning", "error" });
         }
+
+        public string? GetValueDocumentation(string value)
+        {
+            return value switch
+            {
+                "silent" => EditorFeaturesResources.Severities_Silent,
+                "suggestion" => EditorFeaturesResources.Severities_Suggestion,
+                "warning" => EditorFeaturesResources.Severities_Warning,
+                "error" => EditorFeaturesResources.Severities_Error,
+                "none" => EditorFeaturesResources.Severities_None,
+                _ => null,
+            };
+        }
     }
 }

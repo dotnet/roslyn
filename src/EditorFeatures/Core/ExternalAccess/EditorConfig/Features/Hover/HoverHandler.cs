@@ -53,38 +53,27 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 
             var equalPosition = textInLine.IndexOf('=');
             var caretPosition = request.Position.Character;
-            var len = textInLine.Length;
+
+            // The caret may be in a position that is outside the text
             if (caretPosition >= textInLine.Length)
             {
                 return null;
             }
 
-            // We don't want to show hovering description if we are over these symbols
+            // We don't want to show hovering description if we are over these characters
             var character = textInLine.ElementAt(caretPosition);
             if (character == ' ' || character == '=' || character == ',' || character == ':')
             {
                 return null;
             }
 
+            var description = "";
             // We are on the left of the setting and need to display the settings name description
             if (equalPosition != -1 && caretPosition < equalPosition)
             {
                 var settingName = textInLine[..equalPosition].Replace(" ", "");
-                var description = FindDescriptionForSettingName(document, settingName);
-
-                if (description != null)
-                {
-                    return new Hover
-                    {
-                        Contents = new MarkupContent
-                        {
-                            Kind = MarkupKind.Markdown,
-                            Value = $"Description: {description}",
-                        },
-                    };
-                }
+                description = FindDescriptionForSetting(document, settingName);
             }
-
             // We are on the right of the setting and need to display the settings values description
             else if (equalPosition != -1 && caretPosition > equalPosition)
             {
@@ -125,60 +114,29 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                         }
                     }
                 }
+                description = FindDescriptionForSetting(document, settingName, settingValue, displayValueInfo: true);
+            }
 
-                var description = FindDescriptionForSettingValues(document, settingName, settingValue);
-                if (description != null)
+            if (description != null)
+            {
+                return new Hover
                 {
-                    return new Hover
+                    Contents = new MarkupContent
                     {
-                        Contents = new MarkupContent
-                        {
-                            Kind = MarkupKind.Markdown,
-                            Value = $"Type: {description}",
-                        },
-                    };
-                }
+                        Kind = MarkupKind.Markdown,
+                        Value = description,
+                    },
+                };
             }
 
             return null;
         }
 
-        private static string? FindDescriptionForSettingName(TextDocument document, string settingName)
+        private static string? FindDescriptionForSetting(TextDocument document, string settingName, string settingValue = "", bool displayValueInfo = false)
         {
             var workspace = document.Project.Solution.Workspace;
             var filePath = document.FilePath;
-            Contract.ThrowIfNull(filePath);
-
-            var settingsSnapshots = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
-            var codeStyleSetting = settingsSnapshots.codeStyleSnapshot?.Where(sett => sett.GetSettingName() == settingName);
-            if (codeStyleSetting.Any())
-            {
-                var setting = codeStyleSetting.First();
-                return setting.GetDocumentation();
-            }
-
-            var whitespaceSetting = settingsSnapshots.whitespaceSnapshot?.Where(sett => sett.GetSettingName() == settingName);
-            if (whitespaceSetting.Any())
-            {
-                var setting = whitespaceSetting.First();
-                return setting.GetDocumentation();
-            }
-
-            var analyzerSetting = settingsSnapshots.analyzerSnapshot?.Where(sett => sett.GetSettingName() == settingName);
-            if (analyzerSetting.Any())
-            {
-                var setting = analyzerSetting.First();
-                return setting.GetDocumentation();
-            }
-
-            return null;
-        }
-
-        private static string? FindDescriptionForSettingValues(TextDocument document, string settingName, string settingValue)
-        {
-            var workspace = document.Project.Solution.Workspace;
             var optionSet = workspace.Options;
-            var filePath = document.FilePath;
             Contract.ThrowIfNull(filePath);
 
             var settingsSnapshots = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
@@ -186,24 +144,37 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             if (codeStyleSetting.Any())
             {
                 var setting = codeStyleSetting.First();
-                var value = setting.GetSettingValues(optionSet)?.Where(val => val == settingValue).FirstOrDefault();
-                return value != null ? setting.Type.ToString() : null;
+                if (displayValueInfo)
+                {
+                    var value = setting.GetSettingValues(optionSet)?.Where(val => val == settingValue).FirstOrDefault();
+                    return value != null ? setting.GetValueDocumentation(settingValue) : null;
+                }
+                return setting.GetDocumentation();
             }
 
             var whitespaceSetting = settingsSnapshots.whitespaceSnapshot?.Where(sett => sett.GetSettingName() == settingName);
             if (whitespaceSetting.Any())
             {
                 var setting = whitespaceSetting.First();
-                var value = setting.GetSettingValues(optionSet)?.Where(val => val == settingValue).FirstOrDefault();
-                return value != null ? setting.Type.ToString() : null;
+                if (displayValueInfo)
+                {
+                    var value = setting.GetSettingValues(optionSet)?.Where(val => val == settingValue).FirstOrDefault();
+                    return value != null ? setting.GetValueDocumentation(settingValue) : null;
+                }
+                return setting.GetDocumentation();
             }
 
             var analyzerSetting = settingsSnapshots.analyzerSnapshot?.Where(sett => sett.GetSettingName() == settingName);
             if (analyzerSetting.Any())
             {
                 var setting = analyzerSetting.First();
-                var value = setting.GetSettingValues(optionSet)?.Where(val => val == settingValue).FirstOrDefault();
-                return value != null ? typeof(DiagnosticSeverity).ToString() : null;
+                if (displayValueInfo)
+                {
+                    var aux = setting.GetValueDocumentation(settingValue);
+                    var value = setting.GetSettingValues(optionSet)?.Where(val => val == settingValue).FirstOrDefault();
+                    return value != null ? setting.GetValueDocumentation(settingValue) : null;
+                }
+                return setting.GetDocumentation();
             }
 
             return null;

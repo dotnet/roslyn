@@ -99,6 +99,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
                 return strings.ToImmutableArray();
             }
+
+            public override string? GetValueDocumentation(string value)
+            {
+                return GetCurrentValue();
+            }
         }
     }
 }

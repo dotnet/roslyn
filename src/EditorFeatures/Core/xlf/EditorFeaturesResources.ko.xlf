@@ -217,6 +217,21 @@
         <target state="translated">키워드 - 제어</target>
         <note />
       </trans-unit>
+      <trans-unit id="Label_Positioning_Flush_Left">
+        <source>Placed in the Zeroth column of the text editor</source>
+        <target state="new">Placed in the Zeroth column of the text editor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Label_Positioning_No_Change">
+        <source>Placed at the same indent as the current context</source>
+        <target state="new">Placed at the same indent as the current context</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Label_Positioning_One_Less_Than_Current">
+        <source>Placed at one less indent to the current context</source>
+        <target state="new">Placed at one less indent to the current context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Language_client_initialization_failed">
         <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
         <target state="translated">{0}을(를) 초기화하지 못했습니다. 상태 = {1}. 예외 = {2}</target>
@@ -240,6 +255,16 @@
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">연산자 - 오버로드됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_Placement_When_Wrapping_Beginning_Of_Line">
+        <source>Adds the operator at the beginning of the line</source>
+        <target state="new">Adds the operator at the beginning of the line</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_Placement_When_Wrapping_End_Of_Line">
+        <source>Adds the operator at the end of the line</source>
+        <target state="new">Adds the operator at the end of the line</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste_Tracking">
@@ -311,6 +336,46 @@
         <source>Rename symbol's _file</source>
         <target state="translated">기호의 파일 이름 바꾸기(_F)</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
+      </trans-unit>
+      <trans-unit id="Severities_Error">
+        <source>Offending code is underlined with a red squiggle and marked by a small red box in the scroll bar</source>
+        <target state="new">Offending code is underlined with a red squiggle and marked by a small red box in the scroll bar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Severities_None">
+        <source>Suppressed completely</source>
+        <target state="new">Suppressed completely</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Severities_Silent">
+        <source>Non-visible to user. The diagnostic is reported to the IDE diagnostic engine, however</source>
+        <target state="new">Non-visible to user. The diagnostic is reported to the IDE diagnostic engine, however</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Severities_Suggestion">
+        <source>Offending code is underlined with a gray squiggle and marked by a small gray box in the scroll bar</source>
+        <target state="new">Offending code is underlined with a gray squiggle and marked by a small gray box in the scroll bar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Severities_Warning">
+        <source>Offending code is underlined with a green squiggle and marked by a small green box in the scroll bar</source>
+        <target state="new">Offending code is underlined with a green squiggle and marked by a small green box in the scroll bar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Spacing_Around_Binary_Operator_Before_And_After">
+        <source>Single spacing</source>
+        <target state="new">Single spacing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Spacing_Around_Binary_Operator_Ignore">
+        <source>Ignores formatting</source>
+        <target state="new">Ignores formatting</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Spacing_Around_Binary_Operator_None">
+        <source>Removes spacing</source>
+        <target state="new">Removes spacing</target>
+        <note />
       </trans-unit>
       <trans-unit id="Split_comment">
         <source>Split comment</source>
