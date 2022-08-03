@@ -30,8 +30,11 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
 {
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    internal class VisualStudioDesignerAttributeService
-        : ForegroundThreadAffinitizedObject, IDesignerAttributeListener, IEventListener<object>, IDisposable
+    internal class VisualStudioDesignerAttributeService :
+        ForegroundThreadAffinitizedObject,
+        IRemoteDesignerAttributeDiscoveryService.ICallback,
+        IEventListener<object>,
+        IDisposable
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
 
@@ -44,24 +47,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// Our connection to the remote OOP server. Created on demand when we startup and then
         /// kept around for the lifetime of this service.
         /// </summary>
-        private RemoteServiceConnection<IRemoteDesignerAttributeDiscoveryService>? _lazyConnection;
+        private readonly AsyncLazy<RemoteServiceConnection<IRemoteDesignerAttributeDiscoveryService>?> _lazyConnection;
 
         /// <summary>
         /// Cache from project to the CPS designer service for it.  Computed on demand (which
         /// requires using the UI thread), but then cached for all subsequent notifications about
         /// that project.
         /// </summary>
-        private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?> _cpsProjects
-            = new();
+        private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?> _cpsProjects = new();
 
         /// <summary>
         /// Cached designer service for notifying legacy projects about designer attributes.
         /// </summary>
         private IVSMDDesignerService? _legacyDesignerService;
 
+        /// <summary>
+        /// True if we should dispose our connection, false for normal work.
+        /// </summary>
+        private readonly AsyncBatchingWorkQueue<bool> _workQueue;
+
         // We'll get notifications from the OOP server about new attribute arguments. Batch those
         // notifications up and deliver them to VS every second.
-        private readonly AsyncBatchingWorkQueue<DesignerAttributeData>? _workQueue;
+        private readonly AsyncBatchingWorkQueue<DesignerAttributeData>? _notificationProjectSystemQueue;
+
+        private bool _connectionDisposed;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -75,77 +84,133 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             _workspace = workspace;
             _serviceProvider = serviceProvider;
 
-            _workQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
+            _lazyConnection = new AsyncLazy<RemoteServiceConnection<IRemoteDesignerAttributeDiscoveryService>?>(CreateConnectionAsync, cacheResult: true);
+
+            var listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
+
+            _workQueue = new AsyncBatchingWorkQueue<bool>(
+                TimeSpan.FromSeconds(1),
+                this.ProcessWorkspaceChangeAsync,
+                EqualityComparer<bool>.Default,
+                listener,
+                ThreadingContext.DisposalToken);
+
+            _notificationProjectSystemQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
                 TimeSpan.FromSeconds(1),
                 this.NotifyProjectSystemAsync,
-                asynchronousOperationListenerProvider.GetListener(FeatureAttribute.DesignerAttributes),
+                listener,
                 ThreadingContext.DisposalToken);
         }
 
         public void Dispose()
         {
-            _lazyConnection?.Dispose();
+            _workspace.WorkspaceChanged -= OnWorkspaceChanged;
+            _workQueue.AddWork(/*dispose:*/true);
+        }
+
+        private async Task<RemoteServiceConnection<IRemoteDesignerAttributeDiscoveryService>?> CreateConnectionAsync(CancellationToken cancellationToken)
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+            if (client == null)
+                return null;
+
+            return client.CreateConnection<IRemoteDesignerAttributeDiscoveryService>(callbackTarget: this);
         }
 
         void IEventListener<object>.StartListening(Workspace workspace, object _)
         {
-            if (workspace is VisualStudioWorkspace)
-                _ = StartAsync();
+            if (workspace != _workspace)
+                return;
+
+            _workspace.WorkspaceChanged += OnWorkspaceChanged;
+            _workQueue.AddWork(true);
         }
 
-        private async Task StartAsync()
+        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
-            // Have to catch all exceptions coming through here as this is called from a
-            // fire-and-forget method and we want to make sure nothing leaks out.
-            try
-            {
-                await StartWorkerAsync().ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-                // Cancellation is normal (during VS closing).  Just ignore.
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
-            {
-                // Otherwise report a watson for any other exception.  Don't bring down VS.  This is
-                // a BG service we don't want impacting the user experience.
-            }
+            _workQueue.AddWork(true);
         }
 
-        private async Task StartWorkerAsync()
+        private async ValueTask ProcessWorkspaceChangeAsync(ImmutableSegmentedList<bool> values, CancellationToken cancellationToken)
         {
-            var cancellationToken = ThreadingContext.DisposalToken;
+            if (_connectionDisposed)
+                return;
 
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
+            var connection = await _lazyConnection.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+            var shouldDispose = values.Contains(true);
+            if (shouldDispose)
             {
-                StartScanningForDesignerAttributesInCurrentProcess(cancellationToken);
+                _connectionDisposed = true;
+                connection?.Dispose();
                 return;
             }
 
-            // Pass ourselves in as the callback target for the OOP service.  As it discovers
-            // designer attributes it will call back into us to notify VS about it.
-            _lazyConnection = client.CreateConnection<IRemoteDesignerAttributeDiscoveryService>(callbackTarget: this);
+            if (connection == null)
+                return;
 
-            // Now kick off scanning in the OOP process.
-            // If the call fails an error has already been reported and there is nothing more to do.
-            _ = await _lazyConnection.TryInvokeAsync(
-                (service, callbackId, cancellationToken) => service.StartScanningForDesignerAttributesAsync(callbackId, cancellationToken),
+            var trackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            var priorityDocument = trackingService.TryGetActiveDocument();
+
+            await connection.TryInvokeAsync(
+                _workspace.CurrentSolution,
+                (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(callbackId, checksum, priorityDocument, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
 
-        public void StartScanningForDesignerAttributesInCurrentProcess(CancellationToken cancellation)
-        {
-            var registrationService = _workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            var analyzerProvider = new InProcDesignerAttributeIncrementalAnalyzerProvider(this);
+        //private async Task StartAsync()
+        //{
+        //    // Have to catch all exceptions coming through here as this is called from a
+        //    // fire-and-forget method and we want to make sure nothing leaks out.
+        //    try
+        //    {
+        //        await StartWorkerAsync().ConfigureAwait(false);
+        //    }
+        //    catch (OperationCanceledException)
+        //    {
+        //        // Cancellation is normal (during VS closing).  Just ignore.
+        //    }
+        //    catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
+        //    {
+        //        // Otherwise report a watson for any other exception.  Don't bring down VS.  This is
+        //        // a BG service we don't want impacting the user experience.
+        //    }
+        //}
 
-            registrationService.AddAnalyzerProvider(
-                analyzerProvider,
-                new IncrementalAnalyzerProviderMetadata(
-                    nameof(InProcDesignerAttributeIncrementalAnalyzerProvider),
-                    highPriorityForActiveFile: false,
-                    workspaceKinds: WorkspaceKind.Host));
-        }
+        //private async Task StartWorkerAsync()
+        //{
+        //    var cancellationToken = ThreadingContext.DisposalToken;
+
+        //    var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+        //    if (client == null)
+        //    {
+        //        StartScanningForDesignerAttributesInCurrentProcess(cancellationToken);
+        //        return;
+        //    }
+
+        //    // Pass ourselves in as the callback target for the OOP service.  As it discovers
+        //    // designer attributes it will call back into us to notify VS about it.
+        //    _lazyConnection = client.CreateConnection<IRemoteDesignerAttributeDiscoveryService>(callbackTarget: this);
+
+        //    // Now kick off scanning in the OOP process.
+        //    // If the call fails an error has already been reported and there is nothing more to do.
+        //    _ = await _lazyConnection.TryInvokeAsync(
+        //        (service, callbackId, cancellationToken) => service.StartScanningForDesignerAttributesAsync(callbackId, cancellationToken),
+        //        cancellationToken).ConfigureAwait(false);
+        //}
+
+        //public void StartScanningForDesignerAttributesInCurrentProcess(CancellationToken cancellation)
+        //{
+        //    var registrationService = _workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
+        //    var analyzerProvider = new InProcDesignerAttributeIncrementalAnalyzerProvider(this);
+
+        //    registrationService.AddAnalyzerProvider(
+        //        analyzerProvider,
+        //        new IncrementalAnalyzerProviderMetadata(
+        //            nameof(InProcDesignerAttributeIncrementalAnalyzerProvider),
+        //            highPriorityForActiveFile: false,
+        //            workspaceKinds: WorkspaceKind.Host));
+        //}
 
         private async ValueTask NotifyProjectSystemAsync(
             ImmutableSegmentedList<DesignerAttributeData> data, CancellationToken cancellationToken)
@@ -338,8 +403,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// </summary>
         public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(_workQueue);
-            _workQueue.AddWork(data);
+            Contract.ThrowIfNull(_notificationProjectSystemQueue);
+            _notificationProjectSystemQueue.AddWork(data);
             return ValueTaskFactory.CompletedTask;
         }
 

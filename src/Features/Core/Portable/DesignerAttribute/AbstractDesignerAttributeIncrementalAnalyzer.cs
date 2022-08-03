@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -16,60 +17,76 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DesignerAttribute
 {
-    internal abstract class AbstractDesignerAttributeIncrementalAnalyzer : IncrementalAnalyzerBase
+    internal sealed class DesignerAttributeComputer
     {
+        public interface ICallback
+        {
+            ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken);
+            ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
+        }
+
+        private readonly ICallback _callback;
+
+        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+
+        private readonly HashSet<ProjectId> _lastScannedProjectIds = new();
+
         /// <summary>
         /// Keep track of the last information we reported.  We will avoid notifying the host if we recompute and these
         /// don't change.
         /// </summary>
-        private readonly ConcurrentDictionary<DocumentId, (string? category, VersionStamp projectVersion)> _documentToLastReportedInformation =
-            new ConcurrentDictionary<DocumentId, (string? category, VersionStamp projectVersion)>();
+        private readonly ConcurrentDictionary<DocumentId, (string? category, VersionStamp projectVersion)> _documentToLastReportedInformation = new();
 
-        protected AbstractDesignerAttributeIncrementalAnalyzer()
+        public DesignerAttributeComputer(ICallback callback)
         {
+            _callback = callback;
         }
 
-        protected abstract ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken);
-
-        protected abstract ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
-
-        public override async Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
+        /// <summary>
+        /// Must always be called serially.
+        /// </summary>
+        public async Task ProcessSolutionAsync(Solution solution, DocumentId? priorityDocumentId, CancellationToken cancellationToken)
         {
-            await ReportProjectRemovedAsync(projectId, cancellationToken).ConfigureAwait(false);
-
-            foreach (var docId in _documentToLastReportedInformation.Keys)
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (projectId == docId.ProjectId)
-                    _documentToLastReportedInformation.TryRemove(docId, out _);
+                // Remove any projects that are now gone.
+                foreach (var oldProjectId in _lastScannedProjectIds)
+                {
+                    if (!solution.ContainsProject(oldProjectId))
+                        await _callback.ReportProjectRemovedAsync(oldProjectId, cancellationToken).ConfigureAwait(false);
+                }
+
+                _lastScannedProjectIds.Clear();
+
+                // Now remove any documents that are now gone.
+                foreach (var docId in _documentToLastReportedInformation.Keys)
+                {
+                    if (!solution.ContainsDocument(docId))
+                        _documentToLastReportedInformation.TryRemove(docId, out _);
+                }
+
+                // Handle the priority doc.
+                var priorityDocument = solution.GetDocument(priorityDocumentId);
+                if (priorityDocument != null)
+                {
+                    await ProcessProjectAsync(priorityDocument.Project, priorityDocument, cancellationToken).ConfigureAwait(false);
+
+                    // now scan all the other files from that project.
+                    await ProcessProjectAsync(priorityDocument.Project, specificDocument: null, cancellationToken).ConfigureAwait(false);
+                }
+
+                // Process the rest of the projects in dependency order so that their data is ready when we hit the 
+                // projects that depend on them.
+                var dependencyGraph = solution.GetProjectDependencyGraph();
+                foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects())
+                {
+                    if (projectId != priorityDocumentId?.ProjectId)
+                        await ProcessProjectAsync(solution.GetRequiredProject(projectId), specificDocument: null, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 
-        public override Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
-        {
-            _documentToLastReportedInformation.TryRemove(documentId, out _);
-            return Task.CompletedTask;
-        }
-
-        public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
-            => AnalyzeProjectAsync(project, specificDocument: null, cancellationToken);
-
-        public override Task AnalyzeDocumentAsync(Document document, SyntaxNode? body, InvocationReasons reasons, CancellationToken cancellationToken)
-        {
-            // don't need to reanalyze file if just a method body was edited.  That can't
-            // affect designer attributes.
-            if (body != null)
-                return Task.CompletedTask;
-
-            // When we register our analyzer we will get called into for every document to
-            // 'reanalyze' them all.  Ignore those as we would prefer to analyze the project
-            // en-mass.
-            if (reasons.Contains(PredefinedInvocationReasons.Reanalyze))
-                return Task.CompletedTask;
-
-            return AnalyzeProjectAsync(document.Project, document, cancellationToken);
-        }
-
-        private async Task AnalyzeProjectAsync(Project project, Document? specificDocument, CancellationToken cancellationToken)
+        private async Task ProcessProjectAsync(Project project, Document? specificDocument, CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
                 return;
@@ -95,7 +112,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
             if (!changedData.IsEmpty)
             {
-                await ReportDesignerAttributeDataAsync(changedData.SelectAsArray(d => d.data), cancellationToken).ConfigureAwait(false);
+                await _callback.ReportDesignerAttributeDataAsync(changedData.SelectAsArray(d => d.data), cancellationToken).ConfigureAwait(false);
             }
 
             // Now, keep track of what we've reported to the host so we won't report unchanged files in the future.

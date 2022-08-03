@@ -25,22 +25,36 @@ namespace Microsoft.CodeAnalysis.Remote
             _callback = callback;
         }
 
-        public ValueTask StartScanningForDesignerAttributesAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+        //public ValueTask StartScanningForDesignerAttributesAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+        //{
+        //    return RunServiceAsync(cancellationToken =>
+        //    {
+        //        var registrationService = GetWorkspace().Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
+        //        var analyzerProvider = new RemoteDesignerAttributeIncrementalAnalyzerProvider(_callback, callbackId);
+
+        //        registrationService.AddAnalyzerProvider(
+        //            analyzerProvider,
+        //            new IncrementalAnalyzerProviderMetadata(
+        //                nameof(RemoteDesignerAttributeIncrementalAnalyzerProvider),
+        //                highPriorityForActiveFile: false,
+        //                workspaceKinds: WorkspaceKind.RemoteWorkspace));
+
+        //        return default;
+        //    }, cancellationToken);
+        //}
+
+        public ValueTask DiscoverDesignerAttributesAsync(
+            Checksum solutionChecksum,
+            DocumentId? priorityDocument,
+            CancellationToken cancellationToken)
         {
-            return RunServiceAsync(cancellationToken =>
-            {
-                var registrationService = GetWorkspace().Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                var analyzerProvider = new RemoteDesignerAttributeIncrementalAnalyzerProvider(_callback, callbackId);
-
-                registrationService.AddAnalyzerProvider(
-                    analyzerProvider,
-                    new IncrementalAnalyzerProviderMetadata(
-                        nameof(RemoteDesignerAttributeIncrementalAnalyzerProvider),
-                        highPriorityForActiveFile: false,
-                        workspaceKinds: WorkspaceKind.RemoteWorkspace));
-
-                return default;
-            }, cancellationToken);
+            return RunServiceAsync(
+                solutionChecksum,
+                async solution =>
+                {
+                    _callback.InvokeAsync()
+                },
+                cancellationToken);
         }
     }
 }

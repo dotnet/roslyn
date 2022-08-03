@@ -20,29 +20,33 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     {
         internal interface ICallback
         {
-            ValueTask OnProjectRemovedAsync(RemoteServiceCallbackId callbackId, ProjectId projectId, CancellationToken cancellationToken);
-            ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
+            ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken);
+            ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
+
+            //ValueTask OnProjectRemovedAsync(RemoteServiceCallbackId callbackId, ProjectId projectId, CancellationToken cancellationToken);
+            //ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
         }
 
-        ValueTask StartScanningForDesignerAttributesAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellation);
-    }
-
-    [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteDesignerAttributeDiscoveryService)), Shared]
-    internal sealed class RemoteDesignerAttributeDiscoveryCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteDesignerAttributeDiscoveryService.ICallback
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteDesignerAttributeDiscoveryCallbackDispatcher()
-        {
-        }
-
-        private IDesignerAttributeListener GetLogService(RemoteServiceCallbackId callbackId)
-            => (IDesignerAttributeListener)GetCallback(callbackId);
-
-        public ValueTask OnProjectRemovedAsync(RemoteServiceCallbackId callbackId, ProjectId projectId, CancellationToken cancellationToken)
-            => GetLogService(callbackId).OnProjectRemovedAsync(projectId, cancellationToken);
-
-        public ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
-            => GetLogService(callbackId).ReportDesignerAttributeDataAsync(data, cancellationToken);
+        ValueTask DiscoverDesignerAttributesAsync(Checksum solutionChecksum, DocumentId? priorityDocument, CancellationToken cancellationToken);
     }
 }
+
+//    [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteDesignerAttributeDiscoveryService)), Shared]
+//    internal sealed class RemoteDesignerAttributeDiscoveryCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteDesignerAttributeDiscoveryService.ICallback
+//    {
+//        [ImportingConstructor]
+//        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+//        public RemoteDesignerAttributeDiscoveryCallbackDispatcher()
+//        {
+//        }
+
+//        private IDesignerAttributeListener GetLogService(RemoteServiceCallbackId callbackId)
+//            => (IDesignerAttributeListener)GetCallback(callbackId);
+
+//        public ValueTask OnProjectRemovedAsync(RemoteServiceCallbackId callbackId, ProjectId projectId, CancellationToken cancellationToken)
+//            => GetLogService(callbackId).OnProjectRemovedAsync(projectId, cancellationToken);
+
+//        public ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
+//            => GetLogService(callbackId).ReportDesignerAttributeDataAsync(data, cancellationToken);
+//    }
+//}
