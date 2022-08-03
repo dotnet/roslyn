@@ -112,7 +112,7 @@ namespace N
         }
 
         [Fact]
-        public async Task TestSetProperty_NoAction()
+        public async Task TestSetProperty()
         {
             var initialMarkup = @"
 namespace N
@@ -123,11 +123,17 @@ namespace N
     }
 }
 ";
-            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+            var fixedMarkup = @"
+namespace N
+{
+    public record [|C|](int P);
+}
+";
+            await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
-        public async Task TestInitPropertyOnStruct_NoAction()
+        public async Task TestInitPropertyOnStruct()
         {
             var initialMarkup = @"
 namespace N
@@ -138,7 +144,40 @@ namespace N
     }
 }
 ";
-            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+            var fixedMarkup = @"
+namespace N
+{
+    public record struct [|C|](int P)
+    {
+        public int P { get; init; } = P;
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestPrivateSetProperty()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; private set; }
+    }
+}
+";
+            var fixedMarkup = @"
+namespace N
+{
+    public record [|C|](int P)
+    {
+        public int P { get; private set; } = P;
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -345,6 +384,33 @@ namespace N
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        // if there are both init and set properties, convert both but keep set property override
+        [Fact]
+        public async Task TestSetAndInitProperties()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; set; }
+
+        public int Q { get; init; }
+    }
+}
+";
+            var fixedMarkup = @"
+namespace N
+{
+    public record [|C|](int P, int Q)
+    {
+        public int P { get; set; } = P;
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1141,6 +1207,86 @@ namespace N
         private bool PrintMembers(StringBuilder builder)
         {
             builder.Append(string.Format(""{{0}, {1}}"", P, B));
+            return true;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDontModifyPrintMembersWithDifferentSignature1()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public bool PrintMembers()
+        {
+            Console.WriteLine(string.Format(""{{0}, {1}}"", P, B));
+            return true;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+
+namespace N
+{
+    public record C(int P, bool B)
+    {
+
+        public bool PrintMembers()
+        {
+            Console.WriteLine(string.Format(""{{0}, {1}}"", P, B));
+            return true;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDontModifyPrintMembersWithDifferentSignature2()
+        {
+            var initialMarkup = @"
+using System.Collections.Generic;
+
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public bool PrintMembers(List<string> builder)
+        {
+            builder.Add(string.Format(""{{0}, {1}}"", P, B));
+            return true;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System.Collections.Generic;
+
+namespace N
+{
+    public record C(int P, bool B)
+    {
+
+        public bool PrintMembers(List<string> builder)
+        {
+            builder.Add(string.Format(""{{0}, {1}}"", P, B));
             return true;
         }
     }

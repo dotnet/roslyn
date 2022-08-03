@@ -62,8 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             IPropertySymbol propertySymbol,
             INamedTypeSymbol containingType)
         {
+            // properties with identifiers or expression bodies are too complex to move
             // unimplemented or static properties shouldn't be in a constructor
-            if (propertySymbol.IsAbstract || propertySymbol.IsStatic)
+            if (property.Initializer != null ||
+                property.ExpressionBody != null ||
+                propertySymbol.IsAbstract ||
+                propertySymbol.IsStatic)
             {
                 return ConvertStatus.DoNotConvert;
             }
