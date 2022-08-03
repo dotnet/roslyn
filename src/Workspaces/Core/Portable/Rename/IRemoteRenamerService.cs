@@ -29,7 +29,18 @@ namespace Microsoft.CodeAnalysis.Rename
         internal interface ICallback // : IRemoteOptionsCallback<CodeCleanupOptions>
         {
             ValueTask<CodeCleanupOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken);
+            ValueTask KeepAliveAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
         }
+
+        /// <summary>
+        /// Keeps alive this solution in the OOP process until the cancellation token is triggered.  Used so that we can
+        /// call FindRenameLocationsAsync followed by many calls to ResolveConflictsAsync, knowing that things will stay 
+        /// hydrated and alive on the OOP side.
+        /// </summary>
+        ValueTask KeepAliveAsync(
+            Checksum solutionChecksum,
+            RemoteServiceCallbackId callbackId,
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Runs the entire rename operation OOP and returns the final result. More efficient (due to less back and
@@ -73,6 +84,12 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public ValueTask<CodeCleanupOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
             => ((RemoteOptionsProvider<CodeCleanupOptions>)GetCallback(callbackId)).GetOptionsAsync(language, cancellationToken);
+
+        public ValueTask KeepAliveAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+        {
+            ((TaskCompletionSource<bool>)GetCallback(callbackId)).TrySetResult(true);
+            return default;
+        }
     }
 
     [DataContract]
@@ -187,8 +204,6 @@ namespace Microsoft.CodeAnalysis.Rename
         [DataMember(Order = 0)]
         public readonly SymbolRenameOptions Options;
 
-        // We use arrays so we can represent default immutable arrays.
-
         [DataMember(Order = 1)]
         public readonly ImmutableArray<SerializableRenameLocation> Locations;
 
@@ -217,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Rename
             foreach (var loc in this.Locations)
                 locBuilder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
 
-            return locBuilder.ToImmutable();
+            return locBuilder.ToImmutableAndClear();
         }
     }
 

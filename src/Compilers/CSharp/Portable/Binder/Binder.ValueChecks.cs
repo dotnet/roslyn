@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (UseUpdatedEscapeRules)
             {
-                return parameter.Scope == DeclarationScope.ValueScoped ?
+                return parameter.EffectiveScope == DeclarationScope.ValueScoped ?
                     Binder.TopLevelScope :
                     Binder.ExternalScope;
             }
@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (UseUpdatedEscapeRules)
             {
-                return parameter.RefKind is RefKind.None || parameter.Scope != DeclarationScope.Unscoped ? Binder.TopLevelScope : Binder.ExternalScope;
+                return parameter.RefKind is RefKind.None || parameter.EffectiveScope != DeclarationScope.Unscoped ? Binder.TopLevelScope : Binder.ExternalScope;
             }
             else
             {
@@ -1822,7 +1822,7 @@ moreArguments:
                     // SPEC: For a given argument `a` that is passed to parameter `p`:
                     // SPEC:  1. ...
                     // SPEC: 2. If `p` is `scoped` then `a` does not contribute *safe-to-escape* when considering arguments.
-                    if (parameter?.Scope == DeclarationScope.ValueScoped)
+                    if (parameter?.EffectiveScope == DeclarationScope.ValueScoped)
                     {
                         return false;
                     }
@@ -1909,7 +1909,7 @@ moreArguments:
                 }
             }
 
-            scope = paramIndex >= 0 ? parameters[paramIndex].Scope : DeclarationScope.Unscoped;
+            scope = paramIndex >= 0 ? parameters[paramIndex].EffectiveScope : DeclarationScope.Unscoped;
             return effectiveRefKind;
         }
 
@@ -2227,12 +2227,23 @@ moreArguments:
                     return ((BoundLocal)expr).LocalSymbol.RefEscapeScope;
 
                 case BoundKind.ThisReference:
+                    Debug.Assert(this.ContainingMember() is MethodSymbol { ThisParameter: not null });
+
                     var thisref = (BoundThisReference)expr;
 
                     // "this" is an RValue, unless in a struct.
                     if (!thisref.Type.IsValueType)
                     {
                         break;
+                    }
+
+                    if (UseUpdatedEscapeRules)
+                    {
+                        if (this.ContainingMember() is MethodSymbol { ThisParameter: var thisParameter } &&
+                            thisParameter.EffectiveScope == DeclarationScope.Unscoped)
+                        {
+                            return Binder.ExternalScope;
+                        }
                     }
 
                     //"this" is not returnable by reference in a struct.
@@ -2481,6 +2492,8 @@ moreArguments:
                     return CheckLocalRefEscape(node, local, escapeTo, checkingReceiver, diagnostics);
 
                 case BoundKind.ThisReference:
+                    Debug.Assert(this.ContainingMember() is MethodSymbol { ThisParameter: not null });
+
                     var thisref = (BoundThisReference)expr;
 
                     // "this" is an RValue, unless in a struct.
@@ -2492,6 +2505,15 @@ moreArguments:
                     //"this" is not returnable by reference in a struct.
                     if (escapeTo == Binder.ExternalScope)
                     {
+                        if (UseUpdatedEscapeRules)
+                        {
+                            if (this.ContainingMember() is MethodSymbol { ThisParameter: var thisParameter } &&
+                                thisParameter.EffectiveScope == DeclarationScope.Unscoped)
+                            {
+                                // can ref escape to any other level
+                                return true;
+                            }
+                        }
                         Error(diagnostics, ErrorCode.ERR_RefReturnStructThis, node);
                         return false;
                     }
