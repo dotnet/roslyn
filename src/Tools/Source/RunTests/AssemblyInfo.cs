@@ -22,7 +22,7 @@ public readonly record struct AssemblyInfo(string AssemblyPath) : IComparable
         var otherAssembly = (AssemblyInfo)obj;
 
         // Ensure we have a consistent ordering by ordering by assembly path.
-        return this.AssemblyPath.CompareTo(otherAssembly.AssemblyPath);
+        return string.Compare(this.AssemblyPath, otherAssembly.AssemblyPath, StringComparison.Ordinal);
     }
 }
 

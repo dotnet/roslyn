@@ -109,16 +109,17 @@ internal class TestDiscovery
         }
     }
 
-
     private static List<string> GetAssemblies(string binDirectory, bool isUnix)
     {
-        var unitTestAssemblies = Directory.GetFiles(binDirectory, "*UnitTests.dll", SearchOption.AllDirectories).Where(ShouldInclude);
+        var unitTestAssemblies = Directory.GetFiles(binDirectory, "*.UnitTests.dll", SearchOption.AllDirectories).Where(ShouldInclude);
         return unitTestAssemblies.ToList();
 
         bool ShouldInclude(string path)
         {
             if (isUnix)
             {
+                // Our unix build will build net framework dlls for multi-targeted projects.
+                // These are not valid testing on unix and discovery will throw if we try.
                 return Path.GetFileName(Path.GetDirectoryName(path)) != "net472";
             }
 

@@ -31,11 +31,13 @@ namespace RunTests
     internal sealed class AssemblyScheduler
     {
         /// <summary>
-        /// Our execution time limit is 2m30s.  We really want to run tests under 5 minutes, but we need to limit test execution time
-        /// to 2m30s to account for overhead elsewhere in setting up the test run, for example
+        /// We attempt to partition our tests into work items that execute in under 2 minutes 30s.  This is a derived limit based on a goal of running all tests
+        /// in under 5 minutes.  However because of overhead in setting up the test run, e.g.
         ///   1.  Test discovery.
         ///   2.  Downloading assets to the helix machine.
         ///   3.  Setting up the test host for each assembly.
+        ///   
+        /// we need to actually build partitions that run in under 5 minutes, hence our limit here of 2m30s.
         /// </summary>
         private static readonly TimeSpan s_maxExecutionTime = TimeSpan.FromSeconds(150);
 
@@ -290,10 +292,17 @@ namespace RunTests
         {
             var assemblyDirectory = Path.GetDirectoryName(assemblyInfo.AssemblyPath);
             var testListPath = Path.Combine(assemblyDirectory!, "testlist.json");
-            Contract.Assert(File.Exists(testListPath));
+            if (!File.Exists(testListPath))
+            {
+                throw new ArgumentException($"{testListPath} does not exist");
+            }
 
             var deserialized = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(testListPath));
-            Contract.Assert(deserialized != null);
+            if (deserialized == null)
+            {
+                throw new InvalidOperationException($"Could not deserialize {testListPath}");
+            }
+
             var tests = deserialized.GroupBy(GetTypeName)
                 .Select(group => new TypeInfo(GetName(group.Key), group.Key, group.Select(test => new TestMethodInfo(GetName(test), test, TimeSpan.Zero)).ToImmutableArray()))
                 .ToImmutableArray();

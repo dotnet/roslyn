@@ -16,6 +16,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.TestManagement.WebApi;
+using Microsoft.VisualStudio.Services.CircuitBreaker;
 using Microsoft.VisualStudio.Services.TestResults.WebApi;
 using Microsoft.VisualStudio.Services.WebApi;
 
@@ -72,8 +73,7 @@ internal class TestHistoryManager
 
         Console.WriteLine($"Getting last successful build for branch {targetBranch}");
         var adoBranch = $"refs/heads/{targetBranch}";
-        var builds = await buildClient.GetBuildsAsync2(project: "public", new int[] { RoslynCiBuildDefinitionId }, resultFilter: BuildResult.Succeeded, queryOrder: BuildQueryOrder.FinishTimeDescending, maxBuildsPerDefinition: 1, reasonFilter: BuildReason.IndividualCI, branchName: adoBranch, cancellationToken: cancellationToken);
-        var lastSuccessfulBuild = builds?.FirstOrDefault();
+        var lastSuccessfulBuild = await GetLastSuccessfulBuildAsync(RoslynCiBuildDefinitionId, adoBranch, buildClient, cancellationToken);
         if (lastSuccessfulBuild == null)
         {
             // If this is a new branch we may not have any historical data for it.
@@ -82,13 +82,7 @@ internal class TestHistoryManager
         }
 
         using var testClient = connection.GetClient<TestResultsHttpClient>();
-
-        // API requires us to pass a time range to query runs for.  So just pass the times from the build.
-        var minTime = lastSuccessfulBuild.QueueTime!.Value;
-        var maxTime = lastSuccessfulBuild.FinishTime!.Value;
-        var runsInBuild = await testClient.QueryTestRunsAsync2("public", minTime, maxTime, buildIds: new int[] { lastSuccessfulBuild.Id }, cancellationToken: cancellationToken);
-
-        var runForThisStage = runsInBuild.SingleOrDefault(r => r.Name.Contains(phaseName));
+        var runForThisStage = await GetRunForStageAsync(lastSuccessfulBuild, phaseName, testClient, cancellationToken);
         if (runForThisStage == null)
         {
             // If this is a new stage, historical runs will not have any data for it.
@@ -108,7 +102,7 @@ internal class TestHistoryManager
         timer.Start();
         for (var i = 0; i < totalTests; i += MaxTestsReturnedPerRequest)
         {
-            var testResults = await testClient.GetTestResultsAsync("public", runForThisStage.Id, skip: i, top: MaxTestsReturnedPerRequest, cancellationToken: cancellationToken);
+            var testResults = await GetTestResultsAsync(runForThisStage, i, MaxTestsReturnedPerRequest, testClient, cancellationToken);
             foreach (var testResult in testResults)
             {
                 // Helix outputs results for the whole dll work item suffixed with WorkItemExecution which we should ignore.
@@ -164,4 +158,61 @@ internal class TestHistoryManager
         return true;
     }
 
+    private static async Task<Build?> GetLastSuccessfulBuildAsync(int definitionId, string branchName, BuildHttpClient buildClient, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var builds = await buildClient.GetBuildsAsync2(
+                        project: "public",
+                        new int[] { definitionId },
+                        resultFilter: BuildResult.Succeeded,
+                        queryOrder: BuildQueryOrder.FinishTimeDescending,
+                        maxBuildsPerDefinition: 1,
+                        reasonFilter: BuildReason.IndividualCI,
+                        branchName: branchName,
+                        cancellationToken: cancellationToken);
+            return builds?.FirstOrDefault();
+        }
+        catch (Exception ex)
+        {
+            // We will fallback to test count partitioning if we fail to query ADO.
+            ConsoleUtil.WriteLine($"Caught exception querying ADO for passing build: {ex}");
+            return null;
+        }
+    }
+
+    private static async Task<TestRun?> GetRunForStageAsync(Build build, string phaseName, TestResultsHttpClient testClient, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // API requires us to pass a time range to query runs for.  So just pass the times from the build.
+            var minTime = build.QueueTime!.Value;
+            var maxTime = build.FinishTime!.Value;
+            var runsInBuild = await testClient.QueryTestRunsAsync2("public", minTime, maxTime, buildIds: new int[] { build.Id }, cancellationToken: cancellationToken);
+
+            var runForThisStage = runsInBuild.SingleOrDefault(r => r.Name.Contains(phaseName));
+            return runForThisStage;
+        }
+        catch (Exception ex)
+        {
+            // We will fallback to test count partitioning if we fail to query ADO.
+            ConsoleUtil.WriteLine($"Caught exception querying ADO for test runs: {ex}");
+            return null;
+        }
+    }
+
+    private static async Task<List<TestCaseResult>> GetTestResultsAsync(TestRun testRun, int skip, int top, TestResultsHttpClient testClient, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var testResults = await testClient.GetTestResultsAsync("public", testRun.Id, skip: skip, top: top, cancellationToken: cancellationToken);
+            return testResults ?? new List<TestCaseResult>();
+        }
+        catch (Exception ex)
+        {
+            // We will fallback to test count partitioning if we fail to query ADO.
+            ConsoleUtil.WriteLine($"Caught exception querying ADO for test runs: {ex}");
+            return new List<TestCaseResult>();
+        }
+    }
 }

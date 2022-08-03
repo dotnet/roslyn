@@ -318,7 +318,10 @@ namespace RunTests
                 }
             }
 
-            Contract.Assert(list.Count > 0, $"Did not find any test assemblies");
+            if (list.Count == 0)
+            {
+                throw new InvalidOperationException($"Did not find any test assemblies");
+            }
 
             list.Sort();
             return list.ToImmutableArray();
