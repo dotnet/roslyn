@@ -160,9 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type.Type));
             }
 
-            if (ParameterHelpers.RequiresScopedRefAttribute(this))
+            if (ParameterHelpers.RequiresLifetimeAnnotationAttribute(this))
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeScopedRefAttribute(this, Scope));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeLifetimeAnnotationAttribute(this, Scope));
             }
 
             if (type.Type.ContainsTupleNames() &&

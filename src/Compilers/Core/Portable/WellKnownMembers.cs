@@ -3583,12 +3583,14 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
 
-                // System_Runtime_CompilerServices_ScopedRefAttribute__ctor
+                // System_Runtime_CompilerServices_LifetimeAnnotationAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_LifetimeAnnotationAttribute - WellKnownType.ExtSentinel),                                       // DeclaringTypeId
                 0,                                                                                                          // Arity
-                    0,                                                                                                      // Method Signature
+                    2,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
 
                 // System_MemoryExtensions__SequenceEqual_Span_T
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                               // Flags
