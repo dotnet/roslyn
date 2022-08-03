@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Testing
             AnalyzerConfigFiles.AddRange(sourceState.AnalyzerConfigFiles);
             AdditionalFilesFactories.AddRange(sourceState.AdditionalFilesFactories);
             AdditionalProjectReferences.AddRange(sourceState.AdditionalProjectReferences);
+            AdditionalReferences.AddRange(sourceState.AdditionalReferences);
         }
 
         public string Name { get; }
