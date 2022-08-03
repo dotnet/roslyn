@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             diagnostics.AddRange(additionalDiagnostics);
             var results = SortDistinctDiagnostics(diagnostics);
-            return results.ToImmutableArray();
+            return results;
         }
 
         protected virtual Task<Compilation> GetProjectCompilationAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
