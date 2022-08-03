@@ -261,19 +261,17 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 await AddLocationSpanAsync(location, solution, spanSet, tagMap, HighlightSpanKind.Reference, cancellationToken).ConfigureAwait(false);
             }
 
-            using var listDisposer = ArrayBuilder<DocumentHighlights>.GetInstance(tagMap.Count, out var list);
+            using var _1 = ArrayBuilder<DocumentHighlights>.GetInstance(tagMap.Count, out var list);
             foreach (var kvp in tagMap)
             {
-                using var spansDisposer = ArrayBuilder<HighlightSpan>.GetInstance(kvp.Value.Count, out var spans);
+                using var _2 = ArrayBuilder<HighlightSpan>.GetInstance(kvp.Value.Count, out var spans);
                 foreach (var span in kvp.Value)
-                {
                     spans.Add(span);
-                }
 
-                list.Add(new DocumentHighlights(kvp.Key, spans.ToImmutable()));
+                list.Add(new DocumentHighlights(kvp.Key, spans.ToImmutableAndClear()));
             }
 
-            return list.ToImmutable();
+            return list.ToImmutableAndClear();
         }
 
         private static bool ShouldIncludeDefinition(ISymbol symbol)

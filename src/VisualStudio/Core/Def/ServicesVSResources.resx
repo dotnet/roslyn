@@ -2004,4 +2004,7 @@ Additional information: {1}</value>
   <data name="Document_Outline" xml:space="preserve">
     <value>Document Outline</value>
   </data>
+  <data name="Enable_navigation_to_sourcelink_and_embedded_sources" xml:space="preserve">
+    <value>Enable navigation to Source Link and Embedded sources</value>
+  </data>
 </root>

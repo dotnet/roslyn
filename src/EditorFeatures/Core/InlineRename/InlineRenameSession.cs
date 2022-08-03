@@ -87,6 +87,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public InlineRenameFileRenameInfo FileRenameInfo { get; }
 
         /// <summary>
+        /// Task used to hold a session alive with the OOP server.  This allows us to pin the initial solution snapshot
+        /// over on the oop side, which is valuable for preventing it from constantly being dropped/synced on every
+        /// conflict resolution step.
+        /// </summary>
+        private readonly Task _keepAliveSessionTask;
+
+        /// <summary>
         /// The task which computes the main rename locations against the original workspace
         /// snapshot.
         /// </summary>
@@ -96,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// The cancellation token for most work being done by the inline rename session. This
         /// includes the <see cref="_allRenameLocationsTask"/> tasks.
         /// </summary>
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
 
         /// <summary>
         /// This task is a continuation of the <see cref="_allRenameLocationsTask"/> that is the result of computing
@@ -179,6 +186,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 FileRenameInfo = InlineRenameFileRenameInfo.NotAllowed;
             }
 
+            // Open a session to oop, syncing our solution to it and pinning it there.  The connection will close once
+            // _cancellationTokenSource is canceled (which we always do when the session is finally ended).
+            _keepAliveSessionTask = Renamer.CreateRemoteKeepAliveSessionAsync(_baseSolution, _cancellationTokenSource.Token);
             InitializeOpenBuffers(triggerSpan);
         }
 
@@ -304,6 +314,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             _allRenameLocationsTask = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
+                // Ensure that our keep-alive session is up and running.
+                await _keepAliveSessionTask.ConfigureAwait(false);
+
                 // Join prior work before proceeding, since it performs a required state update.
                 // https://github.com/dotnet/roslyn/pull/34254#discussion_r267024593
                 if (currentRenameLocationsTask != null)
@@ -711,19 +724,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public void Commit(bool previewChanges = false)
             => CommitWorker(previewChanges);
 
-        /// <returns><see langword="true"/> if the rename operation was commited, <see
+        /// <returns><see langword="true"/> if the rename operation was committed, <see
         /// langword="false"/> otherwise</returns>
         private bool CommitWorker(bool previewChanges)
         {
-            return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, CancellationToken.None));
+            // We're going to synchronously block the UI thread here.  So we can't use the background work indicator (as
+            // it needs the UI thread to update itself.  This will force us to go through the Threaded-Wait-Dialog path
+            // which at least will allow the user to cancel the rename if they want.
+            //
+            // In the future we should remove this entrypoint and have all callers use CommitAsync instead.
+            return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false, CancellationToken.None));
         }
 
         public Task CommitAsync(bool previewChanges, CancellationToken cancellationToken)
-           => CommitWorkerAsync(previewChanges, cancellationToken);
+           => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true, cancellationToken);
 
         /// <returns><see langword="true"/> if the rename operation was commited, <see
         /// langword="false"/> otherwise</returns>
-        private async Task<bool> CommitWorkerAsync(bool previewChanges, CancellationToken cancellationToken)
+        private async Task<bool> CommitWorkerAsync(bool previewChanges, bool canUseBackgroundWorkIndicator, CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             VerifyNotDismissed();
@@ -748,7 +766,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             try
             {
-                if (this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
+                if (canUseBackgroundWorkIndicator && this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
                 {
                     // We do not cancel on edit because as part of the rename system we have asynchronous work still
                     // occurring that itself may be asynchronously editing the buffer (for example, updating reference
@@ -760,7 +778,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         _triggerView, TriggerSpan, EditorFeaturesResources.Computing_Rename_information,
                         cancelOnEdit: false, cancelOnFocusLost: false);
 
-                    await CommitCoreAsync(context, previewChanges).ConfigureAwait(false);
+                    await CommitCoreAsync(context, previewChanges).ConfigureAwait(true);
                 }
                 else
                 {
@@ -770,7 +788,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         allowCancellation: true,
                         showProgress: false);
 
-                    await CommitCoreAsync(context, previewChanges).ConfigureAwait(false);
+                    // .ConfigureAwait(true); so we can return to the UI thread to dispose the operation context.  It
+                    // has a non-JTF threading dependency on the main thread.  So it can deadlock if you call it on a BG
+                    // thread when in a blocking JTF call.
+                    await CommitCoreAsync(context, previewChanges).ConfigureAwait(true);
                 }
             }
             catch (OperationCanceledException)

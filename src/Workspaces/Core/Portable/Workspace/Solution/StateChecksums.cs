@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -20,11 +21,11 @@ namespace Microsoft.CodeAnalysis.Serialization
             ChecksumCollection analyzerReferenceChecksums,
             Checksum frozenSourceGeneratedDocumentIdentity,
             Checksum frozenSourceGeneratedDocumentText)
-            : this(new object[] { attributesChecksum, projectChecksums, analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentity, frozenSourceGeneratedDocumentText })
+            : this(ImmutableArray.Create<object>(attributesChecksum, projectChecksums, analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentity, frozenSourceGeneratedDocumentText))
         {
         }
 
-        public SolutionStateChecksums(object[] children) : base(children)
+        public SolutionStateChecksums(ImmutableArray<object> children) : base(children)
         {
         }
 
@@ -99,9 +100,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             ChecksumCollection metadataReferenceChecksums,
             ChecksumCollection analyzerReferenceChecksums,
             ChecksumCollection additionalDocumentChecksums,
-            ChecksumCollection analyzerConfigDocumentChecksumCollection)
-            : this(
-                (object)infoChecksum,
+            ChecksumCollection analyzerConfigDocumentChecksums)
+            : this(ImmutableArray.Create<object>(
+                infoChecksum,
                 compilationOptionsChecksum,
                 parseOptionsChecksum,
                 documentChecksums,
@@ -109,11 +110,11 @@ namespace Microsoft.CodeAnalysis.Serialization
                 metadataReferenceChecksums,
                 analyzerReferenceChecksums,
                 additionalDocumentChecksums,
-                analyzerConfigDocumentChecksumCollection)
+                analyzerConfigDocumentChecksums))
         {
         }
 
-        public ProjectStateChecksums(params object[] children) : base(children)
+        public ProjectStateChecksums(ImmutableArray<object> children) : base(children)
         {
         }
 
@@ -209,11 +210,11 @@ namespace Microsoft.CodeAnalysis.Serialization
     internal class DocumentStateChecksums : ChecksumWithChildren
     {
         public DocumentStateChecksums(Checksum infoChecksum, Checksum textChecksum)
-            : this((object)infoChecksum, textChecksum)
+            : this(ImmutableArray.Create<object>(infoChecksum, textChecksum))
         {
         }
 
-        public DocumentStateChecksums(params object[] children) : base(children)
+        public DocumentStateChecksums(ImmutableArray<object> children) : base(children)
         {
         }
 
