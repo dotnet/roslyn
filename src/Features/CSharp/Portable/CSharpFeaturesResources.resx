@@ -630,4 +630,7 @@
   <data name="Convert_to_positional_record" xml:space="preserve">
     <value>Convert to positional record</value>
   </data>
+  <data name="Warning_constructor_signature_conflicts_with_primary_constructor" xml:space="preserve">
+    <value>Warning: Constructor signature conflicts with primary constructor</value>
+  </data>
 </root>

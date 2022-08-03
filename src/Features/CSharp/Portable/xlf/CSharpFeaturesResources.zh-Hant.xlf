@@ -257,6 +257,11 @@
         <target state="translated">警告: 內嵌臨時變數可能會變更程式碼含義。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_constructor_signature_conflicts_with_primary_constructor">
+        <source>Warning: Constructor signature conflicts with primary constructor</source>
+        <target state="new">Warning: Constructor signature conflicts with primary constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
         <source>asynchronous foreach statement</source>
         <target state="translated">非同步 foreach 陳述式</target>

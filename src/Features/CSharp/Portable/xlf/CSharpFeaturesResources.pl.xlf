@@ -257,6 +257,11 @@
         <target state="translated">Ostrzeżenie: śródwierszowe użycie zmiennej tymczasowej może zmienić znaczenie kodu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_constructor_signature_conflicts_with_primary_constructor">
+        <source>Warning: Constructor signature conflicts with primary constructor</source>
+        <target state="new">Warning: Constructor signature conflicts with primary constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
         <source>asynchronous foreach statement</source>
         <target state="translated">asynchroniczna instrukcja foreach</target>

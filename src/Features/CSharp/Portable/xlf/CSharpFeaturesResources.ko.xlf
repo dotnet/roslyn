@@ -257,6 +257,11 @@
         <target state="translated">경고: 임시 변수를 인라인 처리하면 코드 의미가 변경될 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_constructor_signature_conflicts_with_primary_constructor">
+        <source>Warning: Constructor signature conflicts with primary constructor</source>
+        <target state="new">Warning: Constructor signature conflicts with primary constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
         <source>asynchronous foreach statement</source>
         <target state="translated">비동기 foreach 문</target>

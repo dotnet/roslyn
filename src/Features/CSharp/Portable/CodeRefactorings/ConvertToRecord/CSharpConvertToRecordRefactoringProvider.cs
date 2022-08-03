@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -260,159 +259,101 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             ImmutableArray<PropertyDeclarationSyntax> propertiesToMove,
             CancellationToken cancellationToken)
         {
-            var oldMembers = typeDeclaration.Members;
-            // create capture variables for the equality operators, since we want to check both of them at the same time
-            // to make sure they can be deleted
-            OperatorDeclarationSyntax? equals = null;
-            OperatorDeclarationSyntax? notEquals = null;
+            var modifiedMembers = typeDeclaration.Members.AsImmutable();
+            // remove properties we're bringing up to positional params
+            modifiedMembers = modifiedMembers.RemoveRange(propertiesToMove);
+            // get all the constructors so we can add an initializer to them
+            // or potentially delete the primary constructor
+            var constructors = modifiedMembers
+                .WhereAsArray(member => member is ConstructorDeclarationSyntax)
+                .As<ConstructorDeclarationSyntax>();
 
-            using var _ = ArrayBuilder<MemberDeclarationSyntax>.GetInstance(out var modifiedMembers);
-            foreach (var member in oldMembers)
+            foreach (var constructor in constructors)
             {
-                switch (member)
+                // check to see if it would override the primary constructor
+                var constructorParamTypes = constructor.ParameterList.Parameters.SelectAsArray(p => p.Type!.ToString());
+                var positionalParamTypes = propertiesToMove.SelectAsArray(p => p.Type!.ToString());
+                if (constructorParamTypes.SequenceEqual(positionalParamTypes))
                 {
-                    case PropertyDeclarationSyntax property:
-                        {
-                            if (propertiesToMove.Contains(property))
-                            {
-                                continue;
-                            }
-                            break;
-                        }
-
-                    case ConstructorDeclarationSyntax constructor:
-                        {
-                            // remove the constructor with the same parameter types in the same order as the positional parameters
-                            var constructorParamTypes = constructor.ParameterList.Parameters.SelectAsArray(p => p.Type!.ToString());
-                            var positionalParamTypes = propertiesToMove.SelectAsArray(p => p.Type!.ToString());
-                            if (constructorParamTypes.SequenceEqual(positionalParamTypes))
-                            {
-                                if (!IsSimpleConstructor(
-                                    constructor, propertiesToMove, constructor.ParameterList.Parameters, semanticModel, cancellationToken))
-                                {
-                                    // if it is too complex to remove (param validation, error handling, side effects, not everything assigned)
-                                    // we won't delete, and give a warning
-                                    // TODO: if parameter defaults in constructor, move those to primary constructor
-                                    // TODO: Change warning string
-                                    modifiedMembers.Add(
-                                        constructor.WithAdditionalAnnotations(WarningAnnotation.Create("Placeholder Constructor warning")));
-                                }
-                                continue;
-                            }
-
-                            if (constructorParamTypes.Length == 1 &&
-                                constructorParamTypes.First() == typeDeclaration.Identifier.ToString())
-                            {
-                                // TODO: Check to see whether it's worth deleting
-                            }
-
-                            // TODO: Can potentially refactor statements which initialize properties with a simple expression
-                            // (not using local variables) to be moved into the this args
-                            var thisArgs = SyntaxFactory.ArgumentList(
-                                SyntaxFactory.SeparatedList(
-                                    Enumerable.Repeat(
-                                        SyntaxFactory.Argument(
-                                            SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)),
-                                        propertiesToMove.Length)));
-
-                            // TODO: look to see if there is already initializer (base or this)
-
-                            var modifiedConstructor = constructor
-                                .WithInitializer(SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer, thisArgs));
-
-                            modifiedMembers.Add(modifiedConstructor);
-                            continue;
-                        }
-
-                    case OperatorDeclarationSyntax op:
-                        {
-                            // keep track of equality overloads so we can potentially remove them later
-                            var opKind = op.OperatorToken.Kind();
-                            if (opKind == SyntaxKind.EqualsEqualsToken)
-                            {
-                                equals = op;
-                            }
-                            else if (opKind == SyntaxKind.ExclamationEqualsToken)
-                            {
-                                notEquals = op;
-                            }
-
-                            break;
-                        }
-
-                    case MethodDeclarationSyntax method:
-                        {
-                            var methodSymbol = semanticModel.GetDeclaredSymbol(method, cancellationToken);
-                            if (methodSymbol is null)
-                            {
-                                modifiedMembers.Add(method);
-                                continue;
-                            }
-
-                            if (methodSymbol.Name == "Clone")
-                            {
-                                // delete any 'clone' method as it is reserved in records
-                                continue;
-                            }
-
-                            // TODO: Ensure the single param is a StringBuilder
-                            if (methodSymbol.Name == "PrintMembers" &&
-                                methodSymbol.ReturnType.SpecialType == SpecialType.System_Boolean &&
-                                methodSymbol.Parameters.Length == 1)
-                            {
-                                if (type.TypeKind == TypeKind.Class && !type.IsSealed)
-                                {
-                                    // ensure virtual and protected modifiers
-                                    // TODO: change from virtual to override if inheriting from a record
-                                    modifiedMembers.Add(method.WithModifiers(SyntaxFactory.TokenList(
-                                        SyntaxFactory.Token(SyntaxKind.ProtectedKeyword),
-                                        SyntaxFactory.Token(SyntaxKind.VirtualKeyword))));
-                                }
-                                else
-                                {
-                                    // ensure private member
-                                    modifiedMembers.Add(method.WithModifiers(
-                                        SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))));
-                                }
-
-                                continue;
-                            }
-
-                            if (methodSymbol.Name == nameof(GetHashCode) &&
-                                methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 &&
-                                methodSymbol.Parameters.IsEmpty &&
-                                UseSystemHashCode.Analyzer.TryGetAnalyzer(semanticModel.Compilation, out var analyzer))
-                            {
-                                var methodOperation = semanticModel.GetOperation(method, cancellationToken);
-                                if (methodSymbol != null && methodOperation is IMethodBodyOperation methodBodyOperation)
-                                {
-                                    var (accessesBase, members, statements) = analyzer.GetHashedMembers(methodSymbol, methodOperation);
-                                    // TODO: check to see if the properties are the same as we would use and delete
-                                }
-
-                                // TODO: Add method back with a warning
-                                continue;
-                            }
-
-                            break;
-                        }
+                    // found a primary constructor override, now check if we are pretty sure we can remove it safely
+                    if (IsSimpleConstructor(
+                        constructor, propertiesToMove, constructor.ParameterList.Parameters, semanticModel, cancellationToken))
+                    {
+                        modifiedMembers = modifiedMembers.Remove(constructor);
+                    }
+                    else
+                    {
+                        // can't remove it safely, at least add a warning that it will produce an error
+                        modifiedMembers = modifiedMembers.Replace(constructor,
+                            constructor.WithAdditionalAnnotations(WarningAnnotation.Create(
+                                CSharpFeaturesResources.Warning_constructor_signature_conflicts_with_primary_constructor)));
+                    }
                 }
-
-                // any other members we didn't change or modify we just keep
-                modifiedMembers.Add(member);
-            }
-
-            if (equals != null && notEquals != null)
-            {
-                if (IsDefaultEqualsOperator(equals, type, semanticModel, cancellationToken) &&
-                    IsDefaultNotEqualsOperator(notEquals, type, semanticModel, cancellationToken))
+                else
                 {
-                    modifiedMembers.Remove(equals);
-                    modifiedMembers.Remove(notEquals);
+                    // non-primary constructor, add ": this(default, default...)" initializers to each
+                    var thisArgs = SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(
+                            Enumerable.Repeat(
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)),
+                                propertiesToMove.Length)));
+
+                    modifiedMembers = modifiedMembers.Replace(constructor, constructor
+                        .WithInitializer(SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer, thisArgs)));
                 }
             }
 
-            return modifiedMembers.ToImmutable();
+            // get equality operators and potentially remove them
+            var equalsOp = (OperatorDeclarationSyntax?)modifiedMembers.FirstOrDefault(member
+                => member is OperatorDeclarationSyntax { OperatorToken.RawKind: (int)SyntaxKind.EqualsEqualsToken });
+            var notEqualsOp = (OperatorDeclarationSyntax?)modifiedMembers.FirstOrDefault(member
+                => member is OperatorDeclarationSyntax { OperatorToken.RawKind: (int)SyntaxKind.ExclamationEqualsToken });
+            if (equalsOp != null && notEqualsOp != null &&
+                IsDefaultEqualsOperator(equalsOp, type, semanticModel, cancellationToken) &&
+                IsDefaultNotEqualsOperator(notEqualsOp, type, semanticModel, cancellationToken))
+            {
+                // they both evaluate to what would be the generated implementation
+                modifiedMembers.Remove(equalsOp);
+                modifiedMembers.Remove(notEqualsOp);
+            }
+
+            var methods = modifiedMembers
+                .WhereAsArray(member => member is MethodDeclarationSyntax)
+                .As<MethodDeclarationSyntax>();
+            foreach (var method in methods)
+            {
+                var methodSymbol = (IMethodSymbol)semanticModel.GetRequiredDeclaredSymbol(method, cancellationToken);
+                if (methodSymbol.Name == "Clone")
+                {
+                    // remove clone method as clone is a reserved method name in records
+                    modifiedMembers.Remove(method);
+                }
+                else if (methodSymbol is IMethodSymbol
+                {
+                    Name: "PrintMembers",
+                    ReturnType.SpecialType: SpecialType.System_Boolean,
+                    Parameters: [IParameterSymbol { Type.Name: nameof(System.Text.StringBuilder) }]
+                })
+                {
+                    // PrintMembers must have a secific set of modifiers or else there is an error
+                    if (type.TypeKind == TypeKind.Class && !type.IsSealed)
+                    {
+                        // ensure virtual and protected modifiers
+                        modifiedMembers.Add(method.WithModifiers(SyntaxFactory.TokenList(
+                            SyntaxFactory.Token(SyntaxKind.ProtectedKeyword),
+                            SyntaxFactory.Token(SyntaxKind.VirtualKeyword))));
+                    }
+                    else
+                    {
+                        // ensure private member
+                        modifiedMembers.Add(method.WithModifiers(
+                            SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))));
+                    }
+                }
+            }
+
+            return modifiedMembers;
         }
 
         /// <summary>
