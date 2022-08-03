@@ -103,6 +103,8 @@ namespace RunTests
 
         public string Architecture { get; set; }
 
+        public bool TestVsi { get; set; }
+
         public Options(
             string dotnetFilePath,
             string artifactsDirectory,
@@ -140,6 +142,7 @@ namespace RunTests
             var collectDumps = false;
             string? procDumpFilePath = null;
             string? artifactsPath = null;
+            var testVsi = false;
             var optionSet = new OptionSet()
             {
                 { "dotnet=", "Path to dotnet", (string s) => dotnetFilePath = s },
@@ -161,6 +164,7 @@ namespace RunTests
                 { "procdumppath=", "Path to procdump", (string s) => procDumpFilePath = s },
                 { "collectdumps", "Whether or not to gather dumps on timeouts and crashes", o => collectDumps = o is object },
                 { "retry", "Retry failed test a few times", o => retry = o is object },
+                { "testVsi", "If this is an integration test run", o => testVsi = o is object }
             };
 
             List<string> assemblyList;
@@ -237,6 +241,7 @@ namespace RunTests
                 TestFilter = testFilter,
                 Timeout = timeout is { } t ? TimeSpan.FromMinutes(t) : null,
                 Retry = retry,
+                TestVsi = testVsi
             };
 
             static string? TryGetArtifactsPath()
