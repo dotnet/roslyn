@@ -49,9 +49,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     IsRecord: false,
                     // records can't be static and so if the class is static we probably shouldn't convert it
                     IsStatic: false
-                } type ||
-                // make sure that there is at least one positional parameter we can introduce
-                !typeDeclaration.Members.Any(m => ShouldConvertProperty(m, type)))
+                } type)
+            {
+                return;
+            }
+
+            var propertyAnalysisResults = PropertyAnalysisResult.AnalyzeProperties(
+                typeDeclaration.Members
+                    .Where(member => member is PropertyDeclarationSyntax)
+                    .Cast<PropertyDeclarationSyntax>()
+                    .AsImmutable(),
+                type,
+                semanticModel,
+                cancellationToken);
+            if (propertyAnalysisResults.IsEmpty)
             {
                 return;
             }
@@ -60,23 +71,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             var positional = CodeAction.Create(
                 positionalTitle,
-                cancellationToken => ConvertToParameterRecordAsync(document, type, typeDeclaration, cancellationToken),
+                cancellationToken => ConvertToParameterRecordAsync(
+                    document,
+                    type,
+                    propertyAnalysisResults,
+                    typeDeclaration,
+                    cancellationToken),
                 nameof(CSharpFeaturesResources.Convert_to_positional_record));
-            // note: when adding nested actions, use string.Format(CSharpFeaturesResources.Convert_0_to_record, type.Name) as title string
+            // note: when adding nested actions, use
+            // string.Format(CSharpFeaturesResources.Convert_0_to_record, type.Name) as title string
             context.RegisterRefactoring(positional);
         }
 
         private static async Task<Document> ConvertToParameterRecordAsync(
             Document document,
             INamedTypeSymbol originalType,
+            ImmutableArray<PropertyAnalysisResult> propertyAnalysisResults,
             TypeDeclarationSyntax originalDeclarationNode,
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var propertiesToMove = originalDeclarationNode.Members
-                .Where(m => ShouldConvertProperty(m, originalType))
-                .Cast<PropertyDeclarationSyntax>()
-                .AsImmutable();
+            // properties to be added to primary constructor parameters
+            var propertiesToMove = propertyAnalysisResults.SelectAsArray(result => result.Syntax);
 
             var modifiedClassTrivia = GetModifiedClassTrivia(propertiesToMove, originalDeclarationNode);
 
@@ -90,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             // remove converted properties and reformat other methods
             var membersToKeep = GetModifiedMembersForPositionalRecord(
-                originalType, originalDeclarationNode, semanticModel, propertiesToMove, cancellationToken);
+                originalType, originalDeclarationNode, semanticModel, propertyAnalysisResults, cancellationToken);
 
             // if we have a class, move trivia from class keyword to record keyword
             // if struct, split trivia and leading goes to record keyword, trailing goes to struct keyword
@@ -188,13 +204,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             INamedTypeSymbol type,
             TypeDeclarationSyntax typeDeclaration,
             SemanticModel semanticModel,
-            ImmutableArray<PropertyDeclarationSyntax> propertiesToMove,
+            ImmutableArray<PropertyAnalysisResult> propertiesToMove,
             CancellationToken cancellationToken)
         {
             var modifiedMembers = typeDeclaration.Members.AsImmutable();
 
             // remove properties we're bringing up to positional params
-            modifiedMembers = modifiedMembers.RemoveRange(propertiesToMove);
+            // or keep them as overrides and link the positional param to the original property
+            foreach (var result in propertiesToMove)
+            {
+                var property = result.Syntax;
+                if (result.KeepAsOverride)
+                {
+                    // add an initializer that links the property to the primary constructor parameter
+                    modifiedMembers = modifiedMembers.Replace(
+                        property,
+                        property
+                            .WithInitializer(
+                                SyntaxFactory.EqualsValueClause(SyntaxFactory.IdentifierName(property.Identifier.WithoutTrivia())))
+                            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
+                }
+                else
+                {
+                    modifiedMembers = modifiedMembers.Remove(property);
+                }
+            }
 
             // get all the constructors so we can add an initializer to them
             // or potentially delete the primary constructor
@@ -208,13 +242,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             foreach (var constructor in constructors)
             {
                 // check to see if it would override the primary constructor
-                var constructorParamTypes = constructor.ParameterList.Parameters.SelectAsArray(p => p.Type!.ToString());
-                var positionalParamTypes = propertiesToMove.SelectAsArray(p => p.Type!.ToString());
+                var constructorSymbol = (IMethodSymbol)semanticModel.GetRequiredDeclaredSymbol(constructor, cancellationToken);
+                var constructorParamTypes = constructorSymbol.Parameters.SelectAsArray(parameter => parameter.Type);
+                var positionalParamTypes = propertiesToMove.SelectAsArray(p => p.Symbol.Type);
                 if (constructorParamTypes.SequenceEqual(positionalParamTypes))
                 {
                     // found a primary constructor override, now check if we are pretty sure we can remove it safely
-                    if (IsSimpleConstructor(
-                        constructor, propertiesToMove, constructor.ParameterList.Parameters, semanticModel, cancellationToken))
+                    if (IsSimpleConstructor(constructor,
+                        propertiesToMove.SelectAsArray(result => result.Symbol),
+                        constructorSymbol.Parameters,
+                        semanticModel,
+                        cancellationToken))
                     {
                         modifiedMembers = modifiedMembers.Remove(constructor);
                     }
@@ -431,8 +469,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         /// <returns>Whether the constructor body matches the pattern described</returns>
         private static bool IsSimpleConstructor(
             ConstructorDeclarationSyntax constructor,
-            ImmutableArray<PropertyDeclarationSyntax> properties,
-            SeparatedSyntaxList<ParameterSyntax> parameters,
+            ImmutableArray<IPropertySymbol> properties,
+            ImmutableArray<IParameterSymbol> parameters,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
@@ -445,44 +483,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             // We expect the constructor to have exactly one statement per parameter,
             // where the statement is a simple assignment from the parameter to the property
-            if (body == null || body.Operations.Length != parameters.Count)
+            if (body == null || body.Operations.Length != parameters.Length)
             {
                 return false;
             }
 
-            var propertyNames = properties.SelectAsArray(p => p.Identifier.ToString());
-            var propertyNamesAlreadyAssigned = new HashSet<string>();
-            var parameterNames = parameters.SelectAsArray(p => p.Identifier.ToString());
-
+            var propertiesAlreadyAssigned = new HashSet<ISymbol>();
             foreach (var bodyOperation in body.Operations)
             {
                 if (bodyOperation is IExpressionStatementOperation
                     {
                         Operation: ISimpleAssignmentOperation
                         {
-                            Target: IPropertyReferenceOperation propertyReference,
-                            Value: IParameterReferenceOperation parameterReference
+                            Target: IPropertyReferenceOperation { Property: IPropertySymbol property },
+                            Value: IParameterReferenceOperation { Parameter: IParameterSymbol parameter }
                         }
                     })
                 {
-                    var propertyName = propertyReference.Property.Name;
-                    var propertyIndex = propertyNames.IndexOf(propertyName);
+                    var propertyIndex = properties.IndexOf(property);
                     if (propertyIndex != -1 &&
-                        !propertyNamesAlreadyAssigned.Contains(propertyName) &&
+                        !propertiesAlreadyAssigned.Contains(property) &&
                         // make sure the index of the property we assign as it would be placed in the primary constructor
                         // matches the current index of the parameter we use for the explicit constructor
-                        propertyIndex == parameterNames.IndexOf(parameterReference.Parameter.Name))
+                        propertyIndex == parameters.IndexOf(parameter))
                     {
                         // make sure we don't have duplicate assignment statements to the same property
-                        propertyNamesAlreadyAssigned.Add(propertyName);
+                        propertiesAlreadyAssigned.Add(property);
                         continue;
                     }
                 }
-                // one of the conditions failed
+                // either we failed to match the assignment pattern, or we're not assigning to a moved property,
+                // or we assigned to the same property more than once
                 return false;
             }
             // all conditions passed individually, make sure all properties were assigned to
-            return propertyNamesAlreadyAssigned.Count == properties.Length;
+            return propertiesAlreadyAssigned.Count == properties.Length;
         }
 
         #region TriviaMovement

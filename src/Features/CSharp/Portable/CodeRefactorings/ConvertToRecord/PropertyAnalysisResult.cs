@@ -2,76 +2,154 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 {
-    internal class PropertyAnalysisResult
+    internal record PropertyAnalysisResult(PropertyDeclarationSyntax Syntax, IPropertySymbol Symbol, bool KeepAsOverride)
     {
 
-        private static bool ShouldConvertProperty(MemberDeclarationSyntax member, INamedTypeSymbol containingType)
+        public static ImmutableArray<PropertyAnalysisResult> AnalyzeProperties(
+            ImmutableArray<PropertyDeclarationSyntax> properties,
+            INamedTypeSymbol type,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
         {
-            if (member is not PropertyDeclarationSyntax
+            // first get all property symbols
+            var symbols = properties
+                .SelectAsArray(p => (IPropertySymbol)semanticModel.GetRequiredDeclaredSymbol(p, cancellationToken));
+
+            // The user may not know about init or be converting code from before init was introduced.
+            // In this case we can convert set properties to init ones
+            var allowSetToInitConversion = !symbols
+                .Any(symbol => symbol.SetMethod is IMethodSymbol { IsInitOnly: true });
+
+            return properties.ZipAsArray(symbols, (syntax, symbol)
+                => ShouldConvertProperty(syntax, symbol, type) switch
                 {
-                    Initializer: null,
-                    ExpressionBody: null,
-                } property)
+                    ConvertStatus.DoNotConvert => null,
+                    ConvertStatus.Override => new PropertyAnalysisResult(syntax, symbol, true),
+                    ConvertStatus.OverrideIfConvertingSetToInit
+                        => new PropertyAnalysisResult(syntax, symbol, !allowSetToInitConversion),
+                    ConvertStatus.AlwaysConvert => new PropertyAnalysisResult(syntax, symbol, false),
+                    _ => throw ExceptionUtilities.Unreachable,
+                }).WhereNotNull().AsImmutable();
+        }
+
+        // for each property, say whether we can convert
+        // to primary constructor parameter or not (and whether it would imply changes)
+        private enum ConvertStatus
+        {
+            // no way we can convert this
+            DoNotConvert,
+            // we can convert this because we feel it would be used in a primary constructor,
+            // but some accessibility is non-default and we want to override
+            Override,
+            // we can convert this if we see that the user only ever uses set (not init)
+            // otherwise we should give an override
+            OverrideIfConvertingSetToInit,
+            // we can convert this without changing the meaning 
+            AlwaysConvert
+        }
+
+        private static ConvertStatus ShouldConvertProperty(
+            PropertyDeclarationSyntax property,
+            IPropertySymbol propertySymbol,
+            INamedTypeSymbol containingType)
+        {
+            // unimplemented or static properties shouldn't be in a constructor
+            if (propertySymbol.IsAbstract || propertySymbol.IsStatic)
             {
-                return false;
+                return ConvertStatus.DoNotConvert;
             }
 
-            var propAccessibility = CSharpAccessibilityFacts.Instance.GetAccessibility(member);
-
-            // more restrictive than internal (protected, private, private protected, or unspecified (private by default))
+            var propAccessibility = propertySymbol.DeclaredAccessibility;
+            // more restrictive than internal (protected, private, private protected, or unspecified (private by default)).
+            // We allow internal props to be converted to public auto-generated ones
+            // because it's still as accessible as a constructor would be from outside the class.
             if (propAccessibility < Accessibility.Internal)
             {
-                return false;
+                return ConvertStatus.DoNotConvert;
             }
 
             // no accessors declared
-            if (property.AccessorList == null)
+            if (property.AccessorList == null || property.AccessorList.Accessors.IsEmpty())
             {
-                return false;
+                return ConvertStatus.DoNotConvert;
             }
 
             // When we convert to primary constructor parameters, the auto-generated properties have default behavior
-            // in this iteration, we will only move if it would not change the default behavior.
+            // Here are the cases where we wouldn't substantially change default behavior
             // - No accessors can have any explicit implementation or modifiers
             //   - This is because it would indicate complex functionality or explicit hiding which is not default
             // - class records and readonly struct records must have:
-            //   - public get accessor (with no explicit impl)
-            //   - optionally a public init accessor (again w/ no impl)
+            //   - public get accessor
+            //   - optionally a public init accessor
             //     - note: if this is not provided the user can still initialize the property in the constructor,
             //             so it's like init but without the user ability to initialize outside the constructor
             // - for non-readonly structs, we must have:
-            //   - public get accessor (with no explicit impl)
-            //   - public set accessor (with no explicit impl)
+            //   - public get accessor
+            //   - public set accessor
+            // Here are the cases where we could still use 
+            var getAccessor = propertySymbol.GetMethod;
+            var setAccessor = propertySymbol.SetMethod;
             var accessors = property.AccessorList.Accessors;
             if (accessors.Any(a => a.Body != null || a.ExpressionBody != null) ||
-                !accessors.Any(a => a.Kind() == SyntaxKind.GetAccessorDeclaration && a.Modifiers.IsEmpty()))
+                getAccessor == null ||
+                // private get means they probably don't want it seen from the constructor
+                getAccessor.DeclaredAccessibility < Accessibility.Internal)
             {
-                return false;
+                return ConvertStatus.DoNotConvert;
+            }
+
+            // we consider a internal (by default) get on an internal property as public
+            // but if the user specifically declares a more restrictive accessibility
+            // it would indicate they want to keep it safer than the rest of the property
+            // and we should respect that
+            if (getAccessor.DeclaredAccessibility < propAccessibility)
+            {
+                return ConvertStatus.Override;
             }
 
             if (containingType.TypeKind == TypeKind.Struct && !containingType.IsReadOnly)
             {
-                if (!accessors.Any(a => a.IsKind(SyntaxKind.SetAccessorDeclaration)))
+                // in a struct, our default is to have a public set
+                // but anything else we can still convert and override
+                if (setAccessor == null ||
+                    // if the user had their property as internal then we are fine with completely moving
+                    // an internal (by default) set method, but if they explicitly mark the set as internal
+                    // while the property is public we want to keep that behavior
+                    (setAccessor.DeclaredAccessibility != Accessibility.Public &&
+                        setAccessor.DeclaredAccessibility != propAccessibility) ||
+                    setAccessor.IsInitOnly)
                 {
-                    return false;
+                    return ConvertStatus.Override;
                 }
             }
             else
             {
-                // either we are a class or readonly struct, we only want to convert init setters, not normal ones
-                if (accessors.Any(a => a.IsKind(SyntaxKind.SetAccessorDeclaration)))
+                // either we are a class or readonly struct, the default is no set or init only set
+                if (setAccessor != null)
                 {
-                    return false;
+                    if (setAccessor.DeclaredAccessibility != Accessibility.Public &&
+                        setAccessor.DeclaredAccessibility != propAccessibility)
+                    {
+                        return ConvertStatus.Override;
+                    }
+
+                    if (!setAccessor.IsInitOnly)
+                    {
+                        return ConvertStatus.OverrideIfConvertingSetToInit;
+                    }
                 }
             }
 
-            return true;
+            return ConvertStatus.AlwaysConvert;
         }
     }
 }
