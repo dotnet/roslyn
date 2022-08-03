@@ -451,7 +451,6 @@ $$
 ", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeTheory]
         [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/63174")]
         [InlineData("\"<\"", Skip = "https://github.com/dotnet/roslyn/issues/29669")]
         [InlineData("\">\"")] // testing things that might break XML
