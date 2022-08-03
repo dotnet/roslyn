@@ -177,7 +177,7 @@ namespace N
             var fixedMarkup = @"
 namespace N
 {
-    public class [|C|](int P);
+    public record [|C|](int P);
 }
 ";
             await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
@@ -198,7 +198,7 @@ namespace N
             var fixedMarkup = @"
 namespace N
 {
-    public readonly struct [|C|](int P);
+    public readonly record struct [|C|](int P);
 }
 ";
             await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
@@ -270,6 +270,7 @@ namespace N
 
     public record C(int P) : IInterface
     {
+
         public int Foo()
         {
             return P;
@@ -392,8 +393,8 @@ using System.Collections.Generic;
 
 namespace N
 {
-    public record C<TA, TB>(TA P, TB B)
-        where TA : Exception where TB : IEnumerable<TA>;
+    public record C<TA, TB>(TA P, TB B) where TA : Exception
+            where TB : IEnumerable<TA>;
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -669,6 +670,7 @@ namespace N
 {
     public record C(int P, bool B)
     {
+
         public static bool operator ==(C c1, object? c2)
         {
             Console.WriteLine(""checking equality"");
@@ -718,6 +720,7 @@ namespace N
 {
     public record C(int P, bool B)
     {
+
         public static bool operator ==(C c1, object? c2)
         {
             return c1.Equals(c2);
@@ -766,6 +769,7 @@ namespace N
 {
     public record C(int P, bool B)
     {
+
         public static bool operator ==(C c1, object? c2)
         {
             return c1.Equals(c1);
@@ -813,6 +817,7 @@ namespace N
 {
     public record C(int P, bool B)
     {
+
         public static bool operator ==(C c1, object? c2)
         {
             return c1.Equals(c2);
@@ -901,7 +906,7 @@ namespace N
             var changedMarkup = @"
 namespace N
 {
-    public record C(int P, bool B);
+    public record C(int P);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -936,6 +941,7 @@ namespace N
 {
     public record C(int P, bool B)
     {
+
         public {|CS0111:{|CS8862:C|}|}(int p, bool b)
         {
             Console.WriteLine(""Constructing C..."");
@@ -976,6 +982,7 @@ namespace N
 {
     public record C(int P, bool B)
     {
+
         public {|CS0111:{|CS8862:C|}|}(int p, bool b)
         {
             P = p + 1;
@@ -1014,6 +1021,7 @@ namespace N
 {
     public record C(int P, bool B)
     {
+
         public {|CS0111:{|CS8862:C|}|}(int p, bool b)
         {
             B = b;
@@ -1773,7 +1781,7 @@ namespace N
             var fixedMarkup = @"
 namespace N
 {
-    public class C(int P)
+    public record C(int P)
     {
 
         public int Foo()

@@ -94,42 +94,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 originalType, originalDeclarationNode, semanticModel, propertiesToMove, cancellationToken);
 
             // if we have a class, move trivia from class keyword to record keyword
-            // if struct, split trivia and leading goes to record, trailing goes to struct
+            // if struct, split trivia and leading goes to record keyword, trailing goes to struct keyword
             var recordKeyword = SyntaxFactory.Token(SyntaxKind.RecordKeyword);
             recordKeyword = originalType.TypeKind == TypeKind.Class
                 ? recordKeyword.WithTriviaFrom(originalDeclarationNode.Keyword)
                 : recordKeyword.WithLeadingTrivia(originalDeclarationNode.Keyword.LeadingTrivia);
 
-            RecordDeclarationSyntax changedTypeDeclaration;
+            // use the trailing trivia of the last item before the constructor parameter list as the param list trivia
+            var constructorTrivia = originalDeclarationNode.TypeParameterList?.GetTrailingTrivia() ??
+                originalDeclarationNode.Identifier.TrailingTrivia;
+
             // if we have no members, use semicolon instead of braces
+            // use default if we don't want it, otherwise use the original token if it exists or a generated one
+            SyntaxToken openBrace, closeBrace, semicolon;
             if (membersToKeep.IsEmpty)
             {
-                changedTypeDeclaration = SyntaxFactory.RecordDeclaration(
-                    originalType.TypeKind == TypeKind.Class
-                        ? SyntaxKind.RecordDeclaration
-                        : SyntaxKind.RecordStructDeclaration,
-                    originalDeclarationNode.AttributeLists,
-                    originalDeclarationNode.Modifiers,
-                    recordKeyword,
-                    originalType.TypeKind == TypeKind.Class
-                        ? default
-                        : originalDeclarationNode.Keyword.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-                    // remove trailing trivia from places where we would want to insert the parameter list before a line break
-                    originalDeclarationNode.Identifier.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-                    originalDeclarationNode.TypeParameterList?.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-                    SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(propertiesToAddAsParams)),
-                    originalDeclarationNode.BaseList,
-                    originalDeclarationNode.ConstraintClauses,
-                    openBraceToken: default,
-                    SyntaxFactory.List(membersToKeep),
-                    closeBraceToken: default,
-                    semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                    .WithLeadingTrivia(modifiedClassTrivia)
-                    .WithAdditionalAnnotations(Formatter.Annotation);
+                openBrace = default;
+                closeBrace = default;
+                semicolon = originalDeclarationNode.SemicolonToken == default
+                    ? SyntaxFactory.Token(SyntaxKind.SemicolonToken)
+                    : originalDeclarationNode.SemicolonToken;
             }
             else
             {
-                changedTypeDeclaration = SyntaxFactory.RecordDeclaration(
+                openBrace = originalDeclarationNode.OpenBraceToken == default
+                    ? SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
+                    : originalDeclarationNode.OpenBraceToken;
+                closeBrace = originalDeclarationNode.CloseBraceToken == default
+                    ? SyntaxFactory.Token(SyntaxKind.CloseBraceToken)
+                    : originalDeclarationNode.CloseBraceToken;
+                semicolon = default;
+            }
+
+            var changedTypeDeclaration = SyntaxFactory.RecordDeclaration(
                     originalType.TypeKind == TypeKind.Class
                         ? SyntaxKind.RecordDeclaration
                         : SyntaxKind.RecordStructDeclaration,
@@ -142,16 +139,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     // remove trailing trivia from places where we would want to insert the parameter list before a line break
                     originalDeclarationNode.Identifier.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
                     originalDeclarationNode.TypeParameterList?.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-                    SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(propertiesToAddAsParams)),
+                    SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(propertiesToAddAsParams))
+                        .WithAppendedTrailingTrivia(constructorTrivia),
                     originalDeclarationNode.BaseList,
                     originalDeclarationNode.ConstraintClauses,
-                    originalDeclarationNode.OpenBraceToken,
+                    openBrace,
                     SyntaxFactory.List(membersToKeep),
-                    originalDeclarationNode.CloseBraceToken,
-                    semicolonToken: default)
+                    closeBrace,
+                    semicolon)
                     .WithLeadingTrivia(modifiedClassTrivia)
                     .WithAdditionalAnnotations(Formatter.Annotation);
-            }
 
             var changedDocument = await document.ReplaceNodeAsync(
                 originalDeclarationNode, changedTypeDeclaration, cancellationToken).ConfigureAwait(false);
