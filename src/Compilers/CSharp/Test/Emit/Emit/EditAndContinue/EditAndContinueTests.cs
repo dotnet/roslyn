@@ -14097,6 +14097,133 @@ class C
         }
 
         [Fact]
+        public void Method_ChangeParameterType()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            void M(int someInt) { someInt.ToString(); }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyMethodDefNames("M", ".ctor");
+                    })
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            void M(bool someBool) { someBool.ToString(); }
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_Int32)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_Boolean)?.ISymbol),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("M", "M");
+                        g.VerifyDeletedMembers("C: {M}");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(2, TableIndex.Param)
+                        });
+
+                        var expectedIL = """
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  8
+                              IL_0000:  newobj     0x0A000006
+                              IL_0005:  throw
+                            }
+                            {
+                              // Code size       10 (0xa)
+                              .maxstack  8
+                              IL_0000:  nop
+                              IL_0001:  ldarga.s   V_1
+                              IL_0003:  call       0x0A000007
+                              IL_0008:  pop
+                              IL_0009:  ret
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        g.VerifyIL(expectedIL);
+                    })
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            void M(int someInt) { someInt.ToString(); }
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_Boolean)?.ISymbol, newSymbolProvider: c=>c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMembers("C.M").FirstOrDefault(m => m.GetParameterTypes()[0].SpecialType == SpecialType.System_Int32)?.ISymbol),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("M", "M");
+                        g.VerifyDeletedMembers("C: {M}");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(2, TableIndex.Param)
+                        });
+
+                        var expectedIL = """
+                            {
+                              // Code size       10 (0xa)
+                              .maxstack  8
+                              IL_0000:  nop
+                              IL_0001:  ldarga.s   V_1
+                              IL_0003:  call       0x0A000008
+                              IL_0008:  pop
+                              IL_0009:  ret
+                            }
+                            {
+                              // Code size        6 (0x6)
+                              .maxstack  8
+                              IL_0000:  newobj     0x0A000009
+                              IL_0005:  throw
+                            }
+                            """;
+
+                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
+        }
+
+        [Fact]
         public void FileTypes_01()
         {
             var source0 = MarkedSource(@"
