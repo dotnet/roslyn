@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 {
                     // if type is an interface we don't want to refactor
                     TypeKind: TypeKind.Class or TypeKind.Struct,
-                    // no need to convert, already a record
-                    // TODO: when adding other options it might make sense to convert a postional record to a non-positional one and vice versa
+                    // no need to convert if it's already a record
                     IsRecord: false,
                     // records can't be static and so if the class is static we probably shouldn't convert it
                     IsStatic: false
@@ -251,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         /// <param name="semanticModel">Semantic model</param>
         /// <param name="propertiesToMove">Properties we decided to move</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns></returns>
+        /// <returns>The list of members from the original type, modified and trimmed for a positional record type usage</returns>
         private static ImmutableArray<MemberDeclarationSyntax> GetModifiedMembersForPositionalRecord(
             INamedTypeSymbol type,
             TypeDeclarationSyntax typeDeclaration,
@@ -260,14 +259,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             CancellationToken cancellationToken)
         {
             var modifiedMembers = typeDeclaration.Members.AsImmutable();
+
             // remove properties we're bringing up to positional params
             modifiedMembers = modifiedMembers.RemoveRange(propertiesToMove);
+
             // get all the constructors so we can add an initializer to them
             // or potentially delete the primary constructor
             var constructors = modifiedMembers
-                .WhereAsArray(member => member is ConstructorDeclarationSyntax)
-                .As<ConstructorDeclarationSyntax>();
-
+                .Where(member => member is ConstructorDeclarationSyntax)
+                // for some reason, neither of the following work for downcasts, even if each individual cast will succeed:
+                // As<ConstructorDeclarationSyntax>()
+                // CastArray<ConstructorDeclarationSyntax>()
+                .Cast<ConstructorDeclarationSyntax>()
+                .AsImmutable();
             foreach (var constructor in constructors)
             {
                 // check to see if it would override the primary constructor
@@ -310,24 +314,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             var notEqualsOp = (OperatorDeclarationSyntax?)modifiedMembers.FirstOrDefault(member
                 => member is OperatorDeclarationSyntax { OperatorToken.RawKind: (int)SyntaxKind.ExclamationEqualsToken });
             if (equalsOp != null && notEqualsOp != null &&
-                IsDefaultEqualsOperator(equalsOp, type, semanticModel, cancellationToken) &&
-                IsDefaultNotEqualsOperator(notEqualsOp, type, semanticModel, cancellationToken))
+                IsDefaultEqualsOperator(equalsOp, semanticModel, cancellationToken) &&
+                IsDefaultNotEqualsOperator(notEqualsOp, semanticModel, cancellationToken))
             {
                 // they both evaluate to what would be the generated implementation
-                modifiedMembers.Remove(equalsOp);
-                modifiedMembers.Remove(notEqualsOp);
+                modifiedMembers = modifiedMembers.Remove(equalsOp);
+                modifiedMembers = modifiedMembers.Remove(notEqualsOp);
             }
 
             var methods = modifiedMembers
-                .WhereAsArray(member => member is MethodDeclarationSyntax)
-                .As<MethodDeclarationSyntax>();
+                .Where(member => member is MethodDeclarationSyntax)
+                .Cast<MethodDeclarationSyntax>()
+                .AsImmutable();
             foreach (var method in methods)
             {
                 var methodSymbol = (IMethodSymbol)semanticModel.GetRequiredDeclaredSymbol(method, cancellationToken);
                 if (methodSymbol.Name == "Clone")
                 {
                     // remove clone method as clone is a reserved method name in records
-                    modifiedMembers.Remove(method);
+                    modifiedMembers = modifiedMembers.Remove(method);
                 }
                 else if (methodSymbol is IMethodSymbol
                 {
@@ -340,14 +345,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     if (type.TypeKind == TypeKind.Class && !type.IsSealed)
                     {
                         // ensure virtual and protected modifiers
-                        modifiedMembers.Add(method.WithModifiers(SyntaxFactory.TokenList(
+                        modifiedMembers = modifiedMembers.Replace(method, method.WithModifiers(SyntaxFactory.TokenList(
                             SyntaxFactory.Token(SyntaxKind.ProtectedKeyword),
                             SyntaxFactory.Token(SyntaxKind.VirtualKeyword))));
                     }
                     else
                     {
                         // ensure private member
-                        modifiedMembers.Add(method.WithModifiers(
+                        modifiedMembers = modifiedMembers.Replace(method, method.WithModifiers(
                             SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))));
                     }
                 }
@@ -362,7 +367,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         /// </summary>
         private static bool IsDefaultEqualsOperator(
             OperatorDeclarationSyntax operatorDeclaration,
-            INamedTypeSymbol type,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
@@ -380,18 +384,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // }
             // or
             // public static operator ==(C c1, object? c2) => c1.Equals(c2);
-            // can have either object or class type as type for second param
-            return body != null &&
-                body.Operations.IsSingle() &&
-                operation.BlockBody?.Operations[0] is IReturnOperation returnOperation &&
-                returnOperation.ChildOperations.Count == 1 &&
-                IsDotEqualsInvocation(returnOperation.ChildOperations.First(), type);
+            return body is IBlockOperation
+            {
+                // look for only one operation, a return operation that consists of an equals invocation
+                Operations: [IReturnOperation { ReturnedValue: IOperation returnedValue }]
+            } &&
+            IsDotEqualsInvocation(returnedValue);
         }
 
         // must be of form !(c1 == c2) or !c1.Equals(c2)
         private static bool IsDefaultNotEqualsOperator(
             OperatorDeclarationSyntax operatorDeclaration,
-            INamedTypeSymbol type,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
@@ -401,76 +404,93 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             }
 
             var body = operation.BlockBody ?? operation.ExpressionBody;
-            // if any of these conditions are false we short-circuit false
-            if (!(body != null &&
-                body.Operations.IsSingle() &&
-                operation.BlockBody?.Operations[0] is IReturnOperation returnOperation &&
-                returnOperation.ChildOperations.Count == 1 &&
-                returnOperation.ChildOperations.First() is IUnaryOperation notOp &&
-                notOp.Syntax.IsKind(SyntaxKind.LogicalNotExpression) &&
-                notOp.ChildOperations.Count == 1))
+            // looking for:
+            // return !(operand);
+            // or:
+            // => !(operand);
+            if (body is not IBlockOperation
+                {
+                    Operations: [IReturnOperation
+                    {
+                        ReturnedValue: IUnaryOperation
+                        {
+                            OperatorKind: UnaryOperatorKind.Not,
+                            Operand: IOperation operand
+                        }
+                    }]
+                })
             {
                 return false;
             }
 
-            if (IsDotEqualsInvocation(notOp.ChildOperations.First(), type))
+            // check to see if operand is an equals invocation that references the parameters
+            if (IsDotEqualsInvocation(operand))
             {
                 return true;
             }
 
-            if (!(notOp.ChildOperations.First() is IBinaryOperation equalsOp &&
-                equalsOp.Syntax.IsKind(SyntaxKind.EqualsExpression)))
+            // we accept an == operator, for example
+            // return !(obj1 == obj2);
+            // since this would call our == operator, which would in turn call .Equals (or equivalent)
+            // but we need to make sure that the operands are parameter references
+            if (operand is not IBinaryOperation
+                {
+                    OperatorKind: BinaryOperatorKind.Equals,
+                    LeftOperand: IOperation leftOperand,
+                    RightOperand: IOperation rightOperand,
+                })
             {
                 return false;
             }
 
-            // either could potentially be a param reference or an implicitly cast param reference
-            // based on the definition of the == operator
-            var left = GetParamFromArgument(equalsOp.LeftOperand);
-            var right = GetParamFromArgument(equalsOp.RightOperand);
+            // now we know we have an == comparison, but we want to make sure these actually reference parameters
+            var left = GetParamFromArgument(leftOperand);
+            var right = GetParamFromArgument(rightOperand);
+            // make sure we're not referencing the same parameter twice
             return (left != null && right != null && !left.Equals(right));
         }
 
         // matches form
         // c1.Equals(c2)
-        // where one of c1 or c2 is the given type
-        // and the other is the same type or object
-        private static bool IsDotEqualsInvocation(IOperation operation, INamedTypeSymbol type)
+        // where c1 and c2 are parameter references
+        private static bool IsDotEqualsInvocation(IOperation operation)
         {
-            // any of these being false will short-circuit false
-            if (!(operation is IInvocationOperation invocation &&
-                invocation.TargetMethod.Name == nameof(Equals) &&
-                invocation.ChildOperations.Count == 2 &&
-                invocation.ChildOperations.First() is IParameterReferenceOperation { Parameter: var invokedOn } &&
-                invocation.Arguments.Length == 1))
+            // must be called on one of the parameters
+            if (operation is not IInvocationOperation
+                {
+                    TargetMethod.Name: nameof(Equals),
+                    Instance: IOperation instance,
+                    Arguments: [IArgumentOperation { Value: IOperation arg }]
+                })
             {
                 return false;
             }
 
-            var param = GetParamFromArgument(invocation.Arguments[0].Value);
-
-            return param != null && !invokedOn.Equals(param);
+            // get the (potential) parameters, uwrapping any potential implicit casts
+            var invokedOn = GetParamFromArgument(instance);
+            var param = GetParamFromArgument(arg);
+            // make sure we're not referencing the same parameter twice
+            return param != null && invokedOn != null && !invokedOn.Equals(param);
         }
 
+        /// <summary>
+        /// Get the referenced parameter (and unwraps implicit cast if necessary) or null if a parameter wasn't referenced
+        /// </summary>
+        /// <param name="arg">The operation for which to get the parameter</param>
+        /// <returns>the referenced parameter or null if unable to find</returns>
         private static IParameterSymbol? GetParamFromArgument(IOperation arg)
         {
-            if (arg is IParameterReferenceOperation directParameterReference)
+            return arg switch
             {
-                return directParameterReference.Parameter;
-            }
-            // if the invocation parameter was an object and the argument was the type, there is an implicit cast
-            else if (arg is IConversionOperation
-            {
-                IsImplicit: true,
-                Operand: IParameterReferenceOperation castParameterReference
-            })
-            {
-                return castParameterReference.Parameter;
-            }
-            else
-            {
-                return null;
-            }
+                IParameterReferenceOperation directParameterReference => directParameterReference.Parameter,
+                // if the invocation parameter was an object and the argument was the type, there is an implicit cast
+                IConversionOperation
+                {
+                    IsImplicit: true,
+                    Operand: IParameterReferenceOperation castParameterReference
+                } => castParameterReference.Parameter,
+                _ => null,
+            };
         }
 
         /// <summary>
@@ -521,8 +541,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                         !propertyNamesAlreadyAssigned.Contains(propertyName) &&
                         // make sure the index of the property we assign as it would be placed in the primary constructor
                         // matches the current index of the parameter we use for the explicit constructor
-                        // TODO(extension): re-order property list or keep track of which parameters correspond to which properties
-                        // so that when we refactor usages of this constructor we can assign the right vars to the right names
                         propertyIndex == parameterNames.IndexOf(parameterReference.Parameter.Name))
                     {
                         // make sure we don't have duplicate assignment statements to the same property

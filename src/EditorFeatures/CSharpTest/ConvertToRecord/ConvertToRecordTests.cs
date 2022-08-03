@@ -549,6 +549,34 @@ namespace N
         }
 
         [Fact]
+        public async Task TestMovePropertiesAndDeleteEqualOperatorsWithExpressionBodies()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public static bool operator ==(C c1, object c2)
+            => c1.Equals(c2);
+
+        public static bool operator !=(C c1, object c2)
+            => !(c1 == c2);
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestMovePropertiesAndDeleteSimpleEqualOperatorsWithSameTypeParams()
         {
             var initialMarkup = @"
