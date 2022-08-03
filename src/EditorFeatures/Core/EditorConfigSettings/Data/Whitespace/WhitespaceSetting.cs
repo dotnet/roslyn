@@ -95,6 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             if (storageLocation?.KeyName == "csharp_new_line_before_open_brace")
             {
                 var strings = new List<string>();
+
                 _newLinesForBracesValues.Do(strings.Add);
 
                 return strings.ToImmutableArray();

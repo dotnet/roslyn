@@ -36,13 +36,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
         private static readonly ImmutableArray<string> _settingNameCommitCharacters = ImmutableArray.Create(new string[] { " ", "=" });
         private static readonly ImmutableArray<string> _multipleValuesCommitCharacters = ImmutableArray.Create(new string[] { "," });
 
-        private struct SettingsSnapshots
-        {
-            public ImmutableArray<CodeStyleSetting>? codeStyleSnapshot;
-            public ImmutableArray<WhitespaceSetting>? whitespaceSnapshot;
-            public ImmutableArray<AnalyzerSetting>? analyzerSnapshot;
-        }
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompletionHandler()
@@ -74,28 +67,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var offset = text.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(request.Position));
             var textInLine = text.Lines.GetLineFromPosition(offset).ToString();
-
-            var settingsAggregator = workspace.Services.GetRequiredService<ISettingsAggregator>();
-
-            var codeStyleProvider = settingsAggregator.GetSettingsProvider<CodeStyleSetting>(filePath);
-            var whitespaceProvider = settingsAggregator.GetSettingsProvider<WhitespaceSetting>(filePath);
-            var analyzerProvider = settingsAggregator.GetSettingsProvider<AnalyzerSetting>(filePath);
+            var textToCheck = textInLine[..request.Position.Character].Reverse();
 
             // Correct syntax is setting_name = setting_value_1, setting_value2, setting_value3... or setting_name = setting_value 
-
             // When there exists more then one '=' it is incorrect and we should not suggest any completion 
             if (textInLine.Count(c => c == '=') > 1)
             {
                 return null;
             }
 
-            var textToCheck = textInLine[..request.Position.Character].Reverse();
-            bool showValueComma = false, showValueEqual = false, showName = false;
-
             // Check if we need to display values of the settings
             // |setting_name = (caret is here)
             // |setting_name = setting_value_1, (caret is here)
-            var seenWhitespace = false;
+            bool showValueComma = false, showValueEqual = false, showName = false, seenWhitespace = false;
             foreach (var element in textToCheck)
             {
                 if (element == ' ')
@@ -144,7 +128,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             if (showValueComma)
             {
                 var settingName = textInLine.Split('=').First().Trim();
-                var settingsSnapshots1 = GetSettingsSnapshots(codeStyleProvider, whitespaceProvider, analyzerProvider);
+                var settingsSnapshots1 = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
                 var options = GetSettingValues(settingName, settingsSnapshots1.codeStyleSnapshot, settingsSnapshots1.whitespaceSnapshot, settingsSnapshots1.analyzerSnapshot, optionSet, multipleValues: true);
                 if (options == null)
                 {
@@ -161,7 +145,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             if (showValueEqual)
             {
                 var settingName = textInLine.Split('=').First().Trim();
-                var settingsSnapshots2 = GetSettingsSnapshots(codeStyleProvider, whitespaceProvider, analyzerProvider);
+                var settingsSnapshots2 = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
                 var values = GetSettingValues(settingName, settingsSnapshots2.codeStyleSnapshot, settingsSnapshots2.whitespaceSnapshot, settingsSnapshots2.analyzerSnapshot, optionSet);
                 if (values == null)
                 {
@@ -177,7 +161,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             // Show completion for the setting name
             if (showName)
             {
-                var settingsSnapshots3 = GetSettingsSnapshots(codeStyleProvider, whitespaceProvider, analyzerProvider);
+                var settingsSnapshots3 = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
                 var codeStyleSettingsItems = settingsSnapshots3.codeStyleSnapshot?.Select(GenerateSettingNameCompletionItem);
                 var whitespaceSettingsItems = settingsSnapshots3.whitespaceSnapshot?.Select(GenerateSettingNameCompletionItem);
                 var analyzerSettingsItems = settingsSnapshots3.analyzerSnapshot?.Select(GenerateSettingNameCompletionItem);
@@ -209,20 +193,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             var commitCharacters = _settingNameCommitCharacters;
 
             return CreateCompletionItem(name, name, CompletionItemKind.Property, documentation, commitCharacters);
-        }
-
-        private static SettingsSnapshots GetSettingsSnapshots(ISettingsProvider<CodeStyleSetting>? codeStyleProvider, ISettingsProvider<WhitespaceSetting>? whitespaceProvider, ISettingsProvider<AnalyzerSetting>? analyzerProvider)
-        {
-            var codeStyleSnapshot = codeStyleProvider?.GetCurrentDataSnapshot();
-            var whitespaceSnapshot = whitespaceProvider?.GetCurrentDataSnapshot();
-            var analyzerSnapshot = analyzerProvider?.GetCurrentDataSnapshot();
-
-            return new SettingsSnapshots
-            {
-                codeStyleSnapshot = codeStyleSnapshot,
-                whitespaceSnapshot = whitespaceSnapshot,
-                analyzerSnapshot = analyzerSnapshot,
-            };
         }
 
         private static CompletionItem[]? GenerateSettingValuesCompletionItem<T>(T setting, bool additional, OptionSet optionSet, bool allowsMultipleValues = false) where T : IEditorConfigSettingInfo
