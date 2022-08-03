@@ -37,6 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public abstract class CSharpTestBase : CommonTestBase
     {
+        public enum RuntimeFlag
+        {
+            None,
+            ByRefFields,
+        }
+
         protected const string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
@@ -1107,28 +1113,6 @@ namespace System.Diagnostics.CodeAnalysis
             return comp;
         }
 
-        internal static CSharpCompilation CreateByRefFieldsCompilation(
-              CSharpTestSource source,
-              IEnumerable<MetadataReference> references = null,
-              CSharpCompilationOptions options = null,
-              CSharpParseOptions parseOptions = null)
-        {
-            // Avoid sharing mscorlib symbols with other tests since we are about to change
-            // RuntimeSupportsByRefFields property for it.
-            var mscorlibWithoutSharing = new[] {
-                ((AssemblyMetadata)((MetadataImageReference)MscorlibRef).GetMetadata()).CopyWithoutSharingCachedSymbols().
-                     GetReference(display: "mscorlib.v4_0_30319.dll")
-            };
-
-            references = references is not null ? references.Concat(mscorlibWithoutSharing) : mscorlibWithoutSharing;
-
-            // Note: we use skipUsesIsNullable and skipExtraValidation so that nobody pulls
-            // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
-            var comp = CreateCompilationCore(source, references, options, parseOptions, assemblyName: null, sourceFileName: null, skipUsesIsNullable: true, experimentalFeature: null, skipExtraValidation: true);
-            comp.Assembly.RuntimeSupportsByRefFields = true;
-            return comp;
-        }
-
         public static CSharpCompilation CreateCompilationWithWinRT(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
@@ -1219,7 +1203,30 @@ namespace System.Diagnostics.CodeAnalysis
             TargetFramework targetFramework = TargetFramework.Standard,
             string assemblyName = "",
             string sourceFileName = "",
-            bool skipUsesIsNullable = false) => CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable);
+            bool skipUsesIsNullable = false,
+            RuntimeFlag runtimeFeature = RuntimeFlag.None)
+        {
+            if (runtimeFeature == RuntimeFlag.ByRefFields)
+            {
+                // Avoid sharing mscorlib symbols with other tests since we are about to change
+                // RuntimeSupportsByRefFields property for it.
+                var mscorlibWithoutSharing = new[] {
+                    ((AssemblyMetadata)((MetadataImageReference)MscorlibRef).GetMetadata()).CopyWithoutSharingCachedSymbols().
+                         GetReference(display: "mscorlib.v4_0_30319.dll")
+                };
+
+                // Note: we use skipUsesIsNullable and skipExtraValidation so that nobody pulls
+                // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
+                Debug.Assert(!skipUsesIsNullable);
+                var comp = CreateCompilationCore(source, references is not null ? references.Concat(mscorlibWithoutSharing) : mscorlibWithoutSharing,
+                    options, parseOptions, assemblyName: assemblyName, sourceFileName: sourceFileName, skipUsesIsNullable: true, experimentalFeature: null, skipExtraValidation: true);
+
+                comp.Assembly.RuntimeSupportsByRefFields = true;
+                return comp;
+            }
+
+            return CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable);
+        }
 
         public static CSharpCompilation CreateEmptyCompilation(
             CSharpTestSource source,
