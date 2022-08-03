@@ -76,6 +76,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property ImplicitObjectCreationExpression As Integer? Implements ISyntaxKinds.ImplicitObjectCreationExpression
         Public ReadOnly Property IndexExpression As Integer? Implements ISyntaxKinds.IndexExpression
         Public ReadOnly Property InvocationExpression As Integer = SyntaxKind.InvocationExpression Implements ISyntaxKinds.InvocationExpression
+        Public ReadOnly Property IsTypeExpression As Integer Implements ISyntaxKinds.IsTypeExpression
+        Public ReadOnly Property IsNotTypeExpression As Integer? Implements ISyntaxKinds.IsNotTypeExpression
         Public ReadOnly Property IsPatternExpression As Integer? Implements ISyntaxKinds.IsPatternExpression
         Public ReadOnly Property LogicalAndExpression As Integer = SyntaxKind.AndAlsoExpression Implements ISyntaxKinds.LogicalAndExpression
         Public ReadOnly Property LogicalOrExpression As Integer = SyntaxKind.OrElseExpression Implements ISyntaxKinds.LogicalOrExpression
@@ -141,7 +143,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property Interpolation As Integer = SyntaxKind.Interpolation Implements ISyntaxKinds.Interpolation
         Public ReadOnly Property InterpolatedStringExpression As Integer = SyntaxKind.InterpolatedStringExpression Implements ISyntaxKinds.InterpolatedStringExpression
         Public ReadOnly Property InterpolatedStringText As Integer = SyntaxKind.InterpolatedStringText Implements ISyntaxKinds.InterpolatedStringText
-        Public ReadOnly Property IsTypeExpression As Integer Implements ISyntaxKinds.IsTypeExpression
-        Public ReadOnly Property IsNotTypeExpression As Integer? Implements ISyntaxKinds.IsNotTypeExpression
     End Class
 End Namespace
