@@ -46,8 +46,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                         await callback.ReportProjectRemovedAsync(oldProjectId, cancellationToken).ConfigureAwait(false);
                 }
 
-                _lastScannedProjectIds.Clear();
-
                 // Now remove any documents that are now gone.
                 foreach (var docId in _documentToLastReportedInformation.Keys)
                 {
@@ -91,14 +89,8 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             // Now get all the values that actually changed and notify VS about them. We don't need
             // to tell it about the ones that didn't change since that will have no effect on the
             // user experience.
-            var latestData = await ComputeLatestDataAsync(
+            var changedData = await ComputeChangedDataAsync(
                 project, specificDocument, projectVersion, cancellationToken).ConfigureAwait(false);
-
-            var changedData = latestData.WhereAsArray(d =>
-                {
-                    _documentToLastReportedInformation.TryGetValue(d.DocumentId, out var existingInfo);
-                    return existingInfo.category != d.Category;
-                });
 
             // Only bother reporting non-empty information to save an unnecessary RPC.
             if (!changedData.IsEmpty)
@@ -107,17 +99,17 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             // Now, keep track of what we've reported to the host so we won't report unchanged files in the future. We
             // do this after the report has gone through as we want to make sure that if it cancels for any reason we
             // don't hold onto values that may not have made it all the way to the project system.
-            foreach (var data in latestData)
+            foreach (var data in changedData)
                 _documentToLastReportedInformation[data.DocumentId] = (data.Category, projectVersion);
         }
 
-        private async Task<ImmutableArray<DesignerAttributeData>> ComputeLatestDataAsync(
+        private async Task<ImmutableArray<DesignerAttributeData>> ComputeChangedDataAsync(
             Project project, Document? specificDocument, VersionStamp projectVersion, CancellationToken cancellationToken)
         {
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var designerCategoryType = compilation.DesignerCategoryAttributeType();
 
-            using var _ = ArrayBuilder<Task<DesignerAttributeData?>>.GetInstance(out var tasks);
+            using var _1 = ArrayBuilder<Task<DesignerAttributeData?>>.GetInstance(out var tasks);
             foreach (var document in project.Documents)
             {
                 // If we're only analyzing a specific document, then skip the rest.
@@ -140,8 +132,24 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 tasks.Add(ComputeDesignerAttributeDataAsync(designerCategoryType, document, cancellationToken));
             }
 
-            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-            return results.Where(d => d.HasValue).SelectAsArray(d => d!.Value);
+            using var _2 = ArrayBuilder<DesignerAttributeData>.GetInstance(tasks.Count, out var results);
+
+            // Avoid unnecessary allocation of result array.
+            await Task.WhenAll((IEnumerable<Task>)tasks).ConfigureAwait(false);
+
+            foreach (var task in tasks)
+            {
+                var dataOpt = await task.ConfigureAwait(false);
+                if (dataOpt == null)
+                    continue;
+
+                var data = dataOpt.Value;
+                _documentToLastReportedInformation.TryGetValue(data.DocumentId, out var existingInfo);
+                if (existingInfo.category != data.Category)
+                    results.Add(data);
+            }
+
+            return results.ToImmutableAndClear();
         }
 
         private static async Task<DesignerAttributeData?> ComputeDesignerAttributeDataAsync(
