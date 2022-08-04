@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             /// <summary>
             /// Mapping from the span of renaming token to the renaming context info.
             /// </summary>
-            private readonly ImmutableDictionary<TextSpan, LocationRenameContext> _textSpanToRenameContexts;
+            private readonly ImmutableDictionary<TextSpan, LocationRenameContext> _textSpanToLocationContextMap;
 
             /// <summary>
             /// Mapping from the symbolKey to all the possible symbols might be renamed in the document.
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             /// Mapping from the containgSpan of a common trivia/string identifier to a set of Locations needs to rename inside it.
             /// It is created by using a regex in to find the matched text when renaming inside a string/identifier.
             /// </summary>
-            private readonly ImmutableDictionary<TextSpan, HashSet<LocationRenameContext>> _stringAndCommentRenameContexts;
+            private readonly ImmutableDictionary<TextSpan, ImmutableHashSet<LocationRenameContext>> _stringAndCommentRenameContexts;
 
             private List<(TextSpan oldSpan, TextSpan newSpan)>? _modifiedSubSpans;
             private bool _isProcessingComplexifiedSpans;
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                 // TODO: These contexts are not changed for a document. ConflictResolver.Session should be refactored to cache them in a dictionary,
                 _renamedSymbolContexts = CreateSymbolKeyToRenamedSymbolContextMap(parameters.RenameSymbolContexts, SymbolKey.GetComparer());
-                _textSpanToRenameContexts = CreateTextSpanToLocationContextMap(parameters.TokenTextSpanRenameContexts);
+                _textSpanToLocationContextMap = CreateTextSpanToLocationContextMap(parameters.TokenTextSpanRenameContexts);
                 _stringAndCommentRenameContexts = GroupStringAndCommentsTextSpanRenameContexts(parameters.StringAndCommentsTextSpanRenameContexts);
             }
 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     return newToken;
                 }
 
-                if (!_isProcessingComplexifiedSpans && _textSpanToRenameContexts.TryGetValue(token.Span, out var locationRenameContext))
+                if (!_isProcessingComplexifiedSpans && _textSpanToLocationContextMap.TryGetValue(token.Span, out var locationRenameContext))
                 {
                     newToken = RenameAndAnnotateAsync(
                         token,
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 if (token.HasAnnotations(RenameAnnotation.Kind))
                 {
                     var annotation = _renameAnnotations.GetAnnotations(token).OfType<RenameActionAnnotation>().First();
-                    if (annotation.IsRenameLocation && _textSpanToRenameContexts.TryGetValue(annotation.OriginalSpan, out var originalContext))
+                    if (annotation.IsRenameLocation && _textSpanToLocationContextMap.TryGetValue(annotation.OriginalSpan, out var originalContext))
                     {
                         return RenameComplexifiedToken(token, newToken, originalContext);
                     }

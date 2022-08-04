@@ -53,12 +53,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             ''' <summary>
             ''' Mapping from the span of renaming token to the renaming context info.
             ''' </summary>
-            Private ReadOnly _textSpanToRenameContexts As ImmutableDictionary(Of TextSpan, LocationRenameContext)
+            Private ReadOnly _textSpanToLocationContextMap As ImmutableDictionary(Of TextSpan, LocationRenameContext)
 
             ''' <summary>
             ''' Mapping from the symbolKey to all the possible symbols might be renamed in the document.
             ''' </summary>
-            Private ReadOnly _stringAndCommentRenameContexts As ImmutableDictionary(Of TextSpan, HashSet(Of LocationRenameContext))
+            Private ReadOnly _stringAndCommentRenameContexts As ImmutableDictionary(Of TextSpan, ImmutableHashSet(Of LocationRenameContext))
 
             ''' <summary>
             ''' Mapping from the containgSpan of a common trivia/string identifier to a set of Locations needs to rename inside it.
@@ -102,8 +102,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 _renameAnnotations = parameters.RenameAnnotations
                 _renameSpansTracker = parameters.RenameSpansTracker
 
+                ' TODO: These contexts are not changed for a document. ConflictResolver.Session should be refactored to cache them in a dictionary,
                 _renamedSymbolContexts = CreateSymbolKeyToRenamedSymbolContextMap(parameters.RenameSymbolContexts, SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False))
-                _textSpanToRenameContexts = CreateTextSpanToLocationContextMap(parameters.TokenTextSpanRenameContexts)
+                _textSpanToLocationContextMap = CreateTextSpanToLocationContextMap(parameters.TokenTextSpanRenameContexts)
                 _stringAndCommentRenameContexts = GroupStringAndCommentsTextSpanRenameContexts(parameters.StringAndCommentsTextSpanRenameContexts)
             End Sub
 
@@ -405,7 +406,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
                 Dim newTrivia = MyBase.VisitTrivia(trivia)
 
-                Dim textSpanRenameContexts As HashSet(Of LocationRenameContext) = Nothing
+                Dim textSpanRenameContexts As ImmutableHashSet(Of LocationRenameContext) = Nothing
                 If Not trivia.HasStructure AndAlso _stringAndCommentRenameContexts.TryGetValue(trivia.Span, textSpanRenameContexts) Then
                     Dim subSpanToReplacementTextInfo = CreateSubSpanToReplacementTextInfoDictionary(textSpanRenameContexts)
                     Return RenameInCommentTrivia(trivia, subSpanToReplacementTextInfo)
@@ -429,7 +430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 End If
 
                 Dim locationRenameContext As LocationRenameContext = Nothing
-                If Not _isProcessingComplexifiedSpans AndAlso _textSpanToRenameContexts.TryGetValue(oldToken.Span, locationRenameContext) Then
+                If Not _isProcessingComplexifiedSpans AndAlso _textSpanToLocationContextMap.TryGetValue(oldToken.Span, locationRenameContext) Then
                     newToken = RenameAndAnnotateAsync(
                         oldToken,
                         newToken,
@@ -464,7 +465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     Dim annotation = _renameAnnotations.GetAnnotations(token).OfType(Of RenameActionAnnotation).First()
 
                     Dim originalContext As LocationRenameContext = Nothing
-                    If annotation.IsRenameLocation AndAlso _textSpanToRenameContexts.TryGetValue(annotation.OriginalSpan, originalContext) Then
+                    If annotation.IsRenameLocation AndAlso _textSpanToLocationContextMap.TryGetValue(annotation.OriginalSpan, originalContext) Then
                         Return RenameComplexifiedToken(token, newToken, originalContext)
                     Else
                         Return newToken
@@ -708,7 +709,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             End Function
 
             Private Function RenameWithinToken(token As SyntaxToken, newToken As SyntaxToken) As SyntaxToken
-                Dim locationSymbolContexts As HashSet(Of LocationRenameContext) = Nothing
+                Dim locationSymbolContexts As ImmutableHashSet(Of LocationRenameContext) = Nothing
                 If _isProcessingComplexifiedSpans OrElse Not _stringAndCommentRenameContexts.TryGetValue(token.Span, locationSymbolContexts) OrElse locationSymbolContexts.Count = 0 Then
                     Return newToken
                 End If

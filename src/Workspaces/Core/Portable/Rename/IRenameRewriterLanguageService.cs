@@ -192,10 +192,10 @@ namespace Microsoft.CodeAnalysis.Rename
             return builder.ToImmutableDictionary();
         }
 
-        protected static ImmutableDictionary<TextSpan, HashSet<LocationRenameContext>> GroupStringAndCommentsTextSpanRenameContexts(
+        protected static ImmutableDictionary<TextSpan, ImmutableHashSet<LocationRenameContext>> GroupStringAndCommentsTextSpanRenameContexts(
             ImmutableArray<LocationRenameContext> renameSymbolContexts)
         {
-            using var _ = PooledDictionary<TextSpan, HashSet<LocationRenameContext>>.GetInstance(out var builder);
+            using var _ = PooledDictionary<TextSpan, ImmutableHashSet<LocationRenameContext>.Builder>.GetInstance(out var builder);
             foreach (var context in renameSymbolContexts)
             {
                 var containingSpan = context.RenameLocation.ContainingLocationForStringOrComment;
@@ -205,11 +205,25 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
                 else
                 {
-                    builder[containingSpan] = new HashSet<LocationRenameContext>() { context };
+                    var setBuilder = ImmutableHashSet.CreateBuilder<LocationRenameContext>();
+                    setBuilder.Add(context);
+                    builder[containingSpan] = setBuilder;
                 }
             }
 
-            return builder.ToImmutableDictionary();
+            return ToImmutable(builder);
+
+            static ImmutableDictionary<TextSpan, ImmutableHashSet<LocationRenameContext>> ToImmutable(
+                PooledDictionary<TextSpan, ImmutableHashSet<LocationRenameContext>.Builder> builder)
+            {
+                var dictionaryBuilder = ImmutableDictionary.CreateBuilder<TextSpan, ImmutableHashSet<LocationRenameContext>>();
+                foreach (var pair in builder)
+                {
+                    dictionaryBuilder[pair.Key] = pair.Value.ToImmutableHashSet();
+                }
+
+                return dictionaryBuilder.ToImmutableDictionary();
+            }
         }
 
         protected static ImmutableHashSet<RenamedSymbolContext> FilterRenameSymbolContexts(
@@ -239,14 +253,14 @@ namespace Microsoft.CodeAnalysis.Rename
         /// }
         /// If rename class 'Hello' to 'Hello2', void 'World' to 'World2',
         /// <paramref name="locationRenameContexts"/> would contain the subspan info within string "Hello World".
-        /// The output dictionary woud looks like
+        /// The output dictionary would looks like
         /// {
         ///     "0-4" : ("Hello", "Hello2"),
         ///     "6-10" : ("World", "World2")
         /// }
         /// </summary>
         internal static ImmutableSortedDictionary<TextSpan, (string replacementText, string matchText)> CreateSubSpanToReplacementTextInfoDictionary(
-            HashSet<LocationRenameContext> locationRenameContexts)
+            ImmutableHashSet<LocationRenameContext> locationRenameContexts)
         {
             var subSpanToReplacementTextBuilder = ImmutableSortedDictionary.CreateBuilder<TextSpan, (string replacementText, string matchText)>();
             foreach (var context in locationRenameContexts)
