@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly RefKind _refKind;
         private readonly DeclarationScope _scope;
+        private readonly ConstantValue? _defaultValue;
 
         public SynthesizedParameterSymbolBase(
             MethodSymbol? container,
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             RefKind refKind,
             DeclarationScope scope,
+            ConstantValue? defaultValue,
             string name)
         {
             Debug.Assert(type.HasType);
@@ -39,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _ordinal = ordinal;
             _refKind = refKind;
             _scope = scope;
+            _defaultValue = defaultValue;
             _name = name;
         }
 
@@ -81,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ConstantValue? ExplicitDefaultConstantValue
         {
-            get { return null; }
+            get { return _defaultValue; }
         }
 
         internal override bool IsIDispatchConstant
@@ -199,8 +202,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             RefKind refKind,
             DeclarationScope scope,
+            ConstantValue? defaultValue, 
             string name)
-            : base(container, type, ordinal, refKind, scope, name)
+            : base(container, type, ordinal, refKind, scope, defaultValue, name)
         {
         }
 
@@ -211,12 +215,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             string name = "",
             DeclarationScope scope = DeclarationScope.Unscoped,
+            ConstantValue? defaultValue = null,
             ImmutableArray<CustomModifier> refCustomModifiers = default,
             SourceComplexParameterSymbolBase? baseParameterForAttributes = null)
         {
             if (refCustomModifiers.IsDefaultOrEmpty && baseParameterForAttributes is null)
             {
-                return new SynthesizedParameterSymbol(container, type, ordinal, refKind, scope, name);
+                return new SynthesizedParameterSymbol(container, type, ordinal, refKind, scope, defaultValue, name);
             }
 
             return new SynthesizedComplexParameterSymbol(
@@ -225,6 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ordinal,
                 refKind,
                 scope,
+                defaultValue,
                 name,
                 refCustomModifiers.NullToEmpty(),
                 baseParameterForAttributes);
@@ -252,6 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     oldParam.RefKind,
                     oldParam.Name,
                     oldParam.Scope,
+                    oldParam.ExplicitDefaultConstantValue,
                     oldParam.RefCustomModifiers,
                     baseParameterForAttributes: null));
             }
@@ -283,10 +290,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             RefKind refKind,
             DeclarationScope scope,
+            ConstantValue? defaultValue,
             string name,
             ImmutableArray<CustomModifier> refCustomModifiers,
             SourceComplexParameterSymbolBase? baseParameterForAttributes)
-            : base(container, type, ordinal, refKind, scope, name)
+            : base(container, type, ordinal, refKind, scope, defaultValue, name)
         {
             Debug.Assert(!refCustomModifiers.IsDefault);
             Debug.Assert(!refCustomModifiers.IsEmpty || baseParameterForAttributes is object);

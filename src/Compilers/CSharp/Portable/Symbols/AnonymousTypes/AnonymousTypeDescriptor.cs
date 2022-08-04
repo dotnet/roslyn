@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Fields.SequenceEqual(
                 other.Fields,
                 comparison,
-                static (x, y, comparison) => x.TypeWithAnnotations.Equals(y.TypeWithAnnotations, comparison) && x.RefKind == y.RefKind && x.Scope == y.Scope);
+                static (x, y, comparison) => x.TypeWithAnnotations.Equals(y.TypeWithAnnotations, comparison) && x.RefKind == y.RefKind && x.Scope == y.Scope && x.DefaultValue == y.DefaultValue);
         }
 
         /// <summary>

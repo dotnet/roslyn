@@ -702,7 +702,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnType,
                 parameterRefKinds,
                 parameterScopes,
-                parameterTypes);
+                parameterTypes,
+                parameterDefaultValues);
         }
 
         private BoundLambda ReallyBind(NamedTypeSymbol delegateType, bool inExpressionTree)

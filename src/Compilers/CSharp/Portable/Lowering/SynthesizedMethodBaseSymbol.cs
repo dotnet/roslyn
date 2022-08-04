@@ -137,6 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     p.RefKind,
                     p.Name,
                     p.Scope,
+                    p.ExplicitDefaultConstantValue,
                     // the synthesized parameter doesn't need to have the same ref custom modifiers as the base
                     refCustomModifiers: default,
                     inheritAttributes ? p as SourceComplexParameterSymbolBase : null));

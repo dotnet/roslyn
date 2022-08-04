@@ -8935,7 +8935,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations returnType,
             ImmutableArray<RefKind> parameterRefKinds,
             ImmutableArray<DeclarationScope> parameterScopes,
-            ImmutableArray<TypeWithAnnotations> parameterTypes)
+            ImmutableArray<TypeWithAnnotations> parameterTypes,
+            ImmutableArray<ConstantValue?> parameterDefaultValues = default)
         {
             Debug.Assert(ContainingMemberOrLambda is { });
             Debug.Assert(parameterRefKinds.IsDefault || parameterRefKinds.Length == parameterTypes.Length);
@@ -8958,6 +8959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Use System.Action<...> or System.Func<...> if possible.
             if (returnRefKind == RefKind.None &&
+                parameterDefaultValues.IsDefault &&
                 (parameterRefKinds.IsDefault || parameterRefKinds.All(refKind => refKind == RefKind.None)) &&
                 (parameterScopes.IsDefault || parameterScopes.All(scope => scope == DeclarationScope.Unscoped)))
             {
@@ -8992,7 +8994,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         location,
                         parameterTypes[i],
                         parameterRefKinds.IsDefault ? RefKind.None : parameterRefKinds[i],
-                        parameterScopes.IsDefault ? DeclarationScope.Unscoped : parameterScopes[i]));
+                        parameterScopes.IsDefault ? DeclarationScope.Unscoped : parameterScopes[i],
+                        parameterDefaultValues.IsDefault ? null : parameterDefaultValues[i])
+                    );
             }
             fieldsBuilder.Add(new AnonymousTypeField(name: "", location, returnType, returnRefKind, DeclarationScope.Unscoped));
 
