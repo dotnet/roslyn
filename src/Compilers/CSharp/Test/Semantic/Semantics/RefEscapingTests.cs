@@ -184,11 +184,13 @@ class C
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(9, 22));
         }
 
-        [Fact()]
-        public void RefLikeReturnEscape()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefLikeReturnEscape(LanguageVersion languageVersion)
         {
-            var text = @"
-    using System;
+            var text = @"using System;
+    using System.Diagnostics.CodeAnalysis;
 
     class Program
     {
@@ -201,7 +203,7 @@ class C
             return ref (new int[1])[0];
         }
 
-        static S1 MayWrap(ref Span<int> arg)
+        static S1 MayWrap([UnscopedRef] ref Span<int> arg)
         {
             return default;
         }
@@ -217,7 +219,8 @@ class C
         }
     }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
                 // (23,42): error CS8526: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
                 //             return ref Test1(MayWrap(ref local));
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(23, 42),
@@ -228,9 +231,6 @@ class C
                 //             return ref Test1(MayWrap(ref local));
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Test1(MayWrap(ref local))").WithArguments("Program.Test1(Program.S1)", "arg").WithLocation(23, 24)
             );
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
-            // https://github.com/dotnet/roslyn/issues/62780: Include variant of test with:
-            // static S1 MayWrap([UnscopedRef] ref Span<int> arg) { ... }
         }
 
         [Fact()]
@@ -277,18 +277,20 @@ class C
             );
         }
 
-        [Fact()]
-        public void RefLikeReturnEscapeWithRefLikes()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefLikeReturnEscapeWithRefLikes(LanguageVersion languageVersion)
         {
-            var text = @"
-    using System;
+            var text = @"using System;
+    using System.Diagnostics.CodeAnalysis;
     class Program
     {
         static void Main()
         {
         }
 
-        static ref int Test1(ref S1 arg)
+        static ref int Test1([UnscopedRef] ref S1 arg)
         {
             return ref (new int[1])[0];
         }
@@ -316,7 +318,8 @@ class C
         }
     }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
                 // (23,34): error CS8168: Cannot return local 'sp' by reference because it is not a ref local
                 //             return ref Test1(ref sp);    // error1
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "sp").WithArguments("sp").WithLocation(23, 34),
@@ -330,9 +333,6 @@ class C
                 //             return ref Test1(ref sp);    // error2
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Test1(ref sp)").WithArguments("Program.Test1(ref Program.S1)", "arg").WithLocation(29, 24)
             );
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
-            // https://github.com/dotnet/roslyn/issues/62780: Include variant of test with:
-            // static S1 MayWrap([UnscopedRef] ref Span<int> arg) { ... }
         }
 
         [Fact()]
@@ -399,11 +399,13 @@ class C
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
         }
 
-        [Fact()]
-        public void RefLikeReturnEscapeInParam()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefLikeReturnEscapeInParam(LanguageVersion languageVersion)
         {
-            var text = @"
-    using System;
+            var text = @"using System;
+    using System.Diagnostics.CodeAnalysis;
     class Program
     {
         static void Main()
@@ -415,7 +417,7 @@ class C
             return ref (new int[1])[0];
         }
 
-        static S1 MayWrap(in Span<int> arg)
+        static S1 MayWrap([UnscopedRef] in Span<int> arg)
         {
             return default;
         }
@@ -440,7 +442,8 @@ class C
         }
     }
 ";
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
                 // (31,30): error CS8352: Cannot use variable 'sp' in this context because it may expose referenced variables outside of their declaration scope
                 //             return ref Test1(sp);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "sp").WithArguments("sp").WithLocation(31, 30),
@@ -990,11 +993,13 @@ class Program
                 );
         }
 
-        [Fact()]
-        public void RefLikeScopeEscapeReturnable()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefLikeScopeEscapeReturnable(LanguageVersion languageVersion)
         {
-            var text = @"
-    using System;
+            var text = @"using System;
+    using System.Diagnostics.CodeAnalysis;
     class Program
     {
         static void Main()
@@ -1015,7 +1020,7 @@ class Program
             }
         }
 
-        static S1 MayWrap(ref Span<int> arg)
+        static S1 MayWrap([UnscopedRef] ref Span<int> arg)
         {
             return default;
         }
@@ -1025,7 +1030,8 @@ class Program
         }
     }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
                 // (19,33): error CS8526: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //                 x = MayWrap(ref inner);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(19, 33),
@@ -1033,16 +1039,15 @@ class Program
                 //                 x = MayWrap(ref inner);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref inner)").WithArguments("Program.MayWrap(ref System.Span<int>)", "arg").WithLocation(19, 21)
             );
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
-            // https://github.com/dotnet/roslyn/issues/62780: Include variant of test with:
-            // static S1 MayWrap([UnscopedRef] ref Span<int> arg) { ... }
         }
 
-        [Fact()]
-        public void RefLikeScopeEscapeThis()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefLikeScopeEscapeThis(LanguageVersion languageVersion)
         {
-            var text = @"
-    using System;
+            var text = @"using System;
+    using System.Diagnostics.CodeAnalysis;
     class Program
     {
         static void Main()
@@ -1065,7 +1070,7 @@ class Program
             }
         }
 
-        static S1 MayWrap(ref Span<int> arg)
+        static S1 MayWrap([UnscopedRef] ref Span<int> arg)
         {
             return default;
         }
@@ -1078,7 +1083,8 @@ class Program
         }
     }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
                 // (21,33): error CS8526: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //                 x = MayWrap(ref inner).Slice(1);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(21, 33),
@@ -1086,16 +1092,15 @@ class Program
                 //                 x = MayWrap(ref inner).Slice(1);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref inner)").WithArguments("Program.MayWrap(ref System.Span<int>)", "arg").WithLocation(21, 21)
             );
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
-            // https://github.com/dotnet/roslyn/issues/62780: Include variant of test with:
-            // static S1 MayWrap([UnscopedRef] ref Span<int> arg) { ... }
         }
 
-        [Fact()]
-        public void RefLikeScopeEscapeThisRef()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefLikeScopeEscapeThisRef(LanguageVersion languageVersion)
         {
-            var text = @"
-using System;
+            var text = @"using System;
+using System.Diagnostics.CodeAnalysis;
 class Program
 {
     static void Main()
@@ -1125,7 +1130,7 @@ class Program
         }
     }
 
-    static S1 MayWrap(ref Span<int> arg)
+    static S1 MayWrap([UnscopedRef] ref Span<int> arg)
     {
         return default;
     }
@@ -1142,7 +1147,8 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
                 // (20,32): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             x[0] = MayWrap(ref inner).Slice(1)[0];
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(20, 32),
@@ -1162,8 +1168,6 @@ class Program
                 //             x.ReturnsRefArg(ref x) = MayWrap(ref inner).Slice(1)[0];
                 Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref inner)").WithArguments("Program.MayWrap(ref System.Span<int>)", "arg").WithLocation(28, 38)
             );
-            // https://github.com/dotnet/roslyn/issues/62780: Include variant of test with:
-            // static S1 MayWrap([UnscopedRef] ref Span<int> arg) { ... }
         }
 
         [Fact()]
@@ -1301,11 +1305,13 @@ class Program
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
         }
 
-        [Fact()]
-        public void RefLikeEscapeMixingCall()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefLikeEscapeMixingCall(LanguageVersion languageVersion)
         {
-            var text = @"
-    using System;
+            var text = @"using System;
+    using System.Diagnostics.CodeAnalysis;
     class Program
     {
         static void Main()
@@ -1329,17 +1335,17 @@ class Program
             MayAssign(ref inner, ref rOuter);
         }
 
-        static void MayAssign(ref Span<int> arg1, ref S1 arg2)
+        static void MayAssign([UnscopedRef] ref Span<int> arg1, [UnscopedRef] ref S1 arg2)
         {
             arg2 = MayWrap(ref arg1);
         }
 
-        static void MayAssign(ref S1 arg1, ref S1 arg2)
+        static void MayAssign([UnscopedRef] ref S1 arg1, [UnscopedRef] ref S1 arg2)
         {
             arg1 = arg2;
         }
 
-        static S1 MayWrap(ref Span<int> arg)
+        static S1 MayWrap([UnscopedRef] ref Span<int> arg)
         {
             return default;
         }
@@ -1349,7 +1355,8 @@ class Program
         }
     }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
                 // (20,39): error CS8526: Cannot use variable 'rInner' in this context because it may expose referenced variables outside of their declaration scope
                 //             MayAssign(ref rOuter, ref rInner);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "rInner").WithArguments("rInner").WithLocation(20, 39),
@@ -1363,16 +1370,6 @@ class Program
                 //             MayAssign(ref inner, ref rOuter);
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref inner, ref rOuter)").WithArguments("Program.MayAssign(ref System.Span<int>, ref Program.S1)", "arg1").WithLocation(23, 13)
             );
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // (23,27): error CS8526: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
-                //             MayAssign(ref inner, ref rOuter);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(23, 27),
-                // (23,13): error CS8524: This combination of arguments to 'Program.MayAssign(ref Span<int>, ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
-                //             MayAssign(ref inner, ref rOuter);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref inner, ref rOuter)").WithArguments("Program.MayAssign(ref System.Span<int>, ref Program.S1)", "arg1").WithLocation(23, 13)
-            );
-            // https://github.com/dotnet/roslyn/issues/62780: Include variant of test with:
-            // static S1 MayWrap([UnscopedRef] ref Span<int> arg) { ... }
         }
 
         [Fact()]
@@ -1519,11 +1516,13 @@ class Program
             );
         }
 
-        [Fact()]
-        public void RefLikeEscapeMixingIndexOnRefLike()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefLikeEscapeMixingIndexOnRefLike(LanguageVersion languageVersion)
         {
-            var text = @"
-using System;
+            var text = @"using System;
+using System.Diagnostics.CodeAnalysis;
 class Program
 {
     static void Main()
@@ -1551,7 +1550,7 @@ class Program
         int dummy4 = rOuter[inner];
     }
 
-    static S1 MayWrap(in Span<int> arg)
+    static S1 MayWrap([UnscopedRef] in Span<int> arg)
     {
         return default;
     }
@@ -1560,7 +1559,7 @@ class Program
     {
         public Span<int> field;
 
-        public int this[in Span<int> arg1]
+        public int this[[UnscopedRef] in Span<int> arg1]
         {
             get
             {
@@ -1570,7 +1569,7 @@ class Program
             }
         }
 
-        public int this[in S1 arg1]
+        public int this[[UnscopedRef] in S1 arg1]
         {
             get
             {
@@ -1586,7 +1585,8 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
                 // (24,29): error CS8526: Cannot use variable 'rInner' in this context because it may expose referenced variables outside of their declaration scope
                 //         int dummy3 = rOuter[rInner];
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "rInner").WithArguments("rInner").WithLocation(24, 29),
@@ -1602,19 +1602,21 @@ class Program
             );
         }
 
-        [Fact()]
-        public void RefLikeEscapeMixingCtor()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefLikeEscapeMixingCtor(LanguageVersion languageVersion)
         {
-            var text = @"
-    using System;
+            var text = @"using System;
+    using System.Diagnostics.CodeAnalysis;
     class Program
     {
         static void Main()
         {
         }
 
-        delegate void D1(ref S1 arg1, ref S1 arg2);
-        delegate void D2(ref Span<int> arg1, ref S1 arg2);
+        delegate void D1([UnscopedRef]ref S1 arg1, [UnscopedRef]ref S1 arg2);
+        delegate void D2([UnscopedRef]ref Span<int> arg1, [UnscopedRef]ref S1 arg2);
 
         void Test1()
         {
@@ -1636,17 +1638,17 @@ class Program
             MayAssignDel2(ref inner, ref rOuter);
         }
 
-        static void MayAssign(ref Span<int> arg1, ref S1 arg2)
+        static void MayAssign([UnscopedRef] ref Span<int> arg1, [UnscopedRef] ref S1 arg2)
         {
             arg2 = MayWrap(ref arg1);
         }
 
-        static void MayAssign(ref S1 arg1, ref S1 arg2)
+        static void MayAssign([UnscopedRef] ref S1 arg1, [UnscopedRef] ref S1 arg2)
         {
             arg1 = arg2;
         }
 
-        static S1 MayWrap(ref Span<int> arg)
+        static S1 MayWrap([UnscopedRef] ref Span<int> arg)
         {
             return default;
         }
@@ -1656,7 +1658,8 @@ class Program
         }
     }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
                 // (26,43): error CS8526: Cannot use variable 'rInner' in this context because it may expose referenced variables outside of their declaration scope
                 //             MayAssignDel1(ref rOuter, ref rInner);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "rInner").WithArguments("rInner").WithLocation(26, 43),
@@ -1670,16 +1673,6 @@ class Program
                 //             MayAssignDel2(ref inner, ref rOuter);
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssignDel2(ref inner, ref rOuter)").WithArguments("Program.D2.Invoke(ref System.Span<int>, ref Program.S1)", "arg1").WithLocation(29, 13)
             );
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // (29,31): error CS8526: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
-                //             MayAssignDel2(ref inner, ref rOuter);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(29, 31),
-                // (29,13): error CS8524: This combination of arguments to 'Program.D2.Invoke(ref Span<int>, ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
-                //             MayAssignDel2(ref inner, ref rOuter);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssignDel2(ref inner, ref rOuter)").WithArguments("Program.D2.Invoke(ref System.Span<int>, ref Program.S1)", "arg1").WithLocation(29, 13)
-            );
-            // https://github.com/dotnet/roslyn/issues/62780: Include variant of test with:
-            // static S1 MayWrap([UnscopedRef] ref Span<int> arg) { ... }
         }
 
         [Fact()]
@@ -2245,11 +2238,13 @@ class Program
                 );
         }
 
-        [Fact()]
-        public void MismatchedRefTernaryEscapeBlock()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void MismatchedRefTernaryEscapeBlock(LanguageVersion languageVersion)
         {
-            var text = @"
-using System;
+            var text = @"using System;
+using System.Diagnostics.CodeAnalysis;
 class Program
 {
     static void Main()
@@ -2296,7 +2291,7 @@ class Program
         }
     }
 
-    static S1 MayWrap(ref Span<int> arg)
+    static S1 MayWrap([UnscopedRef] ref Span<int> arg)
     {
         return default;
     }
@@ -2307,7 +2302,8 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
                 // (27,44): error CS8526: Cannot use variable 'sInner' in this context because it may expose referenced variables outside of their declaration scope
                 //             ternarySame2 = true ? sOuter : sInner;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "sInner").WithArguments("sInner").WithLocation(27, 44),
@@ -2333,11 +2329,6 @@ class Program
                 //             ref var ternary3 = ref true ? ref ternarySame1 : ref ternarySame2;
                 Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref ternarySame1 : ref ternarySame2").WithLocation(39, 36)
             );
-
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
-
-            // https://github.com/dotnet/roslyn/issues/62780: Include variant of test with:
-            // static S1 MayWrap([UnscopedRef] ref Span<int> arg) { ... }
         }
 
         [Fact()]
@@ -2392,11 +2383,13 @@ class Program
         }
 
         [WorkItem(21831, "https://github.com/dotnet/roslyn/issues/21831")]
-        [Fact()]
-        public void LocalWithNoInitializerEscape()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void LocalWithNoInitializerEscape(LanguageVersion languageVersion)
         {
-            var text = @"
-    using System;
+            var text = @"using System;
+    using System.Diagnostics.CodeAnalysis;
     class Program
     {
         static void Main()
@@ -2419,7 +2412,7 @@ class Program
             return sp1;
         }
 
-        static S1 MayWrap(ref Span<int> arg)
+        static S1 MayWrap([UnscopedRef] ref Span<int> arg)
         {
             return default;
         }
@@ -2430,7 +2423,8 @@ class Program
         }
     }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
                 // (16,30): error CS8526: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
                 //             sp = MayWrap(ref local);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(16, 30),
@@ -2441,15 +2435,6 @@ class Program
                 //             return sp1;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "sp1").WithArguments("sp1").WithLocation(22, 20)
                 );
-
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // (22,20): error CS8526: Cannot use variable 'sp1' in this context because it may expose referenced variables outside of their declaration scope
-                //             return sp1;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "sp1").WithArguments("sp1").WithLocation(22, 20)
-                );
-
-            // https://github.com/dotnet/roslyn/issues/62780: Include variant of test with:
-            // static S1 MayWrap([UnscopedRef] ref Span<int> arg) { ... }
         }
 
         [WorkItem(21858, "https://github.com/dotnet/roslyn/issues/21858")]
