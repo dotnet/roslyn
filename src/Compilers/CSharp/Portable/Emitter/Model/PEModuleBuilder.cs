@@ -1710,7 +1710,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
         }
 
-        internal SynthesizedAttributeData SynthesizeScopedRefAttribute(ParameterSymbol symbol, DeclarationScope scope)
+        internal SynthesizedAttributeData SynthesizeLifetimeAnnotationAttribute(ParameterSymbol symbol, DeclarationScope scope)
         {
             Debug.Assert(scope != DeclarationScope.Unscoped);
             Debug.Assert(symbol.RefKind != RefKind.Out || scope == DeclarationScope.ValueScoped);
@@ -1722,14 +1722,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return null;
             }
 
-            return SynthesizeScopedRefAttribute(WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor);
+            var booleanType = Compilation.GetSpecialType(SpecialType.System_Boolean);
+            Debug.Assert((object)booleanType != null);
+            return SynthesizeLifetimeAnnotationAttribute(
+                WellKnownMember.System_Runtime_CompilerServices_LifetimeAnnotationAttribute__ctor,
+                ImmutableArray.Create(
+                    new TypedConstant(booleanType, TypedConstantKind.Primitive, scope == DeclarationScope.RefScoped),
+                    new TypedConstant(booleanType, TypedConstantKind.Primitive, scope == DeclarationScope.ValueScoped)));
         }
 
-        internal virtual SynthesizedAttributeData SynthesizeScopedRefAttribute(WellKnownMember member)
+        internal virtual SynthesizedAttributeData SynthesizeLifetimeAnnotationAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
-            return Compilation.TrySynthesizeAttribute(member, isOptionalUse: true);
+            return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
         }
 
         internal bool ShouldEmitNullablePublicOnlyAttribute()
@@ -1805,9 +1811,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NativeIntegerAttribute);
         }
 
-        internal void EnsureScopedRefAttributeExists()
+        internal void EnsureLifetimeAnnotationAttributeExists()
         {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.ScopedRefAttribute);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.LifetimeAnnotationAttribute);
         }
 
 #nullable enable
