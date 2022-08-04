@@ -10,13 +10,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DesignerAttribute
 {
-    internal sealed partial class DesignerAttributeComputer
+    [ExportWorkspaceService(typeof(DesignerAttributeComputer))]
+    internal sealed partial class DesignerAttributeComputer : IWorkspaceService
     {
         /// <summary>
         /// Protects mutable state in this type.
