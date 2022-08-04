@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         [Fact]
         public async Task TestCSharpRenameMultipleSymbolsInSingleDocument()
         {
-            var cancellationToken = CancellationToken.None;
             using var verifier = new Verifier(@"
                    <Workspace>
                        <Project Language=""C#"" CommonReferences=""true"">
@@ -93,7 +92,6 @@ public class Apple2
         [Fact]
         public async Task TestCSharpRenameInCommentsAndStrings()
         {
-            var cancellationToken = CancellationToken.None;
             using var verifier = new Verifier(@"
                    <Workspace>
                        <Project Language=""C#"" CommonReferences=""true"">
@@ -149,7 +147,6 @@ public class Apple2
         [Fact]
         public async Task TestCSharpRenameComplexification()
         {
-            var cancellationToken = CancellationToken.None;
             using var verifier = new Verifier(@"
                    <Workspace>
                        <Project Language=""C#"" CommonReferences=""true"">
@@ -315,7 +312,6 @@ class World_X
         [Fact]
         public async Task TestVBRenameMultipleSymbolsInSingleDocument()
         {
-            var cancellationToken = CancellationToken.None;
             using var verifier = new Verifier(@"
                    <Workspace>
                        <Project Language=""Visual Basic"" CommonReferences=""true"">
@@ -389,7 +385,6 @@ End Class");
         [Fact]
         public async Task TestVBRenameInCommentsAndStrings()
         {
-            var cancellationToken = CancellationToken.None;
             using var verifier = new Verifier(@"
                    <Workspace>
                        <Project Language=""Visual Basic"" CommonReferences=""true"">
@@ -441,7 +436,6 @@ End Class
         [Fact]
         public async Task TestVBRenameComplexification()
         {
-            var cancellationToken = CancellationToken.None;
             using var verifier = new Verifier(@"
                    <Workspace>
                        <Project Language=""Visual Basic"" CommonReferences=""true"">

@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                         .Where(l => (l.Type & RelatedLocationType.UnresolvedConflict) != 0)
                                         .Select(l => (l.ComplexifiedTargetSpan, l.DocumentId)).Distinct();
 
-                                    _conflictLocations = _conflictLocations.Where(l => !unresolvedLocations.Any(c => c.DocumentId == l.DocumentId && c.ComplexifiedSpan.Contains(l.OriginalIdentifierSpan))).ToSet();
+                                    _conflictLocations = _conflictLocations.Where(l => !unresolvedLocations.Any(c => c.DocumentId == l.DocumentId && c.ComplexifiedTargetSpan.Contains(l.OriginalIdentifierSpan))).ToSet();
                                 }
 
                                 // Clean up side effects from rename before entering the next phase
