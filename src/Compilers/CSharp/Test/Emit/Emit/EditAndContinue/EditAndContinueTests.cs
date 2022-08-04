@@ -3555,22 +3555,12 @@ class C
             Assert.Equal(7, baseAttributeCount);
             Assert.Equal(2, baseParameterCount);
 
-            // This update emulates "Reloadable" type behavior - a new type is generated instead of updating the existing one.
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Replace, null, c1)));
-
-            using var md1 = diff1.GetMetadata();
-            ValidateReplacedType(diff1, new[] { reader0, md1.Reader });
-
-            var diff2 = compilation2.EmitDifference(
-                diff1.NextGeneration,
-                ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Replace, null, c2)));
-
-            using var md2 = diff2.GetMetadata();
-            ValidateReplacedType(diff2, new[] { reader0, md1.Reader, md2.Reader });
+            var attributeTypeDefHandle = reader0.TypeDefinitions.Single(d => reader0.StringComparer.Equals(reader0.GetTypeDefinition(d).Name, "MetadataUpdateOriginalTypeAttribute"));
+            var attributeCtorDefHandle = reader0.MethodDefinitions.Single(d =>
+            {
+                var methodDef = reader0.GetMethodDefinition(d);
+                return methodDef.GetDeclaringType() == attributeTypeDefHandle && reader0.StringComparer.Equals(methodDef.Name, ".ctor");
+            });
 
             void ValidateReplacedType(CompilationDifference diff, MetadataReader[] readers)
             {
@@ -3614,10 +3604,32 @@ class C
                     Assert.Equal(generation, parentGeneration);
                     Assert.Equal(newTypeDefHandle, parentHandle);
 
-                    // the serialized type name should be the base name, not `C#1`
+                    // attribute contructor should match
+                    var ctorHandle = aggregator.GetGenerationHandle(attribute.Constructor, out var ctorGeneration);
+                    Assert.Equal(0, ctorGeneration);
+                    Assert.Equal(attributeCtorDefHandle, ctorHandle);
+
+                    // The attribute value encodes serialized type name. It should be the base name "C", not "C#1".
                     CheckBlobValue(readers, attribute.Value, new byte[] { 0x01, 0x00, 0x01, (byte)'C', 0x00, 0x00 });
                 }
             }
+
+            // This update emulates "Reloadable" type behavior - a new type is generated instead of updating the existing one.
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Replace, null, c1)));
+
+            using var md1 = diff1.GetMetadata();
+            ValidateReplacedType(diff1, new[] { reader0, md1.Reader });
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Replace, null, c2)));
+
+            using var md2 = diff2.GetMetadata();
+            ValidateReplacedType(diff2, new[] { reader0, md1.Reader, md2.Reader });
 
             // This update is an EnC update - even reloadable types are updated in-place
             var diff3 = compilation3.EmitDifference(
