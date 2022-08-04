@@ -34,7 +34,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional path As String = "",
             Optional encoding As Encoding = Nothing) As SyntaxTree
 
-            Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), path, encoding, SourceHashAlgorithm.Sha1)
+            Return SyntaxTree(root, options, path, encoding, SourceHashAlgorithm.Sha1)
+        End Function
+
+        ''' <summary>
+        ''' Create a new syntax tree from a syntax node.
+        ''' </summary>
+        Public Shared Function SyntaxTree(
+            root As SyntaxNode,
+            Optional options As ParseOptions = Nothing,
+            Optional path As String = "",
+            Optional encoding As Encoding = Nothing,
+            Optional checksumAlgorithm As SourceHashAlgorithm = SourceHashAlgorithm.Sha1) As SyntaxTree
+
+            Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), path, encoding, checksumAlgorithm)
         End Function
 
         ''' <summary>

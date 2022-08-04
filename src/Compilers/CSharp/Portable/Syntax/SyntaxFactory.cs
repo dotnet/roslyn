@@ -1543,10 +1543,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Create a new syntax tree from a syntax node.
         /// </summary>
-        public static SyntaxTree SyntaxTree(SyntaxNode root, ParseOptions? options = null, string path = "", Encoding? encoding = null)
-        {
-            return CSharpSyntaxTree.Create((CSharpSyntaxNode)root, (CSharpParseOptions?)options, path, encoding, SourceHashAlgorithm.Sha1);
-        }
+        public static SyntaxTree SyntaxTree(SyntaxNode root, ParseOptions? options, string path, Encoding? encoding)
+            => SyntaxTree(root, options, path, encoding, SourceHashAlgorithm.Sha1);
+
+        /// <summary>
+        /// Create a new syntax tree from a syntax node.
+        /// </summary>
+        public static SyntaxTree SyntaxTree(SyntaxNode root, ParseOptions? options = null, string path = "", Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
+            => CSharpSyntaxTree.Create((CSharpSyntaxNode)root, (CSharpParseOptions?)options, path, encoding, checksumAlgorithm);
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 #pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
