@@ -235,14 +235,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.True(await invokeTask);
         }
 
-        private class DesignerAttributeComputerCallback : DesignerAttributeComputer.ICallback
+        private class DesignerAttributeComputerCallback : IDesignerAttributeDiscoveryService.ICallback
         {
             private readonly TaskCompletionSource<ImmutableArray<DesignerAttributeData>> _infosSource = new();
 
             public Task<ImmutableArray<DesignerAttributeData>> Infos => _infosSource.Task;
-
-            public ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
-                => ValueTaskFactory.CompletedTask;
 
             public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
             {
