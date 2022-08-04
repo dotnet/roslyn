@@ -96,26 +96,26 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
             var changedData = latestData.WhereAsArray(d =>
                 {
-                    _documentToLastReportedInformation.TryGetValue(d.document.Id, out var existingInfo);
-                    return existingInfo.category != d.data.Category;
+                    _documentToLastReportedInformation.TryGetValue(d.DocumentId, out var existingInfo);
+                    return existingInfo.category != d.Category;
                 });
 
             // Now, keep track of what we've reported to the host so we won't report unchanged files in the future.
-            foreach (var (document, info) in latestData)
-                _documentToLastReportedInformation[document.Id] = (info.Category, projectVersion);
+            foreach (var data in latestData)
+                _documentToLastReportedInformation[data.DocumentId] = (data.Category, projectVersion);
 
             // Only bother reporting non-empty information to save an unnecessary RPC.
             if (!changedData.IsEmpty)
-                await callback.ReportDesignerAttributeDataAsync(changedData.SelectAsArray(d => d.data), cancellationToken).ConfigureAwait(false);
+                await callback.ReportDesignerAttributeDataAsync(changedData, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<(Document document, DesignerAttributeData data)[]> ComputeLatestDataAsync(
+        private async Task<ImmutableArray<DesignerAttributeData>> ComputeLatestDataAsync(
             Project project, Document? specificDocument, VersionStamp projectVersion, CancellationToken cancellationToken)
         {
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var designerCategoryType = compilation.DesignerCategoryAttributeType();
 
-            using var _ = ArrayBuilder<Task<(Document document, DesignerAttributeData data)>>.GetInstance(out var tasks);
+            using var _ = ArrayBuilder<Task<DesignerAttributeData?>>.GetInstance(out var tasks);
             foreach (var document in project.Documents)
             {
                 // If we're only analyzing a specific document, then skip the rest.
@@ -138,10 +138,11 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 tasks.Add(ComputeDesignerAttributeDataAsync(designerCategoryType, document, cancellationToken));
             }
 
-            return await Task.WhenAll(tasks).ConfigureAwait(false);
+            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+            return results.Where(d => d.HasValue).SelectAsArray(d => d!.Value);
         }
 
-        private static async Task<(Document document, DesignerAttributeData data)> ComputeDesignerAttributeDataAsync(
+        private static async Task<DesignerAttributeData?> ComputeDesignerAttributeDataAsync(
             INamedTypeSymbol? designerCategoryType, Document document, CancellationToken cancellationToken)
         {
             try
@@ -154,18 +155,16 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 var category = await DesignerAttributeHelpers.ComputeDesignerAttributeCategoryAsync(
                     designerCategoryType, document, cancellationToken).ConfigureAwait(false);
 
-                var data = new DesignerAttributeData
+                return new DesignerAttributeData
                 {
                     Category = category,
                     DocumentId = document.Id,
                     FilePath = document.FilePath,
                 };
-
-                return (document, data);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                return default;
+                return null;
             }
         }
     }
