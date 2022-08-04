@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             ''' Mapping from the containgSpan of a common trivia/string identifier to a set of Locations needs to rename inside it.
             ''' It Is created by using a regex in to find the matched text when renaming inside a string/identifier.
             ''' </summary>
-            Private ReadOnly _renameContexts As ImmutableDictionary(Of SymbolKey, RenameSymbolContext)
+            Private ReadOnly _renamedSymbolContexts As ImmutableDictionary(Of SymbolKey, RenamedSymbolContext)
 
             Private ReadOnly Property AnnotateForComplexification As Boolean
                 Get
@@ -102,8 +102,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 _renameAnnotations = parameters.RenameAnnotations
                 _renameSpansTracker = parameters.RenameSpansTracker
 
-                _renameContexts = GroupRenameContextBySymbolKey(parameters.RenameSymbolContexts, SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False))
-                _textSpanToRenameContexts = GroupTextRenameContextsByTextSpan(parameters.TokenTextSpanRenameContexts)
+                _renamedSymbolContexts = CreateSymbolKeyToRenamedSymbolContextMap(parameters.RenameSymbolContexts, SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False))
+                _textSpanToRenameContexts = CreateTextSpanToLocationContextMap(parameters.TokenTextSpanRenameContexts)
                 _stringAndCommentRenameContexts = GroupStringAndCommentsTextSpanRenameContexts(parameters.StringAndCommentsTextSpanRenameContexts)
             End Sub
 
@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             Private Function UpdateAliasAnnotation(newToken As SyntaxToken) As SyntaxToken
 
-                For Each kvp In _renameContexts
+                For Each kvp In _renamedSymbolContexts
                     Dim renameSymbolContext = kvp.Value
                     Dim aliasSymbol = renameSymbolContext.AliasSymbol
                     If aliasSymbol IsNot Nothing AndAlso Not Me.AnnotateForComplexification AndAlso newToken.HasAnnotations(AliasAnnotation.Kind) Then
@@ -473,13 +473,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
                 If TypeOf token.Parent Is SimpleNameSyntax AndAlso token.Kind <> SyntaxKind.GlobalKeyword AndAlso token.Parent.Parent.IsKind(SyntaxKind.QualifiedName, SyntaxKind.QualifiedCrefOperatorReference) Then
                     Dim symbol = Me._speculativeModel.GetSymbolInfo(token.Parent, Me._cancellationToken).Symbol
-                    Dim renameSymbolContext As RenameSymbolContext = Nothing
+                    Dim renamedSymbolContext As RenamedSymbolContext = Nothing
                     If symbol IsNot Nothing AndAlso
-                        _renameContexts.TryGetValue(symbol.GetSymbolKey(), renameSymbolContext) AndAlso
-                        renameSymbolContext.RenamedSymbol.Kind <> SymbolKind.Local AndAlso
-                        renameSymbolContext.RenamedSymbol.Kind <> SymbolKind.RangeVariable AndAlso
-                        token.ValueText = renameSymbolContext.OriginalText Then
-                        Return RenameComplexifiedToken(token, newToken, renameSymbolContext)
+                        _renamedSymbolContexts.TryGetValue(symbol.GetSymbolKey(), renamedSymbolContext) AndAlso
+                        renamedSymbolContext.RenamedSymbol.Kind <> SymbolKind.Local AndAlso
+                        renamedSymbolContext.RenamedSymbol.Kind <> SymbolKind.RangeVariable AndAlso
+                        token.ValueText = renamedSymbolContext.OriginalText Then
+                        Return RenameComplexifiedToken(token, newToken, renamedSymbolContext)
                     End If
                 End If
 
@@ -506,17 +506,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Return newToken
             End Function
 
-            Private Function RenameComplexifiedToken(token As SyntaxToken, newToken As SyntaxToken, renameSymbolContext As RenameSymbolContext) As SyntaxToken
+            Private Function RenameComplexifiedToken(token As SyntaxToken, newToken As SyntaxToken, renamedSymbolContext As RenamedSymbolContext) As SyntaxToken
                 If _isProcessingComplexifiedSpans Then
                     Return RenameToken(
                             token,
                             newToken,
                             prefix:=Nothing,
                             suffix:=Nothing,
-                            _syntaxFactsService.IsVerbatimIdentifier(renameSymbolContext.ReplacementText),
-                            renameSymbolContext.OriginalText,
-                            renameSymbolContext.ReplacementText,
-                            renameSymbolContext.ReplacementTextValid)
+                            _syntaxFactsService.IsVerbatimIdentifier(renamedSymbolContext.ReplacementText),
+                            renamedSymbolContext.OriginalText,
+                            renamedSymbolContext.ReplacementText,
+                            renamedSymbolContext.ReplacementTextValid)
                 End If
 
                 Return newToken
@@ -524,7 +524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             Private Function AnnotateNonRenameLocation(token As SyntaxToken, newToken As SyntaxToken) As SyntaxToken
                 If Not _isProcessingComplexifiedSpans Then
-                    Dim renameContexts = _renameContexts.Values
+                    Dim renameContexts = _renamedSymbolContexts.Values
                     Dim tokenText = token.ValueText
                     Dim replacementMatchedContexts = FilterRenameSymbolContexts(renameContexts, Function(c) CaseInsensitiveComparison.Equals(tokenText, c.ReplacementText))
                     Dim originalTextMatchedContexts = FilterRenameSymbolContexts(renameContexts, Function(c) CaseInsensitiveComparison.Equals(tokenText, c.OriginalText))

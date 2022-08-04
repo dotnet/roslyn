@@ -57,15 +57,15 @@ public class {|Rename1:Apple|}
                     { "Rename1", ("Apple2", renameOption) },
                     { "Rename2", ("Goo2", renameOption) },
                     { "Rename3", ("Orange2", renameOption) },
-                }, cancellationToken);
-            await verifier.VerifyAsync(documentFilePath: "test.cs", "Rename1", "Apple2", cancellationToken);
-            await verifier.VerifyAsync(documentFilePath: "test.cs", "classRef", "Apple2", cancellationToken);
+                });
+            await verifier.VerifyAsync(documentFilePath: "test.cs", tagName: "Rename1", replacementText: "Apple2");
+            await verifier.VerifyAsync(documentFilePath: "test.cs", tagName: "classRef", replacementText: "Apple2");
 
-            await verifier.VerifyAsync(documentFilePath: "test.cs", "Rename2", "Goo2", cancellationToken);
-            await verifier.VerifyAsync(documentFilePath: "test.cs", "methodRef", "Goo2", cancellationToken);
+            await verifier.VerifyAsync(documentFilePath: "test.cs", tagName: "Rename2", replacementText: "Goo2");
+            await verifier.VerifyAsync(documentFilePath: "test.cs", tagName: "methodRef", replacementText: "Goo2");
 
-            await verifier.VerifyAsync(documentFilePath: "test.cs", "Rename3", "Orange2", cancellationToken);
-            await verifier.VerifyAsync(documentFilePath: "test.cs", "propertyRef", "Orange2", cancellationToken);
+            await verifier.VerifyAsync(documentFilePath: "test.cs", tagName: "Rename3", replacementText: "Orange2");
+            await verifier.VerifyAsync(documentFilePath: "test.cs", tagName: "propertyRef", replacementText: "Orange2");
 
             await verifier.VerifyDocumentAsync("test.cs",
                 @"
@@ -87,7 +87,7 @@ public class Apple2
         get;
         set;
     }
-}", cancellationToken);
+}");
         }
 
         [Fact]
@@ -127,7 +127,7 @@ public class {|Rename1:Apple|}
                     { "Rename1", ("Apple2", renameOption) },
                     { "Rename2", ("Lemon2", renameOption) },
                     { "Rename3", ("banana2", renameOption) },
-                }, cancellationToken);
+                });
             await verifier.VerifyDocumentAsync("test1.cs",
 @"
 /// <summary>
@@ -143,7 +143,7 @@ public class Apple2
         string Apple = ""Apple2, Lemon2 and banana2 are fruit"";
         string Lemon = $""Apple2, Lemon2 and {banana2} are fruit"";
     }
-}", cancellationToken);
+}");
         }
 
         [Fact]
@@ -178,7 +178,7 @@ public class {|Rename1:Apple|}
                 {
                     { "Rename1", ("Apple2", renameOption) },
                     { "Rename2", ("banana", renameOption) },
-                }, cancellationToken);
+                });
             await verifier.VerifyDocumentAsync("test1.cs",
 @"
 public class Apple2
@@ -191,7 +191,7 @@ public class Apple2
     {
         get; private set;
     }
-}", cancellationToken);
+}");
         }
 
         [Fact]
@@ -221,11 +221,11 @@ class Bar : IBar
             await Assert.ThrowsAsync<ArgumentException>(() =>
                 verifier.RenameAndAnnotatedDocumentAsync(
                     documentFilePath: "test1.cs",
-                    new()
+                    renameTagsToReplacementInfo: new()
                     {
                         { "Rename1", ("Hello1", renameOption) },
                         { "Rename2", ("Hello2", renameOption) },
-                    }, cancellationToken));
+                    }));
         }
 
         [Fact]
@@ -265,7 +265,7 @@ class World_X
                     {
                         { "Rename1", ("World1", renameOption) },
                         { "Rename2", ("Hello2", renameOption) },
-                    }, cancellationToken));
+                    }));
         }
 
         [Fact]
@@ -305,7 +305,7 @@ class World_X
                     {
                         { "Rename1", ("World1", renameOption) },
                         { "Rename2", ("Hello2", renameOption) },
-                    }, cancellationToken));
+                    }));
         }
 
         #endregion
@@ -353,14 +353,14 @@ End Class
                     { "Rename1", ("Apple2", renameOption) },
                     { "Rename2", ("Goo2", renameOption) },
                     { "Rename3", ("Orange2", renameOption) },
-                }, cancellationToken);
-            await verifier.VerifyAsync(documentFilePath: "test.vb", "Rename1", "Apple2", cancellationToken);
+                });
+            await verifier.VerifyAsync(documentFilePath: "test.vb", tagName: "Rename1", replacementText: "Apple2");
 
-            await verifier.VerifyAsync(documentFilePath: "test.vb", "Rename2", "Goo2", cancellationToken);
-            await verifier.VerifyAsync(documentFilePath: "test.vb", "methodRef", "Goo2", cancellationToken);
+            await verifier.VerifyAsync(documentFilePath: "test.vb", tagName: "Rename2", replacementText: "Goo2");
+            await verifier.VerifyAsync(documentFilePath: "test.vb", tagName: "methodRef", replacementText: "Goo2");
 
-            await verifier.VerifyAsync(documentFilePath: "test.vb", "Rename3", "Orange2", cancellationToken);
-            await verifier.VerifyAsync(documentFilePath: "test.vb", "propertyRef", "Orange2", cancellationToken);
+            await verifier.VerifyAsync(documentFilePath: "test.vb", tagName: "Rename3", replacementText: "Orange2");
+            await verifier.VerifyAsync(documentFilePath: "test.vb", tagName: "propertyRef", replacementText: "Orange2");
 
             await verifier.VerifyDocumentAsync("test.vb", @"
 Class Apple2
@@ -383,7 +383,7 @@ Class Apple2
         Set(value As Integer)
         End Set
     End Property
-End Class", cancellationToken);
+End Class");
         }
 
         [Fact]
@@ -416,12 +416,12 @@ End Class
 
             await verifier.RenameAndAnnotatedDocumentAsync(
                 documentFilePath: "test1.vb",
-                new()
+                renameTagsToReplacementInfo: new()
                 {
                     { "Rename1", ("Apple2", renameOption) },
                     { "Rename2", ("Lemon2", renameOption) },
                     { "Rename3", ("banana2", renameOption) },
-                }, cancellationToken);
+                });
             await verifier.VerifyDocumentAsync("test1.vb",
 @"
 ''' <summary>
@@ -435,7 +435,7 @@ Class Apple2
         Dim Lemon As String = $""Apple2, Lemon2 and {banana2} are fruit""
     End Sub
 End Class
-", cancellationToken);
+");
         }
 
         [Fact]
@@ -469,11 +469,11 @@ End Class
             var renameOption = new SymbolRenameOptions();
             await verifier.RenameAndAnnotatedDocumentAsync(
                 documentFilePath: "test1.vb",
-                new()
+                renameTagsToReplacementInfo: new()
                 {
                     { "Rename1", ("Apple2", renameOption) },
                     { "Rename2", ("banana", renameOption) },
-                }, cancellationToken);
+                });
             await verifier.VerifyDocumentAsync("test1.vb",
 @"
 Class Apple2
@@ -489,7 +489,7 @@ Class Apple2
         End Set
     End Property
 End Class
-", cancellationToken);
+");
         }
 
         #endregion

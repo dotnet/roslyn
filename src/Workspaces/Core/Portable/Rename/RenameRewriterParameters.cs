@@ -22,6 +22,6 @@ namespace Microsoft.CodeAnalysis.Rename
         AnnotationTable<RenameAnnotation> RenameAnnotations,
         ImmutableArray<LocationRenameContext> TokenTextSpanRenameContexts,
         ImmutableArray<LocationRenameContext> StringAndCommentsTextSpanRenameContexts,
-        ImmutableArray<RenameSymbolContext> RenameSymbolContexts,
+        ImmutableArray<RenamedSymbolContext> RenameSymbolContexts,
         CancellationToken CancellationToken);
 }

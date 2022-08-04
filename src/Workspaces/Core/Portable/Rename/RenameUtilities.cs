@@ -183,10 +183,12 @@ namespace Microsoft.CodeAnalysis.Rename
             return TokenRenameInfo.NoSymbolsTokenInfo;
         }
 
+        /// <summary>
         /// We try to rewrite all locations that are invalid candidate locations. If there is only
         /// one location it must be the correct one (the symbol is ambiguous to something else)
         /// and we always try to rewrite it.  If there are multiple locations, we only allow it
         /// if the candidate reason allows for it).
+        /// </summary>
         internal static bool ShouldIncludeLocation(ImmutableArray<RenameLocation> renameLocations, RenameLocation location)
         {
             if (location.IsRenameInStringOrComment)

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             /// <summary>
             /// Mapping from the symbolKey to all the possible symbols might be renamed in the document.
             /// </summary>
-            private readonly ImmutableDictionary<SymbolKey, RenameSymbolContext> _renameContexts;
+            private readonly ImmutableDictionary<SymbolKey, RenamedSymbolContext> _renamedSymbolContexts;
 
             /// <summary>
             /// Mapping from the containgSpan of a common trivia/string identifier to a set of Locations needs to rename inside it.
@@ -119,8 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 _isProcessingComplexifiedSpans = false;
                 _skipRenameForComplexification = 0;
 
-                _renameContexts = GroupRenameContextBySymbolKey(parameters.RenameSymbolContexts, SymbolKey.GetComparer());
-                _textSpanToRenameContexts = GroupTextRenameContextsByTextSpan(parameters.TokenTextSpanRenameContexts);
+                _renamedSymbolContexts = CreateSymbolKeyToRenamedSymbolContextMap(parameters.RenameSymbolContexts, SymbolKey.GetComparer());
+                _textSpanToRenameContexts = CreateTextSpanToLocationContextMap(parameters.TokenTextSpanRenameContexts);
                 _stringAndCommentRenameContexts = GroupStringAndCommentsTextSpanRenameContexts(parameters.StringAndCommentsTextSpanRenameContexts);
             }
 
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 {
                     var symbol = _speculativeModel.GetSymbolInfo(token.Parent, _cancellationToken).Symbol;
                     if (symbol != null
-                        && _renameContexts.TryGetValue(symbol.GetSymbolKey(), out var symbolContext)
+                        && _renamedSymbolContexts.TryGetValue(symbol.GetSymbolKey(), out var symbolContext)
                         && symbolContext.RenamedSymbol.Kind != SymbolKind.Local
                         && symbolContext.RenamedSymbol.Kind != SymbolKind.RangeVariable
                         && token.ValueText == symbolContext.OriginalText)
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 {
                     // Annotate the token if it would cause conflict in all other scenarios
                     var tokenText = token.ValueText;
-                    var renameContexts = _renameContexts.Values;
+                    var renameContexts = _renamedSymbolContexts.Values;
                     var replacementMatchedContexts = FilterRenameSymbolContexts(renameContexts, context => context.ReplacementText == tokenText);
                     var originalTextMatchedContexts = FilterRenameSymbolContexts(renameContexts, context => context.OriginalText == tokenText);
                     var possibleNameConflictsContexts = FilterRenameSymbolContexts(renameContexts, context => context.PossibleNameConflicts.Contains(tokenText));
@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 return newToken;
             }
 
-            private SyntaxToken RenameComplexifiedToken(SyntaxToken token, SyntaxToken newToken, RenameSymbolContext renameSymbolContext)
+            private SyntaxToken RenameComplexifiedToken(SyntaxToken token, SyntaxToken newToken, RenamedSymbolContext renamedSymbolContext)
             {
                 if (_isProcessingComplexifiedSpans)
                 {
@@ -628,10 +628,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         newToken,
                         prefix: null,
                         suffix: null,
-                        _syntaxFactsService.IsVerbatimIdentifier(renameSymbolContext.ReplacementText),
-                        renameSymbolContext.ReplacementText,
-                        renameSymbolContext.OriginalText,
-                        renameSymbolContext.ReplacementTextValid);
+                        _syntaxFactsService.IsVerbatimIdentifier(renamedSymbolContext.ReplacementText),
+                        renamedSymbolContext.ReplacementText,
+                        renamedSymbolContext.OriginalText,
+                        renamedSymbolContext.ReplacementTextValid);
                 }
 
                 return newToken;
@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             private SyntaxToken UpdateAliasAnnotation(SyntaxToken newToken)
             {
-                foreach (var (_, renameSymbolContext) in _renameContexts)
+                foreach (var (_, renameSymbolContext) in _renamedSymbolContexts)
                 {
                     if (renameSymbolContext.AliasSymbol != null && !this.AnnotateForComplexification && newToken.HasAnnotations(AliasAnnotation.Kind))
                     {

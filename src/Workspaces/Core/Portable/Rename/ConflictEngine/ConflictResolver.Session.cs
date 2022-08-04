@@ -189,9 +189,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                     // After phase 2, if there are still conflicts then remove the conflict locations from being expanded
                                     var unresolvedLocations = conflictResolution.RelatedLocations
                                         .Where(l => (l.Type & RelatedLocationType.UnresolvedConflict) != 0)
-                                        .Select(l => (complexifiedSpan: l.ComplexifiedTargetSpan, documentId: l.DocumentId)).Distinct();
+                                        .Select(l => (l.ComplexifiedTargetSpan, l.DocumentId)).Distinct();
 
-                                    _conflictLocations = _conflictLocations.Where(l => !unresolvedLocations.Any(c => c.documentId == l.DocumentId && c.complexifiedSpan.Contains(l.OriginalIdentifierSpan))).ToSet();
+                                    _conflictLocations = _conflictLocations.Where(l => !unresolvedLocations.Any(c => c.DocumentId == l.DocumentId && c.ComplexifiedSpan.Contains(l.OriginalIdentifierSpan))).ToSet();
                                 }
 
                                 // Clean up side effects from rename before entering the next phase
@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 try
                 {
-                    var symbolContext = new RenameSymbolContext
+                    var symbolContext = new RenamedSymbolContext
                     (
                         ReplacementText: _replacementText,
                         OriginalText: _originalText,
@@ -776,7 +776,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         ReplacementTextValid: replacementTextValid
                     );
 
-                    foreach (var documentId in documentIdsToRename.ToList())
+                    var documentIdToRenameLocations = renameLocations
+                        .GroupBy(location => location.DocumentId)
+                        .ToImmutableDictionary(grouping => grouping.Key);
+
+                    foreach (var documentId in documentIdsToRename)
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
 
@@ -784,12 +788,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var semanticModel = await document.GetRequiredSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                         var originalSyntaxRoot = await semanticModel.SyntaxTree.GetRootAsync(_cancellationToken).ConfigureAwait(false);
 
-                        using var _ = ArrayBuilder<RenameLocation>.GetInstance(out var locationsInDocument);
-                        foreach (var location in renameLocations)
-                        {
-                            if (location.DocumentId == documentId)
-                                locationsInDocument.Add(location);
-                        }
+                        var locationsInDocument = documentIdToRenameLocations[documentId];
 
                         // Get all rename locations for the current document.
                         var textSpanRenameContexts = locationsInDocument

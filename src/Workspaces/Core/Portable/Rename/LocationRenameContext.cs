@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public LocationRenameContext(
             RenameLocation renameLocation,
-            RenameSymbolContext symbolContext)
+            RenamedSymbolContext symbolContext)
         {
             RenameLocation = renameLocation;
             ReplacementTextValid = symbolContext.ReplacementTextValid;

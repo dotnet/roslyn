@@ -158,10 +158,10 @@ namespace Microsoft.CodeAnalysis.Rename
             }
         }
 
-        protected static ImmutableDictionary<SymbolKey, RenameSymbolContext> GroupRenameContextBySymbolKey(
-            ImmutableArray<RenameSymbolContext> symbolContexts, IEqualityComparer<SymbolKey> comparer)
+        protected static ImmutableDictionary<SymbolKey, RenamedSymbolContext> CreateSymbolKeyToRenamedSymbolContextMap(
+            ImmutableArray<RenamedSymbolContext> symbolContexts, IEqualityComparer<SymbolKey> comparer)
         {
-            using var _ = PooledDictionary<SymbolKey, RenameSymbolContext>.GetInstance(out var builder);
+            using var _ = PooledDictionary<SymbolKey, RenamedSymbolContext>.GetInstance(out var builder);
             foreach (var context in symbolContexts)
             {
                 builder[context.RenamedSymbol.GetSymbolKey()] = context;
@@ -170,11 +170,11 @@ namespace Microsoft.CodeAnalysis.Rename
             return builder.ToImmutableDictionary(comparer);
         }
 
-        protected static ImmutableDictionary<TextSpan, LocationRenameContext> GroupTextRenameContextsByTextSpan(
-            ImmutableArray<LocationRenameContext> textSpanRenameContexts)
+        protected static ImmutableDictionary<TextSpan, LocationRenameContext> CreateTextSpanToLocationContextMap(
+            ImmutableArray<LocationRenameContext> locationRenameContexts)
         {
             using var _ = PooledDictionary<TextSpan, LocationRenameContext>.GetInstance(out var builder);
-            foreach (var context in textSpanRenameContexts)
+            foreach (var context in locationRenameContexts)
             {
                 var textSpan = context.RenameLocation.Location.SourceSpan;
                 if (!builder.TryGetValue(textSpan, out var existingRenameContext))
@@ -212,15 +212,15 @@ namespace Microsoft.CodeAnalysis.Rename
             return builder.ToImmutableDictionary();
         }
 
-        protected static ImmutableHashSet<RenameSymbolContext> FilterRenameSymbolContexts(
-            IEnumerable<RenameSymbolContext> renameContexts, Func<RenameSymbolContext, bool> predicate)
+        protected static ImmutableHashSet<RenamedSymbolContext> FilterRenameSymbolContexts(
+            IEnumerable<RenamedSymbolContext> symbolContexts, Func<RenamedSymbolContext, bool> predicate)
         {
-            using var _ = PooledHashSet<RenameSymbolContext>.GetInstance(out var builder);
+            using var _ = PooledHashSet<RenamedSymbolContext>.GetInstance(out var builder);
 
-            foreach (var renameSymbolContext in renameContexts)
+            foreach (var renamedSymbolContext in symbolContexts)
             {
-                if (predicate(renameSymbolContext))
-                    builder.Add(renameSymbolContext);
+                if (predicate(renamedSymbolContext))
+                    builder.Add(renamedSymbolContext);
             }
 
             return builder.ToImmutableHashSet();
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Rename
         ///     }
         /// }
         /// If rename class 'Hello' to 'Hello2', void 'World' to 'World2',
-        /// <param name="locationRenameContexts"/> would contain the subspan info within string "Hello World".
+        /// <paramref name="locationRenameContexts"/> would contain the subspan info within string "Hello World".
         /// The output dictionary woud looks like
         /// {
         ///     "0-4" : ("Hello", "Hello2"),
@@ -255,41 +255,40 @@ namespace Microsoft.CodeAnalysis.Rename
                 var location = renameLocation.Location;
                 var replacementText = context.ReplacementText;
                 var originalText = context.OriginalText;
-                if (location.IsInSource && renameLocation.IsRenameInStringOrComment)
+                RoslynDebug.Assert(location.IsInSource);
+                RoslynDebug.Assert(renameLocation.IsRenameInStringOrComment);
+                var sourceSpan = location.SourceSpan;
+
+                // SourceSpan should be a part of the containing location.
+                RoslynDebug.Assert(sourceSpan.Start >= renameLocation.ContainingLocationForStringOrComment.Start);
+                RoslynDebug.Assert(sourceSpan.End <= renameLocation.ContainingLocationForStringOrComment.End);
+
+                // Calculate the relative position within the containing location.
+                var subSpan = new TextSpan(
+                    sourceSpan.Start - renameLocation.ContainingLocationForStringOrComment.Start,
+                    sourceSpan.Length);
+
+                if (!subSpanToReplacementTextBuilder.TryGetValue(subSpan, out var replacementTextAndOriginalText))
                 {
-                    var sourceSpan = location.SourceSpan;
-
-                    // SourceSpan should be a part of the containing location.
-                    RoslynDebug.Assert(sourceSpan.Start >= renameLocation.ContainingLocationForStringOrComment.Start);
-                    RoslynDebug.Assert(sourceSpan.End <= renameLocation.ContainingLocationForStringOrComment.End);
-
-                    // Calculate the relative postion within the containg location.
-                    var subSpan = new TextSpan(
-                        sourceSpan.Start - renameLocation.ContainingLocationForStringOrComment.Start,
-                        sourceSpan.Length);
-
-                    if (!subSpanToReplacementTextBuilder.TryGetValue(subSpan, out var replacementTextAndOriginalText))
-                    {
-                        subSpanToReplacementTextBuilder[subSpan] = (replacementText, originalText);
-                    }
-                    else if (!replacementTextAndOriginalText.Equals((replacementText, originalText)))
-                    {
-                        // Two symbol tries to rename a same subspan,
-                        // Exmaple:
-                        //      // Comment Hello
-                        // class Hello
-                        // {
-                        //    
-                        // }
-                        // class World
-                        // {
-                        //    void Hello() { }
-                        // }
-                        // If try to rename both 'class Hello' to 'Bar' and 'void Hello()' to 'Goo'. So both of them will try to rename
-                        // 'Comment Hello'.
-                        throw new ArgumentException(
-                            $"{sourceSpan} of {context.RenameLocation.DocumentId} is being renamed to two differnt locations text: {replacementTextAndOriginalText.replacementText}, {replacementText}. ");
-                    }
+                    subSpanToReplacementTextBuilder[subSpan] = (replacementText, originalText);
+                }
+                else if (!replacementTextAndOriginalText.Equals((replacementText, originalText)))
+                {
+                    // Two symbol tries to rename a same subspan,
+                    // Example:
+                    //      // Comment Hello
+                    // class Hello
+                    // {
+                    //    
+                    // }
+                    // class World
+                    // {
+                    //    void Hello() { }
+                    // }
+                    // If try to rename both 'class Hello' to 'Bar' and 'void Hello()' to 'Goo'. So both of them will try to rename
+                    // 'Comment Hello'.
+                    throw new ArgumentException(
+                        $"{sourceSpan} of {context.RenameLocation.DocumentId} is being renamed to two different locations text: {replacementTextAndOriginalText.replacementText}, {replacementText}. ");
                 }
             }
 
