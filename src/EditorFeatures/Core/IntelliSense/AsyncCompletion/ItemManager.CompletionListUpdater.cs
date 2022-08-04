@@ -408,13 +408,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     //   text that originally appeared before the dot
                     // * deleting through a word from the end keeps that word selected
                     // This also preserves the behavior the VB had through Dev12.
-                    hardSelect = !_hasSuggestedItemOptions && bestMatchResult.Value.EditorCompletionItem.FilterText.StartsWith(_filterText, StringComparison.CurrentCultureIgnoreCase);
+                    hardSelect = !_hasSuggestedItemOptions && bestMatchResult.Value.RoslynCompletionItem.FilterText.StartsWith(_filterText, StringComparison.CurrentCultureIgnoreCase);
                 }
 
                 // The best match we have selected is unique if `moreThanOneMatch` is false.
                 return new(SelectedItemIndex: indexToSelect,
                     SelectionHint: hardSelect ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected,
-                    UniqueItem: moreThanOneMatch ? null : bestMatchResult.GetValueOrDefault().EditorCompletionItem);
+                    UniqueItem: moreThanOneMatch || !bestMatchResult.HasValue ? null : bestMatchResult.Value.EditorCompletionItem);
             }
 
             private ImmutableArray<CompletionItemWithHighlight> GetHighlightedList(IReadOnlyList<MatchResult<VSCompletionItem>> items, CancellationToken cancellationToken)
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         // However, if the Roslyn item's FilterText is different from its DisplayText,
                         // we need to do the match against the display text of the VS item directly to get the highlighted spans.
                         return completionHelper.GetHighlightedSpans(
-                            matchResult.EditorCompletionItem.DisplayText, filterText, CultureInfo.CurrentCulture).SelectAsArray(s => s.ToSpan());
+                            matchResult.RoslynCompletionItem, filterText, CultureInfo.CurrentCulture).SelectAsArray(s => s.ToSpan());
                     }
 
                     var patternMatch = matchResult.PatternMatch;

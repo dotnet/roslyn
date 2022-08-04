@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public ImmutableArray<TextSpan> GetHighlightedSpans(
-                string text, string pattern, CultureInfo culture)
+                CompletionItem item, string pattern, CultureInfo culture)
         {
-            var match = GetMatch(text, pattern, includeMatchSpans: true, culture: culture);
+            var match = GetMatch(item.GetEntireDisplayText(), pattern, includeMatchSpans: true, culture: culture);
             return match == null ? ImmutableArray<TextSpan>.Empty : match.Value.MatchedSpans;
         }
 
@@ -48,11 +48,31 @@ namespace Microsoft.CodeAnalysis.Completion
         /// if and only if the completion item matches and should be included in the filtered completion
         /// results, or false if it should not be.
         /// </summary>
-        public bool MatchesPattern(string text, string pattern, CultureInfo culture)
-            => GetMatch(text, pattern, includeMatchSpans: false, culture) != null;
+        public bool MatchesPattern(CompletionItem item, string pattern, CultureInfo culture)
+            => GetMatch(item, pattern, includeMatchSpans: false, culture) != null;
 
         public PatternMatch? GetMatch(
-            string completionItemText,
+            CompletionItem item,
+            string pattern,
+            bool includeMatchSpans,
+            CultureInfo culture)
+        {
+            var match = GetMatch(item.FilterText, pattern, includeMatchSpans, culture);
+            if (item.HasAdditionalFilterTexts)
+            {
+                foreach (var additionalFilterText in item.AdditionalFilterTexts)
+                {
+                    var additionalMatch = GetMatch(additionalFilterText, pattern, includeMatchSpans, culture);
+                    if (!match.HasValue || (additionalMatch.HasValue && additionalMatch.Value.CompareTo(match.Value) < 0))
+                        match = additionalMatch;
+                }
+            }
+
+            return match;
+        }
+
+        private PatternMatch? GetMatch(
+            string text,
             string pattern,
             bool includeMatchSpans,
             CultureInfo culture)
@@ -63,11 +83,11 @@ namespace Microsoft.CodeAnalysis.Completion
             // better match as they'll both be prefix matches, and the latter will have a higher
             // priority.
 
-            var lastDotIndex = completionItemText.LastIndexOf('.');
+            var lastDotIndex = text.LastIndexOf('.');
             if (lastDotIndex >= 0)
             {
                 var afterDotPosition = lastDotIndex + 1;
-                var textAfterLastDot = completionItemText[afterDotPosition..];
+                var textAfterLastDot = text[afterDotPosition..];
 
                 var match = GetMatchWorker(textAfterLastDot, pattern, culture, includeMatchSpans);
                 if (match != null)
@@ -78,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Didn't have a dot, or the user text didn't match the portion after the dot.
             // Just do a normal check against the entire completion item.
-            return GetMatchWorker(completionItemText, pattern, culture, includeMatchSpans);
+            return GetMatchWorker(text, pattern, culture, includeMatchSpans);
         }
 
         private static PatternMatch? AdjustMatchedSpans(PatternMatch value, int offset)
@@ -87,11 +107,11 @@ namespace Microsoft.CodeAnalysis.Completion
                 : value.WithMatchedSpans(value.MatchedSpans.SelectAsArray(s => new TextSpan(s.Start + offset, s.Length)));
 
         private PatternMatch? GetMatchWorker(
-            string completionItemText, string pattern,
+            string text, string pattern,
             CultureInfo culture, bool includeMatchSpans)
         {
             var patternMatcher = GetPatternMatcher(pattern, culture, includeMatchSpans);
-            var match = patternMatcher.GetFirstMatch(completionItemText);
+            var match = patternMatcher.GetFirstMatch(text);
 
             // We still have making checks for language having different to English capitalization,
             // for example, for Turkish with dotted and dotless i capitalization totally diferent from English.
@@ -106,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // Identifiers can be in user language.
             // Try to get matches for both and return the best of them.
             patternMatcher = GetPatternMatcher(pattern, EnUSCultureInfo, includeMatchSpans);
-            var enUSCultureMatch = patternMatcher.GetFirstMatch(completionItemText);
+            var enUSCultureMatch = patternMatcher.GetFirstMatch(text);
 
             if (match == null)
             {
@@ -149,8 +169,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public int CompareItems(CompletionItem item1, CompletionItem item2, string pattern, CultureInfo culture)
         {
-            var match1 = GetMatch(item1.FilterText, pattern, includeMatchSpans: false, culture);
-            var match2 = GetMatch(item2.FilterText, pattern, includeMatchSpans: false, culture);
+            var match1 = GetMatch(item1, pattern, includeMatchSpans: false, culture);
+            var match2 = GetMatch(item2, pattern, includeMatchSpans: false, culture);
 
             return CompareItems(item1, match1, item2, match2, out _);
         }
