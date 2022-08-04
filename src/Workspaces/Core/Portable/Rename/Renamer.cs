@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 var unused = client.TryInvokeAsync<IRemoteRenamerService>(
                     solution,
                     (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, cancellationToken),
-                    cancellationToken);
+                    cancellationToken).AsTask();
             }
         }
     }
