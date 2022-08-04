@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ///     all special types have spec'd values (basically, (non-string) primitives) are not managed;
         /// 
         /// Only structs are complicated, because the definition is recursive.  A struct type is managed
-        /// if one of its instance fields is managed.  Unfortunately, this can result in infinite recursion.
+        /// if one of its instance fields is managed or a ref field.  Unfortunately, this can result in infinite recursion.
         /// If the closure is finite, and we don't find anything definitely managed, then we return true.
         /// If the closure is infinite, we disregard all but a representative of any expanding cycle.
         /// 
@@ -133,7 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasGenerics = hasGenerics || result.hasGenerics;
                 hs.Free();
             }
-
 
             if (definitelyManaged)
             {
@@ -183,6 +182,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if ((object)field == null)
                     {
                         continue;
+                    }
+
+                    if (field.RefKind != RefKind.None)
+                    {
+                        // A ref struct which has a ref field is never considered unmanaged
+                        return (true, hasGenerics);
                     }
 
                     TypeSymbol fieldType = field.NonPointerType();
