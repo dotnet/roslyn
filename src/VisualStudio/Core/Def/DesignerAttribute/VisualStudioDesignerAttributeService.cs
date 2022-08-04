@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 ThreadingContext.DisposalToken);
 
             _notificationProjectSystemQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
-                TimeSpan.FromSeconds(1),
+                TimeSpan.FromSeconds(0.25),
                 this.NotifyProjectSystemAsync,
                 listener,
                 ThreadingContext.DisposalToken);
@@ -123,12 +123,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
 
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
-            _workQueue.AddWork(true);
+            _workQueue.AddWork(/*dispose:*/false);
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
-            _workQueue.AddWork(true);
+            _workQueue.AddWork(/*dispose:*/false);
         }
 
         private async ValueTask ProcessWorkspaceChangeAsync(ImmutableSegmentedList<bool> values, CancellationToken cancellationToken)

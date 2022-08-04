@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
         private async Task ProcessProjectAsync(Project project, Document? specificDocument, ICallback callback, CancellationToken cancellationToken)
         {
+            _lastScannedProjectIds.Add(project.Id);
             if (!project.SupportsCompilation)
                 return;
 
