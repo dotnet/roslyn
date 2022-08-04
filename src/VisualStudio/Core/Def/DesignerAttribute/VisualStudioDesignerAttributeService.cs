@@ -41,12 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
-        /// Our connection to the remote OOP server. Created on demand when we startup and then
-        /// kept around for the lifetime of this service.
-        /// </summary>
-        private readonly AsyncLazy<RemoteServiceConnection<IRemoteDesignerAttributeDiscoveryService>?> _lazyConnection;
-
-        /// <summary>
         /// Cache from project to the CPS designer service for it.  Computed on demand (which
         /// requires using the UI thread), but then cached for all subsequent notifications about
         /// that project.
@@ -82,8 +76,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             _workspace = workspace;
             _serviceProvider = serviceProvider;
 
-            _lazyConnection = new AsyncLazy<RemoteServiceConnection<IRemoteDesignerAttributeDiscoveryService>?>(CreateConnectionAsync, cacheResult: true);
-
             var listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
 
             _workQueue = new AsyncBatchingWorkQueue<CancellationToken>(
@@ -103,15 +95,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         {
             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
             _cancellationSeries.Dispose();
-        }
-
-        private async Task<RemoteServiceConnection<IRemoteDesignerAttributeDiscoveryService>?> CreateConnectionAsync(CancellationToken cancellationToken)
-        {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-                return null;
-
-            return client.CreateConnection<IRemoteDesignerAttributeDiscoveryService>(callbackTarget: this);
         }
 
         void IEventListener<object>.StartListening(Workspace workspace, object _)
@@ -146,24 +129,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         private async ValueTask ProcessWorkspaceChangeAsync(CancellationToken cancellationToken)
         {
-            var connection = await _lazyConnection.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            if (connection == null)
-                return;
-
             var solution = _workspace.CurrentSolution;
-
             foreach (var (projectId, _) in _cpsProjects)
             {
                 if (!solution.ContainsProject(projectId))
                     _cpsProjects.TryRemove(projectId, out _);
             }
 
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+            if (client == null)
+                return;
+
             var trackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
             var priorityDocument = trackingService.TryGetActiveDocument();
 
-            await connection.TryInvokeAsync(
+            await client.TryInvokeAsync<IRemoteDesignerAttributeDiscoveryService>(
                 solution,
                 (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(callbackId, checksum, priorityDocument, cancellationToken),
+                callbackTarget: this,
                 cancellationToken).ConfigureAwait(false);
         }
 
