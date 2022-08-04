@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Rename
             var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                _ = client.TryInvokeAsync<IRemoteRenamerService>(
+                var unused = client.TryInvokeAsync<IRemoteRenamerService>(
                     solution,
                     (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, cancellationToken),
                     cancellationToken);
