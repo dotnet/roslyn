@@ -1215,17 +1215,15 @@ namespace System.Diagnostics.CodeAnalysis
             bool skipUsesIsNullable = false,
             RuntimeFlag runtimeFeature = RuntimeFlag.None)
         {
+            Debug.Assert(targetFramework == TargetFramework.Standard || runtimeFeature == RuntimeFlag.None);
             if (runtimeFeature == RuntimeFlag.ByRefFields)
             {
                 // Avoid sharing mscorlib symbols with other tests since we are about to change
                 // RuntimeSupportsByRefFields property for it.
                 var mscorlibWithoutSharing = new[] { GetMscorlibRefWithoutSharingCachedSymbols() };
 
-                // Note: we use skipUsesIsNullable and skipExtraValidation so that nobody pulls
-                // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
-                Debug.Assert(!skipUsesIsNullable);
                 var comp = CreateCompilationCore(source, references is not null ? references.Concat(mscorlibWithoutSharing) : mscorlibWithoutSharing,
-                    options, parseOptions, assemblyName: assemblyName, sourceFileName: sourceFileName, skipUsesIsNullable: true, experimentalFeature: null, skipExtraValidation: true);
+                    options, parseOptions, assemblyName: assemblyName, sourceFileName: sourceFileName, skipUsesIsNullable, experimentalFeature: null);
 
                 comp.Assembly.RuntimeSupportsByRefFields = true;
                 return comp;

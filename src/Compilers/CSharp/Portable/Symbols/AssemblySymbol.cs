@@ -476,9 +476,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return CorLibrary?.RuntimeSupportsByRefFields == true;
             }
 
-            // The setter should be removed once TargetFramework.Net70 is added
-            // Tracked by https://github.com/dotnet/roslyn/issues/61463
-            set => CorLibrary.RuntimeSupportsByRefFields = value;
+            set
+            {
+                // The setter should be removed once TargetFramework.Net70 is added
+                // Tracked by https://github.com/dotnet/roslyn/issues/61463
+                CorLibrary.RuntimeSupportsByRefFields = value;
+            }
         }
 
         /// <summary>
