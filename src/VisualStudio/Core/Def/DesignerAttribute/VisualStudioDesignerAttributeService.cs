@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         // We'll get notifications from the OOP server about new attribute arguments. Collect those notifications and
         // deliver them to VS in batches to prevent flooding the UI thread.
-        private readonly AsyncBatchingWorkQueue<DesignerAttributeData>? _notificationProjectSystemQueue;
+        private readonly AsyncBatchingWorkQueue<DesignerAttributeData> _projectSystemNotificationQueue;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 listener,
                 ThreadingContext.DisposalToken);
 
-            _notificationProjectSystemQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
+            _projectSystemNotificationQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
                 TimeSpan.FromSeconds(1),
                 this.NotifyProjectSystemAsync,
                 listener,
@@ -350,8 +350,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// </summary>
         public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(_notificationProjectSystemQueue);
-            _notificationProjectSystemQueue.AddWork(data);
+            Contract.ThrowIfNull(_projectSystemNotificationQueue);
+            _projectSystemNotificationQueue.AddWork(data);
             return ValueTaskFactory.CompletedTask;
         }
 
