@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace Microsoft.CodeAnalysis.Rename
 {
     /// <summary>
-    /// Represent the rename context information for the given renameLocation.
+    /// Represents the information for a single replacement in the syntax tree.
     /// </summary>
     internal readonly record struct LocationRenameContext
     {
