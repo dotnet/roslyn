@@ -331,13 +331,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsRefScopedByDefault(RefKind refKind, TypeWithAnnotations parameterType)
         {
-            if (refKind == RefKind.Out)
+            switch (refKind)
             {
-                return true;
+                case RefKind.Out:
+                    return true;
+                case RefKind.Ref:
+                case RefKind.In:
+                    return parameterType.IsResolved &&
+                        parameterType.Type?.IsRefLikeType == true;
+                default:
+                    return false;
             }
-            return refKind == RefKind.Ref &&
-                parameterType.IsResolved &&
-                parameterType.Type?.IsRefLikeType == true;
         }
 
         internal static void EnsureScopedRefAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
