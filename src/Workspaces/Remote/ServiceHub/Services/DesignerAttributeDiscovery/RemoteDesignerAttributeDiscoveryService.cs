@@ -41,9 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly DesignerAttributeComputer _computer = new();
         private readonly RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> _callback;
 
-        public RemoteDesignerAttributeDiscoveryService(
-            in ServiceConstructionArguments arguments,
-            RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback)
+        public RemoteDesignerAttributeDiscoveryService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback)
             : base(arguments)
         {
             _callback = callback;
