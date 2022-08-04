@@ -10944,8 +10944,6 @@ unsafe
                 // (13,62): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref parameter
                 //     static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(13, 62));
-
-            // https://github.com/dotnet/roslyn/issues/62780: Test with [UnscopedRef].
         }
 
         [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
@@ -10988,8 +10986,6 @@ unsafe
                 // (14,62): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref parameter
                 //     static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(14, 62));
-
-            // https://github.com/dotnet/roslyn/issues/62780: Test with [UnscopedRef].
         }
 
         [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]

@@ -482,11 +482,13 @@ class Program
             );
         }
 
-        [Fact]
-        public void ByrefParam()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void ByrefParam(LanguageVersion languageVersion)
         {
-            var text = @"
-using System;
+            var text = @"using System;
+using System.Diagnostics.CodeAnalysis;
 
 class Program
 {
@@ -516,18 +518,17 @@ class Program
     }
 
     // OK
-    static ref Span<string> M4(ref Span<string> ss) { return ref ss; }
+    static ref Span<string> M4([UnscopedRef] ref Span<string> ss) { return ref ss; }
 
     // OK
-    static ref readonly Span<string> M5(ref Span<string> ss) => ref ss;
+    static ref readonly Span<string> M5([UnscopedRef] ref Span<string> ss) => ref ss;
 
     // Not OK
     // TypedReference baseline
     static ref TypedReference M1(ref TypedReference ss) => ref ss;
 }
 ";
-
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics(
                 // (39,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
@@ -536,23 +537,6 @@ class Program
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(39, 12)
             );
-
-            comp = CreateCompilationWithMscorlibAndSpan(text);
-            comp.VerifyDiagnostics(
-                // (39,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
-                //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(39, 34),
-                // (39,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
-                //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
-                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(39, 12),
-                // (32,66): error CS8166: Cannot return a parameter by reference 'ss' because it is not a ref parameter
-                //     static ref Span<string> M4(ref Span<string> ss) { return ref ss; }
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "ss").WithArguments("ss").WithLocation(32, 66),
-                // (35,69): error CS8166: Cannot return a parameter by reference 'ss' because it is not a ref parameter
-                //     static ref readonly Span<string> M5(ref Span<string> ss) => ref ss;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "ss").WithArguments("ss").WithLocation(35, 69));
-
-            // https://github.com/dotnet/roslyn/issues/62780: Test with [UnscopedRef].
         }
 
         [Fact]
@@ -1464,12 +1448,14 @@ class Program
                 );
         }
 
-        [Fact]
         [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
-        public void PassingSpansToLocals_EscapeScope()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void PassingSpansToLocals_EscapeScope(LanguageVersion languageVersion)
         {
-            var source = @"
-using System;
+            var source = @"using System;
+using System.Diagnostics.CodeAnalysis;
 class C
 {
     static void Main()
@@ -1480,19 +1466,18 @@ class C
         Console.WriteLine(M2(ref x).Length);
     }
     
-    static ref Span<int> M1(ref Span<int> x)
+    static ref Span<int> M1([UnscopedRef] ref Span<int> x)
     {
         ref Span<int> q = ref x;
         return ref q;
     }
     
-    static ref Span<int> M2(ref Span<int> x)
+    static ref Span<int> M2([UnscopedRef] ref Span<int> x)
     {
         return ref x;
     }
 }";
-
-            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 10
 10");
@@ -1505,8 +1490,6 @@ class C
                 // (21,20): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
                 //         return ref x;
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(21, 20));
-
-            // https://github.com/dotnet/roslyn/issues/62780: Test with [UnscopedRef].
         }
 
         [Fact]
