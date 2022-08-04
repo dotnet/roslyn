@@ -17,6 +17,10 @@ parameters:
   displayName: Build on macOS
   type: boolean
   default: false # macOS is often bogged down in Azure Pipelines
+- name: RunTests
+  displayName: Run tests
+  type: boolean
+  default: true
 
 variables:
   TreatWarningsAsErrors: true
@@ -30,3 +34,4 @@ jobs:
 - template: azure-pipelines/build.yml
   parameters:
     includeMacOS: ${{ parameters.includeMacOS }}
+    RunTests: ${{ parameters.RunTests }}

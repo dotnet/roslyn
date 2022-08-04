@@ -1,3 +1,6 @@
+parameters:
+  RunTests:
+
 steps:
 
 - script: dotnet build -t:build,pack --no-restore -c $(BuildConfiguration) /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
@@ -5,6 +8,7 @@ steps:
 
 - powershell: azure-pipelines/dotnet-test-cloud.ps1 -Configuration $(BuildConfiguration) -Agent $(Agent.JobName) -PublishResults
   displayName: 🧪 dotnet test
+  condition: and(succeeded(), ${{ parameters.RunTests }})
 
 - powershell: azure-pipelines/variables/_pipelines.ps1
   failOnStderr: true
