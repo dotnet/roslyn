@@ -806,12 +806,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             private SyntaxTrivia RenameInCommentTrivia(
                 SyntaxTrivia trivia,
-                ImmutableSortedDictionary<TextSpan, string> subSpanToReplacementString)
+                ImmutableSortedDictionary<TextSpan, string> subSpanToReplacementText)
             {
                 var originalString = trivia.ToString();
                 var replacedString = RenameUtilities.ReplaceMatchingSubStrings(
                     originalString,
-                    subSpanToReplacementString);
+                    subSpanToReplacementText);
 
                 if (replacedString != originalString)
                 {
