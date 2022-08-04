@@ -1,6 +1,6 @@
 {
     "files.associations": {
-        "*.csproj": "msbuild",
+        "*.csproj": "xml",
         "*.fsproj": "msbuild",
         "*.globalconfig": "ini",
         "*.manifest": "xml",

@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         private readonly string? _filterText;
         private string? _lazyEntireDisplayText;
+        private ImmutableArray<string> _additionalFilterTexts = ImmutableArray<string>.Empty;
 
         /// <summary>
         /// The text that is displayed to the user.
@@ -45,7 +47,20 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public string FilterText => _filterText ?? DisplayText;
 
+        internal ImmutableArray<string> AdditionalFilterTexts
+        {
+            get => _additionalFilterTexts;
+            set
+            {
+                Debug.Assert(!value.IsDefault && (value.IsEmpty || HasDifferentFilterText),
+                    "AdditionalFilterTexts will be ignored when _filterText is null");
+                _additionalFilterTexts = value;
+            }
+        }
+
         internal bool HasDifferentFilterText => _filterText != null;
+
+        internal bool HasAdditionalFilterTexts => HasDifferentFilterText && !AdditionalFilterTexts.IsEmpty;
 
         /// <summary>
         /// The text used to determine the order that the item appears in the list.

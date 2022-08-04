@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     CompletionHelper completionHelper,
                     string filterText)
                 {
-                    if (matchResult.RoslynCompletionItem.HasDifferentFilterText)
+                    if (matchResult.RoslynCompletionItem.HasDifferentFilterText || matchResult.RoslynCompletionItem.HasAdditionalFilterTexts)
                     {
                         // The PatternMatch in MatchResult is calculated based on Roslyn item's FilterText, 
                         // which can be used to calculate highlighted span for VSCompletion item's DisplayText w/o doing the matching again.
