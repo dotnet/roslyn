@@ -155,9 +155,6 @@ try {
         $YmlReplacements['(codecov_token: ).*(#.*)'] = "#`$1`$2"
     }
     Replace-Placeholders -Path "azure-pipelines.yml" -Replacements $YmlReplacements
-    Replace-Placeholders -Path "azure-pipelines/microbuild.after.yml" -Replacements @{
-        'Library' = $LibraryName;
-    }
 
     Replace-Placeholders -Path "azure-pipelines/variables/InsertVersionsValues.ps1" -Replacements @{
         'LibraryName' = $LibraryName;
