@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// PROTOTYPE: Address IOperationValidation support for lambda default params
+
 #nullable disable
 
 using System;
@@ -7308,7 +7310,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaDefaultLocalConstantExpression()
         {
             var source = """
@@ -7333,7 +7335,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(6, 19));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void AnonymousMethodDefaultLocalConstantExpression()
         {
             var source = """
@@ -7520,7 +7522,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaDefaultWithinNestedScope()
         {
             var source = """
