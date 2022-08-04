@@ -20,6 +20,7 @@ internal static class VSBranchInfo
         new Roslyn(),
         new Razor(),
         new TypeScript(),
+        new FSharp(),
     };
 
     public static async Task<int> GetInfoAsync(string branch, string product, bool showArtifacts, RoslynToolsSettings settings, ILogger logger)
