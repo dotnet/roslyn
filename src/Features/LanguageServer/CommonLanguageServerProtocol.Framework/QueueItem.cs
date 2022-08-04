@@ -33,7 +33,7 @@ public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueue
 
     public bool RequiresLSPSolution { get; }
 
-    public bool MutatesSolutionState { get; }
+    public bool MutatesDocumentState { get; }
 
     public string MethodName { get; }
 
@@ -56,7 +56,7 @@ public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueue
         _logger = logger;
         _request = request;
 
-        MutatesSolutionState = mutatesSolutionState;
+        MutatesDocumentState = mutatesSolutionState;
         RequiresLSPSolution = requiresLSPSolution;
         MethodName = methodName;
         TextDocument = textDocument;
@@ -90,7 +90,10 @@ public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueue
     /// representing the task that the client is waiting for, then re-thrown so that
     /// the queue can correctly handle them depending on the type of request.
     /// </summary>
-    public async Task CallbackAsync(RequestContextType? context, CancellationToken cancellationToken)
+    /// <param name="context">The context for the request. If null the request will return emediatly. The context may be null when for example document context could not be resolved.</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>The result of the request.</returns>
+    public async Task StartRequestAsync(RequestContextType? context, CancellationToken cancellationToken)
     {
         _logger.TraceStart($"{MethodName}");
         try

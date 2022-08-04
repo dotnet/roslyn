@@ -50,8 +50,7 @@ internal class RequestContextFactory : IRequestContextFactory<RequestContext>, I
         }
 
         return RequestContext.CreateAsync(
-            queueItem.RequiresLSPSolution,
-            queueItem.MutatesSolutionState,
+            queueItem.MutatesDocumentState,
             textDocumentIdentifier,
             serverInfoProvider.ServerKind,
             clientCapabilities,

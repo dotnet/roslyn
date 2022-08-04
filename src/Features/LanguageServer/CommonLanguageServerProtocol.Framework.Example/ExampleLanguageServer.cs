@@ -25,7 +25,7 @@ public class ExampleLanguageServer : LanguageServer<ExampleRequestContext>
         AddHandlers(serviceCollection)
             .AddSingleton<ILspLogger>(_logger)
             .AddSingleton<IRequestContextFactory<ExampleRequestContext>, ExampleRequestContextFactory>()
-            .AddSingleton<ICapabilitiesManager<InitializeParams, InitializeResult>, CapabilitiesManager>()
+            .AddSingleton<IInitializeManager<InitializeParams, InitializeResult>, CapabilitiesManager>()
             .AddSingleton<ILifeCycleManager>((s) => new LifeCycleManager<ExampleRequestContext>(this));
 
         var lspServices = new ExampleLspServices(serviceCollection);

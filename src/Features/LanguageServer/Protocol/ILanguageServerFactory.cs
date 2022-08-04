@@ -3,13 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using CommonLanguageServerProtocol.Framework;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal interface ILanguageServerFactory
     {
-        public ILanguageServer Create(
+        public LanguageServer<RequestContext> Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
             IRoslynLspLogger logger);

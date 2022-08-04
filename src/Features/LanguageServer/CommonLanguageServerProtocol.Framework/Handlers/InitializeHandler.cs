@@ -11,9 +11,9 @@ namespace CommonLanguageServerProtocol.Framework.Handlers;
 public class InitializeHandler<RequestType, ResponseType, RequestContextType> 
     : IRequestHandler<RequestType, ResponseType, RequestContextType>
 {
-    private readonly ICapabilitiesManager<RequestType, ResponseType> _capabilitiesManager;
+    private readonly IInitializeManager<RequestType, ResponseType> _capabilitiesManager;
 
-    public InitializeHandler(ICapabilitiesManager<RequestType, ResponseType> capabilitiesManager)
+    public InitializeHandler(IInitializeManager<RequestType, ResponseType> capabilitiesManager)
     {
         _capabilitiesManager = capabilitiesManager;
     }
@@ -29,9 +29,9 @@ public class InitializeHandler<RequestType, ResponseType, RequestContextType>
 
     public Task<ResponseType> HandleRequestAsync(RequestType request, RequestContextType context, CancellationToken cancellationToken)
     {
-        _capabilitiesManager.SetClientCapabilities(request);
+        _capabilitiesManager.SetInitializeParams(request);
 
-        var serverCapabilities = _capabilitiesManager.GetServerCapabilities();
+        var serverCapabilities = _capabilitiesManager.GetInitializeResult();
 
         return Task.FromResult(serverCapabilities);
     }

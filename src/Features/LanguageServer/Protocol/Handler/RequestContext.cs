@@ -92,7 +92,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public static async Task<RequestContext?> CreateAsync(
-            bool requiresLSPSolution,
             bool mutatesSolutionState,
             TextDocumentIdentifier? textDocument,
             string serverKind,
@@ -109,18 +108,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Retrieve the current LSP tracked text as of this request.
             // This is safe as all creation of request contexts cannot happen concurrently.
             var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();
-
-            // If the handler doesn't need an LSP solution we do two important things:
-            // 1. We don't bother building the LSP solution for perf reasons
-            // 2. We explicitly don't give the handler a solution or document, even if we could
-            //    so they're not accidentally operating on stale solution state.
-            if (!requiresLSPSolution)
-            {
-                return new RequestContext(
-                    solution: null, logger: logger, clientCapabilities: clientCapabilities, serverKind: serverKind, document: null,
-                    documentChangeTracker: documentChangeTracker, trackedDocuments: trackedDocuments, supportedLanguages: supportedLanguages, lspServices: lspServices,
-                    queueCancellationToken: queueCancellationToken);
-            }
 
             Solution? workspaceSolution;
             Document? document = null;

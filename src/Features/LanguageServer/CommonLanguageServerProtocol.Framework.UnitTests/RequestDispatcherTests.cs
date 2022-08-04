@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -13,7 +14,18 @@ public class RequestDispatcherTests
 {
     private RequestDispatcher<TestRequestContext> GetRequestDispatcher()
     {
-        throw new NotImplementedException();
+        var lspServices = GetLspServices();
+
+        var requestDispatcher = new RequestDispatcher<TestRequestContext>(lspServices);
+
+        return requestDispatcher;
+    }
+
+    private ILspServices GetLspServices()
+    {
+        var services = new Mock<ILspServices>(MockBehavior.Strict);
+
+        return services.Object;
     }
 
     [Fact]

@@ -15,7 +15,7 @@ using StreamJsonRpc;
 
 namespace CommonLanguageServerProtocol.Framework;
 
-public abstract class LanguageServer<RequestContextType> : ILanguageServer
+public abstract class LanguageServer<RequestContextType>
 {
     private readonly JsonRpc _jsonRpc;
     private IRequestDispatcher<RequestContextType>? _requestDispatcher;

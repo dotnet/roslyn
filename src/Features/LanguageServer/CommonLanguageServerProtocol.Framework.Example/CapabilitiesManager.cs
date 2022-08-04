@@ -6,16 +6,16 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace CommonLanguageServerProtocol.Framework.Example;
 
-internal class CapabilitiesManager : ICapabilitiesManager<InitializeParams, InitializeResult>
+internal class CapabilitiesManager : IInitializeManager<InitializeParams, InitializeResult>
 {
     private InitializeParams _initializeParams;
 
-    public void SetClientCapabilities(InitializeParams request)
+    public void SetInitializeParams(InitializeParams request)
     {
         _initializeParams = request;
     }
 
-    public InitializeResult GetServerCapabilities()
+    public InitializeResult GetInitializeResult()
     {
         var serverCapabilities = new ServerCapabilities()
         {
@@ -33,7 +33,7 @@ internal class CapabilitiesManager : ICapabilitiesManager<InitializeParams, Init
         return initializeResult;
     }
 
-    public InitializeParams GetClientCapabilities()
+    public InitializeParams GetInitializeParams()
     {
         return _initializeParams;
     }

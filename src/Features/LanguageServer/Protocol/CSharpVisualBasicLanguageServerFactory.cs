@@ -7,6 +7,7 @@ using System.Composition;
 using System.IO;
 using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using StreamJsonRpc;
 
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _listenerProvider = listenerProvider;
         }
 
-        public ILanguageServer Create(
+        public LanguageServer<RequestContext> Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
             IRoslynLspLogger logger)
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 WellKnownLspServerKinds.CSharpVisualBasicLspServer);
         }
 
-        public ILanguageServer Create(Stream input, Stream output, ICapabilitiesProvider capabilitiesProvider, IRoslynLspLogger logger)
+        public LanguageServer<RequestContext> Create(Stream input, Stream output, ICapabilitiesProvider capabilitiesProvider, IRoslynLspLogger logger)
         {
             var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(output, input));
             return Create(jsonRpc, capabilitiesProvider, logger);

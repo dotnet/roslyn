@@ -317,11 +317,11 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
                     var requestContextFactory = lspServices.GetRequiredService<IRequestContextFactory<RequestContextType>>();
                     var context = await requestContextFactory.CreateRequestContextAsync(work, queueCancellationToken: this.CancellationToken, requestCancellationToken: cancellationToken);
 
-                    if (work.MutatesSolutionState)
+                    if (work.MutatesDocumentState)
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
                         // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
-                        await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
+                        await work.StartRequestAsync(context, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
@@ -330,7 +330,7 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
                         // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
                         // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
                         // blocking the request queue for longer periods of time (it enforces parallelizabilty).
-                        _ = Task.Run(() => work.CallbackAsync(context, cancellationToken), cancellationToken);
+                        _ = Task.Run(() => work.StartRequestAsync(context, cancellationToken), cancellationToken);
                     }
                 }
                 catch (OperationCanceledException ex) when (ex.CancellationToken == queueItem.cancellationToken)

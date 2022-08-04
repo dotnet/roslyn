@@ -15,13 +15,10 @@ public interface IQueueItem<RequestContextType>
     /// <summary>
     /// Begins executing the work specified by this queue item.
     /// </summary>
-    Task CallbackAsync(RequestContextType? context, CancellationToken cancellationToken);
-
-    /// <inheritdoc cref="IRequestHandler.RequiresLSPSolution" />
-    bool RequiresLSPSolution { get; }
+    Task StartRequestAsync(RequestContextType context, CancellationToken cancellationToken);
 
     /// <inheritdoc cref="IRequestHandler.MutatesSolutionState" />
-    bool MutatesSolutionState { get; }
+    bool MutatesDocumentState { get; }
 
     string MethodName { get; }
 
