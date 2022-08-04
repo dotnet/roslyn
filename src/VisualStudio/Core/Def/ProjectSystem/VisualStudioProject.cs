@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string? _filePath;
         private CompilationOptions? _compilationOptions;
         private ParseOptions? _parseOptions;
-        private SourceHashAlgorithm _checksumAlgorithm = SourceHashAlgorithm.Sha256;
+        private SourceHashAlgorithm _checksumAlgorithm = SourceHashAlgorithms.Default;
         private bool _hasAllInformation = true;
         private string? _compilationOutputAssemblyFilePath;
         private string? _outputFilePath;

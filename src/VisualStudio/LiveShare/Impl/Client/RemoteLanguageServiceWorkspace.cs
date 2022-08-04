@@ -337,7 +337,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         assemblyName: projectName,
                         language,
                         compilationOutputFilePaths: default,
-                        checksumAlgorithm: SourceHashAlgorithm.Sha256));
+                        checksumAlgorithm: SourceHashAlgorithms.Default));
 
                 OnProjectAdded(projectInfo);
                 project = CurrentSolution.GetRequiredProject(projectInfo.Id);
@@ -381,7 +381,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 // check if the doc is part of the current Roslyn workspace before notifying Roslyn.
                 if (CurrentSolution.ContainsProject(id.ProjectId))
                 {
-                    OnDocumentClosed(id, new FileTextLoaderNoException(moniker, null, SourceHashAlgorithm.Sha256));
+                    OnDocumentClosed(id, new FileTextLoaderNoException(moniker, null, SourceHashAlgorithms.Default));
                     _openedDocs = _openedDocs.Remove(moniker);
                 }
             }

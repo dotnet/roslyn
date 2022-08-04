@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         // TODO:
         public static Encoding Encoding => Encoding.UTF8;
-        public static SourceHashAlgorithm ChecksumAlgorithm => SourceHashAlgorithm.Sha256;
+        public static SourceHashAlgorithm ChecksumAlgorithm => SourceHashAlgorithms.Default;
 
         /// <summary>
         /// Creates a ProjectInfo to represent the fake project created for metadata as source documents.

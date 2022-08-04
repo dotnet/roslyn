@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides ReadOnly Property ChecksumAlgorithm As SourceHashAlgorithm
                 Get
-                    Return SourceHashAlgorithm.Sha256
+                    Return SourceHashAlgorithms.Default
                 End Get
             End Property
 

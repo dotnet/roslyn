@@ -262,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' with allowing the newer syntax here.
                             Dim options = parseOptions.WithLanguageVersion(LanguageVersion.Default)
                             tree = VisualBasicSyntaxTree.ParseText(
-                                SourceText.From(text, encoding:=Nothing, SourceHashAlgorithm.Sha256),
+                                SourceText.From(text, encoding:=Nothing, SourceHashAlgorithms.Default),
                                 isMyTemplate:=True,
                                 options,
                                 path:=Nothing)

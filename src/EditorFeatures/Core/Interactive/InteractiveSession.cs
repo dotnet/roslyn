@@ -28,6 +28,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+    using Microsoft.CodeAnalysis.Debugging;
     using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
 
     internal sealed class InteractiveSession : IDisposable
@@ -296,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         assemblyName: name,
                         language: languageName,
                         compilationOutputFilePaths: default,
-                        checksumAlgorithm: SourceHashAlgorithm.Sha256,
+                        checksumAlgorithm: SourceHashAlgorithms.Default,
                         isSubmission: true),
                     compilationOptions: compilationOptions,
                     parseOptions: _languageInfo.ParseOptions,

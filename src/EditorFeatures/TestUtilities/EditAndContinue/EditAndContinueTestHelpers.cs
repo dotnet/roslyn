@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     language: LanguageName,
                     compilationOutputFilePaths: default,
                     filePath: Path.Combine(TempRoot.Root, "project" + ProjectFileExtension),
-                    checksumAlgorithm: SourceHashAlgorithm.Sha256));
+                    checksumAlgorithm: SourceHashAlgorithms.Default));
 
             oldProject = workspace.AddProject(projectInfo).WithMetadataReferences(TargetFrameworkUtil.GetReferences(targetFramework));
             foreach (var editScript in editScripts)

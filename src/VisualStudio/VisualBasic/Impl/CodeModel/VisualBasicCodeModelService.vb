@@ -33,7 +33,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
     Partial Friend Class VisualBasicCodeModelService
         Inherits AbstractCodeModelService
 
-        Private Shared ReadOnly s_emptyTree As SyntaxTree = SyntaxFactory.ParseSyntaxTree(SourceText.From("", encoding:=Nothing, SourceHashAlgorithm.Sha256))
+        Private Shared ReadOnly s_emptyTree As SyntaxTree = SyntaxFactory.ParseSyntaxTree(SourceText.From("", encoding:=Nothing, SourceHashAlgorithms.Default))
 
         Private ReadOnly _commitBufferManagerFactory As CommitBufferManagerFactory
 

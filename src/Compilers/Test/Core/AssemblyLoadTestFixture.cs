@@ -466,7 +466,7 @@ public class Analyzer : DiagnosticAnalyzer
 
             var analyzerDependencyCompilation = CSharpCompilation.Create(
                 assemblyName: assemblyName,
-                syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(SourceText.From(csSource, encoding: null, SourceHashAlgorithm.Sha256)) },
+                syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(SourceText.From(csSource, encoding: null, SourceHashAlgorithms.Default)) },
                 references: (new MetadataReference[]
                 {
                     NetStandard20.mscorlib,

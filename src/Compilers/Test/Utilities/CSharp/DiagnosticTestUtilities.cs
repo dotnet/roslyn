@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         protected internal static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(List<string> srcs, IEnumerable<MetadataReference> refs, params ErrorDescription[] expectedErrorDesp)
         {
             var synTrees = (from text in srcs
-                            select SyntaxFactory.ParseSyntaxTree(SourceText.From(text, encoding: null, SourceHashAlgorithm.Sha256))).ToArray();
+                            select SyntaxFactory.ParseSyntaxTree(SourceText.From(text, encoding: null, SourceHashAlgorithms.Default))).ToArray();
 
             return VerifyErrorsAndGetCompilationWithMscorlib(synTrees, refs, expectedErrorDesp);
         }

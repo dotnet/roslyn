@@ -40,7 +40,7 @@ namespace IdeCoreBenchmarks
                 }
 
                 var text = File.ReadAllText(file);
-                var tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text, encoding: null, SourceHashAlgorithm.Sha256));
+                var tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text, encoding: null, SourceHashAlgorithms.Default));
                 _rootList.Add(tree.GetCompilationUnitRoot());
             }
         }

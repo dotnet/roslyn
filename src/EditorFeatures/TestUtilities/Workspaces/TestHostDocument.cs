@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public string Name { get; }
         public SourceCodeKind SourceCodeKind { get; }
         public string? FilePath { get; }
-        public SourceHashAlgorithm ChecksumAlgorithm { get; } = SourceHashAlgorithm.Sha256;
+        public SourceHashAlgorithm ChecksumAlgorithm { get; } = SourceHashAlgorithms.Default;
 
         public int? CursorPosition { get; }
         public IList<TextSpan> SelectedSpans { get; } = new List<TextSpan>();

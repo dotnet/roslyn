@@ -433,7 +433,7 @@ namespace System.Runtime.InteropServices.WindowsRuntime
             // WellKnownTypes and WellKnownMembers so it can be safely skipped here. 
             var compilation = CSharpCompilation.Create(
                 "System.Runtime.InteropServices.WindowsRuntime",
-                new[] { CSharpSyntaxTree.ParseText(SourceText.From(source, encoding: null, SourceHashAlgorithm.Sha256)) },
+                new[] { CSharpSyntaxTree.ParseText(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
                 references: TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp),
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             compilation.VerifyEmitDiagnostics();

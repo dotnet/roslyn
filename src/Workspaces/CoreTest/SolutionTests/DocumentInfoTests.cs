@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Create()
         {
-            var loader = new FileTextLoader(Path.GetTempPath(), defaultEncoding: null, SourceHashAlgorithm.Sha256);
+            var loader = new FileTextLoader(Path.GetTempPath(), defaultEncoding: null, SourceHashAlgorithms.Default);
             var id = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
             var info = DocumentInfo.Create(
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(SourceCodeKind.Script, info.SourceCodeKind);
             Assert.Same(loader, info.TextLoader);
             Assert.True(info.IsGenerated);
-            Assert.Equal(SourceHashAlgorithm.Sha256, info.ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithms.Default, info.ChecksumAlgorithm);
         }
 
         [Fact]
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithId(value), opt => opt.Id, documentId, defaultThrows: true);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithName(value), opt => opt.Name, "New", defaultThrows: true);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithSourceCodeKind(value), opt => opt.SourceCodeKind, SourceCodeKind.Script);
-            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithTextLoader(value), opt => opt.TextLoader, (TextLoader)new FileTextLoader(Path.GetTempPath(), defaultEncoding: null, SourceHashAlgorithm.Sha256));
+            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithTextLoader(value), opt => opt.TextLoader, (TextLoader)new FileTextLoader(Path.GetTempPath(), defaultEncoding: null, SourceHashAlgorithms.Default));
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithDesignTimeOnly(value), opt => opt.Attributes.DesignTimeOnly, true);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithDocumentServiceProvider(value), opt => opt.DocumentServiceProvider, serviceProvider);
 

@@ -76,7 +76,7 @@ namespace OverflowSensitivity
         {
             var parseOptions = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None);
             var options = new CSharpCompilationOptions(outputKind: OutputKind.DynamicallyLinkedLibrary, concurrentBuild: false);
-            var tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(stringText, encoding: null, SourceHashAlgorithm.Sha256), parseOptions);
+            var tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(stringText, encoding: null, SourceHashAlgorithms.Default), parseOptions);
             var reference = MetadataReference.CreateFromFile(@"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\mscorlib.dll");
             var comp = CSharpCompilation.Create("assemblyName", new SyntaxTree[] { tree }, references: new MetadataReference[] { reference }, options: options);
             var diag = comp.GetDiagnostics();

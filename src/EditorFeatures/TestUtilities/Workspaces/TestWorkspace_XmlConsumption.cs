@@ -983,7 +983,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static SyntaxTree CreateSyntaxTree(ParseOptions options, string referencedCode)
         {
-            var sourceText = SourceText.From(referencedCode, encoding: null, SourceHashAlgorithm.Sha256);
+            var sourceText = SourceText.From(referencedCode, encoding: null, SourceHashAlgorithms.Default);
 
             if (LanguageNames.CSharp == options.Language)
             {

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string path = "",
             CSharpParseOptions options = null,
             Encoding encoding = null,
-            SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha256)
+            SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default)
         {
             var stringText = SourceText.From(text, encoding ?? Encoding.UTF8, checksumAlgorithm);
             var tree = SyntaxFactory.ParseSyntaxTree(stringText, options ?? TestOptions.RegularPreview, path);

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default));
 
         public override bool IsCompleteSubmission(string text)
-            => SyntaxFactory.IsCompleteSubmission(SyntaxFactory.ParseSyntaxTree(SourceText.From(text, encoding: null, SourceHashAlgorithm.Sha256), options: s_parseOptions));
+            => SyntaxFactory.IsCompleteSubmission(SyntaxFactory.ParseSyntaxTree(SourceText.From(text, encoding: null, SourceHashAlgorithms.Default), options: s_parseOptions));
 
         public override string InteractiveResponseFileName
             => "CSharpInteractive.rsp";

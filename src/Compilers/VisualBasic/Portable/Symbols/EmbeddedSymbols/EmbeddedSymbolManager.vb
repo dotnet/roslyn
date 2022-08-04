@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Shared s_internalXmlHelperSyntax As SyntaxTree = Nothing
 
         Private Shared Function ParseResourceText(text As String) As SyntaxTree
-            Return VisualBasicSyntaxTree.ParseText(SourceText.From(text, Encoding.UTF8, SourceHashAlgorithm.Sha256))
+            Return VisualBasicSyntaxTree.ParseText(SourceText.From(text, Encoding.UTF8, SourceHashAlgorithms.Default))
         End Function
 
         Friend Shared Function GetEmbeddedKind(tree As SyntaxTree) As EmbeddedSymbolKind

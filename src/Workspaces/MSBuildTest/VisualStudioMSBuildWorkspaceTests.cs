@@ -273,11 +273,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             var csProject = sol.Projects.First(p => p.Language == LanguageNames.CSharp);
             var vbProject = sol.Projects.First(p => p.Language == LanguageNames.VisualBasic);
 
-            Assert.Equal(SourceHashAlgorithm.Sha256, csProject.State.ChecksumAlgorithm);
-            Assert.Equal(SourceHashAlgorithm.Sha256, vbProject.State.ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithms.Default, csProject.State.ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithms.Default, vbProject.State.ChecksumAlgorithm);
 
-            Assert.All(csProject.Documents, d => Assert.Equal(SourceHashAlgorithm.Sha256, d.GetTextSynchronously(default).ChecksumAlgorithm));
-            Assert.All(vbProject.Documents, d => Assert.Equal(SourceHashAlgorithm.Sha256, d.GetTextSynchronously(default).ChecksumAlgorithm));
+            Assert.All(csProject.Documents, d => Assert.Equal(SourceHashAlgorithms.Default, d.GetTextSynchronously(default).ChecksumAlgorithm));
+            Assert.All(vbProject.Documents, d => Assert.Equal(SourceHashAlgorithms.Default, d.GetTextSynchronously(default).ChecksumAlgorithm));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]

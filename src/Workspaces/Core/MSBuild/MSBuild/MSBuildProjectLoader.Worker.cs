@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                                 assemblyName: assemblyName,
                                 language: language,
                                 compilationOutputFilePaths: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath),
-                                checksumAlgorithm: SourceHashAlgorithm.Sha256,
+                                checksumAlgorithm: SourceHashAlgorithms.Default,
                                 filePath: projectPath),
                             compilationOptions: compilationOptions,
                             parseOptions: parseOptions));

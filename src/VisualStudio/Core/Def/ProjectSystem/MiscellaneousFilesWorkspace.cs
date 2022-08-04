@@ -292,7 +292,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var languageInformation = TryGetLanguageInformation(filePath);
             Contract.ThrowIfNull(languageInformation);
 
-            var checksumAlgorithm = SourceHashAlgorithm.Sha256;
+            var checksumAlgorithm = SourceHashAlgorithms.Default;
             var fileLoader = new FileTextLoader(filePath, defaultEncoding: null, checksumAlgorithm);
             return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(filePath, fileLoader, languageInformation, checksumAlgorithm, Services, _metadataReferences);
         }

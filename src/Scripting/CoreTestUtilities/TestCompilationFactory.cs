@@ -7,9 +7,9 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Basic.Reference.Assemblies;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             return CSharpCompilation.Create(
                 assemblyName ?? Guid.NewGuid().ToString(),
-                new[] { CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithm.Sha256)) },
+                new[] { CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
                 new[] { NetStandard13.SystemRuntime },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             return VisualBasicCompilation.Create(
                 assemblyName ?? Guid.NewGuid().ToString(),
-                new[] { VisualBasic.SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithm.Sha256)) },
+                new[] { VisualBasic.SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
                 new[] { NetStandard13.SystemRuntime },
                 new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             return CSharpCompilation.Create(
                 assemblyName ?? Guid.NewGuid().ToString(),
-                new[] { CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithm.Sha256)) },
+                new[] { CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
                 references,
                 options ?? new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }

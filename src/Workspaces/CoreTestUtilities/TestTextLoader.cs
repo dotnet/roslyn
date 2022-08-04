@@ -17,7 +17,7 @@ namespace Roslyn.Test.Utilities
 
         internal override SourceHashAlgorithm ChecksumAlgorithm { get; }
 
-        public TestTextLoader(string text = "test", SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha256)
+        public TestTextLoader(string text = "test", SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default)
         {
             _text = text;
             ChecksumAlgorithm = checksumAlgorithm;

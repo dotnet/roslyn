@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Private Shared Function ParseTemplateTree(text As String, Optional path As String = Nothing) As SyntaxTree
             Return VisualBasicSyntaxTree.ParseText(
-                SourceText.From(text, encoding:=Nothing, checksumAlgorithm:=SourceHashAlgorithm.Sha256),
+                SourceText.From(text, encoding:=Nothing, checksumAlgorithm:=SourceHashAlgorithms.Default),
                 isMyTemplate:=True,
                 path:=path)
         End Function

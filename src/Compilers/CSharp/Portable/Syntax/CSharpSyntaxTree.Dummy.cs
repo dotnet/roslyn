@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override SourceHashAlgorithm ChecksumAlgorithm
-                => SourceHashAlgorithm.Sha256;
+                => SourceHashAlgorithms.Default;
 
             public override int Length
             {

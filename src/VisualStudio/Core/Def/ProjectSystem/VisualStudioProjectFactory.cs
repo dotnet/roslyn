@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         name: projectSystemName,
                         assemblyName: assemblyName,
                         language: language,
-                        checksumAlgorithm: SourceHashAlgorithm.Sha256, // will be updated when command line is set
+                        checksumAlgorithm: SourceHashAlgorithms.Default, // will be updated when command line is set
                         compilationOutputFilePaths: default, // will be updated when command line is set
                         filePath: creationInfo.FilePath,
                         telemetryId: creationInfo.ProjectGuid),

@@ -51,7 +51,7 @@ End Class
 
             Dim sourceText = MyTemplate.GetText()
             Assert.Contains("Private ReadOnly m_Context As New Global.Microsoft.VisualBasic.MyServices.Internal.ContextValue(Of T)", sourceText.ToString(), StringComparison.Ordinal)
-            Assert.Equal(SourceHashAlgorithm.Sha256, sourceText.ChecksumAlgorithm)
+            Assert.Equal(SourceHashAlgorithms.Default, sourceText.ChecksumAlgorithm)
         End Sub
 
         <Fact()>

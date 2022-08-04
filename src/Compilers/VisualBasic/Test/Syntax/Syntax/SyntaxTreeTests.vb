@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim tree = VisualBasicSyntaxTree.Create(root)
             Assert.Equal(SourceHashAlgorithm.Sha1, tree.GetText().ChecksumAlgorithm)
 
-            tree = VisualBasicSyntaxTree.Create(root, checksumAlgorithm:=SourceHashAlgorithm.Sha256)
-            Assert.Equal(SourceHashAlgorithm.Sha256, tree.GetText().ChecksumAlgorithm)
+            tree = VisualBasicSyntaxTree.Create(root, checksumAlgorithm:=SourceHashAlgorithms.Default)
+            Assert.Equal(SourceHashAlgorithms.Default, tree.GetText().ChecksumAlgorithm)
         End Sub
 
         <Fact, Obsolete>
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub WithRootAndOptions_ParsedTreeWithText()
-            Dim oldText = SourceText.From("Class B : End Class", Encoding.Unicode, SourceHashAlgorithm.Sha256)
+            Dim oldText = SourceText.From("Class B : End Class", Encoding.Unicode, SourceHashAlgorithms.Default)
             Dim oldTree = SyntaxFactory.ParseSyntaxTree(oldText)
 
             Dim newRoot = SyntaxFactory.ParseCompilationUnit("Class C : End Class")
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Same(newOptions, newTree.Options)
 
             Assert.Same(Encoding.Unicode, newText.Encoding)
-            Assert.Equal(SourceHashAlgorithm.Sha256, newText.ChecksumAlgorithm)
+            Assert.Equal(SourceHashAlgorithms.Default, newText.ChecksumAlgorithm)
         End Sub
 
         <Fact>
@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub WithFilePath_ParsedTreeWithText()
-            Dim oldText = SourceText.From("Class B : End Class", Encoding.Unicode, SourceHashAlgorithm.Sha256)
+            Dim oldText = SourceText.From("Class B : End Class", Encoding.Unicode, SourceHashAlgorithms.Default)
             Dim oldTree = SyntaxFactory.ParseSyntaxTree(oldText, path:="old.vb")
             Dim newTree = oldTree.WithFilePath("new.vb")
             Dim newText = newTree.GetText()
@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(oldTree.ToString(), newTree.ToString())
 
             Assert.Same(Encoding.Unicode, newText.Encoding)
-            Assert.Equal(SourceHashAlgorithm.Sha256, newText.ChecksumAlgorithm)
+            Assert.Equal(SourceHashAlgorithms.Default, newText.ChecksumAlgorithm)
         End Sub
 
         <Fact>

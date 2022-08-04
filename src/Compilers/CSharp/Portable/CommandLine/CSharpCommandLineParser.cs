@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool embedAllSourceFiles = false;
             bool resourcesOrModulesSpecified = false;
             Encoding? codepage = null;
-            var checksumAlgorithm = SourceHashAlgorithmUtils.DefaultContentHashAlgorithm;
+            var checksumAlgorithm = SourceHashAlgorithms.Default;
             var defines = ArrayBuilder<string>.GetInstance();
             List<CommandLineReference> metadataReferences = new List<CommandLineReference>();
             List<CommandLineAnalyzerReference> analyzers = new List<CommandLineAnalyzerReference>();

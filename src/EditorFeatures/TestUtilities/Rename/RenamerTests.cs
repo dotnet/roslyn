@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
 
             solution = solution.AddProject(projectInfo);
 
-            var startSourceText = SourceText.From(startText, encoding: null, SourceHashAlgorithm.Sha256);
+            var startSourceText = SourceText.From(startText, encoding: null, SourceHashAlgorithms.Default);
             var documentId = DocumentId.CreateNewId(projectId);
 
             var documentInfo = DocumentInfo.Create(

@@ -80,7 +80,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
 
             var analyzerCompilation = CSharpCompilation.Create(
                 assemblyName,
-                new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(SourceText.From(analyzerSource, encoding: null, SourceHashAlgorithm.Sha256)) },
+                new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(SourceText.From(analyzerSource, encoding: null, SourceHashAlgorithms.Default)) },
                 new MetadataReference[]
                 {
                     NetStandard20.mscorlib,

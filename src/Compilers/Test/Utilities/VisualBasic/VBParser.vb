@@ -15,7 +15,7 @@ Public Class VBParser
     End Sub
 
     Public Function Parse(code As String) As SyntaxTree
-        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(code, Encoding.UTF8, SourceHashAlgorithm.Sha256), _options, path:="")
+        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(code, Encoding.UTF8, SourceHashAlgorithms.Default), _options, path:="")
         Return tree
     End Function
 End Class

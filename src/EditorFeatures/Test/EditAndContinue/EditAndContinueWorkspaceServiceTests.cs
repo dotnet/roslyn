@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var trees = sources.Select(source =>
             {
-                var sourceText = SourceText.From(new MemoryStream(encoding.GetBytes(source.content)), encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256);
+                var sourceText = SourceText.From(new MemoryStream(encoding.GetBytes(source.content)), encoding, checksumAlgorithm: SourceHashAlgorithms.Default);
                 return SyntaxFactory.ParseSyntaxTree(sourceText, parseOptions, source.filePath);
             });
 
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         private static SourceText CreateSourceTextFromFile(string path)
         {
             using var stream = File.OpenRead(path);
-            return SourceText.From(stream, Encoding.UTF8, SourceHashAlgorithm.Sha256);
+            return SourceText.From(stream, Encoding.UTF8, SourceHashAlgorithms.Default);
         }
 
         private static TextSpan GetSpan(string str, string substr)
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private static DocumentInfo CreateDesignTimeOnlyDocument(ProjectId projectId, string name = "design-time-only.cs", string path = "design-time-only.cs")
         {
-            var sourceText = SourceText.From("class DTO {}", Encoding.UTF8, SourceHashAlgorithm.Sha256);
+            var sourceText = SourceText.From("class DTO {}", Encoding.UTF8, SourceHashAlgorithms.Default);
             return DocumentInfo.Create(
                 DocumentId.CreateNewId(projectId, name),
                 name: name,
@@ -477,8 +477,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var sourceFileC = dir.CreateFile("C.cs").WriteAllBytes(sourceBytesC1);
             var sourceFileD = dir.CreateFile("dummy").WriteAllText(sourceD1);
             var sourceFileE = dir.CreateFile("E.cs").WriteAllBytes(sourceBytesE1);
-            var sourceTreeA1 = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceBytesA1, sourceBytesA1.Length, encodingA, SourceHashAlgorithm.Sha256), TestOptions.Regular, sourceFileA.Path);
-            var sourceTreeB1 = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceBytesB1, sourceBytesB1.Length, encodingB, SourceHashAlgorithm.Sha256), TestOptions.Regular, sourceFileB.Path);
+            var sourceTreeA1 = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceBytesA1, sourceBytesA1.Length, encodingA, SourceHashAlgorithms.Default), TestOptions.Regular, sourceFileA.Path);
+            var sourceTreeB1 = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceBytesB1, sourceBytesB1.Length, encodingB, SourceHashAlgorithms.Default), TestOptions.Regular, sourceFileB.Path);
             var sourceTreeC1 = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceBytesC1, sourceBytesC1.Length, encodingC, SourceHashAlgorithm.Sha1), TestOptions.Regular, sourceFileC.Path);
 
             // E is not included in the compilation:
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // change content of B on disk again:
             sourceFileB.WriteAllText(sourceB3, encodingB);
-            solution = solution.WithDocumentTextLoader(documentIdB, new FileTextLoader(sourceFileB.Path, encodingB, SourceHashAlgorithm.Sha256), PreservationMode.PreserveValue);
+            solution = solution.WithDocumentTextLoader(documentIdB, new FileTextLoader(sourceFileB.Path, encodingB, SourceHashAlgorithms.Default), PreservationMode.PreserveValue);
 
             EnterBreakState(debuggingSession);
 
@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             (solution, var document) = AddDefaultTestProject(solution, "class C {}");
 
-            var sourceText = SourceText.From("class D {}", Encoding.UTF8, SourceHashAlgorithm.Sha256);
+            var sourceText = SourceText.From("class D {}", Encoding.UTF8, SourceHashAlgorithms.Default);
             var documentInfo = DocumentInfo.Create(
                 DocumentId.CreateNewId(document.Project.Id),
                 name: "design-time-only.cs",
@@ -1879,8 +1879,8 @@ class C { int Y => 2; }
             var documentId = DocumentId.CreateNewId(projectId);
             solution = documentKind switch
             {
-                DocumentKind.Source => solution.AddDocument(documentId, "X", SourceText.From("xxx", Encoding.UTF8, SourceHashAlgorithm.Sha256), filePath: pathX),
-                DocumentKind.Additional => solution.AddAdditionalDocument(documentId, "X", SourceText.From("xxx", Encoding.UTF8, SourceHashAlgorithm.Sha256), filePath: pathX),
+                DocumentKind.Source => solution.AddDocument(documentId, "X", SourceText.From("xxx", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: pathX),
+                DocumentKind.Additional => solution.AddAdditionalDocument(documentId, "X", SourceText.From("xxx", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: pathX),
                 DocumentKind.AnalyzerConfig => solution.AddAnalyzerConfigDocument(documentId, "X", GetAnalyzerConfigText(new[] { ("x", "1") }), filePath: pathX),
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -1910,8 +1910,8 @@ class C { int Y => 2; }
 
             solution = documentKind switch
             {
-                DocumentKind.Source => solution.WithDocumentText(documentId, SourceText.From("xxx", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
-                DocumentKind.Additional => solution.WithAdditionalDocumentText(documentId, SourceText.From("xxx", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
+                DocumentKind.Source => solution.WithDocumentText(documentId, SourceText.From("xxx", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithms.Default)),
+                DocumentKind.Additional => solution.WithAdditionalDocumentText(documentId, SourceText.From("xxx", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithms.Default)),
                 DocumentKind.AnalyzerConfig => solution.WithAnalyzerConfigDocumentText(documentId, GetAnalyzerConfigText(new[] { ("x", "1") })),
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -1937,8 +1937,8 @@ class C { int Y => 2; }
             oldSolution = solution;
             solution = documentKind switch
             {
-                DocumentKind.Source => solution.WithDocumentText(documentId, SourceText.From("xxx-changed", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
-                DocumentKind.Additional => solution.WithAdditionalDocumentText(documentId, SourceText.From("xxx-changed", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
+                DocumentKind.Source => solution.WithDocumentText(documentId, SourceText.From("xxx-changed", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithms.Default)),
+                DocumentKind.Additional => solution.WithAdditionalDocumentText(documentId, SourceText.From("xxx-changed", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithms.Default)),
                 DocumentKind.AnalyzerConfig => solution.WithAnalyzerConfigDocumentText(documentId, GetAnalyzerConfigText(new[] { ("x", "2") })),
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -2025,7 +2025,7 @@ class C { int Y => 2; }
 
             var documentB2 = solution.
                 AddProject("B", "B", LanguageNames.CSharp).
-                AddDocument("b.cs", SourceText.From(sourceB2, Encoding.UTF8, SourceHashAlgorithm.Sha256), filePath: sourceFileB.Path);
+                AddDocument("b.cs", SourceText.From(sourceB2, Encoding.UTF8, SourceHashAlgorithms.Default), filePath: sourceFileB.Path);
 
             solution = documentB2.Project.Solution;
 
@@ -2058,7 +2058,7 @@ class C { int Y => 2; }
             Assert.Empty(diagnostics);
 
             // update document with a valid change:
-            solution = solution.WithDocumentText(documentB2.Id, SourceText.From(sourceB3, Encoding.UTF8, SourceHashAlgorithm.Sha256));
+            solution = solution.WithDocumentText(documentB2.Id, SourceText.From(sourceB3, Encoding.UTF8, SourceHashAlgorithms.Default));
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
 
@@ -3610,7 +3610,7 @@ class C { int Y => 1; }
 
             var project = solution.AddProject("dummy_proj", "dummy_proj", designTimeOnly ? LanguageNames.CSharp : NoCompilationConstants.LanguageName);
             var filePath = withPath ? Path.Combine(TempRoot.Root, "test.cs") : null;
-            var sourceText = SourceText.From("dummy1", Encoding.UTF8, SourceHashAlgorithm.Sha256);
+            var sourceText = SourceText.From("dummy1", Encoding.UTF8, SourceHashAlgorithms.Default);
 
             var documentInfo = DocumentInfo.Create(
                 DocumentId.CreateNewId(project.Id, "test"),
@@ -4377,7 +4377,7 @@ class C
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdA,
                 name: "A",
-                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8, SourceHashAlgorithm.Sha256),
+                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8, SourceHashAlgorithms.Default),
                 filePath: sourceFileA.Path));
 
             var tasks = Enumerable.Range(0, 10).Select(async i =>
@@ -4462,7 +4462,7 @@ class C
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdA,
                 name: "A",
-                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8, SourceHashAlgorithm.Sha256),
+                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8, SourceHashAlgorithms.Default),
                 filePath: sourceFileA.Path));
 
             var hotReload = new WatchHotReloadService(workspace.Services, ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
@@ -4529,7 +4529,7 @@ class C
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdA,
                 name: "A",
-                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8, SourceHashAlgorithm.Sha256),
+                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8, SourceHashAlgorithms.Default),
                 filePath: sourceFileA.Path));
 
             var hotReload = new UnitTestingHotReloadService(workspace.Services);

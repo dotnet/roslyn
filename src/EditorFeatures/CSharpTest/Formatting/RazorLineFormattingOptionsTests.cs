@@ -62,7 +62,7 @@ void F   () {}
        }
 ";
 
-        var sourceText = SourceText.From(source, encoding: null, SourceHashAlgorithm.Sha256);
+        var sourceText = SourceText.From(source, encoding: null, SourceHashAlgorithms.Default);
         var documentInfo = DocumentInfo.Create(
             DocumentId.CreateNewId(project.Id),
             name: "file.razor.g.cs",

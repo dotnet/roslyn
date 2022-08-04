@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
         private static ProjectInfo CreateProjectInfo(string projectName, string language, ImmutableArray<string> files)
         {
             var projectId = ProjectId.CreateNewId();
-            const SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha256;
+            const SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default;
 
             var docInfos = files.SelectAsArray(path =>
                 DocumentInfo.Create(

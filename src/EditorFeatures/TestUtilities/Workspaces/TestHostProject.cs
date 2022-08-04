@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     assemblyName: AssemblyName,
                     language: Language,
                     compilationOutputFilePaths: default,
-                    checksumAlgorithm: Text.SourceHashAlgorithm.Sha256,
+                    checksumAlgorithm: Text.SourceHashAlgorithms.Default,
                     defaultNamespace: DefaultNamespace,
                     filePath: FilePath,
                     outputFilePath: OutputFilePath,
