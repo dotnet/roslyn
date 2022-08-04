@@ -25,9 +25,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 _callbackId = callbackId;
             }
 
-            public ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportProjectRemovedAsync(_callbackId, projectId, cancellationToken), cancellationToken);
-
             public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportDesignerAttributeDataAsync(_callbackId, data, cancellationToken), cancellationToken);
         }
