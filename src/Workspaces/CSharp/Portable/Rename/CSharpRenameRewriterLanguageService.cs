@@ -188,7 +188,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
                 var newToken = base.VisitToken(token);
+                // Handle Alias annotations
                 newToken = UpdateAliasAnnotation(newToken);
+                // Rename matches in strings and comments
                 newToken = RenameWithinToken(token, newToken);
 
                 // We don't want to annotate XmlName with RenameActionAnnotation

@@ -422,6 +422,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
                 Dim newToken = MyBase.VisitToken(oldToken)
                 newToken = UpdateAliasAnnotation(newToken)
+
+                ' Rename matches in strings and comments
                 newToken = RenameWithinToken(oldToken, newToken)
 
                 ' We don't want to annotate XmlName with RenameActionAnnotation
