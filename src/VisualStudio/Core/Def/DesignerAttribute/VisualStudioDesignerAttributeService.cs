@@ -150,11 +150,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             if (connection == null)
                 return;
 
+            var solution = _workspace.CurrentSolution;
+
+            foreach (var (projectId, _) in _cpsProjects)
+            {
+                if (!solution.ContainsProject(projectId))
+                    _cpsProjects.TryRemove(projectId, out _);
+            }
+
             var trackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
             var priorityDocument = trackingService.TryGetActiveDocument();
 
             await connection.TryInvokeAsync(
-                _workspace.CurrentSolution,
+                solution,
                 (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(callbackId, checksum, priorityDocument, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
@@ -352,12 +360,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         {
             Contract.ThrowIfNull(_projectSystemNotificationQueue);
             _projectSystemNotificationQueue.AddWork(data);
-            return ValueTaskFactory.CompletedTask;
-        }
-
-        public ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
-        {
-            _cpsProjects.TryRemove(projectId, out _);
             return ValueTaskFactory.CompletedTask;
         }
     }

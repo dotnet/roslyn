@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     {
         internal interface ICallback
         {
-            ValueTask ReportProjectRemovedAsync(RemoteServiceCallbackId callbackId, ProjectId projectId, CancellationToken cancellationToken);
             ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
         }
 
@@ -38,9 +37,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
         private new DesignerAttributeComputer.ICallback GetCallback(RemoteServiceCallbackId callbackId)
             => (DesignerAttributeComputer.ICallback)base.GetCallback(callbackId);
-
-        public ValueTask ReportProjectRemovedAsync(RemoteServiceCallbackId callbackId, ProjectId projectId, CancellationToken cancellationToken)
-            => GetCallback(callbackId).ReportProjectRemovedAsync(projectId, cancellationToken);
 
         public ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
             => GetCallback(callbackId).ReportDesignerAttributeDataAsync(data, cancellationToken);

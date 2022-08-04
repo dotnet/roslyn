@@ -24,12 +24,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
         /// <summary>
-        /// The last batch of projects analyzed.  Can be used to determine which projects have now been removed when
-        /// called again.
-        /// </summary>
-        private readonly HashSet<ProjectId> _lastScannedProjectIds = new();
-
-        /// <summary>
         /// Keep track of the last information we reported.  We will avoid notifying the host if we recompute and these
         /// don't change.
         /// </summary>
@@ -39,14 +33,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         {
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                // Remove any projects that are now gone.
-                foreach (var oldProjectId in _lastScannedProjectIds)
-                {
-                    if (!solution.ContainsProject(oldProjectId))
-                        await callback.ReportProjectRemovedAsync(oldProjectId, cancellationToken).ConfigureAwait(false);
-                }
-
-                // Now remove any documents that are now gone.
+                // Remove any documents that are now gone.
                 foreach (var docId in _documentToLastReportedInformation.Keys)
                 {
                     if (!solution.ContainsDocument(docId))
@@ -76,7 +63,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
         private async Task ProcessProjectAsync(Project project, Document? specificDocument, ICallback callback, CancellationToken cancellationToken)
         {
-            _lastScannedProjectIds.Add(project.Id);
             if (!project.SupportsCompilation)
                 return;
 

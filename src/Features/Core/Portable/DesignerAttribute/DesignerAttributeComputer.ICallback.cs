@@ -16,11 +16,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         public interface ICallback
         {
             /// <summary>
-            /// Called if this <paramref name="projectId"/> is no longer part of the solution.  All data related to is can now be removed.
-            /// </summary>
-            ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken);
-
-            /// <summary>
             /// Called to notify a listener about any <em>changed</em> designer attribute data discovered while scanning.
             /// </summary>
             ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
