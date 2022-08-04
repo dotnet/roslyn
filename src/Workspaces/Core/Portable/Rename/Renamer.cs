@@ -234,41 +234,10 @@ namespace Microsoft.CodeAnalysis.Rename
             var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var taskCompletionSource = new TaskCompletionSource<bool>();
-                // make sure we transition to canceled if the caller cancels this work.  This way even if OOP doesn't
-                // call back to complete us, we won't hang anyone awaiting on us.
-                cancellationToken.Register(static s => ((TaskCompletionSource<bool>)s!).TrySetResult(true), taskCompletionSource);
-
-                // Kick off the keep alive task.  Once it has pinned the solution it will call back into the taskCompletionSource
-                // to mark it as completed so that things can proceed. It will terminate when the provided
-                // cancellation token is actually canceled.
-                var startTask = StartKeepAliveSessionAsync(taskCompletionSource);
-
-                // Then wait for either of these tasks to complete.  If the tcs completes that means that OOP
-                // successfully pinned the solution and we're good to go.  If the start-task completes, that means that
-                // OOP could not complete the request for some reason.  However, we still want to continue processing in
-                // that case.
-                await Task.WhenAny(taskCompletionSource.Task, startTask).ConfigureAwait(false);
-            }
-
-            return;
-
-            async Task StartKeepAliveSessionAsync(TaskCompletionSource<bool> taskCompletionSource)
-            {
-                // No matter how the client completes this call, make sure we always complete the TaskCompletionSource
-                // so that our caller can proceed.
-                try
-                {
-                    await client.TryInvokeAsync<IRemoteRenamerService>(
-                        solution,
-                        (service, solutionInfo, callbackId, cancellationToken) => service.KeepAliveAsync(solutionInfo, callbackId, cancellationToken),
-                        callbackTarget: taskCompletionSource,
-                        cancellationToken).ConfigureAwait(false);
-                }
-                finally
-                {
-                    taskCompletionSource.SetResult(true);
-                }
+                _ = client.TryInvokeAsync<IRemoteRenamerService>(
+                    solution,
+                    (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, cancellationToken),
+                    cancellationToken);
             }
         }
     }

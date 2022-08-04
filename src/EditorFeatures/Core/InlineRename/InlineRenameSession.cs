@@ -315,9 +315,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             _allRenameLocationsTask = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                // Ensure that our keep-alive session is up and running.
-                await _keepAliveSessionTask.JoinAsync(cancellationToken).ConfigureAwait(false);
-
                 // Join prior work before proceeding, since it performs a required state update.
                 // https://github.com/dotnet/roslyn/pull/34254#discussion_r267024593
                 if (currentRenameLocationsTask != null)

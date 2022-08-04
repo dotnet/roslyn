@@ -38,9 +38,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// hydrated and alive on the OOP side.
         /// </summary>
         ValueTask KeepAliveAsync(
-            Checksum solutionChecksum,
-            RemoteServiceCallbackId callbackId,
-            CancellationToken cancellationToken);
+            Checksum solutionChecksum, CancellationToken cancellationToken);
 
         /// <summary>
         /// Runs the entire rename operation OOP and returns the final result. More efficient (due to less back and
