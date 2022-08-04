@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     if (CompletionItemData.TryGetData(item, out var itemData))
                     {
                         if (CompletionHelper.TryCreateMatchResult(_completionHelper, itemData.RoslynItem, item, _filterText,
-                            roslynInitialTriggerKind, roslynFilterReason, _recentItemsManager.RecentItems, _highlightMatchingPortions, currentIndex,
+                            roslynInitialTriggerKind, roslynFilterReason, _recentItemsManager.GetRecentItemIndex(itemData.RoslynItem) >= 0, _highlightMatchingPortions, currentIndex,
                             out var matchResult))
                         {
                             list.Add(matchResult);
@@ -516,26 +516,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 Debug.Assert(chosenItems.Count > 0);
 
-                var recentItems = _recentItemsManager.RecentItems;
-
                 // Try to find the chosen item has been most recently used.
                 var bestItem = chosenItems[0];
-                var mruIndex1 = GetRecentItemIndex(recentItems, bestItem);
+                var bestItemMruIndex = _recentItemsManager.GetRecentItemIndex(bestItem);
                 for (int i = 1, n = chosenItems.Count; i < n; i++)
                 {
-                    var chosenItem = chosenItems[i];
-                    var mruIndex2 = GetRecentItemIndex(recentItems, chosenItem);
+                    var currentItem = chosenItems[i];
+                    var currentItemMruIndex = _recentItemsManager.GetRecentItemIndex(currentItem);
 
-                    if ((mruIndex2 < mruIndex1) ||
-                        (mruIndex2 == mruIndex1 && !bestItem.IsPreferredItem() && chosenItem.IsPreferredItem()))
+                    if (currentItemMruIndex > bestItemMruIndex ||
+                        (currentItemMruIndex == bestItemMruIndex && !bestItem.IsPreferredItem() && currentItem.IsPreferredItem()))
                     {
-                        bestItem = chosenItem;
-                        mruIndex1 = GetRecentItemIndex(recentItems, bestItem);
+                        bestItem = currentItem;
+                        bestItemMruIndex = currentItemMruIndex;
                     }
                 }
 
                 // If our best item appeared in the MRU list, use it
-                if (GetRecentItemIndex(recentItems, bestItem) <= 0)
+                if (_recentItemsManager.GetRecentItemIndex(bestItem) >= 0)
                 {
                     return bestItem;
                 }
@@ -555,12 +553,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
 
                 return bestItem;
-
-                static int GetRecentItemIndex(ImmutableArray<string> recentItems, RoslynCompletionItem item)
-                {
-                    var index = recentItems.IndexOf(item.FilterText);
-                    return -index;
-                }
             }
 
             private static bool TryGetInitialTriggerLocation(AsyncCompletionSessionDataSnapshot data, out SnapshotPoint intialTriggerLocation)

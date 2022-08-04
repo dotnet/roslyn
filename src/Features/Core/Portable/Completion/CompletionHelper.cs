@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Completion
             string filterText,
             CompletionTriggerKind initialTriggerKind,
             CompletionFilterReason filterReason,
-            ImmutableArray<string> recentItems,
+            bool isRecentItem,
             bool includeMatchSpans,
             int currentIndex,
             out MatchResult<T> matchResult)
@@ -405,14 +405,14 @@ namespace Microsoft.CodeAnalysis.Completion
                 filterText,
                 initialTriggerKind,
                 filterReason,
-                recentItems,
+                isRecentItem,
                 patternMatch);
 
             if (shouldBeConsideredMatchingFilterText || KeepAllItemsInTheList(initialTriggerKind, filterText))
             {
                 matchResult = new MatchResult<T>(
                     item, editorCompletionItem, shouldBeConsideredMatchingFilterText,
-                    patternMatch: patternMatch, currentIndex);
+                    patternMatch, currentIndex);
 
                 return true;
             }
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 string filterText,
                 CompletionTriggerKind initialTriggerKind,
                 CompletionFilterReason filterReason,
-                ImmutableArray<string> recentItems,
+                bool isRecentItem,
                 PatternMatch? patternMatch)
             {
                 // For the deletion we bake in the core logic for how matching should work.
@@ -445,25 +445,12 @@ namespace Microsoft.CodeAnalysis.Completion
                 // MRU list, then we definitely want to include it.
                 if (filterText.Length == 0)
                 {
-                    if (item.Rules.MatchPriority > MatchPriority.Default)
-                    {
+                    if (isRecentItem || item.Rules.MatchPriority > MatchPriority.Default)
                         return true;
-                    }
-
-                    if (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) <= 0)
-                    {
-                        return true;
-                    }
                 }
 
                 // Otherwise, the item matches filter text if a pattern match is returned.
                 return patternMatch != null;
-            }
-
-            static int GetRecentItemIndex(ImmutableArray<string> recentItems, CompletionItem item)
-            {
-                var index = recentItems.IndexOf(item.FilterText);
-                return -index;
             }
 
             // If the item didn't match the filter text, we still keep it in the list
