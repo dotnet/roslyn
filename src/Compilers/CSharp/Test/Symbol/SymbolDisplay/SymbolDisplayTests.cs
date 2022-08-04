@@ -8239,7 +8239,7 @@ class Program
                 "void Program.F(scoped R r1, R r2, R r3)");
 
             Verify(method.ToDisplayParts(formatTypeRefAndScoped),
-                "void Program.F(scoped R r1, ref R r2, scoped in R r3)", // PROTOTYPE: Should drop scoped from r3.
+                "void Program.F(scoped R r1, ref R r2, in R r3)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
@@ -8259,8 +8259,6 @@ class Program
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -8294,7 +8292,7 @@ delegate void D(scoped R r1, scoped ref R r2, scoped in R r3);
                 "delegate void D(scoped R r1, R r2, R r3)");
 
             Verify(delegateType.ToDisplayParts(formatTypeRefAndScoped),
-                "delegate void D(scoped R r1, ref R r2, scoped in R r3)"); // PROTOTYPE: Should drop scoped from r3.
+                "delegate void D(scoped R r1, ref R r2, in R r3)");
         }
 
         [Fact]

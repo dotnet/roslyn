@@ -10129,11 +10129,11 @@ class Program
 3
 <>f__AnonymousDelegate1
 4
-<>f__AnonymousDelegate2
+<>f__AnonymousDelegate1
 -5
-<>f__AnonymousDelegate3
+<>f__AnonymousDelegate2
 -6
-<>f__AnonymousDelegate3
+<>f__AnonymousDelegate2
 ");
 
             // https://github.com/dotnet/roslyn/issues/62780: Test with [UnscopedRef].
