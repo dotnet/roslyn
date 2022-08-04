@@ -4,6 +4,9 @@ parameters:
   default:
     vmImage: windows-2022
 - name: includeMacOS
+- name: RunTests
+  type: boolean
+  default: true
 - name: EnableAPIScan
   type: boolean
   default: false
@@ -32,6 +35,8 @@ jobs:
     - template: microbuild.before.yml
 
   - template: dotnet.yml
+    parameters:
+      RunTests: ${{ parameters.RunTests }}
 
   - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     - template: microbuild.after.yml
@@ -48,6 +53,8 @@ jobs:
     clean: true
   - template: install-dependencies.yml
   - template: dotnet.yml
+    parameters:
+      RunTests: ${{ parameters.RunTests }}
   - template: expand-template.yml
 
 - job: macOS
@@ -59,6 +66,8 @@ jobs:
     clean: true
   - template: install-dependencies.yml
   - template: dotnet.yml
+    parameters:
+      RunTests: ${{ parameters.RunTests }}
   - template: expand-template.yml
 
 - job: WrapUp
@@ -77,6 +86,7 @@ jobs:
   - template: publish-symbols.yml
     parameters:
       includeMacOS: ${{ parameters.includeMacOS }}
-  - template: publish-codecoverage.yml
-    parameters:
-      includeMacOS: ${{ parameters.includeMacOS }}
+  - ${{ if parameters.RunTests }}:
+    - template: publish-codecoverage.yml
+      parameters:
+        includeMacOS: ${{ parameters.includeMacOS }}
