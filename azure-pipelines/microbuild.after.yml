@@ -1,6 +1,6 @@
 parameters:
-- name: EnableAPIScan
-  type: boolean
+  EnableCompliance:
+  EnableAPIScan:
 
 steps:
 - task: MicroBuildCodesignVerify@3
@@ -26,6 +26,7 @@ steps:
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), ne(variables['Build.Reason'], 'PullRequest'))
   continueOnError: true
 
-- template: secure-development-tools.yml
-  parameters:
-    EnableAPIScan: ${{ parameters.EnableAPIScan }}
+- ${{ if eq(parameters.EnableCompliance, 'true') }}:
+  - template: secure-development-tools.yml
+    parameters:
+      EnableAPIScan: ${{ parameters.EnableAPIScan }}

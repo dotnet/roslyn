@@ -33,8 +33,12 @@ parameters:
   displayName: Run tests
   type: boolean
   default: true
+- name: EnableCompliance
+  displayName: Run Compliance Tools
+  type: boolean
+  default: true
 - name: EnableAPIScan
-  displayName: Run APIScan
+  displayName: Include APIScan with Compliance tools
   type: boolean
   default: true
 
@@ -55,6 +59,7 @@ stages:
   jobs:
   - template: build.yml
     parameters:
+      EnableCompliance: ${{ parameters.EnableCompliance }}
       EnableAPIScan: ${{ parameters.EnableAPIScan }}
       windowsPool: VSEngSS-MicroBuild2022-1ES
       includeMacOS: ${{ parameters.includeMacOS }}

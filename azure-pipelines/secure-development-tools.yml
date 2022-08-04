@@ -1,8 +1,10 @@
 parameters:
-- name: EnableAPIScan
-  type: boolean
+  EnableAPIScan:
 
 steps:
+
+- powershell: echo "##vso[build.addbuildtag]compliance"
+  displayName: 🏷️ Tag run with 'compliance'
 
 - task: CredScan@3
   displayName: 🔍 Run CredScan
