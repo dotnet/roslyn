@@ -119,6 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 _isProcessingComplexifiedSpans = false;
                 _skipRenameForComplexification = 0;
 
+                // TODO: These contexts are not changed for a document. ConflictResolver.Session should be refactored to cache them in a dictionary,
                 _renamedSymbolContexts = CreateSymbolKeyToRenamedSymbolContextMap(parameters.RenameSymbolContexts, SymbolKey.GetComparer());
                 _textSpanToRenameContexts = CreateTextSpanToLocationContextMap(parameters.TokenTextSpanRenameContexts);
                 _stringAndCommentRenameContexts = GroupStringAndCommentsTextSpanRenameContexts(parameters.StringAndCommentsTextSpanRenameContexts);
