@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// </summary>
     internal static class SourceHashAlgorithms
     {
-        public const SourceHashAlgorithm Default = SourceHashAlgorithm.Sha256;
+        public const SourceHashAlgorithm Default = SourceHashAlgorithm.Sha1;
 
         private static readonly Guid s_guidSha1 = unchecked(new Guid((int)0xff1816ec, (short)0xaa5e, 0x4d10, 0x87, 0xf7, 0x6f, 0x49, 0x63, 0x83, 0x34, 0x60));
         private static readonly Guid s_guidSha256 = unchecked(new Guid((int)0x8829d00f, 0x11b8, 0x4213, 0x87, 0x8b, 0x77, 0x0e, 0x85, 0x97, 0xac, 0x16));
