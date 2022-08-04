@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             LightweightOverloadResolution.FindParameterIndexIfCompatibleMethod(arguments, currentSymbol, position, semanticModel, semanticFactsService, out var parameterIndex);
 
             // present item and select
-            var structuralTypeDisplayService = document.Project.LanguageServices.GetRequiredService<IStructuralTypeDisplayService>();
+            var structuralTypeDisplayService = document.Project.Services.GetRequiredService<IStructuralTypeDisplayService>();
             var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
 
             var items = GetDelegateOrFunctionPointerInvokeItems(invocationExpression, currentSymbol,

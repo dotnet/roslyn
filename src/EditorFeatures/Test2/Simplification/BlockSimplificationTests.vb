@@ -4,13 +4,17 @@
 
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public Class SimplificationTests
         Inherits AbstractSimplificationTests
 
-        Private Shared ReadOnly DoNotPreferBraces As Dictionary(Of OptionKey2, Object) = New Dictionary(Of OptionKey2, Object) From {{New OptionKey2(CSharpCodeStyleOptions.PreferBraces), New CodeStyleOption2(Of PreferBracesPreference)(PreferBracesPreference.None, NotificationOption2.Silent)}}
+        Private Shared ReadOnly DoNotPreferBraces As New OptionsCollection(LanguageNames.VisualBasic) From
+        {
+            {CSharpCodeStyleOptions.PreferBraces, New CodeStyleOption2(Of PreferBracesPreference)(PreferBracesPreference.None, NotificationOption2.Silent)}
+        }
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_DoNotSimplifyIfBlock() As Task

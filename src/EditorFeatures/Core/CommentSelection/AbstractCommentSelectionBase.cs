@@ -125,49 +125,39 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         /// </summary>
         private void ApplyEdits(Document document, ITextView textView, ITextBuffer subjectBuffer, string title, CommentSelectionResult edits, CancellationToken cancellationToken)
         {
-            var workspace = document.Project.Solution.Workspace;
-
-            // Create tracking spans to track the text changes.
-            var currentSnapshot = subjectBuffer.CurrentSnapshot;
-            var trackingSpans = edits.TrackingSpans
-                .SelectAsArray(textSpan => (originalSpan: textSpan, trackingSpan: CreateTrackingSpan(edits.ResultOperation, currentSnapshot, textSpan.TrackingTextSpan)));
+            var originalSnapshot = subjectBuffer.CurrentSnapshot;
 
             // Apply the text changes.
-            SourceText newText;
             using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
             {
-                var oldSolution = workspace.CurrentSolution;
-
-                var oldDocument = oldSolution.GetRequiredDocument(document.Id);
-                var oldText = oldDocument.GetTextSynchronously(cancellationToken);
-                newText = oldText.WithChanges(edits.TextChanges.Distinct());
-
-                var newSolution = oldSolution.WithDocumentText(document.Id, newText, PreservationMode.PreserveIdentity);
-                workspace.TryApplyChanges(newSolution);
-
+                subjectBuffer.ApplyChanges(edits.TextChanges);
                 transaction.Complete();
             }
 
-            // Convert the tracking spans into snapshot spans for formatting and selection.
-            var trackingSnapshotSpans = trackingSpans.Select(s => CreateSnapshotSpan(subjectBuffer.CurrentSnapshot, s.trackingSpan, s.originalSpan));
-
-            if (trackingSnapshotSpans.Any())
+            if (edits.TrackingSpans.Any())
             {
+                // Create tracking spans to track the text changes.
+                var trackingSpans = edits.TrackingSpans
+                    .SelectAsArray(textSpan => (originalSpan: textSpan, trackingSpan: CreateTrackingSpan(edits.ResultOperation, originalSnapshot, textSpan.TrackingTextSpan)));
+
+                // Convert the tracking spans into snapshot spans for formatting and selection.
+                var trackingSnapshotSpans = trackingSpans.Select(s => CreateSnapshotSpan(subjectBuffer.CurrentSnapshot, s.trackingSpan, s.originalSpan));
+
                 if (edits.ResultOperation == Operation.Uncomment && document.SupportsSyntaxTree)
                 {
                     // Format the document only during uncomment operations.  Use second transaction so it can be undone.
                     using var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
-                    var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.LanguageServices, explicitFormat: false);
+                    var newText = subjectBuffer.CurrentSnapshot.AsText();
+                    var oldSyntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
+                    var newRoot = oldSyntaxTree.WithChangedText(newText).GetRoot(cancellationToken);
 
-                    var updatedDocument = workspace.CurrentSolution.GetRequiredDocument(document.Id);
-                    var root = updatedDocument.GetRequiredSyntaxRootSynchronously(cancellationToken);
+                    var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.Services, explicitFormat: false);
+                    var formattingSpans = trackingSnapshotSpans.Select(change => CommonFormattingHelpers.GetFormattingSpan(newRoot, change.Span.ToTextSpan()));
+                    var formattedChanges = Formatter.GetFormattedTextChanges(newRoot, formattingSpans, document.Project.Solution.Services, formattingOptions, rules: null, cancellationToken);
 
-                    var formattingSpans = trackingSnapshotSpans.Select(change => CommonFormattingHelpers.GetFormattingSpan(root, change.Span.ToTextSpan()));
-                    var formattedRoot = Formatter.Format(root, formattingSpans, workspace.Services, formattingOptions, rules: null, cancellationToken);
-                    var formattedDocument = document.WithSyntaxRoot(formattedRoot);
+                    subjectBuffer.ApplyChanges(formattedChanges);
 
-                    workspace.ApplyDocumentChanges(formattedDocument, cancellationToken);
                     transaction.Complete();
                 }
 

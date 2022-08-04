@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<MetadataId, AsyncLazy<SymbolTreeInfo>> s_metadataIdToInfo = new();
 
         private static Task<SpellChecker> GetSpellCheckerAsync(
-            HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum, string filePath, ImmutableArray<Node> sortedNodes)
+            HostSolutionServices services, SolutionKey solutionKey, Checksum checksum, string filePath, ImmutableArray<Node> sortedNodes)
         {
             // Create a new task to attempt to load or create the spell checker for this 
             // SymbolTreeInfo.  This way the SymbolTreeInfo will be ready immediately
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SymbolTreeInfo CreateSymbolTreeInfo(
-            HostWorkspaceServices services, SolutionKey solutionKey, Checksum checksum,
+            HostSolutionServices services, SolutionKey solutionKey, Checksum checksum,
             string filePath, ImmutableArray<BuilderNode> unsortedNodes,
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
             MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)

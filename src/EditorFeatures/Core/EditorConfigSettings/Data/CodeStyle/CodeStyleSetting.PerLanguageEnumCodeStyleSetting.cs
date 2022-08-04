@@ -3,10 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
@@ -60,6 +65,40 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                     // TODO(jmarolf): Should we expose duplicate options if the user has a different setting in VB vs. C#?
                     //                Today this code will choose whatever option is set for C# as the default.
                     : _visualStudioOptions.GetOption<CodeStyleOption2<T>>(new OptionKey2(_option, LanguageNames.CSharp));
+
+            public override string? GetSettingName()
+            {
+                var storageLocation = GetEditorConfigStorageLocation(_option);
+                return storageLocation?.KeyName;
+            }
+
+            public override string GetDocumentation()
+            {
+                return Description;
+            }
+
+            public override ImmutableArray<string>? GetSettingValues(OptionSet optionSet)
+            {
+                var type = typeof(T);
+                var strings = new List<string>();
+                var enumValues = type.GetEnumValues();
+
+                foreach (var enumValue in enumValues)
+                {
+                    if (enumValue != null)
+                    {
+                        var storageLocation = GetEditorConfigStorageLocation(_option);
+                        var codeStyleSetting = new CodeStyleOption2<T>((T)enumValue, NotificationOption2.Silent);
+                        var option = storageLocation?.GetEditorConfigStringValue(codeStyleSetting, optionSet);
+                        if (option != null)
+                        {
+                            strings.Add(option);
+                        }
+                    }
+                }
+
+                return strings.ToImmutableArray();
+            }
         }
     }
 }

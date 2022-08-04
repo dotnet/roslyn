@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                 if (!useDecompiler)
                 {
-                    var sourceFromMetadataService = temporaryDocument.Project.LanguageServices.GetRequiredService<IMetadataAsSourceService>();
+                    var sourceFromMetadataService = temporaryDocument.Project.Services.GetRequiredService<IMetadataAsSourceService>();
                     temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, compilation, symbol, options.GenerationOptions, cancellationToken).ConfigureAwait(false);
                 }
 

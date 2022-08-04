@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             var diffSelector = _componentModel.GetService<ITextDifferencingSelectorService>();
             var diffService = diffSelector.GetTextDifferencingService(
-                left.Project.LanguageServices.GetService<IContentTypeLanguageService>().GetDefaultContentType());
+                left.Project.Services.GetService<IContentTypeLanguageService>().GetDefaultContentType());
 
             diffService ??= diffSelector.DefaultTextDifferencingService;
 

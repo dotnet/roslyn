@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     _recoverableRoot = new RecoverableSyntaxRoot<CompilationUnitSyntax>(service, root, this);
                     _info = info;
-                    _projectCacheService = service.LanguageServices.WorkspaceServices.GetService<IProjectCacheHostService>();
+                    _projectCacheService = service.SolutionServices.GetService<IProjectCacheHostService>();
                     _cacheKey = cacheKey;
                 }
 

@@ -2,16 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
+using System.Windows.Input;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.EditorConfig;
+using Microsoft.CodeAnalysis.EditorConfigSettings.Data;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
-    internal class AnalyzerSetting
+    internal class AnalyzerSetting : IEditorConfigSettingInfo
     {
         private readonly DiagnosticDescriptor _descriptor;
         private readonly AnalyzerSettingsUpdater _settingsUpdater;
@@ -59,6 +66,21 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
             Severity = severity;
             _settingsUpdater.QueueUpdate(this, severity);
+        }
+
+        public string GetSettingName()
+        {
+            return $"dotnet_diagnostic.{Id}.severity";
+        }
+
+        public string GetDocumentation()
+        {
+            return Description;
+        }
+
+        public ImmutableArray<string>? GetSettingValues(OptionSet _)
+        {
+            return ImmutableArray.Create(new string[] { "none", "silent", "suggestion", "warning", "error" });
         }
     }
 }

@@ -550,7 +550,7 @@ class C
 {{
     void M()
     {{
-        var data = (n$$) { (hasNewline ? Environment.NewLine : string.Empty) } M();
+        var data = (n$$) {(hasNewline ? Environment.NewLine : string.Empty)} M();
     }}
 }}";
 
@@ -588,7 +588,7 @@ class C
             var markup =
 $@"class C
 {{
-    bool Prop => (t$$)  { (hasExpression ? "n" : string.Empty) }
+    bool Prop => (t$$)  {(hasExpression ? "n" : string.Empty)}
     private int n;
 }}";
             if (hasExpression)
@@ -726,7 +726,7 @@ $@"class C
                 """;
 
             // it might seem like we want to prevent 'file file class',
-            // but it's likely the user is declaring a file type above an existing file type here.
+            // but it's likely the user is declaring a file-local type above an existing file-local type here.
             await VerifyItemExistsAsync(markup, "file");
         }
 

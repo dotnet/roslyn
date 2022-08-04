@@ -36,7 +36,7 @@ public class FileModifierParsingTests : ParsingTests
         expectedParsingDiagnostics ??= Array.Empty<DiagnosticDescription>();
         expectedBindingDiagnostics ??= expectedParsingDiagnostics;
 
-        var tree = UsingTree(text, options);
+        var tree = UsingTree(text, options, expectedParsingDiagnostics);
         Validate(text, (CSharpSyntaxNode)tree.GetRoot(), expectedParsingDiagnostics);
 
         var comp = CreateCompilation(tree);
@@ -101,18 +101,8 @@ public class FileModifierParsingTests : ParsingTests
         UsingNode($$"""
             file partial enum C { }
             """,
-            expectedParsingDiagnostics: new[]
-            {
-                // (1,6): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // file partial enum C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6)
-            },
-            // note: we also get duplicate ERR_PartialMisplaced diagnostics on `partial enum C { }`.
             expectedBindingDiagnostics: new[]
             {
-                // (1,6): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // file partial enum C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6),
                 // (1,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // file partial enum C { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "C").WithLocation(1, 19)
@@ -192,20 +182,25 @@ public class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Theory]
-    [InlineData(SyntaxKind.RecordKeyword)]
-    public void FileModifier_04(SyntaxKind typeKeyword)
+    [Fact]
+    public void FileModifier_04()
     {
-        UsingNode($$"""
-            partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
-            """);
+        UsingNode("""
+            partial file record C { }
+            """,
+            expectedBindingDiagnostics: new DiagnosticDescription[]
+            {
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // partial file record C { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
+            });
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
+            N(SyntaxKind.RecordDeclaration);
             {
                 N(SyntaxKind.PartialKeyword);
                 N(SyntaxKind.FileKeyword);
-                N(typeKeyword);
+                N(SyntaxKind.RecordKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.CloseBraceToken);
@@ -243,7 +238,13 @@ public class FileModifierParsingTests : ParsingTests
     {
         UsingNode($$"""
             partial file record struct C { }
-            """);
+            """,
+            expectedBindingDiagnostics: new DiagnosticDescription[]
+            {
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // partial file record struct C { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
+            });
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.RecordStructDeclaration);
@@ -507,7 +508,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (1,20): error CS9052: File type 'C' cannot use accessibility modifiers.
+                // (1,20): error CS9052: File-local type 'C' cannot use accessibility modifiers.
                 // public file {{SyntaxFacts.GetText(typeKeyword)}} C { }
                 Diagnostic(ErrorCode.ERR_FileTypeNoExplicitAccessibility, "C").WithArguments("C")
             });
@@ -540,7 +541,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (1,19): error CS9052: File type 'C' cannot use accessibility modifiers.
+                // (1,19): error CS9052: File-local type 'C' cannot use accessibility modifiers.
                 // file public {{SyntaxFacts.GetText(typeKeyword)}} C { }
                 Diagnostic(ErrorCode.ERR_FileTypeNoExplicitAccessibility, "C").WithArguments("C")
             });
@@ -569,9 +570,9 @@ public class FileModifierParsingTests : ParsingTests
             options: TestOptions.Regular10,
             expectedBindingDiagnostics: new[]
             {
-                // (1,12): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,12): error CS8936: Feature 'file types' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // file class C { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("file types").WithLocation(1, 12)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C").WithArguments("file types", "11.0").WithLocation(1, 12)
             });
         N(SyntaxKind.CompilationUnit);
         {
@@ -696,7 +697,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (3,16): error CS9054: File type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
+                // (3,16): error CS9054: File-local type 'Outer.C' must be defined in a top level type; 'Outer.C' is a nested type.
                 //     file class C { }
                 Diagnostic(ErrorCode.ERR_FileTypeNested, "C").WithArguments("Outer.C").WithLocation(3, 16)
             });
@@ -1520,7 +1521,7 @@ public class FileModifierParsingTests : ParsingTests
 
     [Theory]
     [InlineData(LanguageVersion.CSharp10)]
-    [InlineData(LanguageVersionFacts.CSharpNext)]
+    [InlineData(LanguageVersion.CSharp11)]
     public void TypeNamedFile_02(LanguageVersion languageVersion)
     {
         UsingNode($$"""
@@ -1932,7 +1933,7 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void MethodNamedRecord_01_CSharpNext()
+    public void MethodNamedRecord_01_CSharp11()
     {
         UsingNode("""
             class C
@@ -2028,7 +2029,7 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void MethodNamedRecord_02_CSharpNext()
+    public void MethodNamedRecord_02_CSharp11()
     {
         UsingNode("""
             class C
@@ -2127,7 +2128,7 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void FileRecord_01_CSharpNext()
+    public void FileRecord_01_CSharp11()
     {
         UsingNode("""
             class C
@@ -2137,7 +2138,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (3,17): error CS9054: File type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
+                // (3,17): error CS9054: File-local type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
                 //     file record X();
                 Diagnostic(ErrorCode.ERR_FileTypeNested, "X").WithArguments("C.X").WithLocation(3, 17)
             });
@@ -2225,7 +2226,7 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void FileRecord_02_CSharpNext()
+    public void FileRecord_02_CSharp11()
     {
         UsingNode("""
             class C
@@ -2235,7 +2236,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (3,17): error CS9054: File type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
+                // (3,17): error CS9054: File-local type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
                 //     file record X() { }
                 Diagnostic(ErrorCode.ERR_FileTypeNested, "X").WithArguments("C.X").WithLocation(3, 17)
             });
@@ -2320,7 +2321,7 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void FileRecord_03_CSharpNext()
+    public void FileRecord_03_CSharp11()
     {
         UsingNode("""
             class C
@@ -2330,7 +2331,7 @@ public class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (3,17): error CS9054: File type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
+                // (3,17): error CS9054: File-local type 'C.X' must be defined in a top level type; 'C.X' is a nested type.
                 //     file record X;
                 Diagnostic(ErrorCode.ERR_FileTypeNested, "X").WithArguments("C.X").WithLocation(3, 17)
             });
@@ -2357,7 +2358,7 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
-    public void FileRecord_04_CSharpNext()
+    public void FileRecord_04_CSharp11()
     {
         UsingNode("""
             file record X();
@@ -2509,7 +2510,7 @@ public class FileModifierParsingTests : ParsingTests
 
     [Theory]
     [InlineData(LanguageVersion.CSharp10)]
-    [InlineData(LanguageVersionFacts.CSharpNext)]
+    [InlineData(LanguageVersion.CSharp11)]
     public void TopLevelVariable_01(LanguageVersion languageVersion)
     {
         UsingNode("""
@@ -2553,7 +2554,7 @@ public class FileModifierParsingTests : ParsingTests
 
     [Theory]
     [InlineData(LanguageVersion.CSharp10)]
-    [InlineData(LanguageVersionFacts.CSharpNext)]
+    [InlineData(LanguageVersion.CSharp11)]
     public void TopLevelVariable_02(LanguageVersion languageVersion)
     {
         UsingNode("""
@@ -2593,7 +2594,7 @@ public class FileModifierParsingTests : ParsingTests
 
     [Theory]
     [InlineData(LanguageVersion.CSharp10)]
-    [InlineData(LanguageVersionFacts.CSharpNext)]
+    [InlineData(LanguageVersion.CSharp11)]
     public void TopLevelVariable_03(LanguageVersion languageVersion)
     {
         UsingNode("""

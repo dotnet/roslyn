@@ -283,7 +283,7 @@ End Class
                               </Document>)
 
                 ' disable implicit sig help then type a trigger character -> no session should be available
-                state.Workspace.GetService(Of IGlobalOptionService).SetGlobalOption(New OptionKey(SignatureHelpViewOptions.ShowSignatureHelp, LanguageNames.VisualBasic), False)
+                state.Workspace.GetService(Of IGlobalOptionService).SetGlobalOption(New OptionKey(SignatureHelpViewOptionsStorage.ShowSignatureHelp, LanguageNames.VisualBasic), False)
                 state.SendTypeChars("(")
                 Await state.AssertNoSignatureHelpSession()
 

@@ -172,12 +172,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        // A full metadata name for a generic file type looks like:
+        // A full metadata name for a generic file-local type looks like:
         // <ContainingFile>FN__ClassName`A
         // where 'N' is the syntax tree ordinal, 'A' is the arity,
         // and 'ClassName' is the source name of the type.
         //
-        // The "unmangled" name of a generic file type looks like:
+        // The "unmangled" name of a generic file-local type looks like:
         // <ContainingFile>FN__ClassName
         private static readonly Regex s_fileTypeOrdinalPattern = new Regex(@"<([a-zA-Z_0-9]*)>F(\d)+__", RegexOptions.Compiled);
 

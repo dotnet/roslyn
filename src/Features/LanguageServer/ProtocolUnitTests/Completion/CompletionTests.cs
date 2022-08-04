@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -1360,6 +1361,82 @@ class A
             results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             Assert.True(results.IsIncomplete);
             Assert.Empty(results.Items);
+            //Microsoft.codeanlayiss.editorfeatures
+        }
+
+        [Fact]
+        public async Task TestForWhitespaceSettingsNameInEditorconfigFiles()
+        {
+            var clientCapabilities = new LSP.ClientCapabilities
+            {
+                TextDocument = new LSP.TextDocumentClientCapabilities
+                {
+                    Completion = new LSP.CompletionSetting
+                    {
+                        CompletionListSetting = new LSP.CompletionListSetting
+                        {
+                            ItemDefaults = new string[] { CompletionHandler.EditRangeSetting }
+                        },
+                    },
+                }
+            };
+            var markup = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">
+indent_size{|caret:|}
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+            using var testLspServer = await CreateXmlTestLspServerAsync(markup, initializationOptions: new InitializationOptions { ServerKind = WellKnownLspServerKinds.EditorConfigLspServer, ClientCapabilities = clientCapabilities });
+            var caretLocation = testLspServer.GetLocations("caret").Single();
+            await testLspServer.OpenDocumentAsync(caretLocation.Uri);
+
+            var completionParams = CreateCompletionParams(
+                caretLocation,
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+                triggerCharacter: "e",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            Assert.Equal("indent_size", results.Items.First().Label);
+        }
+
+        [Fact]
+        public async Task TestForWhitespaceSettingsValuesInEditorconfigFiles()
+        {
+            var clientCapabilities = new LSP.ClientCapabilities
+            {
+                TextDocument = new LSP.TextDocumentClientCapabilities
+                {
+                    Completion = new LSP.CompletionSetting
+                    {
+                        CompletionListSetting = new LSP.CompletionListSetting
+                        {
+                            ItemDefaults = new string[] { CompletionHandler.EditRangeSetting }
+                        },
+                    },
+                }
+            };
+            var markup = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">
+indent_size={|caret:|}
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+            using var testLspServer = await CreateXmlTestLspServerAsync(markup, initializationOptions: new InitializationOptions { ServerKind = WellKnownLspServerKinds.EditorConfigLspServer, ClientCapabilities = clientCapabilities });
+            var caretLocation = testLspServer.GetLocations("caret").Single();
+            await testLspServer.OpenDocumentAsync(caretLocation.Uri);
+
+            var completionParams = CreateCompletionParams(
+                caretLocation,
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+                triggerCharacter: "=",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
         }
 
         internal static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)
