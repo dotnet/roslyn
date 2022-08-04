@@ -16,16 +16,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DesignerAttribute
 {
-    internal sealed class DesignerAttributeComputer
+    internal sealed partial class DesignerAttributeComputer
     {
-        public interface ICallback
-        {
-            ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken);
-            ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
-        }
-
+        /// <summary>
+        /// Protects mutable state in this type.
+        /// </summary>
         private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
+        /// <summary>
+        /// The last batch of projects analyzed.  Can be used to determine which projects have now been removed when
+        /// called again.
+        /// </summary>
         private readonly HashSet<ProjectId> _lastScannedProjectIds = new();
 
         /// <summary>
@@ -34,9 +35,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         /// </summary>
         private readonly ConcurrentDictionary<DocumentId, (string? category, VersionStamp projectVersion)> _documentToLastReportedInformation = new();
 
-        /// <summary>
-        /// Must always be called serially.
-        /// </summary>
         public async ValueTask ProcessSolutionAsync(Solution solution, DocumentId? priorityDocumentId, ICallback callback, CancellationToken cancellationToken)
         {
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
@@ -57,13 +55,13 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                         _documentToLastReportedInformation.TryRemove(docId, out _);
                 }
 
-                // Handle the priority doc.
+                // Handle the priority doc first.
                 var priorityDocument = solution.GetDocument(priorityDocumentId);
                 if (priorityDocument != null)
                 {
                     await ProcessProjectAsync(priorityDocument.Project, priorityDocument, callback, cancellationToken).ConfigureAwait(false);
 
-                    // now scan all the other files from that project.
+                    // now scan all the other files from that project in case they were affected by the edited document.
                     await ProcessProjectAsync(priorityDocument.Project, specificDocument: null, callback, cancellationToken).ConfigureAwait(false);
                 }
 
@@ -96,19 +94,19 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             var latestData = await ComputeLatestDataAsync(
                 project, specificDocument, projectVersion, cancellationToken).ConfigureAwait(false);
 
-            var changedData =
-                latestData.Where(d =>
+            var changedData = latestData.WhereAsArray(d =>
                 {
                     _documentToLastReportedInformation.TryGetValue(d.document.Id, out var existingInfo);
                     return existingInfo.category != d.data.Category;
-                }).ToImmutableArray();
-
-            if (!changedData.IsEmpty)
-                await callback.ReportDesignerAttributeDataAsync(changedData.SelectAsArray(d => d.data), cancellationToken).ConfigureAwait(false);
+                });
 
             // Now, keep track of what we've reported to the host so we won't report unchanged files in the future.
             foreach (var (document, info) in latestData)
                 _documentToLastReportedInformation[document.Id] = (info.Category, projectVersion);
+
+            // Only bother reporting non-empty information to save an unnecessary RPC.
+            if (!changedData.IsEmpty)
+                await callback.ReportDesignerAttributeDataAsync(changedData.SelectAsArray(d => d.data), cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<(Document document, DesignerAttributeData data)[]> ComputeLatestDataAsync(
