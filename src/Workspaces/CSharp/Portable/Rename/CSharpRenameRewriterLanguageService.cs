@@ -481,8 +481,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 // Syntax token in structure trivia would be renamed when the token is visited.
                 if (!trivia.HasStructure && _stringAndCommentRenameContexts.TryGetValue(trivia.Span, out var textSpanRenameContexts))
                 {
-                    var subSpanToReplacementTextInfo = CreateSubSpanToReplacementTextInfoDictionary(textSpanRenameContexts);
-                    return RenameInCommentTrivia(trivia, subSpanToReplacementTextInfo);
+                    var subSpanToReplacementText = CreateSubSpanToReplacementTextDictionary(textSpanRenameContexts);
+                    return RenameInCommentTrivia(newTrivia, subSpanToReplacementText);
                 }
 
                 return newTrivia;
@@ -654,13 +654,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private SyntaxToken RenameInStringLiteral(
                 SyntaxToken oldToken,
                 SyntaxToken newToken,
-                ImmutableSortedDictionary<TextSpan, (string replacementText, string matchText)> subSpanToReplacementString,
+                ImmutableSortedDictionary<TextSpan, string> subSpanToReplacementText,
                 Func<SyntaxTriviaList, string, string, SyntaxTriviaList, SyntaxToken> createNewStringLiteral)
             {
                 var originalString = newToken.ToString();
                 var replacedString = RenameUtilities.ReplaceMatchingSubStrings(
                     originalString,
-                    subSpanToReplacementString);
+                    subSpanToReplacementText);
                 if (replacedString != originalString)
                 {
                     var oldSpan = oldToken.Span;
@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     return newToken;
                 }
 
-                var subSpanToReplacementTextInfo = CreateSubSpanToReplacementTextInfoDictionary(textSpanSymbolContexts);
+                var subSpanToReplacementText = CreateSubSpanToReplacementTextDictionary(textSpanSymbolContexts);
                 // Rename in string
                 if (newToken.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken))
                 {
@@ -695,14 +695,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     return RenameInStringLiteral(
                         token,
                         newToken,
-                        subSpanToReplacementTextInfo,
+                        subSpanToReplacementText,
                         newStringTokenFactory);
                 }
 
                 // Rename Token in structure comment
                 if (newToken.IsKind(SyntaxKind.XmlTextLiteralToken))
                 {
-                    newToken = RenameInStringLiteral(token, newToken, subSpanToReplacementTextInfo, SyntaxFactory.XmlTextLiteral);
+                    newToken = RenameInStringLiteral(token, newToken, subSpanToReplacementText, SyntaxFactory.XmlTextLiteral);
                 }
                 // Rename the xml tag in structure comment
                 else if (newToken.IsKind(SyntaxKind.IdentifierToken) && newToken.Parent.IsKind(SyntaxKind.XmlName))
@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     var originalText = newToken.ToString();
                     var replacementText = RenameUtilities.ReplaceMatchingSubStrings(
                         originalText,
-                        subSpanToReplacementTextInfo);
+                        subSpanToReplacementText);
                     if (replacementText != originalText)
                     {
                         var newIdentifierToken = SyntaxFactory.Identifier(
@@ -806,7 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             private SyntaxTrivia RenameInCommentTrivia(
                 SyntaxTrivia trivia,
-                ImmutableSortedDictionary<TextSpan, (string replacementText, string matchText)> subSpanToReplacementString)
+                ImmutableSortedDictionary<TextSpan, string> subSpanToReplacementString)
             {
                 var originalString = trivia.ToString();
                 var replacedString = RenameUtilities.ReplaceMatchingSubStrings(

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -184,8 +185,11 @@ namespace Microsoft.CodeAnalysis.Rename
                 else if (!existingRenameContext.Equals(context))
                 {
                     // A textSpan is being renamed with different rename location info.
-                    throw new ArgumentException(
-                        $"{textSpan} of {context.RenameLocation.DocumentId} is being renamed to two differnt locations info: {existingRenameContext}, {context}. ");
+                    throw new LocationRenameContextOverlappingException(
+                        textSpan,
+                        context.RenameLocation.DocumentId,
+                        existingRenameContext,
+                        context);
                 }
             }
 
@@ -241,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         /// <summary>
-        /// Given a set of renameLocations, create a sorted dictionary, maps the renameLocation to its replacementText and matchedText.
+        /// Given a set of renameLocations, create a sorted dictionary, maps the renameLocation to its replacementText.
         /// The map is later used when rename inside a comment/string.
         /// e.g.
         /// class Hello
@@ -255,14 +259,14 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <paramref name="locationRenameContexts"/> would contain the subspan info within string "Hello World".
         /// The output dictionary would looks like
         /// {
-        ///     "0-4" : ("Hello", "Hello2"),
-        ///     "6-10" : ("World", "World2")
+        ///     "0-4" : "Hello2",
+        ///     "6-10" : "World2"
         /// }
         /// </summary>
-        internal static ImmutableSortedDictionary<TextSpan, (string replacementText, string matchText)> CreateSubSpanToReplacementTextInfoDictionary(
+        internal static ImmutableSortedDictionary<TextSpan, string> CreateSubSpanToReplacementTextDictionary(
             ImmutableHashSet<LocationRenameContext> locationRenameContexts)
         {
-            var subSpanToReplacementTextBuilder = ImmutableSortedDictionary.CreateBuilder<TextSpan, (string replacementText, string matchText)>();
+            var subSpanToReplacementTextBuilder = ImmutableSortedDictionary.CreateBuilder<TextSpan, string>();
             foreach (var context in locationRenameContexts)
             {
                 var renameLocation = context.RenameLocation;
@@ -282,13 +286,13 @@ namespace Microsoft.CodeAnalysis.Rename
                     sourceSpan.Start - renameLocation.ContainingLocationForStringOrComment.Start,
                     sourceSpan.Length);
 
-                if (!subSpanToReplacementTextBuilder.TryGetValue(subSpan, out var replacementTextAndOriginalText))
+                if (!subSpanToReplacementTextBuilder.TryGetValue(subSpan, out var existingReplacemenText))
                 {
-                    subSpanToReplacementTextBuilder[subSpan] = (replacementText, originalText);
+                    subSpanToReplacementTextBuilder[subSpan] = replacementText;
                 }
-                else if (!replacementTextAndOriginalText.Equals((replacementText, originalText)))
+                else if (existingReplacemenText != replacementText)
                 {
-                    // Two symbol tries to rename a same subspan,
+                    // Two symbols try to rename a same subspan,
                     // Example:
                     //      // Comment Hello
                     // class Hello
@@ -301,8 +305,11 @@ namespace Microsoft.CodeAnalysis.Rename
                     // }
                     // If try to rename both 'class Hello' to 'Bar' and 'void Hello()' to 'Goo'. So both of them will try to rename
                     // 'Comment Hello'.
-                    throw new ArgumentException(
-                        $"{sourceSpan} of {context.RenameLocation.DocumentId} is being renamed to two different locations text: {replacementTextAndOriginalText.replacementText}, {replacementText}. ");
+                    throw new StringOrCommentReplacementTextConflictException(
+                        sourceSpan,
+                        renameLocation.DocumentId,
+                        existingReplacemenText,
+                        replacementText);
                 }
             }
 

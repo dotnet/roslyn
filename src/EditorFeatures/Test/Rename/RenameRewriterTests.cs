@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -194,7 +195,6 @@ public class Apple2
         [Fact]
         public async Task TestRenameFailed()
         {
-            var cancellationToken = CancellationToken.None;
             using var verifier = new Verifier(@"
                    <Workspace>
                        <Project Language=""C#"" CommonReferences=""true"">
@@ -215,7 +215,7 @@ class Bar : IBar
 ");
 
             var renameOption = new SymbolRenameOptions();
-            await Assert.ThrowsAsync<ArgumentException>(() =>
+            await Assert.ThrowsAsync<LocationRenameContextOverlappingException>(() =>
                 verifier.RenameAndAnnotatedDocumentAsync(
                     documentFilePath: "test1.cs",
                     renameTagsToReplacementInfo: new()
@@ -228,7 +228,6 @@ class Bar : IBar
         [Fact]
         public async Task TestRenameCommentsFail()
         {
-            var cancellationToken = CancellationToken.None;
             using var verifier = new Verifier(@"
                    <Workspace>
                        <Project Language=""C#"" CommonReferences=""true"">
@@ -255,7 +254,7 @@ class World_X
 
             var renameOption = new SymbolRenameOptions() { RenameInComments = true };
 
-            await Assert.ThrowsAsync<ArgumentException>(() =>
+            await Assert.ThrowsAsync<StringOrCommentReplacementTextConflictException>(() =>
                 verifier.RenameAndAnnotatedDocumentAsync(
                     documentFilePath: "test1.cs",
                     new()
@@ -268,7 +267,6 @@ class World_X
         [Fact]
         public async Task TestRenameStringFail()
         {
-            var cancellationToken = CancellationToken.None;
             using var verifier = new Verifier(@"
                    <Workspace>
                        <Project Language=""C#"" CommonReferences=""true"">
@@ -295,7 +293,7 @@ class World_X
 
             var renameOption = new SymbolRenameOptions() { RenameInStrings = true };
 
-            await Assert.ThrowsAsync<ArgumentException>(() =>
+            await Assert.ThrowsAsync<StringOrCommentReplacementTextConflictException>(() =>
                 verifier.RenameAndAnnotatedDocumentAsync(
                     documentFilePath: "test1.cs",
                     new()

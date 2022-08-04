@@ -408,8 +408,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
                 Dim textSpanRenameContexts As ImmutableHashSet(Of LocationRenameContext) = Nothing
                 If Not trivia.HasStructure AndAlso _stringAndCommentRenameContexts.TryGetValue(trivia.Span, textSpanRenameContexts) Then
-                    Dim subSpanToReplacementTextInfo = CreateSubSpanToReplacementTextInfoDictionary(textSpanRenameContexts)
-                    Return RenameInCommentTrivia(trivia, subSpanToReplacementTextInfo)
+                    Dim subSpanToReplacementText = CreateSubSpanToReplacementTextDictionary(textSpanRenameContexts)
+                    Return RenameInCommentTrivia(newTrivia, subSpanToReplacementText)
                 End If
 
                 Return newTrivia
@@ -682,7 +682,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Return newToken
             End Function
 
-            Private Function RenameInStringLiteral(oldToken As SyntaxToken, newToken As SyntaxToken, subSpanToReplacementString As ImmutableSortedDictionary(Of TextSpan, (String, String)), createNewStringLiteral As Func(Of SyntaxTriviaList, String, String, SyntaxTriviaList, SyntaxToken)) As SyntaxToken
+            Private Function RenameInStringLiteral(oldToken As SyntaxToken, newToken As SyntaxToken, subSpanToReplacementString As ImmutableSortedDictionary(Of TextSpan, String), createNewStringLiteral As Func(Of SyntaxTriviaList, String, String, SyntaxTriviaList, SyntaxToken)) As SyntaxToken
                 Dim originalString = newToken.ToString()
                 Dim replacedString = RenameUtilities.ReplaceMatchingSubStrings(originalString, subSpanToReplacementString)
                 If replacedString <> originalString Then
@@ -695,9 +695,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Return newToken
             End Function
 
-            Private Function RenameInCommentTrivia(trivia As SyntaxTrivia, subSpanToReplacementString As ImmutableSortedDictionary(Of TextSpan, (String, String))) As SyntaxTrivia
+            Private Function RenameInCommentTrivia(trivia As SyntaxTrivia, subSpanToReplacementText As ImmutableSortedDictionary(Of TextSpan, String)) As SyntaxTrivia
                 Dim originalString = trivia.ToString()
-                Dim replacedString As String = RenameUtilities.ReplaceMatchingSubStrings(originalString, subSpanToReplacementString)
+                Dim replacedString As String = RenameUtilities.ReplaceMatchingSubStrings(originalString, subSpanToReplacementText)
                 If replacedString <> originalString Then
                     Dim oldSpan = trivia.Span
                     Dim newTrivia = SyntaxFactory.CommentTrivia(replacedString)
@@ -714,18 +714,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     Return newToken
                 End If
 
-                Dim subSpanToReplacementTextInfo = CreateSubSpanToReplacementTextInfoDictionary(locationSymbolContexts)
+                Dim subSpanToReplacementText = CreateSubSpanToReplacementTextDictionary(locationSymbolContexts)
 
                 Dim kind = newToken.Kind()
                 If kind = SyntaxKind.StringLiteralToken Then
-                    newToken = RenameInStringLiteral(token, newToken, subSpanToReplacementTextInfo, AddressOf SyntaxFactory.StringLiteralToken)
+                    newToken = RenameInStringLiteral(token, newToken, subSpanToReplacementText, AddressOf SyntaxFactory.StringLiteralToken)
                 ElseIf kind = SyntaxKind.InterpolatedStringTextToken Then
-                    newToken = RenameInStringLiteral(token, newToken, subSpanToReplacementTextInfo, AddressOf SyntaxFactory.InterpolatedStringTextToken)
+                    newToken = RenameInStringLiteral(token, newToken, subSpanToReplacementText, AddressOf SyntaxFactory.InterpolatedStringTextToken)
                 ElseIf kind = SyntaxKind.XmlTextLiteralToken Then
-                    newToken = RenameInStringLiteral(token, newToken, subSpanToReplacementTextInfo, AddressOf SyntaxFactory.XmlTextLiteralToken)
+                    newToken = RenameInStringLiteral(token, newToken, subSpanToReplacementText, AddressOf SyntaxFactory.XmlTextLiteralToken)
                 ElseIf kind = SyntaxKind.XmlNameToken Then
                     Dim originalText = newToken.ToString()
-                    Dim replacementText = RenameUtilities.ReplaceMatchingSubStrings(originalText, subSpanToReplacementTextInfo)
+                    Dim replacementText = RenameUtilities.ReplaceMatchingSubStrings(originalText, subSpanToReplacementText)
                     If replacementText <> originalText Then
                         Dim newIdentifierToken = SyntaxFactory.XmlNameToken(newToken.LeadingTrivia, replacementText, SyntaxFacts.GetKeywordKind(replacementText), newToken.TrailingTrivia)
                         newToken = token.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(newIdentifierToken, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = token.Span}))
