@@ -100,13 +100,15 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                     return existingInfo.category != d.Category;
                 });
 
-            // Now, keep track of what we've reported to the host so we won't report unchanged files in the future.
-            foreach (var data in latestData)
-                _documentToLastReportedInformation[data.DocumentId] = (data.Category, projectVersion);
-
             // Only bother reporting non-empty information to save an unnecessary RPC.
             if (!changedData.IsEmpty)
                 await callback.ReportDesignerAttributeDataAsync(changedData, cancellationToken).ConfigureAwait(false);
+
+            // Now, keep track of what we've reported to the host so we won't report unchanged files in the future. We
+            // do this after the report has gone through as we want to make sure that if it cancels for any reason we
+            // don't hold onto values that may not have made it all the way to the project system.
+            foreach (var data in latestData)
+                _documentToLastReportedInformation[data.DocumentId] = (data.Category, projectVersion);
         }
 
         private async Task<ImmutableArray<DesignerAttributeData>> ComputeLatestDataAsync(

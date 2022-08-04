@@ -64,13 +64,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// <summary>
         /// True if we should dispose our connection, false for normal work.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<bool> _workQueue;
+        private readonly AsyncBatchingWorkQueue _workQueue;
 
         // We'll get notifications from the OOP server about new attribute arguments. Batch those
         // notifications up and deliver them to VS every second.
         private readonly AsyncBatchingWorkQueue<DesignerAttributeData>? _notificationProjectSystemQueue;
-
-        private bool _connectionDisposed;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -88,10 +86,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             var listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
 
-            _workQueue = new AsyncBatchingWorkQueue<bool>(
+            _workQueue = new AsyncBatchingWorkQueue(
                 TimeSpan.FromSeconds(1),
                 this.ProcessWorkspaceChangeAsync,
-                EqualityComparer<bool>.Default,
                 listener,
                 ThreadingContext.DisposalToken);
 
@@ -105,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         public void Dispose()
         {
             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-            _workQueue.AddWork(/*dispose:*/true);
+            _workQueue.AddWork();
         }
 
         private async Task<RemoteServiceConnection<IRemoteDesignerAttributeDiscoveryService>?> CreateConnectionAsync(CancellationToken cancellationToken)
@@ -123,29 +120,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
 
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
-            _workQueue.AddWork(/*dispose:*/false);
+            _workQueue.AddWork();
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
-            _workQueue.AddWork(/*dispose:*/false);
+            _workQueue.AddWork();
         }
 
-        private async ValueTask ProcessWorkspaceChangeAsync(ImmutableSegmentedList<bool> values, CancellationToken cancellationToken)
+        private async ValueTask ProcessWorkspaceChangeAsync(CancellationToken cancellationToken)
         {
-            if (_connectionDisposed)
-                return;
-
             var connection = await _lazyConnection.GetValueAsync(cancellationToken).ConfigureAwait(false);
-
-            var shouldDispose = values.Contains(true);
-            if (shouldDispose)
-            {
-                _connectionDisposed = true;
-                connection?.Dispose();
-                return;
-            }
-
             if (connection == null)
                 return;
 
