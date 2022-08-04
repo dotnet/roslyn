@@ -242,9 +242,13 @@ namespace Microsoft.CodeAnalysis.Rename
                 // Kick off the keep alive task.  Once it has pinned the solution it will call back into the taskCompletionSource
                 // to mark it as completed so that things can proceed. It will terminate when the provided
                 // cancellation token is actually canceled.
-                _ = StartKeepAliveSessionAsync(taskCompletionSource);
+                var startTask = StartKeepAliveSessionAsync(taskCompletionSource);
 
-                await taskCompletionSource.Task.ConfigureAwait(false);
+                // Then wait for either of these tasks to complete.  If the tcs completes that means that OOP
+                // successfully pinned the solution and we're good to go.  If the start-task completes, that means that
+                // OOP could not complete the request for some reason.  However, we still want to continue processing in
+                // that case.
+                await Task.WhenAny(taskCompletionSource.Task, startTask).ConfigureAwait(false);
             }
 
             return;
@@ -260,14 +264,6 @@ namespace Microsoft.CodeAnalysis.Rename
                         (service, solutionInfo, callbackId, cancellationToken) => service.KeepAliveAsync(solutionInfo, callbackId, cancellationToken),
                         callbackTarget: taskCompletionSource,
                         cancellationToken).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException oce)
-                {
-                    taskCompletionSource.TrySetCanceled(oce.CancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    taskCompletionSource.TrySetException(ex);
                 }
                 finally
                 {
