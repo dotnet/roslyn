@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,8 +19,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DesignerAttribute
 {
-    [ExportWorkspaceService(typeof(DesignerAttributeComputer))]
-    internal sealed partial class DesignerAttributeComputer : IWorkspaceService
+    [ExportWorkspaceService(typeof(IDesignerAttributeDiscoveryService)), Shared]
+    internal sealed partial class DesignerAttributeDiscoveryService : IDesignerAttributeDiscoveryService
     {
         /// <summary>
         /// Protects mutable state in this type.
@@ -32,7 +33,17 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         /// </summary>
         private readonly ConcurrentDictionary<DocumentId, (string? category, VersionStamp projectVersion)> _documentToLastReportedInformation = new();
 
-        public async ValueTask ProcessSolutionAsync(Solution solution, DocumentId? priorityDocumentId, ICallback callback, CancellationToken cancellationToken)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public DesignerAttributeDiscoveryService()
+        {
+        }
+
+        public async ValueTask ProcessSolutionAsync(
+            Solution solution,
+            DocumentId? priorityDocumentId,
+            IDesignerAttributeDiscoveryService.ICallback callback,
+            CancellationToken cancellationToken)
         {
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -64,7 +75,11 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             }
         }
 
-        private async Task ProcessProjectAsync(Project project, Document? specificDocument, ICallback callback, CancellationToken cancellationToken)
+        private async Task ProcessProjectAsync(
+            Project project,
+            Document? specificDocument,
+            IDesignerAttributeDiscoveryService.ICallback callback,
+            CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
                 return;

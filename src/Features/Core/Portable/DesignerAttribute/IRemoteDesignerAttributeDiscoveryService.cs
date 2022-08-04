@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         {
         }
 
-        private new DesignerAttributeComputer.ICallback GetCallback(RemoteServiceCallbackId callbackId)
-            => (DesignerAttributeComputer.ICallback)base.GetCallback(callbackId);
+        private new IDesignerAttributeDiscoveryService.ICallback GetCallback(RemoteServiceCallbackId callbackId)
+            => (IDesignerAttributeDiscoveryService.ICallback)base.GetCallback(callbackId);
 
         public ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
             => GetCallback(callbackId).ReportDesignerAttributeDataAsync(data, cancellationToken);

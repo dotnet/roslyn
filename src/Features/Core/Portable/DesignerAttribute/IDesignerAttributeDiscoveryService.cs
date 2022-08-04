@@ -2,23 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.DesignerAttribute
 {
-    internal sealed partial class DesignerAttributeComputer
+    internal partial interface IDesignerAttributeDiscoveryService : IWorkspaceService
     {
-        /// <summary>
-        /// Callback that this <see cref="DesignerAttributeComputer"/> will use to notify a listener of important information.
-        /// </summary>
         public interface ICallback
         {
-            /// <summary>
-            /// Called to notify a listener about any <em>changed</em> designer attribute data discovered while scanning.
-            /// </summary>
             ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
         }
+
+        ValueTask ProcessSolutionAsync(Solution solution, DocumentId? priorityDocumentId, ICallback callback, CancellationToken cancellationToken);
     }
 }

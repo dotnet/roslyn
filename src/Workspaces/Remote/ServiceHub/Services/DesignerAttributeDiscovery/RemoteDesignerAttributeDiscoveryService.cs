@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class RemoteDesignerAttributeDiscoveryService : BrokeredServiceBase, IRemoteDesignerAttributeDiscoveryService
     {
-        private sealed class CallbackWrapper : DesignerAttributeComputer.ICallback
+        private sealed class CallbackWrapper : IDesignerAttributeDiscoveryService.ICallback
         {
             private readonly RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> _callback;
             private readonly RemoteServiceCallbackId _callbackId;
@@ -51,11 +51,11 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(
                 solutionChecksum,
-                async solution =>
+                solution =>
                 {
-                    var computer = solution.Services.GetRequiredService<DesignerAttributeComputer>();
-                    await computer.ProcessSolutionAsync(
-                        solution, priorityDocument, new CallbackWrapper(_callback, callbackId), cancellationToken).ConfigureAwait(false);
+                    var service = solution.Services.GetRequiredService<IDesignerAttributeDiscoveryService>();
+                    return service.ProcessSolutionAsync(
+                        solution, priorityDocument, new CallbackWrapper(_callback, callbackId), cancellationToken);
                 },
                 cancellationToken);
         }
