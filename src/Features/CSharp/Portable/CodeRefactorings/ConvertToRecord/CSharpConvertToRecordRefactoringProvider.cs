@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             return null;
         }
 
-        private static ImmutableArray<ISymbol> GetEqualizedMembers(
+        private static ImmutableArray<IPropertySymbol> GetEqualizedProperties(
             MethodDeclarationSyntax methodDeclaration,
             IMethodSymbol methodSymbol,
             SemanticModel semanticModel,
@@ -470,29 +470,38 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             if (semanticModel.GetOperation(methodDeclaration, cancellationToken) is not IMethodBodyOperation operation)
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return ImmutableArray<IPropertySymbol>.Empty;
             }
 
             var body = operation.BlockBody ?? operation.ExpressionBody;
+            var parameter = methodSymbol.Parameters.First();
 
             if (body == null || !methodSymbol.Parameters.IsSingle())
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return ImmutableArray<IPropertySymbol>.Empty;
             }
 
+            var _ = ArrayBuilder<IPropertySymbol>.GetInstance(out var properties);
             // see whether we are calling on a param of the same type or of object
-            if (methodSymbol.Parameters.First().Type.SpecialType == SpecialType.System_Object)
+            if (parameter.Type.SpecialType == SpecialType.System_Object)
             {
-                // we could look for some cast which rebinds a local to a C such as any of the following:
+                ILocalSymbol? otherC = null;
+                var statementsToCheck = Enumerable.Empty<IOperation>();
+                // how many body operations are involved in the checking/casting of the parameter (at least 1)
+                var bodyOperationsToSkip = 1;
+                // we could look for some cast which rebinds the parameter
+                // to a local of the type such as any of the following:
                 // var otherc = other as C; *null and additional equality checks*
                 // if (other is C otherc) { *additional equality checks* } (optional else) return false;
                 // if (other is not C otherc) { return false; } (optional else) { *additional equality checks* }
                 // if (other is C) { otherc = (C) other;  *additional equality checks* } (optional else) return false;
                 // if (other is not C) { return false; } (optional else) { otherc = (C) other;  *additional equality checks* }
+                // return other is C otherC && ...
+                // return !(other is not C otherC || ...
                 var bodyOps = body.Operations;
                 if (bodyOps.IsEmpty)
                 {
-                    return ImmutableArray<ISymbol>.Empty;
+                    return ImmutableArray<IPropertySymbol>.Empty;
                 }
                 switch (bodyOps.First())
                 {
@@ -505,17 +514,84 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                                 Symbol: ILocalSymbol castOther,
                                 Initializer: IVariableInitializerOperation
                                 {
-                                    Value: IConversionOperation { IsTryCast: true, Operand: IParameterReferenceOperation }
+                                    Value: IConversionOperation
+                                    {
+                                        IsImplicit: false,
+                                        IsTryCast: true,
+                                        Operand: IParameterReferenceOperation
+                                        {
+                                            Parameter: IParameterSymbol referencedParameter1
+                                        }
+                                    }
                                 }
                             }]
                         }]
                     }:
+                        if (referencedParameter1.Equals(parameter))
+                        {
+                            // Just matched var otherc = other as C;
+                            // set variables for equality checking
+                            otherC = castOther;
+                            statementsToCheck = bodyOps.Skip(1);
+                        }
+                        break;
+                    case IConditionalOperation
+                    {
+                        Condition: IOperation condition,
+                        WhenTrue: IOperation whenTrue,
+                        WhenFalse: var whenFalse,
+                    }:
+                        // we are inside the first if statement of a method
+                        // We want to determine if success in this condition would cause us to
+                        // return true or return false, so we look for a return false in either the
+                        // whenTrue block or the whenFalse block
+                        bool successCondition;
 
+                        // we expect all if statments to (eventually) return within their "then" block,
+                        // so we can treat the "else" as the outside of the if block
+                        var falseOps = (whenFalse as IBlockOperation)?.Operations ??
+                            (whenFalse != null ? ImmutableArray.Create(whenFalse) : bodyOps.Skip(1).AsImmutable());
+                        var trueOps = (whenTrue as IBlockOperation)?.Operations ?? ImmutableArray.Create(whenTrue);
+
+                        // We expect one of the true or false branch to have exactly one statement: return false.
+                        // If we don't find that, it indicates complex behavior such as
+                        // extra statments, backup equality if one condition fails, or something else.
+                        // We don't expect a return true because we could see a final return statement that checks
+                        // as last set of conditions such as:
+                        // if (other is C otherC)
+                        // {
+                        //     return otherC.A == A;
+                        // }
+                        // return false;
+                        // We should never have a case where both branches could potentially return true;
+                        // at least one branch must simply return false.
+                        if (IsSingleReturnFalseOperation(trueOps) ^ IsSingleReturnFalseOperation(falseOps))
+                        {
+                            // both or neither fit the return false pattern, error so return no symbols bound
+                            return ImmutableArray<IPropertySymbol>.Empty;
+                        }
+
+                        // when condition succeeds (evaluates to true), we return false
+                        // so for equality the condition should not succeed
+                        successCondition = !IsSingleReturnFalseOperation(trueOps);
+                        break;
                     default:
                         break;
                 }
             }
-            return ImmutableArray<ISymbol>.Empty;
+            return ImmutableArray<IPropertySymbol>.Empty;
+        }
+
+        private static bool IsSingleReturnFalseOperation(ImmutableArray<IOperation> operation)
+        {
+            return operation is [IReturnOperation
+            {
+                ReturnedValue: ILiteralOperation
+                {
+                    ConstantValue.HasValue: true,
+                    ConstantValue.Value: false,
+                }
+            }];
         }
 
         /// <summary>
@@ -530,7 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         /// <param name="otherObject">symbol representing other object, either from a param or cast as a local</param>
         /// <returns>true if addition was successful, false if we see something odd 
         /// (equality checking in the wrong order, side effects, etc)</returns>
-        private static bool TryAddEqualizedMembersForCondition(
+        private static bool TryAddEqualizedPropertiesForCondition(
             ArrayBuilder<IPropertySymbol> builder,
             IOperation condition,
             bool successRequirement,
@@ -542,19 +618,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // e.g !(A != other.A || B != other.B) is equivalent to (A == other.A && B == other.B)
             // using DeMorgans law. We recurse to see any properties accessed
             (_, IUnaryOperation { OperatorKind: UnaryOperatorKind.Not })
-                => TryAddEqualizedMembersForCondition(builder, condition, !successRequirement, currentObject, otherObject),
+                => TryAddEqualizedPropertiesForCondition(builder, condition, !successRequirement, currentObject, otherObject),
             // We want our equality check to be exhaustive, i.e. all checks must pass for the condition to pass
             // we recurse into each operand to try to find some props to bind
             (true, IBinaryOperation { OperatorKind: BinaryOperatorKind.ConditionalAnd } andOp)
-                => TryAddEqualizedMembersForCondition(builder, andOp.LeftOperand, successRequirement, currentObject, otherObject) &&
-                    TryAddEqualizedMembersForCondition(builder, andOp.RightOperand, successRequirement, currentObject, otherObject),
+                => TryAddEqualizedPropertiesForCondition(builder, andOp.LeftOperand, successRequirement, currentObject, otherObject) &&
+                    TryAddEqualizedPropertiesForCondition(builder, andOp.RightOperand, successRequirement, currentObject, otherObject),
             // Exhaustive binary operator for inverted checks via DeMorgan's law
             // We see an or here, but we're in a context where this being true will return false
             // for example: return !(expr || expr)
             // or: if (expr || expr) return false;
-            (false, IBinaryOperation { OperatorKind: BinaryOperatorKind.ConditionalAnd } orOp)
-                => TryAddEqualizedMembersForCondition(builder, orOp.LeftOperand, successRequirement, currentObject, otherObject) &&
-                    TryAddEqualizedMembersForCondition(builder, orOp.RightOperand, successRequirement, currentObject, otherObject),
+            (false, IBinaryOperation { OperatorKind: BinaryOperatorKind.ConditionalOr } orOp)
+                => TryAddEqualizedPropertiesForCondition(builder, orOp.LeftOperand, successRequirement, currentObject, otherObject) &&
+                    TryAddEqualizedPropertiesForCondition(builder, orOp.RightOperand, successRequirement, currentObject, otherObject),
             // we are actually comparing two values that are potentially properties,
             // e.g: return A == other.A;
             (true, IBinaryOperation
@@ -583,6 +659,90 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // Otherwise we fail as it has unknown behavior
             _ => IsNullCheck(condition, successRequirement, otherObject)
         };
+
+        /// <summary>
+        /// Same as <see cref="TryAddEqualizedPropertiesForCondition"/> but we're looking for
+        /// a binding through an "is" pattern first/>
+        /// </summary>
+        /// <returns>the cast parameter symbol if found, null if not</returns>
+        private static ISymbol? TryAddEqualizedPropertiesForConditionWithoutBinding(
+            ArrayBuilder<IPropertySymbol> builder,
+            IOperation condition,
+            bool successRequirement,
+            ISymbol currentObject)
+        {
+            IPatternOperation? pattern = null;
+            IOperation? otherCondition = null;
+            switch (successRequirement, condition)
+            {
+                // for explanation as to why we negate here, or expect "true" w/ "and"
+                // and "false" with "or", see above method TryAddEqualizedPropertiesForCondition
+                case (_, IUnaryOperation { OperatorKind: UnaryOperatorKind.Not }):
+                    return TryAddEqualizedPropertiesForConditionWithoutBinding(
+                        builder, condition, !successRequirement, currentObject);
+                // we expect the pattern to be on the leftmost operation
+                // (operators are left-associative so left here should be leftmost)
+                case (true, IBinaryOperation
+                {
+                    OperatorKind: BinaryOperatorKind.ConditionalAnd,
+                    LeftOperand: IIsPatternOperation patternOperation,
+                    RightOperand: IOperation rightOperation,
+                }):
+                    pattern = patternOperation.Pattern;
+                    otherCondition = rightOperation;
+                    break;
+                case (false, IBinaryOperation
+                {
+                    OperatorKind: BinaryOperatorKind.ConditionalOr,
+                    LeftOperand: IIsPatternOperation patternOperation,
+                    RightOperand: IOperation rightOperation,
+                }):
+                    pattern = patternOperation.Pattern;
+                    otherCondition = rightOperation;
+                    break;
+                // no other conditions, the entire if condition is the "is" pattern
+                // e.g: if (other is C otherC)
+                case (_, IIsPatternOperation
+                {
+                    Pattern: IPatternOperation isPattern
+                }):
+                    pattern = isPattern;
+                    break;
+            }
+
+            if (!successRequirement)
+            {
+                // we could be in an "expect false for successful equality" condition
+                // and so we would want the pattern to be an "is not" pattern instead of an "is" pattern
+                if (pattern is INegatedPatternOperation negatedPattern)
+                {
+                    pattern = negatedPattern.Pattern;
+                }
+                else
+                {
+                    // if we don't see "is not" then the pattern sequence is incorrect
+                    return null;
+                }
+            }
+
+            if (pattern is IDeclarationPatternOperation
+                {
+                    DeclaredSymbol: ISymbol otherVar,
+                    MatchedType: INamedTypeSymbol matchedType,
+                } &&
+                matchedType.Equals(currentObject.GetSymbolType()))
+            {
+                // found the correct binding, add any properties we equate in the rest of the binary condition
+                // if we were in a binary condition at all
+                if (otherCondition != null)
+                {
+                    TryAddEqualizedPropertiesForCondition(builder, otherCondition!, successRequirement, currentObject, otherVar);
+                }
+                return otherVar;
+            }
+
+            return null;
+        }
 
         // checks for binary expressions of the type otherC == null or null == otherC
         // and "otherC" is a reference to otherObject
