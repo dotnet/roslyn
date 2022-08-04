@@ -31,10 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 {
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioDesignerAttributeService :
-        ForegroundThreadAffinitizedObject,
-        DesignerAttributeComputer.ICallback,
-        IEventListener<object>,
-        IDisposable
+        ForegroundThreadAffinitizedObject, DesignerAttributeComputer.ICallback, IEventListener<object>, IDisposable
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
 
