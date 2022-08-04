@@ -105,6 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         public void Dispose()
         {
             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
+            _cancellationSeries.Dispose();
         }
 
         private async Task<RemoteServiceConnection<IRemoteDesignerAttributeDiscoveryService>?> CreateConnectionAsync(CancellationToken cancellationToken)
