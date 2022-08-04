@@ -166,6 +166,91 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 return result;
             }
 
+            private bool ShouldComplexifyNode(SyntaxNode node, bool isInConflictLambdaBody)
+            {
+                return !isInConflictLambdaBody &&
+                       _skipRenameForComplexification == 0 &&
+                       !_isProcessingComplexifiedSpans &&
+                       _conflictLocations.Contains(node.Span) &&
+                       (node is AttributeSyntax ||
+                        node is AttributeArgumentSyntax ||
+                        node is ConstructorInitializerSyntax ||
+                        node is ExpressionSyntax ||
+                        node is FieldDeclarationSyntax ||
+                        node is StatementSyntax ||
+                        node is CrefSyntax ||
+                        node is XmlNameAttributeSyntax ||
+                        node is TypeConstraintSyntax ||
+                        node is BaseTypeSyntax);
+            }
+
+            public override SyntaxToken VisitToken(SyntaxToken token)
+            {
+                var newToken = base.VisitToken(token);
+                newToken = UpdateAliasAnnotation(newToken);
+                newToken = RenameWithinToken(token, newToken);
+
+                // We don't want to annotate XmlName with RenameActionAnnotation
+                if (newToken.Parent.IsKind(SyntaxKind.XmlName))
+                {
+                    return newToken;
+                }
+
+                if (!_isProcessingComplexifiedSpans && _textSpanToRenameContexts.TryGetValue(token.Span, out var locationRenameContext))
+                {
+                    newToken = RenameAndAnnotateAsync(
+                        token,
+                        newToken,
+                        isVerbatim: _syntaxFactsService.IsVerbatimIdentifier(locationRenameContext.ReplacementText),
+                        replacementTextValid: locationRenameContext.ReplacementTextValid,
+                        isRenamableAccessor: locationRenameContext.RenameLocation.IsRenamableAccessor,
+                        replacementText: locationRenameContext.ReplacementText,
+                        originalText: locationRenameContext.OriginalText).WaitAndGetResult_CanCallOnBackground(_cancellationToken);
+                    _invocationExpressionsNeedingConflictChecks.AddRange(token.GetAncestors<InvocationExpressionSyntax>());
+                    return newToken;
+                }
+
+                // If we are renaming a token of complexified node, it could be either
+                // 1. It is a referenced token of any of the rename symbols and it should be annotated by RenameActionAnnotation before the complexification.
+                // We could rename the token by finding its rename context.
+                // 2. Complexification could introduce some new tokens, and they are alse referenced by rename symbols. We need to rename them.
+                if (_isProcessingComplexifiedSpans)
+                {
+                    return RenameTokenWhenProcessingComplexifiedSpans(token, newToken);
+                }
+
+                return AnnotateNonRenameLocation(token, newToken);
+            }
+
+            private static bool IsPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
+                => IsGetPropertyAccessorNameConflict(token, replacementText)
+                || IsSetPropertyAccessorNameConflict(token, replacementText)
+                || IsInitPropertyAccessorNameConflict(token, replacementText);
+
+            private static bool IsGetPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
+                => token.IsKind(SyntaxKind.GetKeyword)
+                && IsNameConflictWithProperty("get", token.Parent as AccessorDeclarationSyntax, replacementText);
+
+            private static bool IsSetPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
+                => token.IsKind(SyntaxKind.SetKeyword)
+                && IsNameConflictWithProperty("set", token.Parent as AccessorDeclarationSyntax, replacementText);
+
+            private static bool IsInitPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
+                => token.IsKind(SyntaxKind.InitKeyword)
+                // using "set" here is intentional. The compiler generates set_PropName for both set and init accessors.
+                && IsNameConflictWithProperty("set", token.Parent as AccessorDeclarationSyntax, replacementText);
+
+            private static bool IsNameConflictWithProperty(string prefix, AccessorDeclarationSyntax? accessor, string replacementText)
+                => accessor?.Parent?.Parent is PropertyDeclarationSyntax property   // 3 null checks in one: accessor -> accessor list -> property declaration
+                && replacementText.Equals(prefix + "_" + property.Identifier.Text, StringComparison.Ordinal);
+
+            private static bool IsPossiblyDestructorConflict(SyntaxToken token, string replacementText)
+            {
+                return replacementText == "Finalize" &&
+                    token.IsKind(SyntaxKind.IdentifierToken) &&
+                    token.Parent.IsKind(SyntaxKind.DestructorDeclaration);
+            }
+
             private SyntaxNode Complexify(SyntaxNode originalNode, SyntaxNode newNode)
             {
                 _isProcessingComplexifiedSpans = true;
@@ -206,24 +291,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 _isProcessingComplexifiedSpans = false;
                 _speculativeModel = null;
                 return newNode;
-            }
-
-            private bool ShouldComplexifyNode(SyntaxNode node, bool isInConflictLambdaBody)
-            {
-                return !isInConflictLambdaBody &&
-                       _skipRenameForComplexification == 0 &&
-                       !_isProcessingComplexifiedSpans &&
-                       _conflictLocations.Contains(node.Span) &&
-                       (node is AttributeSyntax ||
-                        node is AttributeArgumentSyntax ||
-                        node is ConstructorInitializerSyntax ||
-                        node is ExpressionSyntax ||
-                        node is FieldDeclarationSyntax ||
-                        node is StatementSyntax ||
-                        node is CrefSyntax ||
-                        node is XmlNameAttributeSyntax ||
-                        node is TypeConstraintSyntax ||
-                        node is BaseTypeSyntax);
             }
 
             private async Task<SyntaxToken> RenameAndAnnotateAsync(
@@ -418,44 +485,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
 
                 return newTrivia;
-            }
-
-            public override SyntaxToken VisitToken(SyntaxToken token)
-            {
-                var newToken = base.VisitToken(token);
-                newToken = UpdateAliasAnnotation(newToken);
-                newToken = RenameWithinToken(token, newToken);
-
-                // We don't want to annotate XmlName with RenameActionAnnotation
-                if (newToken.Parent.IsKind(SyntaxKind.XmlName))
-                {
-                    return newToken;
-                }
-
-                if (!_isProcessingComplexifiedSpans && _textSpanToRenameContexts.TryGetValue(token.Span, out var locationRenameContext))
-                {
-                    newToken = RenameAndAnnotateAsync(
-                        token,
-                        newToken,
-                        isVerbatim: _syntaxFactsService.IsVerbatimIdentifier(locationRenameContext.ReplacementText),
-                        replacementTextValid: locationRenameContext.ReplacementTextValid,
-                        isRenamableAccessor: locationRenameContext.RenameLocation.IsRenamableAccessor,
-                        replacementText: locationRenameContext.ReplacementText,
-                        originalText: locationRenameContext.OriginalText).WaitAndGetResult_CanCallOnBackground(_cancellationToken);
-                    _invocationExpressionsNeedingConflictChecks.AddRange(token.GetAncestors<InvocationExpressionSyntax>());
-                    return newToken;
-                }
-
-                // If we are renaming a token of complexified node, it could be either
-                // 1. It is a referenced token of any of the rename symbols and it should be annotated by RenameActionAnnotation before the complexification.
-                // We could rename the token by finding its rename context.
-                // 2. Complexification could introduce some new tokens, and they are alse referenced by rename symbols. We need to rename them.
-                if (_isProcessingComplexifiedSpans)
-                {
-                    return RenameTokenWhenProcessingComplexifiedSpans(token, newToken);
-                }
-
-                return AnnotateNonRenameLocation(token, newToken);
             }
 
             private SyntaxToken RenameTokenWhenProcessingComplexifiedSpans(SyntaxToken token, SyntaxToken newToken)
@@ -772,35 +801,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
 
                 return newToken;
-            }
-
-            private static bool IsPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
-                => IsGetPropertyAccessorNameConflict(token, replacementText)
-                || IsSetPropertyAccessorNameConflict(token, replacementText)
-                || IsInitPropertyAccessorNameConflict(token, replacementText);
-
-            private static bool IsGetPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
-                => token.IsKind(SyntaxKind.GetKeyword)
-                && IsNameConflictWithProperty("get", token.Parent as AccessorDeclarationSyntax, replacementText);
-
-            private static bool IsSetPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
-                => token.IsKind(SyntaxKind.SetKeyword)
-                && IsNameConflictWithProperty("set", token.Parent as AccessorDeclarationSyntax, replacementText);
-
-            private static bool IsInitPropertyAccessorNameConflict(SyntaxToken token, string replacementText)
-                => token.IsKind(SyntaxKind.InitKeyword)
-                // using "set" here is intentional. The compiler generates set_PropName for both set and init accessors.
-                && IsNameConflictWithProperty("set", token.Parent as AccessorDeclarationSyntax, replacementText);
-
-            private static bool IsNameConflictWithProperty(string prefix, AccessorDeclarationSyntax? accessor, string replacementText)
-                => accessor?.Parent?.Parent is PropertyDeclarationSyntax property   // 3 null checks in one: accessor -> accessor list -> property declaration
-                && replacementText.Equals(prefix + "_" + property.Identifier.Text, StringComparison.Ordinal);
-
-            private static bool IsPossiblyDestructorConflict(SyntaxToken token, string replacementText)
-            {
-                return replacementText == "Finalize" &&
-                    token.IsKind(SyntaxKind.IdentifierToken) &&
-                    token.Parent.IsKind(SyntaxKind.DestructorDeclaration);
             }
 
             private SyntaxTrivia RenameInCommentTrivia(
