@@ -62,12 +62,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private IVSMDDesignerService? _legacyDesignerService;
 
         /// <summary>
-        /// True if we should dispose our connection, false for normal work.
+        /// Cancellation series controlling the individual pieces of work added to <see cref="_workQueue"/>.  Every time
+        /// we add a new item, we cancel the prior item so that batch can stop as soon as possible and move onto the
+        /// next batch.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue _workQueue;
+        private readonly CancellationSeries _cancellationSeries = new();
+        private readonly AsyncBatchingWorkQueue<CancellationToken> _workQueue;
 
-        // We'll get notifications from the OOP server about new attribute arguments. Batch those
-        // notifications up and deliver them to VS every second.
+        // We'll get notifications from the OOP server about new attribute arguments. Collect those notifications and
+        // deliver them to VS in batches to prevent flooding the UI thread.
         private readonly AsyncBatchingWorkQueue<DesignerAttributeData>? _notificationProjectSystemQueue;
 
         [ImportingConstructor]
@@ -86,14 +89,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             var listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
 
-            _workQueue = new AsyncBatchingWorkQueue(
+            _workQueue = new AsyncBatchingWorkQueue<CancellationToken>(
                 TimeSpan.FromSeconds(1),
                 this.ProcessWorkspaceChangeAsync,
                 listener,
                 ThreadingContext.DisposalToken);
 
             _notificationProjectSystemQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
-                TimeSpan.FromSeconds(0.25),
+                TimeSpan.FromSeconds(1),
                 this.NotifyProjectSystemAsync,
                 listener,
                 ThreadingContext.DisposalToken);
@@ -102,7 +105,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         public void Dispose()
         {
             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-            _workQueue.AddWork();
         }
 
         private async Task<RemoteServiceConnection<IRemoteDesignerAttributeDiscoveryService>?> CreateConnectionAsync(CancellationToken cancellationToken)
@@ -120,12 +122,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
 
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
-            _workQueue.AddWork();
+            _workQueue.AddWork(_cancellationSeries.CreateNext());
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
-            _workQueue.AddWork();
+            _workQueue.AddWork(_cancellationSeries.CreateNext());
+        }
+
+        private async ValueTask ProcessWorkspaceChangeAsync(ImmutableSegmentedList<CancellationToken> cancellationTokens, CancellationToken disposalToken)
+        {
+            // Because we always cancel the previous token prior to queuing new work, there can only be at most one
+            // actual real cancellation token that is not already canceled.
+            var cancellationToken = cancellationTokens.SingleOrNull(ct => !ct.IsCancellationRequested);
+
+            // if we didn't get an actual non-canceled token back, then this batch was entirely canceled and we have
+            // nothing to do.
+            if (cancellationToken is null)
+                return;
+
+            using var source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken.Value, disposalToken);
+
+            await ProcessWorkspaceChangeAsync(source.Token).ConfigureAwait(false);
         }
 
         private async ValueTask ProcessWorkspaceChangeAsync(CancellationToken cancellationToken)
