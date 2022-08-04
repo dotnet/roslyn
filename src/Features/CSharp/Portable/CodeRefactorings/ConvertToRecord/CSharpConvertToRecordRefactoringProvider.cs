@@ -485,10 +485,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // see whether we are calling on a param of the same type or of object
             if (parameter.Type.SpecialType == SpecialType.System_Object)
             {
-                ILocalSymbol? otherC = null;
+                ISymbol? otherC = null;
                 var statementsToCheck = Enumerable.Empty<IOperation>();
-                // how many body operations are involved in the checking/casting of the parameter (at least 1)
-                var bodyOperationsToSkip = 1;
                 // we could look for some cast which rebinds the parameter
                 // to a local of the type such as any of the following:
                 // var otherc = other as C; *null and additional equality checks*
@@ -499,87 +497,152 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 // return other is C otherC && ...
                 // return !(other is not C otherC || ...
                 var bodyOps = body.Operations;
-                if (bodyOps.IsEmpty)
+
+                otherC = GetAssignmentToParameterWithExplicitCast(bodyOps.FirstOrDefault(), parameter);
+                if (otherC != null)
                 {
-                    return ImmutableArray<IPropertySymbol>.Empty;
+                    statementsToCheck = bodyOps.Skip(1);
                 }
-                switch (bodyOps.First())
+                else if (bodyOps.FirstOrDefault() is IConditionalOperation
                 {
-                    case IVariableDeclarationGroupOperation
+                    Condition: IOperation condition,
+                    WhenTrue: IOperation whenTrue,
+                    WhenFalse: var whenFalse,
+                })
+                {
+                    // we are inside the first if statement of a method
+                    // We want to determine if success in this condition would cause us to
+                    // return true or return false, so we look for a return false in either the
+                    // whenTrue block or the whenFalse block
+                    bool successRequirement;
+
+                    // we expect all if statments to (eventually) return within their "then" block,
+                    // so we can treat the "else" as the outside of the if block
+                    var falseOps = (whenFalse as IBlockOperation)?.Operations ??
+                        (whenFalse != null ? ImmutableArray.Create(whenFalse) : bodyOps.Skip(1).AsImmutable());
+                    var trueOps = (whenTrue as IBlockOperation)?.Operations ?? ImmutableArray.Create(whenTrue);
+
+                    // We expect one of the true or false branch to have exactly one statement: return false.
+                    // If we don't find that, it indicates complex behavior such as
+                    // extra statments, backup equality if one condition fails, or something else.
+                    // We don't expect a return true because we could see a final return statement that checks
+                    // as last set of conditions such as:
+                    // if (other is C otherC)
+                    // {
+                    //     return otherC.A == A;
+                    // }
+                    // return false;
+                    // We should never have a case where both branches could potentially return true;
+                    // at least one branch must simply return false.
+                    if (IsSingleReturnFalseOperation(trueOps) ^ IsSingleReturnFalseOperation(falseOps))
                     {
-                        Declarations: [IVariableDeclarationOperation
-                        {
-                            Declarators: [IVariableDeclaratorOperation
+                        // both or neither fit the return false pattern, this if statement either doesn't do
+                        // anything or does something too complex for us, so we assume it's not a default.
+                        return ImmutableArray<IPropertySymbol>.Empty;
+                    }
+
+                    // when condition succeeds (evaluates to true), we return false
+                    // so for equality the condition should not succeed
+                    successRequirement = !IsSingleReturnFalseOperation(trueOps);
+                    // gives us the symbol if the pattern was a binding one
+                    // (and adds properties if they did other checks too)
+                    otherC = TryAddEqualizedPropertiesForConditionWithoutBinding(
+                        properties, condition, successRequirement, type);
+
+                    statementsToCheck = successRequirement ? trueOps : falseOps;
+
+                    if (otherC == null)
+                    {
+                        // either there was no pattern match, or the pattern did not bind to a variable declaration
+                        // (e.g: if (other is C))
+                        // we will look for a non-binding "is" pattern and if we find one,
+                        // look for a variable assignment in the appropriate block
+                        if (condition is IIsPatternOperation
                             {
-                                Symbol: ILocalSymbol castOther,
-                                Initializer: IVariableInitializerOperation
+                                Pattern: IPatternOperation pattern,
+                                Value: IParameterReferenceOperation { Parameter: IParameterSymbol referencedParameter }
+                            })
+                        {
+                            // make sure parameter is the actual parameter we reference
+                            if (!referencedParameter.Equals(parameter))
+                            {
+                                return ImmutableArray<IPropertySymbol>.Empty;
+                            }
+
+                            // if we have: if (pattern) return false; else ...
+                            // then we expect the pattern to be an "is not" pattern instead
+                            if (!successRequirement)
+                            {
+                                if (pattern is INegatedPatternOperation negatedPattern)
                                 {
-                                    Value: IConversionOperation
-                                    {
-                                        IsImplicit: false,
-                                        IsTryCast: true,
-                                        Operand: IParameterReferenceOperation
-                                        {
-                                            Parameter: IParameterSymbol referencedParameter1
-                                        }
-                                    }
+                                    pattern = negatedPattern.Pattern;
                                 }
-                            }]
-                        }]
-                    }:
-                        if (referencedParameter1.Equals(parameter))
-                        {
-                            // Just matched var otherc = other as C;
-                            // set variables for equality checking
-                            otherC = castOther;
-                            statementsToCheck = bodyOps.Skip(1);
+                                else
+                                {
+                                    return ImmutableArray<IPropertySymbol>.Empty;
+                                }
+                            }
+
+                            if (pattern is ITypePatternOperation { MatchedType: INamedTypeSymbol castType } &&
+                                castType.Equals(type))
+                            {
+                                // found correct pattern, so we know we have something equivalent to
+                                // if (other is C) { ... } else return false;
+                                // we look for an explicit cast to assign a variable later like:
+                                // var otherC = (C)other;
+                                // var otherC = other as C;
+                                otherC = GetAssignmentToParameterWithExplicitCast(statementsToCheck.FirstOrDefault(), parameter);
+                                if (otherC != null)
+                                {
+                                    statementsToCheck = statementsToCheck.Skip(1);
+                                }
+                            }
                         }
-                        break;
-                    case IConditionalOperation
-                    {
-                        Condition: IOperation condition,
-                        WhenTrue: IOperation whenTrue,
-                        WhenFalse: var whenFalse,
-                    }:
-                        // we are inside the first if statement of a method
-                        // We want to determine if success in this condition would cause us to
-                        // return true or return false, so we look for a return false in either the
-                        // whenTrue block or the whenFalse block
-                        bool successCondition;
-
-                        // we expect all if statments to (eventually) return within their "then" block,
-                        // so we can treat the "else" as the outside of the if block
-                        var falseOps = (whenFalse as IBlockOperation)?.Operations ??
-                            (whenFalse != null ? ImmutableArray.Create(whenFalse) : bodyOps.Skip(1).AsImmutable());
-                        var trueOps = (whenTrue as IBlockOperation)?.Operations ?? ImmutableArray.Create(whenTrue);
-
-                        // We expect one of the true or false branch to have exactly one statement: return false.
-                        // If we don't find that, it indicates complex behavior such as
-                        // extra statments, backup equality if one condition fails, or something else.
-                        // We don't expect a return true because we could see a final return statement that checks
-                        // as last set of conditions such as:
-                        // if (other is C otherC)
-                        // {
-                        //     return otherC.A == A;
-                        // }
-                        // return false;
-                        // We should never have a case where both branches could potentially return true;
-                        // at least one branch must simply return false.
-                        if (IsSingleReturnFalseOperation(trueOps) ^ IsSingleReturnFalseOperation(falseOps))
-                        {
-                            // both or neither fit the return false pattern, error so return no symbols bound
-                            return ImmutableArray<IPropertySymbol>.Empty;
-                        }
-
-                        // when condition succeeds (evaluates to true), we return false
-                        // so for equality the condition should not succeed
-                        successCondition = !IsSingleReturnFalseOperation(trueOps);
-                        break;
-                    default:
-                        break;
+                    }
+                }
+                // check for single return poeration with condition
+                else if (bodyOps is [IReturnOperation value])
+                {
+                    otherC = TryAddEqualizedPropertiesForConditionWithoutBinding(properties, value, successRequirement: true, type);
                 }
             }
             return ImmutableArray<IPropertySymbol>.Empty;
+        }
+
+        /// <summary>
+        /// Matches: var otherC = (C) other;
+        /// or: var otherC = other as C;
+        /// </summary>
+        /// <param name="operation">potential variable declaration operation</param>
+        /// <param name="parameter">parameter that should be referenced</param>
+        /// <returns>symbol of declared variable if found, otw null</returns>
+        private static ILocalSymbol? GetAssignmentToParameterWithExplicitCast(IOperation? operation, IParameterSymbol parameter)
+        {
+            if (operation is IVariableDeclarationGroupOperation
+                {
+                    Declarations: [IVariableDeclarationOperation
+                    {
+                        Declarators: [IVariableDeclaratorOperation
+                        {
+                            Symbol: ILocalSymbol castOther,
+                            Initializer: IVariableInitializerOperation
+                            {
+                                Value: IConversionOperation
+                                {
+                                    IsImplicit: false,
+                                    Operand: IParameterReferenceOperation
+                                    {
+                                        Parameter: IParameterSymbol referencedParameter1
+                                    }
+                                }
+                            }
+                        }]
+                    }]
+                } && referencedParameter1.Equals(parameter))
+            {
+                return castOther;
+            }
+            return null;
         }
 
         private static bool IsSingleReturnFalseOperation(ImmutableArray<IOperation> operation)
@@ -708,6 +771,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 }):
                     pattern = isPattern;
                     break;
+                default:
+                    break;
             }
 
             if (!successRequirement)
@@ -745,6 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         }
 
         // checks for binary expressions of the type otherC == null or null == otherC
+        // or a pattern against null like otherC is (not) null
         // and "otherC" is a reference to otherObject
         // takes successRequirement so that if we're in a constext where the operation evaluating to true
         // would end up being false within the equals method, we look for != instead
@@ -753,13 +819,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             bool successRequirement,
             ISymbol otherObject)
         {
-            return operation is IBinaryOperation { LeftOperand: IOperation leftOperation, RightOperand: IOperation rightOperation } binaryOperation &&
-                binaryOperation.OperatorKind == (successRequirement ? BinaryOperatorKind.NotEquals : BinaryOperatorKind.Equals) &&
-                    // one of the objects must be a reference to the "otherObject" and the other must be a constant null literal
-                    ((otherObject.Equals(GetReferencedSymbolObject(leftOperation)) &&
-                        rightOperation.IsNullLiteral()) ||
-                    (otherObject.Equals(GetReferencedSymbolObject(rightOperation)) &&
-                        leftOperation.IsNullLiteral()));
+            switch (operation)
+            {
+                case IBinaryOperation
+                {
+                    LeftOperand: IOperation leftOperation,
+                    RightOperand: IOperation rightOperation,
+                } binaryOperation:
+                    return binaryOperation.OperatorKind == (successRequirement
+                                ? BinaryOperatorKind.Equals
+                                : BinaryOperatorKind.NotEquals) &&
+                            // one of the objects must be a reference to the "otherObject"
+                            // and the other must be a constant null literal
+                            ((otherObject.Equals(GetReferencedSymbolObject(leftOperation)) &&
+                                    rightOperation.IsNullLiteral()) ||
+                                (otherObject.Equals(GetReferencedSymbolObject(rightOperation)) &&
+                                    leftOperation.IsNullLiteral()));
+                case IIsPatternOperation { Value: IOperation patternValue, Pattern: IPatternOperation pattern }:
+                    if (successRequirement)
+                    {
+                        if (pattern is INegatedPatternOperation negatedPattern)
+                        {
+                            pattern = negatedPattern.Pattern;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+
+                    return otherObject.Equals(GetReferencedSymbolObject(patternValue)) &&
+                            pattern is IConstantPatternOperation constantPattern &&
+                            constantPattern.Value.IsNullLiteral();
+                default:
+                    return false;
+            }
         }
 
         private static bool TryAddPropertyFromComparison(
@@ -787,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
         private static ISymbol? GetReferencedSymbolObject(IOperation reference)
         {
-            return reference switch
+            return reference.WalkDownConversion() switch
             {
                 IInstanceReferenceOperation thisReference => thisReference.Type,
                 ILocalReferenceOperation localReference => localReference.Local,
