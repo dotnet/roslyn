@@ -5,17 +5,17 @@ parameters:
 steps:
 
 - task: CredScan@3
-  displayName: Run CredScan
+  displayName: 🔍 Run CredScan
 
 - task: PoliCheck@2
-  displayName: Run PoliCheck
+  displayName: 🔍 Run PoliCheck
   inputs:
     targetType: F
     targetArgument: $(System.DefaultWorkingDirectory)
     optionsUEPATH: $(System.DefaultWorkingDirectory)\azure-pipelines\PoliCheckExclusions.xml
 
 - task: BinSkim@4
-  displayName: Run BinSkim
+  displayName: 🔍 Run BinSkim
   inputs:
     InputType: Basic
     Function: analyze
@@ -23,7 +23,7 @@ steps:
     AnalyzeTargetGlob: $(BinSkimTargets)
 
 - task: CopyFiles@2
-  displayName: Collect APIScan inputs
+  displayName: 🔍 Collect APIScan inputs
   inputs:
     SourceFolder: $(Build.ArtifactStagingDirectory)/Symbols-$(Agent.JobName)
     # Exclude any patterns from the Contents (e.g. `!**/git2*`) that we have symbols for but do not need to run APIScan on.
@@ -34,7 +34,7 @@ steps:
   condition: and(succeeded(), ${{ parameters.EnableAPIScan }}, ne(variables.ApiScanClientId, ''))
 
 - task: APIScan@2
-  displayName: Run APIScan
+  displayName: 🔍 Run APIScan
   inputs:
     softwareFolder: $(Build.ArtifactStagingDirectory)/APIScanInputs
     softwareName: $(SymbolsFeatureName)
@@ -46,12 +46,12 @@ steps:
     AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
 
 - task: SdtReport@2
-  displayName: Create Security Analysis Report
+  displayName: 🛠️ Create Security Analysis Report
   inputs:
     GdnExportAllTools: true
 
 - task: PublishSecurityAnalysisLogs@3
-  displayName: Publish Code Analysis Logs
+  displayName: 📢 Publish Code Analysis Logs
   inputs:
     ArtifactName: CodeAnalysisLogs
     ArtifactType: Container
@@ -60,7 +60,7 @@ steps:
     ToolLogsNotFoundAction: Standard
 
 - task: PostAnalysis@2
-  displayName: Break on compliance issues
+  displayName: 🏋️‍♀️ Break on compliance issues
   inputs:
     GdnBreakAllTools: true
     GdnBreakGdnToolBinSkimSeverity: Warning
@@ -72,5 +72,5 @@ steps:
 # This is useful when false positives appear so we can copy some of the output into the suppressions file.
 - publish: $(Build.ArtifactStagingDirectory)/guardian_failures_as_suppressions
   artifact: guardian_failures_as_suppressions
-  displayName: Publish Guardian failures
+  displayName: 🔍 Publish Guardian failures
   condition: failed()
