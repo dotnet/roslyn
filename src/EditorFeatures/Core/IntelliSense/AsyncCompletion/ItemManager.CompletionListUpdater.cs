@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     // Not deletion.  Defer to the language to decide which item it thinks best
                     // matches the text typed so far.
-                    itemMatchPairBuilder.AddRange(items.Where(r => r.MatchedFilterText).Select(t => (t.RoslynCompletionItem, t.PatternMatch)));
+                    itemMatchPairBuilder.AddRange(items.Where(r => r.ShouldBeConsideredMatchingFilterText).Select(t => (t.RoslynCompletionItem, t.PatternMatch)));
                     _filterMethod(itemMatchPairBuilder, _filterText, filteredItemsBuilder);
 
                     // Ask the language to determine which of the *matched* items it wants to select.
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         return null;
                     }
 
-                    var isHardSelection = IsHardSelection(bestOrFirstMatchResult.RoslynCompletionItem, bestOrFirstMatchResult.MatchedFilterText);
+                    var isHardSelection = IsHardSelection(bestOrFirstMatchResult.RoslynCompletionItem, bestOrFirstMatchResult.ShouldBeConsideredMatchingFilterText);
                     var updateSelectionHint = isHardSelection ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected;
 
                     return new(selectedItemIndex, updateSelectionHint, uniqueItem);
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     var currentMatchResult = items[i];
 
-                    if (!currentMatchResult.MatchedFilterText)
+                    if (!currentMatchResult.ShouldBeConsideredMatchingFilterText)
                         continue;
 
                     if (bestMatchResult == null)

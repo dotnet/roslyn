@@ -14,11 +14,13 @@ namespace Microsoft.CodeAnalysis.Completion
     internal readonly struct MatchResult<TEditorCompletionItem>
     {
         public readonly RoslynCompletionItem RoslynCompletionItem;
-        public readonly bool MatchedFilterText;
 
-        // In certain cases, there'd be no match but we'd still set `MatchedFilterText` to true,
-        // e.g. when the item is in MRU list. Therefore making this nullable.
+        // The value of `ShouldBeConsideredMatchingFilterText` doesn't 100% refect the actual PatternMatch result.
+        // In certain cases, there'd be no match but we'd still want to consider it a match (e.g. when the item is in MRU list,)
+        // and this is why PatternMatch can be null. There's also cases it's a match but we want to consider it a non-match
+        // (e.g. when not a prefix match in deleteion sceanrio).
         public readonly PatternMatch? PatternMatch;
+        public readonly bool ShouldBeConsideredMatchingFilterText;
 
         /// <summary>
         /// The actual editor completion item associated with this <see cref="RoslynCompletionItem"/>
@@ -34,13 +36,13 @@ namespace Microsoft.CodeAnalysis.Completion
         public MatchResult(
             RoslynCompletionItem roslynCompletionItem,
             TEditorCompletionItem editorCompletionItem,
-            bool matchedFilterText,
+            bool shouldBeConsideredMatchingFilterText,
             PatternMatch? patternMatch,
             int index)
         {
             RoslynCompletionItem = roslynCompletionItem;
             EditorCompletionItem = editorCompletionItem;
-            MatchedFilterText = matchedFilterText;
+            ShouldBeConsideredMatchingFilterText = shouldBeConsideredMatchingFilterText;
             PatternMatch = patternMatch;
             _indexInOriginalSortedOrder = index;
         }

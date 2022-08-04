@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 ? completionHelper.GetMatch(item.FilterText, filterText, includeMatchSpans, CultureInfo.CurrentCulture)
                 : null;
 
-            var matchedFilterText = MatchesFilterText(
+            var shouldBeConsideredMatchingFilterText = ShouldBeConsideredMatchingFilterText(
                 item,
                 filterText,
                 initialTriggerKind,
@@ -408,10 +408,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 recentItems,
                 patternMatch);
 
-            if (matchedFilterText || KeepAllItemsInTheList(initialTriggerKind, filterText))
+            if (shouldBeConsideredMatchingFilterText || KeepAllItemsInTheList(initialTriggerKind, filterText))
             {
                 matchResult = new MatchResult<T>(
-                    item, editorCompletionItem, matchedFilterText: matchedFilterText,
+                    item, editorCompletionItem, shouldBeConsideredMatchingFilterText,
                     patternMatch: patternMatch, currentIndex);
 
                 return true;
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Completion
             matchResult = default;
             return false;
 
-            static bool MatchesFilterText(
+            static bool ShouldBeConsideredMatchingFilterText(
                 CompletionItem item,
                 string filterText,
                 CompletionTriggerKind initialTriggerKind,
