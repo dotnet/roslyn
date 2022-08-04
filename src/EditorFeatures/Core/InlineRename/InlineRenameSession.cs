@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// over on the oop side, which is valuable for preventing it from constantly being dropped/synced on every
         /// conflict resolution step.
         /// </summary>
-        private readonly Task _keepAliveSessionTask;
+        private readonly JoinableTask _keepAliveSessionTask;
 
         /// <summary>
         /// The task which computes the main rename locations against the original workspace
@@ -188,7 +188,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             // Open a session to oop, syncing our solution to it and pinning it there.  The connection will close once
             // _cancellationTokenSource is canceled (which we always do when the session is finally ended).
-            _keepAliveSessionTask = Renamer.CreateRemoteKeepAliveSessionAsync(_baseSolution, _cancellationTokenSource.Token);
+            _keepAliveSessionTask = _threadingContext.JoinableTaskFactory.RunAsync(() =>
+                Renamer.CreateRemoteKeepAliveSessionAsync(_baseSolution, _cancellationTokenSource.Token));
             InitializeOpenBuffers(triggerSpan);
         }
 
@@ -315,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _allRenameLocationsTask = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
                 // Ensure that our keep-alive session is up and running.
-                await _keepAliveSessionTask.ConfigureAwait(false);
+                await _keepAliveSessionTask.JoinAsync(cancellationToken).ConfigureAwait(false);
 
                 // Join prior work before proceeding, since it performs a required state update.
                 // https://github.com/dotnet/roslyn/pull/34254#discussion_r267024593
