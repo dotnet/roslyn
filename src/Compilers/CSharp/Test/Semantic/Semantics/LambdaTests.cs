@@ -7324,6 +7324,7 @@ class Program
 """;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // PROTOTYPE: These usage warnings should go away
                 // (5,19): warning CS0219: The variable 'i1' is assigned but its value is never used
                 //         const int i1 = 1;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i1").WithArguments("i1").WithLocation(5, 19),
@@ -7390,7 +7391,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaWithDefaultParamsAndRefOutModifiers()
+        public void LambdaWithDefaultParametersAndRefOutModifiers()
         {
             var source = """
 class Program
@@ -7406,7 +7407,7 @@ class Program
         }
 
         [Fact]
-        public void AnonymousMethodWithDefaultParamsAndRefOutModifiers()
+        public void AnonymousMethodWithDefaultParametersAndRefOutModifiers()
         {
             var source = """
 class Program
@@ -7422,7 +7423,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaWithMultipleDefaultParams()
+        public void LambdaWithMultipleDefaultParameters()
         {
             var source = """
 class Program
@@ -7451,6 +7452,8 @@ class Program
     static int M2(int j) => j;
 }
 """;
+
+            // PROTOTYPE: verify this case with DataFlowAnalysis APIs
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,25): error CS1736: Default parameter value for 'i' must be a compile-time constant
@@ -7459,7 +7462,7 @@ class Program
         }
 
         [Fact]
-        public void AnonymousMethodDefaultParamUsageAnalysis()
+        public void AnonymousMethodDefaultParameterUsageAnalysis()
         {
             var source = """
 class Program
@@ -7535,6 +7538,24 @@ class Program
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
-    }
 
+        [Fact(Skip = "PROTOTYPE: Nullable walker code needs to be updated so that this doesn't cause a cycle")]
+        public void LambdaDefaultSelfReference()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var lam = (Delegate d = lam) => { };
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+        }
+    }
 }
