@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedNullableContextAttributeSymbol _lazyNullableContextAttribute;
         private SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol _lazyNullablePublicOnlyAttribute;
         private SynthesizedEmbeddedNativeIntegerAttributeSymbol _lazyNativeIntegerAttribute;
-        private SynthesizedEmbeddedScopedRefAttributeSymbol _lazyScopedRefAttribute;
+        private SynthesizedEmbeddedLifetimeAnnotationAttributeSymbol _lazyLifetimeAnnotationAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             builder.AddIfNotNull(_lazyNullableContextAttribute);
             builder.AddIfNotNull(_lazyNullablePublicOnlyAttribute);
             builder.AddIfNotNull(_lazyNativeIntegerAttribute);
-            builder.AddIfNotNull(_lazyScopedRefAttribute);
+            builder.AddIfNotNull(_lazyLifetimeAnnotationAttribute);
 
             return builder.ToImmutableAndFree();
         }
@@ -251,17 +251,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeNativeIntegerAttribute(member, arguments);
         }
 
-        internal override SynthesizedAttributeData SynthesizeScopedRefAttribute(WellKnownMember member)
+        internal override SynthesizedAttributeData SynthesizeLifetimeAnnotationAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
         {
-            if ((object)_lazyScopedRefAttribute != null)
+            if ((object)_lazyLifetimeAnnotationAttribute != null)
             {
                 return new SynthesizedAttributeData(
-                    _lazyScopedRefAttribute.Constructors[0],
-                    ImmutableArray<TypedConstant>.Empty,
+                    _lazyLifetimeAnnotationAttribute.Constructors[0],
+                    arguments,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
             }
 
-            return base.SynthesizeScopedRefAttribute(member);
+            return base.SynthesizeLifetimeAnnotationAttribute(member, arguments);
         }
 
         protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
@@ -389,13 +389,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     CreateNativeIntegerAttributeSymbol);
             }
 
-            if ((needsAttributes & EmbeddableAttributes.ScopedRefAttribute) != 0)
+            if ((needsAttributes & EmbeddableAttributes.LifetimeAnnotationAttribute) != 0)
             {
                 CreateAttributeIfNeeded(
-                    ref _lazyScopedRefAttribute,
+                    ref _lazyLifetimeAnnotationAttribute,
                     diagnostics,
-                    AttributeDescription.ScopedRefAttribute,
-                    CreateScopedRefAttributeSymbol);
+                    AttributeDescription.LifetimeAnnotationAttribute,
+                    CreateLifetimeAnnotationAttributeSymbol);
             }
         }
 
@@ -438,12 +438,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
                     GetSpecialType(SpecialType.System_Boolean, diagnostics));
 
-        private SynthesizedEmbeddedScopedRefAttributeSymbol CreateScopedRefAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
-            => new SynthesizedEmbeddedScopedRefAttributeSymbol(
+        private SynthesizedEmbeddedLifetimeAnnotationAttributeSymbol CreateLifetimeAnnotationAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
+            => new SynthesizedEmbeddedLifetimeAnnotationAttributeSymbol(
                     name,
                     containingNamespace,
                     SourceModule,
-                    GetWellKnownType(WellKnownType.System_Attribute, diagnostics));
+                    GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
+                    GetSpecialType(SpecialType.System_Boolean, diagnostics));
 
         private void CreateAttributeIfNeeded<T>(
             ref T symbol,

@@ -17,14 +17,21 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class AttributeTests_ScopedRef : CSharpTestBase
+    public class AttributeTests_LifetimeAnnotation : CSharpTestBase
     {
-        private const string ScopedRefAttributeDefinition =
+        private const string LifetimeAnnotationAttributeDefinition =
 @"namespace System.Runtime.CompilerServices
 {
-    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
-    public sealed class ScopedRefAttribute : Attribute
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = false)]
+    public sealed class LifetimeAnnotationAttribute : Attribute
     {
+        public LifetimeAnnotationAttribute(bool isRefScoped, bool isValueScoped)
+        {
+            IsRefScoped = isRefScoped;
+            IsValueScoped = isValueScoped;
+        }
+        public bool IsRefScoped { get; }
+        public bool IsValueScoped { get; }
     }
 }";
 
@@ -36,22 +43,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public static void F(scoped ref int i) { }
 }";
-            var comp = CreateCompilation(new[] { ScopedRefAttributeDefinition, source });
+            var comp = CreateCompilation(new[] { LifetimeAnnotationAttributeDefinition, source });
             var expected =
 @" void Program.F(ref System.Int32 i)
-    [ScopedRef] ref System.Int32 i
+    [LifetimeAnnotation(True, False)] ref System.Int32 i
 ";
             CompileAndVerify(comp, symbolValidator: module =>
             {
-                Assert.Equal("System.Runtime.CompilerServices.ScopedRefAttribute", GetScopedRefType(module).ToTestDisplayString());
-                AssertScopedRefAttributes(module, expected);
+                Assert.Equal("System.Runtime.CompilerServices.LifetimeAnnotationAttribute", GetLifetimeAnnotationType(module).ToTestDisplayString());
+                AssertLifetimeAnnotationAttributes(module, expected);
             });
         }
 
         [Fact]
         public void ExplicitAttribute_FromMetadata()
         {
-            var comp = CreateCompilation(ScopedRefAttributeDefinition);
+            var comp = CreateCompilation(LifetimeAnnotationAttributeDefinition);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -63,12 +70,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp = CreateCompilation(source, references: new[] { ref0 });
             var expected =
 @"void Program.F(ref System.Int32 i)
-    [ScopedRef] ref System.Int32 i
+    [LifetimeAnnotation(True, False)] ref System.Int32 i
 ";
             CompileAndVerify(comp, symbolValidator: module =>
             {
-                Assert.Null(GetScopedRefType(module));
-                AssertScopedRefAttributes(module, expected);
+                Assert.Null(GetLifetimeAnnotationType(module));
+                AssertLifetimeAnnotationAttributes(module, expected);
             });
         }
 
@@ -78,9 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var source1 =
 @"namespace System.Runtime.CompilerServices
 {
-    public sealed class ScopedRefAttribute : Attribute
+    public sealed class LifetimeAnnotationAttribute : Attribute
     {
-        public ScopedRefAttribute(int i) { }
+        public LifetimeAnnotationAttribute() { }
+        public bool IsRefScoped { get; }
+        public bool IsValueScoped { get; }
     }
 }";
             var source2 =
@@ -90,9 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
             var comp = CreateCompilation(new[] { source1, source2 });
             comp.VerifyEmitDiagnostics(
-                // (3,26): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.ScopedRefAttribute..ctor'
+                // (3,26): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.LifetimeAnnotationAttribute..ctor'
                 //     public static void F(scoped ref int i) { }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "scoped ref int i").WithArguments("System.Runtime.CompilerServices.ScopedRefAttribute", ".ctor").WithLocation(3, 26));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "scoped ref int i").WithArguments("System.Runtime.CompilerServices.LifetimeAnnotationAttribute", ".ctor").WithLocation(3, 26));
         }
 
         [WorkItem(62124, "https://github.com/dotnet/roslyn/issues/62124")]
@@ -101,16 +110,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var source =
 @"using System.Runtime.CompilerServices;
-delegate void D([ScopedRef] ref int i);
+delegate void D([LifetimeAnnotation(true, false)] ref int i);
 class Program
 {
-    public static void Main([ScopedRef] string[] args)
+    public static void Main([LifetimeAnnotation(false, true)] string[] args)
     {
-        D d = ([ScopedRef] ref int i) => { };
+        D d = ([LifetimeAnnotation(true, false)] ref int i) => { };
     }
 }";
-            var comp = CreateCompilation(new[] { ScopedRefAttributeDefinition, source });
-            // https://github.com/dotnet/roslyn/issues/62124: Re-enable check for ScopedRefAttribute in ReportExplicitUseOfReservedAttributes.
+            var comp = CreateCompilation(new[] { LifetimeAnnotationAttributeDefinition, source });
+            // https://github.com/dotnet/roslyn/issues/62124: Re-enable check for LifetimeAnnotationAttribute in ReportExplicitUseOfReservedAttributes.
             comp.VerifyDiagnostics();
         }
 
@@ -121,42 +130,34 @@ class Program
             var source =
 @"using System;
 using System.Runtime.CompilerServices;
-[module: ScopedRef]
-[ScopedRef] class Program
+[module: LifetimeAnnotation(false, true)]
+[LifetimeAnnotation(false, true)] class Program
 {
-    [ScopedRef] object F;
-    [ScopedRef] event EventHandler E;
-    [ScopedRef] object P { get; }
-    [ScopedRef] static object M1() => throw null;
-    [ScopedRef] static object M2() => throw null;
-    static void M3<[ScopedRef] T>() { }
-}
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = false)]
-    public sealed class ScopedRefAttribute : Attribute
-    {
-    }
-}
-";
-            var comp = CreateCompilation(source);
-            // https://github.com/dotnet/roslyn/issues/62124: Re-enable check for ScopedRefAttribute in ReportExplicitUseOfReservedAttributes.
+    [LifetimeAnnotation(false, true)] object F;
+    [LifetimeAnnotation(false, true)] event EventHandler E;
+    [LifetimeAnnotation(false, true)] object P { get; }
+    [LifetimeAnnotation(false, true)] static object M1() => throw null;
+    [return: LifetimeAnnotation(false, true)] static object M2() => throw null;
+    static void M3<[LifetimeAnnotation(false, true)] T>() { }
+}";
+            var comp = CreateCompilation(new[] { LifetimeAnnotationAttributeDefinition, source });
+            // https://github.com/dotnet/roslyn/issues/62124: Re-enable check for LifetimeAnnotationAttribute in ReportExplicitUseOfReservedAttributes.
             comp.VerifyDiagnostics(
-                // (6,24): warning CS0169: The field 'Program.F' is never used
-                //     [ScopedRef] object F;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("Program.F").WithLocation(6, 24),
-                // (7,36): warning CS0067: The event 'Program.E' is never used
-                //     [ScopedRef] event EventHandler E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Program.E").WithLocation(7, 36));
+                // (6,46): warning CS0169: The field 'Program.F' is never used
+                //     [LifetimeAnnotation(false, true)] object F;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("Program.F").WithLocation(6, 46),
+                // (7,58): warning CS0067: The event 'Program.E' is never used
+                //     [LifetimeAnnotation(false, true)] event EventHandler E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Program.E").WithLocation(7, 58));
         }
 
         [Fact]
         public void ExplicitAttribute_UnexpectedParameterTargets()
         {
             var source0 =
-@".class private System.Runtime.CompilerServices.ScopedRefAttribute extends [mscorlib]System.Attribute
+@".class private System.Runtime.CompilerServices.LifetimeAnnotationAttribute extends [mscorlib]System.Attribute
 {
-  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public hidebysig specialname rtspecialname instance void .ctor(bool isRefScoped, bool isValueScoped) cil managed { ret }
 }
 .class public sealed R extends [mscorlib]System.ValueType
 {
@@ -168,25 +169,25 @@ namespace System.Runtime.CompilerServices
   .method public static void F1(valuetype R r)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.ScopedRefAttribute::.ctor() = ( 01 00 00 00 ) // ScopedRefAttribute()
+    .custom instance void System.Runtime.CompilerServices.LifetimeAnnotationAttribute::.ctor(bool, bool) = ( 01 00 01 00 00 00 ) // LifetimeAnnotationAttribute(isRefScoped: true, isValueScoped: false)
     ret
   }
   .method public static void F2(int32 y)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.ScopedRefAttribute::.ctor() = ( 01 00 00 00 ) // ScopedRefAttribute()
+    .custom instance void System.Runtime.CompilerServices.LifetimeAnnotationAttribute::.ctor(bool, bool) = ( 01 00 00 01 00 00 ) // LifetimeAnnotationAttribute(isRefScoped: false, isValueScoped: true)
     ret
   }
   .method public static void F3(object x, int32& y)
   {
     .param [2]
-    .custom instance void System.Runtime.CompilerServices.ScopedRefAttribute::.ctor() = ( 01 00 00 00 ) // ScopedRefAttribute()
+    .custom instance void System.Runtime.CompilerServices.LifetimeAnnotationAttribute::.ctor(bool, bool) = ( 01 00 00 01 00 00 ) // LifetimeAnnotationAttribute(isRefScoped: false, isValueScoped: true)
     ret
   }
   .method public static void F4(valuetype R& r)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.ScopedRefAttribute::.ctor() = ( 01 00 00 00 ) // ScopedRefAttribute()
+    .custom instance void System.Runtime.CompilerServices.LifetimeAnnotationAttribute::.ctor(bool, bool) = ( 01 00 01 01 00 00 ) // LifetimeAnnotationAttribute(isRefScoped: true, isValueScoped: true)
     ret
   }
 }
@@ -209,38 +210,29 @@ namespace System.Runtime.CompilerServices
 }";
             var comp = CreateCompilation(source1, references: new[] { ref0 });
             comp.VerifyDiagnostics(
+                // (6,11): error CS0570: 'A.F1(R)' is not supported by the language
+                //         A.F1(r);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F1").WithArguments("A.F1(R)").WithLocation(6, 11),
                 // (7,11): error CS0570: 'A.F2(int)' is not supported by the language
                 //         A.F2(2);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "F2").WithArguments("A.F2(int)").WithLocation(7, 11));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F2").WithArguments("A.F2(int)").WithLocation(7, 11),
+                // (10,11): error CS0570: 'A.F3(object, ref int)' is not supported by the language
+                //         A.F3(x, ref y);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F3").WithArguments("A.F3(object, ref int)").WithLocation(10, 11));
 
-            var method = comp.GetMember<MethodSymbol>("A.F1");
-            Assert.Equal("void A.F1(scoped R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
+            var method = comp.GetMember<MethodSymbol>("A.F4");
+            Assert.Equal("void A.F4(ref scoped R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             var parameter = method.Parameters[0];
             Assert.Equal(DeclarationScope.ValueScoped, parameter.Scope);
-
-            method = comp.GetMember<MethodSymbol>("A.F2");
-            Assert.Equal("void A.F2(System.Int32 y)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
-            parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.Unscoped, parameter.Scope);
-
-            method = comp.GetMember<MethodSymbol>("A.F3");
-            Assert.Equal("void A.F3(System.Object x, scoped ref System.Int32 y)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
-            parameter = method.Parameters[1];
-            Assert.Equal(DeclarationScope.RefScoped, parameter.Scope);
-
-            method = comp.GetMember<MethodSymbol>("A.F4");
-            Assert.Equal("void A.F4(scoped ref R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
-            parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.RefScoped, parameter.Scope);
         }
 
         [Fact]
         public void ExplicitAttribute_UnexpectedAttributeConstructor()
         {
             var source0 =
-@".class private System.Runtime.CompilerServices.ScopedRefAttribute extends [mscorlib]System.Attribute
+@".class private System.Runtime.CompilerServices.LifetimeAnnotationAttribute extends [mscorlib]System.Attribute
 {
-  .method public hidebysig specialname rtspecialname instance void .ctor(bool isRefScoped, bool isValueScoped) cil managed { ret }
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
 }
 .class public sealed R extends [mscorlib]System.ValueType
 {
@@ -252,13 +244,13 @@ namespace System.Runtime.CompilerServices
   .method public static void F1(valuetype R r)
   {
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.ScopedRefAttribute::.ctor(bool, bool) = ( 01 00 00 01 00 00 ) // ScopedRefAttribute(isRefScoped: false, isValueScoped: true)
+    .custom instance void System.Runtime.CompilerServices.LifetimeAnnotationAttribute::.ctor() = ( 01 00 00 00 ) // LifetimeAnnotationAttribute()
     ret
   }
   .method public static void F2(object x, int32& y)
   {
     .param [2]
-    .custom instance void System.Runtime.CompilerServices.ScopedRefAttribute::.ctor(bool, bool) = ( 01 00 01 00 00 00 ) // ScopedRefAttribute(isRefScoped: true, isValueScoped: false)
+    .custom instance void System.Runtime.CompilerServices.LifetimeAnnotationAttribute::.ctor() = ( 01 00 00 00 ) // LifetimeAnnotationAttribute()
     ret
   }
 }
@@ -277,7 +269,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
             var comp = CreateCompilation(source1, references: new[] { ref0 });
-            // https://github.com/dotnet/roslyn/issues/61647: If the [ScopedRef] scoped value is an int
+            // https://github.com/dotnet/roslyn/issues/61647: If the [LifetimeAnnotation] scoped value is an int
             // rather than a pair of bools, the compiler should reject attribute values that it does not recognize.
             comp.VerifyDiagnostics();
         }
@@ -297,19 +289,19 @@ struct S
             var comp = CreateCompilation(source);
             var expected =
 @"S..ctor(ref System.Int32 i)
-    [ScopedRef] ref System.Int32 i
+    [LifetimeAnnotation(True, False)] ref System.Int32 i
 void S.F(R r)
-    [ScopedRef] R r
+    [LifetimeAnnotation(False, True)] R r
 S S.op_Addition(S a, in R b)
     S a
-    [ScopedRef] in R b
+    [LifetimeAnnotation(True, False)] in R b
 System.Object S.this[in System.Int32 i].get
-    [ScopedRef] in System.Int32 i
+    [LifetimeAnnotation(True, False)] in System.Int32 i
 ";
             CompileAndVerify(comp, symbolValidator: module =>
             {
-                Assert.Equal("System.Runtime.CompilerServices.ScopedRefAttribute", GetScopedRefType(module).ToTestDisplayString());
-                AssertScopedRefAttributes(module, expected);
+                Assert.Equal("System.Runtime.CompilerServices.LifetimeAnnotationAttribute", GetLifetimeAnnotationType(module).ToTestDisplayString());
+                AssertLifetimeAnnotationAttributes(module, expected);
             });
         }
 
@@ -329,8 +321,8 @@ class Program
             var comp = CreateCompilation(source);
             CompileAndVerify(comp, symbolValidator: module =>
             {
-                Assert.Null(GetScopedRefType(module));
-                AssertScopedRefAttributes(module, "");
+                Assert.Null(GetLifetimeAnnotationType(module));
+                AssertLifetimeAnnotationAttributes(module, "");
             });
         }
 
@@ -350,8 +342,8 @@ class Program
             var comp = CreateCompilation(source);
             CompileAndVerify(comp, symbolValidator: module =>
             {
-                Assert.Null(GetScopedRefType(module));
-                AssertScopedRefAttributes(module, "");
+                Assert.Null(GetLifetimeAnnotationType(module));
+                AssertLifetimeAnnotationAttributes(module, "");
             });
         }
 
@@ -365,15 +357,15 @@ delegate void D(scoped in int x, scoped R y);
             var comp = CreateCompilation(source);
             var expected =
 @"void D.Invoke(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x, R y)
-    [ScopedRef] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x
-    [ScopedRef] R y
+    [LifetimeAnnotation(True, False)] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x
+    [LifetimeAnnotation(False, True)] R y
 System.IAsyncResult D.BeginInvoke(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x, R y, System.AsyncCallback callback, System.Object @object)
-    [ScopedRef] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x
-    [ScopedRef] R y
+    [LifetimeAnnotation(True, False)] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x
+    [LifetimeAnnotation(False, True)] R y
     System.AsyncCallback callback
     System.Object @object
 void D.EndInvoke(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x, System.IAsyncResult result)
-    [ScopedRef] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x
+    [LifetimeAnnotation(True, False)] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 x
     System.IAsyncResult result
 ";
             CompileAndVerify(
@@ -381,8 +373,8 @@ void D.EndInvoke(in modreq(System.Runtime.InteropServices.InAttribute) System.In
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {
-                    Assert.Equal("System.Runtime.CompilerServices.ScopedRefAttribute", GetScopedRefType(module).ToTestDisplayString());
-                    AssertScopedRefAttributes(module, expected);
+                    Assert.Equal("System.Runtime.CompilerServices.LifetimeAnnotationAttribute", GetLifetimeAnnotationType(module).ToTestDisplayString());
+                    AssertLifetimeAnnotationAttributes(module, expected);
                 });
         }
 
@@ -402,24 +394,25 @@ class Program
             var comp = CreateCompilation(source);
             var expected =
 @"void D.Invoke(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i)
-    [ScopedRef] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i
+    [LifetimeAnnotation(True, False)] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i
 System.IAsyncResult D.BeginInvoke(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i, System.AsyncCallback callback, System.Object @object)
-    [ScopedRef] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i
+    [LifetimeAnnotation(True, False)] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i
     System.AsyncCallback callback
     System.Object @object
 void D.EndInvoke(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i, System.IAsyncResult result)
-    [ScopedRef] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i
+    [LifetimeAnnotation(True, False)] in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 i
     System.IAsyncResult result
 void Program.<>c.<Main>b__0_0(in System.Int32 i)
-    [ScopedRef] in System.Int32 i
+    [LifetimeAnnotation(True, False)] in System.Int32 i
+
 ";
             CompileAndVerify(
                 source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {
-                    Assert.Equal("System.Runtime.CompilerServices.ScopedRefAttribute", GetScopedRefType(module).ToTestDisplayString());
-                    AssertScopedRefAttributes(module, expected);
+                    Assert.Equal("System.Runtime.CompilerServices.LifetimeAnnotationAttribute", GetLifetimeAnnotationType(module).ToTestDisplayString());
+                    AssertLifetimeAnnotationAttributes(module, expected);
                 });
         }
 
@@ -438,15 +431,15 @@ void Program.<>c.<Main>b__0_0(in System.Int32 i)
             var comp = CreateCompilation(source);
             var expected =
 @"void Program.<M>g__L|0_0(in System.Int32 i)
-    [ScopedRef] in System.Int32 i
+    [LifetimeAnnotation(True, False)] in System.Int32 i
 ";
             CompileAndVerify(
                 source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {
-                    Assert.Equal("System.Runtime.CompilerServices.ScopedRefAttribute", GetScopedRefType(module).ToTestDisplayString());
-                    AssertScopedRefAttributes(module, expected);
+                    Assert.Equal("System.Runtime.CompilerServices.LifetimeAnnotationAttribute", GetLifetimeAnnotationType(module).ToTestDisplayString());
+                    AssertLifetimeAnnotationAttributes(module, expected);
                 });
         }
 
@@ -468,13 +461,13 @@ class Program
             var comp = CreateCompilation(source);
             var expected =
 @"void <>f__AnonymousDelegate0.Invoke(in System.Int32 value)
-    [ScopedRef] in System.Int32 value
+    [LifetimeAnnotation(True, False)] in System.Int32 value
 R <>f__AnonymousDelegate1.Invoke(R value)
-    [ScopedRef] R value
+    [LifetimeAnnotation(False, True)] R value
 void Program.<>c.<Main>b__0_0(in System.Int32 i)
-    [ScopedRef] in System.Int32 i
+    [LifetimeAnnotation(True, False)] in System.Int32 i
 R Program.<>c.<Main>b__0_1(R r)
-    [ScopedRef] R r
+    [LifetimeAnnotation(False, True)] R r
 ";
             CompileAndVerify(
                 source,
@@ -482,20 +475,20 @@ R Program.<>c.<Main>b__0_1(R r)
                 verify: Verification.Skipped,
                 symbolValidator: module =>
                 {
-                    Assert.Equal("System.Runtime.CompilerServices.ScopedRefAttribute", GetScopedRefType(module).ToTestDisplayString());
-                    AssertScopedRefAttributes(module, expected);
+                    Assert.Equal("System.Runtime.CompilerServices.LifetimeAnnotationAttribute", GetLifetimeAnnotationType(module).ToTestDisplayString());
+                    AssertLifetimeAnnotationAttributes(module, expected);
                 });
         }
 
-        private static void AssertScopedRefAttributes(ModuleSymbol module, string expected)
+        private static void AssertLifetimeAnnotationAttributes(ModuleSymbol module, string expected)
         {
-            var actual = ScopedRefAttributesVisitor.GetString((PEModuleSymbol)module);
+            var actual = LifetimeAnnotationAttributesVisitor.GetString((PEModuleSymbol)module);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual);
         }
 
-        private static NamedTypeSymbol GetScopedRefType(ModuleSymbol module)
+        private static NamedTypeSymbol GetLifetimeAnnotationType(ModuleSymbol module)
         {
-            return module.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Runtime.CompilerServices.ScopedRefAttribute");
+            return module.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Runtime.CompilerServices.LifetimeAnnotationAttribute");
         }
     }
 }
