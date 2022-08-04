@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -125,18 +126,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 // Create the directory. It's possible a parallel deletion is happening in another process, so we may have
                 // to retry this a few times.
                 var directoryToCreate = Path.GetDirectoryName(fileInfo.TemporaryFilePath)!;
+                var loopCount = 0;
                 while (!Directory.Exists(directoryToCreate))
                 {
-                    try
-                    {
-                        Directory.CreateDirectory(directoryToCreate);
-                    }
-                    catch (DirectoryNotFoundException)
-                    {
-                    }
-                    catch (UnauthorizedAccessException)
-                    {
-                    }
+                    // Protect against infinite loops.
+                    if (loopCount++ > 10)
+                        return null;
+
+                    IOUtilities.PerformIO(() => Directory.CreateDirectory(directoryToCreate));
                 }
 
                 using (var textWriter = new StreamWriter(fileInfo.TemporaryFilePath, append: false, encoding: MetadataAsSourceGeneratedFileInfo.Encoding))
