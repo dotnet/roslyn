@@ -242,13 +242,37 @@ namespace Microsoft.CodeAnalysis.Rename
                 // Kick off the keep alive task.  Once it has pinned the solution it will call back into the taskCompletionSource
                 // to mark it as completed so that things can proceed. It will terminate when the provided
                 // cancellation token is actually canceled.
-                var unused = client.TryInvokeAsync<IRemoteRenamerService>(
-                    solution,
-                    (service, solutionInfo, callbackId, cancellationToken) => service.KeepAliveAsync(solutionInfo, callbackId, cancellationToken),
-                    callbackTarget: taskCompletionSource,
-                    cancellationToken).AsTask();
+                _ = StartKeepAliveSessionAsync(taskCompletionSource);
 
                 await taskCompletionSource.Task.ConfigureAwait(false);
+            }
+
+            return;
+
+            async Task StartKeepAliveSessionAsync(TaskCompletionSource<bool> taskCompletionSource)
+            {
+                // No matter how the client completes this call, make sure we always complete the TaskCompletionSource
+                // so that our caller can proceed.
+                try
+                {
+                    await client.TryInvokeAsync<IRemoteRenamerService>(
+                        solution,
+                        (service, solutionInfo, callbackId, cancellationToken) => service.KeepAliveAsync(solutionInfo, callbackId, cancellationToken),
+                        callbackTarget: taskCompletionSource,
+                        cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException oce)
+                {
+                    taskCompletionSource.TrySetCanceled(oce.CancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    taskCompletionSource.TrySetException(ex);
+                }
+                finally
+                {
+                    taskCompletionSource.SetResult(true);
+                }
             }
         }
     }
