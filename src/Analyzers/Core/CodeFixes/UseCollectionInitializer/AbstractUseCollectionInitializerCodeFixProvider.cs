@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 var newStatement = GetNewStatement(statement, objectCreation, matches.Value)
                     .WithAdditionalAnnotations(Formatter.Annotation);
 
-                var subEditor = document.GetSyntaxEditor(currentRoot);
+                var subEditor = new SyntaxEditor(currentRoot, document.Project.Solution.Services);
 
                 subEditor.ReplaceNode(statement, newStatement);
                 foreach (var match in matches)

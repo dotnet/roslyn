@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             public SymbolDescriptionBuilder(
                 SemanticModel semanticModel,
                 int position,
-                HostSolutionServices services,
+                SolutionServices services,
                 IStructuralTypeDisplayService structuralTypeDisplayService,
                 SymbolDescriptionOptions options,
                 CancellationToken cancellationToken)
