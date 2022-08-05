@@ -3233,6 +3233,35 @@ return 1;
                 Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "value"));
         }
 
+        [WorkItem(536956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536956")]
+        [Fact]
+        public void CS1065ERR_DefaultValueNotAllowed()
+        {
+            var test = @"
+class A
+{
+    delegate void D(int x);    
+    D d1 = delegate(int x = 42) { };
+}
+";
+
+            CreateCompilation(test).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CS1065ERR_DefaultValueNotAllowed_2()
+        {
+            var test = @"
+class A
+{
+    delegate void D(int x, int y);    
+    D d1 = delegate(int x, int y = 42) { };
+}
+";
+
+            CreateCompilation(test).VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
         public void CS7014ERR_AttributesNotAllowed()
         {
