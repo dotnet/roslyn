@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Last array of module updates generated during the debugging session.
         /// Useful for crash dump diagnostics.
         /// </summary>
-        private ImmutableArray<ManagedModuleUpdate> _lastModuleUpdatesLog;
+        private ImmutableArray<ModuleUpdate> _lastModuleUpdatesLog;
 
         internal DebuggingSession(
             DebuggingSessionId id,
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             LogSolutionUpdate(solutionUpdate);
 
-            if (solutionUpdate.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
+            if (solutionUpdate.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
             {
                 StorePendingUpdate(solution, solutionUpdate);
             }
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private void LogSolutionUpdate(SolutionUpdate update)
         {
             EditAndContinueWorkspaceService.Log.Write("Solution update status: {0}",
-                ((int)update.ModuleUpdates.Status, typeof(ManagedModuleUpdateStatus)));
+                ((int)update.ModuleUpdates.Status, typeof(ModuleUpdateStatus)));
 
             if (update.ModuleUpdates.Updates.Length > 0)
             {
