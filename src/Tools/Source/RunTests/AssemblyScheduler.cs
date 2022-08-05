@@ -150,7 +150,7 @@ namespace RunTests
                 }
 
                 // We didn't find the local type from our assembly in test run historical data.
-                // This can happen if our SRM heuristic incorrectly counted a normal method as a test method (which it can do often).
+                // This usually occurs when tests have been added in between the last passing branch run and this PR.
                 unmatchedLocalTests.Add(methodInfo.FullyQualifiedName);
                 return methodInfo with { ExecutionTime = averageExecutionTime };
             }
@@ -197,7 +197,6 @@ namespace RunTests
             foreach (var (assembly, types) in singlePartitionAssemblies)
             {
                 Logger.Log($"Building single assembly work item {workItemIndex} for {assembly.AssemblyPath}");
-                // Add a filter containing only the tests in this assembly.
                 types.SelectMany(t => t.Tests).ToList().ForEach(test => AddFilter(assembly, test));
 
                 // End the work item so we don't include anything after this assembly.
@@ -335,6 +334,10 @@ namespace RunTests
             }
         }
 
+        /// <summary>
+        /// Looks for the assembly marker attribute <see cref="RunTestsInSinglePartitionAttribute"/>
+        /// that signifies tests in the assembly must be run separately.
+        /// </summary>
         private static bool ShouldPartitionInSingleWorkItem(string assemblyPath)
         {
             using (var stream = File.OpenRead(assemblyPath))
