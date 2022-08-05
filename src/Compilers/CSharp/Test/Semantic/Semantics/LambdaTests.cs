@@ -632,7 +632,7 @@ public class Program
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics( 
+            comp.VerifyDiagnostics(
                 // (6,20): error CS1601: Cannot make reference to variable of type 'TypedReference'
                 //         var lam = (ref TypedReference r) => {};
                 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference r").WithArguments("System.TypedReference").WithLocation(6, 20));
