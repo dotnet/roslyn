@@ -22,4 +22,5 @@ T:System.ComponentModel.Composition.SharedAttribute; Use types from System.Compo
 T:System.ComponentModel.Composition.SharingBoundaryAttribute; Use types from System.Composition instead
 T:System.ComponentModel.Composition.Convention.AttributedModelProvider; Use types from System.Composition instead
 
+P:Microsoft.CodeAnalysis.Solution.Workspace; Use 'Solution.Services' instead
 P:Microsoft.CodeAnalysis.Project.LanguageServices; Use 'Project.Services' instead
