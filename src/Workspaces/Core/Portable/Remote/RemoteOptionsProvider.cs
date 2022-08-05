@@ -26,5 +26,5 @@ internal sealed class RemoteOptionsProvider<TOptions>
     }
 
     internal ValueTask<TOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
-        => _optionsProvider.GetOptionsAsync(_services.GetLanguageServices(language), cancellationToken);
+        => _optionsProvider.GetOptionsAsync(_services.GetLanguageServices(language).LanguageServices, cancellationToken);
 }

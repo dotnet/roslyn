@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return value.Value;
                 }
 
-                var fallbackFormattingOptions = await ((OptionsProvider<SyntaxFormattingOptions>)Options.FallbackOptions).GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false);
+                var fallbackFormattingOptions = await ((OptionsProvider<SyntaxFormattingOptions>)Options.FallbackOptions).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false);
 
                 return fallbackFormattingOptions.AccessibilityModifiersRequired;
             }
