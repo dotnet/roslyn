@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// Per language services provided by the host environment.
     /// </summary>
-    internal sealed class LanguageServices
+    public sealed class LanguageServices
     {
         private readonly HostLanguageServices _services;
 

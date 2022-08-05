@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             }
 
             // check that the user is not typing in a string literal or comment
-            var syntaxFactsService = document.ProjectServices.GetRequiredService<ISyntaxFactsService>();
+            var syntaxFactsService = document.LanguageServices.GetRequiredService<ISyntaxFactsService>();
 
             return !syntaxFactsService.IsInNonUserCode(document.SyntaxTree, openingPosition, cancellationToken);
         }
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         protected bool AllowOverTypeInUserCodeWithValidClosingToken(BraceCompletionContext context, CancellationToken cancellationToken)
         {
             var tree = context.Document.SyntaxTree;
-            var syntaxFactsService = context.Document.ProjectServices.GetRequiredService<ISyntaxFactsService>();
+            var syntaxFactsService = context.Document.LanguageServices.GetRequiredService<ISyntaxFactsService>();
 
             return !syntaxFactsService.IsInNonUserCode(tree, context.CaretLocation, cancellationToken)
                 && CheckClosingTokenKind(context.Document, context.ClosingPoint);

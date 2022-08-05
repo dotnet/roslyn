@@ -21,7 +21,11 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         public abstract string Language { get; }
 
-        internal LanguageServices LanguageServices { get; }
+        /// <summary>
+        /// Immutable snapshot of the host services.  Preferable to use instead of this <see
+        /// cref="HostLanguageServices"/> when possible.
+        /// </summary>
+        public LanguageServices LanguageServices { get; }
 
         protected HostLanguageServices()
         {

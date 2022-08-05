@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// Per solution services provided by the host environment.
     /// </summary>
-    internal sealed class SolutionServices
+    public sealed class SolutionServices
     {
         /// <remarks>
         /// Note: do not expose publicly.  <see cref="HostWorkspaceServices"/> exposes a <see
