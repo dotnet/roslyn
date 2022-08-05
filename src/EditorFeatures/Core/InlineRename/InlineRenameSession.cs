@@ -87,11 +87,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public InlineRenameFileRenameInfo FileRenameInfo { get; }
 
         /// <summary>
-        /// Task used to hold a session alive with the OOP server.  This allows us to pin the initial solution snapshot
-        /// over on the oop side, which is valuable for preventing it from constantly being dropped/synced on every
-        /// conflict resolution step.
+        /// Rename session held alive with the OOP server.  This allows us to pin the initial solution snapshot over on
+        /// the oop side, which is valuable for preventing it from constantly being dropped/synced on every conflict
+        /// resolution step.
         /// </summary>
-        private readonly JoinableTask _keepAliveSessionTask;
+        private readonly IRemoteRenameKeepAliveSession _keepAliveSession;
 
         /// <summary>
         /// The task which computes the main rename locations against the original workspace
@@ -188,8 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             // Open a session to oop, syncing our solution to it and pinning it there.  The connection will close once
             // _cancellationTokenSource is canceled (which we always do when the session is finally ended).
-            _keepAliveSessionTask = _threadingContext.JoinableTaskFactory.RunAsync(() =>
-                Renamer.CreateRemoteKeepAliveSessionAsync(_baseSolution, _cancellationTokenSource.Token));
+            _keepAliveSession = Renamer.CreateRemoteKeepAliveSession(_baseSolution, asyncListener);
             InitializeOpenBuffers(triggerSpan);
         }
 
@@ -671,6 +670,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // We're about to perform the final commit action.  No need to do any of our BG work to find-refs or compute conflicts.
             _cancellationTokenSource.Cancel();
             _conflictResolutionTaskCancellationSource.Cancel();
+
+            // Close the keep alive session we have open with OOP, allowing it to release the solution it is holding onto.
+            _keepAliveSession.Dispose();
 
             // Perform the actual commit step if we've been asked to.
             if (finalCommitAction != null)

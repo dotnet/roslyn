@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
@@ -17,6 +18,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
@@ -221,23 +223,61 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         /// <summary>
-        /// Creates a session between the host and OOP, effectively pinning this <paramref name="solution"/> until the
-        /// supplied <paramref name="cancellationToken"/> is canceled..  By pinning the solution we ensure that all
-        /// calls to OOP for the same solution during the life of this rename session do not need to resync the
-        /// solution.  Nor do they then need to rebuild any compilations they've already built due to the solution going
-        /// away and then coming back.
+        /// Creates a session between the host and OOP, effectively pinning this <paramref name="solution"/> until <see
+        /// cref="IDisposable.Dispose"/> is called on it.  By pinning the solution we ensure that all calls to OOP for
+        /// the same solution during the life of this rename session do not need to resync the solution.  Nor do they
+        /// then need to rebuild any compilations they've already built due to the solution going away and then coming
+        /// back.
         /// </summary>
-        internal static async Task CreateRemoteKeepAliveSessionAsync(
+        internal static IRemoteRenameKeepAliveSession CreateRemoteKeepAliveSession(
             Solution solution,
-            CancellationToken cancellationToken)
+            IAsynchronousOperationListener listener)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
-            if (client != null)
+            return new RemoteRenameKeepAliveSession(solution, listener);
+        }
+
+        private sealed class RemoteRenameKeepAliveSession : IRemoteRenameKeepAliveSession
+        {
+            private readonly CancellationTokenSource _cancellationTokenSource = new();
+
+            public RemoteRenameKeepAliveSession(Solution solution, IAsynchronousOperationListener listener)
             {
-                var unused = client.TryInvokeAsync<IRemoteRenamerService>(
-                    solution,
-                    (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, cancellationToken),
-                    cancellationToken).AsTask();
+                var cancellationToken = _cancellationTokenSource.Token;
+                var token = listener.BeginAsyncOperation(nameof(RemoteRenameKeepAliveSession));
+
+                var task = CreateClientAndKeepAliveAsync();
+                task.CompletesAsyncOperation(token);
+
+                return;
+
+                async Task CreateClientAndKeepAliveAsync()
+                {
+                    var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+                    if (client is null)
+                        return;
+
+                    // Now kick off the keep-alive work.  We don't wait on this as this will stick on the OOP side until
+                    // the cancellation token triggers.
+                    var unused = client.TryInvokeAsync<IRemoteRenamerService>(
+                        solution,
+                        (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, cancellationToken),
+                        cancellationToken).AsTask();
+                }
+            }
+
+            ~RemoteRenameKeepAliveSession()
+            {
+                if (Environment.HasShutdownStarted)
+                    return;
+
+                Contract.Fail($@"Should have been disposed!");
+            }
+
+            public void Dispose()
+            {
+                GC.SuppressFinalize(this);
+                _cancellationTokenSource.Cancel();
+                _cancellationTokenSource.Dispose();
             }
         }
     }
