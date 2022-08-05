@@ -20,11 +20,11 @@ steps:
   displayName: 📢 Publish artifacts
   condition: succeededOrFailed()
 
-- powershell: |
-    $ArtifactStagingFolder = & "azure-pipelines/Get-ArtifactsStagingDirectory.ps1"
-    $CoverageResultsFolder = Join-Path $ArtifactStagingFolder "coverageResults-$(Agent.JobName)"
-    azure-pipelines/publish-CodeCov.ps1 -CodeCovToken "$(codecov_token)" -PathToCodeCoverage "$CoverageResultsFolder" -Name "$(Agent.JobName) Coverage Results" -Flags "$(Agent.JobName)Host,$(BuildConfiguration)"
-  displayName: 📢 Publish code coverage results to codecov.io
-  condition: ne(variables['codecov_token'], '')
-  timeoutInMinutes: 3
-  continueOnError: true
+- ${{ if and(ne(variables['codecov_token'], ''), parameters.RunTests) }}:
+  - powershell: |
+      $ArtifactStagingFolder = & "azure-pipelines/Get-ArtifactsStagingDirectory.ps1"
+      $CoverageResultsFolder = Join-Path $ArtifactStagingFolder "coverageResults-$(Agent.JobName)"
+      azure-pipelines/publish-CodeCov.ps1 -CodeCovToken "$(codecov_token)" -PathToCodeCoverage "$CoverageResultsFolder" -Name "$(Agent.JobName) Coverage Results" -Flags "$(Agent.JobName)Host,$(BuildConfiguration)"
+    displayName: 📢 Publish code coverage results to codecov.io
+    timeoutInMinutes: 3
+    continueOnError: true
