@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
@@ -116,7 +115,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     .WithTelemetryId(creationInfo.ProjectGuid);
 
                 // If we don't have any projects and this is our first project being added, then we'll create a new SolutionId
-                // and count this as the solution being added so that event is raised.
                 if (w.CurrentSolution.ProjectIds.Count == 0)
                 {
                     var solutionSessionId = GetSolutionSessionId();
