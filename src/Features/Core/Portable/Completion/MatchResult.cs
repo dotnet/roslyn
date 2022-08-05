@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Roslyn.Utilities;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
@@ -22,6 +20,9 @@ namespace Microsoft.CodeAnalysis.Completion
         public readonly PatternMatch? PatternMatch;
         public readonly bool ShouldBeConsideredMatchingFilterText;
 
+        // false if the match is created using Item.FilterText
+        public readonly bool MatchedWithAdditionalFilterTexts;
+
         /// <summary>
         /// The actual editor completion item associated with this <see cref="RoslynCompletionItem"/>
         /// In VS for example, this is the associated VS async completion item.
@@ -38,13 +39,15 @@ namespace Microsoft.CodeAnalysis.Completion
             TEditorCompletionItem editorCompletionItem,
             bool shouldBeConsideredMatchingFilterText,
             PatternMatch? patternMatch,
-            int index)
+            int index,
+            bool matchedWithAdditionalFilterTexts)
         {
             RoslynCompletionItem = roslynCompletionItem;
             EditorCompletionItem = editorCompletionItem;
             ShouldBeConsideredMatchingFilterText = shouldBeConsideredMatchingFilterText;
             PatternMatch = patternMatch;
             _indexInOriginalSortedOrder = index;
+            MatchedWithAdditionalFilterTexts = matchedWithAdditionalFilterTexts;
         }
 
         public static IComparer<MatchResult<TEditorCompletionItem>> SortingComparer => FilterResultSortingComparer.Instance;
@@ -64,10 +67,13 @@ namespace Microsoft.CodeAnalysis.Completion
                     if (matchY.HasValue)
                     {
                         var ret = matchX.Value.CompareTo(matchY.Value);
+
+                        // We'd rank match of FilterText over match of any of AdditionalFilterTexts if they has same pattern match score
+                        if (ret == 0)
+                            ret = x.MatchedWithAdditionalFilterTexts.CompareTo(y.MatchedWithAdditionalFilterTexts);
+
                         // We want to preserve the original order for items with same pattern match score.
-                        return ret == 0
-                            ? x._indexInOriginalSortedOrder - y._indexInOriginalSortedOrder
-                            : ret;
+                        return ret == 0 ? x._indexInOriginalSortedOrder - y._indexInOriginalSortedOrder : ret;
                     }
 
                     return -1;

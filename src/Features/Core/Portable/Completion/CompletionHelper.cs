@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 foreach (var additionalFilterText in item.AdditionalFilterTexts)
                 {
                     var additionalMatch = GetMatch(additionalFilterText, pattern, includeMatchSpans, culture);
-                    if (!match.HasValue || (additionalMatch.HasValue && additionalMatch.Value.CompareTo(match.Value) < 0))
+                    if (additionalMatch.HasValue && additionalMatch.Value.CompareTo(match, ignoreCase: false) < 0)
                         match = additionalMatch;
                 }
             }
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionHelper completionHelper,
             CompletionItem item,
             T editorCompletionItem,
-            string filterText,
+            string pattern,
             CompletionTriggerKind initialTriggerKind,
             CompletionFilterReason filterReason,
             bool isRecentItem,
@@ -416,23 +416,49 @@ namespace Microsoft.CodeAnalysis.Completion
             // against terms like "IList" and not IList<>.
             // Note that the check on filter text length is purely for efficiency, we should 
             // get the same result with or without it.
-            var patternMatch = filterText.Length > 0
-                ? completionHelper.GetMatch(item.FilterText, filterText, includeMatchSpans, CultureInfo.CurrentCulture)
+            var patternMatch = pattern.Length > 0
+                ? completionHelper.GetMatch(item.FilterText, pattern, includeMatchSpans, CultureInfo.CurrentCulture)
                 : null;
 
+            var matchedAdditionalFilterTexts = false;
             var shouldBeConsideredMatchingFilterText = ShouldBeConsideredMatchingFilterText(
-                item,
-                filterText,
+                item.FilterText,
+                pattern,
+                item.Rules.MatchPriority,
                 initialTriggerKind,
                 filterReason,
                 isRecentItem,
                 patternMatch);
 
-            if (shouldBeConsideredMatchingFilterText || KeepAllItemsInTheList(initialTriggerKind, filterText))
+            if (pattern.Length > 0 && item.HasAdditionalFilterTexts)
+            {
+                foreach (var additionalFilterText in item.AdditionalFilterTexts)
+                {
+                    var additionalMatch = completionHelper.GetMatch(additionalFilterText, pattern, includeMatchSpans, CultureInfo.CurrentCulture);
+                    var additionalFlag = ShouldBeConsideredMatchingFilterText(
+                        additionalFilterText,
+                        pattern,
+                        item.Rules.MatchPriority,
+                        initialTriggerKind,
+                        filterReason,
+                        isRecentItem,
+                        additionalMatch);
+
+                    if (!shouldBeConsideredMatchingFilterText ||
+                        additionalFlag && additionalMatch.HasValue && additionalMatch.Value.CompareTo(patternMatch, ignoreCase: false) < 0)
+                    {
+                        matchedAdditionalFilterTexts = true;
+                        shouldBeConsideredMatchingFilterText = additionalFlag;
+                        patternMatch = additionalMatch;
+                    }
+                }
+            }
+
+            if (shouldBeConsideredMatchingFilterText || KeepAllItemsInTheList(initialTriggerKind, pattern))
             {
                 matchResult = new MatchResult<T>(
                     item, editorCompletionItem, shouldBeConsideredMatchingFilterText,
-                    patternMatch, currentIndex);
+                    patternMatch, currentIndex, matchedAdditionalFilterTexts);
 
                 return true;
             }
@@ -441,8 +467,9 @@ namespace Microsoft.CodeAnalysis.Completion
             return false;
 
             static bool ShouldBeConsideredMatchingFilterText(
-                CompletionItem item,
                 string filterText,
+                string pattern,
+                int matchPriority,
                 CompletionTriggerKind initialTriggerKind,
                 CompletionFilterReason filterReason,
                 bool isRecentItem,
@@ -458,14 +485,14 @@ namespace Microsoft.CodeAnalysis.Completion
                 if (filterReason == CompletionFilterReason.Deletion &&
                     initialTriggerKind == CompletionTriggerKind.Deletion)
                 {
-                    return item.FilterText.GetCaseInsensitivePrefixLength(filterText) > 0;
+                    return filterText.GetCaseInsensitivePrefixLength(pattern) > 0;
                 }
 
                 // If the user hasn't typed anything, and this item was preselected, or was in the
                 // MRU list, then we definitely want to include it.
-                if (filterText.Length == 0)
+                if (pattern.Length == 0)
                 {
-                    if (isRecentItem || item.Rules.MatchPriority > MatchPriority.Default)
+                    if (isRecentItem || matchPriority > MatchPriority.Default)
                         return true;
                 }
 
