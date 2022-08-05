@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     public sealed partial class ValidateBootstrap : Task
     {
-        private static readonly ConcurrentDictionary<AssemblyName, byte> s_failedLoadSet = new ConcurrentDictionary<AssemblyName, byte>();
         private static readonly ConcurrentQueue<(ResponseType ResponseType, string? OutputAssembly)> s_failedQueue = new ConcurrentQueue<(ResponseType ResponseType, string? OutputAssembly)>();
 
         private string? _tasksAssemblyFullPath;
@@ -58,16 +57,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 Log.LogError($"Bootstrap assembly {Path.GetFileName(fullPath)} incorrectly loaded from {fullPath} instead of {TasksAssemblyFullPath}");
                 allGood = false;
-            }
-
-            var failedLoads = s_failedLoadSet.Keys.ToList();
-            if (failedLoads.Count > 0)
-            {
-                foreach (var name in failedLoads.OrderBy(x => x.Name))
-                {
-                    Log.LogError($"Assembly resolution failed for {name}");
-                    allGood = false;
-                }
             }
 
             // This represents the maximum number of failed connection attempts on the server before we will declare
@@ -133,23 +122,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return path;
         }
 
-        private string? GetDirectory(Assembly assembly) => Path.GetDirectoryName(Utilities.TryGetAssemblyPath(assembly));
-
-        internal static void AddFailedLoad(AssemblyName name)
-        {
-            switch (name.Name)
-            {
-                case "System":
-                case "System.Core":
-                case "Microsoft.Build.Tasks.CodeAnalysis.resources":
-                    // These are failures are expected by design.
-                    break;
-                default:
-                    s_failedLoadSet.TryAdd(name, 0);
-                    break;
-            }
-        }
-
         internal static void AddFailedServerConnection(ResponseType type, string? outputAssembly)
         {
             s_failedQueue.Enqueue((type, outputAssembly));
@@ -159,13 +131,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
     internal static class ValidateBootstrapUtil
     {
-        internal static void AddFailedLoad(AssemblyName name)
-        {
-#if DEBUG || BOOTSTRAP
-            ValidateBootstrap.AddFailedLoad(name);
-#endif
-        }
-
         internal static void AddFailedServerConnection(ResponseType type, string? outputAssembly)
         {
 #if DEBUG || BOOTSTRAP
