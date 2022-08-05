@@ -32,5 +32,6 @@
     <CompilerVisibleProperty Include="MetalamaSourceOnlyAnalyzers" />
     <CompilerVisibleProperty Include="MetalamaLicense" />
     <CompilerVisibleProperty Include="NETCoreSdkBundledVersionsProps" />
+    <CompilerVisibleProperty Include="MSBuildProjectFullPath"/>
   </ItemGroup>
 </Project>
