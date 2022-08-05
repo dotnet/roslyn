@@ -25,17 +25,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 .Add("Position", position.ToString())
                 .Add(SnippetIdentifierKey, snippetIdentifier);
 
-            var item = CommonCompletionItem.Create(
+            return CommonCompletionItem.Create(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
                 glyph: glyph,
                 filterText: snippetIdentifier,
                 properties: props,
                 isComplexTextEdit: true,
-                rules: CompletionItemRules.Default);
-
-            item.AdditionalFilterTexts = additionalFilterTexts;
-            return item;
+                rules: CompletionItemRules.Default)
+                .WithAdditionalFilterTexts(additionalFilterTexts);
         }
 
         public static string GetSnippetIdentifier(CompletionItem item)

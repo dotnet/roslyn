@@ -271,12 +271,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         selectedItemIndex = 0;
                         bestOrFirstMatchResult = items[0];
 
-                        var longestCommonPrefixLength = bestOrFirstMatchResult.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(_filterText);
+                        var longestCommonPrefixLength = bestOrFirstMatchResult.FilterTextUsed.GetCaseInsensitivePrefixLength(_filterText);
 
                         for (var i = 1; i < items.Count; ++i)
                         {
                             var item = items[i];
-                            var commonPrefixLength = item.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(_filterText);
+                            var commonPrefixLength = item.FilterTextUsed.GetCaseInsensitivePrefixLength(_filterText);
 
                             if (commonPrefixLength > longestCommonPrefixLength)
                             {
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     //   text that originally appeared before the dot
                     // * deleting through a word from the end keeps that word selected
                     // This also preserves the behavior the VB had through Dev12.
-                    hardSelect = !_hasSuggestedItemOptions && bestMatchResult.Value.RoslynCompletionItem.FilterText.StartsWith(_filterText, StringComparison.CurrentCultureIgnoreCase);
+                    hardSelect = !_hasSuggestedItemOptions && bestMatchResult.Value.FilterTextUsed.StartsWith(_filterText, StringComparison.CurrentCultureIgnoreCase);
                 }
 
                 // The best match we have selected is unique if `moreThanOneMatch` is false.
@@ -439,10 +439,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     if (matchResult.RoslynCompletionItem.HasDifferentFilterText || matchResult.RoslynCompletionItem.HasAdditionalFilterTexts)
                     {
-                        // The PatternMatch in MatchResult is calculated based on Roslyn item's FilterText, 
-                        // which can be used to calculate highlighted span for VSCompletion item's DisplayText w/o doing the matching again.
-                        // However, if the Roslyn item's FilterText is different from its DisplayText,
-                        // we need to do the match against the display text of the VS item directly to get the highlighted spans.
+                        // The PatternMatch in MatchResult is calculated based on Roslyn item's FilterText, which can be used to calculate
+                        // highlighted span for VSCompletion item's DisplayText w/o doing the matching again.
+                        // However, if the Roslyn item's FilterText is different from its DisplayText, we need to do the match against the
+                        // display text of the VS item directly to get the highlighted spans. This is done in a best effort fashion and there
+                        // is no guarantee a proper match would be found for highlighting.
                         return completionHelper.GetHighlightedSpans(
                             matchResult.RoslynCompletionItem, filterText, CultureInfo.CurrentCulture).SelectAsArray(s => s.ToSpan());
                     }

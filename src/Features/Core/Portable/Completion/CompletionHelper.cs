@@ -163,18 +163,6 @@ namespace Microsoft.CodeAnalysis.Completion
         private PatternMatcher GetPatternMatcher(string pattern, CultureInfo culture, bool includeMatchedSpans)
             => GetPatternMatcher(pattern, culture, includeMatchedSpans, _patternMatcherMap);
 
-        /// <summary>
-        /// Returns true if item1 is a better completion item than item2 given the provided filter
-        /// text, or false if it is not better.
-        /// </summary>
-        public int CompareItems(CompletionItem item1, CompletionItem item2, string pattern, CultureInfo culture)
-        {
-            var match1 = GetMatch(item1, pattern, includeMatchSpans: false, culture);
-            var match2 = GetMatch(item2, pattern, includeMatchSpans: false, culture);
-
-            return CompareItems(item1, match1, item2, match2, out _);
-        }
-
         public int CompareItems(CompletionItem item1, PatternMatch? match1, CompletionItem item2, PatternMatch? match2, out bool onlyDifferInCaseSensitivity)
         {
             onlyDifferInCaseSensitivity = false;
@@ -420,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 ? completionHelper.GetMatch(item.FilterText, pattern, includeMatchSpans, CultureInfo.CurrentCulture)
                 : null;
 
-            var matchedAdditionalFilterTexts = false;
+            string? matchedAdditionalFilterText = null;
             var shouldBeConsideredMatchingFilterText = ShouldBeConsideredMatchingFilterText(
                 item.FilterText,
                 pattern,
@@ -447,7 +435,7 @@ namespace Microsoft.CodeAnalysis.Completion
                     if (!shouldBeConsideredMatchingFilterText ||
                         additionalFlag && additionalMatch.HasValue && additionalMatch.Value.CompareTo(patternMatch, ignoreCase: false) < 0)
                     {
-                        matchedAdditionalFilterTexts = true;
+                        matchedAdditionalFilterText = additionalFilterText;
                         shouldBeConsideredMatchingFilterText = additionalFlag;
                         patternMatch = additionalMatch;
                     }
@@ -458,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 matchResult = new MatchResult<T>(
                     item, editorCompletionItem, shouldBeConsideredMatchingFilterText,
-                    patternMatch, currentIndex, matchedAdditionalFilterTexts);
+                    patternMatch, currentIndex, matchedAdditionalFilterText);
 
                 return true;
             }
