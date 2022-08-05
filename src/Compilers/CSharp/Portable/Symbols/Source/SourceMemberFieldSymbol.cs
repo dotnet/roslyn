@@ -485,6 +485,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (refKind != RefKind.None)
                     {
                         MessageID.IDS_FeatureRefFields.CheckFeatureAvailability(diagnostics, compilation, typeSyntax.Location);
+                        if (!compilation.Assembly.RuntimeSupportsByRefFields)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, ErrorLocation);
+                        }
+
                         if (!containingType.IsRefLikeType)
                         {
                             diagnostics.Add(ErrorCode.ERR_RefFieldInNonRefStruct, ErrorLocation);
