@@ -1222,8 +1222,10 @@ namespace System.Diagnostics.CodeAnalysis
                 // RuntimeSupportsByRefFields property for it.
                 var mscorlibWithoutSharing = new[] { GetMscorlibRefWithoutSharingCachedSymbols() };
 
+                // Note: we use skipExtraValidation so that nobody pulls
+                // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
                 var comp = CreateCompilationCore(source, references is not null ? references.Concat(mscorlibWithoutSharing) : mscorlibWithoutSharing,
-                    options, parseOptions, assemblyName: assemblyName, sourceFileName: sourceFileName, skipUsesIsNullable, experimentalFeature: null, skipExtraValidation: true);
+                    options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: null, skipExtraValidation: true);
 
                 comp.Assembly.RuntimeSupportsByRefFields = true;
                 return comp;

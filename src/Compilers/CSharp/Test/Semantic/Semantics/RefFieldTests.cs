@@ -101,7 +101,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
             var mscorlibRefWithRefFields = GetMscorlibRefWithoutSharingCachedSymbols();
 
-            var comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular10);
+            // Note: we use skipExtraValidation so that nobody pulls
+            // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
+            var comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular10, skipExtraValidation: true);
             comp.Assembly.RuntimeSupportsByRefFields = true;
             comp.VerifyEmitDiagnostics(
                 // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
@@ -182,7 +184,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // RuntimeSupportsByRefFields property for it.
             var mscorlibRefWithRefFields = GetMscorlibRefWithoutSharingCachedSymbols();
 
-            var comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular10);
+            // Note: we use skipExtraValidation so that nobody pulls
+            // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
+            var comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular10, skipExtraValidation: true);
             comp.Assembly.RuntimeSupportsByRefFields = true;
             comp.VerifyEmitDiagnostics(
                 // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
@@ -255,7 +259,9 @@ class Program
             // RuntimeSupportsByRefFields property for it.
             var mscorlibRefWithRefFields = GetMscorlibRefWithoutSharingCachedSymbols();
 
-            var comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular10);
+            // Note: we use skipExtraValidation so that nobody pulls
+            // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
+            var comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular10, skipExtraValidation: true);
             comp.Assembly.RuntimeSupportsByRefFields = true;
             comp.VerifyEmitDiagnostics(
                 // (3,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
@@ -5927,7 +5933,9 @@ class Program
     }
 }";
             var references = TargetFrameworkUtil.GetReferences(TargetFramework.Standard, additionalReferences: null);
-            var comp = CreateEmptyCompilation(source, references: CopyWithoutSharingCachedSymbols(references), options: TestOptions.ReleaseExe);
+            // Note: we use skipExtraValidation so that nobody pulls
+            // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
+            var comp = CreateEmptyCompilation(source, references: CopyWithoutSharingCachedSymbols(references), options: TestOptions.ReleaseExe, skipExtraValidation: true);
             comp.Assembly.RuntimeSupportsByRefFields = true;
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(@"(1, Hello world)"));
             verifier.VerifyIL("Program.Deconstruct<T, U>",
@@ -11777,7 +11785,9 @@ ref struct R<T>
 }
 ";
             var references = TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreAppAndCSharp, additionalReferences: null);
-            var comp = CreateEmptyCompilation(source, references: CopyWithoutSharingCachedSymbols(references), options: TestOptions.DebugExe);
+            // Note: we use skipExtraValidation so that nobody pulls
+            // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
+            var comp = CreateEmptyCompilation(source, references: CopyWithoutSharingCachedSymbols(references), options: TestOptions.DebugExe, skipExtraValidation: true);
             comp.Assembly.RuntimeSupportsByRefFields = true;
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("4242"));
             verifier.VerifyIL("C.Main", """
