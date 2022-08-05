@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Reflection;
+#if !BOOTSTRAP
 
-#if DEBUG || BOOTSTRAP
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
@@ -13,22 +12,15 @@ using System.Linq;
 using System.Threading;
 using Microsoft.Build.Utilities;
 using Roslyn.Utilities;
-#endif
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
-    using static Microsoft.CodeAnalysis.CommandLine.BuildResponse;
-
-#if DEBUG || BOOTSTRAP
     /// <summary>
-    /// This task exists to help us validate our bootstrap building phase is executing correctly.  The bootstrap
-    /// phase of CI is the best way to validate the integration of our components is functioning correctly. Items
-    /// which are difficult to validate in a unit test scenario.
+    /// This task exists to help us validate our bootstrap build is loading the correct binary from disk. Ensuring
+    /// it loads the bootstrap binaries and not the standard build binaries.
     /// </summary>
     public sealed partial class ValidateBootstrap : Task
     {
-        private static readonly ConcurrentQueue<(ResponseType ResponseType, string? OutputAssembly)> s_failedQueue = new ConcurrentQueue<(ResponseType ResponseType, string? OutputAssembly)>();
-
         private string? _tasksAssemblyFullPath;
 
         [DisallowNull]
@@ -51,58 +43,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return false;
             }
 
-            var allGood = true;
             var fullPath = typeof(ValidateBootstrap).Assembly.Location;
             if (!StringComparer.OrdinalIgnoreCase.Equals(TasksAssemblyFullPath, fullPath))
             {
                 Log.LogError($"Bootstrap assembly {Path.GetFileName(fullPath)} incorrectly loaded from {fullPath} instead of {TasksAssemblyFullPath}");
-                allGood = false;
+                return false;
             }
 
-            // This represents the maximum number of failed connection attempts on the server before we will declare
-            // that the overall build itself failed. Keeping this at zero is not realistic because even in a fully
-            // functioning server connection failures are expected. The server could be too busy to accept connections
-            // fast enough. Anything above this count though is considered worth investigating by the compiler team.
-            //
-            const int maxCannotConnectCount = 2;
-            var cannotConnectCount = 0;
-            foreach (var tuple in s_failedQueue.ToList())
-            {
-                switch (tuple.ResponseType)
-                {
-                    case ResponseType.AnalyzerInconsistency:
-                        Log.LogError($"Analyzer inconsistency building {tuple.OutputAssembly}");
-                        allGood = false;
-                        break;
-                    case ResponseType.MismatchedVersion:
-                    case ResponseType.IncorrectHash:
-                        Log.LogError($"Critical error {tuple.ResponseType} building {tuple.OutputAssembly}");
-                        allGood = false;
-                        break;
-                    case ResponseType.Rejected:
-                        Log.LogError($"Compiler request rejected");
-                        allGood = false;
-                        break;
-                    case ResponseType.CannotConnect:
-                        cannotConnectCount++;
-                        if (cannotConnectCount > maxCannotConnectCount)
-                        {
-                            Log.LogError("Too many errors connecting to the server");
-                            allGood = false;
-                        }
-                        break;
-                    case ResponseType.Completed:
-                    case ResponseType.Shutdown:
-                        // Expected messages
-                        break;
-                    default:
-                        Log.LogError($"Unexpected response type {tuple.ResponseType}");
-                        allGood = false;
-                        break;
-                }
-            }
-
-            return allGood;
+            return true;
         }
 
         [return: NotNullIfNotNull("path")]
@@ -121,21 +69,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             return path;
         }
-
-        internal static void AddFailedServerConnection(ResponseType type, string? outputAssembly)
-        {
-            s_failedQueue.Enqueue((type, outputAssembly));
-        }
-    }
-#endif
-
-    internal static class ValidateBootstrapUtil
-    {
-        internal static void AddFailedServerConnection(ResponseType type, string? outputAssembly)
-        {
-#if DEBUG || BOOTSTRAP
-            ValidateBootstrap.AddFailedServerConnection(type, outputAssembly);
-#endif
-        }
     }
 }
+#endif
