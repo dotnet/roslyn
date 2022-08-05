@@ -18,19 +18,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             string displayTextSuffix,
             int position,
             string snippetIdentifier,
-            Glyph glyph)
+            Glyph glyph,
+            ImmutableArray<string> additionalFilterTexts)
         {
             var props = ImmutableDictionary<string, string>.Empty
                 .Add("Position", position.ToString())
                 .Add(SnippetIdentifierKey, snippetIdentifier);
 
-            return CommonCompletionItem.Create(
+            var item = CommonCompletionItem.Create(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
                 glyph: glyph,
+                filterText: snippetIdentifier,
                 properties: props,
                 isComplexTextEdit: true,
                 rules: CompletionItemRules.Default);
+
+            item.AdditionalFilterTexts = additionalFilterTexts;
+            return item;
         }
 
         public static string GetSnippetIdentifier(CompletionItem item)

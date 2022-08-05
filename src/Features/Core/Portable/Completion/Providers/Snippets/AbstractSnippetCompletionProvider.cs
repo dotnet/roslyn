@@ -88,7 +88,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                     displayTextSuffix: "",
                     position: position,
                     snippetIdentifier: snippetData.SnippetIdentifier,
-                    glyph: Glyph.Snippet);
+                    glyph: Glyph.Snippet,
+                    additionalFilterTexts: snippetData.AdditionalFilterTexts);
                 context.AddItem(completionItem);
             }
         }
