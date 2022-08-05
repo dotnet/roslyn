@@ -10121,5 +10121,81 @@ namespace ReferencedNamespace2
             End Using
         End Function
 
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAdditionalFilterTexts() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    public void M()
+    {
+        $$
+    }
+}
+                              </Document>,
+                              extraExportedTypes:={GetType(ItemWithAdditionalFilterTextsProvider)}.ToList())
+
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Console", "Add code that write to console", "Add code that write line to console")
+
+                state.SendTypeChars("c")
+                Await state.AssertCompletionItemsContainAll("Console", "Add code that write to console", "Add code that write line to console")
+                Await state.AssertSelectedCompletionItem("Console", isHardSelected:=True)
+
+                state.SendTypeChars("w")
+                Await state.AssertCompletionItemsContainAll("Add code that write to console", "Add code that write line to console")
+                Await state.AssertCompletionItemsDoNotContainAny("Console")
+                Await state.AssertSelectedCompletionItem("Add code that write to console", isHardSelected:=True)
+
+                state.SendTypeChars("l")
+                Await state.AssertCompletionItemsDoNotContainAny("Console", "Add code that write to console")
+                Await state.AssertSelectedCompletionItem("Add code that write line to console", isHardSelected:=True)
+
+                state.SendBackspaces("wl".Length)
+                state.SendTypeChars("onsole")
+                Await state.AssertCompletionItemsContainAll("Console", "Add code that write to console", "Add code that write line to console")
+                Await state.AssertSelectedCompletionItem("Console", isHardSelected:=True)
+
+                state.SendBackspaces("console".Length)
+                state.SendTypeChars("write")
+                Await state.AssertCompletionItemsContainAll("Add code that write to console", "Add code that write line to console")
+                Await state.AssertCompletionItemsDoNotContainAny("Console")
+                Await state.AssertSelectedCompletionItem("Add code that write to console", isHardSelected:=True)
+
+                state.SendTypeChars("l")
+                Await state.AssertCompletionItemsDoNotContainAny("Add code that write to console", "Console")
+                Await state.AssertSelectedCompletionItem("Add code that write line to console", isHardSelected:=True)
+            End Using
+        End Function
+
+        <ExportCompletionProvider(NameOf(ItemWithAdditionalFilterTextsProvider), LanguageNames.CSharp)>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Private Class ItemWithAdditionalFilterTextsProvider
+            Inherits CompletionProvider
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
+                context.AddItem(CompletionItem.Create(displayText:="Console"))
+                context.AddItem(CompletionItem.Create(displayText:="Add code that write to console", filterText:="cw").WithAdditionalFilterTexts(ImmutableArray.Create("Console", "Write")))
+                context.AddItem(CompletionItem.Create(displayText:="Add code that write line to console", filterText:="cwl").WithAdditionalFilterTexts(ImmutableArray.Create("Console", "WriteLine")))
+                Return Task.CompletedTask
+            End Function
+
+            Public Overrides Function ShouldTriggerCompletion(text As SourceText, caretPosition As Integer, trigger As CompletionTrigger, options As OptionSet) As Boolean
+                Return True
+            End Function
+
+            Public Overrides Function GetChangeAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of CompletionChange)
+                Throw New NotImplementedException()
+            End Function
+        End Class
     End Class
 End Namespace
