@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)
         {
             var cache = ImmutableDictionary<string, CodeActionOptions>.Empty;
-            return new DelegatingCodeActionOptionsProvider(languageService => ImmutableInterlocked.GetOrAdd(ref cache, languageService.Language, (_, options) => GetCodeActionOptions(options, languageService.ProjectServices), globalOptions));
+            return new DelegatingCodeActionOptionsProvider(languageService => ImmutableInterlocked.GetOrAdd(ref cache, languageService.Language, (_, options) => GetCodeActionOptions(options, languageService.LanguageServices), globalOptions));
         }
 
         public static readonly PerLanguageOption2<int> ConditionalExpressionWrappingLength = new(

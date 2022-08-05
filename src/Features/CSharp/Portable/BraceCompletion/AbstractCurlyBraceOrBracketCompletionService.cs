@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
             var (formattingChanges, finalCurlyBraceEnd) = FormatTrackingSpan(
                 context.Document,
-                context.Document.LanguageServices.ProjectServices,
+                context.Document.LanguageServices.LanguageServices,
                 context.OpeningPoint,
                 context.ClosingPoint,
                 // We're not trying to format the indented block here, so no need to pass in additional rules.
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // Format the text that contains the newly inserted line.
             var (formattingChanges, newClosingPoint) = FormatTrackingSpan(
                 documentToFormat,
-                document.LanguageServices.ProjectServices,
+                document.LanguageServices.LanguageServices,
                 openingPoint,
                 closingPoint,
                 braceFormattingIndentationRules: GetBraceFormattingIndentationRulesAfterReturn(options),

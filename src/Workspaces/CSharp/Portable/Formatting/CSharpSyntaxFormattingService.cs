@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-                => new CSharpSyntaxFormattingService(languageServices.ProjectServices);
+                => new CSharpSyntaxFormattingService(languageServices.LanguageServices);
         }
 
         private CSharpSyntaxFormattingService(Host.LanguageServices languageServices)

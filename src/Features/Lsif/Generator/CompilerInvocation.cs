@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var workspace = new AdhocWorkspace();
 
             var languageName = GetLanguageName(invocationInfo);
-            var languageServices = workspace.Services.GetLanguageServices(languageName).ProjectServices;
+            var languageServices = workspace.Services.GetLanguageServices(languageName).LanguageServices;
 
             var mapPath = GetPathMapper(invocationInfo);
 

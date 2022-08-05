@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (documentState.IsRazorDocument())
                 {
-                    return _lazyRazorDesignTimeOptions ??= new RazorDesignTimeAnalyzerConfigOptions(_projectState.LanguageServices.ProjectServices.SolutionServices);
+                    return _lazyRazorDesignTimeOptions ??= new RazorDesignTimeAnalyzerConfigOptions(_projectState.LanguageServices.LanguageServices.SolutionServices);
                 }
 
                 var filePath = GetEffectiveFilePath(documentState);

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 #if CODE_STYLE
         public static readonly CodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(GetDefault);
 #else
-        public static readonly CodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(static ls => GetDefault(ls.ProjectServices));
+        public static readonly CodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(static ls => GetDefault(ls.LanguageServices));
 #endif
 
         /// <summary>

@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             End Sub
 
             Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-                Return New VisualBasicCompletionService(languageServices.ProjectServices.SolutionServices)
+                Return New VisualBasicCompletionService(languageServices.LanguageServices.SolutionServices)
             End Function
         End Class
 

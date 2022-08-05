@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
         End Sub
 
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicQuickInfoService(languageServices.ProjectServices)
+            Return New VisualBasicQuickInfoService(languageServices.LanguageServices)
         End Function
 
     End Class

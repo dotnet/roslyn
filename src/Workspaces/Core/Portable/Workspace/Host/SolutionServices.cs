@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         /// <exception cref="NotSupportedException">Thrown if the language isn't supported.</exception>
         public LanguageServices GetProjectServices(string languageName)
-            => _services.GetLanguageServices(languageName).ProjectServices;
+            => _services.GetLanguageServices(languageName).LanguageServices;
     }
 
     internal static class HostSolutionServicesExtensions

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
-            => new CSharpSyntaxTreeFactoryService(provider.ProjectServices.SolutionServices);
+            => new CSharpSyntaxTreeFactoryService(provider.LanguageServices.SolutionServices);
 
         private partial class CSharpSyntaxTreeFactoryService : AbstractSyntaxTreeFactoryService
         {

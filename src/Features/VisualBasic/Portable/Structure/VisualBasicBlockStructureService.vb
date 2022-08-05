@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Sub
 
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicBlockStructureService(languageServices.ProjectServices.SolutionServices)
+            Return New VisualBasicBlockStructureService(languageServices.LanguageServices.SolutionServices)
         End Function
     End Class
 
