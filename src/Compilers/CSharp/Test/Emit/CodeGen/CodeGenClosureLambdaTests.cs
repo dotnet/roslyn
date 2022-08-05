@@ -5809,5 +5809,24 @@ static class Program
   IL_004f:  ret
 }");
         }
+
+        [Fact]
+        public void LambdaWithDefaultParameter()
+        {
+            string source = """
+using System;
+class C
+{
+    public static void Main()
+    {
+        var lam = (int x = 3) => x + x + x;
+        Console.WriteLine(lam(10));
+    }
+}
+""";
+            var comp = CompileAndVerify(source, expectedOutput: "30");
+            //comp.VerifyIL("C.Main", expectedIL: "");
+            comp.VerifyTypeIL("C", "");
+        }
     }
 }
