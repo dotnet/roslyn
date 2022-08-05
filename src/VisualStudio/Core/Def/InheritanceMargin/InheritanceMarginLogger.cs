@@ -36,9 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.InheritanceMargin
                     var histogramLogAggragator = s_histogramLogAggregator.GetValue(ActionInfo.GetInheritanceMarginMembers);
                     if (histogramLogAggragator != null)
                     {
-                        m[$"{ActionInfo.GetInheritanceMarginMembers}.BucketSize"] = histogramLogAggragator.BucketSize;
-                        m[$"{ActionInfo.GetInheritanceMarginMembers}.BucketCount"] = histogramLogAggragator.BucketCount;
-                        m[$"{ActionInfo.GetInheritanceMarginMembers}.Bucket"] = histogramLogAggragator.GetBucketsAsString();
+                        histogramLogAggragator.WriteTelemetryPropertiesTo(m, nameof(ActionInfo.GetInheritanceMarginMembers) + ".");
                     }
                 }));
         }

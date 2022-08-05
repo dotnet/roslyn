@@ -522,13 +522,14 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
         System_Runtime_CompilerServices_RequiredMemberAttribute__ctor,
         System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor,
-        System_Runtime_CompilerServices_LifetimeAnnotationAttribute__ctor,
+        System_Runtime_CompilerServices_ScopedRefAttribute__ctor,
 
         System_MemoryExtensions__SequenceEqual_Span_T,
         System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
         System_MemoryExtensions__AsSpan_String,
 
         System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+        System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
 
         System_MissingMethodException__ctor,
 

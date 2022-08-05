@@ -306,11 +306,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static bool RequiresLifetimeAnnotationAttribute(ParameterSymbol parameter)
+        internal static bool RequiresScopedRefAttribute(ParameterSymbol parameter)
         {
             Debug.Assert(!parameter.IsThis);
 
-            var scope = parameter.Scope;
+            var scope = parameter.DeclaredScope;
             if (scope == DeclarationScope.Unscoped)
             {
                 return false;
@@ -322,12 +322,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal static void EnsureLifetimeAnnotationAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
+        internal static void EnsureScopedRefAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
         {
-            EnsureLifetimeAnnotationAttributeExists(moduleBuilder.Compilation, parameters, diagnostics: null, modifyCompilation: false, moduleBuilder);
+            EnsureScopedRefAttributeExists(moduleBuilder.Compilation, parameters, diagnostics: null, modifyCompilation: false, moduleBuilder);
         }
 
-        internal static void EnsureLifetimeAnnotationAttributeExists(CSharpCompilation? compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
+        internal static void EnsureScopedRefAttributeExists(CSharpCompilation? compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
         {
             // These parameters might not come from a compilation (example: lambdas evaluated in EE).
             // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
@@ -336,22 +336,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            EnsureLifetimeAnnotationAttributeExists(compilation, parameters, diagnostics, modifyCompilation, moduleBuilder: null);
+            EnsureScopedRefAttributeExists(compilation, parameters, diagnostics, modifyCompilation, moduleBuilder: null);
         }
 
-        private static void EnsureLifetimeAnnotationAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag? diagnostics, bool modifyCompilation, PEModuleBuilder? moduleBuilder)
+        private static void EnsureScopedRefAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag? diagnostics, bool modifyCompilation, PEModuleBuilder? moduleBuilder)
         {
             foreach (var parameter in parameters)
             {
-                if (RequiresLifetimeAnnotationAttribute(parameter))
+                if (RequiresScopedRefAttribute(parameter))
                 {
                     if (moduleBuilder is { })
                     {
-                        moduleBuilder.EnsureLifetimeAnnotationAttributeExists();
+                        moduleBuilder.EnsureScopedRefAttributeExists();
                     }
                     else
                     {
-                        compilation.EnsureLifetimeAnnotationAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
+                        compilation.EnsureScopedRefAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
                     }
                 }
             }
@@ -648,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, parameter.Type);
             }
 
-            if (parameter.Scope == DeclarationScope.ValueScoped && !parameter.Type.IsErrorTypeOrRefLikeType())
+            if (parameter.DeclaredScope == DeclarationScope.ValueScoped && !parameter.Type.IsErrorTypeOrRefLikeType())
             {
                 diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, parameterSyntax.Location);
             }

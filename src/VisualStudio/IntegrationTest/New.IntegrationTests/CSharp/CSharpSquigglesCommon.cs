@@ -20,7 +20,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63042")]
         public virtual async Task VerifySyntaxErrorSquiggles()
         {
             await TestServices.Editor.SetTextAsync(@"using System;
