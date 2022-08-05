@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                 .EmitSolutionUpdateAsync(sessionId, solution, s_solutionActiveStatementSpanProvider, cancellationToken)
                 .ConfigureAwait(false);
 
-            if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
+            if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
             {
                 if (commitUpdates)
                 {
