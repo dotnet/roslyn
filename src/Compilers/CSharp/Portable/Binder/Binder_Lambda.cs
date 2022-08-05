@@ -225,6 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+
         }
 
         private (RefKind, TypeWithAnnotations) BindExplicitLambdaReturnType(TypeSyntax syntax, BindingDiagnosticBag diagnostics)
@@ -259,12 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var hasTypes = parameterSyntaxList[0].Type != null;
 
-                // Implicitly typed default parameters are not allowed
-                if (!hasTypes && parameterSyntaxList[0].Default != null)
-                {
-                    diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedDefaultParameter,
-                        parameterSyntaxList[0].Identifier.GetLocation(), parameterSyntaxList[0].Identifier.Text);
-                }
+                checkForImplicitDefault(hasTypes, parameterSyntaxList[0], diagnostics);
 
                 for (int i = 1, n = parameterSyntaxList.Count; i < n; i++)
                 {
@@ -282,13 +278,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 parameter.Type?.GetLocation() ?? parameter.Identifier.GetLocation());
                         }
 
-                        // Implicitly typed default parameters are not allowed
-                        if (!thisParameterHasType && parameter.Default != null)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedDefaultParameter,
-                                parameter.Identifier.GetLocation(), parameter.Identifier.Text);
-                        }
+                        checkForImplicitDefault(thisParameterHasType, parameter, diagnostics);
                     }
+                }
+            }
+
+            static void checkForImplicitDefault(bool hasType, ParameterSyntax param, BindingDiagnosticBag diagnostics)
+            {
+                if (!hasType && param.Default != null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedDefaultParameter,
+                        param.Identifier.GetLocation(), param.Identifier.Text);
                 }
             }
         }

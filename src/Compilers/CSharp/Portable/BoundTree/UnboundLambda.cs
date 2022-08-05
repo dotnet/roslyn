@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameterDefaultValueBuilder.AddMany(null, i);
                     }
 
-                    parameterDefaultValueBuilder.Add(param.ExplicitDefaultConstantValue);
+                    parameterDefaultValueBuilder.Add(constVal);
                 }
             }
 
