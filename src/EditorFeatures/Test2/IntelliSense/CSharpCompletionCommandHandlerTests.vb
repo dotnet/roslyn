@@ -5983,7 +5983,8 @@ class C
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("z")
-                Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
+                Await state.AssertCompletionItemsContain(displayText:="identifier", displayTextSuffix:=Nothing)
+                state.AssertSuggestedItemSelected(displayText:="z")
 
                 state.SendBackspace()
                 state.SendTypeChars("i")
@@ -6282,6 +6283,23 @@ class C
                 Await state.AssertSelectedCompletionItem(displayText:="sbyte", isSoftSelected:=True)
 
                 state.SendToggleCompletionMode()
+                Await state.AssertCompletionSession()
+                Assert.True(state.HasSuggestedItem())
+                Await state.AssertSelectedCompletionItem(displayText:="sbyte", isSoftSelected:=True)
+
+                state.SendTypeChars("xyzz")
+                Await state.AssertCompletionSession()
+                state.AssertSuggestedItemSelected(displayText:="sxyzz")
+                Await state.AssertSelectedCompletionItem(displayText:="sxyzz", isSoftSelected:=True)
+
+                state.SendBackspace()
+                Await state.AssertCompletionSession()
+                state.AssertSuggestedItemSelected(displayText:="sxyz")
+                Await state.AssertSelectedCompletionItem(displayText:="sxyz", isSoftSelected:=True)
+
+                state.SendBackspace()
+                state.SendBackspace()
+                state.SendBackspace()
                 Await state.AssertCompletionSession()
                 Assert.True(state.HasSuggestedItem())
                 Await state.AssertSelectedCompletionItem(displayText:="sbyte", isSoftSelected:=True)
