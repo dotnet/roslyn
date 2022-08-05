@@ -609,7 +609,7 @@ ref struct R
     }
 }
 """;
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
             verifier.VerifyIL("R..ctor()", @"
@@ -626,7 +626,8 @@ ref struct R
 }");
         }
 
-        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
+        // Test skipped because we don't allow faking runtime feature flags when using specific TargetFramework
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61463"), WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
         public void InitRefField_UnsafeNullRef()
         {
             var source = """
@@ -683,7 +684,7 @@ ref struct R
     }
 }
 """;
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
@@ -719,7 +720,7 @@ ref struct R
     }
 }
 """;
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (7,29): warning CS0649: Field 'R.field' is never assigned to, and will always have its default value 0
                 //     public readonly ref int field;
@@ -762,7 +763,7 @@ ref struct R
     }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
             verifier.VerifyIL("R..ctor()", @"
@@ -12850,27 +12851,6 @@ using scoped = System.Int32;
                 // (1,7): error CS9062: Types and aliases cannot be named 'scoped'.
                 // using scoped = System.Int32;
                 Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 7)
-                );
-        }
-
-        [Fact, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
-        public void ScopedReserved_Alias_Escaped()
-        {
-            var source = """
-using @scoped = System.Int32;
-""";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (1,1): hidden CS8019: Unnecessary using directive.
-                // using @scoped = System.Int32;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @scoped = System.Int32;").WithLocation(1, 1)
-                );
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
-            comp.VerifyDiagnostics(
-                // (1,1): hidden CS8019: Unnecessary using directive.
-                // using @scoped = System.Int32;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @scoped = System.Int32;").WithLocation(1, 1)
                 );
         }
 
