@@ -8,7 +8,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    // TODO(cyrusn): Make public.  Tracked through https://github.com/dotnet/roslyn/issues/62914
+    /// <summary>
+    /// Per solution services provided by the host environment.
+    /// </summary>
     internal sealed class HostSolutionServices
     {
         /// <remarks>
