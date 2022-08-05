@@ -1223,7 +1223,7 @@ namespace System.Diagnostics.CodeAnalysis
                 var mscorlibWithoutSharing = new[] { GetMscorlibRefWithoutSharingCachedSymbols() };
 
                 var comp = CreateCompilationCore(source, references is not null ? references.Concat(mscorlibWithoutSharing) : mscorlibWithoutSharing,
-                    options, parseOptions, assemblyName: assemblyName, sourceFileName: sourceFileName, skipUsesIsNullable, experimentalFeature: null);
+                    options, parseOptions, assemblyName: assemblyName, sourceFileName: sourceFileName, skipUsesIsNullable, experimentalFeature: null, skipExtraValidation: true);
 
                 comp.Assembly.RuntimeSupportsByRefFields = true;
                 return comp;
