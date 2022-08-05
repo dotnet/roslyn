@@ -218,6 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool MustCallMethodsDirectly { get; }
 
+        internal abstract bool HasUnscopedRefAttribute { get; }
+
         /// <summary>
         /// Returns the overridden property, or null.
         /// </summary>

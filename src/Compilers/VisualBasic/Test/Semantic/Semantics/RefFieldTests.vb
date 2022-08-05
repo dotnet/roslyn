@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ''' <summary>
         ''' Ref field in ref struct.
         ''' </summary>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/61463")>
         Public Sub RefField_01()
             Dim sourceA =
 "public ref struct S<T>
@@ -88,7 +88,7 @@ End Module"
             Assert.Equal(expectedDisplayString, field.ToTestDisplayString())
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/61463")>
         Public Sub MemberRefMetadataDecoder_FindFieldBySignature()
             Dim sourceA =
 ".class public sealed R<T> extends [mscorlib]System.ValueType
