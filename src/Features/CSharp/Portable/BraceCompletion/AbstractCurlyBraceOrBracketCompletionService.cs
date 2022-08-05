@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
             static LinePosition GetIndentedLinePosition(ParsedDocument document, SourceText sourceText, int lineNumber, IndentationOptions options, CancellationToken cancellationToken)
             {
-                var indentationService = document.LanguageServices.GetRequiredService<IIndentationService>();
+                var indentationService = document.ProjectServices.GetRequiredService<IIndentationService>();
                 var indentation = indentationService.GetIndentation(document, lineNumber, options, cancellationToken);
 
                 var baseLinePosition = sourceText.Lines.GetLinePosition(indentation.BasePosition);

@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
-                Dim completionService = New TestCompletionService(workspace.Services)
+                Dim completionService = New TestCompletionService(workspace.Services.SolutionServices)
 
                 Dim list = Await completionService.GetCompletionsAsync(
                     document, caretPosition:=0, CompletionOptions.Default, OptionValueSet.Empty, CompletionTrigger.Invoke)
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Friend Class TestCompletionService
             Inherits CompletionService
 
-            Public Sub New(services As HostWorkspaceServices)
+            Public Sub New(services As HostSolutionServices)
                 MyBase.New(services)
             End Sub
 

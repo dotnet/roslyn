@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
                     var oldSyntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
                     var newRoot = oldSyntaxTree.WithChangedText(newText).GetRoot(cancellationToken);
 
-                    var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.LanguageServices, explicitFormat: false);
+                    var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.Services, explicitFormat: false);
                     var formattingSpans = trackingSnapshotSpans.Select(change => CommonFormattingHelpers.GetFormattingSpan(newRoot, change.Span.ToTextSpan()));
                     var formattedChanges = Formatter.GetFormattedTextChanges(newRoot, formattingSpans, document.Project.Solution.Services, formattingOptions, rules: null, cancellationToken);
 

@@ -65,8 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.TextView.Options.GlobalOptions.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, False)
             MyBase.TextView.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
 
-            Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
-            Dim language = languageServices.Language
+            Dim language = Me.Workspace.CurrentSolution.Projects.First().Language
 
             Me.SessionTestState = GetExportedValue(Of IIntelliSenseTestState)()
 
@@ -531,6 +530,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim computedItems = session.GetComputedItems(CancellationToken.None)
             Return computedItems.SuggestionItem IsNot Nothing
         End Function
+
+        Public Sub AssertSuggestedItemSelected(displayText As String)
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            Assert.NotNull(session)
+            Dim computedItems = session.GetComputedItems(CancellationToken.None)
+            Assert.True(computedItems.SuggestionItemSelected)
+            Assert.Equal(computedItems.SuggestionItem.DisplayText, displayText)
+        End Sub
 
         Public Function IsSoftSelected() As Boolean
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)

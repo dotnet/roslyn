@@ -29,13 +29,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             }
 
             var codeProject = document.GetCodeProject();
-            var formatter = codeProject.LanguageServices.GetService<IDocumentationCommentFormattingService>();
+            var formatter = codeProject.Services.GetService<IDocumentationCommentFormattingService>();
             if (formatter == null)
             {
                 return Enumerable.Empty<TaggedText>();
             }
 
-            var symbolDisplayService = codeProject.LanguageServices.GetService<ISymbolDisplayService>();
+            var symbolDisplayService = codeProject.Services.GetService<ISymbolDisplayService>();
             if (symbolDisplayService == null)
             {
                 return Enumerable.Empty<TaggedText>();

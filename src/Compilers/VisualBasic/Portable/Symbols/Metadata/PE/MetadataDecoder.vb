@@ -415,14 +415,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Protected Overrides Function FindMethodSymbolInType(typeSymbol As TypeSymbol, targetMethodDef As MethodDefinitionHandle) As MethodSymbol
-            Debug.Assert(TypeOf typeSymbol Is PENamedTypeSymbol OrElse TypeOf typeSymbol Is ErrorTypeSymbol)
+            Debug.Assert(typeSymbol.IsDefinition)
 
-            For Each member In typeSymbol.GetMembersUnordered()
-                Dim method As PEMethodSymbol = TryCast(member, PEMethodSymbol)
-                If method IsNot Nothing AndAlso method.Handle = targetMethodDef Then
-                    Return method
-                End If
-            Next
+            Dim peTypeSymbol As PENamedTypeSymbol = TryCast(typeSymbol, PENamedTypeSymbol)
+            If peTypeSymbol IsNot Nothing AndAlso peTypeSymbol.ContainingPEModule Is ModuleSymbol Then
+
+                For Each member In typeSymbol.GetMembersUnordered()
+                    Dim method As PEMethodSymbol = TryCast(member, PEMethodSymbol)
+                    If method IsNot Nothing AndAlso method.Handle = targetMethodDef Then
+                        Return method
+                    End If
+                Next
+
+            ElseIf Not TypeOf typeSymbol Is ErrorTypeSymbol Then
+
+                ' We're going to use a special decoder that can generate usable symbols for type parameters without full context.
+                ' (We're not just using a different type - we're also changing the type context.)
+                Dim memberRefDecoder = New MemberRefMetadataDecoder(ModuleSymbol, typeSymbol)
+
+                Return DirectCast(memberRefDecoder.FindMember(targetMethodDef, methodsOnly:=True), MethodSymbol)
+            End If
 
             Return Nothing
         End Function

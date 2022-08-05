@@ -323,6 +323,7 @@ namespace Microsoft.CodeAnalysis
         System_MemoryExtensions,
 
         System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute,
+        System_Diagnostics_CodeAnalysis_UnscopedRefAttribute,
 
         System_MissingMethodException,
 
@@ -640,6 +641,7 @@ namespace Microsoft.CodeAnalysis
             "System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute",
             "System.MemoryExtensions",
             "System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute",
+            "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute",
             "System.MissingMethodException",
         };
 
