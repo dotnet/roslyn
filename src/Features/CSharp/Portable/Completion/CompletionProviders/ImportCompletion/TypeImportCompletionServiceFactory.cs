@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private class CSharpTypeImportCompletionService : AbstractTypeImportCompletionService
         {
-            public CSharpTypeImportCompletionService(HostSolutionServices services)
+            public CSharpTypeImportCompletionService(SolutionServices services)
                 : base(services)
             {
             }

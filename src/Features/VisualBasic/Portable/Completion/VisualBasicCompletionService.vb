@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
             defaultEnterKeyRule:=EnterKeyRule.Always)
 
-        Private Sub New(services As HostSolutionServices)
+        Private Sub New(services As SolutionServices)
             MyBase.New(services)
         End Sub
 

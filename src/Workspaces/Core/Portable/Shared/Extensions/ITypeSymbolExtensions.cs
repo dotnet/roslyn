@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return builder.ToImmutable();
         }
 
-        public static ISymbol? FindImplementations(this ITypeSymbol typeSymbol, ISymbol constructedInterfaceMember, HostSolutionServices services)
+        public static ISymbol? FindImplementations(this ITypeSymbol typeSymbol, ISymbol constructedInterfaceMember, SolutionServices services)
             => constructedInterfaceMember switch
             {
                 IEventSymbol eventSymbol => typeSymbol.FindImplementations(eventSymbol, services),
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static ISymbol? FindImplementations<TSymbol>(
             this ITypeSymbol typeSymbol,
             TSymbol constructedInterfaceMember,
-            HostSolutionServices services) where TSymbol : class, ISymbol
+            SolutionServices services) where TSymbol : class, ISymbol
         {
             // Check the current type for explicit interface matches.  Otherwise, check
             // the current type and base types for implicit matches.

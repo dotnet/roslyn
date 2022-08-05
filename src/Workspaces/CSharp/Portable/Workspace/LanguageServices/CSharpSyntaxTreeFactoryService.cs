@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private partial class CSharpSyntaxTreeFactoryService : AbstractSyntaxTreeFactoryService
         {
-            public CSharpSyntaxTreeFactoryService(HostSolutionServices services)
+            public CSharpSyntaxTreeFactoryService(SolutionServices services)
                 : base(services)
             {
             }

@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Partial Friend Class VisualBasicSyntaxTreeFactoryService
             Inherits AbstractSyntaxTreeFactoryService
 
-            Public Sub New(services As HostSolutionServices)
+            Public Sub New(services As SolutionServices)
                 MyBase.New(services)
             End Sub
 

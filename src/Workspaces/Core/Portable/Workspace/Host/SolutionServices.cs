@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// Per solution services provided by the host environment.
     /// </summary>
-    internal sealed class HostSolutionServices
+    internal sealed class SolutionServices
     {
         /// <remarks>
         /// Note: do not expose publicly.  <see cref="HostWorkspaceServices"/> exposes a <see
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         // This ensures a single instance of this type associated with each HostWorkspaceServices.
         [Obsolete("Do not call directly.  Use HostWorkspaceServices.SolutionServices to acquire an instance")]
-        internal HostSolutionServices(HostWorkspaceServices services)
+        internal SolutionServices(HostWorkspaceServices services)
         {
             _services = services;
         }
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Host
 
     internal static class HostSolutionServicesExtensions
     {
-        public static TLanguageService GetRequiredLanguageService<TLanguageService>(this HostSolutionServices services, string language) where TLanguageService : ILanguageService
+        public static TLanguageService GetRequiredLanguageService<TLanguageService>(this SolutionServices services, string language) where TLanguageService : ILanguageService
             => services.GetProjectServices(language).GetRequiredService<TLanguageService>();
     }
 }

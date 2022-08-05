@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
 
         private CompletionRules _latestRules = CompletionRules.Default;
 
-        private CSharpCompletionService(HostSolutionServices services)
+        private CSharpCompletionService(SolutionServices services)
             : base(services)
         {
         }

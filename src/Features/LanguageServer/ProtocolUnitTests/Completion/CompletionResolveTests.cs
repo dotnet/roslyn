@@ -431,7 +431,7 @@ link text";
 
         private class TestCaretOutOfScopeCompletionService : CompletionService
         {
-            public TestCaretOutOfScopeCompletionService(HostSolutionServices services) : base(services)
+            public TestCaretOutOfScopeCompletionService(SolutionServices services) : base(services)
             {
             }
 

@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private Class BasicTypeImportCompletionService
             Inherits AbstractTypeImportCompletionService
 
-            Public Sub New(services As HostSolutionServices)
+            Public Sub New(services As SolutionServices)
                 MyBase.New(services)
             End Sub
 

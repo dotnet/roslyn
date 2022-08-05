@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public static readonly SyntaxAnnotation Annotation = new(nameof(CodeGenerator));
 
-        private static ICodeGenerationService GetCodeGenerationService(HostSolutionServices services, string language)
+        private static ICodeGenerationService GetCodeGenerationService(SolutionServices services, string language)
             => services.GetProjectServices(language).GetRequiredService<ICodeGenerationService>();
 
         /// <summary>

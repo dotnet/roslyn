@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         }
 
         protected static Task<QuickInfoItem> CreateContentAsync(
-            HostSolutionServices services,
+            SolutionServices services,
             SemanticModel semanticModel,
             SyntaxToken token,
             TokenInformation tokenInformation,
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         protected virtual NullableFlowState GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => NullableFlowState.None;
 
         private TokenInformation BindToken(
-            HostSolutionServices services, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+            SolutionServices services, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         {
             var languageServices = services.GetProjectServices(semanticModel.Language);
             var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return new TokenInformation(ImmutableArray<ISymbol>.Empty);
         }
 
-        private ImmutableArray<ISymbol> GetSymbolsFromToken(SyntaxToken token, HostSolutionServices services, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private ImmutableArray<ISymbol> GetSymbolsFromToken(SyntaxToken token, SolutionServices services, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (GetBindableNodeForTokenIndicatingLambda(token, out var lambdaSyntax))
             {

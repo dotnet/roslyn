@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
     internal class CSharpBlockStructureService : BlockStructureServiceWithProviders
     {
-        public CSharpBlockStructureService(HostSolutionServices services)
+        public CSharpBlockStructureService(SolutionServices services)
             : base(services)
         {
         }

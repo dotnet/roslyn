@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly ILegacyGlobalOptionsWorkspaceService? _globalOptions;
 
-            public RazorDesignTimeAnalyzerConfigOptions(HostSolutionServices services)
+            public RazorDesignTimeAnalyzerConfigOptions(SolutionServices services)
             {
                 // not available OOP:
                 _globalOptions = services.GetService<ILegacyGlobalOptionsWorkspaceService>();

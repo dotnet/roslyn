@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     public abstract partial class CompletionService : ILanguageService
     {
-        private readonly HostSolutionServices _services;
+        private readonly SolutionServices _services;
         private readonly ProviderManager _providerManager;
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private bool _suppressPartialSemantics;
 
         // Prevent inheritance outside of Roslyn.
-        internal CompletionService(HostSolutionServices services)
+        internal CompletionService(SolutionServices services)
         {
             _services = services;
             _providerManager = new(this);

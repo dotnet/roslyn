@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Host
     {
         private readonly HostLanguageServices _services;
 
-        public HostSolutionServices SolutionServices => _services.WorkspaceServices.SolutionServices;
+        public SolutionServices SolutionServices => _services.WorkspaceServices.SolutionServices;
 
         // This ensures a single instance of this type associated with each HostLanguageServices.
         [Obsolete("Do not call directly.  Use HostLanguageServices.ProjectServices to acquire an instance")]

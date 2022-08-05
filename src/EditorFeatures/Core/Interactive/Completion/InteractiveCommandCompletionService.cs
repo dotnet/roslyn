@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 => new InteractiveCommandCompletionService(languageServices.ProjectServices.SolutionServices);
         }
 
-        private InteractiveCommandCompletionService(HostSolutionServices services)
+        private InteractiveCommandCompletionService(SolutionServices services)
             : base(services)
         {
         }

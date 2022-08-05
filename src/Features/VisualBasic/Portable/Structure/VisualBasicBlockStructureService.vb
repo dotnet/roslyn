@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class VisualBasicBlockStructureService
         Inherits BlockStructureServiceWithProviders
 
-        Friend Sub New(services As HostSolutionServices)
+        Friend Sub New(services As SolutionServices)
             MyBase.New(services)
         End Sub
 

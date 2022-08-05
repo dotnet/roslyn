@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
     internal static class HostWorkspaceServicesExtensions
     {
         public static HostProjectServices? GetProjectServices(
-            this HostSolutionServices workspaceServices, ITextBuffer textBuffer)
+            this SolutionServices workspaceServices, ITextBuffer textBuffer)
         {
             return workspaceServices.GetProjectServices(textBuffer.ContentType);
         }
 
         public static HostProjectServices? GetProjectServices(
-            this HostSolutionServices workspaceServices, IContentType contentType)
+            this SolutionServices workspaceServices, IContentType contentType)
         {
             foreach (var language in workspaceServices.SupportedLanguages)
             {
@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// <summary>
         /// A cache of host services -> (language name -> content type name).
         /// </summary>
-        private static readonly ConditionalWeakTable<HostSolutionServices, Dictionary<string, string>> s_hostServicesToContentTypeMap
+        private static readonly ConditionalWeakTable<SolutionServices, Dictionary<string, string>> s_hostServicesToContentTypeMap
             = new();
 
-        private static string? GetDefaultContentTypeName(HostSolutionServices workspaceServices, string language)
+        private static string? GetDefaultContentTypeName(SolutionServices workspaceServices, string language)
         {
             if (!s_hostServicesToContentTypeMap.TryGetValue(workspaceServices, out var contentTypeMap))
             {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             return contentTypeName;
         }
 
-        private static Dictionary<string, string> CreateContentTypeMap(HostSolutionServices hostWorkspaceServices)
+        private static Dictionary<string, string> CreateContentTypeMap(SolutionServices hostWorkspaceServices)
         {
             // Are we being hosted in a MEF host? If so, we can get content type information directly from the 
             // metadata and avoid actually loading the assemblies
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         }
 
         internal static IList<T> SelectMatchingExtensionValues<T, TMetadata>(
-            this HostSolutionServices workspaceServices,
+            this SolutionServices workspaceServices,
             IEnumerable<Lazy<T, TMetadata>> items,
             IContentType contentType)
             where TMetadata : ILanguageMetadata
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         }
 
         internal static IList<T> SelectMatchingExtensionValues<T>(
-            this HostSolutionServices workspaceServices,
+            this SolutionServices workspaceServices,
             IEnumerable<Lazy<T, OrderableLanguageAndRoleMetadata>> items,
             IContentType contentType,
             ITextViewRoleSet roleSet)
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         private static bool LanguageMatches(
             string language,
             IContentType contentType,
-            HostSolutionServices workspaceServices)
+            SolutionServices workspaceServices)
         {
             var defaultContentType = GetDefaultContentTypeName(workspaceServices, language);
             return (defaultContentType != null) ? contentType.IsOfType(defaultContentType) : false;
