@@ -568,27 +568,6 @@ ref struct R
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "_v2").WithArguments("volatile").WithLocation(9, 31));
         }
 
-        [Fact, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
-        public void ScopedReserved_Alias_Escaped()
-        {
-            var source = """
-using @scoped = System.Int32;
-""";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (1,1): hidden CS8019: Unnecessary using directive.
-                // using @scoped = System.Int32;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @scoped = System.Int32;").WithLocation(1, 1)
-                );
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
-            comp.VerifyDiagnostics(
-                // (1,1): hidden CS8019: Unnecessary using directive.
-                // using @scoped = System.Int32;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @scoped = System.Int32;").WithLocation(1, 1)
-                );
-        }
-
         [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
         public void InitRefField_AutoDefault()
         {
@@ -12851,6 +12830,27 @@ using scoped = System.Int32;
                 // (1,7): error CS9062: Types and aliases cannot be named 'scoped'.
                 // using scoped = System.Int32;
                 Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 7)
+                );
+        }
+
+        [Fact, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]
+        public void ScopedReserved_Alias_Escaped()
+        {
+            var source = """
+using @scoped = System.Int32;
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using @scoped = System.Int32;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @scoped = System.Int32;").WithLocation(1, 1)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using @scoped = System.Int32;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using @scoped = System.Int32;").WithLocation(1, 1)
                 );
         }
 
