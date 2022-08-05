@@ -164,9 +164,9 @@ class Program
 
             await TestServices.SolutionExplorer.CloseSolutionAsync(HangMitigatingCancellationToken);
 
-            // Since we no longer have an open solution, we don't have a storage location for it, since that
-            // depends on the open solution.
-            Assert.Null(persistentStorageConfiguration.TryGetStorageLocation(SolutionKey.ToSolutionKey(visualStudioWorkspace.CurrentSolution)));
+            // because the solution cache directory is stored in the user temp folder, 
+            // closing the solution has no effect on what is returned.
+            Assert.NotNull(persistentStorageConfiguration.TryGetStorageLocation(SolutionKey.ToSolutionKey(visualStudioWorkspace.CurrentSolution)));
         }
 
         private async Task WaitForNavigateAsync(CancellationToken cancellationToken)
