@@ -43,10 +43,9 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 // Wait for our caller to tell us to cancel.  That way we can release this solution and allow it
                 // to be collected if not needed anymore.
-                var taskCompletionSource = new TaskCompletionSource<bool>();
-                cancellationToken.Register(() => taskCompletionSource.TrySetCanceled(cancellationToken));
-
-                await taskCompletionSource.Task.ConfigureAwait(false);
+                //
+                // This was provided by stoub as an idiomatic way to wait indefinitely until a cancellation token triggers.
+                await Task.Delay(-1, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 

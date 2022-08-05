@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.Rename
         internal interface ICallback // : IRemoteOptionsCallback<CodeCleanupOptions>
         {
             ValueTask<CodeCleanupOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken);
-            ValueTask KeepAliveAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
         }
 
         /// <summary>
@@ -82,12 +81,6 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public ValueTask<CodeCleanupOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
             => ((RemoteOptionsProvider<CodeCleanupOptions>)GetCallback(callbackId)).GetOptionsAsync(language, cancellationToken);
-
-        public ValueTask KeepAliveAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
-        {
-            ((TaskCompletionSource<bool>)GetCallback(callbackId)).TrySetResult(true);
-            return default;
-        }
     }
 
     [DataContract]
