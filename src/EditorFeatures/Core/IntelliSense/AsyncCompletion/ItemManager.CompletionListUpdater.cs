@@ -32,6 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// </summary>
         private sealed class CompletionListUpdater
         {
+            // Index used for selecting suggestion item when in suggestion mode.
+            private const int SuggestionItemIndex = -1;
+
             private readonly CompletionSessionData _sessionData;
             private readonly AsyncCompletionSessionDataSnapshot _snapshotData;
             private readonly RecentItemsManager _recentItemsManager;
@@ -47,6 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             private readonly bool _showCompletionItemFilters;
 
             private readonly Action<IReadOnlyList<(RoslynCompletionItem, PatternMatch?)>, string, IList<RoslynCompletionItem>> _filterMethod;
+
+            private bool ShouldSelectSuggestionItemWhenNoItemMatchesFilterText
+                => _snapshotData.DisplaySuggestionItem && _filterText.Length > 0;
 
             private CompletionTriggerReason InitialTriggerReason => _snapshotData.InitialTrigger.Reason;
             private CompletionTriggerReason UpdateTriggerReason => _snapshotData.Trigger.Reason;
@@ -266,6 +272,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     MatchResult<VSCompletionItem> bestOrFirstMatchResult;
                     if (filteredItemsBuilder.Count == 0)
                     {
+                        // When we are in suggestion mode and there's nothing in the list matches what user has typed in any ways,
+                        // we should select the SuggestionItem instead.
+                        if (ShouldSelectSuggestionItemWhenNoItemMatchesFilterText)
+                            return new ItemSelection(SelectedItemIndex: SuggestionItemIndex, SelectionHint: UpdateSelectionHint.SoftSelected, UniqueItem: null);
+
                         // We do not have matches: pick the one with longest common prefix.
                         // If we can't find such an item, just return the first item from the list.
                         selectedItemIndex = 0;
@@ -389,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     }
                 }
 
-                if (UpdateTriggerReason == CompletionTriggerReason.Insertion && bestMatchResult is null)
+                if (bestMatchResult is null)
                 {
                     // The user has typed something, but nothing in the actual list matched what
                     // they were typing.  In this case, we want to dismiss completion entirely.
@@ -397,10 +408,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // to help them when they typed delete (in case they wanted to pick another
                     // item).  However, they're typing something that doesn't seem to match at all
                     // The completion list is just distracting at this point.
-                    return null;
-                }
+                    if (UpdateTriggerReason == CompletionTriggerReason.Insertion)
+                        return null;
 
-                if (bestMatchResult is not null)
+                    // If we are in suggestion mode and nothing matches filter text, we should soft select SuggestionItem.
+                    if (ShouldSelectSuggestionItemWhenNoItemMatchesFilterText)
+                        indexToSelect = SuggestionItemIndex;
+                }
+                else
                 {
                     // Only hard select this result if it's a prefix match
                     // We need to do this so that
@@ -479,6 +494,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     }
                 }
 
+                // If we are in suggestion mode then we should select the SuggestionItem instead.
+                var selectedItemIndex = ShouldSelectSuggestionItemWhenNoItemMatchesFilterText ? SuggestionItemIndex : 0;
+
                 // If the user has turned on some filtering states, and we filtered down to
                 // nothing, then we do want the UI to show that to them.  That way the user
                 // can turn off filters they don't want and get the right set of items.
@@ -487,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // model (and all the previously filtered items), but switch over to soft
                 // selection.
                 return new FilteredCompletionModel(
-                    items: ImmutableArray<CompletionItemWithHighlight>.Empty, selectedItemIndex: 0,
+                    items: ImmutableArray<CompletionItemWithHighlight>.Empty, selectedItemIndex,
                     filters: _snapshotData.SelectedFilters, selectionHint: UpdateSelectionHint.SoftSelected, centerSelection: true, uniqueItem: null);
             }
 
@@ -663,8 +681,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             private ItemSelection UpdateSelectionBasedOnSuggestedDefaults(IReadOnlyList<MatchResult<VSCompletionItem>> items, ItemSelection itemSelection, CancellationToken cancellationToken)
             {
-                // Editor doesn't provide us a list of "default" items.
-                if (_snapshotData.Defaults.IsDefaultOrEmpty)
+                // Editor doesn't provide us a list of "default" items, or we select SuggestionItem (because we are in suggestion mode and have no match in the list)
+                if (_snapshotData.Defaults.IsDefaultOrEmpty || itemSelection.SelectedItemIndex == SuggestionItemIndex)
                     return itemSelection;
 
                 // "Preselect" is only used when we have high confidence with the selection, so don't override it.

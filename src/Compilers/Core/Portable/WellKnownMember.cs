@@ -529,6 +529,7 @@ namespace Microsoft.CodeAnalysis
         System_MemoryExtensions__AsSpan_String,
 
         System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+        System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
 
         System_MissingMethodException__ctor,
 

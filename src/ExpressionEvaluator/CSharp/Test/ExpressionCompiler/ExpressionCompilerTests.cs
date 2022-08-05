@@ -6982,7 +6982,7 @@ class C
 }");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61463")]
         public void RefField()
         {
             var source =
