@@ -128,15 +128,24 @@ static ref T ReturnOutParamByRef<T>(out T t)
 }
 ```
 
-A possible workaround is to change the method signature to pass the parameter by `ref` instead.
+Possible workarounds are:
+1. Use `System.Diagnostics.CodeAnalysis.UnscopedRefAttribute` to mark the reference as unscoped.
+    ```csharp
+    static ref T ReturnOutParamByRef<T>([UnscopedRef] out T t)
+    {
+        t = default;
+        return ref t; // ok
+    }
+    ```
 
-```csharp
-static ref T ReturnRefParamByRef<T>(ref T t)
-{
-    t = default;
-    return ref t; // ok
-}
-```
+1. Change the method signature to pass the parameter by `ref`.
+    ```csharp
+    static ref T ReturnRefParamByRef<T>(ref T t)
+    {
+        t = default;
+        return ref t; // ok
+    }
+    ```
 
 ## Method ref struct return escape analysis depends on ref escape of ref arguments
 
