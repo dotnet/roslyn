@@ -16,15 +16,15 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// </summary>
 internal sealed class RemoteOptionsProvider<TOptions>
 {
-    private readonly HostWorkspaceServices _services;
+    private readonly SolutionServices _services;
     private readonly OptionsProvider<TOptions> _optionsProvider;
 
-    public RemoteOptionsProvider(HostWorkspaceServices services, OptionsProvider<TOptions> optionsProvider)
+    public RemoteOptionsProvider(SolutionServices services, OptionsProvider<TOptions> optionsProvider)
     {
         _services = services;
         _optionsProvider = optionsProvider;
     }
 
     internal ValueTask<TOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
-        => _optionsProvider.GetOptionsAsync(_services.GetLanguageServices(language).LanguageServices, cancellationToken);
+        => _optionsProvider.GetOptionsAsync(_services.GetLanguageServices(language), cancellationToken);
 }
