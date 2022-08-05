@@ -6,7 +6,9 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    // TODO(cyrusn): Make public.  Tracked through https://github.com/dotnet/roslyn/issues/62914
+    /// <summary>
+    /// Per language services provided by the host environment.
+    /// </summary>
     internal sealed class HostProjectServices
     {
         private readonly HostLanguageServices _services;
