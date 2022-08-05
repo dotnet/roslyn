@@ -7,6 +7,11 @@
     <TargetFrameworks>net6.0;net472</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="Microsoft.CodeAnalysis.Test.Utilities.RunTestsInSinglePartitionAttribute" />
+  </ItemGroup>
+  
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
     <ProjectReference Include="..\..\..\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />

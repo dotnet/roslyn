@@ -16,6 +16,9 @@
     <PackageReference Include="Mono.Options" Version="$(MonoOptionsVersion)" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="$(MicrosoftWin32RegistryVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="$(MicrosoftTeamFoundationServerClientVersion)"/>
+    <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="$(MicrosoftTeamFoundationServerClientVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
   </ItemGroup>
 </Project>

@@ -18,6 +18,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 
@@ -190,6 +191,19 @@ namespace RunTests
             // Keep track of the types we're planning to add to the current work item.
             var currentFilters = new SortedDictionary<AssemblyInfo, List<TestMethodInfo>>();
 
+            // First find any assemblies we need to run in single assembly work items (due to state sharing concerns).
+            var singlePartitionAssemblies = typeInfos.Where(kvp => ShouldPartitionInSingleWorkItem(kvp.Key.AssemblyPath));
+            typeInfos = typeInfos.RemoveRange(singlePartitionAssemblies.Select(kvp => kvp.Key));
+            foreach (var (assembly, types) in singlePartitionAssemblies)
+            {
+                Logger.Log($"Building single assembly work item {workItemIndex} for {assembly.AssemblyPath}");
+                // Add a filter containing only the tests in this assembly.
+                types.SelectMany(t => t.Tests).ToList().ForEach(test => AddFilter(assembly, test));
+
+                // End the work item so we don't include anything after this assembly.
+                AddCurrentWorkItem();
+            }
+
             // Iterate through each assembly and type and build up the work items to run.
             // We add types from assemblies one by one until we hit our limit,
             // at which point we create a work item with the current types and start a new one.
@@ -319,6 +333,35 @@ namespace RunTests
                 var lastPeriod = fullyQualifiedName.LastIndexOf(".");
                 return fullyQualifiedName[(lastPeriod + 1)..];
             }
+        }
+
+        private static bool ShouldPartitionInSingleWorkItem(string assemblyPath)
+        {
+            using (var stream = File.OpenRead(assemblyPath))
+            using (var peReader = new PEReader(stream))
+            {
+                var metadataReader = peReader.GetMetadataReader();
+                var attributes = metadataReader.GetAssemblyDefinition().GetCustomAttributes();
+                foreach (var attributeHandle in attributes)
+                {
+                    var attribute = metadataReader.GetCustomAttribute(attributeHandle);
+                    if (attribute.Constructor.Kind is HandleKind.MemberReference)
+                    {
+                        var ctor = metadataReader.GetMemberReference((MemberReferenceHandle)attribute.Constructor);
+                        if (ctor.Parent.Kind is HandleKind.TypeReference)
+                        {
+                            var typeNameHandle = metadataReader.GetTypeReference((TypeReferenceHandle)ctor.Parent).Name;
+                            var typeName = metadataReader.GetString(typeNameHandle);
+                            if (typeName == nameof(RunTestsInSinglePartitionAttribute))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }
