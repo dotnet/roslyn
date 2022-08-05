@@ -182,6 +182,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static LSP.TextDocumentIdentifier DocumentToTextDocumentIdentifier(Document document)
             => new LSP.TextDocumentIdentifier { Uri = document.GetURI() };
 
+        public static LSP.TextDocumentIdentifier TextDocumentToTextDocumentIdentifier(TextDocument document)
+            => new LSP.TextDocumentIdentifier { Uri = document.GetURI() };
+
         public static LSP.VersionedTextDocumentIdentifier DocumentToVersionedTextDocumentIdentifier(Document document)
             => new LSP.VersionedTextDocumentIdentifier { Uri = document.GetURI() };
 
