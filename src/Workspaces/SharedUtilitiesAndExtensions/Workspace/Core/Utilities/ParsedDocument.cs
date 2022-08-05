@@ -28,7 +28,7 @@ internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, S
 #if !CODE_STYLE
     // #if can be removed once these types are public: https://github.com/dotnet/roslyn/issues/62914
 
-    public HostProjectServices ProjectServices => LanguageServices.ProjectServices;
+    public Host.LanguageServices ProjectServices => LanguageServices.ProjectServices;
     public SolutionServices SolutionServices => ProjectServices.SolutionServices;
 #endif
 

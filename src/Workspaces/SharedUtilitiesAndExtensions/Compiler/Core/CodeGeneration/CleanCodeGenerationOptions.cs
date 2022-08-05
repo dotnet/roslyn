@@ -17,7 +17,7 @@ internal readonly record struct CleanCodeGenerationOptions(
     [property: DataMember(Order = 1)] CodeCleanupOptions CleanupOptions)
 {
 #if !CODE_STYLE
-    public static CleanCodeGenerationOptions GetDefault(HostProjectServices languageServices)
+    public static CleanCodeGenerationOptions GetDefault(Host.LanguageServices languageServices)
         => new(CodeGenerationOptions.GetDefault(languageServices),
                CodeCleanupOptions.GetDefault(languageServices));
 

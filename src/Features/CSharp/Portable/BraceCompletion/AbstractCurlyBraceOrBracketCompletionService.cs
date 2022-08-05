@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         /// </summary>
         private (ImmutableArray<TextChange> textChanges, int finalBraceEnd) FormatTrackingSpan(
             ParsedDocument document,
-            HostProjectServices languageServices,
+            Host.LanguageServices languageServices,
             int openingPoint,
             int closingPoint,
             ImmutableArray<AbstractFormattingRule> braceFormattingIndentationRules,

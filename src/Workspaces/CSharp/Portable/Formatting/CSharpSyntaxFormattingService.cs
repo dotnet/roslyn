@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal sealed class CSharpSyntaxFormattingService : CSharpSyntaxFormatting, ISyntaxFormattingService
     {
-        private readonly HostProjectServices _services;
+        private readonly Host.LanguageServices _services;
 
         [ExportLanguageServiceFactory(typeof(ISyntaxFormattingService), LanguageNames.CSharp), Shared]
         internal sealed class Factory : ILanguageServiceFactory
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 => new CSharpSyntaxFormattingService(languageServices.ProjectServices);
         }
 
-        private CSharpSyntaxFormattingService(HostProjectServices languageServices)
+        private CSharpSyntaxFormattingService(Host.LanguageServices languageServices)
             => _services = languageServices;
 
         public bool ShouldFormatOnTypedCharacter(

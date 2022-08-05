@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class HostWorkspaceServicesExtensions
     {
-        public static HostProjectServices? GetProjectServices(
+        public static CodeAnalysis.Host.LanguageServices? GetProjectServices(
             this SolutionServices workspaceServices, ITextBuffer textBuffer)
         {
             return workspaceServices.GetProjectServices(textBuffer.ContentType);
         }
 
-        public static HostProjectServices? GetProjectServices(
+        public static CodeAnalysis.Host.LanguageServices? GetProjectServices(
             this SolutionServices workspaceServices, IContentType contentType)
         {
             foreach (var language in workspaceServices.SupportedLanguages)

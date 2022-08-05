@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// Per language services provided by the host environment.
     /// </summary>
-    internal sealed class HostProjectServices
+    internal sealed class LanguageServices
     {
         private readonly HostLanguageServices _services;
 
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         // This ensures a single instance of this type associated with each HostLanguageServices.
         [Obsolete("Do not call directly.  Use HostLanguageServices.ProjectServices to acquire an instance")]
-        internal HostProjectServices(HostLanguageServices services)
+        internal LanguageServices(HostLanguageServices services)
         {
             _services = services;
         }

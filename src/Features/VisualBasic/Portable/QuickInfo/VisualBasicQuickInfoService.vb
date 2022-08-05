@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
     Friend Class VisualBasicQuickInfoService
         Inherits QuickInfoServiceWithProviders
 
-        Public Sub New(services As HostProjectServices)
+        Public Sub New(services As Host.LanguageServices)
             MyBase.New(services)
         End Sub
     End Class

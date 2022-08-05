@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             CodeStyleOptions = codeStyleOptions;
         }
 
-        public static CodeActionOptions GetDefault(HostProjectServices languageServices)
+        public static CodeActionOptions GetDefault(Host.LanguageServices languageServices)
             => new(
                 CodeCleanupOptions.GetDefault(languageServices),
                 CodeGenerationOptions.GetDefault(languageServices),

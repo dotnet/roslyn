@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         public abstract string Language { get; }
 
-        internal HostProjectServices ProjectServices { get; }
+        internal LanguageServices ProjectServices { get; }
 
         protected HostLanguageServices()
         {
 #pragma warning disable 618 // 'HostProjectServices.HostProjectServices(HostLanguageServices)' is obsolete: 'Do not call directly.
-            ProjectServices = new HostProjectServices(this);
+            ProjectServices = new LanguageServices(this);
 #pragma warning restore
         }
 

@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
 
         // TODO(cyrusn): Make public.  Tracked through https://github.com/dotnet/roslyn/issues/62914
         // Obsolete (or ban) LanguageServices as it can be used to acquire the Workspace from a project.
-        internal HostProjectServices Services => LanguageServices.ProjectServices;
+        internal Host.LanguageServices Services => LanguageServices.ProjectServices;
 
         /// <summary>
         /// The language associated with the project.
