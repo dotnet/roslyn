@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 where SymbolEquivalenceComparer.Instance.Equals(explicitInterfaceMethod, constructedInterfaceMember)
                 select member;
 
-            var provider = services.GetProjectServices(typeSymbol.Language);
+            var provider = services.GetLanguageServices(typeSymbol.Language);
             var semanticFacts = provider.GetRequiredService<ISemanticFactsService>();
 
             // Even if a language only supports explicit interface implementation, we

@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SolutionServices services,
             CancellationToken cancellationToken)
         {
-            var languageServices = services.GetProjectServices(token.Language);
+            var languageServices = services.GetLanguageServices(token.Language);
             var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
             if (!syntaxFacts.IsBindableToken(token))
             {

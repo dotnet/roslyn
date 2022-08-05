@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.Host
         /// Gets the <see cref="LanguageServices"/> for the language name.
         /// </summary>
         /// <exception cref="NotSupportedException">Thrown if the language isn't supported.</exception>
-        public LanguageServices GetProjectServices(string languageName)
+        public LanguageServices GetLanguageServices(string languageName)
             => _services.GetLanguageServices(languageName).LanguageServices;
 
         public TLanguageService GetRequiredLanguageService<TLanguageService>(string language) where TLanguageService : ILanguageService
-            => services.GetProjectServices(language).GetRequiredService<TLanguageService>();
+            => this.GetLanguageServices(language).GetRequiredService<TLanguageService>();
     }
 }

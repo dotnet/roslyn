@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Classification
             ClassificationOptions options,
             CancellationToken cancellationToken)
         {
-            var projectServices = services.GetProjectServices(semanticModel.Language);
+            var projectServices = services.GetLanguageServices(semanticModel.Language);
             var classsificationService = projectServices.GetRequiredService<ISyntaxClassificationService>();
             var embeddedLanguageService = projectServices.GetRequiredService<IEmbeddedLanguageClassificationService>();
 

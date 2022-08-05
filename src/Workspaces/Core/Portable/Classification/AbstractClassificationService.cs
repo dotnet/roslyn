@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Classification
             if (root == null)
                 return;
 
-            var classificationService = services.GetProjectServices(root.Language).GetService<ISyntaxClassificationService>();
+            var classificationService = services.GetLanguageServices(root.Language).GetService<ISyntaxClassificationService>();
             if (classificationService == null)
                 return;
 
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
         public TextChangeRange? ComputeSyntacticChangeRange(SolutionServices services, SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            var classificationService = services.GetProjectServices(oldRoot.Language).GetService<ISyntaxClassificationService>();
+            var classificationService = services.GetLanguageServices(oldRoot.Language).GetService<ISyntaxClassificationService>();
             return classificationService?.ComputeSyntacticChangeRange(oldRoot, newRoot, timeout, cancellationToken);
         }
     }

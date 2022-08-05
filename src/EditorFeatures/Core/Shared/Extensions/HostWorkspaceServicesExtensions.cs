@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             {
                 if (LanguageMatches(language, contentType, workspaceServices))
                 {
-                    return workspaceServices.GetProjectServices(language);
+                    return workspaceServices.GetLanguageServices(language);
                 }
             }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             // We can't do anything special, so fall back to the expensive path
             return hostWorkspaceServices.SupportedLanguages.ToDictionary(
                 l => l,
-                l => hostWorkspaceServices.GetProjectServices(l).GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType().TypeName);
+                l => hostWorkspaceServices.GetLanguageServices(l).GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType().TypeName);
         }
 
         internal static IList<T> SelectMatchingExtensionValues<T, TMetadata>(

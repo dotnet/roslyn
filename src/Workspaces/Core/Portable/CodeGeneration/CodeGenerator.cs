@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public static readonly SyntaxAnnotation Annotation = new(nameof(CodeGenerator));
 
         private static ICodeGenerationService GetCodeGenerationService(SolutionServices services, string language)
-            => services.GetProjectServices(language).GetRequiredService<ICodeGenerationService>();
+            => services.GetLanguageServices(language).GetRequiredService<ICodeGenerationService>();
 
         /// <summary>
         /// Create a new solution where the declaration of the destination symbol has an additional event of the same signature as the specified event symbol.

@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         private TokenInformation BindToken(
             SolutionServices services, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         {
-            var languageServices = services.GetProjectServices(semanticModel.Language);
+            var languageServices = services.GetLanguageServices(semanticModel.Language);
             var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
             var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
 
