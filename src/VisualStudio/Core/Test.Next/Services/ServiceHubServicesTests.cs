@@ -108,7 +108,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 // TODO: Test";
 
             using var workspace = CreateWorkspace();
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(TodoCommentOptionsStorage.TokenList), "HACK:1");
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(TodoCommentOptionsStorage.TokenList), ImmutableArray.Create("HACK:1"));
             workspace.InitializeDocuments(LanguageNames.CSharp, files: new[] { source }, openDocuments: false);
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
@@ -155,7 +155,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
 
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(TodoCommentOptionsStorage.TokenList), "TODO:1");
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(TodoCommentOptionsStorage.TokenList), ImmutableArray.Create("TODO:1"));
 
             (documentId, items) = await resultSource.Task.WithTimeout(TimeSpan.FromMinutes(1));
             Assert.Equal(solution.Projects.Single().Documents.Single().Id, documentId);
