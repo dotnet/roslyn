@@ -12,7 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)MetalamaCompilerApplicationInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MetalamaCompilerExceptionHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MetalamaCompilerMessageProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CommonPath.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TransformedPathGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticFilter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ServiceProviderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformerDiagnosticSuppressor.cs" />

@@ -1207,6 +1207,18 @@ namespace Microsoft.CodeAnalysis
                 return FileUtilities.ResolveRelativePath(transformedFilesOutputDirectory, _workingDirectory);
             }
         }
+        
+        protected string? GetMSBuildProjectFullPath(AnalyzerConfigOptionsProvider options)
+        {
+            if (!options.GlobalOptions.TryGetValue("build_property.MSBuildProjectFullPath", out var projectFullPath))
+            {
+                return null;
+            }
+            else
+            {
+                return FileUtilities.ResolveRelativePath(projectFullPath, _workingDirectory);
+            }
+        }
 
         private (ImmutableArray<DiagnosticAnalyzer> SourceOnlyAnalyzers, ImmutableArray<DiagnosticAnalyzer> WholeCodeAnalyzers) 
             SplitAnalyzers(AnalyzerConfigOptionsProvider options, ImmutableArray<DiagnosticAnalyzer> analyzers)
@@ -1565,18 +1577,23 @@ namespace Microsoft.CodeAnalysis
                             Directory.Delete(transformedOutputPath, true);
                         }
 
-                        var prefixRemover = CommonPath.MakePrefixRemover(transformersResult.TransformedTrees.Select(t => t.NewTree.FilePath));
-                        var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                        var projectFullPath = GetMSBuildProjectFullPath(analyzerConfigProvider);
+                        var projectDirectory = projectFullPath == null ? null : Path.GetDirectoryName(projectFullPath);
 
+                        var pathGenerator = new TransformedPathGenerator(projectDirectory, transformedOutputPath, _workingDirectory );
+                        
                         foreach (var transformedTree in transformersResult.TransformedTrees)
                         {
                             var tree = transformedTree.NewTree;
 
+                            if (tree == null)
+                            {
+                                continue;
+                            }
+
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            var path = prefixRemover(tree.FilePath);
-
-                            EnsurePathIsUnique();
+                            var path = pathGenerator.GetOutputPath(tree.FilePath);
 
                             var newTree = tree;
 
@@ -1626,26 +1643,7 @@ namespace Microsoft.CodeAnalysis
                                 treeMap.Add((tree, newTree));
                             }
 
-                            void EnsurePathIsUnique()
-                            {
-                                // The tree has no path, generate one using a deterministic algorithm.
-                                if (string.IsNullOrWhiteSpace(path))
-                                {
-                                    var checksum = string.Join("",
-                                        tree.GetText().GetChecksum().Select(t => t.ToString("x2")));
-                                    path = $"{checksum}.cs";
-                                    return;
-                                }
-
-                                // tree has path, make sure it's unique by adding a numeric discriminator if necessary
-                                string originalPath = path;
-                                int i = 2;
-
-                                while (!paths.Add(path))
-                                {
-                                    path = Path.Combine(Path.GetDirectoryName(originalPath)!, $"{Path.GetFileNameWithoutExtension(originalPath)}{i}{Path.GetExtension(originalPath)}");
-                                }
-                            }
+                           
                         }
 
                         mappedAnalyzerOptions = CompilerAnalyzerConfigOptionsProvider.MapSyntaxTrees(mappedAnalyzerOptions, treeMap);

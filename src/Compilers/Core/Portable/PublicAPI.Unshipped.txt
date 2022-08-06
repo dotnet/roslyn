@@ -1,6 +1,18 @@
 *REMOVED*override abstract Microsoft.CodeAnalysis.Diagnostic.Equals(object? obj) -> bool
 const Metalama.Compiler.MetalamaCompilerAnnotations.GeneratedCodeAnnotationKind = "Metalama.Compiler.GeneratedCode" -> string!
 Metalama.Compiler.MetalamaCompilerAnnotations
+Metalama.Compiler.SyntaxTreeTransformation
+Metalama.Compiler.SyntaxTreeTransformation.FilePath.get -> string!
+Metalama.Compiler.SyntaxTreeTransformation.Kind.get -> Metalama.Compiler.SyntaxTreeTransformationKind
+Metalama.Compiler.SyntaxTreeTransformation.NewTree.get -> Microsoft.CodeAnalysis.SyntaxTree?
+Metalama.Compiler.SyntaxTreeTransformation.OldTree.get -> Microsoft.CodeAnalysis.SyntaxTree?
+Metalama.Compiler.SyntaxTreeTransformation.SyntaxTreeTransformation() -> void
+Metalama.Compiler.SyntaxTreeTransformationKind
+Metalama.Compiler.SyntaxTreeTransformationKind.Add = 1 -> Metalama.Compiler.SyntaxTreeTransformationKind
+Metalama.Compiler.SyntaxTreeTransformationKind.None = 0 -> Metalama.Compiler.SyntaxTreeTransformationKind
+Metalama.Compiler.SyntaxTreeTransformationKind.Remove = 2 -> Metalama.Compiler.SyntaxTreeTransformationKind
+Metalama.Compiler.SyntaxTreeTransformationKind.Replace = 3 -> Metalama.Compiler.SyntaxTreeTransformationKind
+Metalama.Compiler.TransformerContext.AddSyntaxTreeTransformations(params Metalama.Compiler.SyntaxTreeTransformation[]! transformations) -> void
 Metalama.Compiler.TransformerContext.AnalyzerConfigOptionsProvider.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider!
 Metalama.Compiler.TransformerContext.Options.get -> Metalama.Compiler.TransformerOptions!
 Metalama.Compiler.TransformerOptions
@@ -40,5 +52,8 @@ static Metalama.Compiler.MetalamaCompilerAnnotations.WithIgnoreCodeCoverageAnnot
 static Metalama.Compiler.MetalamaCompilerAnnotations.WithOriginalLocationAnnotationFrom(this Microsoft.CodeAnalysis.SyntaxToken token, Microsoft.CodeAnalysis.SyntaxToken originalToken) -> Microsoft.CodeAnalysis.SyntaxToken
 static Metalama.Compiler.MetalamaCompilerAnnotations.WithOriginalLocationAnnotationFrom<T>(this T! node, Microsoft.CodeAnalysis.SyntaxNode! originalNode) -> T!
 static Metalama.Compiler.MetalamaCompilerAnnotations.WithRedirectCodeCoverageAnnotation<T>(this T! syntaxNode, Microsoft.CodeAnalysis.ISymbol! originalSymbol) -> T!
+static Metalama.Compiler.SyntaxTreeTransformation.AddTree(Microsoft.CodeAnalysis.SyntaxTree! tree) -> Metalama.Compiler.SyntaxTreeTransformation
+static Metalama.Compiler.SyntaxTreeTransformation.RemoveTree(Microsoft.CodeAnalysis.SyntaxTree! tree) -> Metalama.Compiler.SyntaxTreeTransformation
+static Metalama.Compiler.SyntaxTreeTransformation.ReplaceTree(Microsoft.CodeAnalysis.SyntaxTree! oldTree, Microsoft.CodeAnalysis.SyntaxTree! newTree) -> Metalama.Compiler.SyntaxTreeTransformation
 static Metalama.Compiler.TransformerOptions.Default.get -> Metalama.Compiler.TransformerOptions!
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.ReplaceSyntax<TRoot>(this TRoot! root, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode!>? nodes, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!>? computeReplacementNode, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken>? tokens, System.Func<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken>? computeReplacementToken, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia>? trivia, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia>? computeReplacementTrivia) -> TRoot!

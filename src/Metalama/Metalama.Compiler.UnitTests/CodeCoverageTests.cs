@@ -100,7 +100,7 @@ public class C
                 if (node.Identifier.Text == "Main")
                 {
                     var insertedStatement = SyntaxFactory.ParseStatement("if ( args == null ) throw new Exception();");
-                    return node.WithBody(node.Body.WithStatements(node.Body.Statements.Insert(0, insertedStatement)) );
+                    return node.WithBody(node.Body!.WithStatements(node.Body.Statements.Insert(0, insertedStatement)) );
                 }
                 else
                 {
@@ -166,7 +166,7 @@ public class C
                             IdentifierName("args"),
                             LiteralExpression(
                                 SyntaxKind.NullLiteralExpression)),
-                        node.Body);
+                        node.Body!);
                     return node.WithBody(Block(ifStatement));
                 }
                 else
@@ -218,7 +218,7 @@ public class C
             {
                 if ( node.Identifier.Text == "C")
                 {
-                    var insertedMember = SyntaxFactory.ParseMemberDeclaration("public static void M() => Console.WriteLine();");
+                    var insertedMember = SyntaxFactory.ParseMemberDeclaration("public static void M() => Console.WriteLine();")!;
                     return node.WithMembers(node.Members.Add(insertedMember));
                 }
                 else
@@ -231,8 +231,8 @@ public class C
             {
                 if (node.Identifier.Text == "Main")
                 {
-                    var insertedStatement = SyntaxFactory.ParseStatement("if ( args == null ) throw new Exception();");
-                    return node.WithBody(node.Body.WithStatements(node.Body.Statements.Insert(0, insertedStatement)));
+                    var insertedStatement = SyntaxFactory.ParseStatement("if ( args == null ) throw new Exception();")!;
+                    return node.WithBody(node.Body!.WithStatements(node.Body.Statements.Insert(0, insertedStatement)));
                 }
                 else
                 {
@@ -326,12 +326,7 @@ public class C
 
         private class MoveMethodBodyTransformer : CSharpSyntaxRewriter, ISourceTransformer
         {
-            private Compilation _compilation;
-
-            public MoveMethodBodyTransformer()
-            {
-                
-            }
+            private Compilation? _compilation;
 
             public void Execute(TransformerContext context)
             {
@@ -348,8 +343,8 @@ public class C
                 if (node.Identifier.Text == "C")
                 {
                     var originalMethod = (MethodDeclarationSyntax) node.Members[0];
-                    var semanticModel = this._compilation.GetSemanticModel(node.SyntaxTree);
-                    var originalMethodSymbol = semanticModel.GetDeclaredSymbol(originalMethod);
+                    var semanticModel = this._compilation!.GetSemanticModel(node.SyntaxTree);
+                    var originalMethodSymbol = semanticModel.GetDeclaredSymbol(originalMethod)!;
 
                     var newMethod = MethodDeclaration(
                             PredefinedType(

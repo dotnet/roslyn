@@ -568,30 +568,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     foreach (var transformedTree in context.TransformedTrees)
                     {
-                        SyntaxTree newTree = transformedTree.NewTree;
+                        var newTree = transformedTree.NewTree;
                         
-                        // Annotate the new tree.
-                        /*
-                        if (!shouldDebugTransformedCode)
-                        {
-                            // mark new trees as not debuggable
-                            // in Debug mode, also mark transformed trees as undebuggable "poison", which triggers assert if used in a sequence point
-                            if (TreeTracker.IsAnnotated(newTree.GetRoot()))
-                            {
-#if DEBUG
-                                TreeTracker.MarkAsUndebuggable(newTree);
-#endif
-                            }
-                            else
-                            {
-                                // TODO: this is at most not efficient because we may have reference to hundreds of compilations.
-                                newTree = newTree.WithRootAndOptions(
-                                    TreeTracker.AnnotateNodeAndChildren(newTree.GetRoot(), null, outputCompilation),
-                                    newTree.Options);
-                            }
-                        }
-                        */
-
                         // Update the compilation and indices.
                         if (transformedTree.OldTree != null)
                         {
@@ -602,28 +580,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             // Updates the index that allows to find the original tree.
-                            newTreesToOldTrees[newTree] = oldTree;
+                            if (newTree != null)
+                            {
+                                newTreesToOldTrees[newTree] = oldTree;
+                            }
 
                             if (oldTree != null)
                             {
                                 // Update the index mapping old trees to new trees.
-                                oldTreeToNewTrees[oldTree] = (newTree,true);
+                                oldTreeToNewTrees[oldTree] = (newTree!,true);
                             }
                             else
                             {
                                 // We are updating a tree that was added by a previous transformer.
                                 addedTrees.Remove(transformedTree.OldTree);
-                                addedTrees.Add(newTree);
+                                if (newTree != null)
+                                {
+                                    addedTrees.Add(newTree);
+                                }
                             }
 
-                            outputCompilation =
-                                outputCompilation.ReplaceSyntaxTree(transformedTree.OldTree, newTree);
+                            if (newTree != null)
+                            {
+                                outputCompilation =
+                                    outputCompilation.ReplaceSyntaxTree(transformedTree.OldTree, newTree);
+                            }
+                            else
+                            {
+                                outputCompilation =
+                                    outputCompilation.RemoveSyntaxTrees(transformedTree.OldTree);
+                            }
                         }
                         else
                         {
-                            addedTrees.Add(newTree);
-                            newTreesToOldTrees[newTree] = null;
-                            outputCompilation = outputCompilation.AddSyntaxTrees(newTree);
+                            addedTrees.Add(newTree!);
+                            newTreesToOldTrees[newTree!] = null;
+                            outputCompilation = outputCompilation.AddSyntaxTrees(newTree!);
                         }
                     }
 
@@ -659,8 +651,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var replacements = oldTreeToNewTrees
                 .Where( p => p.Value.IsModified )
-                .Select(p => new SyntaxTreeTransformation(p.Value.NewTree, p.Key))
-                .Concat(addedTrees.Select(t => new SyntaxTreeTransformation(t, null)))
+                .Select(p => SyntaxTreeTransformation.ReplaceTree(p.Key, p.Value.NewTree))
+                .Concat(addedTrees.Select(t => SyntaxTreeTransformation.AddTree(t)))
                 .ToImmutableArray();
 
             foreach ( var resource in addedResources.Where( r => r.IncludeInRefAssembly ) )

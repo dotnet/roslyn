@@ -14,88 +14,22 @@
   },
   "tasks": [
     {
-        "label": "build",
-        "command": "./build.sh",
-        "type": "shell",
+      "label": "build metalama",
+      "command": "./Build.ps1",
+      "type": "shell",
+      "args": [
+        "build"
+      ],
+      "windows": {
+        "command": "powershell",
         "args": [
+          "${workspaceFolder}/Build.ps1",
+          "build"
         ],
-        "windows": {
-          "command": "${workspaceFolder}/build.cmd",
-        },
-        "problemMatcher": "$msCompile",
-        "group": "build"
-    },
-    {
-        "label": "build with analyzers",
-        "command": "./build.sh",
-        "type": "shell",
-        "args": [
-          "--runAnalyzers"
-        ],
-        "windows": {
-          "command": "${workspaceFolder}/build.cmd",
-          "args": [
-            "-runAnalyzers"
-          ],
-        },
-        "problemMatcher": "$msCompile",
-        "group": "build"
-    },
-    {
-        "label": "build csc",
-        "command": "${workspaceFolder}/.dotnet/dotnet",
-        "type": "shell",
-        "args": [
-          "msbuild",
-          "-p:RunAnalyzersDuringBuild=false",
-          "-p:GenerateFullPaths=true",
-          "src/Compilers/CSharp/csc/csc.csproj"
-        ],
-        "problemMatcher": "$msCompile",
-        "group": "build"
-    },
-    {
-        "label": "build current project",
-        "type": "shell",
-        "command": "${workspaceFolder}/.dotnet/dotnet",
-        "args": [
-          "pwsh",
-          "${workspaceFolder}/scripts/vscode-build.ps1",
-          "-filePath",
-          "${file}",
-          "-msbuildEngine",
-          "dotnet"
-        ],
-        "windows": {
-          "command": "powershell",
-          "args": [
-            "${workspaceFolder}/scripts/vscode-build.ps1",
-            "-filePath",
-            "${file}",
-            "-msbuildEngine",
-            "dotnet"
-          ],
-        },
-        "problemMatcher": "$msCompile",
-        "group": "build"
-    },
-    {
-        "label": "msbuild current project",
-        "type": "shell",
-        "command": "echo 'Task not supported on this OS'",
-        "windows": {
-          "command": "powershell",
-          "args": [
-            "${workspaceFolder}/scripts/vscode-build.ps1",
-            "-filePath",
-            "${file}",
-            "-msbuildEngine",
-            "vs"
-          ],
-        },
-        "problemMatcher": "$msCompile",
-        "group": "build"
-    },
+      },
+      "problemMatcher": "$msCompile",
+      "group": "build"
+  },
     {
         "label": "generate compiler code",
         "command": "${workspaceFolder}/.dotnet/dotnet",
