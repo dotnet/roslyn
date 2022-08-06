@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     if (CompletionItemData.TryGetData(item, out var itemData))
                     {
                         if (CompletionHelper.TryCreateMatchResult(_completionHelper, itemData.RoslynItem, item, _filterText,
-                            roslynInitialTriggerKind, roslynFilterReason, _recentItemsManager.RecentItems, _highlightMatchingPortions, currentIndex,
+                            roslynInitialTriggerKind, roslynFilterReason, _recentItemsManager.GetRecentItemIndex(itemData.RoslynItem) >= 0, _highlightMatchingPortions, currentIndex,
                             out var matchResult))
                         {
                             list.Add(matchResult);
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     // Not deletion.  Defer to the language to decide which item it thinks best
                     // matches the text typed so far.
-                    itemMatchPairBuilder.AddRange(items.Where(r => r.MatchedFilterText).Select(t => (t.RoslynCompletionItem, t.PatternMatch)));
+                    itemMatchPairBuilder.AddRange(items.Where(r => r.ShouldBeConsideredMatchingFilterText).Select(t => (t.RoslynCompletionItem, t.PatternMatch)));
                     _filterMethod(itemMatchPairBuilder, _filterText, filteredItemsBuilder);
 
                     // Ask the language to determine which of the *matched* items it wants to select.
@@ -283,12 +283,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         selectedItemIndex = 0;
                         bestOrFirstMatchResult = items[0];
 
-                        var longestCommonPrefixLength = bestOrFirstMatchResult.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(_filterText);
+                        var longestCommonPrefixLength = bestOrFirstMatchResult.FilterTextUsed.GetCaseInsensitivePrefixLength(_filterText);
 
                         for (var i = 1; i < items.Count; ++i)
                         {
                             var item = items[i];
-                            var commonPrefixLength = item.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(_filterText);
+                            var commonPrefixLength = item.FilterTextUsed.GetCaseInsensitivePrefixLength(_filterText);
 
                             if (commonPrefixLength > longestCommonPrefixLength)
                             {
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         return null;
                     }
 
-                    var isHardSelection = IsHardSelection(bestOrFirstMatchResult.RoslynCompletionItem, bestOrFirstMatchResult.MatchedFilterText);
+                    var isHardSelection = IsHardSelection(bestOrFirstMatchResult.RoslynCompletionItem, bestOrFirstMatchResult.ShouldBeConsideredMatchingFilterText);
                     var updateSelectionHint = isHardSelection ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected;
 
                     return new(selectedItemIndex, updateSelectionHint, uniqueItem);
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     var currentMatchResult = items[i];
 
-                    if (!currentMatchResult.MatchedFilterText)
+                    if (!currentMatchResult.ShouldBeConsideredMatchingFilterText)
                         continue;
 
                     if (bestMatchResult == null)
@@ -424,13 +424,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     //   text that originally appeared before the dot
                     // * deleting through a word from the end keeps that word selected
                     // This also preserves the behavior the VB had through Dev12.
-                    hardSelect = !_hasSuggestedItemOptions && bestMatchResult.Value.EditorCompletionItem.FilterText.StartsWith(_filterText, StringComparison.CurrentCultureIgnoreCase);
+                    hardSelect = !_hasSuggestedItemOptions && bestMatchResult.Value.FilterTextUsed.StartsWith(_filterText, StringComparison.CurrentCultureIgnoreCase);
                 }
 
                 // The best match we have selected is unique if `moreThanOneMatch` is false.
                 return new(SelectedItemIndex: indexToSelect,
                     SelectionHint: hardSelect ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected,
-                    UniqueItem: moreThanOneMatch ? null : bestMatchResult.GetValueOrDefault().EditorCompletionItem);
+                    UniqueItem: moreThanOneMatch || !bestMatchResult.HasValue ? null : bestMatchResult.Value.EditorCompletionItem);
             }
 
             private CompletionList<CompletionItemWithHighlight> GetHighlightedList(
@@ -453,14 +453,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     CompletionHelper completionHelper,
                     string filterText)
                 {
-                    if (matchResult.RoslynCompletionItem.HasDifferentFilterText)
+                    if (matchResult.RoslynCompletionItem.HasDifferentFilterText || matchResult.RoslynCompletionItem.HasAdditionalFilterTexts)
                     {
-                        // The PatternMatch in MatchResult is calculated based on Roslyn item's FilterText, 
-                        // which can be used to calculate highlighted span for VSCompletion item's DisplayText w/o doing the matching again.
-                        // However, if the Roslyn item's FilterText is different from its DisplayText,
-                        // we need to do the match against the display text of the VS item directly to get the highlighted spans.
+                        // The PatternMatch in MatchResult is calculated based on Roslyn item's FilterText, which can be used to calculate
+                        // highlighted span for VSCompletion item's DisplayText w/o doing the matching again.
+                        // However, if the Roslyn item's FilterText is different from its DisplayText, we need to do the match against the
+                        // display text of the VS item directly to get the highlighted spans. This is done in a best effort fashion and there
+                        // is no guarantee a proper match would be found for highlighting.
                         return completionHelper.GetHighlightedSpans(
-                            matchResult.EditorCompletionItem.DisplayText, filterText, CultureInfo.CurrentCulture).SelectAsArray(s => s.ToSpan());
+                            matchResult.RoslynCompletionItem, filterText, CultureInfo.CurrentCulture).SelectAsArray(s => s.ToSpan());
                     }
 
                     var patternMatch = matchResult.PatternMatch;
@@ -535,26 +536,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 Debug.Assert(chosenItems.Count > 0);
 
-                var recentItems = _recentItemsManager.RecentItems;
-
                 // Try to find the chosen item has been most recently used.
                 var bestItem = chosenItems[0];
-                var mruIndex1 = GetRecentItemIndex(recentItems, bestItem);
+                var bestItemMruIndex = _recentItemsManager.GetRecentItemIndex(bestItem);
                 for (int i = 1, n = chosenItems.Count; i < n; i++)
                 {
-                    var chosenItem = chosenItems[i];
-                    var mruIndex2 = GetRecentItemIndex(recentItems, chosenItem);
+                    var currentItem = chosenItems[i];
+                    var currentItemMruIndex = _recentItemsManager.GetRecentItemIndex(currentItem);
 
-                    if ((mruIndex2 < mruIndex1) ||
-                        (mruIndex2 == mruIndex1 && !bestItem.IsPreferredItem() && chosenItem.IsPreferredItem()))
+                    if (currentItemMruIndex > bestItemMruIndex ||
+                        (currentItemMruIndex == bestItemMruIndex && !bestItem.IsPreferredItem() && currentItem.IsPreferredItem()))
                     {
-                        bestItem = chosenItem;
-                        mruIndex1 = GetRecentItemIndex(recentItems, bestItem);
+                        bestItem = currentItem;
+                        bestItemMruIndex = currentItemMruIndex;
                     }
                 }
 
                 // If our best item appeared in the MRU list, use it
-                if (GetRecentItemIndex(recentItems, bestItem) <= 0)
+                if (_recentItemsManager.GetRecentItemIndex(bestItem) >= 0)
                 {
                     return bestItem;
                 }
@@ -574,12 +573,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
 
                 return bestItem;
-
-                static int GetRecentItemIndex(ImmutableArray<string> recentItems, RoslynCompletionItem item)
-                {
-                    var index = recentItems.IndexOf(item.FilterText);
-                    return -index;
-                }
             }
 
             private static bool TryGetInitialTriggerLocation(AsyncCompletionSessionDataSnapshot data, out SnapshotPoint intialTriggerLocation)
