@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </remarks>
         internal virtual bool ShouldTriggerCompletion(
             Project? project,
-            Host.LanguageServices languageServices,
+            LanguageServices languageServices,
             SourceText text,
             int caretPosition,
             CompletionTrigger trigger,
