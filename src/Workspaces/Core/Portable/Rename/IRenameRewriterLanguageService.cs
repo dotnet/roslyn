@@ -230,20 +230,6 @@ namespace Microsoft.CodeAnalysis.Rename
             }
         }
 
-        protected static ImmutableHashSet<RenamedSymbolContext> FilterRenameSymbolContexts(
-            IEnumerable<RenamedSymbolContext> symbolContexts, Func<RenamedSymbolContext, bool> predicate)
-        {
-            using var _ = PooledHashSet<RenamedSymbolContext>.GetInstance(out var builder);
-
-            foreach (var renamedSymbolContext in symbolContexts)
-            {
-                if (predicate(renamedSymbolContext))
-                    builder.Add(renamedSymbolContext);
-            }
-
-            return builder.ToImmutableHashSet();
-        }
-
         /// <summary>
         /// Given a set of renameLocations, create a sorted dictionary, maps the renameLocation to its replacementText.
         /// The map is later used when rename inside a comment/string.

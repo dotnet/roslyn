@@ -527,14 +527,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             Private Function AnnotateNonRenameLocation(token As SyntaxToken, newToken As SyntaxToken) As SyntaxToken
                 If Not _isProcessingComplexifiedSpans Then
-                    Dim renameContexts = _renamedSymbolContexts.Values
+                    Dim renameContexts = _renamedSymbolContexts.Values.ToSet()
                     Dim tokenText = token.ValueText
-                    Dim replacementMatchedContexts = FilterRenameSymbolContexts(renameContexts, Function(c) CaseInsensitiveComparison.Equals(tokenText, c.ReplacementText))
-                    Dim originalTextMatchedContexts = FilterRenameSymbolContexts(renameContexts, Function(c) CaseInsensitiveComparison.Equals(tokenText, c.OriginalText))
-                    Dim possibleNameConflictContexts = FilterRenameSymbolContexts(renameContexts, Function(c) IsPossibleNameConflict(c.PossibleNameConflicts, tokenText))
+                    Dim isOldText = renameContexts.Any(Function(c) CaseInsensitiveComparison.Equals(tokenText, c.OriginalText))
+                    Dim tokenNeedsConflictCheck = isOldText OrElse
+                                                  renameContexts.Any(Function(c) CaseInsensitiveComparison.Equals(tokenText, c.ReplacementText) OrElse IsPossibleNameConflict(c.PossibleNameConflicts, tokenText))
 
-                    If Not replacementMatchedContexts.IsEmpty OrElse Not originalTextMatchedContexts.IsEmpty OrElse Not possibleNameConflictContexts.IsEmpty Then
-                        newToken = AnnotateForConflictCheckAsync(token, newToken, Not originalTextMatchedContexts.IsEmpty).WaitAndGetResult_CanCallOnBackground(_cancellationToken)
+                    If tokenNeedsConflictCheck Then
+                        newToken = AnnotateForConflictCheckAsync(token, newToken, isOldText).WaitAndGetResult_CanCallOnBackground(_cancellationToken)
                     End If
 
                     Return newToken
@@ -688,10 +688,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Dim originalString = newToken.ToString()
                 Dim replacedString = RenameUtilities.ReplaceMatchingSubStrings(originalString, subSpanToReplacementText)
                 If replacedString <> originalString Then
-                    Dim oldSPan = oldToken.Span
+                    Dim oldSpan = oldToken.Span
                     newToken = createNewStringLiteral(newToken.LeadingTrivia, replacedString, replacedString, newToken.TrailingTrivia)
-                    AddModifiedSpan(oldSPan, newToken.Span)
-                    Return oldToken.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(newToken, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = oldSPan}))
+                    AddModifiedSpan(oldSpan, newToken.Span)
+                    Return oldToken.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(newToken, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = oldSpan}))
                 End If
 
                 Return newToken

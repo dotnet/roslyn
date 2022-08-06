@@ -541,20 +541,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 {
                     // Annotate the token if it would cause conflict in all other scenarios
                     var tokenText = token.ValueText;
-                    var renameContexts = _renamedSymbolContexts.Values;
-                    var replacementMatchedContexts = FilterRenameSymbolContexts(renameContexts, context => context.ReplacementText == tokenText);
-                    var originalTextMatchedContexts = FilterRenameSymbolContexts(renameContexts, context => context.OriginalText == tokenText);
-                    var possibleNameConflictsContexts = FilterRenameSymbolContexts(renameContexts, context => context.PossibleNameConflicts.Contains(tokenText));
-                    var possiblyDestructorConflictContexts = FilterRenameSymbolContexts(renameContexts, context => IsPossiblyDestructorConflict(token, context.ReplacementText));
-                    var propertyAccessorNameConflictContexts = FilterRenameSymbolContexts(renameContexts, context => IsPropertyAccessorNameConflict(token, context.ReplacementText));
-
-                    if (!replacementMatchedContexts.IsEmpty
-                        || !originalTextMatchedContexts.IsEmpty
-                        || !possibleNameConflictsContexts.IsEmpty
-                        || !possiblyDestructorConflictContexts.IsEmpty
-                        || !propertyAccessorNameConflictContexts.IsEmpty)
+                    var renameContexts = _renamedSymbolContexts.Values.ToSet();
+                    var isOldText = renameContexts.Any(context => context.OriginalText == tokenText);
+                    var tokenNeedsConflictCheck = isOldText
+                        || renameContexts.Any(context => context.PossibleNameConflicts.Contains(tokenText)
+                            || IsPossiblyDestructorConflict(token, context.ReplacementText)
+                            || IsPropertyAccessorNameConflict(token, context.ReplacementText));
+                    
+                    if (tokenNeedsConflictCheck)
                     {
-                        newToken = AnnotateForConflictCheckAsync(token, newToken, !originalTextMatchedContexts.IsEmpty).WaitAndGetResult_CanCallOnBackground(_cancellationToken);
+                        newToken = AnnotateForConflictCheckAsync(token, newToken, isOldText).WaitAndGetResult_CanCallOnBackground(_cancellationToken);
                     }
 
                     return newToken;
@@ -704,11 +700,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 // Rename Token in structure comment
                 if (newToken.IsKind(SyntaxKind.XmlTextLiteralToken))
                 {
-                    newToken = RenameInStringLiteral(token, newToken, subSpanToReplacementText, SyntaxFactory.XmlTextLiteral);
+                    return RenameInStringLiteral(token, newToken, subSpanToReplacementText, SyntaxFactory.XmlTextLiteral);
                 }
-                // Rename the xml tag in structure comment
                 else if (newToken.IsKind(SyntaxKind.IdentifierToken) && newToken.Parent.IsKind(SyntaxKind.XmlName))
                 {
+                    // Rename the xml tag in structure comment
                     var originalText = newToken.ToString();
                     var replacementText = RenameUtilities.ReplaceMatchingSubStrings(
                         originalText,

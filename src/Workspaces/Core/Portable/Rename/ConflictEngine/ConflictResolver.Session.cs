@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     var documentIdToRenameLocations = renameLocations
                         .GroupBy(location => location.DocumentId)
-                        .ToImmutableDictionary(grouping => grouping.Key);
+                        .ToDictionary(grouping => grouping.Key);
 
                     foreach (var documentId in documentIdsToRename)
                     {
