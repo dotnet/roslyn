@@ -787,7 +787,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var semanticModel = await document.GetRequiredSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                         var originalSyntaxRoot = await semanticModel.SyntaxTree.GetRootAsync(_cancellationToken).ConfigureAwait(false);
 
-                        var locationsInDocument = documentIdToRenameLocations[documentId];
+                        // Conflict checking documents is a superset of the rename locations. In case this document is not a documents of rename locations,
+                        // just passing an empty rename information to check for conflicts.
+                        var locationsInDocument = documentIdToRenameLocations.ContainsKey(documentId)
+                            ? documentIdToRenameLocations[documentId]
+                            : SpecializedCollections.EmptyEnumerable<RenameLocation>();
 
                         // Get all rename locations for the current document.
                         var textSpanRenameContexts = locationsInDocument
