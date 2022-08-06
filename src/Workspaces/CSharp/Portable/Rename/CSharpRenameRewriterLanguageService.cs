@@ -544,10 +544,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     var renameContexts = _renamedSymbolContexts.Values.ToSet();
                     var isOldText = renameContexts.Any(context => context.OriginalText == tokenText);
                     var tokenNeedsConflictCheck = isOldText
-                        || renameContexts.Any(context => context.PossibleNameConflicts.Contains(tokenText)
+                        || renameContexts.Any(context => context.ReplacementText == tokenText
+                            || context.PossibleNameConflicts.Contains(tokenText)
                             || IsPossiblyDestructorConflict(token, context.ReplacementText)
                             || IsPropertyAccessorNameConflict(token, context.ReplacementText));
-                    
+
                     if (tokenNeedsConflictCheck)
                     {
                         newToken = AnnotateForConflictCheckAsync(token, newToken, isOldText).WaitAndGetResult_CanCallOnBackground(_cancellationToken);
