@@ -732,6 +732,11 @@
         <target state="translated">La invocación del indizador de rangos implícito no puede nombrar el argumento.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
+        <target state="new">Implicitly typed lambda parameter '{0}' cannot have a default value.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">No se pueden usar argumentos con el modificador "in" en expresiones distribuidas dinámicamente.</target>

@@ -732,6 +732,11 @@
         <target state="translated">L'appel de l'indexeur de plage implicite ne peut pas nommer l'argument.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
+        <target state="new">Implicitly typed lambda parameter '{0}' cannot have a default value.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">Impossible d'utiliser les arguments avec le modificateur 'in' dans les expressions dispatchées dynamiquement.</target>

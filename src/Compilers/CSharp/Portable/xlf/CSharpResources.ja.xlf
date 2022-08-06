@@ -732,6 +732,11 @@
         <target state="translated">暗黙的な範囲インデクサーの呼び出しでは、引数に名前を付けることはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
+        <target state="new">Implicitly typed lambda parameter '{0}' cannot have a default value.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">'in' 修飾子を持つ引数を、動的ディスパッチされる式で使用することはできません。</target>
