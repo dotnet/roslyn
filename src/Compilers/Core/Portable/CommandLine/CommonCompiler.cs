@@ -1586,6 +1586,11 @@ namespace Microsoft.CodeAnalysis
                         {
                             var tree = transformedTree.NewTree;
 
+                            if (tree == null)
+                            {
+                                continue;
+                            }
+
                             cancellationToken.ThrowIfCancellationRequested();
 
                             var path = pathGenerator.GetOutputPath(tree.FilePath);

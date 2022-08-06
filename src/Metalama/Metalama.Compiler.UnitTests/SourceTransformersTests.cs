@@ -227,17 +227,19 @@ error LAMA0601: Transformer 'TransformerOrderTransformer1' failed:", output);
         [Fact]
         public void WriteTransformedSources()
         {
-            var dir = Temp.CreateDirectory();
-            var src1 = dir.CreateFile("C.cs").WriteAllText("class C { }");
-            var src2 = dir.CreateDirectory("dir").CreateFile("D.cs").WriteAllText("class D { }");
-            var transformedDir = dir.CreateDirectory("transformed");
-            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
+            var projectDirectory = Temp.CreateDirectory();
+            var src1 = projectDirectory.CreateFile("C.cs").WriteAllText("class C { }");
+            var src2 = projectDirectory.CreateDirectory("dir").CreateFile("D.cs").WriteAllText("class D { }");
+            var transformedDir = projectDirectory.CreateDirectory("transformed");
+            var analyzerConfig = projectDirectory.CreateFile(".editorconfig").WriteAllText($@"
 is_global = true
-build_property.MetalamaCompilerTransformedFilesOutputPath = {transformedDir.Path}");
+build_property.MetalamaCompilerTransformedFilesOutputPath = {transformedDir.Path}
+build_property.MSBuildProjectFullPath = {projectDirectory.Path}\MyProject.csproj"
+            );
 
             var args = new[] { "/t:library", $"/analyzerconfig:{analyzerConfig.Path}", src1.Path, src2.Path, "/out:lib.dll" };
 
-            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: (new ISourceTransformer[] { new DoSomethingTransformer() }).ToImmutableArray());
+            var csc = CreateCSharpCompiler(null, projectDirectory.Path, args, transformers: (new ISourceTransformer[] { new DoSomethingTransformer() }).ToImmutableArray());
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
@@ -247,13 +249,13 @@ build_property.MetalamaCompilerTransformedFilesOutputPath = {transformedDir.Path
             Assert.Equal("/* comment */class C { }", File.ReadAllText(Path.Combine(transformedDir.Path, "C.cs")));
             Assert.Equal("/* comment */class D { }", File.ReadAllText(Path.Combine(transformedDir.Path, "dir/D.cs")));
 
-            var generatedFile = Directory.EnumerateFiles(transformedDir.Path).Single(p => Path.GetFileNameWithoutExtension(p).Length > 8 );
+            var generatedFile = Path.Combine(transformedDir.Path, "Unnamed.cs");
             Assert.Equal("class G {}", File.ReadAllText(generatedFile));
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src1.Path);
             CleanupAllGeneratedFiles(src2.Path);
-            Directory.Delete(dir.Path, true);
+            Directory.Delete(projectDirectory.Path, true);
         }
         
         [Fact]
