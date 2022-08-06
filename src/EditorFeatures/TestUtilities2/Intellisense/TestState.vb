@@ -127,6 +127,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendReturn(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() EditorOperations.InsertNewLine())
         End Sub
 
+        Public Sub SendBackspaces(count As Integer)
+            For i = 0 To count - 1
+                Me.SendBackspace()
+            Next
+        End Sub
+
         Public Overrides Sub SendBackspace()
             Dim compHandler = GetHandler(Of IChainedCommandHandler(Of BackspaceKeyCommandArgs))()
             MyBase.SendBackspace(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendBackspace)
