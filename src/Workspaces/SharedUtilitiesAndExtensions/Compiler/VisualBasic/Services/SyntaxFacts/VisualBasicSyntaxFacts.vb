@@ -6,7 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -19,7 +19,7 @@ Imports Microsoft.CodeAnalysis.Internal.Editing
 Imports Microsoft.CodeAnalysis.Editing
 #End If
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
     Friend Class VisualBasicSyntaxFacts
         Implements ISyntaxFacts
 

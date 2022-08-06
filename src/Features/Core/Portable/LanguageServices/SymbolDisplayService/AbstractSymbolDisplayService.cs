@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal abstract partial class AbstractSymbolDisplayService : ISymbolDisplayService
     {

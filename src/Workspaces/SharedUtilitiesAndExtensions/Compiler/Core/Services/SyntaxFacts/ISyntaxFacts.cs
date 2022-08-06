@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Internal.Editing;
 using Microsoft.CodeAnalysis.Editing;
 #endif
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     /// <summary>
     /// Contains helpers to allow features and other algorithms to run over C# and Visual Basic code in a uniform fashion.

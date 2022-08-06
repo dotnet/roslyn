@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Roslyn.Utilities;
 using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
 

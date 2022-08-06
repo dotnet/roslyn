@@ -6,7 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
                 if (typeSyntax.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax? predefinedType)
                     && CSharpSyntaxFacts.Instance.TryGetPredefinedType(predefinedType.Keyword, out var type))
                 {
-                    if (type is CodeAnalysis.LanguageServices.PredefinedType.Object or CodeAnalysis.LanguageServices.PredefinedType.String)
+                    if (type is CodeAnalysis.LanguageService.PredefinedType.Object or CodeAnalysis.LanguageService.PredefinedType.String)
                     {
                         SpansBuilder.Add(predefinedType.Span);
                     }

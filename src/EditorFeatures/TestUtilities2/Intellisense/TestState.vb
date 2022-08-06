@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletio
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
