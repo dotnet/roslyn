@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (oldTree != null)
                             {
                                 // Update the index mapping old trees to new trees.
-                                oldTreeToNewTrees[oldTree] = (newTree,true);
+                                oldTreeToNewTrees[oldTree] = (newTree!,true);
                             }
                             else
                             {
@@ -613,9 +613,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            addedTrees.Add(newTree);
-                            newTreesToOldTrees[newTree] = null;
-                            outputCompilation = outputCompilation.AddSyntaxTrees(newTree);
+                            addedTrees.Add(newTree!);
+                            newTreesToOldTrees[newTree!] = null;
+                            outputCompilation = outputCompilation.AddSyntaxTrees(newTree!);
                         }
                     }
 

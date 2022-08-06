@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             
             // <Metalama>
             var methodBeforeRedirection = method;
-            SyntaxNode? declarationNode = methodBody.Syntax.Parent;
+            SyntaxNode declarationNode = methodBody.Syntax.Parent;
             if (declarationNode != null)
             {
                 // Do not instrument methods marked to be ignored.

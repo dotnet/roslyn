@@ -152,7 +152,8 @@ config_transformer_class_name = ConfigTestClass
 
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: (new ISourceTransformer[] { new ConfigTransformer() }).ToImmutableArray());
 
-            var exitCode = csc.Run(TextWriter.Null);
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = csc.Run(outWriter);
 
             Assert.Equal(0, exitCode);
 
@@ -169,7 +170,8 @@ config_transformer_class_name = ConfigTestClass
             {
                 context.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue("config_transformer_class_name", out var className);
 
-                context.ReplaceSyntaxTree(context.Compilation.SyntaxTrees.Single(), SyntaxFactory.ParseSyntaxTree($"class {className} {{}}"));
+                var oldTree = context.Compilation.SyntaxTrees.Single();
+                context.ReplaceSyntaxTree(oldTree, SyntaxFactory.ParseSyntaxTree($"class {className} {{}}", path: oldTree.FilePath));
             }
         }
 

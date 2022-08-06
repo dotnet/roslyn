@@ -66,7 +66,7 @@ namespace Metalama.Compiler.UnitTests
             {
                 var assignment = SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression,
-                    SyntaxFactory.IdentifierName("x"), node.Expression));
+                    SyntaxFactory.IdentifierName("x"), node.Expression!));
                 
                 assignment = assignment.WithOriginalLocationAnnotationFrom(node);
 

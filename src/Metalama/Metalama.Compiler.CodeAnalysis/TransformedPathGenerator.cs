@@ -39,7 +39,7 @@ internal class TransformedPathGenerator
             
             if (Path.IsPathRooted(relativePath))
             {
-                stem = Path.Combine("links", relativePath.Substring(Path.GetPathRoot(relativePath).Length));
+                stem = Path.Combine("links", relativePath.Substring(Path.GetPathRoot(relativePath)?.Length ?? 0));
             }
             else if (relativePath.StartsWith(_backwardDirectory))
             {
