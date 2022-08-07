@@ -432,6 +432,11 @@
         <target state="translated">啟用診斷的檔案記錄 (在 '%Temp%\Roslyn' 資料夾中記錄)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_navigation_to_sourcelink_and_embedded_sources">
+        <source>Enable navigation to Source Link and Embedded sources</source>
+        <target state="new">Enable navigation to Source Link and Embedded sources</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
         <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
         <target state="translated">啟用 'pull' 診斷 (實驗性，需要重新啟動)</target>
