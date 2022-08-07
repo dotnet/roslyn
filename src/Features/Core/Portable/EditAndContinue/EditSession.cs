@@ -797,7 +797,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 EditAndContinueWorkspaceService.Log.Write("EmitSolutionUpdate: '{0}'", solution.FilePath);
 
-                using var _1 = ArrayBuilder<ManagedModuleUpdate>.GetInstance(out var deltas);
+                using var _1 = ArrayBuilder<ModuleUpdate>.GetInstance(out var deltas);
                 using var _2 = ArrayBuilder<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)>.GetInstance(out var nonRemappableRegions);
                 using var _3 = ArrayBuilder<(ProjectId, EmitBaseline)>.GetInstance(out var emitBaselines);
                 using var _4 = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance(out var diagnostics);
@@ -1000,7 +1000,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 out var moduleNonRemappableRegions,
                                 out var exceptionRegionUpdates);
 
-                            deltas.Add(new ManagedModuleUpdate(
+                            deltas.Add(new ModuleUpdate(
                                 mvid,
                                 ilStream.ToImmutableArray(),
                                 metadataStream.ToImmutableArray(),
@@ -1046,8 +1046,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var update = isBlocked ?
                     SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable(), syntaxError, hasEmitErrors) :
                     new SolutionUpdate(
-                        new ManagedModuleUpdates(
-                            (deltas.Count > 0) ? ManagedModuleUpdateStatus.Ready : ManagedModuleUpdateStatus.None,
+                        new ModuleUpdates(
+                            (deltas.Count > 0) ? ModuleUpdateStatus.Ready : ModuleUpdateStatus.None,
                             deltas.ToImmutable()),
                         nonRemappableRegions.ToImmutable(),
                         emitBaselines.ToImmutable(),

@@ -69,6 +69,8 @@
             <GroupBox x:Uid="GoToDefinitionGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Go_To_Definition}">
                 <StackPanel>
+                    <CheckBox x:Name="Enable_navigation_to_sourcelink_and_embedded_sources"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_sourcelink_and_embedded_sources}" />
                     <CheckBox x:Name="Enable_navigation_to_decompiled_sources"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_decompiled_sources}" />
                     <CheckBox x:Name="Always_use_default_symbol_servers_for_navigation"
