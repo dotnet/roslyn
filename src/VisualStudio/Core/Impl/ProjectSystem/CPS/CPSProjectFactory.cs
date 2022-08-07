@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 {
@@ -54,7 +55,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 projectFilePath: data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.MSBuildProjectFullPath),
                 projectGuid: id,
                 hierarchy: hostObject,
-                binOutputPath: (languageName != LanguageNames.FSharp) ? data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.TargetPath) : data.GetPropertyValue(BuildPropertyNames.TargetPath),
+                binOutputPath: (languageName is LanguageNames.CSharp or LanguageNames.VisualBasic) ?
+                    data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.TargetPath) :
+                    data.GetPropertyValue(BuildPropertyNames.TargetPath),
                 assemblyName: data.GetPropertyValue(BuildPropertyNames.AssemblyName),
                 cancellationToken);
 

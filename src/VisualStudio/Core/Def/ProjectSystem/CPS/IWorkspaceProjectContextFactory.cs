@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// This will be unique across regardless of whether projects are added or renamed 
         /// to match this project's original name.
         /// </param>
-        /// <param name="data">Providers access to msbuild evaluation data for the project.</param>
+        /// <param name="data">Provides access to msbuild evaluation data for the project.</param>
         /// <param name="hostObject">The IVsHierarchy for the project; this is used to track linked files across multiple projects when determining contexts.</param>
         /// <exception cref="InvalidOperationException">A required property or item is not present in <see cref="EvaluationData"/> or has invalid value.</exception>
         Task<IWorkspaceProjectContext> CreateProjectContextAsync(Guid id, string uniqueName, string languageName, EvaluationData data, object? hostObject, CancellationToken cancellationToken);
@@ -79,10 +79,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         {
             var value = GetPropertyValue(name);
 
-            if (string.IsNullOrEmpty(value))
-                throw new InvalidOperationException($"Property '{name}' is required.");
+            if (value.IsEmpty())
+                throw new InvalidProjectPropertyValueException(name, value, $"Property '{name}' is required.");
 
-            return value!;
+            return value;
         }
 
         public string GetRequiredPropertyAbsolutePathValue(string name)
@@ -90,9 +90,22 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
             var value = GetPropertyValue(name);
 
             if (!PathUtilities.IsAbsolute(value))
-                throw new InvalidOperationException($"Property '{name}' is required to be an absolute path, but the value is '{value}'.");
+                throw new InvalidProjectPropertyValueException(name, value, $"Property '{name}' is required to be an absolute path, but the value is '{value}'.");
 
             return value;
+        }
+    }
+
+    internal sealed class InvalidProjectPropertyValueException : Exception
+    {
+        public string PropertyName { get; }
+        public string Value { get; }
+
+        public InvalidProjectPropertyValueException(string propertyName, string value, string message)
+            : base(message)
+        {
+            PropertyName = propertyName;
+            Value = value;
         }
     }
 }

@@ -100,24 +100,13 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             Assert.Equal(expectedNewBinPath, project.BinOutputPath);
         }
 
-        [WpfFact, WorkItem(14520, "https://github.com/dotnet/roslyn/issues/14520")]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task InvalidProjectOutputBinPaths_CPS()
         {
             using var environment = new TestEnvironment();
-            await Assert.ThrowsAsync<InvalidOperationException>(() => CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test2", binOutputPath: null));
-            await Assert.ThrowsAsync<InvalidOperationException>(() => CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test2", binOutputPath: String.Empty));
-        }
-
-        [WpfFact, WorkItem(14520, "https://github.com/dotnet/roslyn/issues/14520")]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public async Task InvalidProjectOutputBinPaths_CPS3()
-        {
-            using var environment = new TestEnvironment();
-
-            // Non-rooted output path is not allowed, the project system will handle the exception:
-            await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test3", binOutputPath: "Test.dll"));
+            await Assert.ThrowsAsync<InvalidProjectPropertyValueException>(() => CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test2", binOutputPath: ""));
+            await Assert.ThrowsAsync<InvalidProjectPropertyValueException>(() => CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test3", binOutputPath: "Test.dll"));
         }
 
         [WpfFact]
