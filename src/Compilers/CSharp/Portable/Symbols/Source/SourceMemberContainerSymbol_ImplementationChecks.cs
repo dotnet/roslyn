@@ -1392,7 +1392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var baseParameter = baseParameters[i];
                 var overrideParameter = overrideParameters[i + overrideParameterOffset];
-                if (baseParameter.Scope != overrideParameter.Scope)
+                if (baseParameter.EffectiveScope != overrideParameter.EffectiveScope)
                 {
                     reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, topLevel: true, extraArgument);
                     hasErrors = true;

@@ -25,7 +25,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
     public class AssetProviderTests
     {
         private static Workspace CreateRemoteWorkspace()
-            => new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices(), WorkspaceKind.RemoteWorkspace);
+            => new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestCSharpParseOptionsSynchronization()

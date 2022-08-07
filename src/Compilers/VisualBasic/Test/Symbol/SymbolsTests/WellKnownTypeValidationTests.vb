@@ -552,7 +552,9 @@ End Namespace
                          WellKnownType.System_MemoryExtensions,
                          WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute,
                          WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute,
-                         WellKnownType.System_MemoryExtensions
+                         WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute,
+                         WellKnownType.System_MemoryExtensions,
+                         WellKnownType.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -623,7 +625,9 @@ End Namespace
                          WellKnownType.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute,
                          WellKnownType.System_MemoryExtensions,
                          WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute
+                         WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute,
+                         WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -719,7 +723,9 @@ End Namespace
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T,
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
                          WellKnownMember.System_MemoryExtensions__AsSpan_String,
-                         WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+                         WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -871,7 +877,9 @@ End Namespace
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T,
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
                          WellKnownMember.System_MemoryExtensions__AsSpan_String,
-                         WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+                         WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
