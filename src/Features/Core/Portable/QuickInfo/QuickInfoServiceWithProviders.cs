@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     /// </summary>
     internal abstract class QuickInfoServiceWithProviders : QuickInfoService
     {
-        private readonly HostProjectServices _services;
+        private readonly Host.LanguageServices _services;
         private ImmutableArray<QuickInfoProvider> _providers;
 
-        protected QuickInfoServiceWithProviders(HostProjectServices services)
+        protected QuickInfoServiceWithProviders(Host.LanguageServices services)
         {
             _services = services;
         }

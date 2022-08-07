@@ -28,7 +28,7 @@ internal sealed record class CodeCleanupOptions(
     [DataMember] public DocumentFormattingOptions DocumentFormattingOptions { get; init; } = DocumentFormattingOptions.Default;
 
 #if !CODE_STYLE
-    public static CodeCleanupOptions GetDefault(HostProjectServices languageServices)
+    public static CodeCleanupOptions GetDefault(Host.LanguageServices languageServices)
         => new(
             FormattingOptions: SyntaxFormattingOptions.GetDefault(languageServices),
             SimplifierOptions: SimplifierOptions.GetDefault(languageServices));
@@ -82,7 +82,7 @@ internal abstract class AbstractCodeCleanupOptionsProvider : CodeCleanupOptionsP
 internal static class CodeCleanupOptionsProviders
 {
 #if !CODE_STYLE
-    public static CodeCleanupOptions GetCodeCleanupOptions(this AnalyzerConfigOptions options, bool allowImportsInHiddenRegions, CodeCleanupOptions? fallbackOptions, HostProjectServices languageServices)
+    public static CodeCleanupOptions GetCodeCleanupOptions(this AnalyzerConfigOptions options, bool allowImportsInHiddenRegions, CodeCleanupOptions? fallbackOptions, Host.LanguageServices languageServices)
     {
         var formattingOptions = options.GetSyntaxFormattingOptions(fallbackOptions?.FormattingOptions, languageServices);
         var simplifierOptions = options.GetSimplifierOptions(fallbackOptions?.SimplifierOptions, languageServices);
