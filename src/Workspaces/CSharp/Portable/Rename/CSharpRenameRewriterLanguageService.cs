@@ -77,6 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             /// </summary>
             private readonly ImmutableDictionary<TextSpan, ImmutableHashSet<LocationRenameContext>> _stringAndCommentRenameContexts;
 
+            private readonly ImmutableHashSet<string> _replacementTexts;
+            private readonly ImmutableHashSet<string> _originalTexts;
+            private readonly ImmutableHashSet<string> _allPossibleConflictNames;
+
             private List<(TextSpan oldSpan, TextSpan newSpan)>? _modifiedSubSpans;
             private bool _isProcessingComplexifiedSpans;
             private SemanticModel? _speculativeModel;
@@ -123,6 +127,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 _renamedSymbolContexts = CreateSymbolKeyToRenamedSymbolContextMap(parameters.RenameSymbolContexts, SymbolKey.GetComparer());
                 _textSpanToLocationContextMap = CreateTextSpanToLocationContextMap(parameters.TokenTextSpanRenameContexts);
                 _stringAndCommentRenameContexts = GroupStringAndCommentsTextSpanRenameContexts(parameters.StringAndCommentsTextSpanRenameContexts);
+                _replacementTexts = _renamedSymbolContexts.Select(pair => pair.Value.ReplacementText).ToImmutableHashSet();
+                _originalTexts = _renamedSymbolContexts.Select(pair => pair.Value.OriginalText).ToImmutableHashSet();
+                _allPossibleConflictNames = _renamedSymbolContexts.SelectMany(pair => pair.Value.PossibleNameConflicts).ToImmutableHashSet();
             }
 
             public override SyntaxNode? Visit(SyntaxNode? node)
@@ -541,13 +548,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 {
                     // Annotate the token if it would cause conflict in all other scenarios
                     var tokenText = token.ValueText;
-                    var renameContexts = _renamedSymbolContexts.Values.ToSet();
-                    var isOldText = renameContexts.Any(context => context.OriginalText == tokenText);
+
+                    // This is a pretty hot code path, so avoid to use linq.
+                    var isOldText = _originalTexts.Contains(tokenText);
                     var tokenNeedsConflictCheck = isOldText
-                        || renameContexts.Any(context => context.ReplacementText == tokenText
-                            || context.PossibleNameConflicts.Contains(tokenText)
-                            || IsPossiblyDestructorConflict(token, context.ReplacementText)
-                            || IsPropertyAccessorNameConflict(token, context.ReplacementText));
+                        || _replacementTexts.Contains(tokenText)
+                        || _allPossibleConflictNames.Contains(tokenText)
+                        || IsPossibleDestructorOrPropertyAccessorName(token);
 
                     if (tokenNeedsConflictCheck)
                     {
@@ -558,6 +565,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
 
                 return newToken;
+            }
+
+            private bool IsPossibleDestructorOrPropertyAccessorName(SyntaxToken token)
+            {
+                foreach (var replacementText in _replacementTexts)
+                {
+                    return IsPossiblyDestructorConflict(token, replacementText)
+                           || IsPropertyAccessorNameConflict(token, replacementText);
+                }
+
+                return false;
             }
 
             private async Task<SyntaxToken> AnnotateForConflictCheckAsync(SyntaxToken token, SyntaxToken newToken, bool isOldText)

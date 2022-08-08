@@ -66,6 +66,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             ''' </summary>
             Private ReadOnly _renamedSymbolContexts As ImmutableDictionary(Of SymbolKey, RenamedSymbolContext)
 
+            Private ReadOnly _replacementTexts As ImmutableHashSet(Of String)
+            Private ReadOnly _originalTexts As ImmutableHashSet(Of String)
+            Private ReadOnly _allPossibleConflictNames As ImmutableHashSet(Of String)
+
             Private ReadOnly Property AnnotateForComplexification As Boolean
                 Get
                     Return Me._skipRenameForComplexification > 0 AndAlso Not Me._isProcessingComplexifiedSpans
@@ -106,6 +110,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 _renamedSymbolContexts = CreateSymbolKeyToRenamedSymbolContextMap(parameters.RenameSymbolContexts, SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False))
                 _textSpanToLocationContextMap = CreateTextSpanToLocationContextMap(parameters.TokenTextSpanRenameContexts)
                 _stringAndCommentRenameContexts = GroupStringAndCommentsTextSpanRenameContexts(parameters.StringAndCommentsTextSpanRenameContexts)
+                _replacementTexts = _renamedSymbolContexts.Select(Function(pair) pair.Value.ReplacementText).ToImmutableHashSet(CaseInsensitiveComparison.Comparer)
+                _originalTexts = _renamedSymbolContexts.Select(Function(pair) pair.Value.OriginalText).ToImmutableHashSet(CaseInsensitiveComparison.Comparer)
+                _allPossibleConflictNames = _renamedSymbolContexts.SelectMany(Function(pair) pair.Value.PossibleNameConflicts).ToImmutableHashSet(CaseInsensitiveComparison.Comparer)
             End Sub
 
             Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode
@@ -529,9 +536,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 If Not _isProcessingComplexifiedSpans Then
                     Dim renameContexts = _renamedSymbolContexts.Values.ToSet()
                     Dim tokenText = token.ValueText
-                    Dim isOldText = renameContexts.Any(Function(c) CaseInsensitiveComparison.Equals(tokenText, c.OriginalText))
+
+                    Dim isOldText = _originalTexts.Contains(tokenText)
                     Dim tokenNeedsConflictCheck = isOldText OrElse
-                                                  renameContexts.Any(Function(c) CaseInsensitiveComparison.Equals(tokenText, c.ReplacementText) OrElse IsPossibleNameConflict(c.PossibleNameConflicts, tokenText))
+                                                  _replacementTexts.Contains(tokenText) OrElse
+                                                  _allPossibleConflictNames.Contains(tokenText)
 
                     If tokenNeedsConflictCheck Then
                         newToken = AnnotateForConflictCheckAsync(token, newToken, isOldText).WaitAndGetResult_CanCallOnBackground(_cancellationToken)
