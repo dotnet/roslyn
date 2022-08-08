@@ -106,21 +106,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Same(startingSolution, environment.Workspace.CurrentSolution)
             End Using
         End Function
-
-        <WpfFact>
-        <CombinatorialData>
-        Public Async Function AddingAndRemovingOnlyProjectTriggersSolutionAddedAndSolutionRemoved() As Task
-            Using environment = New TestEnvironment()
-                Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
-                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
-                    "Project", LanguageNames.CSharp, CancellationToken.None)
-
-                Assert.Equal(WorkspaceChangeKind.SolutionAdded, Assert.Single(Await workspaceChangeEvents.GetNewChangeEventsAsync()).Kind)
-
-                project.RemoveFromWorkspace()
-
-                Assert.Equal(WorkspaceChangeKind.SolutionRemoved, Assert.Single(Await workspaceChangeEvents.GetNewChangeEventsAsync()).Kind)
-            End Using
-        End Function
     End Class
 End Namespace

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public static Task<RemoteHostClient?> TryGetClientAsync(Workspace workspace, CancellationToken cancellationToken)
             => TryGetClientAsync(workspace.Services.SolutionServices, cancellationToken);
 
-        public static Task<RemoteHostClient?> TryGetClientAsync(HostSolutionServices services, CancellationToken cancellationToken)
+        public static Task<RemoteHostClient?> TryGetClientAsync(SolutionServices services, CancellationToken cancellationToken)
         {
             var service = services.GetService<IRemoteHostClientProvider>();
             if (service == null)

@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Rename
             foreach (var loc in this.Locations)
                 locBuilder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
 
-            return locBuilder.ToImmutable();
+            return locBuilder.ToImmutableAndClear();
         }
     }
 
