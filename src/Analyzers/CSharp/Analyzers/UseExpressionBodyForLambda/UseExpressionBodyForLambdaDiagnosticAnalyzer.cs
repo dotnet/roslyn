@@ -31,33 +31,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeIfEnabled,
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntax,
                 SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression);
 
-        private static void AnalyzeIfEnabled(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var analyzerOptions = context.Options;
             var syntaxTree = context.SemanticModel.SyntaxTree;
             var optionValue = UseExpressionBodyForLambdaHelpers.GetCodeStyleOption(analyzerOptions.GetAnalyzerOptions(syntaxTree));
-            var severity = UseExpressionBodyForLambdaHelpers.GetOptionSeverity(optionValue);
-            switch (severity)
-            {
-                case ReportDiagnostic.Error:
-                case ReportDiagnostic.Warn:
-                case ReportDiagnostic.Info:
-                    break;
-                default:
-                    // don't analyze if it's any other value.
-                    return;
-            }
 
-            AnalyzeSyntax(context, optionValue);
-        }
-
-        private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context, CodeStyleOption2<ExpressionBodyPreference> option)
-        {
             var declaration = (LambdaExpressionSyntax)context.Node;
-            var diagnostic = AnalyzeSyntax(context.SemanticModel, option, declaration, context.CancellationToken);
+            var diagnostic = AnalyzeSyntax(context.SemanticModel, optionValue, declaration, context.CancellationToken);
             if (diagnostic != null)
             {
                 context.ReportDiagnostic(diagnostic);

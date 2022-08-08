@@ -2,36 +2,37 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
-    public class UseExpressionBodyForLambdasAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    using VerifyCS = CSharpCodeFixVerifier<UseExpressionBodyForLambdaDiagnosticAnalyzer, UseExpressionBodyForLambdaCodeFixProvider>;
+
+    public class UseExpressionBodyForLambdasAnalyzerTests
     {
-        public UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper logger)
-            : base(logger)
+        private static readonly CodeStyleOption2<ExpressionBodyPreference> s_preferExpressionBody = CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement;
+        private static readonly CodeStyleOption2<ExpressionBodyPreference> s_preferBlockBody = CSharpCodeStyleOptions.NeverWithSilentEnforcement;
+
+        private static async Task TestInRegularAndScriptAsync(string source, string fixedSource, CodeStyleOption2<ExpressionBodyPreference> option)
         {
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, option } },
+            }.RunAsync();
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new UseExpressionBodyForLambdaDiagnosticAnalyzer(), new UseExpressionBodyForLambdaCodeFixProvider());
-
-        private OptionsCollection UseExpressionBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
-
-        private OptionsCollection UseBlockBody =>
-            this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSuggestionEnforcement);
+        private static async Task TestMissingAsync(string source, CodeStyleOption2<ExpressionBodyPreference> option)
+        {
+            await TestInRegularAndScriptAsync(source, source, option);
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task UseExpressionBodyInMethod()
@@ -43,7 +44,7 @@ class C
 {
     void Goo()
     {
-        Func<int, string> f = x [|=>|]
+        Func<int, string> f = [|x =>|]
         {
             return x.ToString();
         };
@@ -57,7 +58,7 @@ class C
     {
         Func<int, string> f = x => x.ToString();
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -70,9 +71,9 @@ class C
 {
     void Goo()
     {
-        Func<int, string> f = x [|=>|] x.ToString();
+        Func<int, string> f = x => x.ToString();
     }
-}", new TestParameters(options: UseExpressionBody));
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -85,7 +86,7 @@ class C
 {
     void Goo()
     {
-        Func<int, string> f = x [|=>|] x.ToString();
+        Func<int, string> f = [|x =>|] x.ToString();
     }
 }",
 @"using System;
@@ -99,7 +100,7 @@ class C
             return x.ToString();
         };
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -112,9 +113,9 @@ class C
 {
     void Goo()
     {
-        Func<int, string> f = x [|=>|] { return x.ToString(); };
+        Func<int, string> f = x => { return x.ToString(); };
     }
-}", new TestParameters(options: UseBlockBody));
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -127,7 +128,7 @@ class C
 {
     void Goo()
     {
-        TargetMethod(x [|=>|]
+        TargetMethod([|x =>|]
         {
             return x.ToString();
         });
@@ -145,7 +146,7 @@ class C
     }
 
     void TargetMethod(Func<int, string> targetParam) { }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -158,7 +159,7 @@ class C
 {
     void Goo()
     {
-        TargetMethod(x [|=>|] x.ToString());
+        TargetMethod([|x =>|] x.ToString());
     }
 
     void TargetMethod(Func<int, string> targetParam) { }
@@ -176,61 +177,7 @@ class C
     }
 
     void TargetMethod(Func<int, string> targetParam) { }
-}", options: UseBlockBody);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task UseExpressionBodyFromReturnKeyword()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void Goo()
-    {
-        Func<int, string> f = x =>
-        {
-            [|return|] x.ToString();
-        };
-    }
-}", new TestParameters(options: UseExpressionBody));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task UseExpressionBodyFromLambdaOpeningBrace()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void Goo()
-    {
-        Func<int, string> f = x =>
-        [|{|]
-            return x.ToString();
-        };
-    }
-}", new TestParameters(options: UseExpressionBody));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task UseExpressionBodyFromLambdaClosingBrace()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void Goo()
-    {
-        Func<int, string> f = x =>
-        {
-            return x.ToString();
-        [|}|];
-    }
-}", new TestParameters(options: UseExpressionBody));
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -243,7 +190,7 @@ class C
 {
     void Goo()
     {
-        Func<int, string> f = x [|=>|]
+        Func<int, string> f = [|x =>|]
         {
             throw null;
         };
@@ -257,7 +204,7 @@ class C
     {
         Func<int, string> f = x => throw null;
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -270,7 +217,7 @@ class C
 {
     void Goo()
     {
-        Func<int, string> f = x [|=>|] throw null;
+        Func<int, string> f = [|x =>|] throw null;
     }
 }",
 @"using System;
@@ -284,7 +231,7 @@ class C
             throw null;
         };
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -297,7 +244,7 @@ class C
 {
     void Goo()
     {
-        Action<int> f = x [|=>|]
+        Action<int> f = [|x =>|]
         {
             x.ToString();
         };
@@ -311,7 +258,7 @@ class C
     {
         Action<int> f = x => x.ToString();
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -324,7 +271,7 @@ class C
 {
     void Goo()
     {
-        Action<int> f = x [|=>|]
+        Action<int> f = [|x =>|]
         {
             throw null;
         };
@@ -338,7 +285,7 @@ class C
     {
         Action<int> f = x => throw null;
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -351,7 +298,7 @@ class C
 {
     void Goo()
     {
-        Action<int> f = x [|=>|] x.ToString();
+        Action<int> f = [|x =>|] x.ToString();
     }
 }",
 @"using System;
@@ -365,7 +312,7 @@ class C
             x.ToString();
         };
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -378,7 +325,7 @@ class C
 {
     void Goo()
     {
-        Action<int> f = x [|=>|] throw null;
+        Action<int> f = [|x =>|] throw null;
     }
 }",
 @"using System;
@@ -392,7 +339,7 @@ class C
             throw null;
         };
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -405,7 +352,7 @@ class C
 {
     void Goo()
     {
-        Action<int> f = async x [|=>|]
+        Action<int> f = [|async x =>|]
         {
             x.ToString();
         };
@@ -419,7 +366,7 @@ class C
     {
         Action<int> f = async x => x.ToString();
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -432,7 +379,7 @@ class C
 {
     void Goo()
     {
-        Action<int> f = async x [|=>|]
+        Action<int> f = [|async x =>|]
         {
             throw null;
         };
@@ -446,7 +393,7 @@ class C
     {
         Action<int> f = async x => throw null;
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -459,7 +406,7 @@ class C
 {
     void Goo()
     {
-        Action<int> f = async x [|=>|] x.ToString();
+        Action<int> f = [|async x =>|] x.ToString();
     }
 }",
 @"using System;
@@ -473,7 +420,7 @@ class C
             x.ToString();
         };
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -486,7 +433,7 @@ class C
 {
     void Goo()
     {
-        Action<int> f = async x [|=>|] throw null;
+        Action<int> f = [|async x =>|] throw null;
     }
 }",
 @"using System;
@@ -500,7 +447,7 @@ class C
             throw null;
         };
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -514,7 +461,7 @@ class C
 {
     void Goo()
     {
-        Func<Task> f = () [|=>|]
+        Func<Task> f = [|() =>|]
         {
             return Task.CompletedTask;
         };
@@ -529,7 +476,7 @@ class C
     {
         Func<Task> f = () => Task.CompletedTask;
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -543,7 +490,7 @@ class C
 {
     void Goo()
     {
-        Func<Task> f = () [|=>|]
+        Func<Task> f = [|() =>|]
         {
             throw null;
         };
@@ -558,7 +505,7 @@ class C
     {
         Func<Task> f = () => throw null;
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -572,7 +519,7 @@ class C
 {
     void Goo()
     {
-        Func<Task> f = () [|=>|] Task.CompletedTask;
+        Func<Task> f = [|() =>|] Task.CompletedTask;
     }
 }",
 @"using System;
@@ -587,7 +534,7 @@ class C
             return Task.CompletedTask;
         };
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -601,7 +548,7 @@ class C
 {
     void Goo()
     {
-        Func<Task> f = () [|=>|] throw null;
+        Func<Task> f = [|() =>|] throw null;
     }
 }",
 @"using System;
@@ -616,7 +563,7 @@ class C
             throw null;
         };
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -630,7 +577,7 @@ class C
 {
     void Goo()
     {
-        Func<Task> f = async () [|=>|]
+        Func<Task> f = [|async () =>|]
         {
             await Task.CompletedTask;
         };
@@ -645,7 +592,7 @@ class C
     {
         Func<Task> f = async () => await Task.CompletedTask;
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -659,7 +606,7 @@ class C
 {
     void Goo()
     {
-        Func<Task> f = async () [|=>|]
+        Func<Task> f = [|async () =>|]
         {
             throw null;
         };
@@ -674,7 +621,7 @@ class C
     {
         Func<Task> f = async () => throw null;
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -688,7 +635,7 @@ class C
 {
     void Goo()
     {
-        Func<Task> f = async () [|=>|] await Task.CompletedTask;
+        Func<Task> f = [|async () =>|] await Task.CompletedTask;
     }
 }",
 @"using System;
@@ -703,7 +650,7 @@ class C
             await Task.CompletedTask;
         };
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -717,7 +664,7 @@ class C
 {
     void Goo()
     {
-        Func<Task> f = async () [|=>|] throw null;
+        Func<Task> f = [|async () =>|] throw null;
     }
 }",
 @"using System;
@@ -732,7 +679,7 @@ class C
             throw null;
         };
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -746,7 +693,7 @@ class C
 {
     void Goo()
     {
-        Func<int, Task<string>> f = x [|=>|]
+        Func<int, Task<string>> f = [|x =>|]
         {
             return Task.FromResult(x.ToString());
         };
@@ -761,7 +708,7 @@ class C
     {
         Func<int, Task<string>> f = x => Task.FromResult(x.ToString());
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -775,7 +722,7 @@ class C
 {
     void Goo()
     {
-        Func<int, Task<string>> f = x [|=>|]
+        Func<int, Task<string>> f = [|x =>|]
         {
             throw null;
         };
@@ -790,7 +737,7 @@ class C
     {
         Func<int, Task<string>> f = x => throw null;
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -804,7 +751,7 @@ class C
 {
     void Goo()
     {
-        Func<int, Task<string>> f = x [|=>|] Task.FromResult(x.ToString());
+        Func<int, Task<string>> f = [|x =>|] Task.FromResult(x.ToString());
     }
 }",
 @"using System;
@@ -819,7 +766,7 @@ class C
             return Task.FromResult(x.ToString());
         };
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -833,7 +780,7 @@ class C
 {
     void Goo()
     {
-        Func<int, Task<string>> f = x [|=>|] throw null;
+        Func<int, Task<string>> f = [|x =>|] throw null;
     }
 }",
 @"using System;
@@ -848,7 +795,7 @@ class C
             throw null;
         };
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -862,7 +809,7 @@ class C
 {
     void Goo()
     {
-        Func<int, Task<string>> f = async x [|=>|]
+        Func<int, Task<string>> f = [|async x =>|]
         {
             return await Task.FromResult(x.ToString());
         };
@@ -877,7 +824,7 @@ class C
     {
         Func<int, Task<string>> f = async x => await Task.FromResult(x.ToString());
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -891,7 +838,7 @@ class C
 {
     void Goo()
     {
-        Func<int, Task<string>> f = async x [|=>|]
+        Func<int, Task<string>> f = [|async x =>|]
         {
             throw null;
         };
@@ -906,7 +853,7 @@ class C
     {
         Func<int, Task<string>> f = async x => throw null;
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -920,7 +867,7 @@ class C
 {
     void Goo()
     {
-        Func<int, Task<string>> f = async x [|=>|] await Task.FromResult(x.ToString());
+        Func<int, Task<string>> f = [|async x =>|] await Task.FromResult(x.ToString());
     }
 }",
 @"using System;
@@ -935,7 +882,7 @@ class C
             return await Task.FromResult(x.ToString());
         };
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -949,7 +896,7 @@ class C
 {
     void Goo()
     {
-        Func<int, Task<string>> f = async x [|=>|] throw null;
+        Func<int, Task<string>> f = [|async x =>|] throw null;
     }
 }",
 @"using System;
@@ -964,7 +911,7 @@ class C
             throw null;
         };
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -978,7 +925,7 @@ class C
 {
     void Goo()
     {
-        Func<int, string> f = x [|=>|]
+        Func<int, string> f = [|x =>|]
         {
             // Comment
             return x.ToString();
@@ -996,7 +943,7 @@ class C
             // Comment
             x.ToString();
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -1010,7 +957,7 @@ class C
 {
     void Goo()
     {
-        Func<int, string> f = x [|=>|]
+        Func<int, string> f = [|x =>|]
         {
             return x.ToString(); // Comment
         };
@@ -1025,7 +972,7 @@ class C
     {
         Func<int, string> f = x => x.ToString();
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -1039,7 +986,7 @@ class C
 {
     void Goo()
     {
-        Func<int, string> f = x [|=>|] x.ToString(); // Comment
+        Func<int, string> f = [|x =>|] x.ToString(); // Comment
     }
 }",
 @"using System;
@@ -1054,7 +1001,7 @@ class C
             return x.ToString();
         }; // Comment
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -1067,9 +1014,9 @@ class C
 {
     void Goo()
     {
-        Func<int, Func<int, string>> f = x {|FixAllInDocument:=>|}
+        Func<int, Func<int, string>> f = [|x =>|]
         {
-            return y =>
+            return [|y =>|]
             {
                 return (x + y).ToString();
             };
@@ -1084,7 +1031,7 @@ class C
     {
         Func<int, Func<int, string>> f = x => y => (x + y).ToString();
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -1097,9 +1044,9 @@ class C
 {
     void Goo()
     {
-        Func<int, Func<int, string>> f = x =>
+        Func<int, Func<int, string>> f = [|x =>|]
         {
-            return y {|FixAllInDocument:=>|}
+            return [|y =>|]
             {
                 return (x + y).ToString();
             };
@@ -1114,7 +1061,7 @@ class C
     {
         Func<int, Func<int, string>> f = x => y => (x + y).ToString();
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -1127,7 +1074,7 @@ class C
 {
     void Goo()
     {
-        Func<int, Func<int, string>> f = x {|FixAllInDocument:=>|} y => (x + y).ToString();
+        Func<int, Func<int, string>> f = [|x =>|] [|y =>|] (x + y).ToString();
     }
 }",
 @"using System;
@@ -1144,7 +1091,7 @@ class C
             };
         };
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -1157,7 +1104,7 @@ class C
 {
     void Goo()
     {
-        Func<int, Func<int, string>> f = x => y {|FixAllInDocument:=>|} (x + y).ToString();
+        Func<int, Func<int, string>> f = [|x =>|] [|y =>|] (x + y).ToString();
     }
 }",
 @"using System;
@@ -1174,7 +1121,7 @@ class C
             };
         };
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -1187,9 +1134,9 @@ class C
 {
     void Goo()
     {
-        Func<int, Func<int, string>> f = a {|FixAllInDocument:=>|}
+        Func<int, Func<int, string>> f = [|a =>|]
         {
-            return b =>
+            return [|b =>|]
             {
                 return b.ToString();
             };
@@ -1204,7 +1151,7 @@ class C
     {
         Func<int, Func<int, string>> f = a => b => b.ToString();
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -1217,9 +1164,9 @@ class C
 {
     void Goo()
     {
-        Func<int, Func<int, string>> f = a =>
+        Func<int, Func<int, string>> f = [|a =>|]
         {
-            return b {|FixAllInDocument:=>|}
+            return [|b =>|]
             {
                 return b.ToString();
             };
@@ -1234,7 +1181,7 @@ class C
     {
         Func<int, Func<int, string>> f = a => b => b.ToString();
     }
-}", options: UseExpressionBody);
+}", s_preferExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -1247,7 +1194,7 @@ class C
 {
     void Goo()
     {
-        Func<int, Func<int, string>> f = a {|FixAllInDocument:=>|} b => b.ToString();
+        Func<int, Func<int, string>> f = [|a =>|] [|b =>|] b.ToString();
     }
 }",
 @"using System;
@@ -1264,7 +1211,7 @@ class C
             };
         };
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -1277,7 +1224,7 @@ class C
 {
     void Goo()
     {
-        Func<int, Func<int, string>> f = a => b {|FixAllInDocument:=>|} b.ToString();
+        Func<int, Func<int, string>> f = [|a =>|] [|b =>|] b.ToString();
     }
 }",
 @"using System;
@@ -1294,7 +1241,7 @@ class C
             };
         };
     }
-}", options: UseBlockBody);
+}", s_preferBlockBody);
         }
     }
 }
