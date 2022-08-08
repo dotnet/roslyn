@@ -37,11 +37,7 @@ namespace IdeCoreBenchmarks
             {
                 throw new ArgumentException();
             }
-        }
 
-        [IterationSetup]
-        public void IterationSetup()
-        {
             var assemblies = MSBuildMefHostServices.DefaultAssemblies;
             var hostService = MefHostServices.Create(assemblies);
             using var workspace = MSBuildWorkspace.Create(hostService);
@@ -53,17 +49,11 @@ namespace IdeCoreBenchmarks
             _symbol = compilation.GetBestTypeByMetadataName(RenamedTypeName);
         }
 
+
         [Benchmark]
         public async Task RenameNodes()
         {
             await Renamer.RenameSymbolAsync(_solution!, _symbol!, new SymbolRenameOptions(), "SyntaxNode2");
-        }
-
-        [IterationCleanup]
-        public void Cleanup()
-        {
-            _solution = null;
-            _symbol = null;
         }
     }
 }
