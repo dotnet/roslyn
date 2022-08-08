@@ -21,7 +21,7 @@ internal class TestHistoryManager
     /// <summary>
     /// Azure devops limits the number of tests returned per request to 10000.
     /// </summary>
-    private const int MaxTestsReturnedPerRequest = 10000;
+    private const int MaxTestsReturnedPerRequest = 10_000;
 
     /// <summary>
     /// The pipeline id for roslyn-ci, see https://dev.azure.com/dnceng/public/_build?definitionId=15
@@ -36,27 +36,22 @@ internal class TestHistoryManager
     /// <summary>
     /// Looks up the last passing test run for the current build and stage to estimate execution times for each test.
     /// </summary>
-    public static async Task<ImmutableDictionary<string, TimeSpan>> GetTestHistoryAsync(CancellationToken cancellationToken)
+    public static async Task<ImmutableDictionary<string, TimeSpan>> GetTestHistoryAsync(Options options, CancellationToken cancellationToken)
     {
-        // Gets environment variables set by our test yaml templates.
-        // The access token is required to lookup test histories.
-        // We use the target branch of the current build to lookup the last successful build for the same branch.
-        //
+        // Access token that has permissions to lookup test history.  This typically comes from the pipeline.
+
+        var accessToken = options.AccessToken ?? GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
+
         // The phase name is used to filter the tests on the last passing build to only those that apply to the currently running phase.
         //   Note here that 'phaseName' corresponds to the 'jobName' defined in our pipeline yaml file and the job name env var is not correct.
         //   See https://developercommunity.visualstudio.com/t/systemjobname-seems-to-be-incorrectly-assigned-and/1209736
-        if (!TryGetEnvironmentVariable("SYSTEM_ACCESSTOKEN", out var accessToken)
-            || !TryGetEnvironmentVariable("SYSTEM_PHASENAME", out var phaseName))
-        {
-            Console.WriteLine("Missing required environment variables - skipping test history lookup");
-            return ImmutableDictionary<string, TimeSpan>.Empty;
-        }
+        var phaseName = options.PhaseName ?? GetEnvironmentVariable("SYSTEM_PHASENAME");
 
-        // Use the target branch (in the case of PRs) or source branch to find the last successful build.
-        var targetBranch = Environment.GetEnvironmentVariable("SYSTEM_PULLREQUEST_TARGETBRANCH") ?? Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCHNAME");
-        if (string.IsNullOrEmpty(targetBranch))
+        // We use the target branch of the current build to lookup the last successful build for the same branch.
+        var targetBranch = options.TargetBranchName ?? GetEnvironmentVariable("SYSTEM_PULLREQUEST_TARGETBRANCH") ?? GetEnvironmentVariable("BUILD_SOURCEBRANCHNAME");
+        if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(phaseName) || string.IsNullOrEmpty(targetBranch))
         {
-            Console.WriteLine("Missing both PR target branch and build source branch environment variables - skipping test history lookup");
+            ConsoleUtil.WriteLine($"Missing required options to lookup test history, accessToken={accessToken}, phaseName={phaseName}, targetBranchName={targetBranch}");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
@@ -66,7 +61,7 @@ internal class TestHistoryManager
 
         using var buildClient = connection.GetClient<BuildHttpClient>();
 
-        Console.WriteLine($"Getting last successful build for branch {targetBranch}");
+        ConsoleUtil.WriteLine($"Getting last successful build for branch {targetBranch}");
         var adoBranch = $"refs/heads/{targetBranch}";
         var lastSuccessfulBuild = await GetLastSuccessfulBuildAsync(RoslynCiBuildDefinitionId, adoBranch, buildClient, cancellationToken);
         if (lastSuccessfulBuild == null)
@@ -134,23 +129,22 @@ internal class TestHistoryManager
         return testInfos.ToImmutableDictionary();
     }
 
+    private static string? GetEnvironmentVariable(string envVarName)
+    {
+        var envVar = Environment.GetEnvironmentVariable(envVarName);
+        if (string.IsNullOrEmpty(envVar))
+        {
+            ConsoleUtil.WriteLine($"Missing environment variable {envVarName}");
+        }
+
+        return envVar;
+    }
+
     private static string CleanTestName(string fullyQualifiedTestName)
     {
         // Some test names contain test arguments, so take everything before the first paren (since they are not valid in the fully qualified test name).
         var beforeMethodArgs = fullyQualifiedTestName.Split('(')[0];
         return beforeMethodArgs;
-    }
-
-    private static bool TryGetEnvironmentVariable(string envVarName, [NotNullWhen(true)] out string? envVar)
-    {
-        envVar = Environment.GetEnvironmentVariable(envVarName);
-        if (string.IsNullOrEmpty(envVar))
-        {
-            Console.WriteLine($"Required environment variable {envVarName} is not set");
-            return false;
-        }
-
-        return true;
     }
 
     private static async Task<Build?> GetLastSuccessfulBuildAsync(int definitionId, string branchName, BuildHttpClient buildClient, CancellationToken cancellationToken)

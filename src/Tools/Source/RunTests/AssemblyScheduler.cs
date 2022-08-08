@@ -3,24 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.TeamFoundation.Build.WebApi;
-using Microsoft.VisualStudio.Services.Common;
 
 namespace RunTests
 {
@@ -70,7 +62,7 @@ namespace RunTests
             ConsoleUtil.WriteLine($"Found {orderedTypeInfos.Values.SelectMany(t => t).SelectMany(t => t.Tests).Count()} tests to run in {orderedTypeInfos.Keys.Count()} assemblies");
 
             // Retrieve test runtimes from azure devops historical data.
-            var testHistory = await TestHistoryManager.GetTestHistoryAsync(cancellationToken);
+            var testHistory = await TestHistoryManager.GetTestHistoryAsync(_options, cancellationToken);
             if (testHistory.IsEmpty)
             {
                 // We didn't have any test history from azure devops, just partition by test count.
@@ -175,10 +167,10 @@ namespace RunTests
             }
         }
 
-        private ImmutableArray<WorkItemInfo> BuildWorkItems<T>(
+        private ImmutableArray<WorkItemInfo> BuildWorkItems<TWeight>(
             ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> typeInfos,
-            Func<T, bool> isOverLimitFunc,
-            Func<TestMethodInfo, T, T> addFunc) where T : struct
+            Func<TWeight, bool> isOverLimitFunc,
+            Func<TestMethodInfo, TWeight, TWeight> addFunc) where TWeight : struct
         {
             var workItems = new List<WorkItemInfo>();
 
@@ -186,7 +178,7 @@ namespace RunTests
             var workItemIndex = 0;
 
             // Keep track of the limit of the current work item we are adding to.
-            var accumulatedValue = default(T);
+            var accumulatedValue = default(TWeight);
 
             // Keep track of the types we're planning to add to the current work item.
             var currentFilters = new SortedDictionary<AssemblyInfo, List<TestMethodInfo>>();
@@ -241,7 +233,7 @@ namespace RunTests
                     workItemIndex++;
                 }
 
-                currentFilters = new();
+                currentFilters.Clear();
                 accumulatedValue = default;
             }
 

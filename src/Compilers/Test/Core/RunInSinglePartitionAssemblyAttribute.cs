@@ -14,6 +14,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities;
 /// RunTests uses this attribute when partitioning tests.
 /// </summary>
 [AttributeUsage(AttributeTargets.Assembly)]
-public class RunTestsInSinglePartitionAttribute : Attribute
+public sealed class RunTestsInSinglePartitionAttribute : Attribute
 {
 }

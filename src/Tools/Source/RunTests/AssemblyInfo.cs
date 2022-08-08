@@ -8,21 +8,14 @@ using System.IO;
 
 namespace RunTests;
 
-public readonly record struct AssemblyInfo(string AssemblyPath) : IComparable
+public readonly record struct AssemblyInfo(string AssemblyPath) : IComparable<AssemblyInfo>
 {
     public string AssemblyName => Path.GetFileName(AssemblyPath);
 
-    public int CompareTo(object? obj)
+    public int CompareTo(AssemblyInfo other)
     {
-        if (obj == null)
-        {
-            return 1;
-        }
-
-        var otherAssembly = (AssemblyInfo)obj;
-
         // Ensure we have a consistent ordering by ordering by assembly path.
-        return string.Compare(this.AssemblyPath, otherAssembly.AssemblyPath, StringComparison.Ordinal);
+        return string.Compare(this.AssemblyPath, other.AssemblyPath, StringComparison.Ordinal);
     }
 }
 

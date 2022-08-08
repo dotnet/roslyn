@@ -19,18 +19,18 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 namespace PrepareTests;
 internal class TestDiscovery
 {
-    public static void RunDiscovery(string sourceDirectory, string dotnetPath, bool isUnix)
+    public static void RunDiscovery(string repoRootDirectory, string dotnetPath, bool isUnix)
     {
-        var binDirectory = Path.Combine(sourceDirectory, "artifacts", "bin");
+        var binDirectory = Path.Combine(repoRootDirectory, "artifacts", "bin");
         var assemblies = GetAssemblies(binDirectory, isUnix);
 
         Console.WriteLine($"Found {assemblies.Count} test assemblies");
 
-        var vsTestConsole = Directory.EnumerateFiles(Path.Combine(Path.GetDirectoryName(dotnetPath)!, "sdk"), "vstest.console.dll", SearchOption.AllDirectories).Last();
+        var vsTestConsole = Directory.EnumerateFiles(Path.Combine(Path.GetDirectoryName(dotnetPath)!, "sdk"), "vstest.console.dll", SearchOption.AllDirectories).OrderBy(s => s).Last();
 
         var vstestConsoleWrapper = new VsTestConsoleWrapper(vsTestConsole, new ConsoleParameters
         {
-            LogFilePath = Path.Combine(sourceDirectory, "logs", "test_discovery_logs.txt"),
+            LogFilePath = Path.Combine(repoRootDirectory, "logs", "test_discovery_logs.txt"),
             TraceLevel = TraceLevel.Error,
         });
 
