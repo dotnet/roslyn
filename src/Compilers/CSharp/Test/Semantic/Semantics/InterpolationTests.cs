@@ -13815,6 +13815,80 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref S)", "s").WithLocation(17, 18));
         }
 
+        [WorkItem(63262, "https://github.com/dotnet/roslyn/issues/63262")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefEscape_11(LanguageVersion languageVersion)
+        {
+            var code =
+@"using System;
+using System.Runtime.CompilerServices;
+[InterpolatedStringHandler]
+ref struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount) { }
+    public void AppendFormatted(Span<char> s) { }
+}
+class Program
+{
+    static void Main()
+    {
+        Span<char> s = stackalloc char[10];
+        M($""{s}"");
+    }
+    static void M(ref CustomHandler handler) { }
+}
+";
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(63262, "https://github.com/dotnet/roslyn/issues/63262")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefEscape_12(LanguageVersion languageVersion)
+        {
+            var code =
+@"using System;
+using System.Runtime.CompilerServices;
+[InterpolatedStringHandler]
+ref struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount) { }
+    public void AppendFormatted(Span<char> s) { }
+}
+class Program
+{
+    static CustomHandler F1()
+    {
+        Span<char> s = stackalloc char[10];
+        CustomHandler h1 = $""{s}"";
+        return h1;
+    }
+    static CustomHandler F2()
+    {
+        Span<char> s = stackalloc char[10];
+        CustomHandler h2 = new CustomHandler(0, 1);
+        h2.AppendFormatted(s);
+        return h2;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (15,16): error CS8352: Cannot use variable 'h1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return h1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "h1").WithArguments("h1").WithLocation(15, 16),
+                // (21,9): error CS8350: This combination of arguments to 'CustomHandler.AppendFormatted(Span<char>)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         h2.AppendFormatted(s);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "h2.AppendFormatted(s)").WithArguments("CustomHandler.AppendFormatted(System.Span<char>)", "s").WithLocation(21, 9),
+                // (21,28): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         h2.AppendFormatted(s);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(21, 28));
+        }
+
         [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
         [InlineData(@"$""{{ {i} }}""")]
         [InlineData(@"$""{{ "" + $""{i}"" + $"" }}""")]

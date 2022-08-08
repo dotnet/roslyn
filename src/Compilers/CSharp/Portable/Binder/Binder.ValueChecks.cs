@@ -1414,9 +1414,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal uint GetInterpolatedStringHandlerConversionEscapeScope(
-            InterpolatedStringHandlerData data,
+            BoundExpression expression,
             uint scopeOfTheContainingExpression)
-            => GetValEscape(data.Construction, scopeOfTheContainingExpression);
+        {
+            var data = expression.GetInterpolatedStringHandlerData();
+            uint escapeScope = GetValEscape(data.Construction, scopeOfTheContainingExpression);
+
+            var arguments = ArrayBuilder<BoundExpression>.GetInstance();
+            GetInterpolatedStringHandlerConversionArguments(expression, arguments);
+
+            foreach (var argument in arguments)
+            {
+                uint argEscape = GetValEscape(argument, scopeOfTheContainingExpression);
+                escapeScope = Math.Max(escapeScope, argEscape);
+            }
+
+            arguments.Free();
+            return escapeScope;
+        }
 
 #nullable enable
 
@@ -2995,8 +3010,7 @@ moreArguments:
 
                     if (conversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
                     {
-                        var data = conversion.Operand.GetInterpolatedStringHandlerData();
-                        return GetInterpolatedStringHandlerConversionEscapeScope(data, scopeOfTheContainingExpression);
+                        return GetInterpolatedStringHandlerConversionEscapeScope(conversion.Operand, scopeOfTheContainingExpression);
                     }
 
                     return GetValEscape(conversion.Operand, scopeOfTheContainingExpression);
@@ -3808,33 +3822,44 @@ moreArguments:
 
             CheckValEscape(expression.Syntax, data.Construction, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
 
+            var arguments = ArrayBuilder<BoundExpression>.GetInstance();
+            GetInterpolatedStringHandlerConversionArguments(expression, arguments);
+
+            bool result = true;
+            foreach (var argument in arguments)
+            {
+                if (!CheckValEscape(argument.Syntax, argument, escapeFrom, escapeTo, checkingReceiver: false, diagnostics))
+                {
+                    result = false;
+                    break;
+                }
+            }
+
+            arguments.Free();
+            return result;
+        }
+
+        private static void GetInterpolatedStringHandlerConversionArguments(BoundExpression expression, ArrayBuilder<BoundExpression> arguments)
+        {
             while (true)
             {
                 switch (expression)
                 {
                     case BoundBinaryOperator binary:
-                        if (!checkParts((BoundInterpolatedString)binary.Right))
-                        {
-                            return false;
-                        }
-
+                        getParts((BoundInterpolatedString)binary.Right, arguments);
                         expression = binary.Left;
-                        continue;
+                        break;
 
                     case BoundInterpolatedString interpolatedString:
-                        if (!checkParts(interpolatedString))
-                        {
-                            return false;
-                        }
-
-                        return true;
+                        getParts(interpolatedString, arguments);
+                        return;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(expression.Kind);
                 }
             }
 
-            bool checkParts(BoundInterpolatedString interpolatedString)
+            static void getParts(BoundInterpolatedString interpolatedString, ArrayBuilder<BoundExpression> arguments)
             {
                 foreach (var part in interpolatedString.Parts)
                 {
@@ -3847,16 +3872,8 @@ moreArguments:
 
                     // The interpolation component is always the first argument to the method, and it was not passed by name
                     // so there can be no reordering.
-                    var argument = call.Arguments[0];
-                    var success = CheckValEscape(argument.Syntax, argument, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
-
-                    if (!success)
-                    {
-                        return false;
-                    }
+                    arguments.Add(call.Arguments[0]);
                 }
-
-                return true;
             }
         }
 
