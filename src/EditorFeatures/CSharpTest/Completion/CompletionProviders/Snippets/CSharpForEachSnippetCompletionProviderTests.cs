@@ -92,7 +92,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public Program()
     {
-        var x = 5;
         $$
     }
 }";
@@ -102,7 +101,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public Program()
     {
-        var x = 5;
         foreach (var item in collection)
         {$$
         }

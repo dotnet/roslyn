@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Snippets
             return ImmutableArray.Create(snippetTextChange);
         }
 
-
         protected override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
             SyntaxAnnotation findSnippetAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken)
         {
@@ -61,10 +60,6 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts)
         {
             var closestNode = root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true);
-            if (closestNode is null)
-            {
-                return null;
-            }
 
             if (!syntaxFacts.IsForEachStatement(closestNode))
             {

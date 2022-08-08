@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var varIdentifier = SyntaxFactory.IdentifierName("var");
             var collectionIdentifier = SyntaxFactory.IdentifierName("collection");
             var itemString = NameGenerator.GenerateUniqueName(
-                "item", n => semanticModel.LookupSymbols(position, name: n).IsEmpty);
+                "item", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
             var foreachLoopSyntax = SyntaxFactory.ForEachStatement(varIdentifier, itemString, collectionIdentifier, SyntaxFactory.Block());
 
             return foreachLoopSyntax;
