@@ -1024,11 +1024,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 out var moduleNonRemappableRegions,
                                 out var exceptionRegionUpdates);
 
-<<<<<<< HEAD
-                            deltas.Add(new ModuleUpdate(
-=======
-                            var delta = new ManagedModuleUpdate(
->>>>>>> b21317e9e53 (EnC: Log deltas and messages to disk)
+                            var delta = new ModuleUpdate(
                                 mvid,
                                 ilStream.ToImmutableArray(),
                                 metadataStream.ToImmutableArray(),
