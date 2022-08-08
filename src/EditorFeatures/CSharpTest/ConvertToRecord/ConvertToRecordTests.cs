@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRecord
 {
     using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertToRecordRefactoringProvider>;
 
+    [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToRecord)]
     public class ConvertToRecordTests
     {
