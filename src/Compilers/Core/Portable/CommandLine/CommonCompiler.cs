@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis
             return (additionalLicenses, ignoreUserLicenses);
         }
 
-        protected IServiceProvider CreateServiceProvider(Compilation inputCompilation, AnalyzerConfigOptionsProvider analyzerConfigProvider)
+        protected IServiceProvider CreateServiceProvider(Compilation inputCompilation, AnalyzerConfigOptionsProvider analyzerConfigProvider, ImmutableArray<ISourceTransformer> transformers)
         {
             var serviceProviderBuilder = new ServiceProviderBuilder();
 
@@ -854,8 +854,10 @@ namespace Microsoft.CodeAnalysis
             {
                 var licenseOptions = GetLicensingOptions(analyzerConfigProvider);
 
-                applicationInfo = new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess,
-                    licenseOptions.SkipImplicitLicenses);
+                applicationInfo = new MetalamaCompilerApplicationInfo(
+                    this.IsLongRunningProcess,
+                    licenseOptions.SkipImplicitLicenses,
+                    transformers);
 
                 serviceProviderBuilder = serviceProviderBuilder.AddBackstageServices(
                     applicationInfo,
@@ -874,7 +876,7 @@ namespace Microsoft.CodeAnalysis
                     throw new InvalidOperationException();
                 }
 
-                applicationInfo = new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess, false);
+                applicationInfo = new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess, false, transformers);
                 serviceProviderBuilder = serviceProviderBuilder.AddMinimalBackstageServices(
                     applicationInfo,
                     true,
@@ -1500,7 +1502,7 @@ namespace Microsoft.CodeAnalysis
                     Debugger.Launch();
                 }
 
-                serviceProvider = this.CreateServiceProvider(compilation, analyzerConfigProvider);
+                serviceProvider = this.CreateServiceProvider(compilation, analyzerConfigProvider, transformers);
                 logger = serviceProvider.GetLoggerFactory().GetLogger("Compiler");
 
                 logger.Trace?.Log($"Compiling {compilation.AssemblyName}. {transformers.Length} transformer(s) found.");

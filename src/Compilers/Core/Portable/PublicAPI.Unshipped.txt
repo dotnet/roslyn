@@ -1,5 +1,7 @@
 *REMOVED*override abstract Microsoft.CodeAnalysis.Diagnostic.Equals(object? obj) -> bool
 const Metalama.Compiler.MetalamaCompilerAnnotations.GeneratedCodeAnnotationKind = "Metalama.Compiler.GeneratedCode" -> string!
+Metalama.Compiler.ISourceTransformer
+Metalama.Compiler.ISourceTransformer.Execute(Metalama.Compiler.TransformerContext! context) -> void
 Metalama.Compiler.MetalamaCompilerAnnotations
 Metalama.Compiler.SyntaxTreeTransformation
 Metalama.Compiler.SyntaxTreeTransformation.FilePath.get -> string!
