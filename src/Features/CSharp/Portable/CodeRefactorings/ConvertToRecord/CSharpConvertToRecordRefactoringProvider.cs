@@ -430,10 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         {
             var type = methodSymbol.ContainingType;
 
-            if (semanticModel.GetOperation(methodDeclaration, cancellationToken) is not IMethodBodyOperation operation)
-            {
-                return ImmutableArray<IPropertySymbol>.Empty;
-            }
+            var operation = (IMethodBodyOperation)semanticModel.GetRequiredOperation(methodDeclaration, cancellationToken);
 
             var body = operation.BlockBody ?? operation.ExpressionBody;
             var parameter = methodSymbol.Parameters.First();
@@ -443,12 +440,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return ImmutableArray<IPropertySymbol>.Empty;
             }
 
+            var bodyOps = body.Operations;
             var _ = ArrayBuilder<IPropertySymbol>.GetInstance(out var properties);
+            ISymbol? otherC = null;
+            IEnumerable<IOperation>? statementsToCheck = null;
+
             // see whether we are calling on a param of the same type or of object
-            if (parameter.Type.SpecialType == SpecialType.System_Object)
+            if (parameter.Type == type)
             {
-                ISymbol? otherC = null;
-                var statementsToCheck = Enumerable.Empty<IOperation>();
+                // we need to check all the statements, and we already have the
+                // variable that is used to access the properties
+                otherC = parameter;
+                statementsToCheck = bodyOps;
+            }
+            else if (parameter.Type.SpecialType == SpecialType.System_Object)
+            {
                 // we could look for some cast which rebinds the parameter
                 // to a local of the type such as any of the following:
                 // var otherc = other as C; *null and additional equality checks*
@@ -458,117 +464,146 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 // if (other is not C) { return false; } (optional else) { otherc = (C) other;  *additional equality checks* }
                 // return other is C otherC && ...
                 // return !(other is not C otherC || ...
-                var bodyOps = body.Operations;
 
-                otherC = GetAssignmentToParameterWithExplicitCast(bodyOps.FirstOrDefault(), parameter);
-                if (otherC != null)
+                // check for single return operation which binds the variable as the first condition in a sequence
+                if (bodyOps is [IReturnOperation value])
                 {
-                    statementsToCheck = bodyOps.Skip(1);
+                    otherC = TryAddEqualizedPropertiesForConditionWithoutBinding(properties, value, successRequirement: true, type);
+                    if (otherC != null)
+                    {
+                        // no more statements to check as this was a return operation
+                        return properties.ToImmutable();
+                    }
                 }
-                else if (bodyOps.FirstOrDefault() is IConditionalOperation
+
+                // check for the first statement as an if statement where the cast check occurs
+                // and a variable assignment happens (either in the if or in a following statement
+                if (!TryGetBindingCastInFirstIfStatement(bodyOps, type, properties, parameter, out otherC, out statementsToCheck))
+                {
+                    // check for a single statement which casts and assigns variable
+                    otherC = GetAssignmentToParameterWithExplicitCast(bodyOps.FirstOrDefault(), parameter);
+                    if (otherC != null)
+                    {
+                        statementsToCheck = bodyOps.Skip(1);
+                    }
+                }
+            }
+
+            if (otherC == null || statementsToCheck == null ||
+                !TryAddEqualizedPropertiesForStatements(statementsToCheck, otherC, type, properties))
+            {
+                // no patterns matched to bind variable or statements didn't match expectation
+                return ImmutableArray<IPropertySymbol>.Empty;
+            }
+
+            return properties.ToImmutable();
+        }
+
+        /// <summary>
+        /// Matches a pattern where the first statement is an if statement that ensures a cast
+        /// of the parameter to the correct type, and either binds it through an "is" pattern
+        /// or later assigns it to a local varaiable
+        /// </summary>
+        /// <param name="bodyOps">method body to search in</param>
+        /// <param name="type">type which is being called</param>
+        /// <param name="properties">properties that may have been incidentally checked</param>
+        /// <param name="parameter">uncast object parameter</param>
+        /// <param name="otherC">if matched, the variable that the cast parameter was assigned to</param>
+        /// <param name="statementsToCheck">remaining non-check, non-assignment operations
+        /// to look for additional compared properties</param>
+        /// <returns>whether or not the pattern matched</returns>
+        private static bool TryGetBindingCastInFirstIfStatement(
+            ImmutableArray<IOperation> bodyOps,
+            INamedTypeSymbol type,
+            ArrayBuilder<IPropertySymbol> properties,
+            IParameterSymbol parameter,
+            out ISymbol? otherC,
+            out IEnumerable<IOperation>? statementsToCheck)
+        {
+            otherC = null;
+            statementsToCheck = null;
+
+            // we require the if statement (with a cast) to be the first operation in the body
+            if (bodyOps.FirstOrDefault() is not IConditionalOperation
                 {
                     Condition: IOperation condition,
                     WhenTrue: IOperation whenTrue,
                     WhenFalse: var whenFalse,
                 })
+            {
+                return false;
+            }
+
+            if (!TryGetSuccessCondition(whenTrue, whenFalse, out var successRequirement, out var remainingStatments))
+            {
+                return false;
+            }
+
+            // gives us the symbol if the pattern was a binding one
+            // (and adds properties if they did other checks too)
+            otherC = TryAddEqualizedPropertiesForConditionWithoutBinding(
+                properties, condition, successRequirement, type);
+
+            // if we have no else block, we could get no remaining statements, in that case we take all the
+            // statments after the if condition operation
+            statementsToCheck = remainingStatments.IsEmpty ? remainingStatments : bodyOps.Skip(1);
+
+            if (otherC != null)
+            {
+                // the if statement contains a cast to a variable binding
+                // like: if (other is C otherC)
+                return true;
+            }
+
+            // either there was no pattern match, or the pattern did not bind to a variable declaration
+            // (e.g: if (other is C))
+            // we will look for a non-binding "is" pattern and if we find one,
+            // look for a variable assignment in the appropriate block
+            if (condition is IIsPatternOperation
                 {
-                    // we are inside the first if statement of a method
-                    // We want to determine if success in this condition would cause us to
-                    // return true or return false, so we look for a return false in either the
-                    // whenTrue block or the whenFalse block
-                    bool successRequirement;
+                    Pattern: IPatternOperation pattern,
+                    Value: IParameterReferenceOperation { Parameter: IParameterSymbol referencedParameter }
+                })
+            {
+                // make sure parameter is the actual parameter we reference
+                if (!referencedParameter.Equals(parameter))
+                {
+                    return false;
+                }
 
-                    // we expect all if statments to (eventually) return within their "then" block,
-                    // so we can treat the "else" as the outside of the if block
-                    var falseOps = (whenFalse as IBlockOperation)?.Operations ??
-                        (whenFalse != null ? ImmutableArray.Create(whenFalse) : bodyOps.Skip(1).AsImmutable());
-                    var trueOps = (whenTrue as IBlockOperation)?.Operations ?? ImmutableArray.Create(whenTrue);
-
-                    // We expect one of the true or false branch to have exactly one statement: return false.
-                    // If we don't find that, it indicates complex behavior such as
-                    // extra statments, backup equality if one condition fails, or something else.
-                    // We don't expect a return true because we could see a final return statement that checks
-                    // as last set of conditions such as:
-                    // if (other is C otherC)
-                    // {
-                    //     return otherC.A == A;
-                    // }
-                    // return false;
-                    // We should never have a case where both branches could potentially return true;
-                    // at least one branch must simply return false.
-                    if (IsSingleReturnFalseOperation(trueOps) ^ IsSingleReturnFalseOperation(falseOps))
+                // if we have: if (pattern) return false; else ...
+                // then we expect the pattern to be an "is not" pattern instead
+                if (!successRequirement)
+                {
+                    if (pattern is INegatedPatternOperation negatedPattern)
                     {
-                        // both or neither fit the return false pattern, this if statement either doesn't do
-                        // anything or does something too complex for us, so we assume it's not a default.
-                        return ImmutableArray<IPropertySymbol>.Empty;
+                        pattern = negatedPattern.Pattern;
                     }
-
-                    // when condition succeeds (evaluates to true), we return false
-                    // so for equality the condition should not succeed
-                    successRequirement = !IsSingleReturnFalseOperation(trueOps);
-                    // gives us the symbol if the pattern was a binding one
-                    // (and adds properties if they did other checks too)
-                    otherC = TryAddEqualizedPropertiesForConditionWithoutBinding(
-                        properties, condition, successRequirement, type);
-
-                    statementsToCheck = successRequirement ? trueOps : falseOps;
-
-                    if (otherC == null)
+                    else
                     {
-                        // either there was no pattern match, or the pattern did not bind to a variable declaration
-                        // (e.g: if (other is C))
-                        // we will look for a non-binding "is" pattern and if we find one,
-                        // look for a variable assignment in the appropriate block
-                        if (condition is IIsPatternOperation
-                            {
-                                Pattern: IPatternOperation pattern,
-                                Value: IParameterReferenceOperation { Parameter: IParameterSymbol referencedParameter }
-                            })
-                        {
-                            // make sure parameter is the actual parameter we reference
-                            if (!referencedParameter.Equals(parameter))
-                            {
-                                return ImmutableArray<IPropertySymbol>.Empty;
-                            }
-
-                            // if we have: if (pattern) return false; else ...
-                            // then we expect the pattern to be an "is not" pattern instead
-                            if (!successRequirement)
-                            {
-                                if (pattern is INegatedPatternOperation negatedPattern)
-                                {
-                                    pattern = negatedPattern.Pattern;
-                                }
-                                else
-                                {
-                                    return ImmutableArray<IPropertySymbol>.Empty;
-                                }
-                            }
-
-                            if (pattern is ITypePatternOperation { MatchedType: INamedTypeSymbol castType } &&
-                                castType.Equals(type))
-                            {
-                                // found correct pattern, so we know we have something equivalent to
-                                // if (other is C) { ... } else return false;
-                                // we look for an explicit cast to assign a variable later like:
-                                // var otherC = (C)other;
-                                // var otherC = other as C;
-                                otherC = GetAssignmentToParameterWithExplicitCast(statementsToCheck.FirstOrDefault(), parameter);
-                                if (otherC != null)
-                                {
-                                    statementsToCheck = statementsToCheck.Skip(1);
-                                }
-                            }
-                        }
+                        return false;
                     }
                 }
-                // check for single return poeration with condition
-                else if (bodyOps is [IReturnOperation value])
+
+                if (pattern is ITypePatternOperation { MatchedType: INamedTypeSymbol castType } &&
+                    castType.Equals(type))
                 {
-                    otherC = TryAddEqualizedPropertiesForConditionWithoutBinding(properties, value, successRequirement: true, type);
+                    // found correct pattern, so we know we have something equivalent to
+                    // if (other is C) { ... } else return false;
+                    // we look for an explicit cast to assign a variable later like:
+                    // var otherC = (C)other;
+                    // var otherC = other as C;
+                    otherC = GetAssignmentToParameterWithExplicitCast(statementsToCheck.FirstOrDefault(), parameter);
+                    if (otherC != null)
+                    {
+                        statementsToCheck = statementsToCheck.Skip(1);
+                        return true;
+                    }
                 }
             }
-            return ImmutableArray<IPropertySymbol>.Empty;
+
+            // no explicit cast in the if statement
+            return false;
         }
 
         /// <summary>
@@ -617,6 +652,124 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     ConstantValue.Value: false,
                 }
             }];
+        }
+
+        /// <summary>
+        /// Match a list of statements and add properties that are compared
+        /// </summary>
+        /// <param name="statementsToCheck">operations which should compare properties</param>
+        /// <param name="otherC">non-this comparison of the type we're equating</param>
+        /// <param name="type">the this symbol</param>
+        /// <param name="properties">builder for property comparisons we encounter</param>
+        /// <returns>whether every statment was one of the expected forms</returns>
+        private static bool TryAddEqualizedPropertiesForStatements(
+            IEnumerable<IOperation> statementsToCheck,
+            ISymbol otherC,
+            INamedTypeSymbol type,
+            ArrayBuilder<IPropertySymbol> properties)
+        {
+            foreach (var statement in statementsToCheck)
+            {
+                switch (statement)
+                {
+                    case IReturnOperation
+                    {
+                        ReturnedValue: ILiteralOperation
+                        {
+                            ConstantValue.HasValue: true,
+                            ConstantValue.Value: true,
+                        }
+                    }:
+                        // we are done with the comparison, the final statment does no checks
+                        return true;
+                    case IReturnOperation { ReturnedValue: IOperation value }:
+                        return TryAddEqualizedPropertiesForCondition(properties, value, successRequirement: true, type, otherC);
+                    case IConditionalOperation
+                    {
+                        Condition: IOperation condition,
+                        WhenTrue: IOperation whenTrue,
+                        WhenFalse: var whenFalse,
+                    }:
+                        // 1. Check structure of if statment, get success requirement
+                        // and any potential statments in the non failure block
+                        // 2. Check condition for compared properties
+                        if (!TryGetSuccessCondition(
+                            whenTrue, whenFalse, out var successRequirement, out var remainingStatements) ||
+                            !TryAddEqualizedPropertiesForCondition(
+                                properties, condition, successRequirement, type, otherC))
+                        {
+                            return false;
+                        }
+
+                        if (!remainingStatements.IsEmpty)
+                        {
+                            // if there is a non-failure block, it should eventually return
+                            // after potentially doing more comparison
+                            return TryAddEqualizedPropertiesForStatements(remainingStatements, otherC, type, properties);
+                        }
+
+                        // if there's no else block we continue checking for properties
+                        break;
+                    default:
+                        return false;
+                }
+            }
+
+            // pattern not matched, we should see a return statement before the end of the statements
+            return false;
+        }
+
+        /// <summary>
+        /// Attempts to get information about an if operation in an equals method,
+        /// such as whether the condition being true would cause the method to return false
+        /// and the remaining statments in the branch not returning false (if any)
+        /// </summary>
+        /// <param name="whenTrue">the "then" branch</param>
+        /// <param name="whenFalse">the "else" branch if any</param>
+        /// <param name="successRequirement">whether the condition being true would cause the method to return false
+        /// or the condition being false would cause the method to return false</param>
+        /// <param name="remainingStatements">Potential remaining statements of the branch that does not return false</param>
+        /// <returns>whether the pattern was matched (one of the branches must have a simple "return false")</returns>
+        private static bool TryGetSuccessCondition(
+            IOperation whenTrue,
+            IOperation? whenFalse,
+            out bool successRequirement,
+            out ImmutableArray<IOperation> remainingStatements)
+        {
+            // this will be changed if we successfully match the pattern
+            successRequirement = default;
+            // this could be empty even if we match, if there is no else block
+            remainingStatements = default;
+
+            // the branches could either be single statements or blocks
+            var falseOps = (whenFalse as IBlockOperation)?.Operations ??
+                (whenFalse != null ? ImmutableArray.Create(whenFalse) : ImmutableArray.Create<IOperation>());
+            var trueOps = (whenTrue as IBlockOperation)?.Operations ?? ImmutableArray.Create(whenTrue);
+
+            // We expect one of the true or false branch to have exactly one statement: return false.
+            // If we don't find that, it indicates complex behavior such as
+            // extra statments, backup equality if one condition fails, or something else.
+            // We don't necessarily expect a return true because we could see
+            // a final return statement that checks a last set of conditions such as:
+            // if (other is C otherC)
+            // {
+            //     return otherC.A == A;
+            // }
+            // return false;
+            // We should never have a case where both branches could potentially return true;
+            // at least one branch must simply return false.
+            if (IsSingleReturnFalseOperation(trueOps) ^ IsSingleReturnFalseOperation(falseOps))
+            {
+                // both or neither fit the return false pattern, this if statement either doesn't do
+                // anything or does something too complex for us, so we assume it's not a default.
+                return false;
+            }
+
+            // when condition succeeds (evaluates to true), we return false
+            // so for equality the condition should not succeed
+            successRequirement = !IsSingleReturnFalseOperation(trueOps);
+            remainingStatements = successRequirement ? trueOps : falseOps;
+            return true;
         }
 
         /// <summary>

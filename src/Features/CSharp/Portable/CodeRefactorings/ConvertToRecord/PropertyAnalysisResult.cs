@@ -99,7 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // - for non-readonly structs, we must have:
             //   - public get accessor
             //   - public set accessor
-            // Here are the cases where we could still use 
+            // If the user has a private/protected set method, it could still make sense to be a primary constructor
+            // but we should provide the override in case the user sets the propertie from within the class
             var getAccessor = propertySymbol.GetMethod;
             var setAccessor = propertySymbol.SetMethod;
             var accessors = property.AccessorList.Accessors;
