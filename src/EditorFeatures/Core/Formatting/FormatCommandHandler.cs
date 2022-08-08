@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 if (selectionOpt.HasValue)
                 {
-                    var ruleFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
+                    var ruleFactory = document.Project.Solution.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
                     changes = ruleFactory.FilterFormattedChanges(document.Id, selectionOpt.Value, changes).ToImmutableArray();
                 }
 

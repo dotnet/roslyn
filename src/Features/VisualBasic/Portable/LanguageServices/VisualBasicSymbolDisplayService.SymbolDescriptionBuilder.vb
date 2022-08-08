@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
 
             Public Sub New(semanticModel As SemanticModel,
                            position As Integer,
-                           services As HostWorkspaceServices,
+                           services As SolutionServices,
                            structuralTypeDisplayService As IStructuralTypeDisplayService,
                            options As SymbolDescriptionOptions,
                            cancellationToken As CancellationToken)

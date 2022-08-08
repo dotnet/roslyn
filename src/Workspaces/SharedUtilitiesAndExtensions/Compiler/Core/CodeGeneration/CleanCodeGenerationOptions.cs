@@ -2,20 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
@@ -25,7 +17,7 @@ internal readonly record struct CleanCodeGenerationOptions(
     [property: DataMember(Order = 1)] CodeCleanupOptions CleanupOptions)
 {
 #if !CODE_STYLE
-    public static CleanCodeGenerationOptions GetDefault(HostLanguageServices languageServices)
+    public static CleanCodeGenerationOptions GetDefault(Host.LanguageServices languageServices)
         => new(CodeGenerationOptions.GetDefault(languageServices),
                CodeCleanupOptions.GetDefault(languageServices));
 

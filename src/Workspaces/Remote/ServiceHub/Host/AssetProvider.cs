@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _serializerService = serializerService;
         }
 
-        public override async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
+        public override async ValueTask<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
             Debug.Assert(checksum != Checksum.Null);
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<List<ValueTuple<Checksum, T>>> GetAssetsAsync<T>(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<ValueTuple<Checksum, T>>> GetAssetsAsync<T>(HashSet<Checksum> checksums, CancellationToken cancellationToken)
         {
             // this only works when caller wants to get same kind of assets at once
 
@@ -60,16 +60,14 @@ namespace Microsoft.CodeAnalysis.Remote
             var syncer = new ChecksumSynchronizer(this);
             await syncer.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
 
-            var list = new List<ValueTuple<Checksum, T>>();
+            using var _ = ArrayBuilder<ValueTuple<Checksum, T>>.GetInstance(checksums.Count, out var list);
             foreach (var checksum in checksums)
-            {
                 list.Add(ValueTuple.Create(checksum, await GetAssetAsync<T>(checksum, cancellationToken).ConfigureAwait(false)));
-            }
 
-            return list;
+            return list.ToImmutableAndClear();
         }
 
-        public async Task SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             var timer = new Stopwatch();
             timer.Start();
@@ -97,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task SynchronizeProjectAssetsAsync(IEnumerable<Checksum> projectChecksums, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeProjectAssetsAsync(HashSet<Checksum> projectChecksums, CancellationToken cancellationToken)
         {
             // this will pull in assets that belong to the given project checksum to this remote host.
             // this one is not supposed to be used for functionality but only for perf. that is why it doesn't return anything.
@@ -124,9 +122,11 @@ namespace Microsoft.CodeAnalysis.Remote
             return _assetCache.TryGetAsset<object>(checksum, out _);
         }
 
-        public async Task SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
         {
             Debug.Assert(!checksums.Contains(Checksum.Null));
+            if (checksums.Count == 0)
+                return;
 
             using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
             {

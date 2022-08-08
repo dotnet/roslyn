@@ -26,9 +26,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class EditAndContinueLanguageService : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
     {
-        private static readonly ActiveStatementSpanProvider s_noActiveStatementSpanProvider =
-            (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
-
         private readonly Lazy<IManagedHotReloadService> _debuggerService;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
@@ -182,21 +179,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
         {
+            if (_disabled)
+            {
+                return;
+            }
+
+            var committedDesignTimeSolution = Interlocked.Exchange(ref _pendingUpdatedDesignTimeSolution, null);
+            Contract.ThrowIfNull(committedDesignTimeSolution);
+
             try
             {
-                var committedDesignTimeSolution = Interlocked.Exchange(ref _pendingUpdatedDesignTimeSolution, null);
-                Contract.ThrowIfNull(committedDesignTimeSolution);
                 SolutionCommitted?.Invoke(committedDesignTimeSolution);
-
-                _committedDesignTimeSolution = committedDesignTimeSolution;
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
             }
 
+            _committedDesignTimeSolution = committedDesignTimeSolution;
+
             try
             {
-                Contract.ThrowIfTrue(_disabled);
                 await GetDebuggingSession().CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -260,6 +262,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// will disappear once the debuggee is resumed - if they are caused by presence of active statements around the change.
         /// If the result is a false positive the debugger attempts to apply the changes, which will result in a delay but will correctly end up
         /// with no actual deltas to be applied.
+        /// 
+        /// If <paramref name="sourceFilePath"/> is specified checks for changes only in a document of the given path.
+        /// This is not supported (returns false) for source-generated documents.
         /// </summary>
         public async ValueTask<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
         {
@@ -285,21 +290,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public async ValueTask<ManagedModuleUpdates> GetEditAndContinueUpdatesAsync(CancellationToken cancellationToken)
-        {
-            if (_disabled)
-            {
-                return new ManagedModuleUpdates(ManagedModuleUpdateStatus.None, ImmutableArray<ManagedModuleUpdate>.Empty);
-            }
-
-            var workspace = WorkspaceProvider.Value.Workspace;
-            var solution = GetCurrentCompileTimeSolution(_pendingUpdatedDesignTimeSolution = workspace.CurrentSolution);
-            var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-            var (updates, _, _, _) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
-            return updates.FromContract();
-        }
-
-        public async ValueTask<ManagedHotReloadUpdates> GetHotReloadUpdatesAsync(CancellationToken cancellationToken)
+        public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
         {
             if (_disabled)
             {
@@ -307,15 +298,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var workspace = WorkspaceProvider.Value.Workspace;
-            var solution = GetCurrentCompileTimeSolution(_pendingUpdatedDesignTimeSolution = workspace.CurrentSolution);
-            var (moduleUpdates, diagnosticData, rudeEdits, syntaxError) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, s_noActiveStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+            var designTimeSolution = workspace.CurrentSolution;
+            var solution = GetCurrentCompileTimeSolution(designTimeSolution);
+            var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
+            var (moduleUpdates, diagnosticData, rudeEdits, syntaxError) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
 
-            var updates = moduleUpdates.Updates.SelectAsArray(
-                update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta, update.UpdatedTypes));
+            // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
+            if (moduleUpdates.Status == ModuleUpdateStatus.Ready)
+            {
+                _pendingUpdatedDesignTimeSolution = designTimeSolution;
+            }
 
-            var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, cancellationToken).ConfigureAwait(false);
-
-            return new ManagedHotReloadUpdates(updates, diagnostics.FromContract());
+            var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, moduleUpdates.Status, cancellationToken).ConfigureAwait(false);
+            return new ManagedHotReloadUpdates(moduleUpdates.Updates.FromContract(), diagnostics.FromContract());
         }
 
         public async ValueTask<SourceSpan?> GetCurrentActiveStatementPositionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)

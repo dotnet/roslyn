@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Remote;
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             using (Logger.LogBlock(FunctionId.Renamer_ResolveConflictsAsync, cancellationToken))
             {
                 var solution = lightweightRenameLocations.Solution;
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
                     var serializableSymbol = SerializableSymbolAndProjectId.Dehydrate(lightweightRenameLocations.Solution, symbol, cancellationToken);
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             foreach (var language in projectIds.Select(p => solution.GetRequiredProject(p).Language).Distinct())
             {
-                var languageServices = solution.Workspace.Services.GetLanguageServices(language);
+                var languageServices = solution.Services.GetLanguageServices(language);
                 var renameRewriterLanguageService = languageServices.GetRequiredService<IRenameRewriterLanguageService>();
                 var syntaxFactsLanguageService = languageServices.GetRequiredService<ISyntaxFactsService>();
                 if (!renameRewriterLanguageService.IsIdentifierValid(replacementText, syntaxFactsLanguageService))
@@ -185,8 +186,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             {
                 var renameRewriterService =
-                    conflictResolution.CurrentSolution.Workspace.Services.GetLanguageServices(renamedSymbol.Language)
-                                                                         .GetRequiredService<IRenameRewriterLanguageService>();
+                    conflictResolution.CurrentSolution.Services.GetRequiredLanguageService<IRenameRewriterLanguageService>(renamedSymbol.Language);
                 var implicitUsageConflicts = renameRewriterService.ComputePossibleImplicitUsageConflicts(renamedSymbol, semanticModel, originalDeclarationLocation, newDeclarationLocationStartingPosition, cancellationToken);
                 foreach (var implicitUsageConflict in implicitUsageConflicts)
                 {
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 // the location of the implicit reference defines the language rules to check.
                 // E.g. foreach in C# using a MoveNext in VB that is renamed to MOVENEXT (within VB)
-                var renameRewriterService = implicitReferenceLocationsPerLanguage.First().Document.Project.LanguageServices.GetRequiredService<IRenameRewriterLanguageService>();
+                var renameRewriterService = implicitReferenceLocationsPerLanguage.First().Document.Project.Services.GetRequiredService<IRenameRewriterLanguageService>();
                 var implicitConflicts = await renameRewriterService.ComputeImplicitReferenceConflictsAsync(
                     originalSymbol,
                     renamedSymbol,
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     IEnumerable<ISymbol> otherThingsNamedTheSameExcludeMethodAndParameterizedProperty;
 
                     // Possibly overloaded symbols are excluded here and handled elsewhere
-                    var semanticFactsService = projectOpt.LanguageServices.GetRequiredService<ISemanticFactsService>();
+                    var semanticFactsService = projectOpt.Services.GetRequiredService<ISemanticFactsService>();
                     if (semanticFactsService.SupportsParameterizedProperties)
                     {
                         otherThingsNamedTheSameExcludeMethodAndParameterizedProperty = otherThingsNamedTheSame
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     Contract.ThrowIfNull(projectOpt);
                     // There also might be language specific rules we need to include
-                    var languageRenameService = projectOpt.LanguageServices.GetRequiredService<IRenameRewriterLanguageService>();
+                    var languageRenameService = projectOpt.Services.GetRequiredService<IRenameRewriterLanguageService>();
                     var languageConflicts = await languageRenameService.ComputeDeclarationConflictsAsync(
                         conflictResolution.ReplacementText,
                         renamedSymbol,

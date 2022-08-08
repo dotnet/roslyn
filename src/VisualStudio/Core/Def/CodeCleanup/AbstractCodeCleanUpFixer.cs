@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                     }
 
                     var document = solution.GetRequiredDocument(documentId);
-                    var options = _globalOptions.GetCodeActionOptions(document.Project.LanguageServices);
+                    var options = _globalOptions.GetCodeActionOptions(document.Project.Services);
                     return await FixDocumentAsync(document, options, context).ConfigureAwait(true);
                 }
             }
@@ -146,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
 
         private Task<bool> FixSolutionAsync(Solution solution, ICodeCleanUpExecutionContext context)
         {
-            return FixAsync(solution.Workspace, ApplyFixAsync, context);
+            return FixAsync(_workspace, ApplyFixAsync, context);
 
             // Local function
             Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken cancellationToken)
@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
 
         private Task<bool> FixProjectAsync(Project project, ICodeCleanUpExecutionContext context)
         {
-            return FixAsync(project.Solution.Workspace, ApplyFixAsync, context);
+            return FixAsync(_workspace, ApplyFixAsync, context);
 
             // Local function
             async Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken cancellationToken)
@@ -205,7 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 Contract.ThrowIfNull(document);
 
-                var options = _globalOptions.GetCodeActionOptions(document.Project.LanguageServices);
+                var options = _globalOptions.GetCodeActionOptions(document.Project.Services);
                 var newDoc = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, options, cancellationToken).ConfigureAwait(true);
                 return newDoc.Project.Solution;
             }
@@ -292,7 +292,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 progressTracker.AddItems(project.DocumentIds.Count);
             }
 
-            var ideOptions = _globalOptions.GetCodeActionOptions(project.LanguageServices);
+            var ideOptions = _globalOptions.GetCodeActionOptions(project.Services);
 
             foreach (var documentId in project.DocumentIds)
             {
@@ -314,7 +314,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         }
 
         private static bool CanCleanupProject(Project project)
-            => project.LanguageServices.GetService<ICodeCleanupService>() != null;
+            => project.Services.GetService<ICodeCleanupService>() != null;
 
         private static async Task<Document> FixDocumentAsync(
             Document document,

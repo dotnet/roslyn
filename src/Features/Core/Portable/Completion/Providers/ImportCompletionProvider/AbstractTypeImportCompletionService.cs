@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -31,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract string Language { get; }
 
-        internal AbstractTypeImportCompletionService(Workspace workspace)
+        internal AbstractTypeImportCompletionService(SolutionServices services)
         {
-            CacheService = workspace.Services.GetRequiredService<IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry>>();
+            CacheService = services.GetRequiredService<IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry>>();
         }
 
         public void QueueCacheWarmUpTask(Project project)

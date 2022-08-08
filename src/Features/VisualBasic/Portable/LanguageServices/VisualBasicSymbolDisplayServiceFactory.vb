@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
         End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicSymbolDisplayService(provider)
+            Return New VisualBasicSymbolDisplayService(provider.LanguageServices)
         End Function
     End Class
 End Namespace

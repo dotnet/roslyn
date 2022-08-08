@@ -38,7 +38,7 @@ internal readonly record struct ExtractMethodGenerationOptions(
     [DataMember] public AddImportPlacementOptions AddImportOptions { get; init; } = AddImportPlacementOptions.Default;
     [DataMember] public LineFormattingOptions LineFormattingOptions { get; init; } = LineFormattingOptions.Default;
 
-    public static ExtractMethodGenerationOptions GetDefault(HostLanguageServices languageServices)
+    public static ExtractMethodGenerationOptions GetDefault(Host.LanguageServices languageServices)
         => new(CodeGenerationOptions.GetDefault(languageServices));
 }
 
@@ -46,7 +46,7 @@ internal static class ExtractMethodGenerationOptionsProviders
 {
     public static async ValueTask<ExtractMethodGenerationOptions> GetExtractMethodGenerationOptionsAsync(this Document document, ExtractMethodGenerationOptions? fallbackOptions, CancellationToken cancellationToken)
     {
-        fallbackOptions ??= ExtractMethodGenerationOptions.GetDefault(document.Project.LanguageServices);
+        fallbackOptions ??= ExtractMethodGenerationOptions.GetDefault(document.Project.Services);
 
         var extractOptions = fallbackOptions.Value.ExtractOptions;
         var codeGenerationOptions = await document.GetCodeGenerationOptionsAsync(fallbackOptions.Value.CodeGenerationOptions, cancellationToken).ConfigureAwait(false);

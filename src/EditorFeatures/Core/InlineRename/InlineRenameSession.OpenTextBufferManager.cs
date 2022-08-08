@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             return textChanges;
                         }
 
-                        var textDiffService = oldDocument.Project.Solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
+                        var textDiffService = oldDocument.Project.Solution.Services.GetService<IDocumentTextDifferencingService>();
                         return await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
                     }
                 }
@@ -588,8 +588,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 _session._threadingContext.ThrowIfNotOnUIThread();
 
-                var textDiffService = preMergeDocument.Project.Solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
-                var contentType = preMergeDocument.Project.LanguageServices.GetService<IContentTypeLanguageService>().GetDefaultContentType();
+                var textDiffService = preMergeDocument.Project.Solution.Services.GetService<IDocumentTextDifferencingService>();
+                var contentType = preMergeDocument.Project.Services.GetService<IContentTypeLanguageService>().GetDefaultContentType();
 
                 // TODO: Track all spans at once
 
@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var snapshot = preMergeDocumentText.FindCorrespondingEditorTextSnapshot();
                 if (snapshot != null)
                 {
-                    textBufferCloneService = preMergeDocument.Project.Solution.Workspace.Services.GetService<ITextBufferCloneService>();
+                    textBufferCloneService = preMergeDocument.Project.Solution.Services.GetService<ITextBufferCloneService>();
                     if (textBufferCloneService != null)
                     {
                         snapshotSpanToClone = snapshot.GetFullSpan();

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public readonly SymbolRenameOptions Options;
         public readonly CodeCleanupOptionsProvider FallbackOptions;
 
-        public readonly ImmutableHashSet<RenameLocation> Locations;
+        public readonly ImmutableArray<RenameLocation> Locations;
         public readonly ImmutableArray<ReferenceLocation> ImplicitLocations;
         public readonly ImmutableArray<ISymbol> ReferencedSymbols;
 
@@ -40,15 +41,19 @@ namespace Microsoft.CodeAnalysis.Rename
             Solution solution,
             SymbolRenameOptions options,
             CodeCleanupOptionsProvider fallbackOptions,
-            ImmutableHashSet<RenameLocation> locations,
+            ImmutableArray<RenameLocation> locations,
             ImmutableArray<ReferenceLocation> implicitLocations,
             ImmutableArray<ISymbol> referencedSymbols)
         {
+            Debug.Assert(locations.Distinct().Count() == locations.Length, "Locations should be unique");
+            Contract.ThrowIfTrue(locations.IsDefault);
+            Contract.ThrowIfTrue(implicitLocations.IsDefault);
+            Contract.ThrowIfTrue(referencedSymbols.IsDefault);
+
             Solution = solution;
             Symbol = symbol;
             Options = options;
             FallbackOptions = fallbackOptions;
-            Contract.ThrowIfNull(locations);
             Locations = locations;
             ReferencedSymbols = referencedSymbols;
             ImplicitLocations = implicitLocations;
@@ -81,8 +86,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     options.RenameInComments,
                     cancellationToken).ConfigureAwait(false);
 
-                var mergedLocations = ImmutableHashSet.CreateBuilder<RenameLocation>();
-
+                using var _0 = ArrayBuilder<RenameLocation>.GetInstance(out var mergedLocations);
                 using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var mergedReferencedSymbols);
                 using var _2 = ArrayBuilder<ReferenceLocation>.GetInstance(out var mergedImplicitLocations);
 
@@ -103,6 +107,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 // comment resolutions. See https://github.com/dotnet/roslyn/issues/54294
                 mergedLocations.AddRange(strings.NullToEmpty());
                 mergedLocations.AddRange(comments.NullToEmpty());
+
+                mergedLocations.RemoveDuplicates();
 
                 return new SymbolicRenameLocations(
                     symbol, solution, options, cleanupOptions,

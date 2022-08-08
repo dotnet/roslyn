@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
 
             var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var info = (TCodeGenerationContextInfo)options.GetInfo(CodeGenerationContext.Default, document.Project);
@@ -109,7 +109,8 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                         : new SyntaxNode[] { newGetAccessor, newSetAccessor })
                 .WithLeadingTrivia(property.GetLeadingTrivia());
             fullProperty = ConvertPropertyToExpressionBodyIfDesired(info, fullProperty);
-            var editor = new SyntaxEditor(root, services);
+
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
             editor.ReplaceNode(property, fullProperty.WithAdditionalAnnotations(Formatter.Annotation));
 
             // add backing field, plus initializer if it exists 

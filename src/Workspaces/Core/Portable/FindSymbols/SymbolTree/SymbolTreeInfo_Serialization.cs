@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// info can't be loaded, it will be created (and persisted if possible).
         /// </summary>
         private static Task<SpellChecker> LoadOrCreateSpellCheckerAsync(
-            HostWorkspaceServices services,
+            SolutionServices services,
             SolutionKey solutionKey,
             Checksum checksum,
             string filePath,
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// code for serialization of SymbolTreeInfos and SpellCheckers.
         /// </summary>
         private static async Task<T> TryLoadOrCreateAsync<T>(
-            HostWorkspaceServices services,
+            SolutionServices services,
             SolutionKey solutionKey,
             Checksum checksum,
             bool loadOnly,
