@@ -48,7 +48,7 @@ steps:
     AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
 
 - task: SdtReport@2
-  displayName: 🛠️ Create Security Analysis Report
+  displayName: 📃 Create Security Analysis Report
   inputs:
     GdnExportAllTools: true
 
