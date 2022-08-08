@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -12,10 +13,28 @@ using Metalama.Backstage.Utilities;
 
 namespace Metalama.Compiler
 {
+    internal class ComponentInfo : IComponentInfo
+    {
+        private readonly ISourceTransformer _transformer;
+        private readonly AssemblyMetadataReader _metadataReader;
+
+        public ComponentInfo(ISourceTransformer transformer)
+        {
+            _transformer = transformer;
+            this._metadataReader = AssemblyMetadataReader.GetInstance(transformer.GetType().Assembly);
+        }
+
+        public string? Company => this._metadataReader.Company;
+        public string Name => _transformer.GetType().FullName!;
+        public string Version => this._metadataReader.PackageVersion;
+        public bool IsPrerelease => this.Version.Contains("-");
+        public DateTime BuildDate => this._metadataReader.BuildDate;
+    }
+
     /// <summary>
     /// Provide application information stored using <see cref="AssemblyMetadataAttribute"/>.
     /// </summary>
-    internal class MetalamaCompilerApplicationInfo : IApplicationInfo
+    internal class MetalamaCompilerApplicationInfo : ApplicationInfoBase
     {
         private readonly bool _ignoreUnattendedProcess;
 
@@ -23,60 +42,29 @@ namespace Metalama.Compiler
         /// Initializes a new instance of the <see cref="MetalamaCompilerApplicationInfo"/> class.
         /// </summary>
         /// <exception cref="InvalidOperationException">Some of the required assembly metadata were not found.</exception>
-        public MetalamaCompilerApplicationInfo(bool isLongRunningProcess, bool ignoreUnattendedProcess)
+        public MetalamaCompilerApplicationInfo(bool isLongRunningProcess, bool ignoreUnattendedProcess, ImmutableArray<ISourceTransformer> components) : base(typeof(MetalamaCompilerApplicationInfo).Assembly) 
         {
             _ignoreUnattendedProcess = ignoreUnattendedProcess;
-
-            var reader = AssemblyMetadataReader.GetInstance(typeof(MetalamaCompilerApplicationInfo).Assembly);
-
-            if (!reader.TryGetValue("MetalamaCompilerVersion", out var version)
-                || !reader.TryGetValue("MetalamaCompilerBuildDate", out var buildDate))
-            {
-                throw new InvalidOperationException(
-                    $"{nameof(MetalamaCompilerApplicationInfo)} has failed to find some of the required assembly metadata.");
-            }
-
-            this.Version = version;
-            this.BuildDate = DateTime.Parse(buildDate, CultureInfo.InvariantCulture);
             this.IsLongRunningProcess = isLongRunningProcess;
 
-            // Parse the version set properties that depend on the kind of version.
-            var versionParts = version.Split('-');
-
-            if (versionParts.Length == 1)
-            {
-                this.IsPrerelease = false;
-                this.IsTelemetryEnabled = true;
-            }
-            else
-            {
-                this.IsPrerelease = true;
-                this.IsTelemetryEnabled = versionParts[1] is not ("dev" or "local");
-            }
+            this.Components = components.Select(x=>new ComponentInfo(x)).ToImmutableArray<IComponentInfo>();
         }
 
         /// <inheritdoc />
-        public DateTime BuildDate { get; }
+        public override ProcessKind ProcessKind => ProcessKind.Compiler;
 
         /// <inheritdoc />
-        public ProcessKind ProcessKind => ProcessKind.Compiler;
+        public override bool IsUnattendedProcess(ILoggerFactory loggerFactory) => !_ignoreUnattendedProcess && ProcessUtilities.IsCurrentProcessUnattended(loggerFactory);
 
         /// <inheritdoc />
-        public bool IsUnattendedProcess(ILoggerFactory loggerFactory) => !_ignoreUnattendedProcess && ProcessUtilities.IsCurrentProcessUnattended(loggerFactory);
+        public override bool IsLongRunningProcess { get; }
 
         /// <inheritdoc />
-        public bool IsLongRunningProcess { get; }
+        public override string Name => "Metalama.Compiler";
 
         /// <inheritdoc />
-        public string Name => "Metalama Compiler";
+        public override bool IsTelemetryEnabled { get; }
 
-        /// <inheritdoc />
-        public string Version { get; }
-
-        /// <inheritdoc />
-        public bool IsPrerelease { get; }
-
-        /// <inheritdoc />
-        public bool IsTelemetryEnabled { get; }
+        public override ImmutableArray<IComponentInfo> Components { get; }
     }
 }

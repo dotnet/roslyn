@@ -3,19 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using Metalama.Backstage.Extensibility;
 using Metalama.Backstage.Telemetry;
 
 namespace Metalama.Compiler;
 
-public static class MetalamaCompilerExceptionHandler
+internal static class MetalamaCompilerExceptionHandler
 {
     public static void HandleException(Exception e)
     {
         try
         {
             var serviceProviderBuilder = new ServiceProviderBuilder().AddMinimalBackstageServices(
-                applicationInfo: new MetalamaCompilerApplicationInfo(false, false),
+                applicationInfo: new MetalamaCompilerApplicationInfo(false, false, ImmutableArray<ISourceTransformer>.Empty),
                 addSupportServices: true);
 
             serviceProviderBuilder.ServiceProvider.GetService<IExceptionReporter>()?.ReportException(e);

@@ -22,11 +22,11 @@
   <!-- <Metalama> -->
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-      <_Parameter1>MetalamaCompilerVersion</_Parameter1>
+      <_Parameter1>PackageVersion</_Parameter1>
       <_Parameter2>$(MetalamaCompilerVersion)</_Parameter2>
     </AssemblyAttribute>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-      <_Parameter1>MetalamaCompilerBuildDate</_Parameter1>
+      <_Parameter1>PackageBuildDate</_Parameter1>
       <_Parameter2>$([System.DateTime]::UtcNow.ToString(o))</_Parameter2>
     </AssemblyAttribute>
   </ItemGroup>
