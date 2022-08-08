@@ -249,16 +249,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Return True
             End Function
 
-            Private Shared Function IsPossibleNameConflict(possibleNameConflicts As ICollection(Of String), candidate As String) As Boolean
-                For Each possibleNameConflict In possibleNameConflicts
-                    If CaseInsensitiveComparison.Equals(possibleNameConflict, candidate) Then
-                        Return True
-                    End If
-                Next
-
-                Return False
-            End Function
-
             Private Function UpdateAliasAnnotation(newToken As SyntaxToken) As SyntaxToken
 
                 For Each kvp In _renamedSymbolContexts
