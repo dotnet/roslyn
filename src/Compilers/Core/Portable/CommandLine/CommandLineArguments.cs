@@ -510,16 +510,22 @@ namespace Microsoft.CodeAnalysis
                 }
             };
 
-            var resolvedReferences = ArrayBuilder<AnalyzerFileReference>.GetInstance();
+            var resolvedReferences = PooledHashSet<AnalyzerFileReference>.GetInstance();
             foreach (var reference in AnalyzerReferences)
             {
                 var resolvedReference = ResolveAnalyzerReference(reference, analyzerLoader);
                 if (resolvedReference != null)
                 {
-                    resolvedReferences.Add(resolvedReference);
-
-                    // register the reference to the analyzer loader:
-                    analyzerLoader.AddDependencyLocation(resolvedReference.FullPath);
+                    var isAdded = resolvedReferences.Add(resolvedReference);
+                    if (isAdded)
+                    {
+                        // register the reference to the analyzer loader:
+                        analyzerLoader.AddDependencyLocation(resolvedReference.FullPath);
+                    }
+                    else
+                    {
+                        diagnostics.Add(new DiagnosticInfo(messageProvider, messageProvider.WRN_DuplicateAnalyzerReference, reference.FilePath));
+                    }
                 }
                 else
                 {

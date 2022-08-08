@@ -558,6 +558,16 @@
         <target state="translated">Das auf den Parameter angewendete CallerArgumentExpressionAttribute hat keine Auswirkungen, da es selbstreferenziell ist.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference">
+        <source>Analyzer reference '{0}' specified multiple times</source>
+        <target state="new">Analyzer reference '{0}' specified multiple times</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
+        <source>Analyzer reference specified multiple times</source>
+        <target state="new">Analyzer reference specified multiple times</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
         <target state="translated">Fehler beim Generieren der Quelle durch den Generator "{0}". Dieser wird bei der Ausgabe nicht berücksichtigt, deshalb kann es zu Kompilierungsfehlern kommen. Ausnahmetyp: {1}. Meldung: {2}</target>
