@@ -194,11 +194,6 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         bool IsDeclarationExpression([NotNullWhen(true)] SyntaxNode? node);
 
-        bool IsIsTypeExpression([NotNullWhen(true)] SyntaxNode? node);
-        bool IsIsNotTypeExpression([NotNullWhen(true)] SyntaxNode? node);
-
-        bool IsIsPatternExpression([NotNullWhen(true)] SyntaxNode? node);
-
         bool IsConversionExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsCastExpression([NotNullWhen(true)] SyntaxNode? node);
 
@@ -368,7 +363,6 @@ namespace Microsoft.CodeAnalysis.LanguageService
         bool IsBaseConstructorInitializer(SyntaxToken token);
         bool IsQueryKeyword(SyntaxToken token);
         bool IsElementAccessExpression([NotNullWhen(true)] SyntaxNode? node);
-        bool IsIndexerMemberCRef([NotNullWhen(true)] SyntaxNode? node);
         bool IsIdentifierStartCharacter(char c);
         bool IsIdentifierPartCharacter(char c);
         bool IsIdentifierEscapeCharacter(char c);
@@ -461,18 +455,8 @@ namespace Microsoft.CodeAnalysis.LanguageService
         bool IsPropertyPatternClause(SyntaxNode node);
 
         bool IsAnyPattern([NotNullWhen(true)] SyntaxNode? node);
-
-        bool IsAndPattern([NotNullWhen(true)] SyntaxNode? node);
         bool IsBinaryPattern([NotNullWhen(true)] SyntaxNode? node);
-        bool IsConstantPattern([NotNullWhen(true)] SyntaxNode? node);
-        bool IsDeclarationPattern([NotNullWhen(true)] SyntaxNode? node);
-        bool IsNotPattern([NotNullWhen(true)] SyntaxNode? node);
-        bool IsOrPattern([NotNullWhen(true)] SyntaxNode? node);
-        bool IsParenthesizedPattern([NotNullWhen(true)] SyntaxNode? node);
-        bool IsRecursivePattern([NotNullWhen(true)] SyntaxNode? node);
-        bool IsTypePattern([NotNullWhen(true)] SyntaxNode? node);
         bool IsUnaryPattern([NotNullWhen(true)] SyntaxNode? node);
-        bool IsVarPattern([NotNullWhen(true)] SyntaxNode? node);
 
         SyntaxNode GetExpressionOfConstantPattern(SyntaxNode node);
         SyntaxNode GetTypeOfTypePattern(SyntaxNode node);

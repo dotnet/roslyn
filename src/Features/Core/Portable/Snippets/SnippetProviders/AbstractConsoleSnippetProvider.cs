@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         public override string SnippetDisplayName => FeaturesResources.Write_to_the_console;
 
+        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("Console", "WriteLine");
+
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);

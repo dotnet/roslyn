@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             var helper = CompletionHelper.GetHelper(document);
             var itemsWithPatternMatch = new SegmentedList<(CompletionItem, PatternMatch?)>(items.Select(
-                item => (item, helper.GetMatch(item.FilterText, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture))));
+                item => (item, helper.GetMatch(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture))));
 
             var builder = ImmutableArray.CreateBuilder<CompletionItem>();
             FilterItems(helper, itemsWithPatternMatch, filterText, builder);

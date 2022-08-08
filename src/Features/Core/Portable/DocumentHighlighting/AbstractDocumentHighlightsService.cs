@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                         var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                         var token = root.FindToken(location.SourceSpan.Start, findInsideTrivia: true);
 
-                        return syntaxFacts.IsGenericName(token.Parent) || syntaxFacts.IsIndexerMemberCRef(token.Parent)
+                        return syntaxFacts.IsGenericName(token.Parent) || syntaxFacts.IsIndexerMemberCref(token.Parent)
                             ? new DocumentSpan(document, token.Span)
                             : new DocumentSpan(document, location.SourceSpan);
                     }
