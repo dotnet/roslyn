@@ -841,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // TODO2: consider caching this
-                return FileIdentifier.FromSyntaxTree(AssociatedSyntaxTree);
+                return CreateFileIdentifier(AssociatedSyntaxTree);
             }
         }
 

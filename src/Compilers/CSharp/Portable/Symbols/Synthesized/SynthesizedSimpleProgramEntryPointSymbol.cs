@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation = DeclaringCompilation;
 
             var syntaxNode = SyntaxNode;
-            Binder result = new BuckStopsHereBinder(compilation, NamedTypeSymbol.FileIdentifier.FromSyntaxTree(syntaxNode.SyntaxTree));
+            Binder result = new BuckStopsHereBinder(compilation, NamedTypeSymbol.CreateFileIdentifier(syntaxNode.SyntaxTree));
             var globalNamespace = compilation.GlobalNamespace;
             var declaringSymbol = (SourceNamespaceSymbol)compilation.SourceModule.GlobalNamespace;
             result = WithExternAndUsingAliasesBinder.Create(declaringSymbol, syntaxNode, WithUsingNamespacesAndTypesBinder.Create(declaringSymbol, syntaxNode, result));

@@ -507,17 +507,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             public ImmutableArray<byte> FilePathChecksum { get; init; }
             public string DisplayFilePath { get; init; }
+        }
 
-            public static FileIdentifier FromSyntaxTree(SyntaxTree tree)
+        public static FileIdentifier CreateFileIdentifier(SyntaxTree tree)
+        {
+            using var sha256 = SHA256.Create();
+            var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(tree.FilePath));
+            return new FileIdentifier
             {
-                using var sha256 = SHA256.Create();
-                var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(tree.FilePath));
-                return new FileIdentifier
-                {
-                    FilePathChecksum = ImmutableArray.Create(hash),
-                    DisplayFilePath = tree.FilePath
-                };
-            }
+                FilePathChecksum = ImmutableArray.Create(hash),
+                DisplayFilePath = tree.FilePath
+            };
         }
 
 #nullable disable
