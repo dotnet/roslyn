@@ -3121,5 +3121,33 @@ public static readonly string F = ""a""
             Assert.NotEqual(TimeSpan.Zero, generatorTiming2.ElapsedTime);
             Assert.True(generatorTiming.ElapsedTime > generatorTiming2.ElapsedTime);
         }
+
+        [Fact]
+        public void Returning_Null_From_SelectMany_Gives_Empty_Array()
+        {
+            var source = "class C{}";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                var nullArray = ctx.CompilationProvider.Select((c, _) => null as object[]);
+                var flatArray = nullArray.SelectMany((a, _) => a!);
+                ctx.RegisterSourceOutput(flatArray, (_, _) => { });
+
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+
+            Assert.Empty(runResult.GeneratedTrees);
+            Assert.Empty(runResult.Diagnostics);
+            var result = Assert.Single(runResult.Results);
+            Assert.Empty(result.GeneratedSources);
+            Assert.Empty(result.Diagnostics);
+        }
     }
 }
