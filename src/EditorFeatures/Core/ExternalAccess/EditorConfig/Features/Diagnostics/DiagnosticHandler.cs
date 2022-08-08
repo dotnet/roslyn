@@ -18,24 +18,24 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
-using StreamJsonRpc;
 using System.Linq;
+using Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 {
     [ExportStatelessLspService(typeof(PullDiagnosticHandler), ProtocolConstants.EditorConfigLanguageContract), Shared]
     [Method(VSInternalMethods.DocumentPullDiagnosticName)]
-    internal sealed class PullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport, VSInternalDiagnosticReport[]>
+    internal sealed class PullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport, VSInternalDiagnosticReport[]?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PullDiagnosticHandler(
-            IDiagnosticAnalyzerService analyzerService,
+            IDiagnosticAnalyzerService diagnosticAnalyzerService,
             EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
             IGlobalOptionService globalOptions)
-            : base(analyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
+            : base(diagnosticAnalyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
         {
         }
 
@@ -62,7 +62,32 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
         }
 
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
-            => ConvertTags(diagnosticData, potentialDuplicate: false);
+        {
+            using var _ = ArrayBuilder<DiagnosticTag>.GetInstance(out var result);
+
+            if (diagnosticData.Severity == DiagnosticSeverity.Hidden)
+            {
+                result.Add(VSDiagnosticTags.HiddenInEditor);
+                result.Add(VSDiagnosticTags.HiddenInErrorList);
+                result.Add(VSDiagnosticTags.SuppressEditorToolTip);
+            }
+            else
+            {
+                result.Add(VSDiagnosticTags.VisibleInErrorList);
+            }
+
+            result.Add(diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Build)
+                ? VSDiagnosticTags.BuildError
+                : VSDiagnosticTags.IntellisenseError);
+
+            if (diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
+                result.Add(DiagnosticTag.Unnecessary);
+
+            if (diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.EditAndContinue))
+                result.Add(VSDiagnosticTags.EditAndContinueError);
+
+            return result.ToArray();
+        }
 
         protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
         {
@@ -78,166 +103,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
         {
             if (context.AdditionalDocument == null)
             {
-                context.TraceInformation("Ignoring diagnostics request because no document was provided");
                 return ImmutableArray<IDiagnosticSource>.Empty;
             }
 
             if (!context.IsTracking(context.AdditionalDocument.GetURI()))
             {
-                context.TraceWarning($"Ignoring diagnostics request for untracked document: {context.AdditionalDocument.GetURI()}");
                 return ImmutableArray<IDiagnosticSource>.Empty;
             }
 
             return ImmutableArray.Create<IDiagnosticSource>(new DocumentDiagnosticSource(context.AdditionalDocument));
         }
 
-        private static Dictionary<ProjectOrDocumentId, PreviousPullResult> GetIdToPreviousDiagnosticParams(RequestContext context, ImmutableArray<PreviousPullResult> previousResults, out ImmutableArray<PreviousPullResult> removedDocuments)
-        {
-            Contract.ThrowIfNull(context.Solution);
-
-            var result = new Dictionary<ProjectOrDocumentId, PreviousPullResult>();
-            using var _ = ArrayBuilder<PreviousPullResult>.GetInstance(out var removedDocumentsBuilder);
-            foreach (var diagnosticParams in previousResults)
-            {
-                if (diagnosticParams.TextDocument != null)
-                {
-                    var id = GetIdForPreviousResult(diagnosticParams.TextDocument, context.Solution);
-                    if (id != null)
-                    {
-                        result[id.Value] = diagnosticParams;
-                    }
-                    else
-                    {
-                        // The client previously had a result from us for this document, but we no longer have it in our solution.
-                        // Record it so we can report to the client that it has been removed.
-                        removedDocumentsBuilder.Add(diagnosticParams);
-                    }
-                }
-            }
-
-            removedDocuments = removedDocumentsBuilder.ToImmutable();
-            return result;
-
-            static ProjectOrDocumentId? GetIdForPreviousResult(TextDocumentIdentifier textDocumentIdentifier, Solution solution)
-            {
-                var additionalDocument = solution.GetAdditionalDocument(textDocumentIdentifier);
-                if (additionalDocument != null)
-                {
-                    return new ProjectOrDocumentId(additionalDocument.Id);
-                }
-
-                return null;
-            }
-        }
-
-        private async Task<VSInternalDiagnosticReport> ComputeAndReportCurrentDiagnosticsAsync(
-            RequestContext context,
-            DocumentDiagnosticSource diagnosticSource,
-            string resultId,
-            DiagnosticMode diagnosticMode,
-            CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var result);
-            var diagnostics = await diagnosticSource.GetDiagnosticsAsync(DiagnosticAnalyzerService, context, diagnosticMode, cancellationToken).ConfigureAwait(false);
-
-            foreach (var diagnostic in diagnostics)
-                result.Add(ConvertDiagnostic(diagnosticSource, diagnostic));
-
-            return CreateReport(new TextDocumentIdentifier { Uri = diagnosticSource.GetUri() }, result.ToArray(), resultId);
-        }
-
-        private static void HandleRemovedDocuments(RequestContext context, ImmutableArray<PreviousPullResult> removedPreviousResults, BufferedProgress<VSInternalDiagnosticReport> progress)
-        {
-            foreach (var removedResult in removedPreviousResults)
-            {
-                context.TraceInformation($"Clearing diagnostics for removed document: {removedResult.TextDocument.Uri}");
-
-                progress.Report(CreateRemovedReport(removedResult.TextDocument));
-            }
-        }
-
-        private static VSDiagnostic ConvertDiagnostic(DocumentDiagnosticSource diagnosticSource, DiagnosticData diagnosticData)
-        {
-            Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
-
-            var project = diagnosticSource.GetProject();
-
-            var vsDiagnostic = CreateBaseLspDiagnostic();
-            vsDiagnostic.DiagnosticType = diagnosticData.Category;
-            vsDiagnostic.Projects = new[]
-            {
-                new VSDiagnosticProjectInformation
-                {
-                    ProjectIdentifier = project.Id.Id.ToString(),
-                    ProjectName = project.Name,
-                },
-            };
-
-            return vsDiagnostic;
-
-            // We can just use VSDiagnostic as it doesn't have any default properties set that
-            // would get automatically serialized.
-            VSDiagnostic CreateBaseLspDiagnostic()
-            {
-                var diagnostic = new VSDiagnostic
-                {
-                    Code = diagnosticData.Id,
-                    CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.GetValidHelpLinkUri()),
-                    Message = diagnosticData.Message,
-                    Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
-                    Tags = ConvertTags(diagnosticData, potentialDuplicate: false),
-                };
-                var range = GetRange(diagnosticData.DataLocation);
-                if (range != null)
-                {
-                    diagnostic.Range = range;
-                }
-
-                return diagnostic;
-            }
-
-            static Range? GetRange(DiagnosticDataLocation? dataLocation)
-            {
-                if (dataLocation == null)
-                {
-                    return null;
-                }
-
-                return new Range
-                {
-                    Start = new Position
-                    {
-                        Character = dataLocation.OriginalStartColumn,
-                        Line = dataLocation.OriginalStartLine,
-                    },
-                    End = new Position
-                    {
-                        Character = dataLocation.OriginalEndColumn,
-                        Line = dataLocation.OriginalEndLine,
-                    }
-                };
-            }
-        }
-
-        private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity)
-            => severity switch
-            {
-                DiagnosticSeverity.Hidden => LSP.DiagnosticSeverity.Hint,
-                DiagnosticSeverity.Info => LSP.DiagnosticSeverity.Hint,
-                DiagnosticSeverity.Warning => LSP.DiagnosticSeverity.Warning,
-                DiagnosticSeverity.Error => LSP.DiagnosticSeverity.Error,
-                _ => throw ExceptionUtilities.UnexpectedValue(severity),
-            };
-
-        /// <summary>
-        /// Returns all the documents that should be processed.
-        /// </summary>
-        public static ImmutableArray<TextDocument> GetAdditionalDocuments(RequestContext context)
-        {
-            return context.AdditionalDocument == null ? ImmutableArray<TextDocument>.Empty : ImmutableArray.Create(context.AdditionalDocument);
-        }
-
-        private record struct DocumentDiagnosticSource(TextDocument Document)
+        private record struct DocumentDiagnosticSource(TextDocument Document) : IDiagnosticSource
         {
             public ProjectOrDocumentId GetId() => new(Document.Id);
 
@@ -257,25 +134,178 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 
                 var optionSet = workspace.Options;
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var diagnostics = new ImmutableArray<DiagnosticData>();
+                var diagnostics = new List<DiagnosticData>();
+
+                var definedSettings = new HashSet<string>();
 
                 foreach (var line in text.Lines)
                 {
                     var lineText = line.ToString();
+
+                    // Check that setting definition doesn't have more than 1 '='
                     if (lineText.Where(c => c == '=').Count() > 1)
                     {
-                        diagnostics.Add(new DiagnosticData
-                        {
-
-                        });
+                        diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.IncorrectSettingDefinition, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
                     }
-                    if (lineText.Contains('='))
+                    else if (lineText.Contains('='))
                     {
-                        
+                        var splitted = lineText.Split('=');
+                        string leftSide = splitted[0].Trim(), rightSide = splitted[1].Replace(" ", "");
+
+                        var settingsSnapshots = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
+                        var codeStyleSettingsItems = settingsSnapshots.codeStyleSnapshot?.Select(sett => sett.GetSettingName());
+                        var whitespaceSettingsItems = settingsSnapshots.whitespaceSnapshot?.Select(sett => sett.GetSettingName());
+                        var analyzerSettingsItems = settingsSnapshots.analyzerSnapshot?.Select(sett => sett.GetSettingName());
+                        var settingsItems = codeStyleSettingsItems.Concat(whitespaceSettingsItems).Concat(analyzerSettingsItems).WhereNotNull();
+
+                        // Checkt that the setting name exists
+                        if (!settingsItems.Contains(leftSide))
+                        {
+                            diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.SettingNotFound, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
+                            continue;
+                        }
+
+                        // Check for repeated settings
+                        if (definedSettings.Contains(leftSide))
+                        {
+                            diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.SettingAlreadyDefined, DiagnosticSeverity.Warning, false, 1, Document.Project.Id));
+                        }
+                        definedSettings.Add(leftSide);
+
+                        // Check for settings that define severities
+                        if (rightSide.Contains(':'))
+                        {
+                            var values = rightSide.Split(':');
+                            if (values.Length > 2)
+                            {
+                                diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.IncorrectSettingDefinition, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
+                                continue;
+                            }
+
+                            if (!SettingDefinesSeverities(leftSide, settingsSnapshots))
+                            {
+                                diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.SeveritiesNotSupported, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
+                                continue;
+                            }
+
+                            if (!SettingHasValue(leftSide, values[0], settingsSnapshots, workspace.Options) && !values[0].IsEmpty())
+                            {
+                                diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.ValueNotDefinedInSetting, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
+                                continue;
+                            }
+
+                            if (!IsSeverity(values[1]))
+                            {
+                                diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.SeverityNotDefined, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
+                                continue;
+                            }
+                            continue;
+                        }
+
+                        // Check for settings that allow multiple values
+                        if (rightSide.Contains(','))
+                        {
+                            if (!SettingAllowsMultipleValues(leftSide))
+                            {
+                                diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.MultipleValuesNotSupported, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
+                                continue;
+                            }
+
+                            var values = rightSide.Split(',');
+                            var definedValues = new HashSet<string>();
+                            foreach (var value in values)
+                            {
+                                if (!SettingHasValue(leftSide, value.Trim(), settingsSnapshots, workspace.Options) && !value.Trim().IsEmpty())
+                                {
+                                    diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.ValueNotDefinedInSetting, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
+                                }
+
+                                if (definedValues.Contains(value))
+                                {
+                                    diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.ValueAlreadyAssigned, DiagnosticSeverity.Warning, false, 1, Document.Project.Id));
+                                }
+                                definedValues.Add(value);
+                            }
+                            continue;
+                        }
+
+                        // Check if value exists for the setting
+                        if (!SettingHasValue(leftSide, rightSide, settingsSnapshots, workspace.Options) && !rightSide.IsEmpty())
+                        {
+                            diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.ValueNotDefinedInSetting, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
+                        }
                     }
                 }
 
-                return new();
+                return diagnostics.ToImmutableArray();
+
+                static DiagnosticData CreateDiagnosticData(TextDocument document, TextLine line, string editorConfigId, DiagnosticSeverity severity, bool isEnabledByDefault, int warningLevel, ProjectId projectId)
+                {
+                    var location = new DiagnosticDataLocation(
+                            document.Id, sourceSpan: line.Span, originalFilePath: document.FilePath,
+                            originalStartLine: line.LineNumber, originalStartColumn: 0, originalEndLine: line.LineNumber, originalEndColumn: line.ToString().Length);
+                    return new DiagnosticData(
+                        id: editorConfigId,
+                        category: EditorConfigDiagnosticIds.GetCategoryFromId(editorConfigId),
+                        message: EditorConfigDiagnosticIds.GetMessageFromId(editorConfigId),
+                        severity: severity,
+                        defaultSeverity: DiagnosticSeverity.Error,
+                        isEnabledByDefault: isEnabledByDefault,
+                        warningLevel: warningLevel,
+                        customTags: ImmutableArray<string>.Empty,
+                        properties: ImmutableDictionary<string, string?>.Empty,
+                        location: location,
+                        projectId: projectId
+                    );
+                }
+
+                static bool SettingDefinesSeverities(string settingName, SettingsHelper.SettingsSnapshots settingsSnapshots)
+                {
+                    var codestyleSettings = settingsSnapshots.codeStyleSnapshot?.Where(setting => setting.GetSettingName() == settingName);
+                    if (codestyleSettings.Any())
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                static bool IsSeverity(string severity)
+                {
+                    var severities = ImmutableArray.Create(new string[] { "none", "silent", "suggestion", "warning", "error" });
+                    return severities.Contains(severity);
+                }
+
+                static bool SettingAllowsMultipleValues(string settingName)
+                {
+                    return settingName == "csharp_new_line_before_open_brace" || settingName == "csharp_space_between_parentheses";
+                }
+
+                static bool SettingHasValue(string settingName, string settingValue, SettingsHelper.SettingsSnapshots settingsSnapshots, OptionSet optionSet)
+                {
+                    var codestyleSettings = settingsSnapshots.codeStyleSnapshot?.Where(setting => setting.GetSettingName() == settingName);
+                    if (codestyleSettings.Any())
+                    {
+                        var values = codestyleSettings.First().GetSettingValues(optionSet);
+                        return values != null && values.Contains(settingValue);
+                    }
+
+                    var whitespaceSettings = settingsSnapshots.whitespaceSnapshot?.Where(setting => setting.GetSettingName() == settingName);
+                    if (whitespaceSettings.Any())
+                    {
+                        var values = whitespaceSettings.First().GetSettingValues(optionSet);
+                        return values != null && values.Contains(settingValue);
+                    }
+
+                    var analyzerSettings = settingsSnapshots.analyzerSnapshot?.Where(setting => setting.GetSettingName() == settingName);
+                    if (analyzerSettings.Any())
+                    {
+                        var values = analyzerSettings.First().GetSettingValues(optionSet);
+                        return values != null && values.Contains(settingValue);
+                    }
+
+                    return false;
+                }
             }
         }
     }

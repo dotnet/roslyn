@@ -92,6 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                         var option = storageLocation?.GetEditorConfigStringValue(codeStyleSetting, optionSet);
                         if (option != null)
                         {
+                            option = option.Contains(':') ? option.Split(':').First() : option;
                             strings.Add(option);
                         }
                     }
