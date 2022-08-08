@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -26,6 +27,26 @@ namespace N
     {
         // field, not property
         public int f = 0;
+    }
+}
+";
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestPartialClass_NoAction()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public partial class [|C|]
+    {
+        public int F { get; init; }
+    }
+
+    public partial class C
+    {
+        public bool B { get; init; }
     }
 }
 ";
@@ -355,15 +376,15 @@ namespace N
 {
     public class [|C<TA, TB>|]
     {
-        public TA P { get; init; }
-        public TB B { get; init; }
+        public TA? P { get; init; }
+        public TB? B { get; init; }
     }
 }
 ";
             var changedMarkup = @"
 namespace N
 {
-    public record C<TA, TB>(TA P, TB B);
+    public record C<TA, TB>(TA? P, TB? B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -382,8 +403,8 @@ namespace N
         where TA : Exception
         where TB : IEnumerable<TA>
     {
-        public TA P { get; init; }
-        public TB B { get; init; }
+        public TA? P { get; init; }
+        public TB? B { get; init; }
     }
 }
 ";
@@ -393,7 +414,7 @@ using System.Collections.Generic;
 
 namespace N
 {
-    public record C<TA, TB>(TA P, TB B) where TA : Exception
+    public record C<TA, TB>(TA? P, TB? B) where TA : Exception
             where TB : IEnumerable<TA>;
 }
 ";
@@ -424,6 +445,68 @@ using System;
 namespace N
 {
     public record C([property: Obsolete(""P is Obsolete"", error: true)] int P, [property: Obsolete(""B will be obsolete, error: false"")] bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesWithAttributesAndComments1()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public class [|C|]
+    {
+        // comment before
+        [Obsolete(""P is Obsolete"", error: true)]
+        public int P { get; init; }
+
+        [Obsolete(""B will be obsolete, error: false"")]
+        // comment after
+        public bool B { get; init; }
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+
+namespace N
+{
+    // comment before
+    // comment after
+    public record C([property: Obsolete(""P is Obsolete"", error: true)] int P, [property: Obsolete(""B will be obsolete, error: false"")] bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesWithAttributesAndComments2()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public class [|C|]
+    {
+        [/*comment before*/ Obsolete(""P is Obsolete"", error: true)]
+        public int P { get; init; }
+
+        [Obsolete(""B will be obsolete, error: false"") /* comment after*/]
+        public bool B { get; init; }
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+
+namespace N
+{
+    public record C([/*comment before*/ property: Obsolete(""P is Obsolete"", error: true)] int P, [property: Obsolete(""B will be obsolete, error: false"") /* comment after*/] bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -501,7 +584,7 @@ namespace N
         public bool B { get; init; }
 
         public static bool operator ==(C c1, object? c2) {
-            return c2.Equals(c1);
+            return c2!.Equals(c1);
         }
 
         public static bool operator !=(C c1, object? c2) {
@@ -619,7 +702,7 @@ namespace N
         public bool B { get; init; }
 
         public static bool operator ==(C? c1, C? c2) {
-            return c1.Equals(c2);
+            return c1!.Equals(c2);
         }
 
         public static bool operator !=(C? c1, C? c2) {
@@ -1025,123 +1108,6 @@ namespace N
         public {|CS0111:{|CS8862:C|}|}(int p, bool b)
         {
             B = b;
-        }
-    }
-}
-";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
-        }
-
-        [Fact]
-        public async Task TestMovePropertiesAndModifyPrintMembersOnClass()
-        {
-            var initialMarkup = @"
-using System.Text;
-
-namespace N
-{
-    public class [|C|]
-    {
-        public int P { get; init; }
-        public bool B { get; init; }
-
-        public bool PrintMembers(StringBuilder builder)
-        {
-            builder.Append(string.Format(""{{0}, {1}}"", P, B));
-            return true;
-        }
-    }
-}
-";
-            var changedMarkup = @"
-using System.Text;
-
-namespace N
-{
-    public record C(int P, bool B)
-    {
-        protected virtual bool PrintMembers(StringBuilder builder)
-        {
-            builder.Append(string.Format(""{{0}, {1}}"", P, B));
-            return true;
-        }
-    }
-}
-";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
-        }
-
-        [Fact]
-        public async Task TestMovePropertiesAndModifyPrintMembersOnSealedClass()
-        {
-            var initialMarkup = @"
-using System.Text;
-
-namespace N
-{
-    public sealed class [|C|]
-    {
-        public int P { get; init; }
-        public bool B { get; init; }
-
-        public bool PrintMembers(StringBuilder builder)
-        {
-            builder.Append(string.Format(""{{0}, {1}}"", P, B));
-            return true;
-        }
-    }
-}
-";
-            var changedMarkup = @"
-using System.Text;
-
-namespace N
-{
-    public sealed record C(int P, bool B)
-    {
-        private bool PrintMembers(StringBuilder builder)
-        {
-            builder.Append(string.Format(""{{0}, {1}}"", P, B));
-            return true;
-        }
-    }
-}
-";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
-        }
-
-        [Fact]
-        public async Task TestMovePropertiesAndModifyPrintMembersOnStruct()
-        {
-            var initialMarkup = @"
-using System.Text;
-
-namespace N
-{
-    public struct [|C|]
-    {
-        public int P { get; set; }
-        public bool B { get; set; }
-
-        public bool PrintMembers(StringBuilder builder)
-        {
-            builder.Append(string.Format(""{{0}, {1}}"", P, B));
-            return true;
-        }
-    }
-}
-";
-            var changedMarkup = @"
-using System.Text;
-
-namespace N
-{
-    public record struct C(int P, bool B)
-    {
-        private bool PrintMembers(StringBuilder builder)
-        {
-            builder.Append(string.Format(""{{0}, {1}}"", P, B));
-            return true;
         }
     }
 }
@@ -1862,15 +1828,11 @@ namespace N
             };
             test.SolutionTransforms.Add((solution, projectId) =>
             {
-                var project = solution.GetProject(projectId);
-                if (project == null)
-                {
-                    return solution;
-                }
+                var project = solution.GetProject(projectId)!;
 
-                var compilationOptions = project.CompilationOptions!;
-                // remove the nullable warnings set in the basic workspace
-                compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.RemoveRange(CSharpVerifierHelper.NullableWarnings.Keys));
+                var compilationOptions = (CSharpCompilationOptions)project.CompilationOptions!;
+                // enable nullable
+                compilationOptions = compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable);
                 solution = solution
                     .WithProjectCompilationOptions(projectId, compilationOptions)
                     .WithProjectMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Net60));

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -36,7 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             var (document, span, cancellationToken) = context;
 
             var typeDeclaration = await context.TryGetRelevantNodeAsync<TypeDeclarationSyntax>().ConfigureAwait(false);
-            if (typeDeclaration == null)
+            if (typeDeclaration == null ||
+                // any type declared partial requires complex movement, don't offer refactoring
+                typeDeclaration.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword)))
             {
                 return;
             }
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     // no need to convert if it's already a record
                     IsRecord: false,
                     // records can't be static and so if the class is static we probably shouldn't convert it
-                    IsStatic: false
+                    IsStatic: false,
                 } type ||
                 // make sure that there is at least one positional parameter we can introduce
                 !typeDeclaration.Members.Any(m => ShouldConvertProperty(m, type)))
@@ -61,13 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             var positional = CodeAction.Create(
                 positionalTitle,
-                cancellationToken => ConvertToParameterRecordAsync(document, type, typeDeclaration, cancellationToken),
+                cancellationToken => ConvertToPositionalRecordAsync(document, type, typeDeclaration, cancellationToken),
                 nameof(CSharpFeaturesResources.Convert_to_positional_record));
             // note: when adding nested actions, use string.Format(CSharpFeaturesResources.Convert_0_to_record, type.Name) as title string
             context.RegisterRefactoring(positional);
         }
 
-        private static async Task<Document> ConvertToParameterRecordAsync(
+        private static async Task<Document> ConvertToPositionalRecordAsync(
             Document document,
             INamedTypeSymbol originalType,
             TypeDeclarationSyntax originalDeclarationNode,
@@ -79,7 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 .Cast<PropertyDeclarationSyntax>()
                 .AsImmutable();
 
-            var modifiedClassTrivia = GetModifiedClassTrivia(propertiesToMove, originalDeclarationNode);
+            var lineFormattingOptions = await document
+                .GetLineFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var modifiedClassTrivia = GetModifiedClassTrivia(propertiesToMove, originalDeclarationNode, lineFormattingOptions);
 
             var propertiesToAddAsParams = propertiesToMove.SelectAsArray(p =>
                 SyntaxFactory.Parameter(
@@ -91,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             // remove converted properties and reformat other methods
             var membersToKeep = GetModifiedMembersForPositionalRecord(
-                originalType, originalDeclarationNode, semanticModel, propertiesToMove, cancellationToken);
+                originalDeclarationNode, semanticModel, propertiesToMove, cancellationToken);
 
             // if we have a class, move trivia from class keyword to record keyword
             // if struct, split trivia and leading goes to record keyword, trailing goes to struct keyword
@@ -242,33 +247,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         /// similar effect to the generated ones
         /// modifies constructors and some method modifiers to fall in line with record requirements (e.g. this() initializer)
         /// </summary>
-        /// <param name="type">Original type symbol</param>
         /// <param name="typeDeclaration">Original type declaration</param>
         /// <param name="semanticModel">Semantic model</param>
         /// <param name="propertiesToMove">Properties we decided to move</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>The list of members from the original type, modified and trimmed for a positional record type usage</returns>
         private static ImmutableArray<MemberDeclarationSyntax> GetModifiedMembersForPositionalRecord(
-            INamedTypeSymbol type,
             TypeDeclarationSyntax typeDeclaration,
             SemanticModel semanticModel,
             ImmutableArray<PropertyDeclarationSyntax> propertiesToMove,
             CancellationToken cancellationToken)
         {
-            var modifiedMembers = typeDeclaration.Members.AsImmutable();
+            using var _ = ArrayBuilder<MemberDeclarationSyntax>.GetInstance(out var modifiedMembers);
+            modifiedMembers.AddRange(typeDeclaration.Members);
 
             // remove properties we're bringing up to positional params
-            modifiedMembers = modifiedMembers.RemoveRange(propertiesToMove);
+            foreach (var property in propertiesToMove)
+            {
+                modifiedMembers.Remove(property);
+            }
 
             // get all the constructors so we can add an initializer to them
             // or potentially delete the primary constructor
-            var constructors = modifiedMembers
-                .Where(member => member is ConstructorDeclarationSyntax)
-                // for some reason, neither of the following work for downcasts, even if each individual cast will succeed:
-                // As<ConstructorDeclarationSyntax>()
-                // CastArray<ConstructorDeclarationSyntax>()
-                .Cast<ConstructorDeclarationSyntax>()
-                .AsImmutable();
+            var constructors = modifiedMembers.OfType<ConstructorDeclarationSyntax>();
             foreach (var constructor in constructors)
             {
                 // check to see if it would override the primary constructor
@@ -280,14 +281,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     if (IsSimpleConstructor(
                         constructor, propertiesToMove, constructor.ParameterList.Parameters, semanticModel, cancellationToken))
                     {
-                        modifiedMembers = modifiedMembers.Remove(constructor);
+                        modifiedMembers.Remove(constructor);
                     }
                     else
                     {
                         // can't remove it safely, at least add a warning that it will produce an error
-                        modifiedMembers = modifiedMembers.Replace(constructor,
-                            constructor.WithAdditionalAnnotations(WarningAnnotation.Create(
-                                CSharpFeaturesResources.Warning_constructor_signature_conflicts_with_primary_constructor)));
+                        modifiedMembers[modifiedMembers.IndexOf(constructor)] = constructor
+                            .WithAdditionalAnnotations(WarningAnnotation.Create(
+                                CSharpFeaturesResources.Warning_constructor_signature_conflicts_with_primary_constructor));
                     }
                 }
                 else
@@ -300,8 +301,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                                     SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)),
                                 propertiesToMove.Length)));
 
-                    modifiedMembers = modifiedMembers.Replace(constructor, constructor
-                        .WithInitializer(SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer, thisArgs)));
+                    modifiedMembers[modifiedMembers.IndexOf(constructor)] = constructor
+                        .WithInitializer(SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer, thisArgs));
                 }
             }
 
@@ -315,47 +316,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 IsDefaultNotEqualsOperator(notEqualsOp, semanticModel, cancellationToken))
             {
                 // they both evaluate to what would be the generated implementation
-                modifiedMembers = modifiedMembers.Remove(equalsOp);
-                modifiedMembers = modifiedMembers.Remove(notEqualsOp);
+                modifiedMembers.Remove(equalsOp);
+                modifiedMembers.Remove(notEqualsOp);
             }
 
-            var methods = modifiedMembers
-                .Where(member => member is MethodDeclarationSyntax)
-                .Cast<MethodDeclarationSyntax>()
-                .AsImmutable();
-            foreach (var method in methods)
+            // remove clone method as clone is a reserved method name in records
+            var cloneMethod = modifiedMembers
+                .FirstOrDefault(member => member is MethodDeclarationSyntax { Identifier.ValueText: "Clone" });
+
+            if (cloneMethod != null)
             {
-                var methodSymbol = (IMethodSymbol)semanticModel.GetRequiredDeclaredSymbol(method, cancellationToken);
-                if (methodSymbol.Name == "Clone")
-                {
-                    // remove clone method as clone is a reserved method name in records
-                    modifiedMembers = modifiedMembers.Remove(method);
-                }
-                else if (methodSymbol is IMethodSymbol
-                {
-                    Name: "PrintMembers",
-                    ReturnType.SpecialType: SpecialType.System_Boolean,
-                    Parameters: [IParameterSymbol { Type.Name: nameof(System.Text.StringBuilder) }]
-                })
-                {
-                    // PrintMembers must have a secific set of modifiers or else there is an error
-                    if (type.TypeKind == TypeKind.Class && !type.IsSealed)
-                    {
-                        // ensure virtual and protected modifiers
-                        modifiedMembers = modifiedMembers.Replace(method, method.WithModifiers(SyntaxFactory.TokenList(
-                            SyntaxFactory.Token(SyntaxKind.ProtectedKeyword),
-                            SyntaxFactory.Token(SyntaxKind.VirtualKeyword))));
-                    }
-                    else
-                    {
-                        // ensure private member
-                        modifiedMembers = modifiedMembers.Replace(method, method.WithModifiers(
-                            SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))));
-                    }
-                }
+                modifiedMembers.Remove(cloneMethod);
             }
 
-            return modifiedMembers;
+            return modifiedMembers.ToImmutable();
         }
 
         /// <summary>
@@ -367,10 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            if (semanticModel.GetOperation(operatorDeclaration, cancellationToken) is not IMethodBodyOperation operation)
-            {
-                return false;
-            }
+            var operation = (IMethodBodyOperation)semanticModel.GetRequiredOperation(operatorDeclaration, cancellationToken);
 
             var body = operation.BlockBody ?? operation.ExpressionBody;
 
@@ -395,10 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            if (semanticModel.GetOperation(operatorDeclaration, cancellationToken) is not IMethodBodyOperation operation)
-            {
-                return false;
-            }
+            var operation = (IMethodBodyOperation)semanticModel.GetRequiredOperation(operatorDeclaration, cancellationToken);
 
             var body = operation.BlockBody ?? operation.ExpressionBody;
             // looking for:
@@ -500,10 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            if (semanticModel.GetOperation(constructor, cancellationToken) is not IConstructorBodyOperation operation)
-            {
-                return false;
-            }
+            var operation = (IConstructorBodyOperation)semanticModel.GetRequiredOperation(constructor, cancellationToken);
 
             var body = operation.BlockBody ?? operation.ExpressionBody;
 
@@ -514,9 +479,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return false;
             }
 
-            var propertyNames = properties.SelectAsArray(p => p.Identifier.ToString());
+            var propertyNames = properties.SelectAsArray(p => p.Identifier.ValueText);
             var propertyNamesAlreadyAssigned = new HashSet<string>();
-            var parameterNames = parameters.SelectAsArray(p => p.Identifier.ToString());
+            var parameterNames = parameters.SelectAsArray(p => p.Identifier.ValueText);
 
             foreach (var bodyOperation in body.Operations)
             {
@@ -558,12 +523,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         // 5. Rest of class documentation comments
         private static SyntaxTriviaList GetModifiedClassTrivia(
             ImmutableArray<PropertyDeclarationSyntax> properties,
-            TypeDeclarationSyntax typeDeclaration)
+            TypeDeclarationSyntax typeDeclaration,
+            LineFormattingOptions lineFormattingOptions)
         {
             var classTrivia = typeDeclaration.GetLeadingTrivia().Where(trivia => !trivia.IsWhitespace()).AsImmutable();
 
             var propertyNonDocComments = properties
-                .SelectMany(p => p.GetLeadingTrivia().Where(trivia => !trivia.IsDocComment() && !trivia.IsWhitespace()))
+                .SelectMany(p =>
+                {
+                    var leadingPropTrivia = p.GetLeadingTrivia()
+                        .Where(trivia => !trivia.IsDocComment() && !trivia.IsWhitespace());
+                    // since we remove attributes and reformat, we want to take any comments
+                    // in between attribute and declaration
+                    if (!p.AttributeLists.IsEmpty())
+                    {
+                        // get the leading trivia of the node/token right after
+                        // the attribute lists (either modifier or type of property)
+                        leadingPropTrivia = leadingPropTrivia.Concat(p.Modifiers.IsEmpty()
+                            ? p.Type.GetLeadingTrivia()
+                            : p.Modifiers.First().LeadingTrivia);
+                    }
+                    return leadingPropTrivia;
+                })
                 .AsImmutable();
 
             // we use the class doc comment to see if we use single line doc comments or multi line doc comments
@@ -579,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return SyntaxFactory.TriviaList(classTrivia.Concat(propertyNonDocComments).Select(trivia => trivia.AsElastic()));
             }
 
-            var propertyParamComments = CreateParamComments(properties, exteriorTrivia!.Value);
+            var propertyParamComments = CreateParamComments(properties, exteriorTrivia!.Value, lineFormattingOptions);
             var classDocComment = classTrivia.FirstOrNull(trivia => trivia.IsDocComment());
             DocumentationCommentTriviaSyntax newClassDocComment;
 
@@ -588,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 // insert parameters after summary node and the extra newline or at start if no summary
                 var summaryIndex = originalClassDoc.Content.IndexOf(node =>
                     node is XmlElementSyntax element &&
-                    element.StartTag?.Name.LocalName.ToString() == DocumentationCommentXmlNames.SummaryElementName);
+                    element.StartTag?.Name.LocalName.ValueText == DocumentationCommentXmlNames.SummaryElementName);
 
                 // if not found, summaryIndex + 1 = -1 + 1 = 0, so our params go to the start
                 newClassDocComment = originalClassDoc.WithContent(originalClassDoc.Content
@@ -709,7 +690,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
         private static IEnumerable<XmlNodeSyntax> CreateParamComments(
             ImmutableArray<PropertyDeclarationSyntax> properties,
-            SyntaxTriviaList exteriorTrivia)
+            SyntaxTriviaList exteriorTrivia,
+            LineFormattingOptions lineFormattingOptions)
         {
             foreach (var property in properties)
             {
@@ -721,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     // get the summary node if there is one
                     var summaryNode = docComment.Content.FirstOrDefault(node =>
                         node is XmlElementSyntax element &&
-                        element.StartTag?.Name.LocalName.ToString() == DocumentationCommentXmlNames.SummaryElementName);
+                        element.StartTag?.Name.LocalName.ValueText == DocumentationCommentXmlNames.SummaryElementName);
 
                     if (summaryNode != null)
                     {
@@ -770,9 +752,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 // param goes on a new line with the continuation trivia
                 // when adding a new line, the continue flag adds a single line documentation trivia, but we don't necessarily want that
                 yield return SyntaxFactory.XmlText(
-                    SyntaxFactory.XmlTextNewLine("\r\n", continueXmlDocumentationComment: false),
+                    SyntaxFactory.XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false),
                     SyntaxFactory.XmlTextLiteral(" ").WithLeadingTrivia(exteriorTrivia));
-                yield return SyntaxFactory.XmlParamElement(property.Identifier.ToString(), paramContent.AsArray());
+                yield return SyntaxFactory.XmlParamElement(property.Identifier.ValueText, paramContent.AsArray());
             }
         }
         #endregion
