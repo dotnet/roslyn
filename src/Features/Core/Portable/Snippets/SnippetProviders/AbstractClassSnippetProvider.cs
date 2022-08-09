@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal abstract class AbstractClassSnippetProvider : AbstractSnippetProvider
     {
+        protected abstract void GetClassDeclaration(SyntaxNode node, out SyntaxToken identifier, out int cursorPosition);
+
         public override string SnippetIdentifier => "class";
 
         public override string SnippetDisplayName => FeaturesResources.Insert_a_class_declaration;
-
-        protected abstract void GetIfStatementConditionAndCursorPosition(SyntaxNode node, out SyntaxNode condition, out int cursorPositionNode);
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -42,6 +42,11 @@ namespace Microsoft.CodeAnalysis.Snippets
             return Task.FromResult(ImmutableArray.Create(snippetTextChange));
         }
 
+        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
+        {
+            return syntaxFacts.IsClassDeclaration;
+        }
+
         private static TextChange GenerateSnippetTextChange(Document document, int position)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
@@ -52,10 +57,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
         {
-            GetIfStatementConditionAndCursorPosition(caretTarget, out _, out var cursorPosition);
-
-            // Place at the end of the node specified for cursor position.
-            // Is the statement node in C# and the "Then" keyword
+            GetClassDeclaration(caretTarget, out _, out var cursorPosition);
             return cursorPosition;
         }
 
@@ -77,8 +79,8 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
-            GetIfStatementConditionAndCursorPosition(node, out var condition, out var unusedVariable);
-            arrayBuilder.Add(new SnippetPlaceholder(identifier: condition.ToString(), placeholderPositions: ImmutableArray.Create(condition.SpanStart)));
+            GetClassDeclaration(node, out var identifier, out var unusedValue);
+            arrayBuilder.Add(new SnippetPlaceholder(identifier: identifier.ValueText, placeholderPositions: ImmutableArray.Create(identifier.SpanStart)));
 
             return arrayBuilder.ToImmutableArray();
         }

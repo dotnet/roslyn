@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// </summary>
         protected abstract Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document, SyntaxAnnotation reformatAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken);
         protected abstract int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget);
+        protected abstract Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts);
 
         /// <summary>
         /// Method to find the locations that must be renamed and where tab stops must be inserted into the snippet.
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         private async Task<Document> GetDocumentWithSnippetAndTriviaAsync(Document snippetDocument, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             var root = await snippetDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var nearestStatement = FindAddedSnippetSyntaxNode(root, position, syntaxFacts);
+            var nearestStatement = FindAddedSnippetSyntaxNode(root, position, GetSnippetContainerFunction(syntaxFacts));
 
             if (nearestStatement is null)
             {

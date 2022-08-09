@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.Snippets
             return ImmutableArray.Create(snippetTextChange);
         }
 
+        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
+        {
+            return syntaxFacts.IsExpressionStatement;
+        }
+
         private async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var consoleSymbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
@@ -103,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts);
+            var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts.IsExpressionStatement);
             if (snippetExpressionNode is null)
             {
                 return root;
@@ -137,26 +142,6 @@ namespace Microsoft.CodeAnalysis.Snippets
             syntaxFacts.GetPartsOfArgumentList(argumentListNode, out var openParenToken, out _, out _);
 
             return openParenToken;
-        }
-
-        protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts)
-        {
-            var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
-            var nearestExpressionStatement = closestNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsExpressionStatement);
-            if (nearestExpressionStatement is null)
-            {
-                return null;
-            }
-
-            // Checking to see if that expression statement that we found is
-            // starting at the same position as the position we inserted
-            // the Console WriteLine expression statement.
-            if (nearestExpressionStatement.SpanStart != position)
-            {
-                return null;
-            }
-
-            return nearestExpressionStatement;
         }
 
         private static async Task<INamedTypeSymbol?> GetSymbolFromMetaDataNameAsync(Document document, CancellationToken cancellationToken)
