@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using ICSharpCode.Decompiler.TypeSystem;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -8161,6 +8160,7 @@ static class C
 ", options: PdbValidationOptions.ExcludeDocuments | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeNamespaces | PdbValidationOptions.ExcludeScopes);
 
             CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>c__DisplayClass0_0", "<M>d__0");
+            CheckNames(reader0, reader0.GetFieldDefNames(), "num", "<>1__state", "<>t__builder", "<>8__1", "<>u__1");
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
