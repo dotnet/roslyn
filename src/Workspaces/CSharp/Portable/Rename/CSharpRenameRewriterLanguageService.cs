@@ -681,9 +681,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 if (replacedString != originalString)
                 {
                     var oldSpan = oldToken.Span;
-                    newToken = createNewStringLiteral(newToken.LeadingTrivia, replacedString, replacedString, newToken.TrailingTrivia);
-                    AddModifiedSpan(oldSpan, newToken.Span);
-                    return newToken.CopyAnnotationsTo(_renameAnnotations.WithAdditionalAnnotations(newToken, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = oldSpan }));
+                    var replacedToken = createNewStringLiteral(newToken.LeadingTrivia, replacedString, replacedString, newToken.TrailingTrivia);
+                    AddModifiedSpan(oldSpan, replacedToken.Span);
+                    return newToken.CopyAnnotationsTo(_renameAnnotations.WithAdditionalAnnotations(replacedToken, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = oldSpan }));
                 }
 
                 return newToken;

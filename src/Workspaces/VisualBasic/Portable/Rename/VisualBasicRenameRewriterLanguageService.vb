@@ -686,9 +686,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Dim replacedString = RenameUtilities.ReplaceMatchingSubStrings(originalString, subSpanToReplacementText)
                 If replacedString <> originalString Then
                     Dim oldSpan = oldToken.Span
-                    newToken = createNewStringLiteral(newToken.LeadingTrivia, replacedString, replacedString, newToken.TrailingTrivia)
-                    AddModifiedSpan(oldSpan, newToken.Span)
-                    Return newToken.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(newToken, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = oldSpan}))
+                    Dim replacedToken = createNewStringLiteral(newToken.LeadingTrivia, replacedString, replacedString, newToken.TrailingTrivia)
+                    AddModifiedSpan(oldSpan, replacedToken.Span)
+                    Return newToken.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(replacedToken, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = oldSpan}))
                 End If
 
                 Return newToken
