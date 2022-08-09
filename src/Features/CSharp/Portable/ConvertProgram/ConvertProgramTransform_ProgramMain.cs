@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                         var newRoot = root.RemoveNodes(root.Members.OfType<GlobalStatementSyntax>().Skip(1), SyntaxGenerator.DefaultRemoveOptions);
                         if (oldClassDeclaration is not null)
                         {
-                            newRoot = newRoot?.RemoveNode(oldClassDeclaration, SyntaxGenerator.DefaultRemoveOptions);
+                            Contract.ThrowIfNull(newRoot);
+                            newRoot = newRoot.RemoveNode(oldClassDeclaration, SyntaxGenerator.DefaultRemoveOptions);
                         }
 
                         Contract.ThrowIfNull(newRoot);
