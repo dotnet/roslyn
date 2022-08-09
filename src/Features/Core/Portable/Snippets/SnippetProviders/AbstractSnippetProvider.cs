@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -50,11 +51,6 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// </summary>
         protected abstract Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document, SyntaxAnnotation reformatAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken);
         protected abstract int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget);
-
-        /// <summary>
-        /// Every SnippetProvider will need a method to retrieve the "main" snippet syntax once it has been inserted as a TextChange.
-        /// </summary>
-        protected abstract SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts);
 
         /// <summary>
         /// Method to find the locations that must be renamed and where tab stops must be inserted into the snippet.
@@ -210,6 +206,26 @@ namespace Microsoft.CodeAnalysis.Snippets
             var annotatedSnippetRoot = await AnnotateNodesToReformatAsync(document, _findSnippetAnnotation, _cursorAnnotation, position, cancellationToken).ConfigureAwait(false);
             document = document.WithSyntaxRoot(annotatedSnippetRoot);
             return document;
+        }
+
+        protected static SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> IsCorrectContainer)
+        {
+            var closestNode = root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true);
+
+            if (!IsCorrectContainer(closestNode))
+            {
+                return null;
+            }
+
+            // Checking to see if that expression statement that we found is
+            // starting at the same position as the position we inserted
+            // the if statement.
+            if (closestNode.SpanStart != position)
+            {
+                return null;
+            }
+
+            return closestNode;
         }
     }
 }

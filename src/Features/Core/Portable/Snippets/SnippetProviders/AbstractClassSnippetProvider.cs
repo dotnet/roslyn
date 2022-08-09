@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.Snippets
         private static TextChange GenerateSnippetTextChange(Document document, int position)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
-            var ifStatement = generator.IfStatement(generator.TrueLiteralExpression(), Array.Empty<SyntaxNode>());
+            var classDeclaration = generator.ClassDeclaration("MyClass");
 
-            return new TextChange(TextSpan.FromBounds(position, position), ifStatement.ToFullString());
+            return new TextChange(TextSpan.FromBounds(position, position), classDeclaration.NormalizeWhitespace().ToFullString());
         }
 
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts);
+            var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts.IsClassDeclaration);
             if (snippetExpressionNode is null)
             {
                 return root;
@@ -81,28 +81,6 @@ namespace Microsoft.CodeAnalysis.Snippets
             arrayBuilder.Add(new SnippetPlaceholder(identifier: condition.ToString(), placeholderPositions: ImmutableArray.Create(condition.SpanStart)));
 
             return arrayBuilder.ToImmutableArray();
-        }
-
-        protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts)
-        {
-            var closestNode = root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true);
-
-            var nearestStatement = closestNode.DescendantNodesAndSelf(syntaxFacts.IsIfStatement).FirstOrDefault();
-
-            if (nearestStatement is null)
-            {
-                return null;
-            }
-
-            // Checking to see if that expression statement that we found is
-            // starting at the same position as the position we inserted
-            // the if statement.
-            if (nearestStatement.SpanStart != position)
-            {
-                return null;
-            }
-
-            return nearestStatement;
         }
     }
 }
