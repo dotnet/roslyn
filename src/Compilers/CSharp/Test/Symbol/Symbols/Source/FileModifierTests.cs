@@ -1107,7 +1107,7 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal(comp.SyntaxTrees[1], c1.DeclaringSyntaxReferences.Single().SyntaxTree);
 
 
-        comp = CreateCompilation(new[] { (source2, "file1.cs"), (source1, "file2.cs") });
+        comp = CreateCompilation(new[] { (source2, "file2.cs"), (source1, "file1.cs") });
         comp.VerifyDiagnostics(
             // file2.cs(3,24): error CS0111: Type 'C' already defines a member called 'M' with the same parameter types
             //     public static void M()
@@ -1182,7 +1182,7 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal(comp.SyntaxTrees[1], syntaxReferences[1].SyntaxTree);
 
 
-        comp = CreateCompilation(new[] { (source2, "file1.cs"), (source1, "file2.cs") });
+        comp = CreateCompilation(new[] { (source2, "file2.cs"), (source1, "file1.cs") });
         comp.VerifyDiagnostics(
             // (11,12): error CS0260: Missing partial modifier on declaration of type 'C'; another partial declaration of this type exists
             // file class C

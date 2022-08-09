@@ -731,20 +731,21 @@ class Program
                 validator: runtime =>
                 {
                     var context = CreateMethodContext(runtime, "Program.F");
-                    var assembly = context.CompileExpressions(
-                        ImmutableArray.Create("C.X"),
-                        out var methodTokens,
-                        out var errorMessages);
-                    Assert.NotNull(assembly);
-                    Assert.True(errorMessages.IsEmpty);
-                    Assert.Equal(1, methodTokens.Length);
-                    assembly.VerifyIL(methodTokens[0], "<>x0.<>m0",
-@"    {
-  // Code size        6 (0x6)
-  .maxstack  8
-  IL_0000:  ldsfld     0x0A000006
-  IL_0005:  ret
-}");
+                    var testData = new CompilationTestData();
+                    var result = context.CompileExpression(
+                        "C.X",
+                        out var error,
+                        testData);
+                    Assert.NotNull(result.Assembly);
+                    Assert.Null(error);
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                        {
+                          // Code size        6 (0x6)
+                          .maxstack  1
+                          IL_0000:  ldsfld     "int C.X"
+                          IL_0005:  ret
+                        }
+                        """);
                 });
         }
 
@@ -784,20 +785,21 @@ class Program
                 validator: runtime =>
                 {
                     var context = CreateMethodContext(runtime, "Program.F");
-                    var assembly = context.CompileExpressions(
-                        ImmutableArray.Create("C.X"),
-                        out var methodTokens,
-                        out var errorMessages);
-                    Assert.Empty(errorMessages);
-                    Assert.NotNull(assembly);
-                    Assert.Equal(1, methodTokens.Length);
-                    assembly.VerifyIL(methodTokens[0], "<>x0.<>m0",
-@"    {
-  // Code size        6 (0x6)
-  .maxstack  8
-  IL_0000:  ldsfld     0x0A000006
-  IL_0005:  ret
-}");
+                    var testData = new CompilationTestData();
+                    var result = context.CompileExpression(
+                        "C.X",
+                        out var error,
+                        testData);
+                    Assert.Null(error);
+                    Assert.NotNull(result.Assembly);
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                    {
+                      // Code size        6 (0x6)
+                      .maxstack  1
+                      IL_0000:  ldsfld     "int C.X"
+                      IL_0005:  ret
+                    }
+                    """);
                 });
         }
 
@@ -843,20 +845,21 @@ class Program
                 validator: runtime =>
                 {
                     var context = CreateMethodContext(runtime, "Program.F");
-                    var assembly = context.CompileExpressions(
-                        ImmutableArray.Create("Outer.Inner.X"),
-                        out var methodTokens,
-                        out var errorMessages);
-                    Assert.Empty(errorMessages);
-                    Assert.NotNull(assembly);
-                    Assert.Equal(1, methodTokens.Length);
-                    assembly.VerifyIL(methodTokens[0], "<>x0.<>m0",
-@"    {
-  // Code size        6 (0x6)
-  .maxstack  8
-  IL_0000:  ldsfld     0x0A000006
-  IL_0005:  ret
-}");
+                    var testData = new CompilationTestData();
+                    var result = context.CompileExpression(
+                        "Outer.Inner.X",
+                        out var error,
+                        testData);
+                    Assert.Null(error);
+                    Assert.NotNull(result.Assembly);
+                    testData.GetMethodData("<>x.<>m0").VerifyIL("""
+                        {
+                          // Code size        6 (0x6)
+                          .maxstack  1
+                          IL_0000:  ldsfld     "int Outer.Inner.X"
+                          IL_0005:  ret
+                        }
+                        """);
                 });
         }
 
