@@ -81,18 +81,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             if (caretPosition < colonPosition)
             {
                 return HandleMultiValuedSettings(document, textInLine, caretPosition, equalPosition, ':');
-                //var values = textInLine[(equalPosition + 1)..].Split(':');
-                //var cont = equalPosition + 1;
-                //foreach (var element in values)
-                //{
-                //    cont += element.Length + 1;
-                //    if (caretPosition < cont)
-                //    {
-                //        var settingName = textInLine[..equalPosition].Trim();
-                //        var settingValue = element.Trim();
-                //        return CreateHover(document, settingName, settingValue, true);
-                //    }
-                //}
             }
 
             // We look for commas
@@ -100,18 +88,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             if (caretPosition < commaPosition)
             {
                 return HandleMultiValuedSettings(document, textInLine, caretPosition, equalPosition, ',');
-                //var values = textInLine[(equalPosition + 1)..].Split(',');
-                //var cont = equalPosition + 1;
-                //foreach (var element in values)
-                //{
-                //    cont += element.Length + 1;
-                //    if (caretPosition < cont)
-                //    {
-                //        var settingName = textInLine[..equalPosition].Trim();
-                //        var settingValue = element.Trim();
-                //        return CreateHover(document, settingName, settingValue, true);
-                //    }
-                //}
             }
 
             // We didn't find a comma or colon, so we just display the value description
