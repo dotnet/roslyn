@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using ICSharpCode.Decompiler.TypeSystem;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -8062,6 +8063,115 @@ class C
                 "<>4__this: C.<>c",
                 "<>u__1: System.Runtime.CompilerServices.TaskAwaiter<bool>",
                 "<>u__2: System.Runtime.CompilerServices.TaskAwaiter<int>");
+        }
+
+        [Fact, WorkItem(63294, "https://github.com/dotnet/roslyn/issues/63294")]
+        public void LiftedClosure()
+        {
+            var source0 = MarkedSource(@"
+using System.Threading.Tasks;
+static class C
+{
+    static async Task M()
+    <N:0>{
+        int <N:1>num</N:1> = 1;
+        F();
+                        
+        <N:2>await Task.Delay(1)</N:2>;
+                        
+        <N:3>int F() => num;</N:3>
+    }</N:0>
+}");
+
+            var source1 = MarkedSource(@"
+using System.Threading.Tasks;
+static class C
+{
+    static async Task M()
+    <N:0>{
+        int <N:1>num</N:1> = 1;
+        F();
+                        
+        <N:2>await Task.Delay(2)</N:2>;
+                        
+        <N:3>int F() => num;</N:3>
+    }</N:0>
+}");
+            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var m0 = compilation0.GetMember<MethodSymbol>("C.M");
+            var m1 = compilation1.GetMember<MethodSymbol>("C.M");
+
+            var v0 = CompileAndVerify(compilation0);
+            using var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var reader0 = md0.MetadataReader;
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            // Notice encLocalSlotMap CDI on both M and MoveNext methods.
+            // The former is used to calculate mapping for variables lifted to fields of the state machine,
+            // the latter is used to map local variable slots in the MoveNext method.
+            // Here, the variable lifted to the state machine field is the closure pointer storage.
+            v0.VerifyPdb(@"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <forwardIterator name=""&lt;M&gt;d__0"" />
+        <encLocalSlotMap>
+          <slot kind=""30"" offset=""0"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <closure offset=""0"" />
+          <lambda offset=""167"" />
+        </encLambdaMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""89"" />
+        </encStateMachineStateMap>
+      </customDebugInfo>
+    </method>
+    <method containingType=""C"" name=""&lt;M&gt;g__F|0_0"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+    </method>
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""&lt;M&gt;g__F|0_0"" />
+        <hoistedLocalScopes>
+          <slot startOffset=""0x0"" endOffset=""0xb4"" />
+        </hoistedLocalScopes>
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""33"" offset=""89"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <asyncInfo>
+        <kickoffMethod declaringType=""C"" methodName=""M"" />
+        <await yield=""0x45"" resume=""0x60"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
+      </asyncInfo>
+    </method>
+  </methods>
+</symbols>
+", options: PdbValidationOptions.ExcludeDocuments | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeNamespaces | PdbValidationOptions.ExcludeScopes);
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>c__DisplayClass0_0", "<M>d__0");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // Notice that we reused field "<>8__1" (there is no "<>8__2"), which stores the local function closure pointer.
+            diff1.VerifySynthesizedMembers(
+                "C: {<M>g__F|0_0, <>c__DisplayClass0_0, <M>d__0}",
+                "C.<M>d__0: {<>1__state, <>t__builder, <>8__1, <>u__1, MoveNext, SetStateMachine}",
+                "C.<>c__DisplayClass0_0: {num}");
         }
 
         [Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")]
