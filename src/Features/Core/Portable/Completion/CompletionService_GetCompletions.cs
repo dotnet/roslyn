@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Completion
         protected virtual bool ItemsMatch(CompletionItem item, CompletionItem existingItem)
         {
             return item.Span == existingItem.Span
-                && item.SortText == existingItem.SortText;
+                && item.SortText == existingItem.SortText && item.InlineDescription == existingItem.InlineDescription;
         }
 
         /// <summary>
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
                     Count++;
                     // Matching items should be rare, no need to use object pool for this.
-                    _displayNameToItemsMap[entireDisplayText] = new List<CompletionItem>() { sameNamedItem, item };
+                    _displayNameToItemsMap[entireDisplayText] = new List<CompletionItem>() { item, sameNamedItem };
                 }
                 else if (value is List<CompletionItem> sameNamedItems)
                 {

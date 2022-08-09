@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class CSharpIfSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
     {
-        protected override string ItemToCommit => "if snippet";
+        protected override string ItemToCommit => "if";
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsertIfSnippetInMethodTest()

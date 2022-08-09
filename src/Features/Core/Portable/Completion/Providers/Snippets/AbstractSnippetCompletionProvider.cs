@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             foreach (var snippetData in snippets)
             {
                 var completionItem = SnippetCompletionItem.Create(
-                    displayText: snippetData.SnippetIdentifier + " snippet",
+                    displayText: snippetData.SnippetIdentifier,
                     displayTextSuffix: "",
                     position: position,
                     snippetIdentifier: snippetData.SnippetIdentifier,
