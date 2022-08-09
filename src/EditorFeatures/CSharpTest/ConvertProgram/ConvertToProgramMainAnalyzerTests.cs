@@ -666,6 +666,37 @@ public partial class Program
         }
 
         [Fact]
+        [WorkItem(62943, "https://github.com/dotnet/roslyn/issues/62943")]
+        public async Task TestHasExistingPart_KeepsModifiers()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+{|IDE0211:Console|}.WriteLine(0);
+
+static partial class Program
+{
+}
+",
+                FixedCode = @"
+using System;
+
+static partial class Program
+{
+    private static void Main(string[] args)
+    {
+        Console.WriteLine(0);
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestBeforeExistingClass()
         {
             await new VerifyCS.Test
