@@ -13425,7 +13425,7 @@ AppendFormatted");
         [Theory]
         [InlineData(@"$""{s}""")]
         [InlineData(@"$""{s}"" + $""""")]
-        public void RefEscape_01(string expression)
+        public void RefEscape_01A(string expression)
         {
             var code = @"
 using System;
@@ -13454,6 +13454,35 @@ public ref struct CustomHandler
                 //         return $"{s}";
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 19)
             );
+        }
+
+        // As above but with scoped parameter in AppendFormatted().
+        [WorkItem(63262, "https://github.com/dotnet/roslyn/issues/63262")]
+        [Theory]
+        [InlineData(@"$""{s}""")]
+        [InlineData(@"$""{s}"" + $""""")]
+        public void RefEscape_01B(string expression)
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[InterpolatedStringHandler]
+public ref struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount) { }
+
+    public void AppendFormatted(scoped Span<char> s) { }
+
+    public static CustomHandler M()
+    {
+        Span<char> s = stackalloc char[10];
+        return " + expression + @";
+    }
+}
+";
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
         }
 
         [Theory]
@@ -13957,7 +13986,7 @@ class Program
     {
         Span<char> s = stackalloc char[10];
         CustomHandler h1 = $""{s}"";
-        return h1; // 1
+        return h1;
     }
     static CustomHandler F2()
     {
@@ -13971,17 +14000,14 @@ class Program
         Span<char> s = stackalloc char[10];
         scoped CustomHandler h3 = new CustomHandler(0, 1);
         h3.AppendFormatted(s);
-        return h3; // 2
+        return h3; // 1
     }
 }
 ";
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (15,16): error CS8352: Cannot use variable 'h1' in this context because it may expose referenced variables outside of their declaration scope
-                //         return h1; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "h1").WithArguments("h1").WithLocation(15, 16),
                 // (29,16): error CS8352: Cannot use variable 'h3' in this context because it may expose referenced variables outside of their declaration scope
-                //         return h3; // 2
+                //         return h3; // 1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "h3").WithArguments("h3").WithLocation(29, 16));
         }
 

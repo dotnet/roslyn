@@ -1421,7 +1421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             uint escapeScope = GetValEscape(data.Construction, scopeOfTheContainingExpression);
 
             var arguments = ArrayBuilder<BoundExpression>.GetInstance();
-            GetInterpolatedStringHandlerConversionArguments(expression, arguments);
+            GetInterpolatedStringHandlerArgumentsForEscape(expression, arguments);
 
             foreach (var argument in arguments)
             {
@@ -3823,7 +3823,7 @@ moreArguments:
             CheckValEscape(expression.Syntax, data.Construction, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
 
             var arguments = ArrayBuilder<BoundExpression>.GetInstance();
-            GetInterpolatedStringHandlerConversionArguments(expression, arguments);
+            GetInterpolatedStringHandlerArgumentsForEscape(expression, arguments);
 
             bool result = true;
             foreach (var argument in arguments)
@@ -3839,19 +3839,19 @@ moreArguments:
             return result;
         }
 
-        private static void GetInterpolatedStringHandlerConversionArguments(BoundExpression expression, ArrayBuilder<BoundExpression> arguments)
+        private void GetInterpolatedStringHandlerArgumentsForEscape(BoundExpression expression, ArrayBuilder<BoundExpression> arguments)
         {
             while (true)
             {
                 switch (expression)
                 {
                     case BoundBinaryOperator binary:
-                        getParts((BoundInterpolatedString)binary.Right, arguments);
+                        getParts((BoundInterpolatedString)binary.Right);
                         expression = binary.Left;
                         break;
 
                     case BoundInterpolatedString interpolatedString:
-                        getParts(interpolatedString, arguments);
+                        getParts(interpolatedString);
                         return;
 
                     default:
@@ -3859,7 +3859,7 @@ moreArguments:
                 }
             }
 
-            static void getParts(BoundInterpolatedString interpolatedString, ArrayBuilder<BoundExpression> arguments)
+            void getParts(BoundInterpolatedString interpolatedString)
             {
                 foreach (var part in interpolatedString.Parts)
                 {
@@ -3872,6 +3872,13 @@ moreArguments:
 
                     // The interpolation component is always the first argument to the method, and it was not passed by name
                     // so there can be no reordering.
+
+                    if (UseUpdatedEscapeRules &&
+                        call.Method.Parameters[0].EffectiveScope == DeclarationScope.ValueScoped)
+                    {
+                        continue;
+                    }
+
                     arguments.Add(call.Arguments[0]);
                 }
             }
