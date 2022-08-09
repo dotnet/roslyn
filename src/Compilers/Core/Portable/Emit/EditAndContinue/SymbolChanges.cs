@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             return false;
         }
-        
+
         public bool IsReplaced(IDefinition definition, bool checkEnclosingTypes = false)
             => definition.GetInternalSymbol() is {} internalSymbol && IsReplaced(internalSymbol.GetISymbol(), checkEnclosingTypes);
 
