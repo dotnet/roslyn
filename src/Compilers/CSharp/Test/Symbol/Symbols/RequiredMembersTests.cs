@@ -3950,8 +3950,7 @@ public class Derived : Base
     [WorkItem(61718, "https://github.com/dotnet/roslyn/issues/61718")]
     public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_09A()
     {
-        var code = """
-            using System.Diagnostics.CodeAnalysis;
+        var @base = $$"""
             #nullable enable
             public class Base
             {
@@ -3960,6 +3959,11 @@ public class Derived : Base
 
                 protected Base() {}
             }
+            """;
+
+        var derived = $$"""
+            using System.Diagnostics.CodeAnalysis;
+            #nullable enable
 
             public class Derived : Base
             {
@@ -3982,17 +3986,29 @@ public class Derived : Base
             }
             """;
 
-        var comp = CreateCompilationWithRequiredMembers(code);
+        var comp = CreateCompilationWithRequiredMembers(new[] { derived, @base });
+
         comp.VerifyDiagnostics(
-            // (17,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (10,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
             //     public Derived(int unused) : base()
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(17, 12),
-            // (17,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(10, 12),
+            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
             //     public Derived(int unused) : base()
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(17, 12),
-            // (22,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
+            // (15,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
             //     public Derived() : this(0)
-            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(22, 24)
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(15, 24)
+        );
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (10,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(10, 12),
+            // (15,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            //     public Derived() : this(0)
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(15, 24)
         );
     }
 
@@ -4043,6 +4059,61 @@ public class Derived : Base
             // (22,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
             //     public Derived() : this(0)
             Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(22, 24)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(61718, "https://github.com/dotnet/roslyn/issues/61718")]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_09C()
+    {
+        var @base = $$"""
+            #nullable enable
+            public class Base
+            {
+                private string _field1 = null!;
+                public required string Prop1 { get => _field1; set => _field1 = value; }
+
+                protected Base() {}
+            }
+            """;
+
+        var derived = $$"""
+            using System.Diagnostics.CodeAnalysis;
+            #nullable enable
+
+            public class Derived : Base
+            {
+                private string _field2 = null!;
+                public required string Prop2 { get => _field2; set => _field2 = value; }
+
+                [SetsRequiredMembers]
+                public Derived(int unused) : base()
+                {
+                }
+
+                public Derived() : this(0)
+                {
+                    Prop1.ToString();
+                    Prop2.ToString();
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { derived, @base });
+
+        comp.VerifyDiagnostics(
+            // (14,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            //     public Derived() : this(0)
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(14, 24)
+
+        );
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (14,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            //     public Derived() : this(0)
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(14, 24)
         );
     }
 

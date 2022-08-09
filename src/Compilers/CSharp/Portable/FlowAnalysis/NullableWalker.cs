@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (chainedConstructorEnforcesRequiredMembers && !method.ShouldCheckRequiredMembers() && method.ContainingType.BaseTypeNoUseSiteDiagnostics is { } baseType)
                         {
-                            // Members of the current type were checked above. We need to grab the all the required members from the base
+                            // Members of the current type were checked above. We need to grab all the required members from the base
                             // type and enforce them as well. We don't need to check the non-required members: those warnings would have
                             // been reported in constructor of the type that defined them.
                             foreach (var member in baseType.AllRequiredMembers)
