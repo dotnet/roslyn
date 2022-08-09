@@ -965,11 +965,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">インラインおよび '{0}' の保持</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_an_if_statement">
-        <source>Insert an 'if' statement</source>
-        <target state="new">Insert an 'if' statement</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">16 進数の数字が正しくありません</target>
@@ -2990,11 +2985,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">折り返し</target>
         <note />
       </trans-unit>
-      <trans-unit id="Write_to_the_console">
-        <source>Write to the console</source>
-        <target state="new">Write to the console</target>
-        <note />
-      </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
         <source>You can use the navigation bar to switch contexts.</source>
         <target state="translated">ナビゲーション バーを使用してコンテキストを切り替えることができます。</target>
@@ -3346,6 +3336,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
         <target state="translated">コード</target>
         <note />
       </trans-unit>
+      <trans-unit id="console_writeline">
+        <source>Console.WriteLine</source>
+        <target state="new">Console.WriteLine</target>
+        <note />
+      </trans-unit>
       <trans-unit id="date_separator">
         <source>date separator</source>
         <target state="translated">日付の区切り記号</target>
@@ -3480,6 +3475,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">ジェネリック オーバーロード</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="if_statement">
+        <source>if statement</source>
+        <target state="new">if statement</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_1_2">

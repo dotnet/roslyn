@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         public override string SnippetIdentifier => "cw";
 
-        public override string SnippetDisplayName => FeaturesResources.Write_to_the_console;
+        public override string SnippetDescription => FeaturesResources.console_writeline;
 
         public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("Console", "WriteLine");
 

@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             int position,
             string snippetIdentifier,
             Glyph glyph,
+            string inlineDescription,
             ImmutableArray<string> additionalFilterTexts)
         {
             var props = ImmutableDictionary<string, string>.Empty
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 filterText: snippetIdentifier,
                 properties: props,
                 isComplexTextEdit: true,
+                inlineDescription: inlineDescription,
                 rules: CompletionItemRules.Default)
                 .WithAdditionalFilterTexts(additionalFilterTexts);
         }

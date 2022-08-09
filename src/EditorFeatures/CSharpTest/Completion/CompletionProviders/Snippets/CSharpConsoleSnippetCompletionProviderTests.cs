@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class CSharpConsoleSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
     {
-        protected override string ItemToCommit => FeaturesResources.Write_to_the_console;
+        protected override string ItemToCommit => "cw snippet";
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsertConsoleSnippetInMethodTest()
