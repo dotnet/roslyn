@@ -1094,7 +1094,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private async ValueTask LogDeltaFilesAsync(TraceLog log, ManagedModuleUpdate delta, int baselineGeneration, Project oldProject, Project newProject, CancellationToken cancellationToken)
+        private async ValueTask LogDeltaFilesAsync(TraceLog log, ModuleUpdate delta, int baselineGeneration, Project oldProject, Project newProject, CancellationToken cancellationToken)
         {
             var sessionId = DebuggingSession.Id;
 
