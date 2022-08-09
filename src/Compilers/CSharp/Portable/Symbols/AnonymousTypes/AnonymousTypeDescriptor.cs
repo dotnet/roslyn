@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!newFieldTypes.IsDefault);
             Debug.Assert(newFieldTypes.Length == this.Fields.Length);
 
-            var newFields = Fields.ZipAsArray(newFieldTypes, static (field, type) => new AnonymousTypeField(field.Name, field.Location, type, field.RefKind, field.Scope));
+            var newFields = Fields.ZipAsArray(newFieldTypes, static (field, type) => new AnonymousTypeField(field.Name, field.Location, type, field.RefKind, field.Scope, field.DefaultValue));
             return new AnonymousTypeDescriptor(newFields, this.Location);
         }
 

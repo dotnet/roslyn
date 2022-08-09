@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Reflection.Metadata;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -11493,6 +11494,357 @@ class Program
   .maxstack  0
   IL_0000:  ret
 }");
+        }
+
+        internal static void CheckNames(IEnumerable<MetadataReader> readers, IEnumerable<StringHandle> handles, params string[] expectedNames)
+        {
+            var actualNames = readers.GetStrings(handles);
+            AssertEx.Equal(expectedNames, actualNames);
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameter()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    // static void Report(object d) => Console.WriteLine(d.GetType());
+    public static void Main()
+    {   
+        var lam = (int x = 30) => x;
+        Console.WriteLine(lam() + " " + lam(10));
+       // Report(lam);
+    } 
+}
+""";
+
+            var expectAnonymousDelegateIL = """
+.class private auto ansi sealed '<>f__AnonymousDelegate0'
+	extends [netstandard]System.MulticastDelegate
+{
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			object 'object',
+			native int 'method'
+		) runtime managed 
+	{
+	} // end of method '<>f__AnonymousDelegate0'::.ctor
+	.method public hidebysig newslot virtual 
+		instance int32 Invoke (
+			[opt] int32 ''
+		) runtime managed 
+	{
+		.param [1] = int32(30)
+	} // end of method '<>f__AnonymousDelegate0'::Invoke
+} // end of class <>f__AnonymousDelegate0
+""";
+
+
+            var loweredLambdaContainerClassIL = """
+.class nested private auto ansi sealed serializable beforefieldinit '<>c'
+	extends [netstandard]System.Object
+{
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public static initonly class Program/'<>c' '<>9'
+	.field public static class '<>f__AnonymousDelegate0' '<>9__0_0'
+	// Methods
+	.method private hidebysig specialname rtspecialname static 
+		void .cctor () cil managed 
+	{
+		// Method begins at RVA 0x20b4
+		// Code size 11 (0xb)
+		.maxstack 8
+		IL_0000: newobj instance void Program/'<>c'::.ctor()
+		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+		IL_000a: ret
+	} // end of method '<>c'::.cctor
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20ac
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c'::.ctor
+	.method assembly hidebysig 
+		instance int32 '<Main>b__0_0' (
+			[opt] int32 x
+		) cil managed 
+	{
+		.param [1] = int32(30)
+		// Method begins at RVA 0x20c0
+		// Code size 2 (0x2)
+		.maxstack 8
+		IL_0000: ldarg.1
+		IL_0001: ret
+	} // end of method '<>c'::'<Main>b__0_0'
+} // end of class <>c
+""";
+
+            var verifier = CompileAndVerify(source, expectedOutput: "30 10");
+            var m = ModuleMetadata.CreateFromImage(verifier.EmittedAssemblyData);
+            var reader = m.MetadataReader;
+            CheckNames(new[] { reader }, reader.GetTypeDefNames(), "<Module>", "<>f__AnonymousDelegate0", "Program", "<>c");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", expectAnonymousDelegateIL);
+            verifier.VerifyTypeIL("<>c", loweredLambdaContainerClassIL);
+        }
+
+        [Fact]
+        public void LambdaWithMultipleDefaultParameters()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static string Report(object obj) => obj.GetType().ToString();
+    public static void Main()
+    {
+        var lam = (int a = 1, int b = 2, int c = 3) => a + b + c;
+        Console.WriteLine(lam(2) + " " + Report(lam));
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, expectedOutput: "7 <>f__AnonymousDelegate0");
+        }
+
+        [Fact]
+        public void LambdaWithOptionalAndDefaultParameters()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static string Report(object obj) => obj.GetType().ToString();
+    public static void Main()
+    {
+        var lam = (string s1, string s2 = "b", string s3 = "c") => s1 + s2 + s3;
+        Console.WriteLine(lam("a") + " " + Report(lam));
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, expectedOutput: "abc <>f__AnonymousDelegate0");
+        }
+
+        [Fact]
+        public void LambdaWithIdenticalSignatureDifferentDefaultValue()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object obj) => Console.WriteLine(obj.GetType()); 
+    public static void Main()
+    {
+        var lam1 = (int x = 10) => x + x;
+        var lam2 = (int x = 20) => x + x;
+        Report(lam1);
+        Report(lam2);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
+");
+        }
+
+        [Fact]
+        public void LambdaWithIdenticalSignatureIdenticalDefaultValue()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object obj) => Console.WriteLine(obj.GetType()); 
+    public static void Main()
+    {
+        var lam1 = (int x = 10) => x + x;
+        var lam2 = (int x = 10) => x + 1;
+        Report(lam1);
+        Report(lam2);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+ @"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate0");
+
+        }
+
+        [Fact]
+        public void LambdaWithIdenticalSignatureOptionalMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object obj) => Console.WriteLine(obj.GetType()); 
+    public static void Main()
+    {
+        var lam1 = (int x = 10) => x + x;
+        var lam2 = (int x) => x + 1;
+        Report(lam1);
+        Report(lam2);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0
+System.Func`2[System.Int32,System.Int32]
+");
+        }
+
+        [Fact]
+        public void LambdaConversionDefaultParameterValueMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object obj) => Console.WriteLine(obj.GetType()); 
+    public static void Main()
+    {
+        var lam1 = (int x = 10) => x + x;
+        var lam2 = (int x = 20) => x + 1;
+        lam1 = lam2;
+        lam1();
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,16): error CS0029: Cannot implicitly convert type '<anonymous delegate>' to '<anonymous delegate>'
+                //         lam1 = lam2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "lam2").WithArguments("<anonymous delegate>", "<anonymous delegate>").WithLocation(10, 16));
+        }
+
+        [Fact]
+        public void LambdaNoConversionDefaultParameterValueMatch()
+        {
+
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object obj) => Console.WriteLine(obj.GetType()); 
+    public static void Main()
+    {
+        var lam1 = (int x = 10) => x + x;
+        var lam2 = (int x = 10) => x + 1;
+        lam1 = lam2;
+        Console.WriteLine(lam1());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "11");
+        }
+
+        [Fact]
+        public void LambdaWithDefaultNamedDelegateConversion_DefaultValueMatch()
+        {
+            // TODO: This code should compile with no diagnostics. We want to do a target-type conversion here to the named delegate type
+            var source = """
+using System;
+
+class Program
+{
+    delegate int D(int x = 1);
+    public static void Main()
+    {
+        D d = (int x = 1) => x + x;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "2");
+        }
+
+        [Fact]
+        public void LambdaWithDefaultNamedDelegateConversion_DefaultValueMismatch()
+        {
+
+            var source = """
+using System;
+
+class Program
+{
+    delegate int D(int x = 1);
+    public static void Main()
+    {
+        D d = (int x = 1000) => x + x;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "2");
+        }
+
+        [Fact]
+        public void LambdaWithDefaultNamedDelegateConversion_RequiredOptionalMismatch()
+        {
+
+            // TODO: we want to add a warning here, since we have an implicit target-type conversion from a lambda WITH an optional parameter
+            // to a named delegate WITHOUT one, so the default value was useless to specify in code.
+            var source = """
+class Program
+{
+    // Named delegate has required parameter x
+    delegate int D(int x);
+    public static void Main()
+    {
+        // lambda has optional parameter x
+        D d = (int x = 1000) => x + x;
+        d();
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Program.D'
+                    //         d();
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("x", "Program.D").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void LambdaOptionalBeforeRequiredBadConversion()
+        {
+
+            var source = """
+class Program
+{
+    public static void Main()
+    {
+        // lambda has optional parameter x
+        var lam1 = (int x, int y = 10, int z) => x * x + y * y + z * z;
+        var lam2 = (int x, int y, int z) => x * x + y * y + z * z;
+
+        lam2 = lam1;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,45): error CS1737: Optional parameters must appear after all required parameters
+                //         var lam1 = (int x, int y = 10, int z) => x * x + y * y + z * z;
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(6, 45),
+                // (9,16): error CS0029: Cannot implicitly convert type '<anonymous delegate>' to 'System.Func<int, int, int, int>'
+                //         lam2 = lam1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "lam1").WithArguments("<anonymous delegate>", "System.Func<int, int, int, int>").WithLocation(9, 16));
         }
     }
 }

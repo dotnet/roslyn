@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsMetadataOptional
         {
-            get { return false; }
+            get { return ExplicitDefaultConstantValue != null; }
         }
 
         public override bool IsImplicitlyDeclared
@@ -99,17 +99,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsCallerLineNumber
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { return false; }
         }
 
         internal override bool IsCallerFilePath
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { return false; }
         }
 
         internal override bool IsCallerMemberName
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { return false; }
         }
 
         internal override int CallerArgumentExpressionParameterIndex
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             RefKind refKind,
             DeclarationScope scope,
-            ConstantValue? defaultValue, 
+            ConstantValue? defaultValue,
             string name)
             : base(container, type, ordinal, refKind, scope, defaultValue, name)
         {

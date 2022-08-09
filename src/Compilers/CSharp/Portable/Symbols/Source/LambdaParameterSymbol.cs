@@ -31,11 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsDiscard { get; }
 
-        internal override bool IsMetadataOptional
-        {
-            get { return false; }
-        }
-
         public override bool IsParams
         {
             get { return false; }
