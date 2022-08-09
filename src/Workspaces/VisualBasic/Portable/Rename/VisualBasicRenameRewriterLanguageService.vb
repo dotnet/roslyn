@@ -318,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         newToken = RenameToken(token, newToken, annotation.Prefix, annotation.Suffix, isVerbatim, replacementText, originalText, replacementTextValid)
                         AddModifiedSpan(annotation.OriginalSpan, New TextSpan(token.Span.Start, newToken.Span.Length))
                     Else
-                        newToken = RenameToken(token, newToken, prefix:=Nothing, suffix:=Nothing, isVerbatim := isVerbatim, replacementText := originalText, originalText := replacementText, replacementTextValid := replacementTextValid)
+                        newToken = RenameToken(token, newToken, prefix:=Nothing, suffix:=Nothing, isVerbatim:=isVerbatim, replacementText:=replacementText, originalText:=originalText, replacementTextValid:=replacementTextValid)
                     End If
 
                     Return newToken
@@ -372,7 +372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
                 If Not Me.AnnotateForComplexification Then
                     Dim oldSpan = token.Span
-                    newToken = RenameToken(token, newToken, prefix:=prefix, suffix:=suffix, isVerbatim := isVerbatim, replacementText := replacementText, originalText := originalText, replacementTextValid := replacementTextValid)
+                    newToken = RenameToken(token, newToken, prefix:=prefix, suffix:=suffix, isVerbatim:=isVerbatim, replacementText:=replacementText, originalText:=originalText, replacementTextValid:=replacementTextValid)
                     AddModifiedSpan(oldSpan, newToken.Span)
                 End If
 
@@ -497,7 +497,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                             annotation.Suffix,
                             _syntaxFactsService.IsVerbatimIdentifier(locationRenameContext.ReplacementText),
                             locationRenameContext.ReplacementText,
-                            locationRenameContext.OriginalText, locationRenameContext.ReplacementTextValid)
+                            locationRenameContext.OriginalText,
+                            locationRenameContext.ReplacementTextValid)
 
                     AddModifiedSpan(annotation.OriginalSpan, newToken.Span)
                 End If
@@ -512,9 +513,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                             newToken,
                             prefix:=Nothing,
                             suffix:=Nothing,
-                            isVerbatim := _syntaxFactsService.IsVerbatimIdentifier(renamedSymbolContext.ReplacementText),
-                            replacementText := renamedSymbolContext.ReplacementText,
-                            originalText := renamedSymbolContext.OriginalText, replacementTextValid := renamedSymbolContext.ReplacementTextValid)
+                            isVerbatim:=_syntaxFactsService.IsVerbatimIdentifier(renamedSymbolContext.ReplacementText),
+                            replacementText:=renamedSymbolContext.ReplacementText,
+                            originalText:=renamedSymbolContext.OriginalText,
+                            replacementTextValid:=renamedSymbolContext.ReplacementTextValid)
                 End If
 
                 Return newToken
