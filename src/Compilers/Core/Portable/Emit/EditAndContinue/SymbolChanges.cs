@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Emit
         }
         
         public bool IsReplaced(IDefinition definition, bool checkEnclosingTypes = false)
-            => definition.GetInternalSymbol() is {} internalSymbol && IsReplaced(internalSymbol.GetISymbol(), checkEnclosingTypes)
+            => definition.GetInternalSymbol() is {} internalSymbol && IsReplaced(internalSymbol.GetISymbol(), checkEnclosingTypes);
 
         /// <summary>
         /// True if the symbol is a source symbol added during EnC session. 
