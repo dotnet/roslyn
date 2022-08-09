@@ -57,24 +57,24 @@ internal interface CodeCleanupOptionsProvider :
 #if !CODE_STYLE
 internal abstract class AbstractCodeCleanupOptionsProvider : CodeCleanupOptionsProvider
 {
-    public abstract ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken);
+    public abstract ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(Host.LanguageServices languageServices, CancellationToken cancellationToken);
 
-    ValueTask<CodeCleanupOptions> OptionsProvider<CodeCleanupOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+    ValueTask<CodeCleanupOptions> OptionsProvider<CodeCleanupOptions>.GetOptionsAsync(Host.LanguageServices languageServices, CancellationToken cancellationToken)
         => GetCodeCleanupOptionsAsync(languageServices, cancellationToken);
 
-    async ValueTask<LineFormattingOptions> OptionsProvider<LineFormattingOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+    async ValueTask<LineFormattingOptions> OptionsProvider<LineFormattingOptions>.GetOptionsAsync(Host.LanguageServices languageServices, CancellationToken cancellationToken)
         => (await GetCodeCleanupOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).FormattingOptions.LineFormatting;
 
-    async ValueTask<DocumentFormattingOptions> OptionsProvider<DocumentFormattingOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+    async ValueTask<DocumentFormattingOptions> OptionsProvider<DocumentFormattingOptions>.GetOptionsAsync(Host.LanguageServices languageServices, CancellationToken cancellationToken)
         => (await GetCodeCleanupOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).DocumentFormattingOptions;
 
-    async ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+    async ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(Host.LanguageServices languageServices, CancellationToken cancellationToken)
         => (await GetCodeCleanupOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).FormattingOptions;
 
-    async ValueTask<SimplifierOptions> OptionsProvider<SimplifierOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+    async ValueTask<SimplifierOptions> OptionsProvider<SimplifierOptions>.GetOptionsAsync(Host.LanguageServices languageServices, CancellationToken cancellationToken)
         => (await GetCodeCleanupOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).SimplifierOptions;
 
-    async ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+    async ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(Host.LanguageServices languageServices, CancellationToken cancellationToken)
         => (await GetCodeCleanupOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).AddImportOptions;
 }
 #endif
@@ -103,7 +103,7 @@ internal static class CodeCleanupOptionsProviders
     }
 
     public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, CodeCleanupOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await document.GetCodeCleanupOptionsAsync(await ((OptionsProvider<CodeCleanupOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+        => await document.GetCodeCleanupOptionsAsync(await ((OptionsProvider<CodeCleanupOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 #endif
 }
 

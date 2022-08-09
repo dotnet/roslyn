@@ -99,6 +99,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The language services from the host environment associated with this project's language.
         /// </summary>
+        [Obsolete($"Use {nameof(Services)} instead.")]
         public HostLanguageServices LanguageServices => _projectState.LanguageServices;
 
         /// <summary>

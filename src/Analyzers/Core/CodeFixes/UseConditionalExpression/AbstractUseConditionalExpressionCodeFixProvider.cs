@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             // the option is currently not an editorconfig option, so not available in code style layer
             var wrappingLength =
 #if !CODE_STYLE
-                fallbackOptions.GetOptions(document.Project.LanguageServices)?.ConditionalExpressionWrappingLength ??
+                fallbackOptions.GetOptions(document.Project.Services)?.ConditionalExpressionWrappingLength ??
 #endif
                 CodeActionOptions.DefaultConditionalExpressionWrappingLength;
 
