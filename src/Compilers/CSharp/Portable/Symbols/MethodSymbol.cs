@@ -586,6 +586,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract bool HasSetsRequiredMembersImpl { get; }
 
+        internal abstract bool HasUnscopedRefAttribute { get; }
+
         /// <summary>
         /// Some method kinds do not participate in overriding/hiding (e.g. constructors).
         /// </summary>

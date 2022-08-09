@@ -127,6 +127,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendReturn(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() EditorOperations.InsertNewLine())
         End Sub
 
+        Public Sub SendBackspaces(count As Integer)
+            For i = 0 To count - 1
+                Me.SendBackspace()
+            Next
+        End Sub
+
         Public Overrides Sub SendBackspace()
             Dim compHandler = GetHandler(Of IChainedCommandHandler(Of BackspaceKeyCommandArgs))()
             MyBase.SendBackspace(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendBackspace)
@@ -530,6 +536,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim computedItems = session.GetComputedItems(CancellationToken.None)
             Return computedItems.SuggestionItem IsNot Nothing
         End Function
+
+        Public Sub AssertSuggestedItemSelected(displayText As String)
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            Assert.NotNull(session)
+            Dim computedItems = session.GetComputedItems(CancellationToken.None)
+            Assert.True(computedItems.SuggestionItemSelected)
+            Assert.Equal(computedItems.SuggestionItem.DisplayText, displayText)
+        End Sub
 
         Public Function IsSoftSelected() As Boolean
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)

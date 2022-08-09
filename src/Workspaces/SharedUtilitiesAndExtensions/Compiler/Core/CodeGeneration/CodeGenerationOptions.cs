@@ -38,7 +38,7 @@ internal abstract class CodeGenerationOptions
     public NamingStylePreferences NamingStyle => Common.NamingStyle;
 
 #if !CODE_STYLE
-    public static CodeGenerationOptions GetDefault(HostProjectServices languageServices)
+    public static CodeGenerationOptions GetDefault(Host.LanguageServices languageServices)
         => languageServices.GetRequiredService<ICodeGenerationService>().DefaultOptions;
 
     public abstract CodeGenerationContextInfo GetInfo(CodeGenerationContext context, ParseOptions parseOptions);
@@ -57,7 +57,7 @@ internal readonly record struct CodeAndImportGenerationOptions(
     [property: DataMember(Order = 1)] AddImportPlacementOptions AddImportOptions)
 {
 #if !CODE_STYLE
-    internal static CodeAndImportGenerationOptions GetDefault(HostProjectServices languageServices)
+    internal static CodeAndImportGenerationOptions GetDefault(Host.LanguageServices languageServices)
         => new(CodeGenerationOptions.GetDefault(languageServices), AddImportPlacementOptions.Default);
 
     internal CodeAndImportGenerationOptionsProvider CreateProvider()

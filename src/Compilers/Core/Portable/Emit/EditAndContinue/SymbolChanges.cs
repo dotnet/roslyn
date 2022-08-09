@@ -98,10 +98,13 @@ namespace Microsoft.CodeAnalysis.Emit
             return internalSymbols.ToImmutableAndFree();
         }
 
+        public bool IsReplaced(ISymbol symbol)
+            => _replacedSymbols.Contains(symbol);
+
         public bool IsReplaced(IDefinition definition)
         {
             var symbol = definition.GetInternalSymbol();
-            return symbol is not null && _replacedSymbols.Contains(symbol.GetISymbol());
+            return symbol is not null && IsReplaced(symbol.GetISymbol());
         }
 
         /// <summary>

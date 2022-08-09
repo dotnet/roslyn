@@ -38,7 +38,7 @@ internal readonly record struct ExtractMethodGenerationOptions(
     [DataMember] public AddImportPlacementOptions AddImportOptions { get; init; } = AddImportPlacementOptions.Default;
     [DataMember] public LineFormattingOptions LineFormattingOptions { get; init; } = LineFormattingOptions.Default;
 
-    public static ExtractMethodGenerationOptions GetDefault(HostProjectServices languageServices)
+    public static ExtractMethodGenerationOptions GetDefault(Host.LanguageServices languageServices)
         => new(CodeGenerationOptions.GetDefault(languageServices));
 }
 

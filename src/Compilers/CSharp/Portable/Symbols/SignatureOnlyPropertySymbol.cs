@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name { get { return _name; } }
 
+        internal sealed override bool HasUnscopedRefAttribute => false;
+
         #region Not used by PropertySignatureComparer
 
         internal override bool HasSpecialName { get { throw ExceptionUtilities.Unreachable; } }

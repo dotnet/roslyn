@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     SyntaxKind.VolatileKeyword => DeclarationModifiers.Volatile,
                     SyntaxKind.ExternKeyword => DeclarationModifiers.Extern,
                     SyntaxKind.FileKeyword => DeclarationModifiers.File,
+                    SyntaxKind.RequiredKeyword => DeclarationModifiers.Required,
                     _ => DeclarationModifiers.None,
                 };
 

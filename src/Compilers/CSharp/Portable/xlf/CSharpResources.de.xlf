@@ -1357,6 +1357,11 @@
         <target state="translated">Die Zugriffsoptionen "protected", "protected internal" oder "private protected" werden von der Zielruntime für einen Member einer Schnittstelle nicht unterstützt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportRefFields">
+        <source>Target runtime doesn't support ref fields.</source>
+        <target state="new">Target runtime doesn't support ref fields.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces">
         <source>Target runtime doesn't support static abstract members in interfaces.</source>
         <target state="translated">Die Zielruntime unterstützt keine statischen abstrakten Elemente in Schnittstellen.</target>
@@ -1576,6 +1581,11 @@
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</source>
         <target state="translated">"{0}" ist mit dem Attribut "UnmanagedCallersOnly" versehen und kann nicht in einen Delegattyp konvertiert werden. Rufen Sie einen Funktionszeiger auf diese Methode ab.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
+        <source>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</source>
+        <target state="new">UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</source>
