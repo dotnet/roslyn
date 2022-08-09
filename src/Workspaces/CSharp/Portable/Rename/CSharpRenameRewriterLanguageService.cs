@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     // Annotate the token if it would cause conflict in all other scenarios
                     var tokenText = token.ValueText;
 
-                    // This is a pretty hot code path, so avoid to use linq.
+                    // This is a pretty hot code path, avoid using linq.
                     var isOldText = _originalTexts.Contains(tokenText);
                     var tokenNeedsConflictCheck = isOldText
                         || _replacementTexts.Contains(tokenText)

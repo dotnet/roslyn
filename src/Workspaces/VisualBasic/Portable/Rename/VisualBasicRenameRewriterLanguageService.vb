@@ -524,9 +524,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             Private Function AnnotateNonRenameLocation(token As SyntaxToken, newToken As SyntaxToken) As SyntaxToken
                 If Not _isProcessingComplexifiedSpans Then
-                    Dim renameContexts = _renamedSymbolContexts.Values.ToSet()
                     Dim tokenText = token.ValueText
-
+                    ' This is a pretty hot code path, avoid using linq.
                     Dim isOldText = _originalTexts.Contains(tokenText, CaseInsensitiveComparison.Comparer)
                     Dim tokenNeedsConflictCheck = isOldText OrElse
                                                   _replacementTexts.Contains(tokenText, CaseInsensitiveComparison.Comparer) OrElse
