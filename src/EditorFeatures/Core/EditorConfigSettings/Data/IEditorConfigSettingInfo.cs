@@ -12,16 +12,24 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings.Data
 {
     internal interface IEditorConfigSettingInfo
     {
-        // Gets the editorconfig setting name, returns null when the settings provider does not contain an editorconfig setting
+        /// <summary>
+        /// Gets the editorconfig setting name, returns null when the settings provider does not contain an editorconfig setting.
+        /// </summary>
         string? GetSettingName();
 
-        // Gets the description of the editorconfig setting
+        /// <summary>
+        /// Gets the description of the editorconfig setting.
+        /// </summary>
         string GetDocumentation();
 
-        // Gets the possible values for the editorconfig setting, returns null if there are no possible values or if it couldn't find the setting
+        /// <summary>
+        /// Gets the possible values for the editorconfig setting, returns null if there are no possible values or if it couldn't find the setting.
+        /// </summary>
         ImmutableArray<string>? GetSettingValues(OptionSet optionSet);
 
-        // Gets the description of editorconfig setting values, returns null if the value doesn't have a description
+        /// <summary>
+        /// Gets the description of editorconfig setting values, returns null if the value doesn't have a description.
+        /// </summary>
         string? GetValueDocumentation(string value);
     }
 }
