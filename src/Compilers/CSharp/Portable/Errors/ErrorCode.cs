@@ -2111,11 +2111,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotMatchOnINumberBase = 9060,
         ERR_MisplacedScoped = 9061,
         ERR_ScopedTypeNameDisallowed = 9062,
+        ERR_UnscopedRefAttributeUnsupportedTarget = 9063,
+        ERR_RuntimeDoesNotSupportRefFields = 9064,
 
         #endregion
 
         #region diagnostics introduced for C# 12.0
-        ERR_ImplicitlyTypedDefaultParameter = 9063,
+        ERR_ImplicitlyTypedDefaultParameter = 9065,
         #endregion
 
         // Note: you will need to do the following after adding warnings:

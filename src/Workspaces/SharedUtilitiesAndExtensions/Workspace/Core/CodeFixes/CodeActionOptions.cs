@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 #if CODE_STYLE
         public static readonly CodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(GetDefault);
 #else
-        public static readonly CodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(static ls => GetDefault(ls.ProjectServices));
+        public static readonly CodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(static ls => GetDefault(ls.LanguageServices));
 #endif
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             CodeStyleOptions = codeStyleOptions;
         }
 
-        public static CodeActionOptions GetDefault(HostProjectServices languageServices)
+        public static CodeActionOptions GetDefault(Host.LanguageServices languageServices)
             => new(
                 CodeCleanupOptions.GetDefault(languageServices),
                 CodeGenerationOptions.GetDefault(languageServices),

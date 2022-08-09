@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else
                 {
-                    using var argumentsBuilderDisposer = ArrayBuilder<string>.GetInstance(length, out var argumentsBuilder);
+                    using var _ = ArrayBuilder<string>.GetInstance(length, out var argumentsBuilder);
                     for (var i = 0; i < length; i++)
                     {
                         argumentsBuilder.Add(reader.ReadString());

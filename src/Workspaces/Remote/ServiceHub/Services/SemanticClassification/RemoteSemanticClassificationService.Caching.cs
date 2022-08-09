@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                 }
 
-                return classifiedSpans.ToImmutable();
+                return classifiedSpans.ToImmutableAndClear();
             }
             catch
             {

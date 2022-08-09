@@ -12622,10 +12622,10 @@ class A<T, S>
 {
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (1,14): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (1,14): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // class C<T> : System.Attribute
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(1, 14));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "System.Attribute").WithArguments("generic attributes", "11.0").WithLocation(1, 14));
         }
 
         [Fact]
@@ -12638,13 +12638,13 @@ class C<T>
 {
     class B : A { }
 }";
-            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (2,14): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (2,14): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // class B<T> : A { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A").WithArguments("generic attributes").WithLocation(2, 14),
-                // (5,15): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "A").WithArguments("generic attributes", "11.0").WithLocation(2, 14),
+                // (5,15): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     class B : A { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A").WithArguments("generic attributes").WithLocation(5, 15));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "A").WithArguments("generic attributes", "11.0").WithLocation(5, 15));
         }
 
         [Fact]

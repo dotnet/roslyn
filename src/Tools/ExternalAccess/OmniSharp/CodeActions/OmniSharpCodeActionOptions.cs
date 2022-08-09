@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
     {
         internal CodeActionOptions GetCodeActionOptions(HostLanguageServices languageServices)
         {
-            var defaultOptions = CodeActionOptions.GetDefault(languageServices.ProjectServices);
+            var defaultOptions = CodeActionOptions.GetDefault(languageServices.LanguageServices);
             return defaultOptions with
             {
                 CleanupOptions = defaultOptions.CleanupOptions with
