@@ -3,6 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net6.0;netcoreapp3.1;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(DotNetBuildFromSource)' == 'true'">net7.0;netcoreapp3.1;netstandard2.0</TargetFrameworks>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <DebugType>none</DebugType>
     <GenerateDependencyFile>false</GenerateDependencyFile>

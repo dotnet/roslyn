@@ -2,6 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework Condition="'$(DotNetBuildFromSource)' == 'true'">net7.0</TargetFramework>
     <NonShipping>true</NonShipping>
     <UseAppHost>false</UseAppHost>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

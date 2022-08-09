@@ -2,6 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net6.0;net472</TargetFrameworks>
+    <TargetFrameworks Condition="'$(DotNetBuildFromSource)' == 'true'">net7.0;net472</TargetFrameworks>
 
     <IsPackable>true</IsPackable>
     <NuspecPackageId>Microsoft.Net.Compilers.Toolset</NuspecPackageId>
@@ -24,7 +25,7 @@
     <NoWarn>$(NoWarn);NU5100;NU5128</NoWarn>
 
     <_DependsOn Condition="'$(TargetFramework)' == 'net472'">InitializeDesktopCompilerArtifacts</_DependsOn>
-    <_DependsOn Condition="'$(TargetFramework)' == 'net6.0'">InitializeCoreClrCompilerArtifacts</_DependsOn>
+    <_DependsOn Condition="'$(TargetFramework)' == 'net7.0'">InitializeCoreClrCompilerArtifacts</_DependsOn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,18 +39,18 @@
                       Targets="Publish"
                       ReferenceOutputAssembly="false"
                       SkipGetTargetFrameworkProperties="true"
-                      Condition="'$(TargetFramework)' == 'net6.0'"
-                      SetTargetFramework="TargetFramework=net6.0" />
+                      Condition="'$(TargetFramework)' == 'net7.0'"
+                      SetTargetFramework="TargetFramework=net7.0" />
   </ItemGroup>
 
   <Target Name="_GetFilesToPackage" DependsOnTargets="$(_DependsOn)">
     <ItemGroup>
       <_File Include="@(DesktopCompilerArtifact)" TargetDir="tasks/net472"/>
       <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tasks/net472"/>
-      <_File Include="@(CoreClrCompilerBuildArtifact)" TargetDir="tasks/net6.0"/>
-      <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/net6.0"/>
-      <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/net6.0/bincore"/>
-      <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/net6.0/bincore/runtimes"/>
+      <_File Include="@(CoreClrCompilerBuildArtifact)" TargetDir="tasks/net7.0"/>
+      <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/net7.0"/>
+      <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/net7.0/bincore"/>
+      <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/net7.0/bincore/runtimes"/>
      
       <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="build" />
       <_File Include="$(MSBuildProjectDirectory)\buildMultiTargeting\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="buildMultiTargeting" />
@@ -59,5 +60,5 @@
   </Target>
 
   <Import Project="..\DesktopCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net472'" />
-  <Import Project="..\CoreClrCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net6.0'" />
+  <Import Project="..\CoreClrCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net7.0'" />
 </Project>

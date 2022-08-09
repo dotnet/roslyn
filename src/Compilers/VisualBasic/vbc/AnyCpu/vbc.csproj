@@ -4,6 +4,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(DotNetBuildFromSource)' == 'true'">net7.0;net472</TargetFrameworks>
     <UseAppHost>false</UseAppHost>
   </PropertyGroup>
   
