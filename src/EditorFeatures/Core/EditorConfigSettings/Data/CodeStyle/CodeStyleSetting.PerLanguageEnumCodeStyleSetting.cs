@@ -85,15 +85,12 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
                 foreach (var enumValue in enumValues)
                 {
-                    if (enumValue != null)
+                    var storageLocation = GetEditorConfigStorageLocation(_option);
+                    var codeStyleSetting = new CodeStyleOption2<T>((T)enumValue!, NotificationOption2.Silent);
+                    var option = storageLocation?.GetEditorConfigStringValue(codeStyleSetting, optionSet);
+                    if (option != null)
                     {
-                        var storageLocation = GetEditorConfigStorageLocation(_option);
-                        var codeStyleSetting = new CodeStyleOption2<T>((T)enumValue, NotificationOption2.Silent);
-                        var option = storageLocation?.GetEditorConfigStringValue(codeStyleSetting, optionSet);
-                        if (option != null)
-                        {
-                            strings.Add(option);
-                        }
+                        strings.Add(option);
                     }
                 }
 

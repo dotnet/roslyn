@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             {
                 var settingName = textInLine.Split('=').First().Trim();
                 var settingsSnapshots1 = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
-                var options = GetSettingValues(settingName, settingsSnapshots1.codeStyleSnapshot, settingsSnapshots1.whitespaceSnapshot, settingsSnapshots1.analyzerSnapshot, optionSet, multipleValues: true);
+                var options = GetSettingValues(settingName, settingsSnapshots1, optionSet, multipleValues: true);
                 if (options == null)
                 {
                     return null;
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             {
                 var settingName = textInLine.Split('=').First().Trim();
                 var settingsSnapshots2 = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
-                var values = GetSettingValues(settingName, settingsSnapshots2.codeStyleSnapshot, settingsSnapshots2.whitespaceSnapshot, settingsSnapshots2.analyzerSnapshot, optionSet);
+                var values = GetSettingValues(settingName, settingsSnapshots2, optionSet);
                 if (values == null)
                 {
                     return null;
@@ -162,12 +162,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             if (showName)
             {
                 var settingsSnapshots3 = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
-                var codeStyleSettingsItems = settingsSnapshots3.codeStyleSnapshot?.Select(GenerateSettingNameCompletionItem);
-                var whitespaceSettingsItems = settingsSnapshots3.whitespaceSnapshot?.Select(GenerateSettingNameCompletionItem);
-                var analyzerSettingsItems = settingsSnapshots3.analyzerSnapshot?.Select(GenerateSettingNameCompletionItem);
-                var settingsItems = codeStyleSettingsItems.Concat(whitespaceSettingsItems)
-                                                          .Concat(analyzerSettingsItems).WhereNotNull()
-                                                          .GroupBy(x => x?.Label).Select(grp => grp.First());
+                var settingsItems = settingsSnapshots3.Select(GenerateSettingNameCompletionItem).WhereNotNull().GroupBy(x => x.Label).Select(grp => grp.First());
                 if (settingsItems == null)
                 {
                     return null;
@@ -182,7 +177,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             return null;
         }
 
-        private static CompletionItem? GenerateSettingNameCompletionItem<T>(T setting) where T : IEditorConfigSettingInfo
+        private static CompletionItem? GenerateSettingNameCompletionItem(IEditorConfigSettingInfo setting)
         {
             var name = setting.GetSettingName();
             if (name == null)
@@ -195,7 +190,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             return CreateCompletionItem(name, name, CompletionItemKind.Property, documentation, commitCharacters);
         }
 
-        private static CompletionItem[]? GenerateSettingValuesCompletionItem<T>(T setting, bool additional, OptionSet optionSet, bool allowsMultipleValues = false) where T : IEditorConfigSettingInfo
+        private static CompletionItem[]? GenerateSettingValuesCompletionItem(IEditorConfigSettingInfo setting, bool additional, OptionSet optionSet, bool allowsMultipleValues = false)
         {
             var values = new List<CompletionItem>();
 
@@ -234,25 +229,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             return item;
         }
 
-        private static CompletionItem[]? GetSettingValues(string settingName, ImmutableArray<CodeStyleSetting>? cs, ImmutableArray<WhitespaceSetting>? ws, ImmutableArray<AnalyzerSetting>? a, OptionSet optionSet, bool multipleValues = false)
+        private static CompletionItem[]? GetSettingValues(string settingName, ImmutableArray<IEditorConfigSettingInfo> settingsSnapshot, OptionSet optionSet, bool multipleValues = false)
         {
-            var codestyleSettings = cs?.Where(setting => setting.GetSettingName() == settingName);
-            if (codestyleSettings.Any())
-            {
-                return GenerateSettingValuesCompletionItem(codestyleSettings.First(), multipleValues, optionSet);
-            }
-
-            var whitespaceSettings = ws?.Where(setting => setting.GetSettingName() == settingName);
-            if (whitespaceSettings.Any())
+            var foundSetting = settingsSnapshot.Where(sett => sett.GetSettingName() == settingName);
+            if (foundSetting.Any())
             {
                 var allowsMultipleValues = settingName == "csharp_new_line_before_open_brace" || settingName == "csharp_space_between_parentheses";
-                return GenerateSettingValuesCompletionItem(whitespaceSettings.First(), multipleValues, optionSet, allowsMultipleValues: allowsMultipleValues);
-            }
-
-            var analyzerSettings = a?.Where(setting => setting.GetSettingName() == settingName);
-            if (analyzerSettings.Any())
-            {
-                return GenerateSettingValuesCompletionItem(analyzerSettings.First(), multipleValues, optionSet);
+                return GenerateSettingValuesCompletionItem(foundSetting.First(), multipleValues, optionSet, allowsMultipleValues: allowsMultipleValues);
             }
 
             return null;

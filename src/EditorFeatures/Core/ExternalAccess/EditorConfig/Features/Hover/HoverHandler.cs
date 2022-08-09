@@ -67,55 +67,87 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                 return null;
             }
 
-            var description = "";
-            // We are on the left of the setting and need to display the settings name description
-            if (equalPosition != -1 && caretPosition < equalPosition)
+            // We are on the left of the setting definition and need to display the settings name description
+            if (equalPosition == -1 || caretPosition < equalPosition)
             {
-                var settingName = textInLine[..equalPosition].Replace(" ", "");
-                description = FindDescriptionForSetting(document, settingName);
+                var settingName = equalPosition == -1 ? textInLine : textInLine[..equalPosition];
+                return CreateHover(document, settingName.Trim());
             }
-            // We are on the right of the setting and need to display the settings values description
-            else if (equalPosition != -1 && caretPosition > equalPosition)
-            {
-                var settingName = textInLine[..equalPosition].Replace(" ", "");
-                var colonPosition = textInLine.IndexOf(':');
-                var commaPosition = textInLine.IndexOf(',');
 
-                var settingValue = "";
-                if (colonPosition == -1 && commaPosition == -1)
-                {
-                    settingValue = textInLine[(equalPosition + 1)..].Replace(" ", "");
-                }
-                else if (colonPosition != -1)
-                {
-                    var values = textInLine[(equalPosition + 1)..].Split(':');
-                    var cont = equalPosition + 1;
-                    foreach (var element in values)
-                    {
-                        cont += element.Length + 1;
-                        if (caretPosition < cont)
-                        {
-                            settingValue = element.Replace(" ", "");
-                            break;
-                        }
-                    }
-                }
-                else if (commaPosition != -1)
-                {
-                    var values = textInLine[(equalPosition + 1)..].Split(',');
-                    var cont = equalPosition + 1;
-                    foreach (var element in values)
-                    {
-                        cont += element.Length + 1;
-                        if (caretPosition < cont)
-                        {
-                            settingValue = element.Replace(" ", "");
-                            break;
-                        }
-                    }
-                }
-                description = FindDescriptionForSetting(document, settingName, settingValue, displayValueInfo: true);
+            // We are on the right part of the setting definition
+
+            // We look for a semicolon
+            var colonPosition = textInLine.IndexOf(':');
+            if (caretPosition < colonPosition)
+            {
+                return HandleMultiValuedSettings(document, textInLine, caretPosition, equalPosition, ':');
+                //var values = textInLine[(equalPosition + 1)..].Split(':');
+                //var cont = equalPosition + 1;
+                //foreach (var element in values)
+                //{
+                //    cont += element.Length + 1;
+                //    if (caretPosition < cont)
+                //    {
+                //        var settingName = textInLine[..equalPosition].Trim();
+                //        var settingValue = element.Trim();
+                //        return CreateHover(document, settingName, settingValue, true);
+                //    }
+                //}
             }
+
+            // We look for commas
+            var commaPosition = textInLine.IndexOf(',');
+            if (caretPosition < commaPosition)
+            {
+                return HandleMultiValuedSettings(document, textInLine, caretPosition, equalPosition, ',');
+                //var values = textInLine[(equalPosition + 1)..].Split(',');
+                //var cont = equalPosition + 1;
+                //foreach (var element in values)
+                //{
+                //    cont += element.Length + 1;
+                //    if (caretPosition < cont)
+                //    {
+                //        var settingName = textInLine[..equalPosition].Trim();
+                //        var settingValue = element.Trim();
+                //        return CreateHover(document, settingName, settingValue, true);
+                //    }
+                //}
+            }
+
+            // We didn't find a comma or colon, so we just display the value description
+            var name = textInLine[..equalPosition].Trim();
+            var value = textInLine[(equalPosition + 1)..].Trim();
+            return CreateHover(document, name, value, true);
+        }
+
+        private static string? FindDescriptionForSetting(TextDocument document, string settingName, string settingValue, bool displayValueInfo)
+        {
+            var workspace = document.Project.Solution.Workspace;
+            var filePath = document.FilePath;
+            var optionSet = workspace.Options;
+            Contract.ThrowIfNull(filePath);
+
+            var settingsSnapshots = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
+            var foundSetting = settingsSnapshots.Where(sett => sett.GetSettingName() == settingName);
+
+            if (foundSetting.Any())
+            {
+                var setting = foundSetting.First();
+                if (displayValueInfo)
+                {
+                    var value = setting.GetSettingValues(optionSet)?.Where(val => val == settingValue).FirstOrDefault();
+                    return value != null ? setting.GetValueDocumentation(settingValue) : null;
+                }
+
+                return setting.GetDocumentation();
+            }
+
+            return null;
+        }
+
+        private static Hover? CreateHover(TextDocument document, string settingName, string settingValue = "", bool displayValueInfo = false)
+        {
+            var description = FindDescriptionForSetting(document, settingName, settingValue, displayValueInfo);
 
             if (description != null)
             {
@@ -132,49 +164,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             return null;
         }
 
-        private static string? FindDescriptionForSetting(TextDocument document, string settingName, string settingValue = "", bool displayValueInfo = false)
+        private static Hover? HandleMultiValuedSettings(TextDocument document, string textInLine, int caretPosition, int equalPosition, char splitCharacter)
         {
-            var workspace = document.Project.Solution.Workspace;
-            var filePath = document.FilePath;
-            var optionSet = workspace.Options;
-            Contract.ThrowIfNull(filePath);
-
-            var settingsSnapshots = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
-            var codeStyleSetting = settingsSnapshots.codeStyleSnapshot?.Where(sett => sett.GetSettingName() == settingName);
-            if (codeStyleSetting.Any())
+            var values = textInLine[(equalPosition + 1)..].Split(splitCharacter);
+            var cont = equalPosition + 1;
+            foreach (var element in values)
             {
-                var setting = codeStyleSetting.First();
-                if (displayValueInfo)
+                cont += element.Length + 1;
+                if (caretPosition < cont)
                 {
-                    var value = setting.GetSettingValues(optionSet)?.Where(val => val == settingValue).FirstOrDefault();
-                    return value != null ? setting.GetValueDocumentation(settingValue) : null;
+                    var settingName = textInLine[..equalPosition].Trim();
+                    var settingValue = element.Trim();
+                    return CreateHover(document, settingName, settingValue, true);
                 }
-                return setting.GetDocumentation();
-            }
-
-            var whitespaceSetting = settingsSnapshots.whitespaceSnapshot?.Where(sett => sett.GetSettingName() == settingName);
-            if (whitespaceSetting.Any())
-            {
-                var setting = whitespaceSetting.First();
-                if (displayValueInfo)
-                {
-                    var value = setting.GetSettingValues(optionSet)?.Where(val => val == settingValue).FirstOrDefault();
-                    return value != null ? setting.GetValueDocumentation(settingValue) : null;
-                }
-                return setting.GetDocumentation();
-            }
-
-            var analyzerSetting = settingsSnapshots.analyzerSnapshot?.Where(sett => sett.GetSettingName() == settingName);
-            if (analyzerSetting.Any())
-            {
-                var setting = analyzerSetting.First();
-                if (displayValueInfo)
-                {
-                    var aux = setting.GetValueDocumentation(settingValue);
-                    var value = setting.GetSettingValues(optionSet)?.Where(val => val == settingValue).FirstOrDefault();
-                    return value != null ? setting.GetValueDocumentation(settingValue) : null;
-                }
-                return setting.GetDocumentation();
             }
 
             return null;
