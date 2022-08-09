@@ -598,6 +598,7 @@ internal class Program
         }
 
         [Fact]
+        [WorkItem(62943, "https://github.com/dotnet/roslyn/issues/62943")]
         public async Task TestHasExistingPart()
         {
             await new VerifyCS.Test
@@ -615,19 +616,15 @@ partial class Program
                 FixedCode = @"
 using System;
 
-internal partial class Program
+partial class Program
 {
+    int x;
+
     private static void Main(string[] args)
     {
         Console.WriteLine(0);
     }
-}
-
-partial class Program
-{
-    int x;
-}
-",
+}",
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
@@ -635,6 +632,7 @@ partial class Program
         }
 
         [Fact]
+        [WorkItem(62943, "https://github.com/dotnet/roslyn/issues/62943")]
         public async Task TestHasExistingPublicPart()
         {
             await new VerifyCS.Test
@@ -654,17 +652,13 @@ using System;
 
 public partial class Program
 {
+    int x;
+
     private static void Main(string[] args)
     {
         Console.WriteLine(0);
     }
-}
-
-public partial class Program
-{
-    int x;
-}
-",
+}",
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },

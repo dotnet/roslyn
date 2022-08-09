@@ -39,10 +39,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 {
                     if (programType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).FirstOrDefault() is IMethodSymbol mainMethod)
                     {
+                        var oldClassDeclaration = root.Members.OfType<ClassDeclarationSyntax>().FirstOrDefault(IsProgramClass);
+
                         var classDeclaration = await GenerateProgramClassAsync(
-                            document, programType, mainMethod, accessibilityModifiersRequired, cancellationToken).ConfigureAwait(false);
+                            document, oldClassDeclaration, programType, mainMethod, accessibilityModifiersRequired, cancellationToken).ConfigureAwait(false);
 
                         var newRoot = root.RemoveNodes(root.Members.OfType<GlobalStatementSyntax>().Skip(1), SyntaxGenerator.DefaultRemoveOptions);
+                        if (oldClassDeclaration is not null)
+                        {
+                            newRoot = newRoot?.RemoveNode(oldClassDeclaration, SyntaxGenerator.DefaultRemoveOptions);
+                        }
+
                         Contract.ThrowIfNull(newRoot);
 
                         var firstGlobalStatement = newRoot.Members.OfType<GlobalStatementSyntax>().Single();
@@ -56,8 +63,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             return document;
         }
 
-        private static async Task<SyntaxNode> GenerateProgramClassAsync(
+        private static bool IsProgramClass(ClassDeclarationSyntax declaration)
+        {
+            return declaration.Identifier.Text == WellKnownMemberNames.TopLevelStatementsEntryPointTypeName &&
+                   declaration.Modifiers.Any(SyntaxKind.PartialKeyword);
+        }
+
+        private static async Task<ClassDeclarationSyntax> GenerateProgramClassAsync(
             Document document,
+            ClassDeclarationSyntax? oldClassDeclaration,
             INamedTypeSymbol programType,
             IMethodSymbol mainMethod,
             AccessibilityModifiersRequired accessibilityModifiersRequired,
@@ -84,11 +98,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             if (method.ParameterList.Parameters.Count == 1 && method.ParameterList.Parameters[0].Type is ArrayTypeSyntax arrayType)
                 method = method.ReplaceNode(arrayType.ElementType, PredefinedType(Token(SyntaxKind.StringKeyword)));
 
-            return FixupComments(generator.ClassDeclaration(
-                WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
-                accessibility: useDeclaredAccessibity ? programType.DeclaredAccessibility : Accessibility.NotApplicable,
-                modifiers: hasExistingPart ? DeclarationModifiers.Partial : DeclarationModifiers.None,
-                members: new[] { method }).WithLeadingTrivia(leadingTrivia));
+            ClassDeclarationSyntax newClassDeclaration = null!;
+
+            if (oldClassDeclaration is null)
+            {
+                // If we dodn't have any suitable class declaration in the same file then generate it
+                newClassDeclaration = FixupComments((ClassDeclarationSyntax)generator.ClassDeclaration(
+                    WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
+                    accessibility: useDeclaredAccessibity ? programType.DeclaredAccessibility : Accessibility.NotApplicable,
+                    modifiers: hasExistingPart ? DeclarationModifiers.Partial : DeclarationModifiers.None,
+                    members: new[] { method }).WithLeadingTrivia(leadingTrivia));
+            }
+            else
+            {
+                // Otherwise just add new member and process leading trivia
+
+                // Old class declaration is below top-level statements and is probably separated from them with a blank line.
+                // We want to remove this line to make class declaration begin from the first line of the file in the end
+                var oldTriviaWithoutBlankLines = oldClassDeclaration.GetLeadingTrivia().WithoutLeadingBlankLines();
+                newClassDeclaration = oldClassDeclaration.WithMembers(oldClassDeclaration.Members.Add(method))
+                                                         .WithLeadingTrivia(oldTriviaWithoutBlankLines.Union(leadingTrivia));
+            }
+
+            return newClassDeclaration;
         }
 
         private static ImmutableArray<StatementSyntax> GenerateProgramMainStatements(
