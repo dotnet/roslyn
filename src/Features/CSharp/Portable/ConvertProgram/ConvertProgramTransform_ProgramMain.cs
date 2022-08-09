@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             if (method.ParameterList.Parameters.Count == 1 && method.ParameterList.Parameters[0].Type is ArrayTypeSyntax arrayType)
                 method = method.ReplaceNode(arrayType.ElementType, PredefinedType(Token(SyntaxKind.StringKeyword)));
 
-            ClassDeclarationSyntax newClassDeclaration = null!;
+            ClassDeclarationSyntax? newClassDeclaration = null;
 
             if (oldClassDeclaration is null)
             {
