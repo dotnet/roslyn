@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // If this constructor is adding `SetsRequiredMembers` and the base or this constructor did not have it, we need
-                        // to restore the nullable warnings for all members that were not initialized this constructor, including those
+                        // to restore the nullable warnings for all members that were not initialized in this constructor, including those
                         // from base types that were expected to have been initialized by the consumer at the construction site.
 
                         var chainedConstructorEnforcesRequiredMembers = GetBaseOrThisInitializer()?.ShouldCheckRequiredMembers() ?? false;
