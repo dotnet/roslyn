@@ -3570,6 +3570,71 @@ class C
             }
         }
 
+        [Theory, WorkItem(63205, "https://github.com/dotnet/roslyn/issues/63205")]
+        [CombinatorialData]
+        public async Task TestGetAnalysisResultWithFilterSpanAsync(bool testSyntaxNodeAction)
+        {
+            string source = @"
+class B
+{
+    void M1()
+    {
+        int local1 = 1;
+    }
+
+    void M2()
+    {
+        int local2 = 1;
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { source });
+            var tree = compilation.SyntaxTrees[0];
+            var localDecl1 = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var analyzer1 = new VariableDeclarationAnalyzer("ID0001", testSyntaxNodeAction);
+            var analyzer2 = new CSharpCompilerDiagnosticAnalyzer();
+            var allAnalyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1, analyzer2);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(allAnalyzers);
+
+            // Invoke "GetAnalysisResultAsync" for a a sub-span and then
+            // for the entire tree span and verify no duplicate diagnostics.
+
+            var analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(
+                semanticModel,
+                filterSpan: localDecl1.FullSpan,
+                CancellationToken.None);
+
+            var diagnostics1 = analysisResult.SemanticDiagnostics[tree][analyzer1];
+            diagnostics1.Verify(
+                Diagnostic("ID0001", "int local1 = 1").WithLocation(6, 9));
+
+            var diagnostics2 = analysisResult.SemanticDiagnostics[tree][analyzer2];
+            diagnostics2.Verify(
+                // (6,13): warning CS0219: The variable 'local1' is assigned but its value is never used
+                //         int local1 = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local1").WithArguments("local1").WithLocation(6, 13));
+
+            analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(
+                semanticModel,
+                filterSpan: null,
+                CancellationToken.None);
+
+            diagnostics1 = analysisResult.SemanticDiagnostics[tree][analyzer1];
+            diagnostics1.Verify(
+                Diagnostic("ID0001", "int local1 = 1").WithLocation(6, 9),
+                Diagnostic("ID0001", "int local2 = 1").WithLocation(11, 9));
+
+            diagnostics2 = analysisResult.SemanticDiagnostics[tree][analyzer2];
+            diagnostics2.Verify(
+                // (6,13): warning CS0219: The variable 'local1' is assigned but its value is never used
+                //         int local1 = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local1").WithArguments("local1").WithLocation(6, 13),
+                // (11,13): warning CS0219: The variable 'local2' is assigned but its value is never used
+                //         int local2 = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local2").WithArguments("local2").WithLocation(11, 13));
+        }
+
         [Theory, CombinatorialData]
         public async Task TestAdditionalFileAnalyzer(bool registerFromInitialize)
         {

@@ -482,6 +482,11 @@
         <target state="translated">不要使用 'System.Runtime.CompilerServices.RequiredMemberAttribute'。请改为在必填字段和属性上使用 'required' 关键字。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitScopedRef">
+        <source>Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</source>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
         <source>The given expression cannot be used in a fixed statement</source>
         <target state="translated">给定表达式不能用于 fixed 语句中</target>
