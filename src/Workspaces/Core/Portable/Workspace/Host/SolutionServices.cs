@@ -8,8 +8,10 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    // TODO(cyrusn): Make public.  Tracked through https://github.com/dotnet/roslyn/issues/62914
-    internal sealed class HostSolutionServices
+    /// <summary>
+    /// Per solution services provided by the host environment.
+    /// </summary>
+    public sealed class SolutionServices
     {
         /// <remarks>
         /// Note: do not expose publicly.  <see cref="HostWorkspaceServices"/> exposes a <see
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         // This ensures a single instance of this type associated with each HostWorkspaceServices.
         [Obsolete("Do not call directly.  Use HostWorkspaceServices.SolutionServices to acquire an instance")]
-        internal HostSolutionServices(HostWorkspaceServices services)
+        internal SolutionServices(HostWorkspaceServices services)
         {
             _services = services;
         }
@@ -43,16 +45,13 @@ namespace Microsoft.CodeAnalysis.Host
             => _services.IsSupported(languageName);
 
         /// <summary>
-        /// Gets the <see cref="HostProjectServices"/> for the language name.
+        /// Gets the <see cref="LanguageServices"/> for the language name.
         /// </summary>
         /// <exception cref="NotSupportedException">Thrown if the language isn't supported.</exception>
-        public HostProjectServices GetProjectServices(string languageName)
-            => _services.GetLanguageServices(languageName).ProjectServices;
-    }
+        public LanguageServices GetLanguageServices(string languageName)
+            => _services.GetLanguageServices(languageName).LanguageServices;
 
-    internal static class HostSolutionServicesExtensions
-    {
-        public static TLanguageService GetRequiredLanguageService<TLanguageService>(this HostSolutionServices services, string language) where TLanguageService : ILanguageService
-            => services.GetProjectServices(language).GetRequiredService<TLanguageService>();
+        public TLanguageService GetRequiredLanguageService<TLanguageService>(string language) where TLanguageService : ILanguageService
+            => this.GetLanguageServices(language).GetRequiredService<TLanguageService>();
     }
 }

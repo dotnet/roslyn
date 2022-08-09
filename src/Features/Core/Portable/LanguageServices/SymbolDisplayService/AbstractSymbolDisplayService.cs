@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal abstract partial class AbstractSymbolDisplayService : ISymbolDisplayService
     {
-        protected readonly HostProjectServices Services;
+        protected readonly Host.LanguageServices Services;
         protected readonly IStructuralTypeDisplayService AnonymousTypeDisplayService;
 
-        protected AbstractSymbolDisplayService(HostProjectServices services)
+        protected AbstractSymbolDisplayService(Host.LanguageServices services)
         {
             Services = services;
             AnonymousTypeDisplayService = services.GetService<IStructuralTypeDisplayService>();

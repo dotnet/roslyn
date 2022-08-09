@@ -2213,6 +2213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_MisplacedScoped:
                 case ErrorCode.ERR_ScopedTypeNameDisallowed:
                 case ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget:
+                case ErrorCode.ERR_RuntimeDoesNotSupportRefFields:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

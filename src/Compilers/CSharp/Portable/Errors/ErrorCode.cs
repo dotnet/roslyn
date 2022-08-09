@@ -2112,6 +2112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MisplacedScoped = 9061,
         ERR_ScopedTypeNameDisallowed = 9062,
         ERR_UnscopedRefAttributeUnsupportedTarget = 9063,
+        ERR_RuntimeDoesNotSupportRefFields = 9064,
 
         #endregion
 

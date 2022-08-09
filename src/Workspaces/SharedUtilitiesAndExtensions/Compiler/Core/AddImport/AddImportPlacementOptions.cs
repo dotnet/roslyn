@@ -45,7 +45,7 @@ internal interface AddImportPlacementOptionsProvider
 internal static partial class AddImportPlacementOptionsProviders
 {
 #if !CODE_STYLE
-    public static AddImportPlacementOptions GetAddImportPlacementOptions(this AnalyzerConfigOptions options, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions, HostProjectServices languageServices)
+    public static AddImportPlacementOptions GetAddImportPlacementOptions(this AnalyzerConfigOptions options, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions, Host.LanguageServices languageServices)
         => languageServices.GetRequiredService<IAddImportsService>().GetAddImportOptions(options, allowInHiddenRegions, fallbackOptions);
 
     public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, AddImportPlacementOptions? fallbackOptions, CancellationToken cancellationToken)
