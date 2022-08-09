@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class ExportCodeRefactoringProviderAttribute : ExportAttribute
     {
+        private static readonly TextDocumentKind[] s_defaultDocumentKinds = new[] { TextDocumentKind.Document };
+
         /// <summary>
         /// The name of the <see cref="CodeRefactoringProvider"/>.  
         /// </summary>
@@ -27,12 +29,26 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public string[] Languages { get; }
 
         /// <summary>
-        /// Attribute constructor used to specify availability of a code refactoring provider.
+        /// The document kinds for which this provider can provide refactorings. See <see cref="TextDocumentKind"/>.
+        /// By default, the provider supports refactorings only for source documents, <see cref="TextDocumentKind.Document"/>.
         /// </summary>
-        /// <param name="firstLanguage">One language to which the code refactoring provider applies.</param>
-        /// <param name="additionalLanguages">Additional languages to which the code refactoring provider applies. See <see cref="LanguageNames"/>.</param>
-        public ExportCodeRefactoringProviderAttribute(string firstLanguage, params string[] additionalLanguages)
+        public TextDocumentKind[] DocumentKinds { get; }
+
+        /// <summary>
+        /// The document extensions for which this provider can provide refactorings.
+        /// By default, this value is null and the document extension is not considered to determine applicability of refactorings.
+        /// </summary>
+        public string[]? DocumentExtensions { get; }
+
+        private ExportCodeRefactoringProviderAttribute(TextDocumentKind[] documentKinds, string[]? documentExtensions, string[] languages)
             : base(typeof(CodeRefactoringProvider))
+        {
+            this.DocumentKinds = documentKinds;
+            this.DocumentExtensions = documentExtensions;
+            this.Languages = languages;
+        }
+
+        private static string[] GetLanguages(string firstLanguage, string[] additionalLanguages)
         {
             if (additionalLanguages == null)
             {
@@ -46,7 +62,53 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 languages[index + 1] = additionalLanguages[index];
             }
 
-            this.Languages = languages;
+            return languages;
+        }
+
+        /// <summary>
+        /// Attribute constructor used to specify availability of a code refactoring provider in source docments for specific project language(s).
+        /// </summary>
+        /// <param name="firstLanguage">One language to which the code refactoring provider applies.</param>
+        /// <param name="additionalLanguages">Additional languages to which the code refactoring provider applies. See <see cref="LanguageNames"/>.</param>
+        public ExportCodeRefactoringProviderAttribute(string firstLanguage, params string[] additionalLanguages)
+            : this(s_defaultDocumentKinds, documentExtensions: null, GetLanguages(firstLanguage, additionalLanguages))
+        {
+        }
+
+        /// <summary>
+        /// Attribute constructor used to specify availability of a code refactoring provider for specific document kinds and project language(s).
+        /// </summary>
+        /// <param name="documentKinds">Document kinds to which the code refactoring provider applies.</param>
+        /// <param name="firstLanguage">One language to which the code refactoring provider applies.</param>
+        /// <param name="additionalLanguages">Additional languages to which the code refactoring provider applies. See <see cref="LanguageNames"/>.</param>
+        public ExportCodeRefactoringProviderAttribute(TextDocumentKind[] documentKinds, string firstLanguage, params string[] additionalLanguages)
+            : this(documentKinds, documentExtensions: null, GetLanguages(firstLanguage, additionalLanguages))
+        {
+            if (documentKinds == null)
+            {
+                throw new ArgumentNullException(nameof(documentKinds));
+            }
+        }
+
+        /// <summary>
+        /// Attribute constructor used to specify availability of a code refactoring provider for specific document kinds, document extensions and project language(s).
+        /// </summary>
+        /// <param name="documentKinds">Document kinds to which the code refactoring provider applies.</param>
+        /// <param name="documentExtensions">Document extensions to which the code refactoring provider applies.</param>
+        /// <param name="firstLanguage">One language to which the code refactoring provider applies.</param>
+        /// <param name="additionalLanguages">Additional languages to which the code refactoring provider applies. See <see cref="LanguageNames"/>.</param>
+        public ExportCodeRefactoringProviderAttribute(TextDocumentKind[] documentKinds, string[] documentExtensions, string firstLanguage, params string[] additionalLanguages)
+            : this(documentKinds, documentExtensions, GetLanguages(firstLanguage, additionalLanguages))
+        {
+            if (documentKinds == null)
+            {
+                throw new ArgumentNullException(nameof(documentKinds));
+            }
+
+            if (documentExtensions == null)
+            {
+                throw new ArgumentNullException(nameof(documentExtensions));
+            }
         }
     }
 }

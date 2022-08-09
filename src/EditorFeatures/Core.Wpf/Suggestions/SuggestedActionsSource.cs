@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
                 {
-                    var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    var document = range.Snapshot.GetOpenTextDocumentInCurrentContextWithChanges();
                     if (document == null)
                     {
                         // this is here to fail test and see why it is failed.
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ITextBufferSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
                 Workspace workspace,
-                Document document,
+                TextDocument textDocument,
                 SnapshotSpan range,
                 Func<string, IDisposable?> addOperationScope,
                 CodeActionRequestPriority priority,
@@ -271,7 +271,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 if (state.Target.Owner._codeFixService == null ||
                     !supportsFeatureService.SupportsCodeFixes(state.Target.SubjectBuffer) ||
-                    !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
+                    !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix) ||
+                    textDocument is not Document document)
                 {
                     return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
                 }
@@ -302,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ISuggestedActionCategorySet requestedActionCategories,
                 IGlobalOptionService globalOptions,
                 Workspace workspace,
-                Document document,
+                TextDocument document,
                 TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
                 CodeActionRequestPriority priority,
@@ -355,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // roslyn document.  This can fail, for example, in projection scenarios where
                 // we are called with a range snapshot that refers to the projection buffer
                 // and not the actual roslyn code that is being projected into it.
-                var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = range.Snapshot.GetOpenTextDocumentInCurrentContextWithChanges();
                 if (document == null)
                 {
                     return null;
@@ -413,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private static async Task<string?> GetFixLevelAsync(
                 ReferenceCountedDisposable<State> state,
-                Document document,
+                TextDocument textDocument,
                 SnapshotSpan range,
                 CodeActionOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
@@ -433,7 +434,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 async Task<string?> GetFixLevelAsync(CodeActionRequestPriority priority)
                 {
                     if (state.Target.Owner._codeFixService != null &&
-                        state.Target.SubjectBuffer.SupportsCodeFixes())
+                        state.Target.SubjectBuffer.SupportsCodeFixes() &&
+                        textDocument is Document document)
                     {
                         var result = await state.Target.Owner._codeFixService.GetMostSevereFixAsync(
                             document, range.Span.ToTextSpan(), priority, fallbackOptions, isBlocking: false, cancellationToken).ConfigureAwait(false);
@@ -453,7 +455,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             private async Task<string?> TryGetRefactoringSuggestedActionCategoryAsync(
-                Document document,
+                TextDocument document,
                 TextSpan? selection,
                 CodeActionOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
@@ -529,7 +531,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 cancellationToken.ThrowIfCancellationRequested();
 
                 using var asyncToken = state.Target.Owner.OperationListener.BeginAsyncOperation(nameof(GetSuggestedActionCategoriesAsync));
-                var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = range.Snapshot.GetOpenTextDocumentInCurrentContextWithChanges();
                 if (document == null)
                     return null;
 

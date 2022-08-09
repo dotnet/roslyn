@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [Export(typeof(SuggestedActionsSourceProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
+    [ContentType("text")]
     [Name("Roslyn Code Fix")]
     [Order]
     [SuggestedActionPriority(DefaultOrderings.Highest)]

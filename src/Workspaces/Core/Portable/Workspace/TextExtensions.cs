@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Gets the document from the corresponding workspace's current solution that is associated with the source text's container 
+        /// Gets the <see cref="Document"/> from the corresponding workspace's current solution that is associated with the source text's container 
         /// in its current project context, updated to contain the same text as the source if necessary.
         /// </summary>
         public static Document? GetOpenDocumentInCurrentContextWithChanges(this SourceText text)
@@ -68,6 +68,50 @@ namespace Microsoft.CodeAnalysis.Text
                 var allIds = solution.GetRelatedDocumentIds(id);
                 return solution.WithDocumentText(allIds, text, PreservationMode.PreserveIdentity)
                                .GetDocument(id);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the <see cref="AdditionalDocument"/> from the corresponding workspace's current solution that is associated with the source text's container 
+        /// in its current project context, updated to contain the same text as the source if necessary.
+        /// </summary>
+        public static TextDocument? GetOpenAdditionalDocumentInCurrentContextWithChanges(this SourceText text)
+        {
+            if (Workspace.TryGetWorkspace(text.Container, out var workspace))
+            {
+                var solution = workspace.CurrentSolution;
+                var id = workspace.GetDocumentIdInCurrentContext(text.Container);
+                if (id == null || !solution.ContainsAdditionalDocument(id))
+                {
+                    return null;
+                }
+
+                return solution.WithAdditionalDocumentText(id, text, PreservationMode.PreserveIdentity)
+                               .GetRequiredAdditionalDocument(id);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the <see cref="AnalyzerConfigDocument"/> from the corresponding workspace's current solution that is associated with the source text's container 
+        /// in its current project context, updated to contain the same text as the source if necessary.
+        /// </summary>
+        public static TextDocument? GetOpenAnalyzerConfigDocumentInCurrentContextWithChanges(this SourceText text)
+        {
+            if (Workspace.TryGetWorkspace(text.Container, out var workspace))
+            {
+                var solution = workspace.CurrentSolution;
+                var id = workspace.GetDocumentIdInCurrentContext(text.Container);
+                if (id == null || !solution.ContainsAnalyzerConfigDocument(id))
+                {
+                    return null;
+                }
+
+                return solution.WithAnalyzerConfigDocumentText(id, text, PreservationMode.PreserveIdentity)
+                               .GetRequiredAnalyzerConfigDocument(id);
             }
 
             return null;
