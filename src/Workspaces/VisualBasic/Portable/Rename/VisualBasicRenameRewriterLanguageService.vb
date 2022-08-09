@@ -727,7 +727,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     Dim replacementText = RenameUtilities.ReplaceMatchingSubStrings(originalText, subSpanToReplacementText)
                     If replacementText <> originalText Then
                         Dim newIdentifierToken = SyntaxFactory.XmlNameToken(newToken.LeadingTrivia, replacementText, SyntaxFacts.GetKeywordKind(replacementText), newToken.TrailingTrivia)
-                        newToken = token.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(newIdentifierToken, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = token.Span}))
+                        newToken = newToken.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(newIdentifierToken, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = token.Span}))
                         AddModifiedSpan(token.Span, newToken.Span)
                     End If
                 End If
