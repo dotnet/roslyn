@@ -482,6 +482,11 @@
         <target state="translated">Nepoužívejte System.Runtime.CompilerServices.RequiredMemberAttribute. Místo toho použijte klíčové slovo required pro povinná pole a vlastnosti.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitScopedRef">
+        <source>Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</source>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
         <source>The given expression cannot be used in a fixed statement</source>
         <target state="translated">Daný výraz nelze použít v příkazu fixed.</target>

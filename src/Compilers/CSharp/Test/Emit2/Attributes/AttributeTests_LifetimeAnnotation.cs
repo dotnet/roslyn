@@ -110,8 +110,17 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { ScopedRefAttributeDefinition, source });
-            // https://github.com/dotnet/roslyn/issues/62124: Re-enable check for ScopedRefAttribute in ReportExplicitUseOfReservedAttributes.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (2,18): error CS9065: Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
+                // delegate void D([ScopedRef] ref int i);
+                Diagnostic(ErrorCode.ERR_ExplicitScopedRef, "ScopedRef").WithLocation(2, 18),
+                // (5,30): error CS9065: Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
+                //     public static void Main([ScopedRef] string[] args)
+                Diagnostic(ErrorCode.ERR_ExplicitScopedRef, "ScopedRef").WithLocation(5, 30),
+                // (7,17): error CS9065: Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
+                //         D d = ([ScopedRef] ref int i) => { };
+                Diagnostic(ErrorCode.ERR_ExplicitScopedRef, "ScopedRef").WithLocation(7, 17)
+                );
         }
 
         [WorkItem(62124, "https://github.com/dotnet/roslyn/issues/62124")]
@@ -140,7 +149,6 @@ namespace System.Runtime.CompilerServices
 }
 ";
             var comp = CreateCompilation(source);
-            // https://github.com/dotnet/roslyn/issues/62124: Re-enable check for ScopedRefAttribute in ReportExplicitUseOfReservedAttributes.
             comp.VerifyDiagnostics(
                 // (6,24): warning CS0169: The field 'Program.F' is never used
                 //     [ScopedRef] object F;
@@ -148,6 +156,33 @@ namespace System.Runtime.CompilerServices
                 // (7,36): warning CS0067: The event 'Program.E' is never used
                 //     [ScopedRef] event EventHandler E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Program.E").WithLocation(7, 36));
+        }
+
+        [WorkItem(62124, "https://github.com/dotnet/roslyn/issues/62124")]
+        [Fact]
+        public void ExplicitAttribute_ReferencedInSource_03()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+record struct R1([ScopedRef] ref int i);
+record struct R2([ScopedRef] R i);
+ref struct R { }
+";
+            var comp = CreateCompilation(new[] { ScopedRefAttributeDefinition, source });
+            comp.VerifyDiagnostics(
+                // (3,19): error CS9065: Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
+                // record struct R1([ScopedRef] ref int i);
+                Diagnostic(ErrorCode.ERR_ExplicitScopedRef, "ScopedRef").WithLocation(3, 19),
+                // (3,30): error CS0631: ref and out are not valid in this context
+                // record struct R1([ScopedRef] ref int i);
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(3, 30),
+                // (4,19): error CS9065: Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.
+                // record struct R2([ScopedRef] R i);
+                Diagnostic(ErrorCode.ERR_ExplicitScopedRef, "ScopedRef").WithLocation(4, 19),
+                // (4,30): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
+                // record struct R2([ScopedRef] R i);
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(4, 30)
+                );
         }
 
         [Fact]

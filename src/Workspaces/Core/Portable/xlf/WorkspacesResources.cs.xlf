@@ -452,11 +452,6 @@
         <target state="translated">Zadaná cesta musí být absolutní.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified.</source>
-        <target state="translated">Název může být zjednodušený.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_identifier">
         <source>Unknown identifier.</source>
         <target state="translated">Neznámý identifikátor</target>

@@ -482,6 +482,11 @@
         <target state="translated">Nie używaj elementu „System.Runtime.CompilerServices.RequiredMemberAttribute”. Zamiast tego użyj słowa kluczowego „required” w wymaganych polach i właściwościach.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitScopedRef">
+        <source>Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</source>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
         <source>The given expression cannot be used in a fixed statement</source>
         <target state="translated">Podanego wyrażenia nie można użyć w instrukcji fixed</target>
