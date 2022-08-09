@@ -452,11 +452,6 @@
         <target state="translated">絶対パスを指定する必要があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified.</source>
-        <target state="translated">名前を簡素化できます。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_identifier">
         <source>Unknown identifier.</source>
         <target state="translated">不明な識別子です。</target>

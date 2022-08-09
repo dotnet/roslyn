@@ -625,12 +625,6 @@ Do you want to continue?</value>
     <value>Analyzer '{0}' threw the following exception:
 '{1}'.</value>
   </data>
-  <data name="Simplify_Names" xml:space="preserve">
-    <value>Simplify Names</value>
-  </data>
-  <data name="Simplify_Member_Access" xml:space="preserve">
-    <value>Simplify Member Access</value>
-  </data>
   <data name="Remove_qualification" xml:space="preserve">
     <value>Remove qualification</value>
   </data>

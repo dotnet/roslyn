@@ -28,10 +28,8 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 {
-    // TODO: SimplifyTypeNamesDiagnosticAnalyzerBase should sub-type AbstractBuiltInCodeStyleDiagnosticAnalyzer
-    // Tracked with https://github.com/dotnet/roslyn/issues/62639
     internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions>
-        : DiagnosticAnalyzer, IBuiltInAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
         where TSimplifierOptions : SimplifierOptions
     {
@@ -41,36 +39,35 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         private static readonly Regex s_newlinePattern = new Regex(@"[\r\n]+");
 #endif
 
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.Name_can_be_simplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(AnalyzersResources.Name_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
-        private static readonly LocalizableString s_localizableTitleSimplifyNames = new LocalizableResourceString(nameof(FeaturesResources.Simplify_Names), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly DiagnosticDescriptor s_descriptorSimplifyNames = new(IDEDiagnosticIds.SimplifyNamesDiagnosticId,
+        private static readonly LocalizableString s_localizableTitleSimplifyNames = new LocalizableResourceString(nameof(AnalyzersResources.Simplify_Names), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+        private static readonly DiagnosticDescriptor s_descriptorSimplifyNames = CreateDescriptorWithId(IDEDiagnosticIds.SimplifyNamesDiagnosticId,
+                                                                    EnforceOnBuildValues.SimplifyNames,
                                                                     s_localizableTitleSimplifyNames,
                                                                     s_localizableMessage,
-                                                                    DiagnosticCategory.Style,
-                                                                    DiagnosticSeverity.Hidden,
-                                                                    isEnabledByDefault: true,
-                                                                    helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.SimplifyNamesDiagnosticId),
-                                                                    customTags: DiagnosticCustomTags.Unnecessary.Concat(EnforceOnBuildValues.SimplifyNames.ToCustomTag()).ToArray());
+                                                                    isUnnecessary: true);
 
-        private static readonly LocalizableString s_localizableTitleSimplifyMemberAccess = new LocalizableResourceString(nameof(FeaturesResources.Simplify_Member_Access), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly DiagnosticDescriptor s_descriptorSimplifyMemberAccess = new(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
+        private static readonly LocalizableString s_localizableTitleSimplifyMemberAccess = new LocalizableResourceString(nameof(AnalyzersResources.Simplify_Member_Access), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+        private static readonly DiagnosticDescriptor s_descriptorSimplifyMemberAccess = CreateDescriptorWithId(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
+                                                                    EnforceOnBuildValues.SimplifyMemberAccess,
                                                                     s_localizableTitleSimplifyMemberAccess,
                                                                     s_localizableMessage,
-                                                                    DiagnosticCategory.Style,
-                                                                    DiagnosticSeverity.Hidden,
-                                                                    isEnabledByDefault: true,
-                                                                    helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId),
-                                                                    customTags: DiagnosticCustomTags.Unnecessary.Concat(EnforceOnBuildValues.SimplifyMemberAccess.ToCustomTag()).ToArray());
+                                                                    isUnnecessary: true);
 
-        private static readonly DiagnosticDescriptor s_descriptorPreferBuiltinOrFrameworkType = new(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
+        private static readonly DiagnosticDescriptor s_descriptorPreferBuiltinOrFrameworkType = CreateDescriptorWithId(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
+            EnforceOnBuildValues.PreferBuiltInOrFrameworkType,
             s_localizableTitleSimplifyNames,
             s_localizableMessage,
-            DiagnosticCategory.Style,
-            DiagnosticSeverity.Hidden,
-            isEnabledByDefault: true,
-            helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId),
-            customTags: DiagnosticCustomTags.Unnecessary.Concat(EnforceOnBuildValues.PreferBuiltInOrFrameworkType.ToCustomTag()).ToArray());
+            isUnnecessary: true);
+
+        protected SimplifyTypeNamesDiagnosticAnalyzerBase()
+            : base(ImmutableDictionary<DiagnosticDescriptor, ImmutableHashSet<IOption2>>.Empty
+                  .Add(s_descriptorSimplifyNames, ImmutableHashSet<IOption2>.Empty)
+                  .Add(s_descriptorSimplifyMemberAccess, ImmutableHashSet<IOption2>.Empty)
+                  .Add(s_descriptorPreferBuiltinOrFrameworkType, ImmutableHashSet.Create<IOption2>(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
+        {
+        }
 
         internal abstract bool IsCandidate(SyntaxNode node);
         internal abstract bool CanSimplifyTypeNameExpression(
@@ -78,19 +75,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
             CancellationToken cancellationToken);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
-            = ImmutableArray.Create(
-                    s_descriptorSimplifyNames,
-                    s_descriptorSimplifyMemberAccess,
-                    s_descriptorPreferBuiltinOrFrameworkType);
-
-        protected SimplifyTypeNamesDiagnosticAnalyzerBase()
-        {
-        }
-
-        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
-
-        public bool OpenFileOnly(SimplifierOptions? options)
+        public override bool OpenFileOnly(SimplifierOptions? options)
         {
             // analyzer is only active in C# and VB projects
             Contract.ThrowIfNull(options);
@@ -100,11 +85,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                   options.PreferPredefinedTypeKeywordInMemberAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
         }
 
-        public sealed override void Initialize(AnalysisContext context)
+        protected sealed override void InitializeWorker(AnalysisContext context)
         {
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-            context.EnableConcurrentExecution();
-
             context.RegisterCompilationStartAction(AnalyzeCompilation);
         }
 
@@ -208,7 +190,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             return diagnostic;
         }
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         private class AnalyzerImpl
