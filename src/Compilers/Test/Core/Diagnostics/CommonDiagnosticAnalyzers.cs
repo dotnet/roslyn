@@ -2372,8 +2372,10 @@ namespace Microsoft.CodeAnalysis
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         public sealed class VariableDeclarationAnalyzer : DiagnosticAnalyzer
         {
-            public VariableDeclarationAnalyzer(string diagnosticId)
+            private readonly bool _testSyntaxNodeAction;
+            public VariableDeclarationAnalyzer(string diagnosticId, bool testSyntaxNodeAction)
             {
+                _testSyntaxNodeAction = testSyntaxNodeAction;
                 Descriptor = new DiagnosticDescriptor(
                     diagnosticId,
                     "Title",
@@ -2389,9 +2391,18 @@ namespace Microsoft.CodeAnalysis
 
             public override void Initialize(AnalysisContext context)
             {
-                context.RegisterOperationAction(
-                    context => context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Operation.Syntax.GetLocation())),
-                    OperationKind.VariableDeclaration);
+                if (_testSyntaxNodeAction)
+                {
+                    context.RegisterSyntaxNodeAction<SyntaxKind>(
+                        context => context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Node.GetLocation())),
+                        SyntaxKind.VariableDeclaration);
+                }
+                else
+                {
+                    context.RegisterOperationAction(
+                        context => context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Operation.Syntax.GetLocation())),
+                        OperationKind.VariableDeclaration);
+                }
             }
         }
     }

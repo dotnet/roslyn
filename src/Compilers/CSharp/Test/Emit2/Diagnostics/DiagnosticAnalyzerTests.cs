@@ -3570,8 +3570,9 @@ class C
             }
         }
 
-        [Fact, WorkItem(63205, "https://github.com/dotnet/roslyn/issues/63205")]
-        public async Task TestGetAnalysisResultWithFilterSpanAsync()
+        [Theory, WorkItem(63205, "https://github.com/dotnet/roslyn/issues/63205")]
+        [CombinatorialData]
+        public async Task TestGetAnalysisResultWithFilterSpanAsync(bool testSyntaxNodeAction)
         {
             string source = @"
 class B
@@ -3591,7 +3592,7 @@ class B
             var tree = compilation.SyntaxTrees[0];
             var localDecl1 = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
             var semanticModel = compilation.GetSemanticModel(tree);
-            var analyzer1 = new VariableDeclarationAnalyzer("ID0001");
+            var analyzer1 = new VariableDeclarationAnalyzer("ID0001", testSyntaxNodeAction);
             var analyzer2 = new CSharpCompilerDiagnosticAnalyzer();
             var allAnalyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1, analyzer2);
             var compilationWithAnalyzers = compilation.WithAnalyzers(allAnalyzers);
