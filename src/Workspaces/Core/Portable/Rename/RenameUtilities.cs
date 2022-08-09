@@ -183,6 +183,27 @@ namespace Microsoft.CodeAnalysis.Rename
             return TokenRenameInfo.NoSymbolsTokenInfo;
         }
 
+        /// <summary>
+        /// We try to rewrite all locations that are invalid candidate locations. If there is only
+        /// one location it must be the correct one (the symbol is ambiguous to something else)
+        /// and we always try to rewrite it.  If there are multiple locations, we only allow it
+        /// if the candidate reason allows for it).
+        /// </summary>
+        internal static bool ShouldIncludeLocation(ImmutableArray<RenameLocation> renameLocations, RenameLocation location)
+        {
+            if (location.IsRenameInStringOrComment)
+            {
+                return false;
+            }
+
+            if (renameLocations.Length == 1)
+            {
+                return true;
+            }
+
+            return RenameLocation.ShouldRename(location);
+        }
+
         public static IEnumerable<ISymbol> GetOverloadedSymbols(ISymbol symbol)
         {
             if (symbol is IMethodSymbol)
@@ -237,53 +258,6 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             return null;
-        }
-
-        public static string ReplaceMatchingSubStrings(
-            string replaceInsideString,
-            string matchText,
-            string replacementText,
-            ImmutableSortedSet<TextSpan>? subSpansToReplace = null)
-        {
-            if (subSpansToReplace == null)
-            {
-                // We do not have already computed sub-spans to replace inside the string.
-                // Get regex for matches within the string and replace all matches with replacementText.
-                var regex = GetRegexForMatch(matchText);
-                return regex.Replace(replaceInsideString, replacementText);
-            }
-            else
-            {
-                // We are provided specific matches to replace inside the string.
-                // Process the input string from start to end, replacing matchText with replacementText
-                // at the provided sub-spans within the string for these matches.
-                var stringBuilder = new StringBuilder();
-                var startOffset = 0;
-                foreach (var subSpan in subSpansToReplace)
-                {
-                    Debug.Assert(subSpan.Start <= replaceInsideString.Length);
-                    Debug.Assert(subSpan.End <= replaceInsideString.Length);
-
-                    // Verify that provided sub-span has a match with matchText.
-                    if (replaceInsideString.Substring(subSpan.Start, subSpan.Length) != matchText)
-                        continue;
-
-                    // Append the sub-string from last match till the next match
-                    var offset = subSpan.Start - startOffset;
-                    stringBuilder.Append(replaceInsideString.Substring(startOffset, offset));
-
-                    // Append the replacementText
-                    stringBuilder.Append(replacementText);
-
-                    // Update startOffset to process the next match.
-                    startOffset += offset + subSpan.Length;
-                }
-
-                // Append the remaining of the sub-string within replaceInsideString after the last match. 
-                stringBuilder.Append(replaceInsideString.Substring(startOffset));
-
-                return stringBuilder.ToString();
-            }
         }
 
         public static Regex GetRegexForMatch(string matchText)
@@ -381,6 +355,37 @@ namespace Microsoft.CodeAnalysis.Rename
             var property = await RenameUtilities.TryGetPropertyFromAccessorOrAnOverrideAsync(bestSymbol, solution, cancellationToken).ConfigureAwait(false);
 
             return property ?? bestSymbol;
+        }
+
+        internal static string ReplaceMatchingSubStrings(
+            string replaceInsideString,
+            ImmutableSortedDictionary<TextSpan, string> subSpansToReplacementText)
+        {
+            // We are provided specific matches to replace inside the string.
+            // Process the input string from start to end, replacing matchText with replacementText
+            // at the provided sub-spans within the string for these matches.
+            var stringBuilder = new StringBuilder();
+            var startOffset = 0;
+            foreach (var (subspan, replacementText) in subSpansToReplacementText)
+            {
+                Debug.Assert(subspan.Start <= replaceInsideString.Length);
+                Debug.Assert(subspan.End <= replaceInsideString.Length);
+
+                // Append the sub-string from last match till the next match
+                var offset = subspan.Start - startOffset;
+                stringBuilder.Append(replaceInsideString.Substring(startOffset, offset));
+
+                // Append the replacementText
+                stringBuilder.Append(replacementText);
+
+                // Update startOffset to process the next match.
+                startOffset += offset + subspan.Length;
+            }
+
+            // Append the remaining of the sub-string within replaceInsideString after the last match. 
+            stringBuilder.Append(replaceInsideString.Substring(startOffset));
+
+            return stringBuilder.ToString();
         }
     }
 }

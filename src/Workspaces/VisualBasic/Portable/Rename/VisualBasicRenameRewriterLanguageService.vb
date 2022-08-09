@@ -27,32 +27,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         Private Sub New()
         End Sub
 
-#Region "Annotate"
+#Region "Annotation"
 
         Public Overrides Function AnnotateAndRename(parameters As RenameRewriterParameters) As SyntaxNode
-            Dim renameRewriter = New RenameRewriter(parameters)
+            Dim renameRewriter = New SymbolsRenameRewriter(parameters)
             Return renameRewriter.Visit(parameters.SyntaxRoot)
         End Function
 
-        Private Class RenameRewriter
+        Private NotInheritable Class SymbolsRenameRewriter
             Inherits VisualBasicSyntaxRewriter
 
             Private ReadOnly _documentId As DocumentId
-            Private ReadOnly _renameRenamableSymbolDeclaration As RenameAnnotation
             Private ReadOnly _solution As Solution
-            Private ReadOnly _replacementText As String
-            Private ReadOnly _originalText As String
-            Private ReadOnly _possibleNameConflicts As ICollection(Of String)
-            Private ReadOnly _renameLocations As Dictionary(Of TextSpan, RenameLocation)
-            Private ReadOnly _conflictLocations As IEnumerable(Of TextSpan)
+            Private ReadOnly _conflictLocations As ISet(Of TextSpan)
             Private ReadOnly _semanticModel As SemanticModel
             Private ReadOnly _cancellationToken As CancellationToken
-            Private ReadOnly _renamedSymbol As ISymbol
-            Private ReadOnly _aliasSymbol As IAliasSymbol
-            Private ReadOnly _renamableDeclarationLocation As Location
             Private ReadOnly _renameSpansTracker As RenamedSpansTracker
-            Private ReadOnly _isVerbatim As Boolean
-            Private ReadOnly _replacementTextValid As Boolean
             Private ReadOnly _simplificationService As ISimplificationService
             Private ReadOnly _annotatedIdentifierTokens As New HashSet(Of SyntaxToken)
             Private ReadOnly _invocationExpressionsNeedingConflictChecks As New HashSet(Of InvocationExpressionSyntax)
@@ -61,24 +51,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Private ReadOnly _renameAnnotations As AnnotationTable(Of RenameAnnotation)
 
             ''' <summary>
-            ''' Flag indicating if we should perform a rename inside string literals.
+            ''' Mapping from the span of renaming token to the renaming context info.
             ''' </summary>
-            Private ReadOnly _isRenamingInStrings As Boolean
+            Private ReadOnly _textSpanToLocationContextMap As ImmutableDictionary(Of TextSpan, LocationRenameContext)
 
             ''' <summary>
-            ''' Flag indicating if we should perform a rename inside comment trivia.
+            ''' Mapping from the symbolKey to all the possible symbols might be renamed in the document.
             ''' </summary>
-            Private ReadOnly _isRenamingInComments As Boolean
+            Private ReadOnly _stringAndCommentRenameContexts As ImmutableDictionary(Of TextSpan, ImmutableHashSet(Of LocationRenameContext))
 
             ''' <summary>
-            ''' A map from spans of tokens needing rename within strings or comments to an optional
-            ''' set of specific sub-spans within the token span that
-            ''' have <see cref="_originalText"/> matches and should be renamed.
-            ''' If this sorted set is Nothing, it indicates that sub-spans to rename within the token span
-            ''' are not available, and a regex match should be performed to rename
-            ''' all <see cref="_originalText"/> matches within the span.
+            ''' Mapping from the containgSpan of a common trivia/string identifier to a set of Locations needs to rename inside it.
+            ''' It Is created by using a regex in to find the matched text when renaming inside a string/identifier.
             ''' </summary>
-            Private ReadOnly _stringAndCommentTextSpans As ImmutableDictionary(Of TextSpan, ImmutableSortedSet(Of TextSpan))
+            Private ReadOnly _renamedSymbolContexts As ImmutableDictionary(Of SymbolKey, RenamedSymbolContext)
+
+            Private ReadOnly _replacementTexts As ImmutableHashSet(Of String)
+            Private ReadOnly _originalTexts As ImmutableHashSet(Of String)
+            Private ReadOnly _allPossibleConflictNames As ImmutableHashSet(Of String)
 
             Private ReadOnly Property AnnotateForComplexification As Boolean
                 Get
@@ -88,9 +78,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             Private _skipRenameForComplexification As Integer
             Private _isProcessingComplexifiedSpans As Boolean
-            Private _modifiedSubSpans As List(Of ValueTuple(Of TextSpan, TextSpan))
+            Private _modifiedSubSpans As List(Of (TextSpan, TextSpan))
             Private _speculativeModel As SemanticModel
-            Private _isProcessingStructuredTrivia As Integer
+
             Private ReadOnly _complexifiedSpans As HashSet(Of TextSpan) = New HashSet(Of TextSpan)
 
             Private Sub AddModifiedSpan(oldSpan As TextSpan, newSpan As TextSpan)
@@ -104,29 +94,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             Public Sub New(parameters As RenameRewriterParameters)
                 MyBase.New(visitIntoStructuredTrivia:=True)
-                _documentId = parameters.Document.Id
-                _renameRenamableSymbolDeclaration = parameters.RenamedSymbolDeclarationAnnotation
+                Dim document = parameters.Document
+                _documentId = document.Id
                 _solution = parameters.OriginalSolution
-                _replacementText = parameters.ReplacementText
-                _originalText = parameters.OriginalText
-                _possibleNameConflicts = parameters.PossibleNameConflicts
-                _renameLocations = parameters.RenameLocations
                 _conflictLocations = parameters.ConflictLocationSpans
                 _cancellationToken = parameters.CancellationToken
                 _semanticModel = parameters.SemanticModel
-                _renamedSymbol = parameters.RenameSymbol
-                _replacementTextValid = parameters.ReplacementTextValid
-                _renameSpansTracker = parameters.RenameSpansTracker
-                _isRenamingInStrings = parameters.IsRenamingInStrings
-                _isRenamingInComments = parameters.IsRenamingInComments
-                _stringAndCommentTextSpans = parameters.StringAndCommentTextSpans
-                _aliasSymbol = TryCast(_renamedSymbol, IAliasSymbol)
-                _renamableDeclarationLocation = _renamedSymbol.Locations.Where(Function(loc) loc.IsInSource AndAlso loc.SourceTree Is _semanticModel.SyntaxTree).FirstOrDefault()
-                _simplificationService = parameters.Document.Project.Services.GetRequiredService(Of ISimplificationService)()
-                _syntaxFactsService = parameters.Document.Project.Services.GetRequiredService(Of ISyntaxFactsService)()
-                _semanticFactsService = parameters.Document.Project.Services.GetRequiredService(Of ISemanticFactsService)()
-                _isVerbatim = _syntaxFactsService.IsVerbatimIdentifier(_replacementText)
+                _simplificationService = document.Project.Services.GetRequiredService(Of ISimplificationService)()
+                _syntaxFactsService = document.Project.Services.GetRequiredService(Of ISyntaxFactsService)()
+                _semanticFactsService = document.Project.Services.GetRequiredService(Of ISemanticFactsService)()
                 _renameAnnotations = parameters.RenameAnnotations
+                _renameSpansTracker = parameters.RenameSpansTracker
+
+                ' TODO: These contexts are not changed for a document. ConflictResolver.Session should be refactored to cache them in a dictionary,
+                _renamedSymbolContexts = CreateSymbolKeyToRenamedSymbolContextMap(parameters.RenameSymbolContexts, SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False))
+                _textSpanToLocationContextMap = CreateTextSpanToLocationContextMap(parameters.TokenTextSpanRenameContexts)
+                _stringAndCommentRenameContexts = GroupStringAndCommentsTextSpanRenameContexts(parameters.StringAndCommentsTextSpanRenameContexts)
+                _replacementTexts = _renamedSymbolContexts.Select(Function(pair) pair.Value.ReplacementText).ToImmutableHashSet(CaseInsensitiveComparison.Comparer)
+                _originalTexts = _renamedSymbolContexts.Select(Function(pair) pair.Value.OriginalText).ToImmutableHashSet(CaseInsensitiveComparison.Comparer)
+                _allPossibleConflictNames = _renamedSymbolContexts.SelectMany(Function(pair) pair.Value.PossibleNameConflicts).ToImmutableHashSet(CaseInsensitiveComparison.Comparer)
             End Sub
 
             Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode
@@ -263,39 +249,76 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Return True
             End Function
 
-            Private Shared Function IsPossibleNameConflict(possibleNameConflicts As ICollection(Of String), candidate As String) As Boolean
-                For Each possibleNameConflict In possibleNameConflicts
-                    If CaseInsensitiveComparison.Equals(possibleNameConflict, candidate) Then
-                        Return True
+            Private Function UpdateAliasAnnotation(newToken As SyntaxToken) As SyntaxToken
+
+                For Each kvp In _renamedSymbolContexts
+                    Dim renameSymbolContext = kvp.Value
+                    Dim aliasSymbol = renameSymbolContext.AliasSymbol
+                    If aliasSymbol IsNot Nothing AndAlso Not Me.AnnotateForComplexification AndAlso newToken.HasAnnotations(AliasAnnotation.Kind) Then
+                        newToken = RenameUtilities.UpdateAliasAnnotation(newToken, aliasSymbol, renameSymbolContext.ReplacementText)
                     End If
                 Next
-
-                Return False
-            End Function
-
-            Private Function UpdateAliasAnnotation(newToken As SyntaxToken) As SyntaxToken
-                If Me._aliasSymbol IsNot Nothing AndAlso Not Me.AnnotateForComplexification AndAlso newToken.HasAnnotations(AliasAnnotation.Kind) Then
-                    newToken = RenameUtilities.UpdateAliasAnnotation(newToken, Me._aliasSymbol, Me._replacementText)
-                End If
 
                 Return newToken
             End Function
 
-            Private Async Function RenameAndAnnotateAsync(token As SyntaxToken, newToken As SyntaxToken, isRenameLocation As Boolean, isOldText As Boolean) As Task(Of SyntaxToken)
+            Private Async Function AnnotateForConflictCheckAsync(token As SyntaxToken, newToken As SyntaxToken, isOldText As Boolean) As Task(Of SyntaxToken)
+                If token.IsKind(SyntaxKind.NewKeyword) Then
+                    ' The constructor definition cannot be renamed in Visual Basic
+                    Return newToken
+                End If
+
+                Dim isNamespaceDeclarationReference = token.GetPreviousToken().Kind = SyntaxKind.NamespaceKeyword
+                Dim symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Services, _cancellationToken)
+                If symbols.Length = 1 Then
+                    If TypeOf symbols(0) Is INamespaceSymbol AndAlso isNamespaceDeclarationReference Then
+                        Return newToken
+                    End If
+                End If
+
+                Dim renameDeclarationLocations As RenameDeclarationLocationReference() =
+                   Await ConflictResolver.CreateDeclarationLocationAnnotationsAsync(_solution, symbols, _cancellationToken).ConfigureAwait(False)
+
+                Dim isMemberGroupReference = token.Parent IsNot Nothing AndAlso _semanticFactsService.IsInsideNameOfExpression(_semanticModel, token.Parent, _cancellationToken)
+
+                Dim renameAnnotation = New RenameActionAnnotation(
+                                    token.Span,
+                                    isRenameLocation:=False,
+                                    Nothing,
+                                    Nothing,
+                                    isOldText,
+                                    renameDeclarationLocations,
+                                    isNamespaceDeclarationReference:=isNamespaceDeclarationReference,
+                                    isInvocationExpression:=False,
+                                    isMemberGroupReference:=isMemberGroupReference)
+
+                _annotatedIdentifierTokens.Add(token)
+                _invocationExpressionsNeedingConflictChecks.AddRange(token.GetAncestors(Of InvocationExpressionSyntax)())
+                newToken = Me._renameAnnotations.WithAdditionalAnnotations(newToken, renameAnnotation, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = token.Span})
+                Return newToken
+            End Function
+
+            Private Async Function RenameAndAnnotateAsync(
+                token As SyntaxToken,
+                newToken As SyntaxToken,
+                isVerbatim As Boolean,
+                replacementTextValid As Boolean,
+                isRenamableAccessor As Boolean,
+                originalText As String,
+                replacementText As String) As Task(Of SyntaxToken)
+
                 If newToken.IsKind(SyntaxKind.NewKeyword) Then
                     ' The constructor definition cannot be renamed in Visual Basic
                     Return newToken
                 End If
 
                 If Me._isProcessingComplexifiedSpans Then
-                    If isRenameLocation Then
-                        Dim annotation = Me._renameAnnotations.GetAnnotations(Of RenameActionAnnotation)(token).FirstOrDefault()
-                        If annotation IsNot Nothing Then
-                            newToken = RenameToken(token, newToken, annotation.Prefix, annotation.Suffix)
-                            AddModifiedSpan(annotation.OriginalSpan, New TextSpan(token.Span.Start, newToken.Span.Length))
-                        Else
-                            newToken = RenameToken(token, newToken, prefix:=Nothing, suffix:=Nothing)
-                        End If
+                    Dim annotation = Me._renameAnnotations.GetAnnotations(Of RenameActionAnnotation)(token).FirstOrDefault()
+                    If annotation IsNot Nothing Then
+                        newToken = RenameToken(token, newToken, annotation.Prefix, annotation.Suffix, isVerbatim, replacementText, originalText, replacementTextValid)
+                        AddModifiedSpan(annotation.OriginalSpan, New TextSpan(token.Span.Start, newToken.Span.Length))
+                    Else
+                        newToken = RenameToken(token, newToken, prefix:=Nothing, suffix:=Nothing, isVerbatim:=isVerbatim, replacementText:=replacementText, originalText:=originalText, replacementTextValid:=replacementTextValid)
                     End If
 
                     Return newToken
@@ -304,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Dim symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Services, _cancellationToken)
 
                 ' this is the compiler generated backing field of a non custom event. We need to store a "Event" suffix to properly rename it later on.
-                Dim prefix = If(isRenameLocation AndAlso Me._renameLocations(token.Span).IsRenamableAccessor, newToken.ValueText.Substring(0, newToken.ValueText.IndexOf("_"c) + 1), String.Empty)
+                Dim prefix = If(isRenamableAccessor, newToken.ValueText.Substring(0, newToken.ValueText.IndexOf("_"c) + 1), String.Empty)
                 Dim suffix As String = Nothing
 
                 If symbols.Length = 1 Then
@@ -318,15 +341,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         Dim fieldSymbol = DirectCast(symbol, IFieldSymbol)
 
                         If fieldSymbol.Type.IsDelegateType AndAlso
-                        fieldSymbol.Type.IsImplicitlyDeclared AndAlso
-                        DirectCast(fieldSymbol.Type, INamedTypeSymbol).AssociatedSymbol IsNot Nothing Then
+                    fieldSymbol.Type.IsImplicitlyDeclared AndAlso
+                    DirectCast(fieldSymbol.Type, INamedTypeSymbol).AssociatedSymbol IsNot Nothing Then
 
                             suffix = "Event"
                         End If
 
                         If fieldSymbol.AssociatedSymbol IsNot Nothing AndAlso
-                           fieldSymbol.AssociatedSymbol.IsKind(SymbolKind.Property) AndAlso
-                           fieldSymbol.Name = "_" + fieldSymbol.AssociatedSymbol.Name Then
+                       fieldSymbol.AssociatedSymbol.IsKind(SymbolKind.Property) AndAlso
+                       fieldSymbol.Name = "_" + fieldSymbol.AssociatedSymbol.Name Then
 
                             prefix = "_"
                         End If
@@ -340,75 +363,53 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     ElseIf TypeOf symbol Is INamedTypeSymbol Then
                         Dim namedTypeSymbol = DirectCast(symbol, INamedTypeSymbol)
                         If namedTypeSymbol.IsImplicitlyDeclared AndAlso
-                        namedTypeSymbol.IsDelegateType() AndAlso
-                        namedTypeSymbol.AssociatedSymbol IsNot Nothing Then
+                            namedTypeSymbol.IsDelegateType() AndAlso
+                            namedTypeSymbol.AssociatedSymbol IsNot Nothing Then
                             suffix = "EventHandler"
                         End If
                     End If
-
-                    If Not isRenameLocation AndAlso TypeOf (symbol) Is INamespaceSymbol AndAlso token.GetPreviousToken().Kind = SyntaxKind.NamespaceKeyword Then
-                        Return newToken
-                    End If
                 End If
 
-                If isRenameLocation AndAlso Not Me.AnnotateForComplexification Then
+                If Not Me.AnnotateForComplexification Then
                     Dim oldSpan = token.Span
-                    newToken = RenameToken(token, newToken, prefix:=prefix, suffix:=suffix)
+                    newToken = RenameToken(token, newToken, prefix:=prefix, suffix:=suffix, isVerbatim:=isVerbatim, replacementText:=replacementText, originalText:=originalText, replacementTextValid:=replacementTextValid)
                     AddModifiedSpan(oldSpan, newToken.Span)
                 End If
 
                 Dim renameDeclarationLocations As RenameDeclarationLocationReference() =
-                   Await ConflictResolver.CreateDeclarationLocationAnnotationsAsync(_solution, symbols, _cancellationToken).ConfigureAwait(False)
+               Await ConflictResolver.CreateDeclarationLocationAnnotationsAsync(_solution, symbols, _cancellationToken).ConfigureAwait(False)
 
-                Dim isNamespaceDeclarationReference = False
-                If isRenameLocation AndAlso token.GetPreviousToken().Kind = SyntaxKind.NamespaceKeyword Then
-                    isNamespaceDeclarationReference = True
-                End If
+                Dim isNamespaceDeclarationReference = token.GetPreviousToken().Kind = SyntaxKind.NamespaceKeyword
 
                 Dim isMemberGroupReference = _semanticFactsService.IsInsideNameOfExpression(_semanticModel, token.Parent, _cancellationToken)
 
                 Dim renameAnnotation = New RenameActionAnnotation(
-                                    token.Span,
-                                    isRenameLocation,
-                                    prefix,
-                                    suffix,
-                                    isOldText,
-                                    renameDeclarationLocations,
-                                    isNamespaceDeclarationReference,
-                                    isInvocationExpression:=False,
-                                    isMemberGroupReference:=isMemberGroupReference)
+                                token.Span,
+                                isRenameLocation:=True,
+                                prefix,
+                                suffix,
+                                isOriginalTextLocation:=token.ValueText = originalText,
+                                renameDeclarationLocations,
+                                isNamespaceDeclarationReference,
+                                isInvocationExpression:=False,
+                                isMemberGroupReference:=isMemberGroupReference)
 
                 _annotatedIdentifierTokens.Add(token)
                 newToken = Me._renameAnnotations.WithAdditionalAnnotations(newToken, renameAnnotation, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = token.Span})
-                If Me._renameRenamableSymbolDeclaration IsNot Nothing AndAlso _renamableDeclarationLocation = token.GetLocation() Then
-                    newToken = Me._renameAnnotations.WithAdditionalAnnotations(newToken, Me._renameRenamableSymbolDeclaration)
-                End If
 
                 Return newToken
             End Function
 
-            Private Function IsInRenameLocation(token As SyntaxToken) As Boolean
-                If Not Me._isProcessingComplexifiedSpans Then
-                    Return Me._renameLocations.ContainsKey(token.Span)
-                Else
-                    If token.HasAnnotations(AliasAnnotation.Kind) Then
-                        Return False
-                    End If
+            Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
+                Dim newTrivia = MyBase.VisitTrivia(trivia)
 
-                    If Me._renameAnnotations.HasAnnotations(Of RenameActionAnnotation)(token) Then
-                        Return Me._renameAnnotations.GetAnnotations(Of RenameActionAnnotation)(token).First().IsRenameLocation
-                    End If
-
-                    If TypeOf token.Parent Is SimpleNameSyntax AndAlso token.Kind <> SyntaxKind.GlobalKeyword AndAlso token.Parent.Parent.IsKind(SyntaxKind.QualifiedName, SyntaxKind.QualifiedCrefOperatorReference) Then
-                        Dim symbol = Me._speculativeModel.GetSymbolInfo(token.Parent, Me._cancellationToken).Symbol
-                        If symbol IsNot Nothing AndAlso Me._renamedSymbol.Kind <> SymbolKind.Local AndAlso Me._renamedSymbol.Kind <> SymbolKind.RangeVariable AndAlso
-                            (Equals(symbol, Me._renamedSymbol) OrElse SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False).Equals(symbol.GetSymbolKey(), Me._renamedSymbol.GetSymbolKey())) Then
-                            Return True
-                        End If
-                    End If
-
-                    Return False
+                Dim textSpanRenameContexts As ImmutableHashSet(Of LocationRenameContext) = Nothing
+                If Not trivia.HasStructure AndAlso _stringAndCommentRenameContexts.TryGetValue(trivia.Span, textSpanRenameContexts) Then
+                    Dim subSpanToReplacementText = CreateSubSpanToReplacementTextDictionary(textSpanRenameContexts)
+                    Return RenameInCommentTrivia(trivia, newTrivia, subSpanToReplacementText)
                 End If
+
+                Return newTrivia
             End Function
 
             Public Overrides Function VisitToken(oldToken As SyntaxToken) As SyntaxToken
@@ -416,16 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     Return oldToken
                 End If
 
-                Dim newToken = oldToken
-                Dim shouldCheckTrivia = Me._stringAndCommentTextSpans.ContainsKey(oldToken.Span)
-                If shouldCheckTrivia Then
-                    Me._isProcessingStructuredTrivia += 1
-                    newToken = MyBase.VisitToken(newToken)
-                    Me._isProcessingStructuredTrivia -= 1
-                Else
-                    newToken = MyBase.VisitToken(newToken)
-                End If
-
+                Dim newToken = MyBase.VisitToken(oldToken)
                 newToken = UpdateAliasAnnotation(newToken)
 
                 ' Rename matches in strings and comments
@@ -436,19 +428,114 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     Return newToken
                 End If
 
-                Dim isRenameLocation = IsInRenameLocation(oldToken)
-                Dim isOldText = CaseInsensitiveComparison.Equals(oldToken.ValueText, _originalText)
-                Dim tokenNeedsConflictCheck = isRenameLocation OrElse
-                    isOldText OrElse
-                    CaseInsensitiveComparison.Equals(oldToken.ValueText, _replacementText) OrElse
-                    IsPossibleNameConflict(_possibleNameConflicts, oldToken.ValueText)
+                Dim locationRenameContext As LocationRenameContext = Nothing
+                If Not _isProcessingComplexifiedSpans AndAlso _textSpanToLocationContextMap.TryGetValue(oldToken.Span, locationRenameContext) Then
+                    newToken = RenameAndAnnotateAsync(
+                        oldToken,
+                        newToken,
+                        isVerbatim:=_syntaxFactsService.IsVerbatimIdentifier(locationRenameContext.ReplacementText),
+                        replacementTextValid:=locationRenameContext.ReplacementTextValid,
+                        isRenamableAccessor:=locationRenameContext.RenameLocation.IsRenamableAccessor,
+                        originalText:=locationRenameContext.OriginalText,
+                        replacementText:=locationRenameContext.ReplacementText).WaitAndGetResult_CanCallOnBackground(_cancellationToken)
+                    _invocationExpressionsNeedingConflictChecks.AddRange(oldToken.GetAncestors(Of InvocationExpressionSyntax)())
+                    Return newToken
+                End If
 
-                If tokenNeedsConflictCheck Then
-                    newToken = RenameAndAnnotateAsync(oldToken, newToken, isRenameLocation, isOldText).WaitAndGetResult_CanCallOnBackground(_cancellationToken)
+                If _isProcessingComplexifiedSpans Then
+                    Return RenameTokenWhenProcessingComplexiedSpans(oldToken, newToken)
+                End If
 
-                    If Not Me._isProcessingComplexifiedSpans Then
-                        _invocationExpressionsNeedingConflictChecks.AddRange(oldToken.GetAncestors(Of InvocationExpressionSyntax)())
+                Return AnnotateNonRenameLocation(oldToken, newToken)
+            End Function
+
+            Private Function RenameTokenWhenProcessingComplexiedSpans(token As SyntaxToken, newToken As SyntaxToken) As SyntaxToken
+                If Not _isProcessingComplexifiedSpans Then
+                    Return newToken
+                End If
+
+                RoslynDebug.Assert(_speculativeModel IsNot Nothing)
+
+                If token.HasAnnotations(AliasAnnotation.Kind) Then
+                    Return newToken
+                End If
+
+                If token.HasAnnotations(RenameAnnotation.Kind) Then
+                    Dim annotation = _renameAnnotations.GetAnnotations(token).OfType(Of RenameActionAnnotation).First()
+
+                    Dim originalContext As LocationRenameContext = Nothing
+                    If annotation.IsRenameLocation AndAlso _textSpanToLocationContextMap.TryGetValue(annotation.OriginalSpan, originalContext) Then
+                        Return RenameComplexifiedToken(token, newToken, originalContext)
+                    Else
+                        Return newToken
                     End If
+                End If
+
+                If TypeOf token.Parent Is SimpleNameSyntax AndAlso token.Kind <> SyntaxKind.GlobalKeyword AndAlso token.Parent.Parent.IsKind(SyntaxKind.QualifiedName, SyntaxKind.QualifiedCrefOperatorReference) Then
+                    Dim symbol = Me._speculativeModel.GetSymbolInfo(token.Parent, Me._cancellationToken).Symbol
+                    Dim renamedSymbolContext As RenamedSymbolContext = Nothing
+                    If symbol IsNot Nothing AndAlso
+                        _renamedSymbolContexts.TryGetValue(symbol.GetSymbolKey(), renamedSymbolContext) AndAlso
+                        renamedSymbolContext.RenamedSymbol.Kind <> SymbolKind.Local AndAlso
+                        renamedSymbolContext.RenamedSymbol.Kind <> SymbolKind.RangeVariable AndAlso
+                        token.ValueText = renamedSymbolContext.OriginalText Then
+                        Return RenameComplexifiedToken(token, newToken, renamedSymbolContext)
+                    End If
+                End If
+
+                Return newToken
+            End Function
+
+            Private Function RenameComplexifiedToken(token As SyntaxToken, newToken As SyntaxToken, locationRenameContext As LocationRenameContext) As SyntaxToken
+                If _isProcessingComplexifiedSpans Then
+                    Dim annotation = _renameAnnotations.GetAnnotations(token).OfType(Of RenameActionAnnotation)().FirstOrDefault()
+
+                    newToken = RenameToken(
+                            token,
+                            newToken,
+                            annotation.Prefix,
+                            annotation.Suffix,
+                            _syntaxFactsService.IsVerbatimIdentifier(locationRenameContext.ReplacementText),
+                            locationRenameContext.ReplacementText,
+                            locationRenameContext.OriginalText,
+                            locationRenameContext.ReplacementTextValid)
+
+                    AddModifiedSpan(annotation.OriginalSpan, newToken.Span)
+                End If
+
+                Return newToken
+            End Function
+
+            Private Function RenameComplexifiedToken(token As SyntaxToken, newToken As SyntaxToken, renamedSymbolContext As RenamedSymbolContext) As SyntaxToken
+                If _isProcessingComplexifiedSpans Then
+                    Return RenameToken(
+                            token,
+                            newToken,
+                            prefix:=Nothing,
+                            suffix:=Nothing,
+                            isVerbatim:=_syntaxFactsService.IsVerbatimIdentifier(renamedSymbolContext.ReplacementText),
+                            replacementText:=renamedSymbolContext.ReplacementText,
+                            originalText:=renamedSymbolContext.OriginalText,
+                            replacementTextValid:=renamedSymbolContext.ReplacementTextValid)
+                End If
+
+                Return newToken
+            End Function
+
+            Private Function AnnotateNonRenameLocation(token As SyntaxToken, newToken As SyntaxToken) As SyntaxToken
+                If Not _isProcessingComplexifiedSpans Then
+                    Dim tokenText = token.ValueText
+                    ' This is a pretty hot code path, avoid using linq.
+                    Dim isOldText = _originalTexts.Contains(tokenText, CaseInsensitiveComparison.Comparer)
+                    Dim tokenNeedsConflictCheck = isOldText OrElse
+                                                  _replacementTexts.Contains(tokenText, CaseInsensitiveComparison.Comparer) OrElse
+                                                  _allPossibleConflictNames.Contains(tokenText, CaseInsensitiveComparison.Comparer)
+
+                    If tokenNeedsConflictCheck Then
+                        newToken = AnnotateForConflictCheckAsync(token, newToken, isOldText).WaitAndGetResult_CanCallOnBackground(_cancellationToken)
+                    End If
+
+                    Return newToken
                 End If
 
                 Return newToken
@@ -519,14 +606,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Return result
             End Function
 
-            Private Function RenameToken(oldToken As SyntaxToken, newToken As SyntaxToken, prefix As String, suffix As String) As SyntaxToken
+            Private Function RenameToken(oldToken As SyntaxToken,
+                                         newToken As SyntaxToken,
+                                         prefix As String,
+                                         suffix As String,
+                                         isVerbatim As Boolean,
+                                         replacementText As String,
+                                         originalText As String,
+                                         replacementTextValid As Boolean) As SyntaxToken
+
                 Dim parent = oldToken.Parent
-                Dim currentNewIdentifier = Me._replacementText
+                Dim currentNewIdentifier = replacementText
                 Dim oldIdentifier = newToken.ValueText
                 Dim isAttributeName = SyntaxFacts.IsAttributeName(parent)
                 If isAttributeName Then
-                    Debug.Assert(Me._renamedSymbol.IsAttribute() OrElse Me._aliasSymbol.Target.IsAttribute())
-                    If oldIdentifier <> Me._renamedSymbol.Name Then
+                    If oldIdentifier <> originalText Then
                         Dim withoutSuffix = String.Empty
                         If currentNewIdentifier.TryReduceAttributeSuffix(withoutSuffix) Then
                             currentNewIdentifier = withoutSuffix
@@ -555,7 +649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     valueText = DirectCast(name, IdentifierNameSyntax).Identifier.ValueText
                 End If
 
-                If Me._isVerbatim Then
+                If isVerbatim Then
                     newToken = newToken.CopyAnnotationsTo(SyntaxFactory.BracketedIdentifier(newToken.LeadingTrivia, valueText, newToken.TrailingTrivia))
                 Else
                     newToken = newToken.CopyAnnotationsTo(SyntaxFactory.Identifier(
@@ -566,7 +660,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                                                       oldToken.GetTypeCharacter(),
                                                           newToken.TrailingTrivia))
 
-                    If Me._replacementTextValid AndAlso
+                    If replacementTextValid AndAlso
                         oldToken.GetTypeCharacter() <> TypeCharacter.None AndAlso
                         (SyntaxFacts.GetKeywordKind(valueText) = SyntaxKind.REMKeyword OrElse Me._syntaxFactsService.IsVerbatimIdentifier(newToken)) Then
 
@@ -574,7 +668,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     End If
                 End If
 
-                If Me._replacementTextValid Then
+                If replacementTextValid Then
                     If newToken.IsBracketed Then
                         ' a reference location should always be tried to be unescaped, whether it was escaped before rename 
                         ' or the replacement itself is escaped.
@@ -587,86 +681,60 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Return newToken
             End Function
 
-            Private Function RenameInStringLiteral(oldToken As SyntaxToken, newToken As SyntaxToken, subSpansToReplace As ImmutableSortedSet(Of TextSpan), createNewStringLiteral As Func(Of SyntaxTriviaList, String, String, SyntaxTriviaList, SyntaxToken)) As SyntaxToken
+            Private Function RenameInStringLiteral(oldToken As SyntaxToken, newToken As SyntaxToken, subSpanToReplacementText As ImmutableSortedDictionary(Of TextSpan, String), createNewStringLiteral As Func(Of SyntaxTriviaList, String, String, SyntaxTriviaList, SyntaxToken)) As SyntaxToken
                 Dim originalString = newToken.ToString()
-                Dim replacedString As String = RenameUtilities.ReplaceMatchingSubStrings(originalString, _originalText, _replacementText, subSpansToReplace)
+                Dim replacedString = RenameUtilities.ReplaceMatchingSubStrings(originalString, subSpanToReplacementText)
                 If replacedString <> originalString Then
                     Dim oldSpan = oldToken.Span
-                    newToken = createNewStringLiteral(newToken.LeadingTrivia, replacedString, replacedString, newToken.TrailingTrivia)
-                    AddModifiedSpan(oldSpan, newToken.Span)
-                    Return newToken.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(newToken, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = oldSpan}))
+                    Dim replacedToken = createNewStringLiteral(newToken.LeadingTrivia, replacedString, replacedString, newToken.TrailingTrivia)
+                    AddModifiedSpan(oldSpan, replacedToken.Span)
+                    Return newToken.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(replacedToken, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = oldSpan}))
                 End If
 
                 Return newToken
             End Function
 
-            Private Function RenameInCommentTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
-                Dim originalString = trivia.ToString()
-                Dim replacedString As String = RenameUtilities.ReplaceMatchingSubStrings(originalString, _originalText, _replacementText)
+            Private Function RenameInCommentTrivia(oldTrivia As SyntaxTrivia, newTrivia As SyntaxTrivia, subSpanToReplacementText As ImmutableSortedDictionary(Of TextSpan, String)) As SyntaxTrivia
+                Dim originalString = newTrivia.ToString()
+                Dim replacedString As String = RenameUtilities.ReplaceMatchingSubStrings(originalString, subSpanToReplacementText)
                 If replacedString <> originalString Then
-                    Dim oldSpan = trivia.Span
-                    Dim newTrivia = SyntaxFactory.CommentTrivia(replacedString)
-                    AddModifiedSpan(oldSpan, newTrivia.Span)
-                    Return trivia.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(newTrivia, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = oldSpan}))
+                    Dim oldSpan = oldTrivia.Span
+                    Dim replacedTrivia = SyntaxFactory.CommentTrivia(replacedString)
+                    AddModifiedSpan(oldSpan, replacedTrivia.Span)
+                    Return newTrivia.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(replacedTrivia, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = oldSpan}))
                 End If
 
-                Return trivia
+                Return newTrivia
             End Function
 
-            Private Function RenameInTrivia(token As SyntaxToken, leadingOrTrailingTriviaList As IEnumerable(Of SyntaxTrivia)) As SyntaxToken
-                Return token.ReplaceTrivia(leadingOrTrailingTriviaList, Function(oldTrivia, newTrivia)
-                                                                            If newTrivia.Kind = SyntaxKind.CommentTrivia Then
-                                                                                Return RenameInCommentTrivia(newTrivia)
-                                                                            End If
-
-                                                                            Return newTrivia
-                                                                        End Function)
-            End Function
-
-            Private Function RenameWithinToken(oldToken As SyntaxToken, newToken As SyntaxToken) As SyntaxToken
-                Dim subSpansToReplace As ImmutableSortedSet(Of TextSpan) = Nothing
-                If Me._isProcessingComplexifiedSpans OrElse
-                (Me._isProcessingStructuredTrivia = 0 AndAlso Not Me._stringAndCommentTextSpans.TryGetValue(oldToken.Span, subSpansToReplace)) Then
+            Private Function RenameWithinToken(token As SyntaxToken, newToken As SyntaxToken) As SyntaxToken
+                Dim locationSymbolContexts As ImmutableHashSet(Of LocationRenameContext) = Nothing
+                If _isProcessingComplexifiedSpans OrElse Not _stringAndCommentRenameContexts.TryGetValue(token.Span, locationSymbolContexts) OrElse locationSymbolContexts.Count = 0 Then
                     Return newToken
                 End If
 
-                If Me._isRenamingInStrings OrElse subSpansToReplace?.Count > 0 Then
-                    If newToken.Kind = SyntaxKind.StringLiteralToken Then
-                        newToken = RenameInStringLiteral(oldToken, newToken, subSpansToReplace, AddressOf SyntaxFactory.StringLiteralToken)
-                    ElseIf newToken.Kind = SyntaxKind.InterpolatedStringTextToken Then
-                        newToken = RenameInStringLiteral(oldToken, newToken, subSpansToReplace, AddressOf SyntaxFactory.InterpolatedStringTextToken)
-                    End If
-                End If
+                Dim subSpanToReplacementText = CreateSubSpanToReplacementTextDictionary(locationSymbolContexts)
 
-                If Me._isRenamingInComments Then
-                    If newToken.Kind = SyntaxKind.XmlTextLiteralToken Then
-                        newToken = RenameInStringLiteral(oldToken, newToken, subSpansToReplace, AddressOf SyntaxFactory.XmlTextLiteralToken)
-                    ElseIf newToken.Kind = SyntaxKind.XmlNameToken AndAlso CaseInsensitiveComparison.Equals(oldToken.ValueText, _originalText) Then
-                        Dim newIdentifierToken = SyntaxFactory.XmlNameToken(newToken.LeadingTrivia, _replacementText, SyntaxFacts.GetKeywordKind(_replacementText), newToken.TrailingTrivia)
-                        newToken = newToken.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(newIdentifierToken, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = oldToken.Span}))
-                        AddModifiedSpan(oldToken.Span, newToken.Span)
-                    End If
-
-                    If newToken.HasLeadingTrivia Then
-                        Dim updatedToken = RenameInTrivia(oldToken, oldToken.LeadingTrivia)
-                        If updatedToken <> oldToken Then
-                            newToken = newToken.WithLeadingTrivia(updatedToken.LeadingTrivia)
-                        End If
-                    End If
-
-                    If newToken.HasTrailingTrivia Then
-                        Dim updatedToken = RenameInTrivia(oldToken, oldToken.TrailingTrivia)
-                        If updatedToken <> oldToken Then
-                            newToken = newToken.WithTrailingTrivia(updatedToken.TrailingTrivia)
-                        End If
+                Dim kind = newToken.Kind()
+                If kind = SyntaxKind.StringLiteralToken Then
+                    newToken = RenameInStringLiteral(token, newToken, subSpanToReplacementText, AddressOf SyntaxFactory.StringLiteralToken)
+                ElseIf kind = SyntaxKind.InterpolatedStringTextToken Then
+                    newToken = RenameInStringLiteral(token, newToken, subSpanToReplacementText, AddressOf SyntaxFactory.InterpolatedStringTextToken)
+                ElseIf kind = SyntaxKind.XmlTextLiteralToken Then
+                    newToken = RenameInStringLiteral(token, newToken, subSpanToReplacementText, AddressOf SyntaxFactory.XmlTextLiteralToken)
+                ElseIf kind = SyntaxKind.XmlNameToken Then
+                    Dim originalText = newToken.ToString()
+                    Dim replacementText = RenameUtilities.ReplaceMatchingSubStrings(originalText, subSpanToReplacementText)
+                    If replacementText <> originalText Then
+                        Dim newIdentifierToken = SyntaxFactory.XmlNameToken(newToken.LeadingTrivia, replacementText, SyntaxFacts.GetKeywordKind(replacementText), newToken.TrailingTrivia)
+                        newToken = newToken.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(newIdentifierToken, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = token.Span}))
+                        AddModifiedSpan(token.Span, newToken.Span)
                     End If
                 End If
 
                 Return newToken
             End Function
-
         End Class
-
 #End Region
 
 #Region "Declaration Conflicts"
@@ -871,6 +939,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Return If(enclosingStatement, If(possibleLambdaExpression, token.FirstAncestorOrSelf(Function(n) TypeOf (n) Is SimpleNameSyntax)))
         End Function
 
+        Public Overrides Function IsRenamableTokenInComment(token As SyntaxToken) As Boolean
+            Return token.IsKind(SyntaxKind.XmlTextLiteralToken, SyntaxKind.XmlNameToken)
+        End Function
+
 #Region "Helper Methods"
         Public Overrides Function IsIdentifierValid(replacementText As String, syntaxFactsService As ISyntaxFactsService) As Boolean
             replacementText = SyntaxFacts.MakeHalfWidthIdentifier(replacementText)
@@ -1038,7 +1110,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Dim position = nodeToSpeculate.SpanStart
             Return SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(nodeToSpeculate, DirectCast(originalSemanticModel, SemanticModel), position, isInNamespaceOrTypeContext)
         End Function
-
 #End Region
 
     End Class

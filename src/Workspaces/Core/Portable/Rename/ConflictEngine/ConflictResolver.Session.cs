@@ -41,8 +41,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private readonly ImmutableArray<SymbolKey> _nonConflictSymbolKeys;
             private readonly CancellationToken _cancellationToken;
 
-            private readonly RenameAnnotation _renamedSymbolDeclarationAnnotation = new();
-
             // Contains Strings like Bar -> BarAttribute ; Property Bar -> Bar , get_Bar, set_Bar
             private readonly List<string> _possibleNameConflicts = new();
             private readonly HashSet<DocumentId> _documentsIdsToBeCheckedForConflict = new();
@@ -190,9 +188,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                     // After phase 2, if there are still conflicts then remove the conflict locations from being expanded
                                     var unresolvedLocations = conflictResolution.RelatedLocations
                                         .Where(l => (l.Type & RelatedLocationType.UnresolvedConflict) != 0)
-                                        .Select(l => Tuple.Create(l.ComplexifiedTargetSpan, l.DocumentId)).Distinct();
+                                        .Select(l => (l.ComplexifiedTargetSpan, l.DocumentId)).Distinct();
 
-                                    _conflictLocations = _conflictLocations.Where(l => !unresolvedLocations.Any(c => c.Item2 == l.DocumentId && c.Item1.Contains(l.OriginalIdentifierSpan))).ToSet();
+                                    _conflictLocations = _conflictLocations.Where(l => !unresolvedLocations.Any(c => c.DocumentId == l.DocumentId && c.ComplexifiedTargetSpan.Contains(l.OriginalIdentifierSpan))).ToSet();
                                 }
 
                                 // Clean up side effects from rename before entering the next phase
@@ -767,7 +765,21 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 try
                 {
-                    foreach (var documentId in documentIdsToRename.ToList())
+                    var symbolContext = new RenamedSymbolContext
+                    (
+                        ReplacementText: _replacementText,
+                        OriginalText: _originalText,
+                        PossibleNameConflicts: _possibleNameConflicts,
+                        RenamedSymbol: _renameLocationSet.Symbol,
+                        AliasSymbol: _renameLocationSet.Symbol as IAliasSymbol,
+                        ReplacementTextValid: replacementTextValid
+                    );
+
+                    var documentIdToRenameLocations = renameLocations
+                        .GroupBy(location => location.DocumentId)
+                        .ToDictionary(grouping => grouping.Key);
+
+                    foreach (var documentId in documentIdsToRename)
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
 
@@ -775,18 +787,21 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var semanticModel = await document.GetRequiredSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                         var originalSyntaxRoot = await semanticModel.SyntaxTree.GetRootAsync(_cancellationToken).ConfigureAwait(false);
 
+                        // Conflict checking documents is a superset of the rename locations. In case this document is not a documents of rename locations,
+                        // just passing an empty rename information to check for conflicts.
+                        var locationsInDocument = documentIdToRenameLocations.ContainsKey(documentId)
+                            ? documentIdToRenameLocations[documentId]
+                            : SpecializedCollections.EmptyEnumerable<RenameLocation>();
+
                         // Get all rename locations for the current document.
-                        var allTextSpansInSingleSourceTree = renameLocations
-                            .Where(l => l.DocumentId == documentId && ShouldIncludeLocation(renameLocations, l))
-                            .ToDictionary(l => l.Location.SourceSpan);
+                        var textSpanRenameContexts = locationsInDocument
+                            .Where(location => RenameUtilities.ShouldIncludeLocation(renameLocations, location))
+                            .SelectAsArray(location => new LocationRenameContext(location, symbolContext));
 
                         // All textspan in the document documentId, that requires rename in String or Comment
-                        var stringAndCommentTextSpansInSingleSourceTree = renameLocations
-                            .Where(l => l.DocumentId == documentId && l.IsRenameInStringOrComment)
-                            .GroupBy(l => l.ContainingLocationForStringOrComment)
-                            .ToImmutableDictionary(
-                                g => g.Key,
-                                g => GetSubSpansToRenameInStringAndCommentTextSpans(g.Key, g));
+                        var stringAndCommentTextSpanContexts = locationsInDocument
+                            .Where(l => l.IsRenameInStringOrComment)
+                            .SelectAsArray(location => new LocationRenameContext(location, symbolContext));
 
                         var conflictLocationSpans = _conflictLocations
                                                     .Where(t => t.DocumentId == documentId)
@@ -795,23 +810,17 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         // Annotate all nodes with a RenameLocation annotations to record old locations & old referenced symbols.
                         // Also annotate nodes that should get complexified (nodes for rename locations + conflict locations)
                         var parameters = new RenameRewriterParameters(
-                            _renamedSymbolDeclarationAnnotation,
-                            document,
-                            semanticModel,
-                            originalSyntaxRoot,
-                            _replacementText,
-                            _originalText,
-                            _possibleNameConflicts,
-                            allTextSpansInSingleSourceTree,
-                            stringAndCommentTextSpansInSingleSourceTree,
                             conflictLocationSpans,
                             originalSolution,
-                            _renameLocationSet.Symbol,
-                            replacementTextValid,
+                            semanticModel.SyntaxTree,
                             renameSpansTracker,
-                            RenameOptions.RenameInStrings,
-                            RenameOptions.RenameInComments,
+                            originalSyntaxRoot,
+                            document,
+                            semanticModel,
                             _renameAnnotations,
+                            textSpanRenameContexts,
+                            stringAndCommentTextSpanContexts,
+                            ImmutableArray.Create(symbolContext),
                             _cancellationToken);
 
                         var renameRewriterLanguageService = document.GetRequiredLanguageService<IRenameRewriterLanguageService>();
@@ -835,59 +844,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
-
-            /// We try to rewrite all locations that are invalid candidate locations. If there is only
-            /// one location it must be the correct one (the symbol is ambiguous to something else)
-            /// and we always try to rewrite it.  If there are multiple locations, we only allow it
-            /// if the candidate reason allows for it).
-            private static bool ShouldIncludeLocation(ImmutableArray<RenameLocation> renameLocations, RenameLocation location)
-            {
-                if (location.IsRenameInStringOrComment)
-                {
-                    return false;
-                }
-
-                if (renameLocations.Length == 1)
-                {
-                    return true;
-                }
-
-                return RenameLocation.ShouldRename(location);
-            }
-
-            /// <summary>
-            /// We try to compute the sub-spans to rename within the given <paramref name="containingLocationForStringOrComment"/>.
-            /// If we are renaming within a string, the locations to rename are always within this containing string location
-            /// and we can identify these sub-spans.
-            /// However, if we are renaming within a comment, the rename locations can be anywhere in trivia,
-            /// so we return null and the rename rewriter will perform a complete regex match within comment trivia
-            /// and rename all matches instead of specific matches.
-            /// </summary>
-            private static ImmutableSortedSet<TextSpan>? GetSubSpansToRenameInStringAndCommentTextSpans(
-                TextSpan containingLocationForStringOrComment,
-                IEnumerable<RenameLocation> locationsToRename)
-            {
-                var builder = ImmutableSortedSet.CreateBuilder<TextSpan>();
-                foreach (var renameLocation in locationsToRename)
-                {
-                    if (!containingLocationForStringOrComment.Contains(renameLocation.Location.SourceSpan))
-                    {
-                        // We found a location outside the 'containingLocationForStringOrComment',
-                        // which is likely in trivia.
-                        // Bail out from computing specific sub-spans and let the rename rewriter
-                        // do a full regex match and replace.
-                        return null;
-                    }
-
-                    // Compute the sub-span within 'containingLocationForStringOrComment' that needs to be renamed.
-                    var offset = renameLocation.Location.SourceSpan.Start - containingLocationForStringOrComment.Start;
-                    var length = renameLocation.Location.SourceSpan.Length;
-                    var subSpan = new TextSpan(offset, length);
-                    builder.Add(subSpan);
-                }
-
-                return builder.ToImmutable();
             }
         }
     }
