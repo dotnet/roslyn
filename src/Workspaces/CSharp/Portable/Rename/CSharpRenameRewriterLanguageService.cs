@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 if (!trivia.HasStructure && _stringAndCommentRenameContexts.TryGetValue(trivia.Span, out var textSpanRenameContexts))
                 {
                     var subSpanToReplacementText = CreateSubSpanToReplacementTextDictionary(textSpanRenameContexts);
-                    return RenameInCommentTrivia(newTrivia, subSpanToReplacementText);
+                    return RenameInCommentTrivia(trivia, newTrivia, subSpanToReplacementText);
                 }
 
                 return newTrivia;
@@ -822,23 +822,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             }
 
             private SyntaxTrivia RenameInCommentTrivia(
-                SyntaxTrivia trivia,
+                SyntaxTrivia oldTrivia,
+                SyntaxTrivia newTrivia,
                 ImmutableSortedDictionary<TextSpan, string> subSpanToReplacementText)
             {
-                var originalString = trivia.ToString();
+                var originalString = newTrivia.ToString();
                 var replacedString = RenameUtilities.ReplaceMatchingSubStrings(
                     originalString,
                     subSpanToReplacementText);
 
                 if (replacedString != originalString)
                 {
-                    var oldSpan = trivia.Span;
-                    var newTrivia = SyntaxFactory.Comment(replacedString);
-                    AddModifiedSpan(oldSpan, newTrivia.Span);
-                    return trivia.CopyAnnotationsTo(_renameAnnotations.WithAdditionalAnnotations(newTrivia, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = oldSpan }));
+                    var oldSpan = oldTrivia.Span;
+                    var replacedTrivia = SyntaxFactory.Comment(replacedString);
+                    AddModifiedSpan(oldSpan, replacedTrivia.Span);
+                    return newTrivia.CopyAnnotationsTo(_renameAnnotations.WithAdditionalAnnotations(replacedTrivia, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = oldSpan }));
                 }
 
-                return trivia;
+                return newTrivia;
             }
         }
         #endregion

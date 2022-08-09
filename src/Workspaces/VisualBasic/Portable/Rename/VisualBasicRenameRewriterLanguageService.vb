@@ -406,7 +406,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Dim textSpanRenameContexts As ImmutableHashSet(Of LocationRenameContext) = Nothing
                 If Not trivia.HasStructure AndAlso _stringAndCommentRenameContexts.TryGetValue(trivia.Span, textSpanRenameContexts) Then
                     Dim subSpanToReplacementText = CreateSubSpanToReplacementTextDictionary(textSpanRenameContexts)
-                    Return RenameInCommentTrivia(newTrivia, subSpanToReplacementText)
+                    Return RenameInCommentTrivia(trivia, newTrivia, subSpanToReplacementText)
                 End If
 
                 Return newTrivia
@@ -694,17 +694,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Return newToken
             End Function
 
-            Private Function RenameInCommentTrivia(trivia As SyntaxTrivia, subSpanToReplacementText As ImmutableSortedDictionary(Of TextSpan, String)) As SyntaxTrivia
-                Dim originalString = trivia.ToString()
+            Private Function RenameInCommentTrivia(oldTrivia As SyntaxTrivia, newTrivia As SyntaxTrivia, subSpanToReplacementText As ImmutableSortedDictionary(Of TextSpan, String)) As SyntaxTrivia
+                Dim originalString = newTrivia.ToString()
                 Dim replacedString As String = RenameUtilities.ReplaceMatchingSubStrings(originalString, subSpanToReplacementText)
                 If replacedString <> originalString Then
-                    Dim oldSpan = trivia.Span
-                    Dim newTrivia = SyntaxFactory.CommentTrivia(replacedString)
-                    AddModifiedSpan(oldSpan, newTrivia.Span)
-                    Return trivia.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(newTrivia, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = oldSpan}))
+                    Dim oldSpan = oldTrivia.Span
+                    Dim replacedTrivia = SyntaxFactory.CommentTrivia(replacedString)
+                    AddModifiedSpan(oldSpan, replacedTrivia.Span)
+                    Return newTrivia.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(replacedTrivia, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = oldSpan}))
                 End If
 
-                Return trivia
+                Return newTrivia
             End Function
 
             Private Function RenameWithinToken(token As SyntaxToken, newToken As SyntaxToken) As SyntaxToken
