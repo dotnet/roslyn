@@ -289,6 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 AccessorDeclarationSyntax accessor => accessor.AttributeLists,
                 ParameterSyntax parameter => parameter.AttributeLists,
                 CompilationUnitSyntax compilationUnit => compilationUnit.AttributeLists,
+                TypeParameterSyntax typeParameter => typeParameter.AttributeLists,
                 _ => default,
             };
 
