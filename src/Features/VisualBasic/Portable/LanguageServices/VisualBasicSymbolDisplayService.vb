@@ -5,7 +5,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification.Classifiers
 Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
     '<Export(GetType(VisualBasicSymbolDisplayService))>
