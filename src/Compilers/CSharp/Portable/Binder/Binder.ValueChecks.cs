@@ -1835,7 +1835,7 @@ moreArguments:
                 if (UseUpdatedEscapeRules)
                 {
                     // SPEC: For a given argument `a` that is passed to parameter `p`:
-                    // SPEC:  1. ...
+                    // SPEC: 1. ...
                     // SPEC: 2. If `p` is `scoped` then `a` does not contribute *safe-to-escape* when considering arguments.
                     if (parameter?.EffectiveScope == DeclarationScope.ValueScoped)
                     {
@@ -3873,6 +3873,9 @@ moreArguments:
                     // The interpolation component is always the first argument to the method, and it was not passed by name
                     // so there can be no reordering.
 
+                    // SPEC: For a given argument `a` that is passed to parameter `p`:
+                    // SPEC: 1. ...
+                    // SPEC: 2. If `p` is `scoped` then `a` does not contribute *safe-to-escape* when considering arguments.
                     if (UseUpdatedEscapeRules &&
                         call.Method.Parameters[0].EffectiveScope == DeclarationScope.ValueScoped)
                     {
