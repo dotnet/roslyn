@@ -527,10 +527,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     Dim renameContexts = _renamedSymbolContexts.Values.ToSet()
                     Dim tokenText = token.ValueText
 
-                    Dim isOldText = _originalTexts.Contains(tokenText)
+                    Dim isOldText = _originalTexts.Contains(tokenText, CaseInsensitiveComparison.Comparer)
                     Dim tokenNeedsConflictCheck = isOldText OrElse
-                                                  _replacementTexts.Contains(tokenText) OrElse
-                                                  _allPossibleConflictNames.Contains(tokenText)
+                                                  _replacementTexts.Contains(tokenText, CaseInsensitiveComparison.Comparer) OrElse
+                                                  _allPossibleConflictNames.Contains(tokenText, CaseInsensitiveComparison.Comparer)
 
                     If tokenNeedsConflictCheck Then
                         newToken = AnnotateForConflictCheckAsync(token, newToken, isOldText).WaitAndGetResult_CanCallOnBackground(_cancellationToken)
