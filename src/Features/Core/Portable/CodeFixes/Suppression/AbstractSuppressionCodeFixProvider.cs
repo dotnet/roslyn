@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             ISymbol targetSymbol,
             INamedTypeSymbol suppressMessageAttribute,
             Diagnostic diagnostic,
-            HostWorkspaceServices services,
+            SolutionServices services,
             SyntaxFormattingOptions options,
             IAddImportsService addImportsService,
             CancellationToken cancellationToken);

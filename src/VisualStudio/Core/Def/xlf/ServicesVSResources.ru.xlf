@@ -357,6 +357,41 @@
         <target state="translated">Отображать подсказки для встроенных типов</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_Outline">
+        <source>Document Outline</source>
+        <target state="new">Document Outline</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Collapse_All">
+        <source>Collapse All</source>
+        <target state="new">Collapse All</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Expand_All">
+        <source>Expand All</source>
+        <target state="new">Expand All</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Search">
+        <source>Search Document Outline</source>
+        <target state="new">Search Document Outline</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Sort_Name">
+        <source>Sort By Name</source>
+        <target state="new">Sort By Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Sort_Order">
+        <source>Sort By Order</source>
+        <target state="new">Sort By Order</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Sort_Type">
+        <source>Sort By Type</source>
+        <target state="new">Sort By Type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Edit">
         <source>_Edit</source>
         <target state="translated">_Изменить</target>
@@ -395,6 +430,11 @@
       <trans-unit id="Enable_file_logging_for_diagnostics">
         <source>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</source>
         <target state="translated">Включить ведение журнала файлов для диагностики (в папке "%Temp%\Roslyn")</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_navigation_to_sourcelink_and_embedded_sources">
+        <source>Enable navigation to Source Link and Embedded sources</source>
+        <target state="new">Enable navigation to Source Link and Embedded sources</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
@@ -1188,8 +1228,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Rename_asynchronously_experimental">
-        <source>Rename asynchronously experimental</source>
-        <target state="translated">Асинхронное переименование (экспериментальная функция)</target>
+        <source>Rename asynchronously (experimental)</source>
+        <target state="needs-review-translation">Асинхронное переименование (экспериментальная функция)</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">

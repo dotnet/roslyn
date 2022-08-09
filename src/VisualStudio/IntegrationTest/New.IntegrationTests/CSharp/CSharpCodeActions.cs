@@ -538,7 +538,7 @@ public class P2 { }", HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync("using System.IO;", cancellationToken: HangMitigatingCancellationToken);
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/57423"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GFUFuzzyMatchAfterRenameTrackingAndAfterGenerateType()
         {
             await SetUpEditorAsync(@"

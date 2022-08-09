@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             public SymbolDescriptionBuilder(
                 SemanticModel semanticModel,
                 int position,
-                HostWorkspaceServices workspaceServices,
+                SolutionServices services,
                 IStructuralTypeDisplayService structuralTypeDisplayService,
                 SymbolDescriptionOptions options,
                 CancellationToken cancellationToken)
-                : base(semanticModel, position, workspaceServices, structuralTypeDisplayService, options, cancellationToken)
+                : base(semanticModel, position, services, structuralTypeDisplayService, options, cancellationToken)
             {
             }
 

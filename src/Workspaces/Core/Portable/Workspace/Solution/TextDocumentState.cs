@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class TextDocumentState
     {
-        protected readonly SolutionServices solutionServices;
+        protected readonly HostWorkspaceServices solutionServices;
 
         /// <summary>
         /// A direct reference to our source text.  This is only kept around in specialized scenarios.
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
         public IDocumentServiceProvider Services { get; }
 
         protected TextDocumentState(
-            SolutionServices solutionServices,
+            HostWorkspaceServices solutionServices,
             IDocumentServiceProvider? documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             SourceText? sourceText,
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
             _lazyChecksums = new AsyncLazy<DocumentStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
-        public TextDocumentState(DocumentInfo info, SolutionServices services)
+        public TextDocumentState(DocumentInfo info, HostWorkspaceServices services)
 
             : this(services,
                    info.DocumentServiceProvider,
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
         protected static ValueSource<TextAndVersion> CreateStrongText(TextAndVersion text)
             => new ConstantValueSource<TextAndVersion>(text);
 
-        protected static ValueSource<TextAndVersion> CreateStrongText(TextLoader loader, DocumentId documentId, SolutionServices services)
+        protected static ValueSource<TextAndVersion> CreateStrongText(TextLoader loader, DocumentId documentId, HostWorkspaceServices services)
         {
             return new AsyncLazy<TextAndVersion>(
                 asynchronousComputeFunction: cancellationToken => loader.LoadTextAsync(services.Workspace, documentId, cancellationToken),
@@ -95,9 +95,9 @@ namespace Microsoft.CodeAnalysis
                 cacheResult: true);
         }
 
-        protected static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, SolutionServices services)
+        protected static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, HostWorkspaceServices services)
         {
-            var result = new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage);
+            var result = new RecoverableTextAndVersion(CreateStrongText(text), services.GetRequiredService<ITemporaryStorageServiceInternal>());
 
             // This RecoverableTextAndVersion is created directly from a TextAndVersion instance. In its initial state,
             // the RecoverableTextAndVersion keeps a strong reference to the initial TextAndVersion, and only
@@ -110,17 +110,17 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        protected static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, DocumentId documentId, SolutionServices services)
+        protected static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, DocumentId documentId, HostWorkspaceServices services)
         {
             return new RecoverableTextAndVersion(
                 new AsyncLazy<TextAndVersion>(
                     asynchronousComputeFunction: cancellationToken => loader.LoadTextAsync(services.Workspace, documentId, cancellationToken),
                     synchronousComputeFunction: cancellationToken => loader.LoadTextSynchronously(services.Workspace, documentId, cancellationToken),
                     cacheResult: false),
-                services.TemporaryStorage);
+                services.GetRequiredService<ITemporaryStorageServiceInternal>());
         }
 
-        public ITemporaryTextStorage? Storage
+        public ITemporaryTextStorageInternal? Storage
         {
             get
             {

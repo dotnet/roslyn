@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
             Dim span = (Await document.GetSyntaxRootAsync()).FullSpan
 
-            Dim options = CodeCleanupOptions.GetDefault(document.Project.LanguageServices)
+            Dim options = CodeCleanupOptions.GetDefault(document.Project.Services)
 
             Dim service = document.GetLanguageService(Of ICodeCleanerService)
             Dim newDocument = Await service.CleanupAsync(

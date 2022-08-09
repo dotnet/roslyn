@@ -28,7 +28,7 @@ internal sealed record class CodeCleanupOptions(
     [DataMember] public DocumentFormattingOptions DocumentFormattingOptions { get; init; } = DocumentFormattingOptions.Default;
 
 #if !CODE_STYLE
-    public static CodeCleanupOptions GetDefault(HostLanguageServices languageServices)
+    public static CodeCleanupOptions GetDefault(Host.LanguageServices languageServices)
         => new(
             FormattingOptions: SyntaxFormattingOptions.GetDefault(languageServices),
             SimplifierOptions: SimplifierOptions.GetDefault(languageServices));
@@ -82,7 +82,7 @@ internal abstract class AbstractCodeCleanupOptionsProvider : CodeCleanupOptionsP
 internal static class CodeCleanupOptionsProviders
 {
 #if !CODE_STYLE
-    public static CodeCleanupOptions GetCodeCleanupOptions(this AnalyzerConfigOptions options, bool allowImportsInHiddenRegions, CodeCleanupOptions? fallbackOptions, HostLanguageServices languageServices)
+    public static CodeCleanupOptions GetCodeCleanupOptions(this AnalyzerConfigOptions options, bool allowImportsInHiddenRegions, CodeCleanupOptions? fallbackOptions, Host.LanguageServices languageServices)
     {
         var formattingOptions = options.GetSyntaxFormattingOptions(fallbackOptions?.FormattingOptions, languageServices);
         var simplifierOptions = options.GetSimplifierOptions(fallbackOptions?.SimplifierOptions, languageServices);
@@ -99,7 +99,7 @@ internal static class CodeCleanupOptionsProviders
     public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, CodeCleanupOptions? fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetCodeCleanupOptions(document.AllowImportsInHiddenRegions(), fallbackOptions, document.Project.LanguageServices);
+        return configOptions.GetCodeCleanupOptions(document.AllowImportsInHiddenRegions(), fallbackOptions, document.Project.Services);
     }
 
     public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, CodeCleanupOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)

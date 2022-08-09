@@ -36,6 +36,8 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     queueName: Build.Windows.Amd64.VS2022.Pre.Open
+    restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+    buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
 - template: eng/pipelines/build-windows-job.yml
   parameters:
@@ -43,6 +45,8 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     queueName: Build.Windows.Amd64.VS2022.Pre.Open
+    restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+    buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - template: eng/pipelines/test-windows-job.yml
@@ -268,3 +272,17 @@ jobs:
       parameters:
         jobName: Correctness_Rebuild
         configuration: Release
+
+- job: Correctness_Analyzers
+  pool:
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+  timeoutInMinutes: 35
+  steps:
+    - template: eng/pipelines/checkout-windows-task.yml
+
+    - task: PowerShell@2 
+      displayName: Build with analyzers
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -restore -build -configuration Debug -prepareMachine -ci -binaryLog -runAnalyzers:$true -warnAsError:$true -properties "/p:RoslynEnforceCodeStyle=true"

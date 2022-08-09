@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         }
 
 #if !CODE_STYLE
-        public static SimplifierOptions GetDefault(HostLanguageServices languageServices)
+        public static SimplifierOptions GetDefault(Host.LanguageServices languageServices)
             => languageServices.GetRequiredService<ISimplificationService>().DefaultOptions;
 #endif
     }
@@ -90,13 +90,13 @@ namespace Microsoft.CodeAnalysis.Simplification
         }
 
 #if !CODE_STYLE
-        public static SimplifierOptions GetSimplifierOptions(this AnalyzerConfigOptions options, SimplifierOptions? fallbackOptions, HostLanguageServices languageServices)
+        public static SimplifierOptions GetSimplifierOptions(this AnalyzerConfigOptions options, SimplifierOptions? fallbackOptions, Host.LanguageServices languageServices)
             => languageServices.GetRequiredService<ISimplificationService>().GetSimplifierOptions(options, fallbackOptions);
 
         public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptions? fallbackOptions, CancellationToken cancellationToken)
         {
             var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return configOptions.GetSimplifierOptions(fallbackOptions, document.Project.LanguageServices);
+            return configOptions.GetSimplifierOptions(fallbackOptions, document.Project.Services);
         }
 
         public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)

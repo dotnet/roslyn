@@ -549,6 +549,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         LSP_UsedForkedSolution = 571,
 
+        DocumentOutline_WindowOpen = 572,
+        DocumentOutline_SortByName = 573,
+        DocumentOutline_SortByOrder = 574,
+        DocumentOutline_SortByType = 575,
+
         ApplyChangesOperation_WorkspaceVersionMatch_ApplicationSucceeded = 580,
         ApplyChangesOperation_WorkspaceVersionMatch_ApplicationFailed = 581,
         ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationSucceeded = 582,
@@ -559,6 +564,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_DocumentRemoved = 587,
         ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_TextChangeConflict = 588,
 
+        Completion_SemanticSnippets = 589,
         // please leave the range up through 600 free in case we need to add more items to learn more about ApplyChangesOperation results.
 
         Next = 600

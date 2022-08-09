@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             if (canGenerateAbstractly)
                 result.Add(new GenerateParameterizedMemberCodeAction((TService)this, document, state, fallbackOptions, isAbstract: true, generateProperty: false));
 
-            var semanticFacts = document.Project.Solution.Workspace.Services.GetLanguageServices(state.TypeToGenerateIn.Language).GetService<ISemanticFactsService>();
+            var semanticFacts = document.Project.Solution.Services.GetLanguageServices(state.TypeToGenerateIn.Language).GetService<ISemanticFactsService>();
 
             if (semanticFacts.SupportsParameterizedProperties &&
                 state.InvocationExpressionOpt != null)

@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     await logFile.WriteLineAsync($"Fetch of compilation for {project.FilePath} completed in {compilationCreationStopwatch.Elapsed.ToDisplayString()}.");
 
                     var generationForProjectStopwatch = Stopwatch.StartNew();
-                    await lsifGenerator.GenerateForCompilationAsync(compilation, project.FilePath, project.LanguageServices, options);
+                    await lsifGenerator.GenerateForCompilationAsync(compilation, project.FilePath, project.Services, options);
                     generationForProjectStopwatch.Stop();
 
                     totalTimeInGenerationPhase += generationForProjectStopwatch.Elapsed;

@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             }
 
             var document = context.Document;
-            var formattingService = document?.Project.LanguageServices.GetService<IXamlFormattingService>();
+            var formattingService = document?.Project.Services.GetService<IXamlFormattingService>();
             if (document != null && formattingService != null)
             {
                 var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);

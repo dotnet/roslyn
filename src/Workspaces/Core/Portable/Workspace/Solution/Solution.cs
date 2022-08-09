@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            : this(new SolutionState(workspace.PrimaryBranchId, new SolutionServices(workspace), solutionAttributes, options, analyzerReferences))
+            : this(new SolutionState(workspace.PrimaryBranchId, workspace.Kind, workspace.PartialSemanticsEnabled, workspace.Services, solutionAttributes, options, analyzerReferences))
         {
         }
 
@@ -46,16 +47,33 @@ namespace Microsoft.CodeAnalysis
 
         internal int WorkspaceVersion => _state.WorkspaceVersion;
 
-        internal SolutionServices Services => _state.Services;
+        internal bool PartialSemanticsEnabled => _state.PartialSemanticsEnabled;
+
+        /// <summary>
+        /// Per solution services provided by the host environment.  Use this instead of <see
+        /// cref="Workspace.Services"/> when possible.
+        /// </summary>
+        public SolutionServices Services => _state.Services.SolutionServices;
+
+        internal string? WorkspaceKind => _state.WorkspaceKind;
 
         internal BranchId BranchId => _state.BranchId;
+
+        internal bool IsFromPrimaryBranch => _state.BranchId == _state.PrimaryBranchId;
 
         internal ProjectState? GetProjectState(ProjectId projectId) => _state.GetProjectState(projectId);
 
         /// <summary>
         /// The Workspace this solution is associated with.
         /// </summary>
-        public Workspace Workspace => _state.Workspace;
+        public Workspace Workspace
+        {
+            get
+            {
+                Contract.ThrowIfTrue(this.WorkspaceKind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace Solution is not supported.");
+                return _state.Workspace;
+            }
+        }
 
         /// <summary>
         /// The Id of the solution. Multiple solution instances may share the same Id.

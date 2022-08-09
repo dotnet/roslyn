@@ -43,14 +43,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         private const string ActiveFileProcessDocument = nameof(ActiveFileProcessDocument);
         private const string ActiveFileProcessDocumentCancellation = nameof(ActiveFileProcessDocumentCancellation);
 
-        private const string Max = "Maximum";
-        private const string Min = "Minimum";
-        private const string Median = nameof(Median);
-        private const string Mean = nameof(Mean);
-        private const string Mode = nameof(Mode);
-        private const string Range = nameof(Range);
-        private const string Count = nameof(Count);
-
         public static void LogRegistration(int correlationId, Workspace workspace)
         {
             Logger.Log(FunctionId.WorkCoordinatorRegistrationService_Register, KeyValueLogMessage.Create(m =>
@@ -223,13 +215,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     var result = StatisticResult.FromList(propertyValues);
 
-                    m[CreateProperty(propertyName, Max)] = result.Maximum;
-                    m[CreateProperty(propertyName, Min)] = result.Minimum;
-                    m[CreateProperty(propertyName, Median)] = result.Median!.Value;
-                    m[CreateProperty(propertyName, Mean)] = result.Mean;
-                    m[CreateProperty(propertyName, Mode)] = result.Mode!.Value;
-                    m[CreateProperty(propertyName, Range)] = result.Range;
-                    m[CreateProperty(propertyName, Count)] = result.Count;
+                    result.WriteTelemetryPropertiesTo(m, prefix: propertyName);
                 }
             }));
 
@@ -248,9 +234,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             return 0;
         }
-
-        private static string CreateProperty(string parent, string child)
-            => parent + "." + child;
 
         public static void LogProcessCloseDocument(CountLogAggregator<object> logAggregator, Guid documentId)
         {

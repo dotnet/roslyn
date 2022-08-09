@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TokenSemanticInfo GetSemanticInfo(
             this SemanticModel semanticModel,
             SyntaxToken token,
-            HostWorkspaceServices services,
+            SolutionServices services,
             CancellationToken cancellationToken)
         {
             var languageServices = services.GetLanguageServices(token.Language);
