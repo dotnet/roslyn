@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
                         solution,
                         (service, solutionInfo, callbackId, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, callbackId, serializableSymbol, serializableLocationSet, replacementText, nonConflictSymbolKeys, cancellationToken),
-                        callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, lightweightRenameLocations.FallbackOptions),
+                        callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Services, lightweightRenameLocations.FallbackOptions),
                         cancellationToken).ConfigureAwait(false);
 
                     if (result.HasValue && result.Value != null)
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             foreach (var language in projectIds.Select(p => solution.GetRequiredProject(p).Language).Distinct())
             {
-                var languageServices = solution.Services.GetProjectServices(language);
+                var languageServices = solution.Services.GetLanguageServices(language);
                 var renameRewriterLanguageService = languageServices.GetRequiredService<IRenameRewriterLanguageService>();
                 var syntaxFactsLanguageService = languageServices.GetRequiredService<ISyntaxFactsService>();
                 if (!renameRewriterLanguageService.IsIdentifierValid(replacementText, syntaxFactsLanguageService))

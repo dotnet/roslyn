@@ -625,6 +625,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Для удаления {0} требуется перезапустить приложение.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
+        <source>Deleting {0} requires restarting the application because is not supported by the runtime.</source>
+        <target state="new">Deleting {0} requires restarting the application because is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
         <source>Deleting captured variable '{0}' requires restarting the application.</source>
         <target state="translated">Для удаления зафиксированной переменной "{0}" требуется перезапустить приложение.</target>
@@ -3993,16 +3998,6 @@ Do you want to continue?</source>
 '{1}'.</source>
         <target state="translated">Анализатор "{0}" создал следующее исключение:
 "{1}".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Names">
-        <source>Simplify Names</source>
-        <target state="translated">Упрощение имен</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Member_Access">
-        <source>Simplify Member Access</source>
-        <target state="translated">Упрощение доступа для членов</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_qualification">

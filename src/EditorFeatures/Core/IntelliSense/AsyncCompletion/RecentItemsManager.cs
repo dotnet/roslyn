@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
@@ -25,14 +26,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         {
         }
 
-        public ImmutableArray<string> RecentItems { get; private set; } = ImmutableArray<string>.Empty;
+        private ImmutableArray<string> RecentItems { get; set; } = ImmutableArray<string>.Empty;
 
-        public void MakeMostRecentItem(string item)
+        public void MakeMostRecentItem(CompletionItem item)
         {
             lock (_mruUpdateLock)
             {
                 var items = RecentItems;
-                items = items.Remove(item);
+                items = items.Remove(item.FilterText);
 
                 if (items.Length == MaxMRUSize)
                 {
@@ -40,8 +41,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     items = items.RemoveAt(0);
                 }
 
-                RecentItems = items.Add(item);
+                RecentItems = items.Add(item.FilterText);
             }
+        }
+
+        public int GetRecentItemIndex(CompletionItem item)
+        {
+            return RecentItems.IndexOf(item.FilterText);
         }
     }
 }

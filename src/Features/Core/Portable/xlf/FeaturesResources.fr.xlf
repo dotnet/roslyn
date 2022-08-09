@@ -625,6 +625,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">La suppression de {0} requiert le redémarrage de l’application.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
+        <source>Deleting {0} requires restarting the application because is not supported by the runtime.</source>
+        <target state="new">Deleting {0} requires restarting the application because is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
         <source>Deleting captured variable '{0}' requires restarting the application.</source>
         <target state="translated">La suppression de la variable capturée « {0} » requiert le redémarrage de l’application.</target>
@@ -3993,16 +3998,6 @@ Voulez-vous continuer ?</target>
 '{1}'.</source>
         <target state="translated">L'analyseur '{0}' a levé l'exception suivante :
 '{1}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Names">
-        <source>Simplify Names</source>
-        <target state="translated">Simplifier les noms</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Member_Access">
-        <source>Simplify Member Access</source>
-        <target state="translated">Simplifier l'accès au membre</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_qualification">

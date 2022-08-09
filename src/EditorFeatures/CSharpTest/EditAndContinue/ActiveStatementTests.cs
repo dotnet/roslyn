@@ -8719,6 +8719,56 @@ class C
         }
 
         [Fact]
+        [WorkItem(61415, "https://github.com/dotnet/roslyn/issues/61415")]
+        public void Lambdas_EditAroundTry_WithActiveStatement()
+        {
+            var src1 =
+                """
+                Action F = () =>
+                {
+                    try
+                    {
+                        <AS:1>G();</AS:1>
+                    }
+                    <ER:1.0>catch
+                    {
+                    }</ER:1.0>
+                };
+
+                <AS:0>F();</AS:0>
+
+                void G()
+                <AS:2>{</AS:2>
+                }
+                """;
+            var src2 =
+                """
+                Action F = () =>
+                {
+                    System.Console.WriteLine(1);
+                    try
+                    {
+                        <AS:1>G();</AS:1>
+                    }
+                    <ER:1.0>catch
+                    {
+                    }</ER:1.0>
+                };
+                
+                <AS:0>F();</AS:0>
+                
+                void G()
+                <AS:2>{</AS:2>
+                }
+                """;
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
+        }
+
+        [Fact]
         public void Lambdas_StatementsToExpression()
         {
             var src1 = @"
@@ -9928,6 +9978,56 @@ class C
 
             edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "f"));
+        }
+
+        [Fact]
+        [WorkItem(61415, "https://github.com/dotnet/roslyn/issues/61415")]
+        public void LocalFunction_EditAroundTry_WithActiveStatement()
+        {
+            var src1 =
+                """
+                <AS:0>F();</AS:0>
+
+                void F()
+                {
+                    try
+                    {
+                        <AS:1>G();</AS:1>
+                    }
+                    <ER:1.0>catch
+                    {
+                    }</ER:1.0>
+                }
+
+                void G()
+                <AS:2>{</AS:2>
+                }
+                """;
+            var src2 =
+                """
+                <AS:0>F();</AS:0>
+
+                void F()
+                {
+                    System.Console.WriteLine(1);
+                    try
+                    {
+                        <AS:1>G();</AS:1>
+                    }
+                    <ER:1.0>catch
+                    {
+                    }</ER:1.0>
+                }
+
+                void G()
+                <AS:2>{</AS:2>
+                }
+                """;
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active);
         }
 
         [Fact]

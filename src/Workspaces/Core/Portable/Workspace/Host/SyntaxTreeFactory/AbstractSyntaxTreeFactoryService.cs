@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Host
     {
         private readonly int _minimumLengthForRecoverableTree;
 
-        internal HostSolutionServices SolutionServices { get; }
+        internal SolutionServices SolutionServices { get; }
 
-        public AbstractSyntaxTreeFactoryService(HostSolutionServices services)
+        public AbstractSyntaxTreeFactoryService(SolutionServices services)
         {
             SolutionServices = services;
 

@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 receiverTypeNamesBuilder.Add(FindSymbols.Extensions.ComplexReceiverTypeName);
                 receiverTypeNamesBuilder.Add(FindSymbols.Extensions.ComplexArrayReceiverTypeName);
 
-                return receiverTypeNamesBuilder.ToImmutable();
+                return receiverTypeNamesBuilder.ToImmutableAndClear();
             }
 
             private static string GetReceiverTypeName(ITypeSymbol typeSymbol)
