@@ -315,10 +315,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 If Me._isProcessingComplexifiedSpans Then
                     Dim annotation = Me._renameAnnotations.GetAnnotations(Of RenameActionAnnotation)(token).FirstOrDefault()
                     If annotation IsNot Nothing Then
-                        newToken = RenameToken(token, newToken, annotation.Prefix, annotation.Suffix, isVerbatim, originalText, replacementText, replacementTextValid)
+                        newToken = RenameToken(token, newToken, annotation.Prefix, annotation.Suffix, isVerbatim, replacementText, originalText, replacementTextValid)
                         AddModifiedSpan(annotation.OriginalSpan, New TextSpan(token.Span.Start, newToken.Span.Length))
                     Else
-                        newToken = RenameToken(token, newToken, prefix:=Nothing, suffix:=Nothing, isVerbatim, replacementText, originalText, replacementTextValid)
+                        newToken = RenameToken(token, newToken, prefix:=Nothing, suffix:=Nothing, isVerbatim := isVerbatim, replacementText := originalText, originalText := replacementText, replacementTextValid := replacementTextValid)
                     End If
 
                     Return newToken
@@ -372,7 +372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
                 If Not Me.AnnotateForComplexification Then
                     Dim oldSpan = token.Span
-                    newToken = RenameToken(token, newToken, prefix:=prefix, suffix:=suffix, isVerbatim, originalText, replacementText, replacementTextValid)
+                    newToken = RenameToken(token, newToken, prefix:=prefix, suffix:=suffix, isVerbatim := isVerbatim, replacementText := replacementText, originalText := originalText, replacementTextValid := replacementTextValid)
                     AddModifiedSpan(oldSpan, newToken.Span)
                 End If
 
@@ -496,9 +496,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                             annotation.Prefix,
                             annotation.Suffix,
                             _syntaxFactsService.IsVerbatimIdentifier(locationRenameContext.ReplacementText),
-                            locationRenameContext.OriginalText,
                             locationRenameContext.ReplacementText,
-                            locationRenameContext.ReplacementTextValid)
+                            locationRenameContext.OriginalText, locationRenameContext.ReplacementTextValid)
 
                     AddModifiedSpan(annotation.OriginalSpan, newToken.Span)
                 End If
@@ -513,10 +512,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                             newToken,
                             prefix:=Nothing,
                             suffix:=Nothing,
-                            _syntaxFactsService.IsVerbatimIdentifier(renamedSymbolContext.ReplacementText),
-                            renamedSymbolContext.OriginalText,
-                            renamedSymbolContext.ReplacementText,
-                            renamedSymbolContext.ReplacementTextValid)
+                            isVerbatim := _syntaxFactsService.IsVerbatimIdentifier(renamedSymbolContext.ReplacementText),
+                            replacementText := renamedSymbolContext.ReplacementText,
+                            originalText := renamedSymbolContext.OriginalText, replacementTextValid := renamedSymbolContext.ReplacementTextValid)
                 End If
 
                 Return newToken
@@ -606,15 +604,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Return result
             End Function
 
-            Private Function RenameToken(
-                    oldToken As SyntaxToken,
-                    newToken As SyntaxToken,
-                    prefix As String,
-                    suffix As String,
-                    isReplacementTextVerbatim As Boolean,
-                    originalText As String,
-                    replacementText As String,
-                    isReplacementTextValid As Boolean) As SyntaxToken
+            Private Function RenameToken(oldToken As SyntaxToken,
+                                         newToken As SyntaxToken,
+                                         prefix As String,
+                                         suffix As String,
+                                         isVerbatim As Boolean,
+                                         replacementText As String,
+                                         originalText As String,
+                                         replacementTextValid As Boolean) As SyntaxToken
 
                 Dim parent = oldToken.Parent
                 Dim currentNewIdentifier = replacementText
@@ -650,7 +647,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     valueText = DirectCast(name, IdentifierNameSyntax).Identifier.ValueText
                 End If
 
-                If isReplacementTextVerbatim Then
+                If isVerbatim Then
                     newToken = newToken.CopyAnnotationsTo(SyntaxFactory.BracketedIdentifier(newToken.LeadingTrivia, valueText, newToken.TrailingTrivia))
                 Else
                     newToken = newToken.CopyAnnotationsTo(SyntaxFactory.Identifier(
@@ -661,7 +658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                                                       oldToken.GetTypeCharacter(),
                                                           newToken.TrailingTrivia))
 
-                    If isReplacementTextValid AndAlso
+                    If replacementTextValid AndAlso
                         oldToken.GetTypeCharacter() <> TypeCharacter.None AndAlso
                         (SyntaxFacts.GetKeywordKind(valueText) = SyntaxKind.REMKeyword OrElse Me._syntaxFactsService.IsVerbatimIdentifier(newToken)) Then
 
@@ -669,7 +666,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     End If
                 End If
 
-                If isReplacementTextValid Then
+                If replacementTextValid Then
                     If newToken.IsBracketed Then
                         ' a reference location should always be tried to be unescaped, whether it was escaped before rename 
                         ' or the replacement itself is escaped.
