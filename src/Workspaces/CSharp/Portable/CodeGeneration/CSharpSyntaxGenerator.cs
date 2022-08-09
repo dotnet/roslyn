@@ -1178,6 +1178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ParameterSyntax parameter => parameter.WithAttributeLists(attributeLists),
                 CompilationUnitSyntax compilationUnit => compilationUnit.WithAttributeLists(AsAssemblyAttributes(attributeLists)),
                 StatementSyntax statement => statement.WithAttributeLists(attributeLists),
+                TypeParameterSyntax typeParameter => typeParameter.WithAttributeLists(attributeLists),
                 _ => declaration,
             };
 
