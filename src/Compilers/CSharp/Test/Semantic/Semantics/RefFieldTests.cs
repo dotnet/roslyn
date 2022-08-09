@@ -9295,6 +9295,9 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (4,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //     static void F1(scoped Unknown x, scoped R<Unknown> y)
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped Unknown x").WithLocation(4, 20),
                 // (4,27): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 //     static void F1(scoped Unknown x, scoped R<Unknown> y)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(4, 27),
@@ -10901,6 +10904,39 @@ class Program
                 // (4,19): warning CS0169: The field 'R<T>.F' is never used
                 //     private ref T F;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("R<T>.F").WithLocation(4, 19));
+        }
+
+        [WorkItem(63140, "https://github.com/dotnet/roslyn/issues/63140")]
+        [Fact]
+        public void Scoped_Cycle()
+        {
+            var source =
+@"interface I 
+{
+    void M<T>(T s);  
+}
+
+class C : I
+{
+    void I.M<T>(scoped T? s) {}
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0535: 'C' does not implement interface member 'I.M<T>(T)'
+                // class C : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", "I.M<T>(T)").WithLocation(6, 11),
+                // (8,12): error CS0539: 'C.M<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I.M<T>(scoped T? s) {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M").WithArguments("C.M<T>(T?)").WithLocation(8, 12),
+                // (8,17): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //     void I.M<T>(scoped T? s) {}
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T? s").WithLocation(8, 17),
+                // (8,25): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     void I.M<T>(scoped T? s) {}
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 25),
+                // (8,27): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     void I.M<T>(scoped T? s) {}
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "s").WithArguments("System.Nullable<T>", "T", "T").WithLocation(8, 27));
         }
 
         [Fact]
