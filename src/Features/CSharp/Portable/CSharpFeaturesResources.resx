@@ -624,4 +624,13 @@
   <data name="Global_using_directives" xml:space="preserve">
     <value>Global 'using' directives</value>
   </data>
+  <data name="Convert_0_to_record" xml:space="preserve">
+    <value>Convert '{0}' to record</value>
+  </data>
+  <data name="Convert_to_positional_record" xml:space="preserve">
+    <value>Convert to positional record</value>
+  </data>
+  <data name="Warning_constructor_signature_conflicts_with_primary_constructor" xml:space="preserve">
+    <value>Warning: Constructor signature conflicts with primary constructor</value>
+  </data>
 </root>

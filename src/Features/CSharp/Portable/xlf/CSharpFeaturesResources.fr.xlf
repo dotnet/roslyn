@@ -147,9 +147,19 @@
         <target state="translated">Changer en cast</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_0_to_record">
+        <source>Convert '{0}' to record</source>
+        <target state="new">Convert '{0}' to record</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">Convertir en méthode</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_positional_record">
+        <source>Convert to positional record</source>
+        <target state="new">Convert to positional record</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_raw_string">
@@ -245,6 +255,11 @@
       <trans-unit id="Warning_Inlining_temporary_variable_may_change_code_meaning">
         <source>Warning: Inlining temporary variable may change code meaning.</source>
         <target state="translated">Avertissement : L'inlining sur une variable temporaire peut changer la signification du code.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_constructor_signature_conflicts_with_primary_constructor">
+        <source>Warning: Constructor signature conflicts with primary constructor</source>
+        <target state="new">Warning: Constructor signature conflicts with primary constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
