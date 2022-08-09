@@ -609,10 +609,10 @@ public class FileModifierTests : CSharpTestBase
             // path/to/file.cs(3,1): error CS0433: The type 'C' exists in both 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
             // C.M();
             Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "C").WithArguments("comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 1),
-            // path/to/file.cs(3,12): error CS9059: File-local type 'C' must be declared in a file with a unique path. Path 'path/to/file.cs' is used in multiple files.
+            // path/to/file.cs(3,12): error CS9066: File-local type 'C' must be declared in a file with a unique path. Path 'path/to/file.cs' is used in multiple files.
             // file class C
             Diagnostic(ErrorCode.ERR_FileTypeNonUniquePath, "C").WithArguments("C", "path/to/file.cs").WithLocation(3, 12),
-            // path/to/file.cs(5,12): error CS9059: File-local type 'C' must be declared in a file with a unique path. Path 'path/to/file.cs' is used in multiple files.
+            // path/to/file.cs(5,12): error CS9066: File-local type 'C' must be declared in a file with a unique path. Path 'path/to/file.cs' is used in multiple files.
             // file class C
             Diagnostic(ErrorCode.ERR_FileTypeNonUniquePath, "C").WithArguments("C", "path/to/file.cs").WithLocation(5, 12));
 
