@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 Contract.ThrowIfNull(TypeToGenerateIn);
 
-                var provider = document.Project.Solution.Services.GetProjectServices(TypeToGenerateIn.Language);
+                var provider = document.Project.Solution.Services.GetLanguageServices(TypeToGenerateIn.Language);
                 var (members, assignments) = await GenerateMembersAndAssignmentsAsync(document, withFields, withProperties, cancellationToken).ConfigureAwait(false);
                 var isThis = _delegatedConstructor.ContainingType.OriginalDefinition.Equals(TypeToGenerateIn.OriginalDefinition);
                 var delegatingArguments = provider.GetService<SyntaxGenerator>().CreateArguments(_delegatedConstructor.Parameters);
@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             {
                 Contract.ThrowIfNull(TypeToGenerateIn);
 
-                var provider = document.Project.Solution.Services.GetProjectServices(TypeToGenerateIn.Language);
+                var provider = document.Project.Solution.Services.GetLanguageServices(TypeToGenerateIn.Language);
 
                 var members = withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(_parameters, ParameterToNewFieldMap, IsContainedInUnsafeType) :
                               withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(_parameters, ParameterToNewPropertyMap, IsContainedInUnsafeType) :
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             {
                 Contract.ThrowIfNull(TypeToGenerateIn);
 
-                var provider = document.Project.Solution.Services.GetProjectServices(TypeToGenerateIn.Language);
+                var provider = document.Project.Solution.Services.GetLanguageServices(TypeToGenerateIn.Language);
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var newMemberMap =

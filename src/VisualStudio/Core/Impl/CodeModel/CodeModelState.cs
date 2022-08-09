@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public CodeModelState(
             IThreadingContext threadingContext,
             IServiceProvider serviceProvider,
-            HostProjectServices languageServices,
+            Microsoft.CodeAnalysis.Host.LanguageServices languageServices,
             VisualStudioWorkspace workspace,
             ProjectCodeModelFactory projectCodeModelFactory)
         {

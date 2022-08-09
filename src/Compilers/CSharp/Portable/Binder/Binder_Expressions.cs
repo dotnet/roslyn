@@ -7260,6 +7260,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 fieldSymbol.RefKind != RefKind.None)
             {
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefFields, diagnostics);
+                if (!Compilation.Assembly.RuntimeSupportsByRefFields)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, node.Location);
+                }
             }
 
             TypeSymbol fieldType = fieldSymbol.GetFieldType(this.FieldsBeingBound).Type;
@@ -8846,8 +8850,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var parameters = method.Parameters;
-            var parameterScopes = parameters.Any(p => p.Scope != DeclarationScope.Unscoped) ?
-                parameters.SelectAsArray(p => p.Scope) :
+            var parameterScopes = parameters.Any(p => p.EffectiveScope != DeclarationScope.Unscoped) ?
+                parameters.SelectAsArray(p => p.EffectiveScope) :
                 default;
             return GetMethodGroupOrLambdaDelegateType(node.Syntax, method.RefKind, method.ReturnTypeWithAnnotations, method.ParameterRefKinds, parameterScopes, method.ParameterTypesWithAnnotations);
         }

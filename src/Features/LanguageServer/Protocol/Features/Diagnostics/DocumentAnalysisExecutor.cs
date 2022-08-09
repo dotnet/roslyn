@@ -172,9 +172,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
                 return resultAndTelemetry.AnalysisResult;
             }
-            catch
+            catch when (_onAnalysisException != null)
             {
-                _onAnalysisException?.Invoke();
+                _onAnalysisException.Invoke();
                 throw;
             }
         }
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 builder.Add(DiagnosticData.Create(diagnostic, textDocument));
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
     }
 }

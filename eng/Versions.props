@@ -132,8 +132,8 @@
     <MicrosoftVisualStudioComponentModelHostVersion>17.3.37-preview</MicrosoftVisualStudioComponentModelHostVersion>
     <MicrosoftVisualStudioCompositionVersion>16.9.20</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioCoreUtilityVersion>
-    <MicrosoftVisualStudioDebuggerUIInterfacesVersion>17.3.0-beta.22253.1</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
-    <MicrosoftVisualStudioDebuggerContractsVersion>17.3.0-beta.22253.1</MicrosoftVisualStudioDebuggerContractsVersion>
+    <MicrosoftVisualStudioDebuggerUIInterfacesVersion>17.4.0-beta.22368.1</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
+    <MicrosoftVisualStudioDebuggerContractsVersion>17.4.0-beta.22368.1</MicrosoftVisualStudioDebuggerContractsVersion>
     <MicrosoftVisualStudioDebuggerEngineimplementationVersion>17.0.1042805-preview</MicrosoftVisualStudioDebuggerEngineimplementationVersion>
     <MicrosoftVisualStudioDebuggerMetadataimplementationVersion>17.0.1042805-preview</MicrosoftVisualStudioDebuggerMetadataimplementationVersion>
     <MicrosoftVisualStudioDesignerInterfacesVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioDesignerInterfacesVersion>
@@ -212,7 +212,7 @@
       is expected by the NET SDK used in the Workspace.MSBuild UnitTests. In order to test against the same verion of NuGet
       as our configured SDK, we must set the version to be the same.
      -->
-    <NuGetCommonVersion>6.3.0-preview.2.73</NuGetCommonVersion>
+    <NuGetCommonVersion>6.3.0-rc.104</NuGetCommonVersion>
     <NuGetConfigurationVersion>$(NuGetCommonVersion)</NuGetConfigurationVersion>
     <NuGetFrameworksVersion>$(NuGetCommonVersion)</NuGetFrameworksVersion>
     <NuGetPackagingVersion>$(NuGetCommonVersion)</NuGetPackagingVersion>

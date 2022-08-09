@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
         End Function
 
         Private Overloads Shared Async Function BuildQuickInfoAsync(
-                services As HostSolutionServices,
+                services As SolutionServices,
                 semanticModel As SemanticModel,
                 token As SyntaxToken,
                 options As SymbolDescriptionOptions,
@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
         End Function
 
         Private Overloads Shared Async Function BuildContentAsync(
-                services As HostSolutionServices,
+                services As SolutionServices,
                 semanticModel As SemanticModel,
                 token As SyntaxToken,
                 declarators As SeparatedSyntaxList(Of VariableDeclaratorSyntax),

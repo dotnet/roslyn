@@ -2353,6 +2353,22 @@ public class C
         }
 
         [Fact]
+        public void TestAddRequiredModifierToVirtualProperty()
+        {
+            var property = (PropertyDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("public virtual int P { get; }");
+            var updatedProperty = Generator.WithModifiers(property, Generator.GetModifiers(property).WithIsRequired(true));
+            VerifySyntax<PropertyDeclarationSyntax>(updatedProperty, "public virtual required int P { get; }");
+        }
+
+        [Fact]
+        public void TestAddVirtualModifierToRequiredProperty()
+        {
+            var property = (PropertyDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("public required int P { get; }");
+            var updatedProperty = Generator.WithModifiers(property, Generator.GetModifiers(property).WithIsVirtual(true));
+            VerifySyntax<PropertyDeclarationSyntax>(updatedProperty, "public virtual required int P { get; }");
+        }
+
+        [Fact]
         public void TestGetType()
         {
             Assert.Equal("t", Generator.GetType(Generator.MethodDeclaration("m", returnType: Generator.IdentifierName("t"))).ToString());

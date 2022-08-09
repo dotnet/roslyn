@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TParameterSymbol parameter = parameterCreationFunc(withTypeParametersBinder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, scope, diagnostics);
 
                 ReportParameterErrors(owner, parameterSyntax, parameter.Ordinal, parameter.IsParams, parameter.TypeWithAnnotations,
-                                      parameter.RefKind, parameter.Scope, parameter.ContainingSymbol, thisKeyword, paramsKeyword, firstDefault, diagnostics);
+                                      parameter.RefKind, parameter.DeclaredScope, parameter.ContainingSymbol, thisKeyword, paramsKeyword, firstDefault, diagnostics);
 
                 builder.Add(parameter);
                 ++parameterIndex;
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!parameter.IsThis);
 
-            var scope = parameter.Scope;
+            var scope = parameter.DeclaredScope;
             if (scope == DeclarationScope.Unscoped)
             {
                 return false;
