@@ -12048,5 +12048,118 @@ class Program
                 //         D d = (int x, A a = null) => { };
                 Diagnostic(ErrorCode.ERR_BadParamType, "a").WithArguments("2", "", "A", "", "B").WithLocation(12, 25));
         }
+
+        [Fact]
+        public void LambdaWithDefaultsAndRefParameters()
+        {
+
+            var source = """
+    using System;
+
+    class Program
+    {
+        static void Report(object d) => Console.WriteLine(d.GetType());
+        public static void Main()
+        {
+            int x = 9;
+            var lam = (ref int x, out int y, int z = 3) => { y = x + z; };
+            lam(ref x, out var y);
+            lam(ref x, out var w, 20);
+
+            Console.WriteLine(y);
+            Console.WriteLine(w);
+            Report(lam);
+        }
+    }
+    """;
+            var expectAnonymousDelegateIL =
+@"
+    .class private auto ansi sealed '<>f__AnonymousDelegate0'
+	extends [netstandard]System.MulticastDelegate
+{
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			object 'object',
+			native int 'method'
+		) runtime managed 
+	{
+	} // end of method '<>f__AnonymousDelegate0'::.ctor
+	.method public hidebysig newslot virtual 
+		instance void Invoke (
+			int32& '',
+			[out] int32& '',
+			[opt] int32 ''
+		) runtime managed 
+	{
+		.param [3] = int32(3)
+	} // end of method '<>f__AnonymousDelegate0'::Invoke
+} // end of class <>f__AnonymousDelegate0
+";
+
+            var expectLoweredClosureContainerIL =
+@"
+.class nested private auto ansi sealed serializable beforefieldinit '<>c'
+	extends [netstandard]System.Object
+{
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public static initonly class Program/'<>c' '<>9'
+	.field public static class '<>f__AnonymousDelegate0' '<>9__1_0'
+	// Methods
+	.method private hidebysig specialname rtspecialname static 
+		void .cctor () cil managed 
+	{
+		// Method begins at RVA 0x20bf
+		// Code size 11 (0xb)
+		.maxstack 8
+		IL_0000: newobj instance void Program/'<>c'::.ctor()
+		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+		IL_000a: ret
+	} // end of method '<>c'::.cctor
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20b7
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method '<>c'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__1_0' (
+			int32& x,
+			[out] int32& y,
+			[opt] int32 z
+		) cil managed 
+	{
+		.param [3] = int32(3)
+		// Method begins at RVA 0x20cb
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.2
+		IL_0001: ldarg.1
+		IL_0002: ldind.i4
+		IL_0003: ldarg.3
+		IL_0004: add
+		IL_0005: stind.i4
+		IL_0006: ret
+	} // end of method '<>c'::'<Main>b__1_0'
+} // end of class <>c
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput:
+ @"12
+29
+<>f__AnonymousDelegate0");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", expectAnonymousDelegateIL);
+            verifier.VerifyTypeIL("<>c", expectLoweredClosureContainerIL);
+        }
     }
 }
