@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
     Friend Class VisualBasicSymbolDisplayService
         Inherits AbstractSymbolDisplayService
 
-        Public Sub New(provider As HostProjectServices)
+        Public Sub New(provider As Host.LanguageServices)
             MyBase.New(provider)
         End Sub
 

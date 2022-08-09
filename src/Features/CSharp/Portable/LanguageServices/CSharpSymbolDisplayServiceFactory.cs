@@ -22,6 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
-            => new CSharpSymbolDisplayService(provider.ProjectServices);
+            => new CSharpSymbolDisplayService(provider.LanguageServices);
     }
 }

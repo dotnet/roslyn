@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 
         private string GetIndentString(SyntaxNode newRoot)
         {
-            var indentationService = Document.ProjectServices.GetRequiredService<IIndentationService>();
+            var indentationService = Document.LanguageServices.GetRequiredService<IIndentationService>();
             var originalLineNumber = Document.Text.Lines.GetLineFromPosition(CursorPosition).LineNumber;
 
             var newDocument = Document.WithChangedRoot(newRoot, CancellationToken);
