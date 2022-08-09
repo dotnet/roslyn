@@ -132,6 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Public Shared Function HasBackingField(propertyDeclaration As SyntaxNode) As Boolean
             Return propertyDeclaration.IsKind(SyntaxKind.PropertyStatement) AndAlso
+                   Not propertyDeclaration.Parent.IsKind(SyntaxKind.PropertyBlock) AndAlso
                    Not DirectCast(propertyDeclaration, PropertyStatementSyntax).Modifiers.Any(SyntaxKind.MustOverrideKeyword)
         End Function
 
