@@ -10384,7 +10384,7 @@ class C
 
     public async void F(string? x)
     <N:4>{</N:4>
-        var <N:2>y = await G(<N:0>() => new { A = id(x) }</N:0>)</N:2>;
+        var <N:2>y = <N:5>await G(<N:0>() => new { A = id(x) }</N:0>)</N:5></N:2>;
         var <N:3>z = H(<N:1>() => y.A</N:1>)</N:3>;
     }
 }
@@ -10403,7 +10403,7 @@ class C
     public async void F(string? x)
     <N:4>{</N:4>
         if (x is null) throw new Exception();
-        var <N:2>y = await G(<N:0>() => new { A = id(x) }</N:0>)</N:2>;
+        var <N:2>y = <N:5>await G(<N:0>() => new { A = id(x) }</N:0>)</N:5></N:2>;
         var <N:3>z = H(<N:1>() => y.A</N:1>)</N:3>;
     }
 }
@@ -10439,7 +10439,7 @@ class C
                 "C: {<>c__DisplayClass3_0, <F>d__3}",
                 "<global namespace>: {Microsoft, System, System}",
                 "System: {Runtime, Runtime}",
-                "C.<F>d__3: {<>1__state, <>t__builder, x, <>4__this, <>8__4, <z>5__2, <>s__5, <>u__1, MoveNext, SetStateMachine}");
+                "C.<F>d__3: {<>1__state, <>t__builder, x, <>4__this, <>8__1, <z>5__2, <>s__3, <>u__1, MoveNext, SetStateMachine}");
 
             diff1.VerifyIL("C.<>c__DisplayClass3_0.<F>b__1()", @"
 {
