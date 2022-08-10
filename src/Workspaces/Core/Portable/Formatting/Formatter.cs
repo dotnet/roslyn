@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         internal static ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules(Document document)
             => GetDefaultFormattingRules(document.Project.Services);
 
-        internal static ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules(Host.LanguageServices languageServices)
+        internal static ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules(LanguageServices languageServices)
             => languageServices.GetService<ISyntaxFormattingService>()?.GetDefaultFormattingRules() ?? ImmutableArray<AbstractFormattingRule>.Empty;
 
         /// <summary>

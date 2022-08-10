@@ -1846,13 +1846,13 @@ interface I
                 Diagnostic(RudeEditKind.InsertVirtual, "abstract void AbstractMethod()", FeaturesResources.method),
                 Diagnostic(RudeEditKind.InsertIntoInterface, "sealed void NonVirtualMethod()", FeaturesResources.method),
                 Diagnostic(RudeEditKind.InsertOperator, "public static int operator +(I a, I b)", FeaturesResources.operator_),
-                Diagnostic(RudeEditKind.InsertIntoInterface, "static int StaticProperty1", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static int StaticProperty1", FeaturesResources.property_),
                 Diagnostic(RudeEditKind.InsertIntoInterface, "static int StaticProperty2", FeaturesResources.property_),
                 Diagnostic(RudeEditKind.InsertIntoInterface, "static int StaticProperty2", CSharpFeaturesResources.property_getter),
-                Diagnostic(RudeEditKind.InsertVirtual, "virtual int VirtualProperty1", FeaturesResources.auto_property),
-                Diagnostic(RudeEditKind.InsertVirtual, "virtual int VirtualProperty2", FeaturesResources.auto_property),
-                Diagnostic(RudeEditKind.InsertVirtual, "int VirtualProperty3", FeaturesResources.auto_property),
-                Diagnostic(RudeEditKind.InsertVirtual, "int VirtualProperty4", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertVirtual, "virtual int VirtualProperty1", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertVirtual, "virtual int VirtualProperty2", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertVirtual, "int VirtualProperty3", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertVirtual, "int VirtualProperty4", FeaturesResources.property_),
                 Diagnostic(RudeEditKind.InsertVirtual, "abstract int AbstractProperty1", FeaturesResources.property_),
                 Diagnostic(RudeEditKind.InsertVirtual, "abstract int AbstractProperty2", FeaturesResources.property_),
                 Diagnostic(RudeEditKind.InsertIntoInterface, "sealed int NonVirtualProperty", FeaturesResources.property_),
@@ -1938,7 +1938,7 @@ class C<T>
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "void M()", FeaturesResources.method),
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "int P1", FeaturesResources.auto_property),
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "int P2", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "int P2", FeaturesResources.property_),
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "int this[int i]", FeaturesResources.indexer_),
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "event Action E", FeaturesResources.event_),
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "EF", CSharpFeaturesResources.event_field),
@@ -14109,7 +14109,7 @@ class C
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.get_Q")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_Q"))
                 },
-                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         [Fact]
@@ -14349,10 +14349,23 @@ class C
         }
 
         [Fact]
-        public void PropertyInsert()
+        public void Property_Insert()
         {
             var src1 = "class C { }";
             var src2 = "class C { int P { get => 1; set { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P")) },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+        }
+
+        [Fact]
+        public void Property_Insert_Static()
+        {
+            var src1 = "class C { }";
+            var src2 = "class C { static int P { get => 1; set { } } }";
 
             var edits = GetTopEdits(src1, src2);
 
@@ -14370,13 +14383,28 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "int P", FeaturesResources.auto_property) },
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "int P", FeaturesResources.property_) },
                 capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [WorkItem(992578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992578")]
+        [Fact]
+        public void Property_Insert_Incomplete()
+        {
+            var src1 = "class C { }";
+            var src2 = "class C { public int P { } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Insert [public int P { }]@10", "Insert [{ }]@23");
+
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
         [Fact]
-        public void PropertyInsert_PInvoke()
+        public void Property_Insert_PInvoke()
         {
             var src1 = @"
 using System;
@@ -14406,7 +14434,7 @@ class C
         }
 
         [Fact]
-        public void PropertyInsert_IntoStruct()
+        public void Property_Insert_IntoStruct()
         {
             var src1 = @"
 struct S 
@@ -14425,6 +14453,8 @@ struct S
     private static int g { get; } = 1;
     private static int i { get; set; } = 1;
     private static int k => 1;
+    private static int l { get => 1; set {} }
+    private static int m { get => 1; set => k; }
     public S(int z) { a = z; }
 }
 ";
@@ -14438,7 +14468,7 @@ struct S
         }
 
         [Fact]
-        public void PropertyInsert_IntoLayoutClass_Sequential()
+        public void Property_Insert_IntoLayoutClass_Sequential()
         {
             var src1 = @"
 using System.Runtime.InteropServices;
@@ -14466,7 +14496,11 @@ class C
     private static int i { get; set; } = 1;
     private int j => 1;
     private static int k => 1;
-}
+    private int l { get => 1; set { } }
+    private static int m { get => 1; set { } }
+    private int n { get { return 1; } set => a; }
+    private static int o { get { return 1; } set => a; }
+}    
 ";
 
             var edits = GetTopEdits(src1, src2);
@@ -14480,10 +14514,36 @@ class C
                 Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private static int i { get; set; } = 1;", FeaturesResources.auto_property, FeaturesResources.class_));
         }
 
+        [Fact]
+        public void Property_Insert_Auto()
+        {
+            var src1 = "class C { }";
+            var src2 = "class C { int P { get; set; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P")) },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+        }
+
+        [Fact]
+        public void Property_Insert_Auto_Static()
+        {
+            var src1 = "class C { }";
+            var src2 = "class C { static int P { get; set; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P")) },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType);
+        }
+
         // Design: Adding private accessors should also be allowed since we now allow adding private methods
         // and adding public properties and/or public accessors are not allowed.
         [Fact]
-        public void PrivateProperty_AccessorAdd()
+        public void Property_Private_AccessorAdd()
         {
             var src1 = "class C { int _p; int P { get { return 1; } } }";
             var src2 = "class C { int _p; int P { get { return 1; } set { _p = value; } } }";
@@ -14498,7 +14558,7 @@ class C
 
         [WorkItem(755975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755975")]
         [Fact]
-        public void PrivatePropertyAccessorDelete()
+        public void Property_Private_AccessorDelete()
         {
             var src1 = "class C { int _p; int P { get { return 1; } set { _p = value; } } }";
             var src2 = "class C { int _p; int P { get { return 1; } } }";
@@ -14516,7 +14576,7 @@ class C
         }
 
         [Fact]
-        public void PrivateAutoPropertyAccessorAdd1()
+        public void Property_Auto_Private_AccessorAdd1()
         {
             var src1 = "class C { int P { get; } }";
             var src2 = "class C { int P { get; set; } }";
@@ -14530,7 +14590,7 @@ class C
         }
 
         [Fact]
-        public void PrivateAutoPropertyAccessorAdd2()
+        public void Property_Auto_Private_AccessorAdd2()
         {
             var src1 = "class C { public int P { get; } }";
             var src2 = "class C { public int P { get; private set; } }";
@@ -14544,7 +14604,7 @@ class C
         }
 
         [Fact]
-        public void PrivateAutoPropertyAccessorAdd4()
+        public void Property_Auto_Private_AccessorAdd4()
         {
             var src1 = "class C { public int P { get; } }";
             var src2 = "class C { public int P { get; set; } }";
@@ -14558,7 +14618,7 @@ class C
         }
 
         [Fact]
-        public void PrivateAutoPropertyAccessorAdd5()
+        public void Property_Auto_Private_AccessorAdd5()
         {
             var src1 = "class C { public int P { get; } }";
             var src2 = "class C { public int P { get; internal set; } }";
@@ -14572,7 +14632,7 @@ class C
         }
 
         [Fact]
-        public void PrivateAutoPropertyAccessorAdd6()
+        public void Property_Auto_Private_AccessorAdd6()
         {
             var src1 = "class C { int P { get; } = 1; }";
             var src2 = "class C { int P { get; set; } = 1; }";
@@ -14586,7 +14646,7 @@ class C
         }
 
         [Fact]
-        public void PrivateAutoPropertyAccessorAdd_Init()
+        public void Property_Auto_Private_AccessorAdd_Init()
         {
             var src1 = "class C { int P { get; } = 1; }";
             var src2 = "class C { int P { get; init; } = 1; }";
@@ -14601,7 +14661,7 @@ class C
 
         [WorkItem(755975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755975")]
         [Fact]
-        public void PrivateAutoPropertyAccessorDelete_Get()
+        public void Property_Auto_Private_AccessorDelete_Get()
         {
             var src1 = "class C { int P { get; set; } }";
             var src2 = "class C { int P { set; } }";
@@ -14619,7 +14679,7 @@ class C
         }
 
         [Fact]
-        public void AutoPropertyAccessor_SetToInit()
+        public void Property_Auto_Accessor_SetToInit()
         {
             var src1 = "class C { int P { get; set; } }";
             var src2 = "class C { int P { get; init; } }";
@@ -14635,7 +14695,7 @@ class C
         }
 
         [Fact]
-        public void AutoPropertyAccessor_InitToSet()
+        public void Property_Auto_Accessor_InitToSet()
         {
             var src1 = "class C { int P { get; init; } }";
             var src2 = "class C { int P { get; set; } }";
@@ -14651,7 +14711,7 @@ class C
         }
 
         [Fact]
-        public void PrivateAutoPropertyAccessorDelete_Set()
+        public void Propert_Auto_Private_AccessorDelete_Set()
         {
             var src1 = "class C { int P { get; set; } = 1; }";
             var src2 = "class C { int P { get; } = 1; }";
@@ -14670,7 +14730,7 @@ class C
         }
 
         [Fact]
-        public void PrivateAutoPropertyAccessorDelete_Init()
+        public void Propert_Auto_Private_AccessorDelete_Init()
         {
             var src1 = "class C { int P { get; init; } = 1; }";
             var src2 = "class C { int P { get; } = 1; }";
@@ -14689,7 +14749,7 @@ class C
         }
 
         [Fact]
-        public void AutoPropertyAccessorUpdate()
+        public void Property_Auto_AccessorUpdate()
         {
             var src1 = "class C { int P { get; } }";
             var src2 = "class C { int P { set; } }";
@@ -14700,21 +14760,6 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.AccessorKindUpdate, "set", CSharpFeaturesResources.property_setter));
-        }
-
-        [WorkItem(992578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992578")]
-        [Fact]
-        public void InsertIncompleteProperty()
-        {
-            var src1 = "class C { }";
-            var src2 = "class C { public int P { } }";
-
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifyEdits("Insert [public int P { }]@10", "Insert [{ }]@23");
-
-            edits.VerifySemanticDiagnostics(
-                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -14731,7 +14776,7 @@ class C
                 "Insert [get;]@34");
 
             edits.VerifySemanticDiagnostics(
-                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         [Fact]
@@ -14798,7 +14843,7 @@ class C
         }
 
         [Fact]
-        public void AutoProperty_Partial_InsertDelete()
+        public void Property_Auto_Partial_InsertDelete()
         {
             var srcA1 = "partial class C { }";
             var srcB1 = "partial class C { int P { get; set; } int Q { get; init; } }";
@@ -14825,7 +14870,7 @@ class C
         }
 
         [Fact]
-        public void AutoPropertyWithInitializer_Partial_InsertDelete()
+        public void Property_AutoWithInitializer_Partial_InsertDelete()
         {
             var srcA1 = "partial class C { }";
             var srcB1 = "partial class C { int P { get; set; } = 1; }";
@@ -14852,7 +14897,7 @@ class C
         }
 
         [Fact]
-        public void PropertyWithExpressionBody_Partial_InsertDeleteUpdate()
+        public void Property_WithExpressionBody_Partial_InsertDeleteUpdate()
         {
             var srcA1 = "partial class C { }";
             var srcB1 = "partial class C { int P => 1; }";
@@ -14872,7 +14917,7 @@ class C
         }
 
         [Fact]
-        public void AutoProperty_ReadOnly_Add()
+        public void Property_Auto_ReadOnly_Add()
         {
             var src1 = @"
 struct S

@@ -17,7 +17,7 @@ internal readonly record struct CleanCodeGenerationOptions(
     [property: DataMember(Order = 1)] CodeCleanupOptions CleanupOptions)
 {
 #if !CODE_STYLE
-    public static CleanCodeGenerationOptions GetDefault(Host.LanguageServices languageServices)
+    public static CleanCodeGenerationOptions GetDefault(LanguageServices languageServices)
         => new(CodeGenerationOptions.GetDefault(languageServices),
                CodeCleanupOptions.GetDefault(languageServices));
 
@@ -39,21 +39,21 @@ internal interface CleanCodeGenerationOptionsProvider :
 #if !CODE_STYLE
 internal abstract class AbstractCleanCodeGenerationOptionsProvider : AbstractCodeCleanupOptionsProvider, CleanCodeGenerationOptionsProvider
 {
-    public abstract ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken);
+    public abstract ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken);
 
-    public sealed override async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+    public sealed override async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => (await GetCleanCodeGenerationOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).CleanupOptions;
 
-    ValueTask<CleanCodeGenerationOptions> OptionsProvider<CleanCodeGenerationOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+    ValueTask<CleanCodeGenerationOptions> OptionsProvider<CleanCodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => GetCleanCodeGenerationOptionsAsync(languageServices, cancellationToken);
 
-    async ValueTask<CodeAndImportGenerationOptions> OptionsProvider<CodeAndImportGenerationOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+    async ValueTask<CodeAndImportGenerationOptions> OptionsProvider<CodeAndImportGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => (await GetCleanCodeGenerationOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).CodeAndImportGenerationOptions;
 
-    async ValueTask<CodeGenerationOptions> OptionsProvider<CodeGenerationOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+    async ValueTask<CodeGenerationOptions> OptionsProvider<CodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => (await GetCleanCodeGenerationOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).GenerationOptions;
 
-    async ValueTask<NamingStylePreferences> OptionsProvider<NamingStylePreferences>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+    async ValueTask<NamingStylePreferences> OptionsProvider<NamingStylePreferences>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => (await GetCleanCodeGenerationOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).GenerationOptions.NamingStyle;
 }
 
@@ -65,6 +65,6 @@ internal static class CleanCodeGenerationOptionsProviders
             await document.GetCodeCleanupOptionsAsync(fallbackOptions.CleanupOptions, cancellationToken).ConfigureAwait(false));
 
     public static async ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(this Document document, CleanCodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await document.GetCleanCodeGenerationOptionsAsync(await ((OptionsProvider<CleanCodeGenerationOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+        => await document.GetCleanCodeGenerationOptionsAsync(await ((OptionsProvider<CleanCodeGenerationOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 }
 #endif

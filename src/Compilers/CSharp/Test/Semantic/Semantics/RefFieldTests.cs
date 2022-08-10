@@ -568,6 +568,200 @@ ref struct R
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "_v2").WithArguments("volatile").WithLocation(9, 31));
         }
 
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
+        public void InitRefField_AutoDefault()
+        {
+            var source = """
+using System;
+
+var x = 42;
+scoped var r = new R();
+r.field = ref x;
+
+ref struct R
+{
+    public ref int field;
+
+    public R()
+    {
+        Console.WriteLine("explicit ctor");
+    }
+}
+""";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
+            verifier.VerifyIL("R..ctor()", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  stfld      ""ref int R.field""
+  IL_0008:  ldstr      ""explicit ctor""
+  IL_000d:  call       ""void System.Console.WriteLine(string)""
+  IL_0012:  ret
+}");
+        }
+
+        // Test skipped because we don't allow faking runtime feature flags when using specific TargetFramework
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/61463"), WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
+        public void InitRefField_UnsafeNullRef()
+        {
+            var source = """
+using System;
+
+var x = 42;
+scoped var r = new R();
+r.field = ref x;
+
+ref struct R
+{
+    public ref int field;
+
+    public R()
+    {
+        field = ref System.Runtime.CompilerServices.Unsafe.NullRef<int>();
+        Console.WriteLine("explicit ctor");
+    }
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
+            verifier.VerifyIL("R..ctor()", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref int System.Runtime.CompilerServices.Unsafe.NullRef<int>()""
+  IL_0006:  stfld      ""ref int R.field""
+  IL_000b:  ldstr      ""explicit ctor""
+  IL_0010:  call       ""void System.Console.WriteLine(string)""
+  IL_0015:  ret
+}");
+        }
+
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
+        public void InitRefField_AutoDefault_RefReadonly()
+        {
+            var source = """
+using System;
+
+var x = 42;
+scoped var r = new R();
+r.field = ref x;
+
+ref struct R
+{
+    public ref readonly int field;
+
+    public R()
+    {
+        Console.WriteLine("explicit ctor");
+    }
+}
+""";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
+            verifier.VerifyIL("R..ctor()", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  stfld      ""ref readonly int R.field""
+  IL_0008:  ldstr      ""explicit ctor""
+  IL_000d:  call       ""void System.Console.WriteLine(string)""
+  IL_0012:  ret
+}");
+        }
+
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
+        public void InitRefField_AutoDefault_ReadonlyRef()
+        {
+            var source = """
+using System;
+
+var r = new R();
+
+ref struct R
+{
+    public readonly ref int field;
+
+    public R()
+    {
+        Console.WriteLine("explicit ctor");
+    }
+}
+""";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (7,29): warning CS0649: Field 'R.field' is never assigned to, and will always have its default value 0
+                //     public readonly ref int field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("R.field", "0").WithLocation(7, 29)
+                );
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
+            verifier.VerifyIL("R..ctor()", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  stfld      ""ref int R.field""
+  IL_0008:  ldstr      ""explicit ctor""
+  IL_000d:  call       ""void System.Console.WriteLine(string)""
+  IL_0012:  ret
+}");
+        }
+
+        [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
+        public void InitRefField_AutoDefault_WithOtherFieldInitializer()
+        {
+            var source = """
+using System;
+
+var x = 42;
+scoped var r = new R();
+r.field = ref x;
+
+ref struct R
+{
+    public ref int field;
+    public int otherField = 42;
+
+    public R()
+    {
+        Console.WriteLine("explicit ctor");
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
+            verifier.VerifyIL("R..ctor()", @"
+ {
+  // Code size       27 (0x1b)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  stfld      ""ref int R.field""
+  IL_0008:  ldarg.0
+  IL_0009:  ldc.i4.s   42
+  IL_000b:  stfld      ""int R.otherField""
+  IL_0010:  ldstr      ""explicit ctor""
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ret
+}");
+        }
+
         /// <summary>
         /// Unexpected modreq().
         /// </summary>
@@ -6345,6 +6539,117 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(7, 20));
         }
 
+        [Fact, WorkItem(63104, "https://github.com/dotnet/roslyn/issues/63104")]
+        public void RefFieldsConsideredManaged()
+        {
+            var source = @"
+unsafe
+{
+    StructWithRefField* p = stackalloc StructWithRefField[10]; // 1, 2
+    C.M<StructWithRefField>(); // 3
+}
+
+public ref struct StructWithRefField
+{
+    public ref byte RefField;
+}
+
+class C
+{
+    public static void M<T>() where T : unmanaged { }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithRefField')
+                //     StructWithRefField* p = stackalloc StructWithRefField[10]; // 1, 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithRefField*").WithArguments("StructWithRefField").WithLocation(4, 5),
+                // (4,40): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithRefField')
+                //     StructWithRefField* p = stackalloc StructWithRefField[10]; // 1, 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithRefField").WithArguments("StructWithRefField").WithLocation(4, 40),
+                // (5,7): error CS0306: The type 'StructWithRefField' may not be used as a type argument
+                //     C.M<StructWithRefField>(); // 3
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M<StructWithRefField>").WithArguments("StructWithRefField").WithLocation(5, 7)
+                );
+
+            Assert.True(comp.GetTypeByMetadataName("StructWithRefField").IsManagedTypeNoUseSiteDiagnostics);
+        }
+
+        [Fact, WorkItem(63104, "https://github.com/dotnet/roslyn/issues/63104")]
+        public void RefFieldsConsideredManaged_Generic()
+        {
+            var source = @"
+unsafe
+{
+    StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
+    C.M<StructWithRefField>(); // 3
+}
+
+ref struct StructWithIndirectRefField
+{
+    public StructWithRefField<int> Field;
+}
+ref struct StructWithRefField<T>
+{
+    public ref T RefField;
+}
+
+class C
+{
+    public static void M<T>() where T : unmanaged { }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
+                //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField*").WithArguments("StructWithIndirectRefField").WithLocation(4, 5),
+                // (4,48): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
+                //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField").WithArguments("StructWithIndirectRefField").WithLocation(4, 48),
+                // (5,9): error CS0305: Using the generic type 'StructWithRefField<T>' requires 1 type arguments
+                //     C.M<StructWithRefField>(); // 3
+                Diagnostic(ErrorCode.ERR_BadArity, "StructWithRefField").WithArguments("StructWithRefField<T>", "type", "1").WithLocation(5, 9),
+                // (10,36): warning CS0649: Field 'StructWithIndirectRefField.Field' is never assigned to, and will always have its default value 
+                //     public StructWithRefField<int> Field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field").WithArguments("StructWithIndirectRefField.Field", "").WithLocation(10, 36),
+                // (14,18): warning CS0649: Field 'StructWithRefField<T>.RefField' is never assigned to, and will always have its default value 
+                //     public ref T RefField;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "RefField").WithArguments("StructWithRefField<T>.RefField", "").WithLocation(14, 18)
+                );
+
+            Assert.True(comp.GetTypeByMetadataName("StructWithIndirectRefField").IsManagedTypeNoUseSiteDiagnostics);
+        }
+
+        [Fact, WorkItem(63104, "https://github.com/dotnet/roslyn/issues/63104")]
+        public void RefFieldsConsideredManaged_Indirect()
+        {
+            var source = @"
+unsafe
+{
+    StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
+}
+
+public ref struct StructWithIndirectRefField
+{
+    public StructWithRefField Field;
+}
+
+public ref struct StructWithRefField
+{
+    public ref byte RefField;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
+                //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField*").WithArguments("StructWithIndirectRefField").WithLocation(4, 5),
+                // (4,48): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
+                //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField").WithArguments("StructWithIndirectRefField").WithLocation(4, 48)
+                );
+
+            Assert.True(comp.GetTypeByMetadataName("StructWithIndirectRefField").IsManagedTypeNoUseSiteDiagnostics);
+        }
+
         // Breaking change in C#11: Cannot return an 'out' parameter by reference.
         [Fact]
         public void BreakingChange_ReturnOutByRef()
@@ -8990,6 +9295,9 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (4,20): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //     static void F1(scoped Unknown x, scoped R<Unknown> y)
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped Unknown x").WithLocation(4, 20),
                 // (4,27): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 //     static void F1(scoped Unknown x, scoped R<Unknown> y)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(4, 27),
@@ -10596,6 +10904,39 @@ class Program
                 // (4,19): warning CS0169: The field 'R<T>.F' is never used
                 //     private ref T F;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("R<T>.F").WithLocation(4, 19));
+        }
+
+        [WorkItem(63140, "https://github.com/dotnet/roslyn/issues/63140")]
+        [Fact]
+        public void Scoped_Cycle()
+        {
+            var source =
+@"interface I 
+{
+    void M<T>(T s);  
+}
+
+class C : I
+{
+    void I.M<T>(scoped T? s) {}
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0535: 'C' does not implement interface member 'I.M<T>(T)'
+                // class C : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", "I.M<T>(T)").WithLocation(6, 11),
+                // (8,12): error CS0539: 'C.M<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I.M<T>(scoped T? s) {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M").WithArguments("C.M<T>(T?)").WithLocation(8, 12),
+                // (8,17): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //     void I.M<T>(scoped T? s) {}
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T? s").WithLocation(8, 17),
+                // (8,25): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+                //     void I.M<T>(scoped T? s) {}
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 25),
+                // (8,27): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     void I.M<T>(scoped T? s) {}
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "s").WithArguments("System.Nullable<T>", "T", "T").WithLocation(8, 27));
         }
 
         [Fact]

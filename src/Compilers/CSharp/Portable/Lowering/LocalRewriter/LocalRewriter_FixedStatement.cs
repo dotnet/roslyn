@@ -43,12 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!pinnedTemp.Type.IsManagedTypeNoUseSiteDiagnostics);
 
                     // temp = ref *default(T*);
-                    cleanup[i] = _factory.Assignment(_factory.Local(pinnedTemp), new BoundPointerIndirectionOperator(
-                        _factory.Syntax,
-                        _factory.Default(new PointerTypeSymbol(pinnedTemp.TypeWithAnnotations)),
-                        refersToLocation: false,
-                        pinnedTemp.Type),
-                        isRef: true);
+                    cleanup[i] = _factory.Assignment(_factory.Local(pinnedTemp), _factory.NullRef(pinnedTemp.TypeWithAnnotations), isRef: true);
                 }
             }
 

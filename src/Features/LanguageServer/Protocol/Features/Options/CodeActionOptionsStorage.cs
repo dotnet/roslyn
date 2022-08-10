@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public static readonly PerLanguageOption2<int> WrappingColumn =
             new("FormattingOptions", "WrappingColumn", CodeActionOptions.DefaultWrappingColumn);
 
-        public static CodeActionOptions GetCodeActionOptions(this IGlobalOptionService globalOptions, Host.LanguageServices languageServices)
+        public static CodeActionOptions GetCodeActionOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
             => new(
                 cleanupOptions: globalOptions.GetCodeCleanupOptions(languageServices),
                 codeGenerationOptions: globalOptions.GetCodeGenerationOptions(languageServices),
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)
         {
             var cache = ImmutableDictionary<string, CodeActionOptions>.Empty;
-            return new DelegatingCodeActionOptionsProvider(languageService => ImmutableInterlocked.GetOrAdd(ref cache, languageService.Language, (_, options) => GetCodeActionOptions(options, languageService.LanguageServices), globalOptions));
+            return new DelegatingCodeActionOptionsProvider(languageService => ImmutableInterlocked.GetOrAdd(ref cache, languageService.Language, (_, options) => GetCodeActionOptions(options, languageService), globalOptions));
         }
 
         public static readonly PerLanguageOption2<int> ConditionalExpressionWrappingLength = new(
