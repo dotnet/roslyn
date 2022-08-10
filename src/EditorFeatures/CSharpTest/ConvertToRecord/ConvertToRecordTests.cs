@@ -663,7 +663,7 @@ namespace N
     {
         private const int num = 10;
 
-        public override bool Equals(object? other)
+        public override bool {|CS0111:Equals|}(object? other)
         {
             return other is C otherC && otherC.P == P && otherC.B == B && num == C.num;
         }
