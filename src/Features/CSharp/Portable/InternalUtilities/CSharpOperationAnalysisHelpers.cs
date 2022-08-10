@@ -25,12 +25,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
             Compilation compilation)
         {
             if (methodSymbol.Name == nameof(Equals) &&
-                methodSymbol.Parameters.IsSingle() &&
-                OverridesEquals(compilation, methodSymbol))
+                methodSymbol.ReturnType.SpecialType == SpecialType.System_Boolean &&
+                methodSymbol.Parameters.IsSingle())
             {
-                var actualMembers = GetEqualizedMembers(methodBodyOperation, methodSymbol);
-                return !actualMembers.HasDuplicates(EqualityComparer<IFieldSymbol>.Default) &&
-                        actualMembers.SetEquals(expectedComparedFields);
+                var type = methodSymbol.ContainingType;
+                var equatableType = GetIEquatable(compilation, type);
+                if (OverridesEquals(compilation, methodSymbol, equatableType))
+                {
+                    if (equatableType != null &&
+                        methodSymbol.Parameters.First().Type.SpecialType == SpecialType.System_Object &&
+                        (methodBodyOperation.BlockBody ?? methodBodyOperation.ExpressionBody) is IBlockOperation
+                        {
+                            Operations: [IReturnOperation
+                            {
+                                ReturnedValue: IInvocationOperation
+                                {
+                                    Instance: IInstanceReferenceOperation,
+                                    Arguments: [IArgumentOperation { Value: IOperation arg }]
+                                }
+                            }]
+                        } && arg.WalkDownConversion() is IParameterReferenceOperation { Parameter: IParameterSymbol param }
+                        && param.Equals(methodSymbol.Parameters.First()))
+                    {
+                        // in this case where we have an Equals(C? other) from IEquatable but the current one
+                        // is Equals(object? other), we accept something of the form:
+                        // return Equals(other as C);
+                        return true;
+                    }
+
+                    // otherwise we check to see which fields are compared (either by themselves or through properties)
+                    var actualMembers = GetEqualizedMembers(methodBodyOperation, methodSymbol);
+                    return !actualMembers.HasDuplicates(EqualityComparer<IFieldSymbol>.Default) &&
+                            actualMembers.SetEquals(expectedComparedFields);
+                }
             }
 
             return false;
@@ -47,7 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                 UseSystemHashCode.Analyzer.TryGetAnalyzer(compilation, out var analyzer))
             {
                 // Hash Code method, see if it would be a default implementation that we can remove
-                var (_, members, _) = analyzer.GetHashedMembers(methodSymbol, methodOperation.BlockBody);
+                var (_, members, _) = analyzer.GetHashedMembers(
+                    methodSymbol, methodOperation.BlockBody ?? methodOperation.ExpressionBody);
                 if (members != default)
                 {
                     // the user could access a member using either the property or the underlying field
@@ -828,21 +856,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
             return true;
         }
 
-        private static bool OverridesEquals(Compilation compilation, IMethodSymbol? equals)
+        /// <summary>
+        /// Whether the equals method overrides object or IEquatable Equals method
+        /// </summary>
+        private static bool OverridesEquals(Compilation compilation, IMethodSymbol? equals, INamedTypeSymbol? equatableType)
         {
             var objectType = compilation.GetSpecialType(SpecialType.System_Object);
             var objectEquals = objectType?.GetMembers(nameof(Equals)).FirstOrDefault() as IMethodSymbol;
 
-            var equatableMetadataName = compilation.GetBestTypeByMetadataName("System.IEquatable`1")?.MetadataName;
-            if (equals != null &&
-                equals.ContainingType.Interfaces.FirstOrDefault(
-                    iface => iface.MetadataName == equatableMetadataName) is INamedTypeSymbol equatableType)
+            if (equatableType != null && equals != null &&
+                equatableType.GetMembers(nameof(Equals)).FirstOrDefault() is IMethodSymbol equatableEquals &&
+                Equals(equals.ContainingType.FindImplementationForInterfaceMember(equatableEquals), equals))
             {
-                if (equatableType.GetMembers(nameof(Equals)).FirstOrDefault() is IMethodSymbol equatableEquals &&
-                    Equals(equals.ContainingType.FindImplementationForInterfaceMember(equatableEquals), equals))
-                {
-                    return true;
-                }
+                return true;
             }
 
             while (equals != null)
@@ -855,6 +881,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
             }
 
             return false;
+        }
+
+        private static INamedTypeSymbol? GetIEquatable(Compilation compilation, INamedTypeSymbol containingType)
+        {
+            // can't use nameof since it's generic and we need the type parameter
+            var equatableMetadataName = compilation.GetBestTypeByMetadataName("System.IEquatable`1")?.MetadataName;
+            return containingType.Interfaces.FirstOrDefault(
+                    iface => iface.MetadataName == equatableMetadataName);
         }
     }
 }

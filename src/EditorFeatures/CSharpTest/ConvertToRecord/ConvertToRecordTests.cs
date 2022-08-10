@@ -1431,6 +1431,42 @@ namespace N
         }
 
         [Fact]
+        public async Task TestMovePropertiesAndDeleteSimpleTypeEqualsAndObjectEquals()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public class [|C|] : IEquatable<C>
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public bool Equals(C? otherC)
+        {
+            return {|CS8602:otherC|}.P == P && otherC.B == B;
+        }
+
+        public override bool Equals(object? other)
+        {
+            return Equals(other as C);
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+
+namespace N
+{
+    public record C(int P, bool B) : IEquatable<C>;
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestMovePropertiesAndDeleteTypeEqualsIfChain()
         {
             var initialMarkup = @"

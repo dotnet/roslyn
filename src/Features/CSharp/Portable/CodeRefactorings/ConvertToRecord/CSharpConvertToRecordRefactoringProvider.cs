@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             // get all the constructors so we can add an initializer to them
             // or potentially delete the primary constructor
-            var constructors = modifiedMembers.OfType<ConstructorDeclarationSyntax>();
+            var constructors = modifiedMembers.OfType<ConstructorDeclarationSyntax>().AsImmutable();
             foreach (var constructor in constructors)
             {
                 // check to see if it would override the primary constructor
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 modifiedMembers.Remove(notEqualsOp);
             }
 
-            var methods = modifiedMembers.OfType<MethodDeclarationSyntax>();
+            var methods = modifiedMembers.OfType<MethodDeclarationSyntax>().AsImmutable();
 
             foreach (var method in methods)
             {
@@ -318,14 +318,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     // the Equals method implementation is fundamentally equivalent to the generated one
                     modifiedMembers.Remove(method);
                 }
-            }
-
-            var cloneMethod = modifiedMembers
-                .FirstOrDefault(member => member is MethodDeclarationSyntax { Identifier.ValueText: "Clone" });
-
-            if (cloneMethod != null)
-            {
-                modifiedMembers.Remove(cloneMethod);
             }
 
             return modifiedMembers.ToImmutable();
