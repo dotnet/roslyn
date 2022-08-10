@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Completion
         protected virtual bool ItemsMatch(CompletionItem item, CompletionItem existingItem)
         {
             return item.Span == existingItem.Span
-                && item.SortText == existingItem.SortText;
+                && item.SortText == existingItem.SortText && item.InlineDescription == existingItem.InlineDescription;
         }
 
         /// <summary>

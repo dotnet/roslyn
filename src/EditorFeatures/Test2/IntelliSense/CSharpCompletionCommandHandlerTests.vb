@@ -10264,5 +10264,28 @@ class MyClass
                 Throw New NotImplementedException()
             End Function
         End Class
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSortingOfSameNamedCompletionItems() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class MyClass
+{
+    public void MyMethod()
+    {
+        $$
+    }
+}
+                              </Document>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperience, LanguageNames.CSharp), True)
+                state.SendTypeChars("cw")
+                Await state.AssertSelectedCompletionItem(displayText:="cw", inlineDescription:=Nothing, isHardSelected:=True)
+                state.SendDownKey()
+                Await state.AssertSelectedCompletionItem(displayText:="cw", inlineDescription:="Console.WriteLine", isHardSelected:=True)
+            End Using
+        End Function
     End Class
 End Namespace
