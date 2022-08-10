@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
                 glyph: glyph,
+                sortText: snippetIdentifier + " ",
                 filterText: snippetIdentifier,
                 properties: props,
                 isComplexTextEdit: true,

@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
                     Count++;
                     // Matching items should be rare, no need to use object pool for this.
-                    _displayNameToItemsMap[entireDisplayText] = new List<CompletionItem>() { item, sameNamedItem };
+                    _displayNameToItemsMap[entireDisplayText] = new List<CompletionItem>() { sameNamedItem, item };
                 }
                 else if (value is List<CompletionItem> sameNamedItems)
                 {
