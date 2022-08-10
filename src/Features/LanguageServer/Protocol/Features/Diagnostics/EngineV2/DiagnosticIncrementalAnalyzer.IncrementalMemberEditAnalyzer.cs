@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -208,14 +208,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return null;
                 }
 
-                var documentDifferenceService = document.Project.LanguageServices.GetRequiredService<IDocumentDifferenceService>();
+                var documentDifferenceService = document.GetRequiredLanguageService<IDocumentDifferenceService>();
                 var differenceResult = await documentDifferenceService.GetDifferenceAsync(lastDocument, document, cancellationToken).ConfigureAwait(false);
                 if (differenceResult?.ChangedMember is not { } changedMember)
                 {
                     return null;
                 }
 
-                var syntaxFacts = document.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                 var members = syntaxFacts.GetMethodLevelMembers(root);
                 var memberSpans = members.SelectAsArray(member => member.FullSpan);
                 var changedMemberId = members.IndexOf(changedMember);

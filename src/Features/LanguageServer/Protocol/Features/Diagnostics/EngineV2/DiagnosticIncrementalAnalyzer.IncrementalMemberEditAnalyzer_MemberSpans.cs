@@ -5,7 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 static async Task<ImmutableArray<TextSpan>> CreateMemberSpansAsync(Document document, VersionStamp version, CancellationToken cancellationToken)
                 {
-                    var service = document.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+                    var service = document.GetRequiredLanguageService<ISyntaxFactsService>();
                     var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     var members = service.GetMethodLevelMembers(root);
                     return members.SelectAsArray(m => m.FullSpan);
