@@ -98,13 +98,13 @@ namespace Microsoft.CodeAnalysis.Emit
             return internalSymbols.ToImmutableAndFree();
         }
 
-        public bool IsReplaced(IDefinition definition, bool checkEnclosingTypes = false)
+        public bool IsReplaced(ISymbol symbol, bool checkEnclosingTypes = false)
         {
-            var symbol = definition.GetInternalSymbol()?.GetISymbol();
+            ISymbol? currentSymbol = symbol;
 
-            while (symbol != null)
+            while (currentSymbol != null)
             {
-                if (_replacedSymbols.Contains(symbol))
+                if (_replacedSymbols.Contains(currentSymbol))
                 {
                     return true;
                 }
@@ -114,11 +114,14 @@ namespace Microsoft.CodeAnalysis.Emit
                     return false;
                 }
 
-                symbol = symbol.ContainingType;
+                currentSymbol = currentSymbol.ContainingType;
             }
 
             return false;
         }
+
+        public bool IsReplaced(IDefinition definition, bool checkEnclosingTypes = false)
+            => definition.GetInternalSymbol() is { } internalSymbol && IsReplaced(internalSymbol.GetISymbol(), checkEnclosingTypes);
 
         /// <summary>
         /// True if the symbol is a source symbol added during EnC session. 
