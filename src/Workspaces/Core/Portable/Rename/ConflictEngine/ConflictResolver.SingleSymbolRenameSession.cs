@@ -151,8 +151,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         ReplacementTextValid: _replacementTextValid
                     );
 
-                    using var _1 = PooledHashSet<DocumentId>.GetInstance(out var unchangedDocumentIds);
+                    using var _ = PooledHashSet<DocumentId>.GetInstance(out var unchangedDocumentIds);
                     var renameLocations = _renameLocationSet.Locations;
+
+                    var documentIdToRenameLocations = renameLocations
+                        .GroupBy(location => location.DocumentId)
+                        .ToDictionary(grouping => grouping.Key);
 
                     foreach (var documentId in documentIdsToRename.ToList())
                     {
@@ -162,12 +166,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken).ConfigureAwait(false);
                         var originalSyntaxRoot = await semanticModel.SyntaxTree.GetRootAsync(CancellationToken).ConfigureAwait(false);
 
-                        using var _2 = ArrayBuilder<RenameLocation>.GetInstance(out var locationsInDocument);
-                        foreach (var location in renameLocations)
-                        {
-                            if (location.DocumentId == documentId)
-                                locationsInDocument.Add(location);
-                        }
+
+                        // Conflict checking documents is a superset of the rename locations. In case this document is not a documents of rename locations,
+                        // just passing an empty rename information to check for conflicts.
+                        var locationsInDocument = documentIdToRenameLocations.ContainsKey(documentId)
+                            ? documentIdToRenameLocations[documentId]
+                            : SpecializedCollections.EmptyEnumerable<RenameLocation>();
 
                         // Get all rename locations for the current document.
                         var textSpanRenameContexts = locationsInDocument

@@ -45,16 +45,19 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         public readonly ImmutableDictionary<ISymbol, string> SymbolToReplacementText;
 
         /// <summary>
-        /// The mapping from DocumentId of renamed document to the newName.
+        /// All changed documents during renaming.
         /// </summary>
-        private readonly Dictionary<DocumentId, string> RenamedDocuments = new();
-
         private readonly HashSet<DocumentId> ChangedDocuments = new();
 
         /// <summary>
         /// The solution snapshot as it is being updated with specific rename steps.
         /// </summary>
         public Solution CurrentSolution { get; private set; }
+
+        /// <summary>
+        /// DocumentId of renamed document to the newName.
+        /// </summary>
+        private readonly Dictionary<DocumentId, string> RenamedDocuments = new();
 
         public MutableConflictResolution(
             Solution oldSolution,

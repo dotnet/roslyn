@@ -276,7 +276,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     conflictResolution.DocumentsChanged(documentIdsForConflictResolution);
 
                     // Get the renamed symbol in complexified new solution
-                    //var renamedSymbolInNewSolution = await GetRenamedSymbolInCurrentSolutionAsync(conflictResolution).ConfigureAwait(false);
                     var validRenamedSymbolsInfoInNewSolution = await GetValidRenamedSymbolsInfoInCurrentSolutionAsync(conflictResolution).ConfigureAwait(false);
 
                     // if the text replacement is invalid, we just did a simple token replacement.

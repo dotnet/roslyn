@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         internal async Task<Solution> SimplifyAsync(
             Solution solution,
             IEnumerable<DocumentId> documentIds,
-            bool simplifyDocumentsInProject,
+            bool shouldSimplifyDocumentsInProject,
             AnnotationTable<RenameAnnotation> renameAnnotations,
             CodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     var document = solution.GetRequiredDocument(documentId);
 
-                    if (simplifyDocumentsInProject)
+                    if (shouldSimplifyDocumentsInProject)
                     {
                         var cleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 

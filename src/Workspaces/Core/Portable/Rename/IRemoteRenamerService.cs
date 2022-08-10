@@ -196,7 +196,8 @@ namespace Microsoft.CodeAnalysis.Rename
         [DataMember(Order = 3)]
         public readonly ImmutableArray<SerializableSymbolAndProjectId> ReferencedSymbols;
 
-        public SerializableRenameLocations(SymbolRenameOptions options,
+        public SerializableRenameLocations(
+            SymbolRenameOptions options,
             ImmutableArray<SerializableRenameLocation> locations,
             ImmutableArray<SerializableReferenceLocation> implicitLocations,
             ImmutableArray<SerializableSymbolAndProjectId> referencedSymbols)
