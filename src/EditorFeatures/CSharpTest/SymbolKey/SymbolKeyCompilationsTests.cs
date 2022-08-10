@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -436,6 +437,60 @@ namespace NS
             var symkey = SymbolKey.Create(typeSym02, CancellationToken.None);
             var syminfo = symkey.Resolve(comp1);
             Assert.Null(syminfo.Symbol);
+        }
+
+        [Theory]
+        [InlineData("int M() { }", "string M() { }", "Test.M")]
+        [InlineData("T M<T>() { }", "int M<T>() { }", "Test.M")]
+        [InlineData("T M<T>() { }", "System.Collections.Generic.List<T> M<T>() { }", "Test.M")]
+        [InlineData("int P { get; }", "string P { get; }", "Test.P")]
+        [InlineData("int this[int x] { get; }", "string this[int x] { get; }", "Test.this[]")]
+        [InlineData("event EventHandler E;", "event Action E", "Test.E")]
+        [InlineData("int _field = 1;", "string _field = \"\";", "Test._field")]
+        public void C2CReturnTypeChanges(string member1, string member2, string symbol)
+        {
+            var src1 = @$"
+using System;
+
+public class Test
+{{
+    {member1}
+}}
+";
+
+            var src2 = @$"
+using System;
+
+public class Test
+{{
+    {member2}
+}}
+";
+            var comp1 = CreateCompilation(src1, assemblyName: "Test");
+            var comp2 = CreateCompilation(src2, assemblyName: "Test");
+
+            var originalSymbol = comp1.GetMember(symbol).ISymbol;
+            Assert.NotNull(originalSymbol);
+
+            var newSymbol = comp2.GetMember(symbol).ISymbol;
+            Assert.NotNull(newSymbol);
+
+            // Symbol keys should not be equal because they encode the return type
+            AssertSymbolKeysEqual(originalSymbol, newSymbol, SymbolKeyComparison.None, expectEqual: false);
+
+            // Resolve the symbol key while ignoring return types
+            var symbolKey = SymbolKey.Create(originalSymbol, CancellationToken.None);
+            var resolvedSymbol = symbolKey.Resolve(comp2, ignoreReturnTypes: true).Symbol;
+
+            // Make sure we found the right symbol
+            Assert.Equal(newSymbol, resolvedSymbol);
+            Assert.Equal(newSymbol.GetHashCode(), resolvedSymbol.GetHashCode());
+
+            // Resolve the symbol key but don't ignore return types
+            resolvedSymbol = symbolKey.Resolve(comp2, ignoreReturnTypes: false).Symbol;
+
+            // We should not have been able to resolve a symbol
+            Assert.Null(resolvedSymbol);
         }
 
         [Fact]
