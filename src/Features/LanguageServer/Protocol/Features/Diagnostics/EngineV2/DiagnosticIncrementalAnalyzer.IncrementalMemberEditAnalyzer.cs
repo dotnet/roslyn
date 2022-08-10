@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     using var _1 = ArrayBuilder<(DiagnosticAnalyzer, DocumentAnalysisData)>.GetInstance(out var spanBasedAnalyzers);
                     using var _2 = ArrayBuilder<(DiagnosticAnalyzer, DocumentAnalysisData)>.GetInstance(out var documentBasedAnalyzers);
-                    var performSpanBasedAnalysisForCompilerAnalyzer = false;
+                    (DiagnosticAnalyzer analyzer, DocumentAnalysisData existingData, bool spanBased)? compilerAnalyzerData = null;
                     foreach (var stateSet in stateSets)
                     {
                         // Check if we have existing cached diagnostics for this analyzer whose version matches the
@@ -86,43 +87,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         var existingData = state.GetAnalysisData(analysisScope.Kind);
                         if (oldDocumentVersion == existingData.Version)
                         {
-                            spanBasedAnalyzers.Add((stateSet.Analyzer, existingData));
-
-                            if (stateSet.Analyzer.IsCompilerAnalyzer())
-                                performSpanBasedAnalysisForCompilerAnalyzer = true;
+                            if (!compilerAnalyzerData.HasValue && stateSet.Analyzer.IsCompilerAnalyzer())
+                                compilerAnalyzerData = (stateSet.Analyzer, existingData, spanBased: true);
+                            else
+                                spanBasedAnalyzers.Add((stateSet.Analyzer, existingData));
                         }
                         else
                         {
-                            documentBasedAnalyzers.Add((stateSet.Analyzer, DocumentAnalysisData.Empty));
+                            if (!compilerAnalyzerData.HasValue && stateSet.Analyzer.IsCompilerAnalyzer())
+                                compilerAnalyzerData = (stateSet.Analyzer, DocumentAnalysisData.Empty, spanBased: false);
+                            else
+                                documentBasedAnalyzers.Add((stateSet.Analyzer, DocumentAnalysisData.Empty));
                         }
                     }
 
-                    if (spanBasedAnalyzers.Count == 0)
+                    if (spanBasedAnalyzers.Count == 0 && (!compilerAnalyzerData.HasValue || !compilerAnalyzerData.Value.spanBased))
                     {
-                        // No incremental analysis to be performed.
+                        // No incremental span based-analysis to be performed.
                         return await computeDiagnosticsNonIncrementallyAsync(executor, cancellationToken).ConfigureAwait(false);
                     }
 
                     // Get or create the member spans for all member nodes in the old document.
                     var oldMemberSpans = await GetOrCreateMemberSpansAsync(oldDocument, oldDocumentVersion, cancellationToken).ConfigureAwait(false);
 
-                    // We need to execute the span-based analyzers and document-based analyzers separately.
-                    // However, we want to ensure that compiler analyzer executes before rest of the analyzers
-                    // so that compiler's semantic diagnostics refresh before the analyzer diagnostics.
-                    // So, based on whether we can execute the compiler analyzer in a span based fashion or not,
-                    // we order the execution of span based and document based analyzers accordingly. 
+                    // Execute all the analyzers, starting with compiler analyzer first, followed by span-based analyzers
+                    // and finally document-based analyzers.
                     using var _ = PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>.GetInstance(out var builder);
-                    if (performSpanBasedAnalysisForCompilerAnalyzer)
-                    {
-                        await ExecuteSpanBasedAnalyzersAsync(spanBasedAnalyzers, oldMemberSpans, builder).ConfigureAwait(false);
-                        await ExecuteDocumentBasedAnalyzersAsync(documentBasedAnalyzers, oldMemberSpans, builder).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await ExecuteDocumentBasedAnalyzersAsync(documentBasedAnalyzers, oldMemberSpans, builder).ConfigureAwait(false);
-                        await ExecuteSpanBasedAnalyzersAsync(spanBasedAnalyzers, oldMemberSpans, builder).ConfigureAwait(false);
-                    }
-
+                    await ExecuteCompilerAnalyzerAsync(compilerAnalyzerData, oldMemberSpans, builder).ConfigureAwait(false);
+                    await ExecuteSpanBasedAnalyzersAsync(spanBasedAnalyzers, oldMemberSpans, builder).ConfigureAwait(false);
+                    await ExecuteDocumentBasedAnalyzersAsync(documentBasedAnalyzers, oldMemberSpans, builder).ConfigureAwait(false);
                     return builder.ToImmutableDictionary();
                 }
                 finally
@@ -132,11 +125,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     SaveMemberSpans(document.Id, version, newMemberSpans);
                 }
 
+                async Task ExecuteCompilerAnalyzerAsync(
+                    (DiagnosticAnalyzer analyzer, DocumentAnalysisData existingData, bool spanBased)? compilerAnalyzerData,
+                    ImmutableArray<TextSpan> oldMemberSpans,
+                    PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
+                {
+                    if (!compilerAnalyzerData.HasValue)
+                        return;
+
+                    var (analyzer, existingData, spanBased) = compilerAnalyzerData.Value;
+                    var span = spanBased ? changedMember.FullSpan : (TextSpan?)null;
+                    executor = executor.With(analysisScope.WithSpan(span));
+                    var analyzerAndExistingData = SpecializedCollections.SingletonEnumerable((analyzer, existingData));
+                    await ExecuteAnalyzerAsync(executor, analyzerAndExistingData, oldMemberSpans, builder).ConfigureAwait(false);
+
+                }
+
                 async Task ExecuteSpanBasedAnalyzersAsync(
                     ArrayBuilder<(DiagnosticAnalyzer, DocumentAnalysisData)> analyzersAndExistingData,
                     ImmutableArray<TextSpan> oldMemberSpans,
                     PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
+                    if (analyzersAndExistingData.Count == 0)
+                        return;
+
                     executor = executor.With(analysisScope.WithSpan(changedMember.FullSpan));
                     await ExecuteAnalyzerAsync(executor, analyzersAndExistingData, oldMemberSpans, builder).ConfigureAwait(false);
                 }
@@ -146,13 +158,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     ImmutableArray<TextSpan> oldMemberSpans,
                     PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
+                    if (analyzersAndExistingData.Count == 0)
+                        return;
+
                     executor = executor.With(analysisScope.WithSpan(null));
                     await ExecuteAnalyzerAsync(executor, analyzersAndExistingData, oldMemberSpans, builder).ConfigureAwait(false);
                 }
 
                 async Task ExecuteAnalyzerAsync(
                     DocumentAnalysisExecutor executor,
-                    ArrayBuilder<(DiagnosticAnalyzer, DocumentAnalysisData)> analyzersAndExistingData,
+                    IEnumerable<(DiagnosticAnalyzer, DocumentAnalysisData)> analyzersAndExistingData,
                     ImmutableArray<TextSpan> oldMemberSpans,
                     PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
