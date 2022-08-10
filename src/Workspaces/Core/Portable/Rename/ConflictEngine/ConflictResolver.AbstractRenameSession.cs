@@ -717,7 +717,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 foreach (var language in projectIds.Select(p => solution.GetRequiredProject(p).Language).Distinct())
                 {
-                    var languageServices = solution.Workspace.Services.GetLanguageServices(language);
+                    var languageServices = solution.Services.GetProjectServices(language);
                     var renameRewriterLanguageService = languageServices.GetRequiredService<IRenameRewriterLanguageService>();
                     var syntaxFactsLanguageService = languageServices.GetRequiredService<ISyntaxFactsService>();
                     if (!renameRewriterLanguageService.IsIdentifierValid(replacementText, syntaxFactsLanguageService))
