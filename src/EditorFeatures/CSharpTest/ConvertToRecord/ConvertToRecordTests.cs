@@ -580,6 +580,1046 @@ namespace N
         }
 
         [Fact]
+        public async Task TestMovePropertiesAndDeleteSimpleEquals1()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            return other is C otherC && otherC.P == P && otherC.B == B;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteSimpleEqualsWithFields()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+        private int num = 10;
+
+        public override bool Equals(object? other)
+        {
+            return other is C otherC && otherC.P == P && otherC.B == B && num == otherC.num;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+        private int num = 10;
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteSimpleEquals2()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            return other is C otherC && P == otherC.P && B == otherC.B;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteInvertedEquals()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            return !(other is not C otherC || otherC.P != P || otherC.B != B);
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDontDeleteEqualsDoubleComparison()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            return other is C otherC && otherC.P == P && otherC.B == B && otherC.P == P;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+
+        public override bool {|CS0111:Equals|}(object? other)
+        {
+            return other is C otherC && otherC.P == P && otherC.B == B && otherC.P == P;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDontDeleteEqualsMissingComparison()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            return other is C otherC && otherC.P == P;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+
+        public override bool {|CS0111:Equals|}(object? other)
+        {
+            return other is C otherC && otherC.P == P;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDontDeleteEqualsSelfComparison1()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            return other is C otherC && this.P == P && otherC.B == B;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+
+        public override bool {|CS0111:Equals|}(object? other)
+        {
+            return other is C otherC && this.P == P && otherC.B == B;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDontDeleteEqualsSelfComparison2()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            return other is C otherC && otherC.P == otherC.P && otherC.B == B;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+
+        public override bool {|CS0111:Equals|}(object? other)
+        {
+            return other is C otherC && otherC.P == otherC.P && otherC.B == B;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDontDeleteEqualsWithSideEffect()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            Console.WriteLine(""testing equals..."");
+            return other is C otherC && otherC.P == P && otherC.B == B;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+
+namespace N
+{
+    public record C(int P, bool B)
+    {
+
+        public override bool {|CS0111:Equals|}(object? other)
+        {
+            Console.WriteLine(""testing equals..."");
+            return other is C otherC && otherC.P == P && otherC.B == B;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDontDeleteEqualsIncorrectComparison()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public int B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            return other is C otherC && otherC.P == B && otherC.B == P;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, int B)
+    {
+
+        public override bool {|CS0111:Equals|}(object? other)
+        {
+            return other is C otherC && otherC.P == B && otherC.B == P;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDontDeleteWrongInvertedEquals()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            return !(other is C otherC && otherC.P == P && otherC.B == B);
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+
+        public override bool {|CS0111:Equals|}(object? other)
+        {
+            return !(other is C otherC && otherC.P == P && otherC.B == B);
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDontDeleteOrEquals()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            if (other is C otherC)
+            {
+                return otherC.P == P || otherC.B == B;
+            }
+
+            return false;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+
+        public override bool {|CS0111:Equals|}(object? other)
+        {
+            if (other is C otherC)
+            {
+                return otherC.P == P || otherC.B == B;
+            }
+
+            return false;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteIfCastEquals1()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            if (other is C otherC)
+            {
+                return otherC.P == P && otherC.B == B;
+            }
+
+            return false;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteIfCastEquals2()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            if (other is C otherC && otherC.P == P && otherC.B == B)
+            {
+                return true;
+            }
+
+            return false;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteInvertedIfCastEquals()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            if (other is not C otherC)
+            {
+                return false;
+            }
+
+            return otherC.P == P && otherC.B == B;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDontDeleteWrongInvertedIfCastEquals()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            if (other is C)
+            {
+                return false;
+            }
+
+            var otherC = {|CS8600:(C)other|};
+            return {|CS8602:otherC|}.P == P && otherC.B == B;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+
+        public override bool {|CS0111:Equals|}(object? other)
+        {
+            if (other is C)
+            {
+                return false;
+            }
+
+            var otherC = {|CS8600:(C)other|};
+            return {|CS8602:otherC|}.P == P && otherC.B == B;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteIfThenCastEquals()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            if (other is C)
+            {
+                var otherC = (C)other;
+                return otherC.P == P && otherC.B == B;
+            }
+
+            return false;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteIfChainEquals()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            if (other is not C)
+            {
+                return false;
+            }
+
+            var otherC = (C)other;
+            if (P != otherC.P)
+            {
+                return false;
+            }
+
+            if (otherC.B != B)
+            {
+                return false;
+            }
+
+            return true;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteIfElseChainEquals()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            if (other is not C)
+            {
+                return false;
+            }
+            else {
+                var otherC = (C)other;
+                if (P != otherC.P)
+                {
+                    return false;
+                }
+                else if (otherC.B != B)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteInvertedIfChainEquals()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            if (other is C)
+            {
+                var otherC = (C)other;
+                if (otherC.P == P)
+                {
+                    if (otherC.B == B)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteAsCastEquals()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            var otherC = other as C;
+            return otherC != null && otherC.P == P && otherC.B == B;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteAsCastEqualsWithIsNotNull()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            var otherC = other as C;
+            return otherC is not null && otherC.P == P && otherC.B == B;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDontDeleteAsCastEqualsWithIncorrectIsNull()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            var otherC = other as C;
+            return otherC is null && {|CS8602:otherC|}.P == P && otherC.B == B;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+
+        public override bool {|CS0111:Equals|}(object? other)
+        {
+            var otherC = other as C;
+            return otherC is null && {|CS8602:otherC|}.P == P && otherC.B == B;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteAsCastEqualsWithIsNull()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            var otherC = other as C;
+            return !(otherC is null || otherC.P != P || otherC.B != B);
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteSimpleTypeEquals()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public class [|C|] : IEquatable<C>
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public bool Equals(C? otherC)
+        {
+            return {|CS8602:otherC|}.P == P && otherC.B == B;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+
+namespace N
+{
+    public record C(int P, bool B) : IEquatable<C>;
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteNullableTypeEquals()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public class [|C|] : IEquatable<C>
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public bool Equals(C? otherC)
+        {
+            return otherC is not null && otherC.P == P && otherC.B == B;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+
+namespace N
+{
+    public record C(int P, bool B) : IEquatable<C>;
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteTypeEqualsIfChain()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public class [|C|] : IEquatable<C>
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public bool Equals(C? otherC)
+        {
+            if (otherC == null)
+            {
+                return false;
+            }
+
+            if (P != otherC.P)
+            {
+                return false;
+            }
+
+            if (otherC.B != B)
+            {
+                return false;
+            }
+
+            return true;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+
+namespace N
+{
+    public record C(int P, bool B) : IEquatable<C>;
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteHashCode1()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override int GetHashCode()
+        {
+            var hashCode = 339610899;
+            hashCode = hashCode * -1521134295 + P.GetHashCode();
+            hashCode = hashCode * -1521134295 + B.GetHashCode();
+            return hashCode;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteHashCode2()
+        {
+            var initialMarkup = @"
+using System.Collections.Generic;
+
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override int GetHashCode()
+        {
+            var hashCode = 339610899;
+            hashCode = hashCode * -1521134295 + P.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<bool>.Default.GetHashCode(B);
+            return hashCode;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System.Collections.Generic;
+
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDontDeleteComplexHashCode()
+        {
+            var initialMarkup = @"
+using System;
+using System.Collections.Generic;
+
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override int GetHashCode()
+        {
+            var hashCode = 339610899;
+            Console.WriteLine(""This could potentially be a side effect"");
+            hashCode = hashCode * -1521134295 + P.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<bool>.Default.GetHashCode(B);
+            return hashCode;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+using System.Collections.Generic;
+
+namespace N
+{
+    public record C(int P, bool B)
+    {
+
+        public override int GetHashCode()
+        {
+            var hashCode = 339610899;
+            Console.WriteLine(""This could potentially be a side effect"");
+            hashCode = hashCode * -1521134295 + P.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<bool>.Default.GetHashCode(B);
+            return hashCode;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestMovePropertiesAndDeleteSimpleEqualOperatorsWithNullableObjectParam1()
         {
             var initialMarkup = @"
