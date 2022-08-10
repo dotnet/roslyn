@@ -100,6 +100,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        public BoundCall(
+            SyntaxNode syntax,
+            BoundExpression? receiverOpt,
+            BoundExpression? methodGroupReceiver,
+            MethodSymbol method,
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<string> argumentNamesOpt,
+            ImmutableArray<RefKind> argumentRefKindsOpt,
+            bool isDelegateCall,
+            bool expanded,
+            bool invokedAsExtensionMethod,
+            ImmutableArray<int> argsToParamsOpt,
+            BitVector defaultArguments,
+            LookupResultKind resultKind,
+            TypeSymbol type,
+            bool hasErrors = false) :
+            this(syntax, receiverOpt, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, argsToParamsOpt, defaultArguments, resultKind, originalMethodsOpt: default, type, hasErrors)
+        {
+            MethodGroupReceiverOpt = methodGroupReceiver;
+        }
+
+        public BoundExpression? MethodGroupReceiverOpt { get; }
+
         public BoundCall Update(BoundExpression? receiverOpt,
                                 MethodSymbol method,
                                 ImmutableArray<BoundExpression> arguments,

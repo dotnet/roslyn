@@ -567,12 +567,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((_symbol as MethodSymbol)?.IsConstructor() != true || _useConstructorExitWarnings)
             {
                 EnforceDoesNotReturn(syntaxOpt: null);
-                enforceMemberNotNull(syntaxOpt: null, this.State);
+                EnforceMemberNotNull(syntaxOpt: null, this.State);
                 EnforceParameterNotNullOnExit(syntaxOpt: null, this.State);
 
                 foreach (var pendingReturn in pendingReturns)
                 {
-                    enforceMemberNotNull(syntaxOpt: pendingReturn.Branch.Syntax, pendingReturn.State);
+                    EnforceMemberNotNull(syntaxOpt: pendingReturn.Branch.Syntax, pendingReturn.State);
 
                     if (pendingReturn.Branch is BoundReturnStatement returnStatement)
                     {
@@ -584,143 +584,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return pendingReturns;
-
-            void enforceMemberNotNull(SyntaxNode? syntaxOpt, LocalState state)
-            {
-                if (!state.Reachable)
-                {
-                    return;
-                }
-
-                var method = _symbol as MethodSymbol;
-                if (method is object)
-                {
-                    if (method.IsConstructor())
-                    {
-                        Debug.Assert(_useConstructorExitWarnings);
-                        var thisSlot = 0;
-                        if (method.RequiresInstanceReceiver)
-                        {
-                            method.TryGetThisParameter(out var thisParameter);
-                            Debug.Assert(thisParameter is object);
-                            thisSlot = GetOrCreateSlot(thisParameter);
-                        }
-                        // https://github.com/dotnet/roslyn/issues/46718: give diagnostics on return points, not constructor signature
-                        var exitLocation = method.DeclaringSyntaxReferences.IsEmpty ? null : method.Locations.FirstOrDefault();
-                        foreach (var member in method.ContainingType.GetMembersUnordered())
-                        {
-                            checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation);
-                        }
-                    }
-                    else
-                    {
-                        do
-                        {
-                            foreach (var memberName in method.NotNullMembers)
-                            {
-                                enforceMemberNotNullOnMember(syntaxOpt, state, method, memberName);
-                            }
-
-                            method = method.OverriddenMethod;
-                        }
-                        while (method != null);
-                    }
-                }
-            }
-
-            void checkMemberStateOnConstructorExit(MethodSymbol constructor, Symbol member, LocalState state, int thisSlot, Location? exitLocation)
-            {
-                var isStatic = !constructor.RequiresInstanceReceiver();
-                if (member.IsStatic != isStatic)
-                {
-                    return;
-                }
-
-                // This is not required for correctness, but in the case where the member has
-                // an initializer, we know we've assigned to the member and
-                // have given any applicable warnings about a bad value going in.
-                // Therefore we skip this check when the member has an initializer to reduce noise.
-                if (HasInitializer(member))
-                {
-                    return;
-                }
-
-                TypeWithAnnotations fieldType;
-                FieldSymbol? field;
-                Symbol symbol;
-                switch (member)
-                {
-                    case FieldSymbol f:
-                        fieldType = f.TypeWithAnnotations;
-                        field = f;
-                        symbol = (Symbol?)(f.AssociatedSymbol as PropertySymbol) ?? f;
-                        break;
-                    case EventSymbol e:
-                        fieldType = e.TypeWithAnnotations;
-                        field = e.AssociatedField;
-                        symbol = e;
-                        if (field is null)
-                        {
-                            return;
-                        }
-                        break;
-                    default:
-                        return;
-                }
-                if (field.IsConst)
-                {
-                    return;
-                }
-                if (fieldType.Type.IsValueType || fieldType.Type.IsErrorType())
-                {
-                    return;
-                }
-
-                if (symbol.IsRequired() && constructor.ShouldCheckRequiredMembers())
-                {
-                    return;
-                }
-
-                var annotations = symbol.GetFlowAnalysisAnnotations();
-                if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
-                {
-                    // We assume that if a member has AllowNull then the user
-                    // does not care that we exit at a point where the member might be null.
-                    return;
-                }
-                fieldType = ApplyUnconditionalAnnotations(fieldType, annotations);
-                if (!fieldType.NullableAnnotation.IsNotAnnotated())
-                {
-                    return;
-                }
-                var slot = GetOrCreateSlot(symbol, thisSlot);
-                if (slot < 0)
-                {
-                    return;
-                }
-
-                var memberState = state[slot];
-                var badState = fieldType.Type.IsPossiblyNullableReferenceTypeTypeParameter() && (annotations & FlowAnalysisAnnotations.NotNull) == 0
-                    ? NullableFlowState.MaybeDefault
-                    : NullableFlowState.MaybeNull;
-                if (memberState >= badState) // is 'memberState' as bad as or worse than 'badState'?
-                {
-                    var info = new CSDiagnosticInfo(ErrorCode.WRN_UninitializedNonNullableField, new object[] { symbol.Kind.Localize(), symbol.Name }, ImmutableArray<Symbol>.Empty, additionalLocations: symbol.Locations);
-                    Diagnostics.Add(info, exitLocation ?? symbol.Locations.FirstOrNone());
-                }
-            }
-
-            void enforceMemberNotNullOnMember(SyntaxNode? syntaxOpt, LocalState state, MethodSymbol method, string memberName)
-            {
-                foreach (var member in method.ContainingType.GetMembers(memberName))
-                {
-                    if (memberHasBadState(member, state))
-                    {
-                        // Member '{name}' must have a non-null value when exiting.
-                        Diagnostics.Add(ErrorCode.WRN_MemberNotNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name);
-                    }
-                }
-            }
 
             void enforceMemberNotNullWhenForPendingReturn(PendingBranch pendingReturn, BoundReturnStatement returnStatement)
             {
@@ -761,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var member in members)
                 {
                     // For non-constant values, only complain if we were able to analyze a difference for this member between two branches
-                    if (memberHasBadState(member, state) != memberHasBadState(member, otherState))
+                    if (MemberHasBadState(member, state) != MemberHasBadState(member, otherState))
                     {
                         reportMemberIfBadConditionalState(syntaxOpt, sense, member, state);
                     }
@@ -785,36 +648,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void reportMemberIfBadConditionalState(SyntaxNode? syntaxOpt, bool sense, Symbol member, LocalState state)
             {
-                if (memberHasBadState(member, state))
+                if (MemberHasBadState(member, state))
                 {
                     // Member '{name}' must have a non-null value when exiting with '{sense}'.
                     Diagnostics.Add(ErrorCode.WRN_MemberNotNullWhen, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name, sense ? "true" : "false");
                 }
-            }
-
-            bool memberHasBadState(Symbol member, LocalState state)
-            {
-                switch (member.Kind)
-                {
-                    case SymbolKind.Field:
-                    case SymbolKind.Property:
-                        if (getSlotForFieldOrPropertyOrEvent(member) is int memberSlot &&
-                            memberSlot > 0)
-                        {
-                            var parameterState = state[memberSlot];
-                            return !parameterState.IsNotNull();
-                        }
-                        else
-                        {
-                            return false;
-                        }
-
-                    case SymbolKind.Event:
-                    case SymbolKind.Method:
-                        break;
-                }
-
-                return false;
             }
 
             void makeNotNullMembersMaybeNull()
@@ -853,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 default:
                                     break;
                             }
-                            var memberSlot = getSlotForFieldOrPropertyOrEvent(memberToInitialize);
+                            var memberSlot = GetSlotForFieldOrPropertyOrEvent(memberToInitialize);
                             if (memberSlot > 0)
                             {
                                 var type = memberToInitialize.GetTypeOrReturnType();
@@ -988,39 +826,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = method.ContainingType;
                 foreach (var member in type.GetMembers(memberName))
                 {
-                    if (getSlotForFieldOrPropertyOrEvent(member) is int memberSlot &&
+                    if (GetSlotForFieldOrPropertyOrEvent(member) is int memberSlot &&
                         memberSlot > 0)
                     {
                         this.State[memberSlot] = NullableFlowState.MaybeNull;
                     }
                 }
-            }
-
-            int getSlotForFieldOrPropertyOrEvent(Symbol member)
-            {
-                if (member.Kind != SymbolKind.Field &&
-                    member.Kind != SymbolKind.Property &&
-                    member.Kind != SymbolKind.Event)
-                {
-                    return -1;
-                }
-
-                int containingSlot = 0;
-                if (!member.IsStatic)
-                {
-                    if (MethodThisParameter is null)
-                    {
-                        return -1;
-                    }
-                    containingSlot = GetOrCreateSlot(MethodThisParameter);
-                    if (containingSlot < 0)
-                    {
-                        return -1;
-                    }
-                    Debug.Assert(containingSlot > 0);
-                }
-
-                return GetOrCreateSlot(member, containingSlot);
             }
         }
 
@@ -1115,6 +926,195 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+
+        private void EnforceMemberNotNull(SyntaxNode? syntaxOpt, LocalState state)
+        {
+            if (!state.Reachable)
+            {
+                return;
+            }
+
+            var method = _symbol as MethodSymbol;
+            if (method is object)
+            {
+                if (method.IsConstructor())
+                {
+                    Debug.Assert(_useConstructorExitWarnings);
+                    var thisSlot = 0;
+                    if (method.RequiresInstanceReceiver)
+                    {
+                        method.TryGetThisParameter(out var thisParameter);
+                        Debug.Assert(thisParameter is object);
+                        thisSlot = GetOrCreateSlot(thisParameter);
+                    }
+                    // https://github.com/dotnet/roslyn/issues/46718: give diagnostics on return points, not constructor signature
+                    var exitLocation = method.DeclaringSyntaxReferences.IsEmpty ? null : method.Locations.FirstOrDefault();
+                    foreach (var member in method.ContainingType.GetMembersUnordered())
+                    {
+                        checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation);
+                    }
+                }
+                else
+                {
+                    do
+                    {
+                        foreach (var memberName in method.NotNullMembers)
+                        {
+                            enforceMemberNotNullOnMember(syntaxOpt, state, method, memberName);
+                        }
+
+                        method = method.OverriddenMethod;
+                    }
+                    while (method != null);
+                }
+            }
+
+            void checkMemberStateOnConstructorExit(MethodSymbol constructor, Symbol member, LocalState state, int thisSlot, Location? exitLocation)
+            {
+                var isStatic = !constructor.RequiresInstanceReceiver();
+                if (member.IsStatic != isStatic)
+                {
+                    return;
+                }
+
+                // This is not required for correctness, but in the case where the member has
+                // an initializer, we know we've assigned to the member and
+                // have given any applicable warnings about a bad value going in.
+                // Therefore we skip this check when the member has an initializer to reduce noise.
+                if (HasInitializer(member))
+                {
+                    return;
+                }
+
+                TypeWithAnnotations fieldType;
+                FieldSymbol? field;
+                Symbol symbol;
+                switch (member)
+                {
+                    case FieldSymbol f:
+                        fieldType = f.TypeWithAnnotations;
+                        field = f;
+                        symbol = (Symbol?)(f.AssociatedSymbol as PropertySymbol) ?? f;
+                        break;
+                    case EventSymbol e:
+                        fieldType = e.TypeWithAnnotations;
+                        field = e.AssociatedField;
+                        symbol = e;
+                        if (field is null)
+                        {
+                            return;
+                        }
+                        break;
+                    default:
+                        return;
+                }
+                if (field.IsConst)
+                {
+                    return;
+                }
+                if (fieldType.Type.IsValueType || fieldType.Type.IsErrorType())
+                {
+                    return;
+                }
+
+                if (symbol.IsRequired() && constructor.ShouldCheckRequiredMembers())
+                {
+                    return;
+                }
+
+                var annotations = symbol.GetFlowAnalysisAnnotations();
+                if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
+                {
+                    // We assume that if a member has AllowNull then the user
+                    // does not care that we exit at a point where the member might be null.
+                    return;
+                }
+                fieldType = ApplyUnconditionalAnnotations(fieldType, annotations);
+                if (!fieldType.NullableAnnotation.IsNotAnnotated())
+                {
+                    return;
+                }
+                var slot = GetOrCreateSlot(symbol, thisSlot);
+                if (slot < 0)
+                {
+                    return;
+                }
+
+                var memberState = state[slot];
+                var badState = fieldType.Type.IsPossiblyNullableReferenceTypeTypeParameter() && (annotations & FlowAnalysisAnnotations.NotNull) == 0
+                    ? NullableFlowState.MaybeDefault
+                    : NullableFlowState.MaybeNull;
+                if (memberState >= badState) // is 'memberState' as bad as or worse than 'badState'?
+                {
+                    var info = new CSDiagnosticInfo(ErrorCode.WRN_UninitializedNonNullableField, new object[] { symbol.Kind.Localize(), symbol.Name }, ImmutableArray<Symbol>.Empty, additionalLocations: symbol.Locations);
+                    Diagnostics.Add(info, exitLocation ?? symbol.Locations.FirstOrNone());
+                }
+            }
+
+            void enforceMemberNotNullOnMember(SyntaxNode? syntaxOpt, LocalState state, MethodSymbol method, string memberName)
+            {
+                foreach (var member in method.ContainingType.GetMembers(memberName))
+                {
+                    if (MemberHasBadState(member, state))
+                    {
+                        // Member '{name}' must have a non-null value when exiting.
+                        Diagnostics.Add(ErrorCode.WRN_MemberNotNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name);
+                    }
+                }
+            }
+        }
+
+        private bool MemberHasBadState(Symbol member, LocalState state)
+        {
+            switch (member.Kind)
+            {
+                case SymbolKind.Field:
+                case SymbolKind.Property:
+                    if (GetSlotForFieldOrPropertyOrEvent(member) is int memberSlot &&
+                        memberSlot > 0)
+                    {
+                        var parameterState = state[memberSlot];
+                        return !parameterState.IsNotNull();
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
+                case SymbolKind.Event:
+                case SymbolKind.Method:
+                    break;
+            }
+
+            return false;
+        }
+
+        private int GetSlotForFieldOrPropertyOrEvent(Symbol member)
+        {
+            if (member.Kind != SymbolKind.Field &&
+                member.Kind != SymbolKind.Property &&
+                member.Kind != SymbolKind.Event)
+            {
+                return -1;
+            }
+
+            int containingSlot = 0;
+            if (!member.IsStatic)
+            {
+                if (MethodThisParameter is null)
+                {
+                    return -1;
+                }
+                containingSlot = GetOrCreateSlot(MethodThisParameter);
+                if (containingSlot < 0)
+                {
+                    return -1;
+                }
+                Debug.Assert(containingSlot > 0);
+            }
+
+            return GetOrCreateSlot(member, containingSlot);
+        }
 
         private void ReportParameterIfBadConditionalState(SyntaxNode syntax, ParameterSymbol parameter, bool sense, LocalState stateWhen)
         {
@@ -2970,8 +2970,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 VisitAlways(lambdaOrFunction.Body);
-                EnforceDoesNotReturn(syntaxOpt: null);
-                EnforceParameterNotNullOnExit(null, this.State);
 
                 RestorePending(oldPending2); // process any forward branches within the lambda body
 
@@ -2980,6 +2978,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (pendingReturn.Branch is BoundReturnStatement returnStatement)
                     {
+                        EnforceMemberNotNull(syntaxOpt: returnStatement.Syntax, pendingReturn.State);
                         EnforceParameterNotNullOnExit(returnStatement.Syntax, pendingReturn.State);
                         EnforceNotNullWhenForPendingReturn(pendingReturn, returnStatement);
                     }
@@ -5560,7 +5559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             (method, results, returnNotNull) = VisitArguments(node, node.Arguments, refKindsOpt, method!.Parameters, node.ArgsToParamsOpt, node.DefaultArguments,
                 node.Expanded, node.InvokedAsExtensionMethod, method);
 
-            ApplyMemberPostConditions(node.ReceiverOpt, method);
+            ApplyMemberPostConditions(node.ReceiverOpt ?? node.MethodGroupReceiverOpt, method);
 
             LearnFromEqualsMethod(method, node, receiverType, results);
 

@@ -388,7 +388,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
-            // Local function symbols have no "this" parameter
+            var containingSymbol = ContainingSymbol;
+            while (containingSymbol is not null)
+            {
+                if (containingSymbol is MethodSymbol methodSymbol && methodSymbol.TryGetThisParameter(out thisParameter) && thisParameter is not null)
+                {
+                    return true;
+                }
+
+                containingSymbol = containingSymbol.ContainingSymbol;
+            }
+
             thisParameter = null;
             return true;
         }
