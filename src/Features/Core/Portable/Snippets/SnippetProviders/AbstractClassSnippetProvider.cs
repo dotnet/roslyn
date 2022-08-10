@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
@@ -36,23 +37,19 @@ namespace Microsoft.CodeAnalysis.Snippets
             return syntaxContext.IsTypeContext;
         }
 
-        protected override Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var snippetTextChange = GenerateSnippetTextChange(document, position);
-            return Task.FromResult(ImmutableArray.Create(snippetTextChange));
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var classDeclaration = generator.ClassDeclaration(NameGenerator.GenerateUniqueName("MyClass", name => semanticModel.LookupSymbols(position, name: name).IsEmpty));
+
+            var snippetTextChange = new TextChange(TextSpan.FromBounds(position, position), classDeclaration.NormalizeWhitespace().ToFullString());
+            return ImmutableArray.Create(snippetTextChange);
         }
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
         {
             return syntaxFacts.IsClassDeclaration;
-        }
-
-        private static TextChange GenerateSnippetTextChange(Document document, int position)
-        {
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var classDeclaration = generator.ClassDeclaration("MyClass");
-
-            return new TextChange(TextSpan.FromBounds(position, position), classDeclaration.NormalizeWhitespace().ToFullString());
         }
 
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
