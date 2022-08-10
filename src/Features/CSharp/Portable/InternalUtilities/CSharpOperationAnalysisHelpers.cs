@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                 {
                     if (equatableType != null &&
                         methodSymbol.Parameters.First().Type.SpecialType == SpecialType.System_Object &&
-                        (methodBodyOperation.BlockBody ?? methodBodyOperation.ExpressionBody) is IBlockOperation
+                        (GetBlockOfMethodBody(methodBodyOperation)) is IBlockOperation
                         {
                             Operations: [IReturnOperation
                             {
@@ -82,12 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                     // so anytime they access a property instead of the underlying field we convert it to the
                     // corresponding underlying field
                     var actualMembers = members
-                        .SelectAsArray(member => member switch
-                        {
-                            IFieldSymbol field => field,
-                            IPropertySymbol property => property.GetBackingFieldIfAny(),
-                            _ => null
-                        }).WhereNotNull().AsImmutable();
+                        .SelectAsArray(UnwrapPropertiesToFields).WhereNotNull().AsImmutable();
 
                     return !actualMembers.HasDuplicates(SymbolEqualityComparer.Default) &&
                             actualMembers.SetEquals(expectedHashedFields);
@@ -107,8 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
         {
             var operation = (IMethodBodyOperation)semanticModel.GetRequiredOperation(operatorDeclaration, cancellationToken);
 
-            var body = operation.BlockBody ?? operation.ExpressionBody;
-
             // must look like
             // public static operator ==(C c1, object? c2)
             // {
@@ -116,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
             // }
             // or
             // public static operator ==(C c1, object? c2) => c1.Equals(c2);
-            return body is IBlockOperation
+            return GetBlockOfMethodBody(operation) is IBlockOperation
             {
                 // look for only one operation, a return operation that consists of an equals invocation
                 Operations: [IReturnOperation { ReturnedValue: IOperation returnedValue }]
@@ -138,13 +132,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
             CancellationToken cancellationToken)
         {
             var operation = (IMethodBodyOperation)semanticModel.GetRequiredOperation(operatorDeclaration, cancellationToken);
-
-            var body = operation.BlockBody ?? operation.ExpressionBody;
             // looking for:
             // return !(operand);
             // or:
             // => !(operand);
-            if (body is not IBlockOperation
+            if (GetBlockOfMethodBody(operation) is not IBlockOperation
                 {
                     Operations: [IReturnOperation
                     {
@@ -192,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
         /// <param name="properties">Properties expected to be assigned (would be replaced with positional constructor)</param>
         /// <param name="parameters">Constructor parameters</param>
         /// <returns>Whether the constructor body matches the pattern described</returns>
-        public static bool IsSimpleConstructor(
+        public static bool IsSimplePrimaryConstructor(
             ConstructorDeclarationSyntax constructor,
             ImmutableArray<IPropertySymbol> properties,
             ImmutableArray<IParameterSymbol> parameters,
@@ -201,44 +193,111 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
         {
             var operation = (IConstructorBodyOperation)semanticModel.GetRequiredOperation(constructor, cancellationToken);
 
-            var body = operation.BlockBody ?? operation.ExpressionBody;
+            var body = GetBlockOfMethodBody(operation);
 
             // We expect the constructor to have exactly one statement per parameter,
             // where the statement is a simple assignment from the parameter to the property
             if (body == null || body.Operations.Length != parameters.Length)
-                return false;
-
-            var propertiesAlreadyAssigned = new HashSet<ISymbol>();
-            foreach (var bodyOperation in body.Operations)
             {
-                if (bodyOperation is IExpressionStatementOperation
-                    {
-                        Operation: ISimpleAssignmentOperation
-                        {
-                            Target: IPropertyReferenceOperation { Property: IPropertySymbol property },
-                            Value: IParameterReferenceOperation { Parameter: IParameterSymbol parameter }
-                        }
-                    })
-                {
-                    var propertyIndex = properties.IndexOf(property);
-                    if (propertyIndex != -1 &&
-                        !propertiesAlreadyAssigned.Contains(property) &&
-                        // make sure the index of the property we assign as it would be placed in the primary constructor
-                        // matches the current index of the parameter we use for the explicit constructor
-                        propertyIndex == parameters.IndexOf(parameter))
-                    {
-                        // make sure we don't have duplicate assignment statements to the same property
-                        propertiesAlreadyAssigned.Add(property);
-                        continue;
-                    }
-                }
-                // either we failed to match the assignment pattern, or we're not assigning to a moved property,
-                // or we assigned to the same property more than once
                 return false;
             }
-            // all conditions passed individually, make sure all properties were assigned to
-            return propertiesAlreadyAssigned.Count == properties.Length;
+
+            var assignmentValues = GetAssignmentValues(body.Operations,
+                assignment => (assignment as IParameterReferenceOperation)?.Parameter);
+
+            var assignedProperties = assignmentValues.SelectAsArray(value => value.left);
+
+            return !assignedProperties.HasDuplicates(SymbolEqualityComparer.Default) &&
+                assignedProperties.SetEquals(properties) &&
+                assignmentValues.All(value =>
+                    value != default &&
+                    value.left is IPropertySymbol property &&
+                    properties.IndexOf(property) == parameters.IndexOf(value.right));
         }
+
+        /// <summary>
+        /// Checks to see if all fields/properties were assigned from the parameter
+        /// </summary>
+        /// <param name="constructor">constructor declaration syntax</param>
+        /// <param name="fields">all instance fields, including backing fields of constructors</param>
+        /// <param name="parameter">parameter to copy constructor</param>
+        public static bool IsSimpleCopyConstructor(
+            ConstructorDeclarationSyntax constructor,
+            ImmutableArray<IFieldSymbol> fields,
+            IParameterSymbol parameter,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            var operation = (IConstructorBodyOperation)semanticModel.GetRequiredOperation(constructor, cancellationToken);
+
+            var body = GetBlockOfMethodBody(operation);
+
+            // We expect the constructor to have exactly one statement per property,
+            // where the statement is a simple assignment from the parameter's property to the property
+            if (body == null || body.Operations.Length != fields.Length)
+            {
+                return false;
+            }
+
+            var assignmentValues = GetAssignmentValues(body.Operations,
+                assignment => assignment switch
+                {
+                    IPropertyReferenceOperation
+                    {
+                        Instance: IParameterReferenceOperation { Parameter: IParameterSymbol referencedParameter },
+                        Property: IPropertySymbol referencedProperty
+                    } =>
+                        referencedParameter.Equals(parameter) ? referencedProperty.GetBackingFieldIfAny() : null,
+                    IFieldReferenceOperation
+                    {
+                        Instance: IParameterReferenceOperation { Parameter: IParameterSymbol referencedParameter },
+                        Field: IFieldSymbol referencedField
+                    } =>
+                       referencedParameter.Equals(parameter) ? referencedField : null,
+                    _ => null
+                });
+
+            var assignedValues = assignmentValues.SelectAsArray(result => UnwrapPropertiesToFields(result.left));
+
+            // each right hand assignment should assign the same property
+            // and all assigned properties should be equal (in potentially a different order)
+            // to all the properties we would be moving
+            return assignmentValues.All(result => result != default &&
+                    result.right.Equals(UnwrapPropertiesToFields(result.left))) &&
+                !assignedValues.HasDuplicates(SymbolEqualityComparer.Default) &&
+                assignedValues.SetEquals(fields);
+        }
+
+        private static ImmutableArray<(ISymbol left, T right)> GetAssignmentValues<T>(
+            ImmutableArray<IOperation> operations,
+            Func<IOperation, T?> captureAssignedSymbol)
+            where T : ISymbol
+        => operations.SelectAsArray<IOperation, (ISymbol, T)>(operation =>
+        {
+            if (operation is IExpressionStatementOperation
+                {
+                    Operation: ISimpleAssignmentOperation
+                    {
+                        Target: IOperation assignee,
+                        Value: IOperation assignment
+                    }
+                } &&
+                captureAssignedSymbol(assignment) is T capturedSymbol)
+            {
+                return assignee switch
+                {
+                    IFieldReferenceOperation
+                    { Instance: IInstanceReferenceOperation, Field: IFieldSymbol field }
+                        => (field, capturedSymbol),
+                    IPropertyReferenceOperation
+                    { Instance: IInstanceReferenceOperation, Property: IPropertySymbol property }
+                        => (property, capturedSymbol),
+                    _ => default,
+                };
+            }
+
+            return default;
+        });
 
         /// <summary>
         /// Get all the fields (including implicit fields underlying properties) that this
@@ -253,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
         {
             var type = methodSymbol.ContainingType;
 
-            var body = operation.BlockBody ?? operation.ExpressionBody;
+            var body = GetBlockOfMethodBody(operation);
 
             if (body == null || !methodSymbol.Parameters.IsSingle())
                 return ImmutableArray<IFieldSymbol>.Empty;
@@ -292,19 +351,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                         // no more statements to check as this was a return operation
                         return members.ToImmutable();
                 }
-
-                // check for the first statement as an explicit cast to a variable declaration
-                // like: var otherC = other as C;
-                otherC = GetAssignmentToParameterWithExplicitCast(bodyOps.FirstOrDefault(), parameter);
-                if (otherC != null)
+                else
                 {
-                    statementsToCheck = bodyOps.Skip(1);
-                }
-                // check for the first statement as an if statement where the cast check occurs
-                // and a variable assignment happens (either in the if or in a following statement
-                else if (!TryGetBindingCastInFirstIfStatement(bodyOps, type, members, parameter, out otherC, out statementsToCheck))
-                {
-                    return ImmutableArray<IFieldSymbol>.Empty;
+                    // check for the first statement as an explicit cast to a variable declaration
+                    // like: var otherC = other as C;
+                    otherC = GetAssignmentFromParameterWithExplicitCast(bodyOps.FirstOrDefault(), parameter);
+                    if (otherC != null)
+                    {
+                        statementsToCheck = bodyOps.Skip(1);
+                    }
+                    // check for the first statement as an if statement where the cast check occurs
+                    // and a variable assignment happens (either in the if or in a following statement
+                    else if (!TryGetBindingCastInFirstIfStatement(bodyOps, type, members, parameter, out otherC, out statementsToCheck))
+                    {
+                        return ImmutableArray<IFieldSymbol>.Empty;
+                    }
                 }
             }
 
@@ -325,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
         /// <param name="operation">potential variable declaration operation</param>
         /// <param name="parameter">parameter that should be referenced</param>
         /// <returns>symbol of declared variable if found, otw null</returns>
-        private static ILocalSymbol? GetAssignmentToParameterWithExplicitCast(IOperation? operation, IParameterSymbol parameter)
+        private static ILocalSymbol? GetAssignmentFromParameterWithExplicitCast(IOperation? operation, IParameterSymbol parameter)
         {
             if (operation is IVariableDeclarationGroupOperation
                 {
@@ -360,12 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
         /// <param name="arg">The operation for which to get the parameter</param>
         /// <returns>the referenced parameter or null if unable to find</returns>
         private static IParameterSymbol? GetParamFromArgument(IOperation arg)
-        {
-            var bottom = arg.WalkDownConversion();
-            if (bottom is IParameterReferenceOperation parameterReference)
-                return parameterReference.Parameter;
-            return null;
-        }
+            => (arg.WalkDownConversion() as IParameterReferenceOperation)?.Parameter;
 
         private static ISymbol? GetReferencedSymbolObject(IOperation reference)
         {
@@ -590,11 +646,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                 {
                     // found the correct binding, add any members we equate in the rest of the binary condition
                     // if we were in a binary condition at all
-                    foreach (var otherCondition in additionalConditions)
-                    {
-                        TryAddEqualizedMembersForCondition(builder, otherCondition, successRequirement, currentObject, otherVar);
-                    }
-                    return otherVar;
+                    // if any of these equate ops are bad, return null (failure case)
+                    return additionalConditions.All(otherCondition => TryAddEqualizedMembersForCondition(
+                        builder, otherCondition, successRequirement, currentObject, otherVar))
+                        ? otherVar
+                        : null;
                 }
 
                 // binding not found, so either something didn't make sense to us or the "is" didn't declare any variable
@@ -785,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                 // we look for an explicit cast to assign a variable like:
                 // var otherC = (C)other;
                 // var otherC = other as C;
-                otherC = GetAssignmentToParameterWithExplicitCast(statementsToCheck.FirstOrDefault(), parameter);
+                otherC = GetAssignmentFromParameterWithExplicitCast(statementsToCheck.FirstOrDefault(), parameter);
                 if (otherC != null)
                 {
                     statementsToCheck = statementsToCheck.Skip(1);
@@ -890,5 +946,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
             return containingType.Interfaces.FirstOrDefault(
                     iface => iface.MetadataName == equatableMetadataName);
         }
+
+        private static IBlockOperation? GetBlockOfMethodBody(IMethodBodyBaseOperation body)
+            => body.BlockBody ?? body.ExpressionBody;
+
+        private static IFieldSymbol? UnwrapPropertiesToFields(ISymbol propertyOrField)
+            => propertyOrField switch
+            {
+                IPropertySymbol prop => prop.GetBackingFieldIfAny(),
+                IFieldSymbol field => field,
+                _ => null
+            };
     }
 }

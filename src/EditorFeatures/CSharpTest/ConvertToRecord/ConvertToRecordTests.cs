@@ -638,6 +638,77 @@ namespace N
         }
 
         [Fact]
+        public async Task TestMovePropertiesAndKeepSimpleEqualsWithConstFields()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+        private const int num = 10;
+
+        public override bool Equals(object? other)
+        {
+            return other is C otherC && otherC.P == P && otherC.B == B && num == C.num;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+        private const int num = 10;
+
+        public override bool Equals(object? other)
+        {
+            return other is C otherC && otherC.P == P && otherC.B == B && num == C.num;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteSimpleEqualsWithConstAndStaticFieldsAndProps()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+        private const int num = 10;
+        public static int Foo = 100;
+        public static bool StaticProp { get; set; } = false;
+
+        public override bool Equals(object? other)
+        {
+            return other is C otherC && otherC.P == P && otherC.B == B;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+        private const int num = 10;
+        public static int Foo = 100;
+        public static bool StaticProp { get; set; } = false;
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestMovePropertiesAndDeleteSimpleEquals2()
         {
             var initialMarkup = @"
@@ -692,7 +763,7 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndDontDeleteEqualsDoubleComparison()
+        public async Task TestMovePropertiesAndKeepEqualsDoubleComparison()
         {
             var initialMarkup = @"
 namespace N
@@ -726,7 +797,7 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndDontDeleteEqualsMissingComparison()
+        public async Task TestMovePropertiesAndKeepEqualsMissingComparison()
         {
             var initialMarkup = @"
 namespace N
@@ -760,7 +831,7 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndDontDeleteEqualsSelfComparison1()
+        public async Task TestMovePropertiesAndKeepEqualsSelfComparison1()
         {
             var initialMarkup = @"
 namespace N
@@ -794,7 +865,7 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndDontDeleteEqualsSelfComparison2()
+        public async Task TestMovePropertiesAndKeepEqualsSelfComparison2()
         {
             var initialMarkup = @"
 namespace N
@@ -828,7 +899,7 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndDontDeleteEqualsWithSideEffect()
+        public async Task TestMovePropertiesAndKeepEqualsWithSideEffect()
         {
             var initialMarkup = @"
 using System;
@@ -868,7 +939,7 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndDontDeleteEqualsIncorrectComparison()
+        public async Task TestMovePropertiesAndKeepEqualsIncorrectComparison()
         {
             var initialMarkup = @"
 namespace N
@@ -902,7 +973,7 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndDontDeleteWrongInvertedEquals()
+        public async Task TestMovePropertiesAndKeepWrongInvertedEquals()
         {
             var initialMarkup = @"
 namespace N
@@ -936,7 +1007,7 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndDontDeleteOrEquals()
+        public async Task TestMovePropertiesAndKeepOrEquals()
         {
             var initialMarkup = @"
 namespace N
@@ -1076,7 +1147,7 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndDontDeleteWrongInvertedIfCastEquals()
+        public async Task TestMovePropertiesAndKeepWrongInvertedIfCastEquals()
         {
             var initialMarkup = @"
 namespace N
@@ -1336,7 +1407,7 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndDontDeleteAsCastEqualsWithIncorrectIsNull()
+        public async Task TestMovePropertiesAndKeepAsCastEqualsWithIncorrectIsNull()
         {
             var initialMarkup = @"
 namespace N
@@ -1577,7 +1648,7 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndDontDeleteComplexHashCode()
+        public async Task TestMovePropertiesAndKeepComplexHashCode()
         {
             var initialMarkup = @"
 using System;
@@ -2056,6 +2127,141 @@ namespace N
         }
 
         [Fact]
+        public async Task TestMovePropertiesAndDeleteSimpleCopyConstructor()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(C other)
+        {
+            P = other.P;
+            B = other.B;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteCopyConstructorWithFields()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+        int foo = 0;
+
+        public C(C other)
+        {
+            P = other.P;
+            B = other.B;
+            foo = other.foo;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+        int foo = 0;
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteCopyConstructorWithConstAndStaticFieldsAndProps()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+        const int foo = 0;
+        public static int statFoo = 10;
+        public static bool StaticProp { get; set; } = false;
+
+        public C(C other)
+        {
+            P = other.P;
+            B = other.B;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+        const int foo = 0;
+        public static int statFoo = 10;
+        public static bool StaticProp { get; set; } = false;
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndKeepCopyConstructorWithoutFieldAccess()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+        private int foo = 0;
+
+        public C(C other)
+        {
+            P = other.P;
+            B = other.B;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+        private int foo = 0;
+
+        public C(C other)
+        {
+            P = other.P;
+            B = other.B;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestMovePropertiesAndDeleteSimplePrimaryConstructor()
         {
             var initialMarkup = @"
@@ -2108,7 +2314,7 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndDontDeleteComplexPrimaryConstructor1()
+        public async Task TestMovePropertiesAndKeepComplexPrimaryConstructor1()
         {
             var initialMarkup = @"
 using System;
@@ -2150,7 +2356,7 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndDontDeleteComplexPrimaryConstructor2()
+        public async Task TestMovePropertiesAndKeepComplexPrimaryConstructor2()
         {
             var initialMarkup = @"
 using System;
@@ -2190,7 +2396,7 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndDontDeleteComplexPrimaryConstructor3()
+        public async Task TestMovePropertiesAndKeepComplexPrimaryConstructor3()
         {
             var initialMarkup = @"
 using System;

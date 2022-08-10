@@ -215,6 +215,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             using var _ = ArrayBuilder<MemberDeclarationSyntax>.GetInstance(out var modifiedMembers);
             modifiedMembers.AddRange(typeDeclaration.Members);
 
+            // generated hashcode and equals methods compare all instance fields, not just properties
+            // including underlying fields accessed from properties
+            // copy constructor generation also uses all fields when copying
+            var expectedFields = type
+                .GetMembers()
+                .OfType<IFieldSymbol>()
+                .Where(field => !field.IsConst && !field.IsStatic)
+                .AsImmutable();
+
             // remove properties we're bringing up to positional params
             // or keep them as overrides and link the positional param to the original property
             foreach (var result in propertiesToMove)
@@ -246,8 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 if (constructorParamTypes.SequenceEqual(positionalParamTypes))
                 {
                     // found a primary constructor override, now check if we are pretty sure we can remove it safely
-
-                    if (CSharpOperationAnalysisHelpers.IsSimpleConstructor(constructor,
+                    if (CSharpOperationAnalysisHelpers.IsSimplePrimaryConstructor(constructor,
                         propertiesToMove.SelectAsArray(result => result.Symbol),
                         constructorSymbol.Parameters,
                         semanticModel,
@@ -261,6 +269,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                         modifiedMembers[modifiedMembers.IndexOf(constructor)] = constructor
                             .WithAdditionalAnnotations(WarningAnnotation.Create(
                                 CSharpFeaturesResources.Warning_constructor_signature_conflicts_with_primary_constructor));
+                    }
+                }
+                // check for copy constructor
+                else if (constructorSymbol.Parameters.IsSingle() &&
+                    constructorSymbol.Parameters.First().Type.Equals(type))
+                {
+                    if (CSharpOperationAnalysisHelpers.IsSimpleCopyConstructor(constructor,
+                        expectedFields,
+                        constructorSymbol.Parameters.First(),
+                        semanticModel,
+                        cancellationToken))
+                    {
+                        modifiedMembers.Remove(constructor);
                     }
                 }
                 else
@@ -298,9 +319,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             {
                 var methodSymbol = (IMethodSymbol)semanticModel.GetRequiredDeclaredSymbol(method, cancellationToken);
                 var operation = (IMethodBodyOperation)semanticModel.GetRequiredOperation(method, cancellationToken);
-                // property default hashcode and equals methods compare all fields
-                // when generated, including underlying fields accessed from properties
-                var expectedFields = type.GetMembers().OfType<IFieldSymbol>().AsImmutable();
 
                 if (methodSymbol.Name == "Clone")
                 {
