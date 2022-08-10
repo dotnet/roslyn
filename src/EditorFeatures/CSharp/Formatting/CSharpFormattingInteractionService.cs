@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             CancellationToken cancellationToken)
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, parsedDocument.ProjectServices, explicitFormat: true);
+            var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: true);
 
             var span = textSpan ?? new TextSpan(0, parsedDocument.Root.FullSpan.Length);
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(parsedDocument.Root, span);
@@ -103,8 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, ITextBuffer textBuffer, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, parsedDocument.ProjectServices, explicitFormat: true);
-            var service = parsedDocument.ProjectServices.GetRequiredService<ISyntaxFormattingService>();
+            var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: true);
+            var service = parsedDocument.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
             return Task.FromResult(service.GetFormattingChangesOnPaste(parsedDocument, textSpan, options, cancellationToken));
         }
 
@@ -114,11 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, ITextBuffer textBuffer, char typedChar, int position, CancellationToken cancellationToken)
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var service = parsedDocument.ProjectServices.GetRequiredService<ISyntaxFormattingService>();
+            var service = parsedDocument.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
 
             if (service.ShouldFormatOnTypedCharacter(parsedDocument, typedChar, position, cancellationToken))
             {
-                var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsService, parsedDocument.ProjectServices, explicitFormat: false);
+                var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: false);
                 return Task.FromResult(service.GetFormattingChangesOnTypedCharacter(parsedDocument, position, indentationOptions, cancellationToken));
             }
 

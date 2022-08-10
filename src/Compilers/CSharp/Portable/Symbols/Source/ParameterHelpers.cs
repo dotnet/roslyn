@@ -605,6 +605,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int firstDefault,
             BindingDiagnosticBag diagnostics)
         {
+            // This method may be called early, before parameter.Type has been resolved,
+            // so code below should use parameter.TypeWithAnnotations instead if unsure.
+
             int parameterIndex = parameter.Ordinal;
             bool isDefault = parameterSyntax is ParameterSyntax { Default: { } };
 
@@ -648,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, parameter.Type);
             }
 
-            if (parameter.DeclaredScope == DeclarationScope.ValueScoped && !parameter.Type.IsErrorTypeOrRefLikeType())
+            if (parameter.DeclaredScope == DeclarationScope.ValueScoped && !parameter.TypeWithAnnotations.IsRefLikeType())
             {
                 diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, parameterSyntax.Location);
             }
