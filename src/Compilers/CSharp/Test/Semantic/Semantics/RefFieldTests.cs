@@ -6644,8 +6644,14 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics();
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics(
+                // (14,18): error CS8350: This combination of arguments to 'Program.F1<T>(ref S<T>)' is disallowed because it may expose variables referenced by parameter 'x1' outside of their declaration scope
+                //         var y2 = F1(ref x2);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x2)").WithArguments("Program.F1<T>(ref S<T>)", "x1").WithLocation(14, 18),
+                // (14,25): error CS8166: Cannot return a parameter by reference 'x2' because it is not a ref parameter
+                //         var y2 = F1(ref x2);
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x2").WithArguments("x2").WithLocation(14, 25));
         }
 
         [Theory]
@@ -6672,7 +6678,13 @@ class Program
 }";
 
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (14,18): error CS8350: This combination of arguments to 'Program.F1<T>(ref S<T>, ref S<T>)' is disallowed because it may expose variables referenced by parameter 'x1' outside of their declaration scope
+                //         var z1 = F1(ref x2, ref y2);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x2, ref y2)").WithArguments("Program.F1<T>(ref S<T>, ref S<T>)", "x1").WithLocation(14, 18),
+                // (14,25): error CS8166: Cannot return a parameter by reference 'x2' because it is not a ref parameter
+                //         var z1 = F1(ref x2, ref y2);
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x2").WithArguments("x2").WithLocation(14, 25));
         }
 
         [WorkItem(62098, "https://github.com/dotnet/roslyn/issues/62098")]
