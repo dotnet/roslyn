@@ -316,6 +316,7 @@ namespace Microsoft.CodeAnalysis
 
             public Compilation Compilation { get; private set; }
             public bool IgnoreAssemblyKey { get; private set; }
+            public bool IgnoreReturnTypes { get; private set; }
             public SymbolEquivalenceComparer Comparer { get; private set; }
 
             private readonly List<IMethodSymbol?> _methodSymbolStack = new();
@@ -346,10 +347,11 @@ namespace Microsoft.CodeAnalysis
             public static SymbolKeyReader GetReader(
                 string data, Compilation compilation,
                 bool ignoreAssemblyKey,
+                bool ignoreReturnTypes,
                 CancellationToken cancellationToken)
             {
                 var reader = s_readerPool.Allocate();
-                reader.Initialize(data, compilation, ignoreAssemblyKey, cancellationToken);
+                reader.Initialize(data, compilation, ignoreAssemblyKey, ignoreReturnTypes, cancellationToken);
                 return reader;
             }
 
@@ -357,11 +359,13 @@ namespace Microsoft.CodeAnalysis
                 string data,
                 Compilation compilation,
                 bool ignoreAssemblyKey,
+                bool ignoreReturnTypes,
                 CancellationToken cancellationToken)
             {
                 base.Initialize(data, cancellationToken);
                 Compilation = compilation;
                 IgnoreAssemblyKey = ignoreAssemblyKey;
+                IgnoreReturnTypes = ignoreReturnTypes;
 
                 Comparer = ignoreAssemblyKey
                     ? SymbolEquivalenceComparer.IgnoreAssembliesInstance

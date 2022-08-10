@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// The result of <see cref="SymbolKey.Resolve"/>. If the <see cref="SymbolKey"/> could be uniquely mapped to a
+    /// The result of <see cref="SymbolKey.Resolve(Compilation, bool, bool, System.Threading.CancellationToken)"/>. If the <see cref="SymbolKey"/> could be uniquely mapped to a
     /// single <see cref="ISymbol"/> then that will be returned in <see cref="Symbol"/>.  Otherwise, if the key resolves
     /// to multiple symbols (which can happen in error scenarios), then <see cref="CandidateSymbols"/> and <see
     /// cref="CandidateReason"/> will be returned.

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -96,7 +95,7 @@ namespace Microsoft.CodeAnalysis
     /// <para>
     /// <see cref="SymbolKey"/>s are not guaranteed to work across different versions of Roslyn. They can be persisted
     /// in their <see cref="ToString()"/> form and used across sessions with the same version of Roslyn. However, future
-    /// versions may change the encoded format and may no longer be able to <see cref="Resolve"/> previous keys.  As
+    /// versions may change the encoded format and may no longer be able to <see cref="Resolve(Compilation, bool, bool, CancellationToken)"/> previous keys.  As
     /// such, only persist if using for a cache that can be regenerated if necessary.
     /// </para>
     /// </summary>
@@ -109,7 +108,7 @@ namespace Microsoft.CodeAnalysis
         /// out a SymbolKey from a previous version of Roslyn and then attempt to use it in a 
         /// newer version where the encoding has changed.
         /// </summary>
-        internal const int FormatVersion = 4;
+        internal const int FormatVersion = 5;
 
         [DataMember(Order = 0)]
         private readonly string _symbolKeyData;
@@ -163,9 +162,11 @@ namespace Microsoft.CodeAnalysis
 
         public static SymbolKeyResolution ResolveString(
             string symbolKey, Compilation compilation,
-            bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default)
+            bool ignoreAssemblyKey = false,
+            bool ignoreReturnTypes = true,
+            CancellationToken cancellationToken = default)
         {
-            return ResolveString(symbolKey, compilation, ignoreAssemblyKey, out _, cancellationToken);
+            return ResolveString(symbolKey, compilation, ignoreAssemblyKey, ignoreReturnTypes, out _, cancellationToken);
         }
 
         public static SymbolKeyResolution ResolveString(
@@ -179,8 +180,15 @@ namespace Microsoft.CodeAnalysis
             string symbolKey, Compilation compilation, bool ignoreAssemblyKey,
             out string? failureReason, CancellationToken cancellationToken)
         {
+            return ResolveString(symbolKey, compilation, ignoreAssemblyKey, ignoreReturnTypes: true, out failureReason, cancellationToken);
+        }
+
+        public static SymbolKeyResolution ResolveString(
+            string symbolKey, Compilation compilation, bool ignoreAssemblyKey, bool ignoreReturnTypes,
+            out string? failureReason, CancellationToken cancellationToken)
+        {
             using var reader = SymbolKeyReader.GetReader(
-                symbolKey, compilation, ignoreAssemblyKey, cancellationToken);
+                symbolKey, compilation, ignoreAssemblyKey, ignoreReturnTypes, cancellationToken);
             var version = reader.ReadFormatVersion();
             if (version != FormatVersion)
             {
@@ -211,9 +219,19 @@ namespace Microsoft.CodeAnalysis
         /// <paramref name="compilation"/> to a matching symbol.
         /// </summary>
         public SymbolKeyResolution Resolve(
-            Compilation compilation, bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default)
+            Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
         {
-            return ResolveString(_symbolKeyData, compilation, ignoreAssemblyKey, cancellationToken);
+            return Resolve(compilation, ignoreAssemblyKey, ignoreReturnTypes: true, cancellationToken);
+        }
+
+        /// <summary>
+        /// Tries to resolve this <see cref="SymbolKey"/> in the given 
+        /// <paramref name="compilation"/> to a matching symbol.
+        /// </summary>
+        public SymbolKeyResolution Resolve(
+            Compilation compilation, bool ignoreAssemblyKey = false, bool ignoreReturnTypes = true, CancellationToken cancellationToken = default)
+        {
+            return ResolveString(_symbolKeyData, compilation, ignoreAssemblyKey, ignoreReturnTypes, cancellationToken);
         }
 
         /// <summary>
