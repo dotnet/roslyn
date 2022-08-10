@@ -626,9 +626,11 @@
   </data>
   <data name="Convert_0_to_record" xml:space="preserve">
     <value>Convert '{0}' to record</value>
+    <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="Convert_to_positional_record" xml:space="preserve">
     <value>Convert to positional record</value>
+    <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="Warning_constructor_signature_conflicts_with_primary_constructor" xml:space="preserve">
     <value>Warning: Constructor signature conflicts with primary constructor</value>
