@@ -3001,7 +3001,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12400")]
+        [Fact]
         [WorkItem(12400, "https://github.com/dotnet/roslyn/issues/12400")]
         public void AssignWithPostfixOperator()
         {
@@ -3031,9 +3031,41 @@ class C
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/12400
-            // we expect "2 hello" instead, which means the evaluation order is wrong
             var comp = CompileAndVerify(source, expectedOutput: "1 hello");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(12400, "https://github.com/dotnet/roslyn/issues/12400")]
+        public void AssignWithPrefixOperator()
+        {
+            string source = @"
+class C
+{
+    int state = 1;
+
+    static void Main()
+    {
+        long x;
+        string y;
+        C c = new C();
+        (x, y) = ++c;
+        System.Console.WriteLine(x + "" "" + y);
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = state;
+        b = ""hello"";
+    }
+
+    public static C operator ++(C c1)
+    {
+        return new C() { state = 2 };
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "2 hello");
             comp.VerifyDiagnostics();
         }
 

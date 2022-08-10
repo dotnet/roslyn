@@ -1758,7 +1758,7 @@ class Program
                 Common = new SyntaxFormattingOptions.CommonOptions { LineFormatting = new LineFormattingOptions { NewLine = "\n" } }
             };
 
-            var formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None);
+            var formatted = Formatter.Format(tree, workspace.Services.SolutionServices, options, CancellationToken.None);
 
             var actual = formatted.ToFullString();
             var expected = "class C\n{\n}";
@@ -1808,7 +1808,7 @@ class F
                 }
             };
 
-            var formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None);
+            var formatted = Formatter.Format(tree, workspace.Services.SolutionServices, options, CancellationToken.None);
 
             var actual = formatted.ToFullString();
             Assert.Equal(expected, actual);

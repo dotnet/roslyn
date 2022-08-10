@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             // The completion service decides that user may want a completion.
             return completionService.ShouldTriggerCompletion(
-                document.Project, document.Project.LanguageServices, sourceText, triggerLocation.Position, roslynTrigger, options, document.Project.Solution.Options, _roles);
+                document.Project, document.Project.Services, sourceText, triggerLocation.Position, roslynTrigger, options, document.Project.Solution.Options, _roles);
         }
 
         private bool TryInvokeSnippetCompletion(
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
 
-                if (!options.ShouldShowItemsFromUnimportNamspaces())
+                if (!options.ShouldShowItemsFromUnimportedNamespaces())
                 {
                     // No need to trigger expanded providers at all if the feature is disabled, just trigger core providers and return;
                     var (context, list) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,

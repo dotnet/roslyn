@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using RenameAnnotation = Microsoft.CodeAnalysis.Rename.ConflictEngine.RenameAnnotation;
@@ -41,11 +42,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
             public async Task RenameAndAnnotatedDocumentAsync(
                 string documentFilePath,
-                Dictionary<string, (string replacementText, SymbolRenameOptions renameOptions)> renameTagsToReplacementInfo,
-                CancellationToken cancellationToken)
+                Dictionary<string, (string replacementText, SymbolRenameOptions renameOptions)> renameTagsToReplacementInfo)
             {
                 var testHostDocument = _testWorkspace.Documents.Single(doc => doc.FilePath == documentFilePath);
-                var newRoot = await RenameDocumentAsync(_currentSolution, testHostDocument, renameTagsToReplacementInfo, cancellationToken).ConfigureAwait(false);
+                var newRoot = await RenameDocumentAsync(_currentSolution, testHostDocument, renameTagsToReplacementInfo, CancellationToken.None).ConfigureAwait(false);
                 if (newRoot == null)
                 {
                     return;
@@ -58,9 +58,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             public async Task VerifyAsync(
                 string documentFilePath,
                 string tagName,
-                string replacementText,
-                CancellationToken cancellationToken)
+                string replacementText)
             {
+                var cancellationToken = CancellationToken.None;
                 var testHostDocument = _testWorkspace.Documents.Single(doc => doc.FilePath == documentFilePath);
                 var newDocument = _currentSolution.GetRequiredDocument(testHostDocument.Id);
                 var sourceText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -82,11 +82,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
             public async Task VerifyDocumentAsync(
                 string documentFilePath,
-                string expectedDocumentContent,
-                CancellationToken cancellationToken)
+                string expectedDocumentContent)
             {
                 var documentId = _testWorkspace.Documents.Single(doc => doc.FilePath == documentFilePath).Id;
-                var sourceText = await _currentSolution.GetRequiredDocument(documentId).GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var sourceText = await _currentSolution.GetRequiredDocument(documentId).GetTextAsync(CancellationToken.None).ConfigureAwait(false);
                 Assert.Equal(expectedDocumentContent.Trim(), sourceText.ToString().Trim());
             }
 
@@ -102,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 var annotatedSpans = testHostDocument.AnnotatedSpans;
 
                 using var _1 = PooledHashSet<TextSpan>.GetInstance(out var conflictLocationSetBuilder);
-                using var _2 = ArrayBuilder<RenameSymbolContext>.GetInstance(out var symbolContextsBuilder);
+                using var _2 = ArrayBuilder<RenamedSymbolContext>.GetInstance(out var renamedSymbolContextsBuilder);
                 using var _3 = ArrayBuilder<LocationRenameContext>.GetInstance(out var tokenTextSpanRenameContextsBuilder);
                 using var _4 = ArrayBuilder<LocationRenameContext>.GetInstance(out var stringAndCommentsContextsBuilder);
 
@@ -119,13 +118,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                             var renameSymbol = await RenameUtilities.TryGetRenamableSymbolAsync(document, span.Start, cancellationToken).ConfigureAwait(false);
                             if (renameSymbol == null)
                             {
-                                Assert.False(true, $"Can't find symbol at tagged place, tag: {tag}.");
+                                AssertEx.Fail($"Can't find symbol at tagged place, tag: {tag}.");
                                 return null;
                             }
 
                             if (!renameTagsToReplacementInfo.TryGetValue(tag, out var replacementInfo))
                             {
-                                Assert.False(true, $"Can't find the replacementInfo for tag: {tag}.");
+                                AssertEx.Fail($"Can't find the replacementInfo for tag: {tag}.");
                                 return null;
                             }
 
@@ -133,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                             var possibleNameConflicts = new List<string>();
 
                             renameRewriterService.TryAddPossibleNameConflicts(renameSymbol, replacementText, possibleNameConflicts);
-                            var symbolContext = new RenameSymbolContext(
+                            var symbolContext = new RenamedSymbolContext(
                                     replacementText,
                                     renameSymbol.Name,
                                     possibleNameConflicts,
@@ -141,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                                     renameSymbol as IAliasSymbol,
                                     renameRewriterService.IsIdentifierValid(replacementText, syntaxFacts));
 
-                            symbolContextsBuilder.Add(symbolContext);
+                            renamedSymbolContextsBuilder.Add(symbolContext);
 
                             var renameLocationsSet = await Renamer.FindRenameLocationsAsync(
                                 solution,
@@ -176,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     new AnnotationTable<RenameAnnotation>(RenameAnnotation.Kind),
                     tokenTextSpanRenameContextsBuilder.ToImmutable(),
                     stringAndCommentsContextsBuilder.ToImmutable(),
-                    symbolContextsBuilder.ToImmutable(),
+                    renamedSymbolContextsBuilder.ToImmutable(),
                     cancellationToken);
 
                 return renameRewriterService.AnnotateAndRename(parameters);

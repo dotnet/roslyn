@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         internal static ImmutableArray<ISymbol> GetSymbolsTouchingPosition(
-            int position, SemanticModel semanticModel, HostWorkspaceServices services, CancellationToken cancellationToken)
+            int position, SemanticModel semanticModel, HostSolutionServices services, CancellationToken cancellationToken)
         {
             var bindableToken = semanticModel.SyntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
             var semanticInfo = semanticModel.GetSemanticInfo(bindableToken, services, cancellationToken);
@@ -183,10 +183,12 @@ namespace Microsoft.CodeAnalysis.Rename
             return TokenRenameInfo.NoSymbolsTokenInfo;
         }
 
+        /// <summary>
         /// We try to rewrite all locations that are invalid candidate locations. If there is only
         /// one location it must be the correct one (the symbol is ambiguous to something else)
         /// and we always try to rewrite it.  If there are multiple locations, we only allow it
         /// if the candidate reason allows for it).
+        /// </summary>
         internal static bool ShouldIncludeLocation(ImmutableArray<RenameLocation> renameLocations, RenameLocation location)
         {
             if (location.IsRenameInStringOrComment)
@@ -357,36 +359,17 @@ namespace Microsoft.CodeAnalysis.Rename
 
         internal static string ReplaceMatchingSubStrings(
             string replaceInsideString,
-            string matchText,
-            string replacementText,
-            ImmutableSortedSet<TextSpan> subspansToRename)
-        {
-            var builder = ImmutableSortedDictionary.CreateBuilder<TextSpan, (string replacementText, string matchText)>();
-            foreach (var span in subspansToRename)
-            {
-                builder.Add(span, (replacementText, matchText));
-            }
-
-            return ReplaceMatchingSubStrings(replaceInsideString, builder.ToImmutable());
-        }
-
-        internal static string ReplaceMatchingSubStrings(
-            string replaceInsideString,
-            ImmutableSortedDictionary<TextSpan, (string replacementText, string matchText)> subSpansToReplacementTextInfo)
+            ImmutableSortedDictionary<TextSpan, string> subSpansToReplacementText)
         {
             // We are provided specific matches to replace inside the string.
             // Process the input string from start to end, replacing matchText with replacementText
             // at the provided sub-spans within the string for these matches.
             var stringBuilder = new StringBuilder();
             var startOffset = 0;
-            foreach (var (subspan, (replacementText, matchText)) in subSpansToReplacementTextInfo)
+            foreach (var (subspan, replacementText) in subSpansToReplacementText)
             {
                 Debug.Assert(subspan.Start <= replaceInsideString.Length);
                 Debug.Assert(subspan.End <= replaceInsideString.Length);
-
-                // Verify that provided sub-span has a match with matchText.
-                if (replaceInsideString.Substring(subspan.Start, subspan.Length) != matchText)
-                    continue;
 
                 // Append the sub-string from last match till the next match
                 var offset = subspan.Start - startOffset;

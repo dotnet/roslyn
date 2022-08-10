@@ -172,9 +172,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
                 return resultAndTelemetry.AnalysisResult;
             }
-            catch
+            catch when (_onAnalysisException != null)
             {
-                _onAnalysisException?.Invoke();
+                _onAnalysisException.Invoke();
                 throw;
             }
         }
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Check if IWorkspaceVenusSpanMappingService is present for remapping.
-            var diagnosticSpanMappingService = textDocument.Project.Solution.Workspace.Services.GetService<IWorkspaceVenusSpanMappingService>();
+            var diagnosticSpanMappingService = textDocument.Project.Solution.Services.GetService<IWorkspaceVenusSpanMappingService>();
             if (diagnosticSpanMappingService == null)
             {
                 return diagnostics;
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 builder.Add(DiagnosticData.Create(diagnostic, textDocument));
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
     }
 }

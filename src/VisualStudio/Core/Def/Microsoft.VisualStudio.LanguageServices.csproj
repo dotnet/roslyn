@@ -123,6 +123,7 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="UIAutomationProvider" />
     <Reference Include="UIAutomationTypes" />
+    <Reference Include="WindowsFormsIntegration" />
     <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" />
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
     <PackageReference Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime" Version="$(MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion)" />
@@ -163,6 +164,17 @@
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
     <PackageReference Include="Nerdbank.Streams" Version="$(NerdbankStreamsVersion)" />
+    <!-- 
+        This is necessary because Microsoft.VisualStudio.LanguageServer.Client.Implementation has transitive dependencies on Microsoft.VisualStudio.Workspace.
+        This package causes Namespace/Type collisions with Microsoft.CodeAnalysis.Workspace. We only reference ILanguageServiceBroker2 from here so the simplest
+        fix is to reference the Microsoft.VisualStudio.LanguageServer.Client.Implementation dll directly.
+        
+        The fix for this is tracked internally by https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1542016
+    -->
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="$(MicrosoftVisualStudioLanguageServerClientImplementationVersion)" ExcludeAssets="all" GeneratePathProperty="true" />
+    <Reference Include="$(PkgMicrosoft_VisualStudio_LanguageServer_Client_Implementation)\lib\net472\Microsoft.VisualStudio.LanguageServer.Client.Implementation.dll">
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="ServicesVSResources.resx" GenerateSource="true" />

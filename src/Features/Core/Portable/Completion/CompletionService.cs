@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     public abstract partial class CompletionService : ILanguageService
     {
-        private readonly Workspace _workspace;
+        private readonly HostSolutionServices _services;
         private readonly ProviderManager _providerManager;
 
         /// <summary>
@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Completion
         private bool _suppressPartialSemantics;
 
         // Prevent inheritance outside of Roslyn.
-        internal CompletionService(Workspace workspace)
+        internal CompletionService(HostSolutionServices services)
         {
-            _workspace = workspace;
+            _services = services;
             _providerManager = new(this);
         }
 
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet? options = null)
         {
             var document = text.GetOpenDocumentInCurrentContextWithChanges();
-            var languageServices = document?.Project.LanguageServices ?? _workspace.Services.GetLanguageServices(Language);
+            var languageServices = document?.Project.Services ?? _services.GetProjectServices(Language);
 
             // Publicly available options do not affect this API.
             var completionOptions = CompletionOptions.Default;
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </remarks>
         internal virtual bool ShouldTriggerCompletion(
             Project? project,
-            HostLanguageServices languageServices,
+            HostProjectServices languageServices,
             SourceText text,
             int caretPosition,
             CompletionTrigger trigger,
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             var helper = CompletionHelper.GetHelper(document);
             var itemsWithPatternMatch = new SegmentedList<(CompletionItem, PatternMatch?)>(items.Select(
-                item => (item, helper.GetMatch(item.FilterText, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture))));
+                item => (item, helper.GetMatch(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture))));
 
             var builder = ImmutableArray.CreateBuilder<CompletionItem>();
             FilterItems(helper, itemsWithPatternMatch, filterText, builder);

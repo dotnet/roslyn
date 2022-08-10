@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-
 namespace Microsoft.CodeAnalysis.Rename
 {
     /// <summary>
-    /// Represent the rename context information for the given renameLocation.
+    /// Represents the information for a single replacement in the syntax tree.
     /// </summary>
     internal readonly record struct LocationRenameContext
     {
@@ -18,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public LocationRenameContext(
             RenameLocation renameLocation,
-            RenameSymbolContext symbolContext)
+            RenamedSymbolContext symbolContext)
         {
             RenameLocation = renameLocation;
             ReplacementTextValid = symbolContext.ReplacementTextValid;

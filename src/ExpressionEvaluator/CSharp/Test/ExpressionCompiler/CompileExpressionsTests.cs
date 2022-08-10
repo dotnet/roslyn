@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                         out var errorMessages);
                     Assert.Null(assembly);
                     AssertEx.Equal(
-                        new[] { $"(1,11): error CS8185: { CSharpResources.ERR_DeclarationExpressionNotPermitted }" },
+                        new[] { $"(1,11): error CS8185: {CSharpResources.ERR_DeclarationExpressionNotPermitted}" },
                         errorMessages);
                     Assert.True(methodTokens.IsEmpty);
                 });

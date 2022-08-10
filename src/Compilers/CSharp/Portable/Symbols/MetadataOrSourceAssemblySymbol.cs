@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private NativeIntegerTypeSymbol[] _lazyNativeIntegerTypes;
         private ThreeState _lazyRuntimeSupportsNumericIntPtr = ThreeState.Unknown;
+        private ThreeState _lazyRuntimeSupportsByRefFields = ThreeState.Unknown;
 
         internal override bool RuntimeSupportsNumericIntPtr
         {
@@ -62,6 +63,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 base.RuntimeSupportsNumericIntPtr = value;
+            }
+        }
+
+        internal override bool RuntimeSupportsByRefFields
+        {
+            get
+            {
+                if ((object)CorLibrary == this)
+                {
+                    if (!_lazyRuntimeSupportsByRefFields.HasValue())
+                    {
+                        _lazyRuntimeSupportsByRefFields = RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields).ToThreeState();
+                    }
+
+                    return _lazyRuntimeSupportsByRefFields.Value();
+                }
+
+                return base.RuntimeSupportsByRefFields;
+            }
+            set
+            {
+                Debug.Assert(value);
+                Debug.Assert(!RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields));
+                if ((object)CorLibrary == this)
+                {
+                    Debug.Assert(!_lazyRuntimeSupportsByRefFields.HasValue());
+                    _lazyRuntimeSupportsByRefFields = value.ToThreeState();
+                    return;
+                }
+
+                base.RuntimeSupportsByRefFields = value;
             }
         }
 

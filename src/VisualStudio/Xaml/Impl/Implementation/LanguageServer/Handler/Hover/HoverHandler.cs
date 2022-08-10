@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var quickInfoService = document.Project.LanguageServices.GetService<IXamlQuickInfoService>();
+            var quickInfoService = document.Project.Services.GetService<IXamlQuickInfoService>();
             if (quickInfoService == null)
             {
                 return null;

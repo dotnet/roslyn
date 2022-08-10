@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
                 {
-                    var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                    var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
                     if (client != null)
                     {
                         var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableRenameLocations?>(
@@ -93,11 +93,12 @@ namespace Microsoft.CodeAnalysis.Rename
 
                         if (result.HasValue && result.Value != null)
                         {
-                            var rehydrated = await TryRehydrateAsync(
-                                solution, result.Value, cancellationToken).ConfigureAwait(false);
-
-                            if (rehydrated != null)
-                                return rehydrated;
+                            var rehydratedLocations = await result.Value.RehydrateLocationsAsync(solution, cancellationToken).ConfigureAwait(false);
+                            return new LightweightRenameLocations(
+                                solution, options, fallbackOptions,
+                                rehydratedLocations,
+                                result.Value.ImplicitLocations,
+                                result.Value.ReferencedSymbols);
                         }
 
                         // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)

@@ -1,5 +1,22 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## Types cannot be named `scoped`
+
+***Introduced in Visual Studio 2022 version 17.4.*** Starting in C# 11, types cannot be named `scoped`. The compiler will report an error on all such type names. To work around this, the type name and all usages must be escaped with an `@`:
+
+```csharp
+class scoped {} // Error CS9056
+class @scoped {} // No error
+```
+
+```csharp
+ref scoped local; // Error
+ref scoped.nested local; // Error
+ref @scoped local2; // No error
+```
+
+This was done as `scoped` is now a modifier for variable declarations and reserved following `ref` in a ref type.
+
 ## Types cannot be named `file`
 
 ***Introduced in Visual Studio 2022 version 17.4.*** Starting in C# 11, types cannot be named `file`. The compiler will report an error on all such type names. To work around this, the type name and all usages must be escaped with an `@`:
@@ -111,15 +128,24 @@ static ref T ReturnOutParamByRef<T>(out T t)
 }
 ```
 
-A possible workaround is to change the method signature to pass the parameter by `ref` instead.
+Possible workarounds are:
+1. Use `System.Diagnostics.CodeAnalysis.UnscopedRefAttribute` to mark the reference as unscoped.
+    ```csharp
+    static ref T ReturnOutParamByRef<T>([UnscopedRef] out T t)
+    {
+        t = default;
+        return ref t; // ok
+    }
+    ```
 
-```csharp
-static ref T ReturnRefParamByRef<T>(ref T t)
-{
-    t = default;
-    return ref t; // ok
-}
-```
+1. Change the method signature to pass the parameter by `ref`.
+    ```csharp
+    static ref T ReturnRefParamByRef<T>(ref T t)
+    {
+        t = default;
+        return ref t; // ok
+    }
+    ```
 
 ## Method ref struct return escape analysis depends on ref escape of ref arguments
 

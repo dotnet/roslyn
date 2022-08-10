@@ -424,7 +424,7 @@ class Program
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var syntaxRoot = await document.GetSyntaxRootAsync();
             var options = CSharpSyntaxFormattingOptions.Default;
-            var node = Formatter.Format(syntaxRoot, spans, workspace.Services, options, rules: null, CancellationToken.None);
+            var node = Formatter.Format(syntaxRoot, spans, workspace.Services.SolutionServices, options, rules: null, CancellationToken.None);
             Assert.Equal(expected, node.ToFullString());
         }
 
@@ -2335,7 +2335,7 @@ namespace TestApp
 
             var options = CSharpSyntaxFormattingOptions.Default;
 
-            var formattedRoot = Formatter.Format(root, workspace.Services, options, CancellationToken.None);
+            var formattedRoot = Formatter.Format(root, workspace.Services.SolutionServices, options, CancellationToken.None);
             var annotatedTrivia = formattedRoot.GetAnnotatedTrivia("marker");
 
             Assert.Single(annotatedTrivia);

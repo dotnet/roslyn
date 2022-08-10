@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         internal virtual CompletionService GetCompletionService(Project project)
         {
-            var completionService = project.LanguageServices.GetRequiredService<CompletionService>();
+            var completionService = project.Services.GetRequiredService<CompletionService>();
             var completionProviders = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet<string>.Empty, project);
             var completionProvider = Assert.Single(completionProviders);
             Assert.IsType(GetCompletionProviderType(), completionProvider);
@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                     TriggerInArgumentLists = showCompletionInArgumentLists
                 };
 
-                var isTextualTriggerCharacterResult = service.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, position + 1, trigger, options, document.Project.Solution.Options, GetRoles(document));
+                var isTextualTriggerCharacterResult = service.ShouldTriggerCompletion(document.Project, document.Project.Services, text, position + 1, trigger, options, document.Project.Solution.Options, GetRoles(document));
 
                 if (expectedTriggerCharacter)
                 {

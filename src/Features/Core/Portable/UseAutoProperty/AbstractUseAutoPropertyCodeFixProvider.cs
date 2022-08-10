@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 // Same file.  Have to do this in a slightly complicated fashion.
                 var declaratorTreeRoot = await fieldDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var editor = new SyntaxEditor(declaratorTreeRoot, fieldDocument.Project.Solution.Workspace.Services);
+                var editor = new SyntaxEditor(declaratorTreeRoot, fieldDocument.Project.Solution.Services);
                 editor.ReplaceNode(property, updatedProperty);
                 editor.RemoveNode(nodeToRemove, syntaxRemoveOptions);
 
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             }
 
             var options = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-            return Formatter.Format(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Workspace.Services, options, formattingRules, cancellationToken);
+            return Formatter.Format(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Services, options, formattingRules, cancellationToken);
         }
 
         private static bool IsWrittenToOutsideOfConstructorOrProperty(

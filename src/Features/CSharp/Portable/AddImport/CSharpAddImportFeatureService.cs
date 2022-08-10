@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         }
 
         protected override string GetDescription(IReadOnlyList<string> nameParts)
-            => $"using { string.Join(".", nameParts) };";
+            => $"using {string.Join(".", nameParts)};";
 
         protected override (string description, bool hasExistingImport) GetDescription(
             Document document,
