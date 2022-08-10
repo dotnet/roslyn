@@ -14,24 +14,24 @@ namespace CommonLanguageServerProtocol.Framework;
 /// <typeparam name="RequestContextType">The type of the RequestContext to be used by the handler.</typeparam>
 public interface IRequestExecutionQueue<RequestContextType> : IAsyncDisposable
 {
-    /// <summary>
-    /// Queue a request for a notifcation with a parameter.
-    /// </summary>
-    /// <typeparam name="TRequestType"></typeparam>
-    /// <returns>A task that completes when the handler execution is done.</returns>
-    Task ExecuteAsync<TRequestType>(bool mutatesSolutionState, INotificationHandler<TRequestType, RequestContextType> handler, TRequestType? request, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
+    ///// <summary>
+    ///// Queue a request for a notifcation with a parameter.
+    ///// </summary>
+    ///// <typeparam name="TRequestType"></typeparam>
+    ///// <returns>A task that completes when the handler execution is done.</returns>
+    //Task ExecuteAsync<TRequestType>(TRequestType? request, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
 
-    /// <summary>
-    /// Queue a request for a parameterless notification.
-    /// </summary>
-    /// <returns>A task that completes when the handler execution is done.</returns>
-    Task ExecuteAsync(bool mutatesSolutionState, INotificationHandler<RequestContextType> handler, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
+    ///// <summary>
+    ///// Queue a request for a parameterless notification.
+    ///// </summary>
+    ///// <returns>A task that completes when the handler execution is done.</returns>
+    //Task ExecuteAsync(string methodName, ILspServices lspServices, CancellationToken cancellationToken);
 
     /// <summary>
     /// Queue a request.
     /// </summary>
     /// <returns>A task that completes when the handler execution is done.</returns>
-    Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(bool mutatesSolutionState, IRequestHandler<TRequestType, TResponseType, RequestContextType> handler, TRequestType? request, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
+    Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(TRequestType? request, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
 
     /// <summary>
     /// Start the queue accepting requests once any event handlers have been attached.

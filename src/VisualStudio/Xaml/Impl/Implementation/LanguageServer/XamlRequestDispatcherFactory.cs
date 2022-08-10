@@ -19,18 +19,20 @@ using Microsoft.VisualStudio.LanguageServices.Xaml.Telemetry;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
 {
-    /// <summary>
-    /// Implements the Language Server Protocol for XAML
-    /// </summary>
-    [ExportLspServiceFactory(typeof(RoslynRequestDispatcher), StringConstants.XamlLspLanguagesContract), Shared]
-    internal sealed class XamlRequestDispatcherFactory : RequestDispatcherFactory
+    internal interface IRoslynRequestExecutionQueue : IRequestExecutionQueue<RequestContext>, ILspService
+    {
+    }
+
+    [ExportLspServiceFactory(typeof(IRoslynRequestExecutionQueue), StringConstants.XamlLspLanguagesContract), Shared]
+    internal sealed class XamlRequestExecutionQueueFactory : ILspServiceFactory
     {
         private readonly XamlProjectService _projectService;
         private readonly IXamlLanguageServerFeedbackService? _feedbackService;
 
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public XamlRequestDispatcherFactory(
+        public XamlRequestExecutionQueueFactory(
             XamlProjectService projectService,
             [Import(AllowDefault = true)] IXamlLanguageServerFeedbackService? feedbackService)
         {
@@ -38,71 +40,128 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             _feedbackService = feedbackService;
         }
 
-        public override ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         {
-            return new XamlRequestDispatcher(_projectService, lspServices, _feedbackService);
+            return new XamlRequestExecutionQueue(_projectService, lspServices, _feedbackService);
         }
 
-        private class XamlRequestDispatcher : RoslynRequestDispatcher, ILspService
+        private class XamlRequestExecutionQueue : IRoslynRequestExecutionQueue
         {
             private readonly XamlProjectService _projectService;
             private readonly IXamlLanguageServerFeedbackService? _feedbackService;
+            private readonly ILspServices _lspServices;
+            private readonly IRequestExecutionQueue<RequestContext> _baseQueue;
 
-            public XamlRequestDispatcher(
+            public XamlRequestExecutionQueue(
                 XamlProjectService projectService,
-                LspServices services,
-                IXamlLanguageServerFeedbackService? feedbackService) : base(services)
+                ILspServices lspServices,
+                IXamlLanguageServerFeedbackService? feedbackService)
             {
                 _projectService = projectService;
                 _feedbackService = feedbackService;
+                _lspServices = lspServices;
             }
 
-            protected override ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> GetRequestHandlers()
+            public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
+
+            public ValueTask DisposeAsync()
             {
+                return _baseQueue.DisposeAsync();
+            }
+
+            public async Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(TRequestType? request, string methodName, ILspServices lspServices, CancellationToken cancellationToken)
+            {
+                // TODO: This is broken
+                //var textDocument = handler.GetTextDocumentIdentifier(request);
                 throw new NotImplementedException();
+
+                //Uri textDocumentUri;
+                //if (textDocument is Uri uri)
+                //{
+                //    textDocumentUri = uri;
+                //}
+                //else if (textDocument is TextDocumentIdentifier textDocumentIdentifier)
+                //{
+                //    textDocumentUri = textDocumentIdentifier.Uri;
+                //}
+                //else
+                //{
+                //    throw new NotImplementedException($"TextDocument was set to an unsupported value for method {methodName}");
+                //}
+
+                //DocumentId? documentId = null;
+                //if (textDocumentUri.IsAbsoluteUri)
+                //{
+                //    documentId = _projectService.TrackOpenDocument(textDocumentUri.LocalPath);
+                //}
+
+                //using (var requestScope = _feedbackService?.CreateRequestScope(documentId, methodName))
+                //{
+                //    try
+                //    {
+                //        var result = await _baseQueue.ExecuteAsync<TRequestType, TResponseType>(
+                //            request, methodName, lspServices, cancellationToken).ConfigureAwait(false);
+                //        return result;
+                //    }
+                //    catch (Exception e) when (e is not OperationCanceledException)
+                //    {
+                //        // Inform Xaml language service that the RequestScope failed.
+                //        // This doesn't send the exception to Telemetry or Watson
+                //        requestScope?.RecordFailure(e);
+                //        throw;
+                //    }
+                //}
             }
 
-            protected override async Task<TResponseType> ExecuteRequestAsync<TRequestType, TResponseType>(
-                IRequestExecutionQueue<RequestContext> queue, bool mutatesSolutionState,
-                IRequestHandler<TRequestType, TResponseType, RequestContext> handler, TRequestType request, string methodName, CancellationToken cancellationToken)
+            public void Start(ILspServices lspServices)
             {
-                var textDocument = handler.GetTextDocumentIdentifier(request);
-
-                Uri textDocumentUri;
-                if (textDocument is Uri uri)
-                {
-                    textDocumentUri = uri;
-                }
-                else if (textDocument is TextDocumentIdentifier textDocumentIdentifier)
-                {
-                    textDocumentUri = textDocumentIdentifier.Uri;
-                }
-                else
-                {
-                    throw new NotImplementedException($"TextDocument was set to an unsupported value for method {methodName}");
-                }
-
-                DocumentId? documentId = null;
-                if (textDocumentUri.IsAbsoluteUri)
-                {
-                    documentId = _projectService.TrackOpenDocument(textDocumentUri.LocalPath);
-                }
-
-                using (var requestScope = _feedbackService?.CreateRequestScope(documentId, methodName))
-                {
-                    try
-                    {
-                        return await base.ExecuteRequestAsync(queue, mutatesSolutionState, handler, request, methodName, cancellationToken).ConfigureAwait(false);
-                    }
-                    catch (Exception e) when (e is not OperationCanceledException)
-                    {
-                        // Inform Xaml language service that the RequestScope failed.
-                        // This doesn't send the exception to Telemetry or Watson
-                        requestScope?.RecordFailure(e);
-                        throw;
-                    }
-                }
+                _baseQueue.Start(lspServices);
             }
         }
     }
+
+    /// <summary>
+    /// Implements the Language Server Protocol for XAML
+    /// </summary>
+    //[ExportLspServiceFactory(typeof(RoslynRequestDispatcher), StringConstants.XamlLspLanguagesContract), Shared]
+    //internal sealed class XamlRequestDispatcherFactory : ILspServiceFactory
+    //{
+    //    private readonly XamlProjectService _projectService;
+    //    private readonly IXamlLanguageServerFeedbackService? _feedbackService;
+
+    //    [ImportingConstructor]
+    //    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    //    public XamlRequestDispatcherFactory(
+    //        XamlProjectService projectService,
+    //        [Import(AllowDefault = true)] IXamlLanguageServerFeedbackService? feedbackService)
+    //    {
+    //        _projectService = projectService;
+    //        _feedbackService = feedbackService;
+    //    }
+
+    //    public override ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+    //    {
+    //        return new XamlRequestDispatcher(_projectService, lspServices, _feedbackService);
+    //    }
+
+    //    private class XamlRequestDispatcher : RoslynRequestDispatcher, ILspService
+    //    {
+    //        private readonly XamlProjectService _projectService;
+    //        private readonly IXamlLanguageServerFeedbackService? _feedbackService;
+
+    //        public XamlRequestDispatcher(
+    //            XamlProjectService projectService,
+    //            LspServices services,
+    //            IXamlLanguageServerFeedbackService? feedbackService) : base(services)
+    //        {
+    //            _projectService = projectService;
+    //            _feedbackService = feedbackService;
+    //        }
+
+    //        protected override ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> GetRequestHandlers()
+    //        {
+    //            throw new NotImplementedException();
+    //        }
+    //    }
+    //}
 }

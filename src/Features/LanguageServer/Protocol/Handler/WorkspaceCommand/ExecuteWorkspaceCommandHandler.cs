@@ -34,15 +34,15 @@ internal class ExecuteWorkspaceCommandHandler : IRoslynRequestHandler<ExecuteCom
 
     public async Task<object?> HandleRequestAsync(ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var requestDispatcher = context.GetRequiredService<IRequestDispatcher<RequestContext>>();
         var requestExecutionQueue = context.GetRequiredService<IRequestExecutionQueue<RequestContext>>();
+        var lspServices = context.GetRequiredService<ILspServices>();
 
         var requestMethod = AbstractExecuteWorkspaceCommandHandler.GetRequestNameForCommandName(request.Command);
 
-        var result = await requestDispatcher.ExecuteRequestAsync<ExecuteCommandParams, object?>(
-            requestMethod,
+        var result = await requestExecutionQueue.ExecuteAsync<ExecuteCommandParams, object?>(
             request,
-            requestExecutionQueue,
+            requestMethod,
+            lspServices,
             cancellationToken).ConfigureAwait(false);
 
         return result;

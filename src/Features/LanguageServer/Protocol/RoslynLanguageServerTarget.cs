@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 .AddSingleton<IRequestContextFactory<RequestContext>, RequestContextFactory>()
                 // TODO: Are these dangerous because of capturing?
                 .AddSingleton<IRequestExecutionQueue<RequestContext>>((serviceProvider) => GetRequestExecutionQueue())
-                .AddSingleton<IRequestDispatcher<RequestContext>>((serviceProvider) => GetRequestDispatcher())
                 .AddSingleton<IClientCapabilitiesManager, ClientCapabilitiesManager>();
 
             return serviceCollection;
@@ -109,16 +108,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 await clientNotificationService.SendNotificationAsync("window/logMessage", message, CancellationToken.None).ConfigureAwait(false);
 
             }).CompletesAsyncOperation(asyncToken);
-        }
-
-        protected override IRequestDispatcher<RequestContext> ConstructDispatcher()
-        {
-            var lspServices = GetLspServices();
-            var requestDispatcher = lspServices.GetRequiredService<RoslynRequestDispatcher>();
-
-            SetupRequestDispatcher(requestDispatcher);
-
-            return requestDispatcher;
         }
 
         public ClientCapabilities GetClientCapabilities()

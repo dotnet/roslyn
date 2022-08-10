@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace CommonLanguageServerProtocol.Framework;
 
+/// <inheritdoc/>
 internal class HandlerProvider : IHandlerProvider
 {
     private readonly ILspServices _lspServices;
@@ -22,6 +23,13 @@ internal class HandlerProvider : IHandlerProvider
         _lspServices = lspServices;
     }
 
+    /// <summary>
+    /// Get the MethodHandler for a particular request.
+    /// </summary>
+    /// <param name="method">The method name being made.</param>
+    /// <param name="requestType">The requestType for this method.</param>
+    /// <param name="responseType">The responseType for this method.</param>
+    /// <returns>The handler for this request.</returns>
     public IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType)
     {
         var requestHandlerMetadata = new RequestHandlerMetadata(method, requestType, responseType);
@@ -38,7 +46,7 @@ internal class HandlerProvider : IHandlerProvider
         return requestHandlers.Keys.ToImmutableArray();
     }
 
-    protected virtual ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> GetRequestHandlers()
+    private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> GetRequestHandlers()
     {
         if (_requestHandlers is null)
         {
@@ -191,91 +199,3 @@ internal class HandlerProvider : IHandlerProvider
         return (requestType, responseType, requestContext);
     }
 }
-
-/// <summary>
-/// Aggregates handlers for the specified languages and dispatches LSP requests
-/// to the appropriate handler for the request.
-/// </summary>
-//public class RequestDispatcher<RequestContextType>
-//{
-//    protected ILspServices _lspServices;
-
-//    public RequestDispatcher(ILspServices lspServices)
-//    {
-//        _lspServices = lspServices;
-//    }
-
-//    public async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(
-//        string methodName,
-//        TRequestType request,
-//        IRequestExecutionQueue<RequestContextType> queue,
-//        CancellationToken cancellationToken)
-//    {
-//        // Get the handler matching the requested method.
-//        var handler = GetRequestHandler(methodName, typeof(TRequestType), typeof(TResponseType));
-
-//        var mutatesSolutionState = handler.MutatesSolutionState;
-
-//        var strongHandler = (IRequestHandler<TRequestType, TResponseType, RequestContextType>?)handler;
-//        if (strongHandler is null)
-//        {
-//            throw new ArgumentOutOfRangeException(string.Format("Request handler not found for method {0}", methodName));
-//        }
-
-//        var result = await ExecuteRequestAsync(queue, mutatesSolutionState, strongHandler, request, methodName, cancellationToken).ConfigureAwait(false);
-//        return result;
-//    }
-
-//    public async Task ExecuteNotificationAsync<TRequestType>(string methodName, TRequestType request, IRequestExecutionQueue<RequestContextType> queue, CancellationToken cancellationToken)
-//    {
-//        var handler = GetRequestHandler(methodName, typeof(TRequestType), responseType: null);
-
-//        var strongHandler = (INotificationHandler<TRequestType, RequestContextType>?)handler;
-//        if (strongHandler is null)
-//        {
-//            throw new ArgumentOutOfRangeException(string.Format("Request handler not found for method {0}", methodName));
-//        }
-
-//        await ExecuteNotificationAsync(queue, handler.MutatesSolutionState, strongHandler, request, methodName, cancellationToken).ConfigureAwait(false);
-//    }
-
-//    protected virtual Task ExecuteNotificationAsync<TRequestType>(
-//        IRequestExecutionQueue<RequestContextType> queue,
-//        bool mutatesSolutionState,
-//        INotificationHandler<TRequestType, RequestContextType> handler,
-//        TRequestType request,
-//        string methodName,
-//        CancellationToken cancellationToken)
-//    {
-//        return queue.ExecuteAsync(mutatesSolutionState, handler, request, methodName, _lspServices, cancellationToken);
-//    }
-
-//    public async Task ExecuteNotificationAsync(string methodName, IRequestExecutionQueue<RequestContextType> queue, CancellationToken cancellationToken)
-//    {
-//        var handler = GetRequestHandler(methodName, requestType: null, responseType: null);
-
-//        var strongHandler = (INotificationHandler<RequestContextType>?)handler;
-//        if (strongHandler is null)
-//        {
-//            throw new ArgumentOutOfRangeException(string.Format("Request handler not found for method {0}", methodName));
-//        }
-
-//        await ExecuteNotificationAsync(queue, handler.MutatesSolutionState, strongHandler, methodName, cancellationToken).ConfigureAwait(false);
-//    }
-
-//    protected virtual Task ExecuteNotificationAsync(IRequestExecutionQueue<RequestContextType> queue, bool mutatesSolutionState, INotificationHandler<RequestContextType> handler, string methodName, CancellationToken cancellationToken)
-//    {
-//        return queue.ExecuteAsync(mutatesSolutionState, handler, methodName, _lspServices, cancellationToken);
-//    }
-
-//    protected virtual Task<TResponseType> ExecuteRequestAsync<TRequestType, TResponseType>(
-//        IRequestExecutionQueue<RequestContextType> queue,
-//        bool mutatesSolutionState,
-//        IRequestHandler<TRequestType, TResponseType, RequestContextType> handler,
-//        TRequestType request,
-//        string methodName,
-//        CancellationToken cancellationToken)
-//    {
-//        return queue.ExecuteAsync(mutatesSolutionState, handler, request, methodName, _lspServices, cancellationToken);
-//    }
-//}

@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -30,7 +31,7 @@ internal class ShutdownHandler : IRoslynNotificationHandler
             throw new InvalidOperationException($"{Methods.ShutdownName} called before {Methods.InitializeName}");
         }
 
-        var lifeCycleManager = requestContext.GetRequiredLspService<RoslynLifeCycleManager>();
+        var lifeCycleManager = requestContext.GetRequiredService<LifeCycleManager<RequestContext>>();
         await lifeCycleManager.ShutdownAsync();
     }
 }

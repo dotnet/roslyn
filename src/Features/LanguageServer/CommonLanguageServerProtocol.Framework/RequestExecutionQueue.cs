@@ -33,7 +33,7 @@ namespace CommonLanguageServerProtocol.Framework;
 /// </para>
 /// <para>
 /// Regardless of whether a request is mutating or not, or blocking or not, is an implementation detail of this class
-/// and any consumers observing the results of the task returned from <see cref="ExecuteAsync(bool, bool, INotificationHandler{RequestContextType}, string, ILspServices, CancellationToken)"/>
+/// and any consumers observing the results of the task returned from <see cref="ExecuteAsync{TRequestType, TResponseType}(TRequestType, string, CommonLanguageServerProtocol.Framework.ILspServices, CancellationToken)"/>
 /// will see the results of the handling of the request, whenever it occurred.
 /// </para>
 /// <para>
@@ -49,6 +49,7 @@ namespace CommonLanguageServerProtocol.Framework;
 internal class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<RequestContextType>
 {
     protected readonly ILspLogger _logger;
+    private readonly IHandlerProvider _handlerProvider;
 
     /// <summary>
     /// The queue containing the ordered LSP requests along with a combined cancellation token
@@ -68,9 +69,10 @@ internal class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueu
     /// <inheritdoc cref="IRequestExecutionQueue{RequestContextType}.RequestServerShutdown"/>
     public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 
-    public RequestExecutionQueue(ILspLogger logger)
+    public RequestExecutionQueue(ILspLogger logger, IHandlerProvider handlerProvider)
     {
         _logger = logger;
+        _handlerProvider = handlerProvider;
     }
 
     public void Start(ILspServices lspServices)
@@ -79,100 +81,39 @@ internal class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueu
         _queueProcessingTask = ProcessQueueAsync(lspServices);
     }
 
-    public Task ExecuteAsync<TRequestType>(
-        bool mutatesSolutionState,
-        INotificationHandler<TRequestType, RequestContextType> handler,
-        TRequestType request,
-        string methodName,
-        ILspServices lspServices,
-        CancellationToken requestCancellationToken)
-    {
-        var combinedTokenSource = _cancelSource.Token.CombineWith(requestCancellationToken);
-        var combinedCancellationToken = combinedTokenSource.Token;
-        var (item, resultTask) = CreateQueueItem(
-            mutatesSolutionState,
-            methodName,
-            textDocument: null,
-            request,
-            handler,
-            lspServices,
-            combinedCancellationToken);
-
-        _ = resultTask.ContinueWith(_ => combinedTokenSource.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
-
-        var didEnqueue = _queue.TryEnqueue((item, combinedCancellationToken));
-
-        if (!didEnqueue)
-        {
-            return Task.FromException(new InvalidOperationException("Server was requested to shut down."));
-        }
-
-        return resultTask;
-    }
-
-    public Task ExecuteAsync(
-        bool mutatesSolutionState,
-        INotificationHandler<RequestContextType> handler,
-        string methodName,
-        ILspServices lspServices,
-        CancellationToken requestCancellationToken)
-    {
-        var combinedTokenSource = _cancelSource.Token.CombineWith(requestCancellationToken);
-        var combinedCancellationToken = combinedTokenSource.Token;
-        var (item, resultTask) = CreateQueueItem(
-            mutatesSolutionState,
-            methodName,
-            textDocument: null,
-            handler,
-            lspServices,
-            combinedCancellationToken);
-
-        _ = resultTask.ContinueWith(_ => combinedTokenSource.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
-
-        var didEnqueue = _queue.TryEnqueue((item, combinedCancellationToken));
-
-        if (!didEnqueue)
-        {
-            return Task.FromException(new InvalidOperationException("Server was requested to shut down."));
-        }
-
-        return resultTask;
-    }
-
     /// <summary>
     /// Queues a request to be handled by the specified handler, with mutating requests blocking subsequent requests
     /// from starting until the mutation is complete.
     /// </summary>
-    /// <param name="mutatesSolutionState">Whether or not handling this method results in changes to the current solution state.
-    /// Mutating requests will block all subsequent requests from starting until after they have
-    /// completed and mutations have been applied.</param>
-    /// <param name="requiresLSPSolution">Whether or not to build a solution that represents the LSP view of the world. If this
-    /// is set to false, the default workspace's current solution will be used.</param>
-    /// <param name="handler">The handler that will handle the request.</param>
     /// <param name="request">The request to handle.</param>
-    /// <param name="clientCapabilities">The client capabilities.</param>
     /// <param name="methodName">The name of the LSP method.</param>
     /// <param name="requestCancellationToken">A cancellation token that will cancel the handing of this request.
     /// The request could also be cancelled by the queue shutting down.</param>
     /// <returns>A task that can be awaited to observe the results of the handing of this request.</returns>
     public Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(
-        bool mutatesSolutionState,
-        IRequestHandler<TRequestType, TResponseType, RequestContextType> handler,
         TRequestType request,
         string methodName,
         ILspServices lspServices,
         CancellationToken requestCancellationToken)
     {
         // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
+        var requestType = typeof(TRequestType) == typeof(VoidReturn) ? null : typeof(TRequestType);
+        var responseType = typeof(TResponseType) == typeof(VoidReturn) ? null : typeof(TResponseType);
 
-        var textDocument = handler.GetTextDocumentIdentifier(request);
+        var handler = _handlerProvider.GetMethodHandler(methodName, requestType, responseType);
+
+        object? textDocument = null;
+        if (handler is IRequestHandler<TRequestType, TResponseType, RequestContextType> requestHandler)
+        {
+            textDocument = requestHandler.GetTextDocumentIdentifier(request);
+        }
 
         // Create a combined cancellation token so either the client cancelling it's token or the queue
         // shutting down cancels the request.
         var combinedTokenSource = _cancelSource.Token.CombineWith(requestCancellationToken);
         var combinedCancellationToken = combinedTokenSource.Token;
-        var (item, resultTask) = CreateQueueItem(
-            mutatesSolutionState,
+        var (item, resultTask) = CreateQueueItem<TRequestType, TResponseType>(
+            handler.MutatesSolutionState,
             methodName,
             textDocument,
             request,
@@ -202,7 +143,7 @@ internal class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueu
         string methodName,
         object? textDocument,
         TRequestType request,
-        IRequestHandler<TRequestType, TResponseType, RequestContextType> handler,
+        IMethodHandler handler,
         ILspServices lspServices,
         CancellationToken cancellationToken)
     {
@@ -210,41 +151,6 @@ internal class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueu
             methodName,
             textDocument,
             request,
-            handler,
-            _logger,
-            cancellationToken);
-    }
-
-    internal (IQueueItem<RequestContextType>, Task) CreateQueueItem<TRequestType>(
-        bool mutatesSolutionState,
-        string methodName,
-        object? textDocument,
-        TRequestType request,
-        INotificationHandler<TRequestType, RequestContextType> handler,
-        ILspServices lspServices,
-        CancellationToken cancellationToken)
-    {
-        return QueueItem<TRequestType, VoidReturn, RequestContextType>.Create(mutatesSolutionState,
-            methodName,
-            textDocument,
-            request,
-            handler,
-            _logger,
-            cancellationToken);
-    }
-
-    internal (IQueueItem<RequestContextType>, Task) CreateQueueItem(
-        bool mutatesSolutionState,
-        string methodName,
-        object? textDocument,
-        INotificationHandler<RequestContextType> handler,
-        ILspServices lspServices,
-        CancellationToken cancellationToken)
-    {
-        return QueueItem<VoidReturn, VoidReturn, RequestContextType>.Create(mutatesSolutionState,
-            methodName,
-            textDocument,
-            VoidReturn.Instance,
             handler,
             _logger,
             cancellationToken);

@@ -65,7 +65,9 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
 
     protected virtual IHandlerProvider GetHandlerProvider()
     {
+        var lspServices = GetLspServices();
         var handlerProvider = new HandlerProvider(lspServices);
+        SetupRequestDispatcher(handlerProvider);
 
         return handlerProvider;
     }
@@ -151,7 +153,7 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
     {
         var lspServices = GetLspServices();
 
-        var handlerProvider = GetRequestDispatcher();
+        var handlerProvider = GetHandlerProvider();
         var queue = new RequestExecutionQueue<RequestContextType>(_logger, handlerProvider);
         queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
@@ -185,42 +187,32 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
             _target = target;
         }
 
-        public async Task NotificationEntryPointAsync<TRequestType>(TRequestType requestType, CancellationToken cancellationToken) where TRequestType : class
+        public async Task NotificationEntryPointAsync<TRequestType>(TRequestType request, CancellationToken cancellationToken) where TRequestType : class
         {
             CheckServerState();
             var queue = _target.GetRequestExecutionQueue();
+            var lspServices = _target.GetLspServices();
 
-            var requestDispatcher = _target.GetRequestDispatcher();
-            await requestDispatcher.ExecuteNotificationAsync(
-                _method,
-                requestType,
-                queue,
-                cancellationToken).ConfigureAwait(false);
+            _ = await queue.ExecuteAsync<TRequestType, VoidReturn>(request, _method, lspServices, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task ParameterlessNotificationEntryPointAsync(CancellationToken cancellationToken)
         {
             CheckServerState();
             var queue = _target.GetRequestExecutionQueue();
+            var lspServices = _target.GetLspServices();
 
-            var requestDispatcher = _target.GetRequestDispatcher();
-            await requestDispatcher.ExecuteNotificationAsync(
-                _method,
-                queue,
-                cancellationToken).ConfigureAwait(false);
+            _ = await queue.ExecuteAsync<VoidReturn, VoidReturn>(VoidReturn.Instance, _method, lspServices, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<TResponseType?> EntryPointAsync<TRequestType, TResponseType>(TRequestType requestType, CancellationToken cancellationToken) where TRequestType : class
+        public async Task<TResponseType?> EntryPointAsync<TRequestType, TResponseType>(TRequestType request, CancellationToken cancellationToken) where TRequestType : class
         {
             CheckServerState();
             var queue = _target.GetRequestExecutionQueue();
+            var lspServices = _target.GetLspServices();
 
-            var requestDispatcher = _target.GetRequestDispatcher();
-            var result = await requestDispatcher.ExecuteRequestAsync<TRequestType, TResponseType>(
-                _method,
-                requestType,
-                queue,
-                cancellationToken).ConfigureAwait(false);
+            var result = await queue.ExecuteAsync<TRequestType, TResponseType>(request, _method, lspServices, cancellationToken).ConfigureAwait(false);
+
             return result;
         }
 
