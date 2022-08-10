@@ -133,13 +133,14 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteInteger(symbol.Arity);
                 visitor.WriteBoolean(symbol.PartialDefinitionPart != null);
                 visitor.WriteRefKindArray(symbol.Parameters);
-                visitor.WriteSymbolKey(symbol.ReturnType);
 
                 // Mark that we're writing out the signature of a method.  This way if we hit a 
                 // method type parameter in our parameter-list or return type, we won't recurse
                 // into it, but will instead only write out the type parameter ordinal.  This
                 // happens with cases like Goo<T>(T t);
                 visitor.PushMethod(symbol);
+
+                visitor.WriteSymbolKey(symbol.ReturnType);
 
                 visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
 
