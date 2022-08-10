@@ -10,23 +10,13 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Roslyn.Utilities;
 using System.Linq;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.EditorConfigSettings.Data;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
-using System.Net.WebSockets;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
-using Microsoft.CodeAnalysis.Collections.Internal;
-using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Security.AccessControl;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 {
