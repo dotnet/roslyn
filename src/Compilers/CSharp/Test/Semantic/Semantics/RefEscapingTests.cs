@@ -191,7 +191,7 @@ class C
         public void RefLikeReturnEscape(LanguageVersion languageVersion)
         {
             var text = @"using System;
-    using System.Diagnostics.CodeAnalysis;
+
 
     class Program
     {
@@ -204,7 +204,7 @@ class C
             return ref (new int[1])[0];
         }
 
-        static S1 MayWrap([UnscopedRef] ref Span<int> arg)
+        static S1 MayWrap(ref Span<int> arg)
         {
             return default;
         }
@@ -220,7 +220,7 @@ class C
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics(
                 // (23,42): error CS8526: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
                 //             return ref Test1(MayWrap(ref local));
@@ -399,7 +399,7 @@ class C
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics(
                 // (33,19): error CS8526: Cannot use variable 'spNr' in this context because it may expose referenced variables outside of their declaration scope
                 //             spR = spNr;
@@ -416,7 +416,7 @@ class C
         public void RefLikeReturnEscapeInParam(LanguageVersion languageVersion)
         {
             var text = @"using System;
-    using System.Diagnostics.CodeAnalysis;
+
     class Program
     {
         static void Main()
@@ -428,7 +428,7 @@ class C
             return ref (new int[1])[0];
         }
 
-        static S1 MayWrap([UnscopedRef] in Span<int> arg)
+        static S1 MayWrap(in Span<int> arg)
         {
             return default;
         }
@@ -453,7 +453,7 @@ class C
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics(
                 // (31,30): error CS8352: Cannot use variable 'sp' in this context because it may expose referenced variables outside of their declaration scope
                 //             return ref Test1(sp);
@@ -1161,13 +1161,13 @@ class Program
 
         public ref S1 this[S1 i] => throw null;
 
-        public ref S1 ReturnsRefArg(ref S1 arg) => throw null;
+        public ref S1 ReturnsRefArg([System.Diagnostics.CodeAnalysis.UnscopedRef] ref S1 arg) => throw null;
 
         public S1 Slice(int x) => this;
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics(
                 // (20,32): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             x[0] = MayWrap(ref inner).Slice(1)[0];
@@ -1331,8 +1331,10 @@ class Program
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
         }
 
-        [Fact]
-        public void RefLikeEscapeMixingCall()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefLikeEscapeMixingCall(LanguageVersion languageVersion)
         {
             var text = @"
     using System;
@@ -1380,23 +1382,7 @@ class Program
     }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (20,39): error CS8526: Cannot use variable 'rInner' in this context because it may expose referenced variables outside of their declaration scope
-                //             MayAssign(ref rOuter, ref rInner);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rInner").WithArguments("rInner").WithLocation(20, 39),
-                // (20,13): error CS8524: This combination of arguments to 'Program.MayAssign(ref Program.S1, ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg2' outside of their declaration scope
-                //             MayAssign(ref rOuter, ref rInner);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref rOuter, ref rInner)").WithArguments("Program.MayAssign(ref Program.S1, ref Program.S1)", "arg2").WithLocation(20, 13),
-                // (23,27): error CS8526: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
-                //             MayAssign(ref inner, ref rOuter);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(23, 27),
-                // (23,13): error CS8524: This combination of arguments to 'Program.MayAssign(ref Span<int>, ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
-                //             MayAssign(ref inner, ref rOuter);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref inner, ref rOuter)").WithArguments("Program.MayAssign(ref System.Span<int>, ref Program.S1)", "arg1").WithLocation(23, 13)
-            );
-
-            comp = CreateCompilationWithMscorlibAndSpan(text);
+            var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics(
                 // (20,39): error CS8526: Cannot use variable 'rInner' in this context because it may expose referenced variables outside of their declaration scope
                 //             MayAssign(ref rOuter, ref rInner);
@@ -2200,7 +2186,7 @@ class X : List<int>
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics(
                 // (20,54): error CS8526: Cannot use variable 'rInner' in this context because it may expose referenced variables outside of their declaration scope
                 //             var dummy2 = new Program(ref rOuter, ref rInner);
@@ -2461,7 +2447,7 @@ class Program
         public void LocalWithNoInitializerEscape(LanguageVersion languageVersion)
         {
             var text = @"using System;
-    using System.Diagnostics.CodeAnalysis;
+
     class Program
     {
         static void Main()
@@ -2484,7 +2470,7 @@ class Program
             return sp1;
         }
 
-        static S1 MayWrap([UnscopedRef] ref Span<int> arg)
+        static S1 MayWrap(ref Span<int> arg)
         {
             return default;
         }
@@ -2495,7 +2481,7 @@ class Program
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics(
                 // (16,30): error CS8526: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
                 //             sp = MayWrap(ref local);
