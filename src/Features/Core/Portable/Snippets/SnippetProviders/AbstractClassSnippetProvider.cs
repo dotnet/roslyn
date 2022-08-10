@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         public override string SnippetIdentifier => "class";
 
-        public override string SnippetDisplayName => FeaturesResources.Insert_a_class_declaration;
+        public override string SnippetDisplayName => FeaturesResources.class_;
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
