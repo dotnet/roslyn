@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Operations;
@@ -311,8 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     UseSystemHashCode.Analyzer.TryGetAnalyzer(semanticModel.Compilation, out var analyzer))
                 {
                     // Hash Code method, see if it would be a default implementation that we can remove
-                    var operation = semanticModel.GetRequiredOperation(method, cancellationToken);
-                    var (_, members, _) = analyzer.GetHashedMembers(methodSymbol, operation);
+                    var operation = (IMethodBodyOperation)semanticModel.GetRequiredOperation(method, cancellationToken);
+                    var (_, members, _) = analyzer.GetHashedMembers(methodSymbol, operation.BlockBody);
                     if (members != null)
                     {
                         // the user could access a member using either the property or the underlying field
@@ -502,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             IEnumerable<IOperation>? statementsToCheck = null;
 
             // see whether we are calling on a param of the same type or of object
-            if (parameter.Type == type)
+            if (parameter.Type.Equals(type))
             {
                 // we need to check all the statements, and we already have the
                 // variable that is used to access the members
@@ -990,8 +989,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         {
             return operation switch
             {
-                IIsNullOperation { Operand: IOperation checkedOperation }
-                    => !successRequirement && otherObject.Equals(GetReferencedSymbolObject(checkedOperation)),
                 IBinaryOperation
                 {
                     LeftOperand: IOperation leftOperation,
@@ -1012,13 +1009,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 // equality must fail if this is false so we ensure successRequirement is true
                 IIsPatternOperation
                 {
-                    Value: IOperation patternValue, Pattern: INegatedPatternOperation
-                    {
-                        Pattern: IConstantPatternOperation pattern
-                    }
+                    Value: IOperation patternValue, Pattern: IPatternOperation pattern
                 } => otherObject.Equals(GetReferencedSymbolObject(patternValue)) &&
-                    successRequirement &&
-                    pattern.Value.WalkDownConversion().IsNullLiteral(),
+                        // if condition success => return false, then we expect "is null"
+                        (!successRequirement &&
+                        pattern is IConstantPatternOperation constantPattern1 &&
+                        constantPattern1.Value.WalkDownConversion().IsNullLiteral()) ||
+                        (successRequirement &&
+                        pattern is INegatedPatternOperation { Pattern: IConstantPatternOperation constantPattern2 } &&
+                        constantPattern2.Value.WalkDownConversion().IsNullLiteral()),
                 _ => false,
             };
         }

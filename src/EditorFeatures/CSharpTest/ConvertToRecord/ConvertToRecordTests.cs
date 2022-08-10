@@ -1431,37 +1431,6 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndDeleteNullableTypeEquals()
-        {
-            var initialMarkup = @"
-using System;
-
-namespace N
-{
-    public class [|C|] : IEquatable<C>
-    {
-        public int P { get; init; }
-        public bool B { get; init; }
-
-        public bool Equals(C? otherC)
-        {
-            return otherC is not null && otherC.P == P && otherC.B == B;
-        }
-    }
-}
-";
-            var changedMarkup = @"
-using System;
-
-namespace N
-{
-    public record C(int P, bool B) : IEquatable<C>;
-}
-";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
-        }
-
-        [Fact]
         public async Task TestMovePropertiesAndDeleteTypeEqualsIfChain()
         {
             var initialMarkup = @"
