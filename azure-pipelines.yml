@@ -203,6 +203,7 @@ jobs:
     buildArguments: -msbuildEngine dotnet -runAnalyzers -warnAsError /p:RoslynEnforceCodeStyle=true /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
 - job: Correctness_Build_Artifacts
+  dependsOn: Determine_Changes
   pool:
     name: NetCore1ESPool-Public
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
@@ -230,9 +231,11 @@ jobs:
       inputs:
         filePath: eng/generate-compiler-code.ps1
         arguments: -test -configuration Release
-        
+      condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
+      
     - script: $(Build.SourcesDirectory)\.dotnet\dotnet.exe tool run dotnet-format whitespace  $(Build.SourcesDirectory)\src --folder --include-generated --include $(Build.SourcesDirectory)\src\Compilers\CSharp\Portable\Generated\ $(Build.SourcesDirectory)\src\Compilers\VisualBasic\Portable\Generated\ $(Build.SourcesDirectory)\src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\ --verify-no-changes
       displayName: Validate Generated Syntax Files
+      condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
       
     - template: eng/pipelines/publish-logs.yml
       parameters:
@@ -241,7 +244,7 @@ jobs:
     
 - job: Correctness_Determinism
   dependsOn: Determine_Changes
-  condition: eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true')
+  condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
   pool:
     name: NetCore1ESPool-Public
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
@@ -259,7 +262,7 @@ jobs:
 
 - job: Correctness_Bootstrap_Build
   dependsOn: Determine_Changes
-  condition: eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true')
+  condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
   pool:
     name: NetCore1ESPool-Public
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
@@ -301,7 +304,7 @@ jobs:
 
 - job: Correctness_Rebuild
   dependsOn: Determine_Changes
-  condition: eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true')
+  condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
   pool:
     name: NetCore1ESPool-Public
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
