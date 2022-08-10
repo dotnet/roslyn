@@ -27,7 +27,7 @@ internal class ExecuteWorkspaceCommandHandler : IRoslynRequestHandler<ExecuteCom
     {
     }
 
-    public object? GetTextDocumentUri(ExecuteCommandParams request)
+    public object? GetTextDocumentIdentifier(ExecuteCommandParams request)
     {
         return null;
     }

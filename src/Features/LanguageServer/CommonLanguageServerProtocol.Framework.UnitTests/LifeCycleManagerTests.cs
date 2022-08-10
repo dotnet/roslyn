@@ -22,21 +22,21 @@ public class LifeCycleManagerTests
         await server.InitializeServerAsync();
         var lifeCycleManager = new LifeCycleManager<ExampleRequestContext>(server);
 
-        lifeCycleManager.Shutdown();
+        await lifeCycleManager.ShutdownAsync();
 
         var result = await server.WaitForShutdown();
         Assert.Equal(0, result);
     }
 
     [Fact]
-    public async void Exit()
+    public async Task Exit()
     {
         var logger = NoOpLspLogger.Instance;
         var server = TestExampleLanguageServer.CreateLanguageServer(logger);
         await server.InitializeServerAsync();
         var lifeCycleManager = new LifeCycleManager<ExampleRequestContext>(server);
 
-        lifeCycleManager.Exit();
+        await lifeCycleManager.ExitAsync();
 
         var result = await server.WaitForExit();
 

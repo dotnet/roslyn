@@ -185,7 +185,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 var workspaceKind = document.Project.Solution.WorkspaceKind;
                 _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
                 _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
-                _logger.TraceInformation($"{document.FilePath} found in workspace {workspaceKind}");
+                await _logger.LogInformationAsync($"{document.FilePath} found in workspace {workspaceKind}");
 
                 return document;
             }
@@ -193,7 +193,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
         var searchedWorkspaceKinds = string.Join(";", lspSolutions.SelectAsArray(lspSolution => lspSolution.Solution.Workspace.Kind));
-        _logger.TraceError($"Could not find '{textDocumentIdentifier.Uri}'.  Searched {searchedWorkspaceKinds}");
+        await _logger.LogErrorAsync($"Could not find '{textDocumentIdentifier.Uri}'.  Searched {searchedWorkspaceKinds}");
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
         // Add the document to our loose files workspace if its open.
@@ -291,7 +291,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
             if (!isTextEquivalent)
             {
-                _logger.TraceWarning($"Text for {uriInWorkspace} did not match document text {firstDocument.Id} in workspace's {firstDocument.Project.Solution.WorkspaceKind} current solution");
+                await _logger.LogWarningAsync($"Text for {uriInWorkspace} did not match document text {firstDocument.Id} in workspace's {firstDocument.Project.Solution.WorkspaceKind} current solution");
                 return false;
             }
         }

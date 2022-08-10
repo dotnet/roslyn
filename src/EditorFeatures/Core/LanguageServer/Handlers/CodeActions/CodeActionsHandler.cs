@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public object? GetTextDocumentUri(CodeActionParams request) => request.TextDocument;
+        public object? GetTextDocumentIdentifier(CodeActionParams request) => request.TextDocument;
 
         public async Task<LSP.CodeAction[]> HandleRequestAsync(LSP.CodeActionParams request, RequestContext context, CancellationToken cancellationToken)
         {

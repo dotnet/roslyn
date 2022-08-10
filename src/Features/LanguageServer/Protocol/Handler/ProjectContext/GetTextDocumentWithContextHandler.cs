@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public object? GetTextDocumentUri(VSGetProjectContextsParams request) => request.TextDocument.Uri;
+        public object? GetTextDocumentIdentifier(VSGetProjectContextsParams request) => request.TextDocument.Uri;
 
         public Task<VSProjectContextList?> HandleRequestAsync(VSGetProjectContextsParams request, RequestContext context, CancellationToken cancellationToken)
         {

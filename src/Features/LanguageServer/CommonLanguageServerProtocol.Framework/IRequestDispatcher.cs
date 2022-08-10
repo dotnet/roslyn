@@ -2,30 +2,40 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace CommonLanguageServerProtocol.Framework;
 
-public interface IRequestDispatcher<RequestContextType>
+public interface IHandlerProvider
 {
     ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods();
 
-    Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(
-        string methodName,
-        TRequestType request,
-        IRequestExecutionQueue<RequestContextType> queue,
-        CancellationToken cancellationToken);
-
-    Task ExecuteNotificationAsync<TRequestType>(
-        string methodName,
-        TRequestType request,
-        IRequestExecutionQueue<RequestContextType> queue,
-        CancellationToken cancellationToken);
-
-    Task ExecuteNotificationAsync(
-        string methodName,
-        IRequestExecutionQueue<RequestContextType> queue,
-        CancellationToken cancellationToken);
+    IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType);
 }
+
+/// <summary>
+/// Finds the Handlers to be used to execute a given request or notification and adds it to the provided queue
+/// </summary>
+/// <typeparam name="RequestContextType"></typeparam>
+//public interface IRequestDispatcher<RequestContextType>
+//{
+//    Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(
+//        string methodName,
+//        TRequestType request,
+//        IRequestExecutionQueue<RequestContextType> queue,
+//        CancellationToken cancellationToken);
+
+//    Task ExecuteNotificationAsync<TRequestType>(
+//        string methodName,
+//        TRequestType request,
+//        IRequestExecutionQueue<RequestContextType> queue,
+//        CancellationToken cancellationToken);
+
+//    Task ExecuteNotificationAsync(
+//        string methodName,
+//        IRequestExecutionQueue<RequestContextType> queue,
+//        CancellationToken cancellationToken);
+//}

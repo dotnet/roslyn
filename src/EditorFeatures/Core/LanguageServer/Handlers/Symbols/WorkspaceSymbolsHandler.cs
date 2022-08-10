@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public object? GetTextDocumentUri(WorkspaceSymbolParams request) => null;
+        public object? GetTextDocumentIdentifier(WorkspaceSymbolParams request) => null;
 
         public async Task<SymbolInformation[]?> HandleRequestAsync(WorkspaceSymbolParams request, RequestContext context, CancellationToken cancellationToken)
         {

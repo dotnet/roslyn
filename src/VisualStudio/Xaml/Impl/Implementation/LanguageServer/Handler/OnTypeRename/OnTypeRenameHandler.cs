@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public object? GetTextDocumentUri(LinkedEditingRangeParams request) => request.TextDocument;
+        public object? GetTextDocumentIdentifier(LinkedEditingRangeParams request) => request.TextDocument;
 
         public async Task<LinkedEditingRanges?> HandleRequestAsync(LinkedEditingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -13,25 +11,26 @@ using Microsoft.VisualStudio.Threading;
 
 namespace CommonLanguageServerProtocol.Framework;
 
+/// <summary>
+/// A placeholder type to help handle Notification messages.
+/// </summary>
 internal record VoidReturn
 {
     public static VoidReturn Instance = new();
 }
 
-public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueueItem<RequestContextType>
+internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueueItem<RequestContextType>
 {
     private readonly ILspLogger _logger;
 
     private readonly TRequestType _request;
-    private readonly IRequestHandler _handler;
+    private readonly IMethodHandler _handler;
 
     /// <summary>
     /// A task completion source representing the result of this queue item's work.
     /// This is the task that the client is waiting on.
     /// </summary>
     private readonly TaskCompletionSource<TResponseType> _completionSource = new();
-
-    public bool RequiresLSPSolution { get; }
 
     public bool MutatesDocumentState { get; }
 
@@ -41,11 +40,10 @@ public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueue
 
     public QueueItem(
         bool mutatesSolutionState,
-        bool requiresLSPSolution,
         string methodName,
         object? textDocument,
         TRequestType request,
-        IRequestHandler handler,
+        IMethodHandler handler,
         ILspLogger logger,
         CancellationToken cancellationToken)
     {
@@ -57,24 +55,21 @@ public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueue
         _request = request;
 
         MutatesDocumentState = mutatesSolutionState;
-        RequiresLSPSolution = requiresLSPSolution;
         MethodName = methodName;
         TextDocument = textDocument;
     }
 
     public static (IQueueItem<RequestContextType>, Task<TResponseType>) Create(
         bool mutatesSolutionState,
-        bool requiresLSPSolution,
         string methodName,
         object? textDocument,
         TRequestType request,
-        IRequestHandler handler,
+        IMethodHandler handler,
         ILspLogger logger,
         CancellationToken cancellationToken)
     {
         var queueItem = new QueueItem<TRequestType, TResponseType, RequestContextType>(
             mutatesSolutionState,
-            requiresLSPSolution,
             methodName,
             textDocument,
             request,
@@ -95,7 +90,7 @@ public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueue
     /// <returns>The result of the request.</returns>
     public async Task StartRequestAsync(RequestContextType? context, CancellationToken cancellationToken)
     {
-        _logger.TraceStart($"{MethodName}");
+        await _logger.LogStartContextAsync($"{MethodName}");
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -109,7 +104,7 @@ public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueue
                 // the requests this could happen for.  However, this assumption may not hold in the future.
                 // If that turns out to be the case, we could defer to the individual handler to decide
                 // what to do.
-                _logger.TraceWarning($"Could not get request context for {MethodName}");
+                await _logger.LogWarningAsync($"Could not get request context for {MethodName}");
                 _completionSource.TrySetException(new InvalidOperationException($"Unable to create request context for {MethodName}"));
             }
             else
@@ -134,35 +129,31 @@ public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueue
                 }
                 else
                 {
-                    throw new NotImplementedException($"Unrecognized {nameof(IRequestHandler)} implementation {_handler.GetType().Name}");
+                    throw new NotImplementedException($"Unrecognized {nameof(IMethodHandler)} implementation {_handler.GetType().Name}");
                 }
             }
         }
         catch (OperationCanceledException ex)
         {
             // Record logs + metrics on cancellation.
-            _logger.TraceInformation($"{MethodName} - Canceled");
+            await _logger.LogInformationAsync($"{MethodName} - Canceled");
 
             _completionSource.TrySetCanceled(ex.CancellationToken);
         }
         catch (Exception ex)
         {
             // Record logs and metrics on the exception.
-            _logger.TraceException(ex);
+            await _logger.LogExceptionAsync(ex);
 
             _completionSource.TrySetException(ex);
         }
         finally
         {
-            _logger.TraceStop($"{MethodName}");
+            await _logger.LogEndContextAsync($"{MethodName}");
         }
 
         // Return the result of this completion source to the caller
         // so it can decide how to handle the result / exception.
         await _completionSource.Task.ConfigureAwait(false);
-    }
-
-    public virtual void OnExecutionStart()
-    {
     }
 }

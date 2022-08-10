@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             _versionedCache = new(this.GetType().Name);
         }
 
-        public abstract object? GetTextDocumentUri(TParams requestParams);
+        public abstract object? GetTextDocumentIdentifier(TParams requestParams);
 
         /// <summary>
         /// Retrieve the previous results we reported.  Used so we can avoid resending data for unchanged files. Also
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
         public async Task<TReport[]?> HandleRequestAsync(
             TParams requestParams, RequestContext context, CancellationToken cancellationToken)
         {
-            context.TraceInformation($"{this.GetType()} started getting spell checking spans");
+            context.TraceInformationAsync($"{this.GetType()} started getting spell checking spans");
 
             // The progress object we will stream reports to.
             using var progress = BufferedProgress.Create(requestParams.PartialResultToken);
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             // Get the set of results the request said were previously reported.  We can use this to determine both
             // what to skip, and what files we have to tell the client have been removed.
             var previousResults = GetPreviousResults(requestParams) ?? ImmutableArray<PreviousPullResult>.Empty;
-            context.TraceInformation($"previousResults.Length={previousResults.Length}");
+            context.TraceInformationAsync($"previousResults.Length={previousResults.Length}");
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
             // the user from squiggles or error-list.
@@ -85,16 +85,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             // Next process each file in priority order. Determine if spans are changed or unchanged since the
             // last time we notified the client.  Report back either to the client so they can update accordingly.
             var orderedDocuments = GetOrderedDocuments(context, cancellationToken);
-            context.TraceInformation($"Processing {orderedDocuments.Length} documents");
+            context.TraceInformationAsync($"Processing {orderedDocuments.Length} documents");
 
             foreach (var document in orderedDocuments)
             {
-                context.TraceInformation($"Processing: {document.FilePath}");
+                context.TraceInformationAsync($"Processing: {document.FilePath}");
 
                 var languageService = document.GetLanguageService<ISpellCheckSpanService>();
                 if (languageService == null)
                 {
-                    context.TraceInformation($"Ignoring document '{document.FilePath}' because it does not support spell checking");
+                    context.TraceInformationAsync($"Ignoring document '{document.FilePath}' because it does not support spell checking");
                     continue;
                 }
 
@@ -105,13 +105,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                     cancellationToken).ConfigureAwait(false);
                 if (newResultId != null)
                 {
-                    context.TraceInformation($"Spans were changed for document: {document.FilePath}");
+                    context.TraceInformationAsync($"Spans were changed for document: {document.FilePath}");
                     progress.Report(await ComputeAndReportCurrentSpansAsync(
                         document, languageService, newResultId, cancellationToken).ConfigureAwait(false));
                 }
                 else
                 {
-                    context.TraceInformation($"Spans were unchanged for document: {document.FilePath}");
+                    context.TraceInformationAsync($"Spans were unchanged for document: {document.FilePath}");
 
                     // Nothing changed between the last request and this one.  Report a (null-spans, same-result-id)
                     // response to the client as that means they should just preserve the current spans they have for
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 
             // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
             // collecting and return that.
-            context.TraceInformation($"{this.GetType()} finished getting spans");
+            context.TraceInformationAsync($"{this.GetType()} finished getting spans");
             return progress.GetValues();
         }
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                     var document = context.Solution.GetDocument(textDocument);
                     if (document == null)
                     {
-                        context.TraceInformation($"Clearing spans for removed document: {textDocument.Uri}");
+                        context.TraceInformationAsync($"Clearing spans for removed document: {textDocument.Uri}");
 
                         // Client is asking server about a document that no longer exists (i.e. was removed/deleted from
                         // the workspace). Report a (null-spans, null-result-id) response to the client as that means

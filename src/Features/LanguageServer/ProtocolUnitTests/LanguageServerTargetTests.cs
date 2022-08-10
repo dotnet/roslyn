@@ -90,14 +90,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         private static void AssertServerAlive(TestLspServer server)
         {
             Assert.False(server.GetServerAccessor().HasShutdownStarted());
-            Assert.False(server.GetQueueAccessor().IsComplete());
+            Assert.False(server.GetQueueAccessor().Value.IsComplete());
         }
 
         private static async Task AssertServerQueueClosed(TestLspServer server)
         {
-            await server.GetQueueAccessor().WaitForProcessingToStopAsync().ConfigureAwait(false);
+            var queueAccessor = server.GetQueueAccessor().Value;
+            await queueAccessor.WaitForProcessingToStopAsync().ConfigureAwait(false);
             Assert.True(server.GetServerAccessor().HasShutdownStarted());
-            Assert.True(server.GetQueueAccessor().IsComplete());
+            Assert.True(queueAccessor.IsComplete());
         }
 
         [ExportCSharpVisualBasicLspServiceFactory(typeof(StatefulLspService)), Shared]

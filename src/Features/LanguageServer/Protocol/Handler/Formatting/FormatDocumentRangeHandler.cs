@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public override object? GetTextDocumentUri(DocumentRangeFormattingParams request) => request.TextDocument;
+        public override object? GetTextDocumentIdentifier(DocumentRangeFormattingParams request) => request.TextDocument;
 
         public override Task<TextEdit[]?> HandleRequestAsync(
             DocumentRangeFormattingParams request,

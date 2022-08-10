@@ -3,15 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading.Tasks;
 
 namespace CommonLanguageServerProtocol.Framework;
 
 public interface ILspLogger
 {
-    void TraceInformation(string message);
-    void TraceWarning(string message);
-    void TraceError(string message);
-    void TraceException(Exception exception);
-    void TraceStart(string message);
-    void TraceStop(string message);
+    Task LogStartContextAsync(string message);
+    Task LogEndContextAsync(string message);
+    Task LogInformationAsync(string message);
+    Task LogWarningAsync(string message);
+    Task LogErrorAsync(string message);
+    Task LogExceptionAsync(Exception exception);
 }

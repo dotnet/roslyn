@@ -21,7 +21,7 @@ internal class RequestContextFactory : IRequestContextFactory<RequestContext>, I
         _lspServices = lspServices;
     }
 
-    public Task<RequestContext?> CreateRequestContextAsync(IQueueItem<RequestContext> queueItem, CancellationToken queueCancellationToken, CancellationToken requestCancellationToken)
+    public Task<RequestContext?> CreateRequestContextAsync(IQueueItem<RequestContext> queueItem, CancellationToken cancellationToken)
     {
         var clientCapabilitiesManager = _lspServices.GetRequiredService<IClientCapabilitiesManager>();
         var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
@@ -57,7 +57,6 @@ internal class RequestContextFactory : IRequestContextFactory<RequestContext>, I
             serverInfoProvider.SupportedLanguages,
             _lspServices,
             logger,
-            queueCancellationToken: queueCancellationToken,
-            requestCancellationToken: requestCancellationToken);
+            cancellationToken);
     }
 }

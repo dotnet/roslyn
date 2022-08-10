@@ -22,7 +22,7 @@ public class InitializeHandler<RequestType, ResponseType, RequestContextType>
 
     public bool RequiresLSPSolution => false;
 
-    public object? GetTextDocumentUri(RequestType request)
+    public object? GetTextDocumentIdentifier(RequestType request)
     {
         return null;
     }

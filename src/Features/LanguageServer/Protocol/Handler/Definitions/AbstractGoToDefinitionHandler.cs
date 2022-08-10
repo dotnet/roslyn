@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public object? GetTextDocumentUri(LSP.TextDocumentPositionParams request) => request.TextDocument;
+        public object? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
 
         public abstract Task<LSP.Location[]?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken);
 

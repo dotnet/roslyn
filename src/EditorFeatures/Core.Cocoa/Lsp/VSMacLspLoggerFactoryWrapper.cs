@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.EditorFeatures.Cocoa.Lsp;
 
 /// <summary>
 /// Wraps the external access <see cref="IVSMacLspLoggerFactory"/> and exports it
-/// as an <see cref="ILspLoggerFactory"/> for inclusion in the vsmac composition.
+/// as an <see cref="IRoslynLspLoggerFactory"/> for inclusion in the vsmac composition.
 /// </summary>
 [Export(typeof(IRoslynLspLoggerFactory)), Shared]
 internal class VSMacLspLoggerFactoryWrapper : IRoslynLspLoggerFactory
@@ -45,15 +45,40 @@ internal class VSMacLspLoggerWrapper : IRoslynLspLogger
         _logger = logger;
     }
 
-    public void TraceError(string message) => _logger.TraceError(message);
+    public Task LogErrorAsync(string message)
+    {
+        _logger.TraceError(message);
 
-    public void TraceException(Exception exception) => _logger.TraceException(exception);
+        return Task.CompletedTask;
+    }
 
-    public void TraceInformation(string message) => _logger.TraceInformation(message);
+    public Task LogExceptionAsync(Exception exception)
+    {
+        _logger.TraceException(exception);
+        return Task.CompletedTask;
+    }
 
-    public void TraceStart(string message) => _logger.TraceStart(message);
+    public Task LogInformationAsync(string message)
+    {
+        _logger.TraceInformation(message);
+        return Task.CompletedTask;
+    }
 
-    public void TraceStop(string message) => _logger.TraceStop(message);
+    public Task LogStartContextAsync(string message)
+    {
+        _logger.TraceStart(message);
+        return Task.CompletedTask;
+    }
 
-    public void TraceWarning(string message) => _logger.TraceWarning(message);
+    public Task LogEndContextAsync(string message)
+    {
+        _logger.TraceStop(message);
+        return Task.CompletedTask;
+    }
+
+    public Task LogWarningAsync(string message)
+    {
+        _logger.TraceWarning(message);
+        return Task.CompletedTask;
+    }
 }

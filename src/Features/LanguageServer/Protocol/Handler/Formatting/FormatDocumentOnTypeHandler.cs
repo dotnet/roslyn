@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public object? GetTextDocumentUri(DocumentOnTypeFormattingParams request) => request.TextDocument;
+        public object? GetTextDocumentIdentifier(DocumentOnTypeFormattingParams request) => request.TextDocument;
 
         public async Task<TextEdit[]?> HandleRequestAsync(
             DocumentOnTypeFormattingParams request,

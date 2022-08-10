@@ -477,12 +477,14 @@ namespace Roslyn.Test.Utilities
                }
            };
 
-        internal sealed class TestLspServer : IDisposable
+        internal sealed class TestLspServer : IAsyncDisposable, IDisposable
         {
             public readonly TestWorkspace TestWorkspace;
             private readonly Dictionary<string, IList<LSP.Location>> _locations;
-            private readonly RoslynLanguageServer _languageServer;
+            private readonly Task<RoslynLanguageServer> _languageServerTask;
             private readonly JsonRpc _clientRpc;
+
+            private RoslynLanguageServer LanguageServer => _languageServerTask.Result;
 
             public LSP.ClientCapabilities ClientCapabilities { get; }
 
@@ -493,7 +495,7 @@ namespace Roslyn.Test.Utilities
                 _locations = locations;
 
                 var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-                _languageServer = CreateLanguageServer(serverStream, serverStream, TestWorkspace, serverKind);
+                _languageServerTask = CreateLanguageServerAsync(serverStream, serverStream, TestWorkspace, serverKind);
 
                 _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, CreateJsonMessageFormatter()))
                 {
@@ -514,7 +516,7 @@ namespace Roslyn.Test.Utilities
                 ClientCapabilities = clientCapabilities;
                 _locations = locations;
 
-                _languageServer = target;
+                _languageServerTask = Task.FromResult(target);
 
                 _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, CreateJsonMessageFormatter()))
                 {
@@ -565,7 +567,7 @@ namespace Roslyn.Test.Utilities
                 return server;
             }
 
-            private static RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, WellKnownLspServerKinds serverKind)
+            private static async Task<RoslynLanguageServer> CreateLanguageServerAsync(Stream inputStream, Stream outputStream, TestWorkspace workspace, WellKnownLspServerKinds serverKind)
             {
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
                 var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
@@ -584,6 +586,7 @@ namespace Roslyn.Test.Utilities
                     logger,
                     ProtocolConstants.RoslynLspLanguages,
                     serverKind);
+                await languageServer.InitializeAsync();
 
                 jsonRpc.StartListening();
                 return languageServer;
@@ -654,27 +657,32 @@ namespace Roslyn.Test.Utilities
                 await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
             }
 
-            internal RequestExecutionQueue<RequestContext>.TestAccessor GetQueueAccessor() => _languageServer.GetTestAccessor().GetQueueAccessor();
+            internal RequestExecutionQueue<RequestContext>.TestAccessor? GetQueueAccessor() => LanguageServer.GetTestAccessor().GetQueueAccessor();
 
             internal LspWorkspaceManager.TestAccessor GetManagerAccessor() => GetRequiredLspService<LspWorkspaceManager>().GetTestAccessor();
 
             internal LspWorkspaceManager GetManager() => GetRequiredLspService<LspWorkspaceManager>();
 
-            internal RoslynLanguageServer.TestAccessor GetServerAccessor() => _languageServer.GetTestAccessor();
+            internal AbstractLanguageServer<RequestContext>.TestAccessor GetServerAccessor() => LanguageServer.GetTestAccessor();
 
-            internal T GetRequiredLspService<T>() where T : class, ILspService => _languageServer.GetTestAccessor().GetRequiredLspService<T>();
+            internal T GetRequiredLspService<T>() where T : class, ILspService => LanguageServer.GetTestAccessor().GetRequiredLspService<T>();
 
             internal ImmutableArray<SourceText> GetTrackedTexts() => GetManager().GetTrackedLspText().Values.ToImmutableArray();
+
+            public async ValueTask DisposeAsync()
+            {
+                Dispose();
+            }
 
             public void Dispose()
             {
                 // Some tests manually call shutdown, so avoid calling shutdown twice if already called.
-                if (!_languageServer.HasShutdownStarted)
+                if (!LanguageServer.HasShutdownStarted)
                 {
-                    _languageServer.GetTestAccessor().ShutdownServer();
+                    LanguageServer.GetTestAccessor().ShutdownServer();
                 }
 
-                _languageServer.GetTestAccessor().ExitServer();
+                LanguageServer.GetTestAccessor().ExitServer();
                 TestWorkspace.Dispose();
                 _clientRpc.Dispose();
             }

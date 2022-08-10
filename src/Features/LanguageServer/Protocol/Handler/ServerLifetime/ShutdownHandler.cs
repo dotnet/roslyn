@@ -23,9 +23,7 @@ internal class ShutdownHandler : IRoslynNotificationHandler
 
     public bool MutatesSolutionState => true;
 
-    public bool RequiresLSPSolution => false;
-
-    public Task HandleNotificationAsync(RequestContext requestContext, CancellationToken _)
+    public async Task HandleNotificationAsync(RequestContext requestContext, CancellationToken _)
     {
         if (requestContext.ClientCapabilities is null)
         {
@@ -33,8 +31,6 @@ internal class ShutdownHandler : IRoslynNotificationHandler
         }
 
         var lifeCycleManager = requestContext.GetRequiredLspService<RoslynLifeCycleManager>();
-        lifeCycleManager.Shutdown();
-
-        return Task.CompletedTask;
+        await lifeCycleManager.ShutdownAsync();
     }
 }

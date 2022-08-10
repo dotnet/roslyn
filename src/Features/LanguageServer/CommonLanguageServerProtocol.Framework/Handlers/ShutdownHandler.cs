@@ -12,9 +12,9 @@ namespace CommonLanguageServerProtocol.Framework.Handlers;
 [LanguageServerEndpoint("shutdown")]
 public class ShutdownHandler<RequestContextType> : INotificationHandler<RequestContextType>
 {
-    private readonly ILifeCycleManager _lifeCycleManager;
+    private readonly LifeCycleManager<RequestContextType> _lifeCycleManager;
 
-    public ShutdownHandler(ILifeCycleManager lifeCycleManager)
+    public ShutdownHandler(LifeCycleManager<RequestContextType> lifeCycleManager)
     {
         _lifeCycleManager = lifeCycleManager;
     }
@@ -23,10 +23,8 @@ public class ShutdownHandler<RequestContextType> : INotificationHandler<RequestC
 
     public bool RequiresLSPSolution => true;
 
-    public Task HandleNotificationAsync(RequestContextType requestContext, CancellationToken cancellationToken)
+    public async Task HandleNotificationAsync(RequestContextType requestContext, CancellationToken cancellationToken)
     {
-        _lifeCycleManager.Shutdown();
-
-        return Task.CompletedTask;
+        await _lifeCycleManager.ShutdownAsync();
     }
 }

@@ -23,19 +23,17 @@ internal class InitializeHandler : IRoslynRequestHandler<InitializeParams, Initi
 
     public bool MutatesSolutionState => true;
 
-    public bool RequiresLSPSolution => false;
-
-    public object? GetTextDocumentUri(InitializeParams request)
+    public object? GetTextDocumentIdentifier(InitializeParams request)
     {
         return null;
     }
 
-    public Task<InitializeResult> HandleRequestAsync(InitializeParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<InitializeResult> HandleRequestAsync(InitializeParams request, RequestContext context, CancellationToken cancellationToken)
     {
         var logger = context.GetRequiredLspService<IRoslynLspLogger>();
         try
         {
-            logger.TraceStart("Initialize");
+            await logger.LogStartContextAsync("Initialize");
 
             var clientCapabilitiesManager = context.GetRequiredLspService<IClientCapabilitiesManager>();
             var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
@@ -50,14 +48,14 @@ internal class InitializeHandler : IRoslynRequestHandler<InitializeParams, Initi
             var capabilitiesProvider = context.GetRequiredLspService<ICapabilitiesProvider>();
             var serverCapabilities = capabilitiesProvider.GetCapabilities(clientCapabilities);
 
-            return Task.FromResult(new InitializeResult
+            return new InitializeResult
             {
                 Capabilities = serverCapabilities,
-            });
+            };
         }
         finally
         {
-            logger.TraceStop("Initialize");
+            await logger.LogEndContextAsync("Initialize");
         }
     }
 }

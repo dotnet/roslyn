@@ -30,7 +30,7 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
     {
     }
 
-    public override object? GetTextDocumentUri(WorkspaceDiagnosticParams diagnosticsParams) => null;
+    public override object? GetTextDocumentIdentifier(WorkspaceDiagnosticParams diagnosticsParams) => null;
 
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
     {

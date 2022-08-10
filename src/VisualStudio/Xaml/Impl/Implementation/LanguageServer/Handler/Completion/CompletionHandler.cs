@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public object? GetTextDocumentUri(CompletionParams request) => request.TextDocument.Uri;
+        public object? GetTextDocumentIdentifier(CompletionParams request) => request.TextDocument.Uri;
 
         public async Task<CompletionList?> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {

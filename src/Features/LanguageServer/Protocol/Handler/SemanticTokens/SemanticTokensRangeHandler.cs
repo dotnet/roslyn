@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             _notificationManager = notificationManager;
         }
 
-        public object? GetTextDocumentUri(LSP.SemanticTokensRangeParams request)
+        public object? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
         {
             Contract.ThrowIfNull(request.TextDocument);
             return request.TextDocument;

@@ -32,11 +32,11 @@ internal class ExampleLspServices : ILspServices
         return service;
     }
 
-    public bool TryGetService(Type type, out object? obj)
+    public object? TryGetService(Type type)
     {
-        obj = _serviceProvider.GetService(type);
+        var obj = _serviceProvider.GetService(type);
 
-        return obj is not null;
+        return obj;
     }
 
     public IEnumerable<ServiceType> GetServices<ServiceType>()

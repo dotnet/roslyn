@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public object? GetTextDocumentUri(LSP.VSInternalValidateBreakableRangeParams request)
+        public object? GetTextDocumentIdentifier(LSP.VSInternalValidateBreakableRangeParams request)
             => request.TextDocument;
 
         public async Task<LSP.Range?> HandleRequestAsync(LSP.VSInternalValidateBreakableRangeParams request, RequestContext context, CancellationToken cancellationToken)

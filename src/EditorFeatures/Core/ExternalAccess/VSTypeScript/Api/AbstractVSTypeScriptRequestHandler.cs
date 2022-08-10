@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using CommonLanguageServerProtocol.Framework;
@@ -18,11 +17,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 /// </summary>
 internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TResponseType> : IRoslynRequestHandler<TRequestType, TResponseType>, IVSTypeScriptRequestHandler
 {
-    bool IRequestHandler.MutatesSolutionState => MutatesSolutionState;
+    bool IMethodHandler.MutatesSolutionState => MutatesSolutionState;
 
-    bool IRequestHandler.RequiresLSPSolution => RequiresLSPSolution;
-
-    public object? GetTextDocumentUri(TRequestType request)
+    public object? GetTextDocumentIdentifier(TRequestType request)
     {
         var typeScriptIdentifier = GetTypeSciptTextDocumentIdentifier(request);
         if (typeScriptIdentifier == null)

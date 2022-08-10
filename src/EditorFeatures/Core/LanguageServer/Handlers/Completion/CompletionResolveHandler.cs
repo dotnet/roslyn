@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _completionListCache = completionListCache;
         }
 
-        public object? GetTextDocumentUri(LSP.CompletionItem request)
+        public object? GetTextDocumentIdentifier(LSP.CompletionItem request)
             => GetCompletionListCacheEntry(request)?.TextDocument;
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (cacheEntry == null)
             {
                 // Don't have a cache associated with this completion item, cannot resolve.
-                context.TraceInformation("No cache entry found for the provided completion item at resolve time.");
+                context.TraceInformationAsync("No cache entry found for the provided completion item at resolve time.");
                 return completionItem;
             }
 

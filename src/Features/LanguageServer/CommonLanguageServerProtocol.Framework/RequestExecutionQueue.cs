@@ -33,7 +33,7 @@ namespace CommonLanguageServerProtocol.Framework;
 /// </para>
 /// <para>
 /// Regardless of whether a request is mutating or not, or blocking or not, is an implementation detail of this class
-/// and any consumers observing the results of the task returned from <see cref="ExecuteAsync{TRequestType, TResponseType}(bool, bool, IRequestHandler{TRequestType, TResponseType, RequestContextType}, TRequestType, ClientCapabilities, string, CancellationToken)"/>
+/// and any consumers observing the results of the task returned from <see cref="ExecuteAsync(bool, bool, INotificationHandler{RequestContextType}, string, ILspServices, CancellationToken)"/>
 /// will see the results of the handling of the request, whenever it occurred.
 /// </para>
 /// <para>
@@ -46,9 +46,8 @@ namespace CommonLanguageServerProtocol.Framework;
 /// more messages, and a new queue will need to be created.
 /// </para>
 /// </remarks>
-public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<RequestContextType>
+internal class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<RequestContextType>
 {
-    protected readonly string _serverKind;
     protected readonly ILspLogger _logger;
 
     /// <summary>
@@ -66,37 +65,12 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
 
     public CancellationToken CancellationToken => _cancelSource.Token;
 
-    /// <summary>
-    /// Raised when the execution queue has failed, or the solution state its tracking is in an unknown state
-    /// and so the only course of action is to shutdown the server so that the client re-connects and we can
-    /// start over again.
-    /// </summary>
-    /// <remarks>
-    /// Once this event has been fired all currently active and pending work items in the queue will be cancelled.
-    /// </remarks>
+    /// <inheritdoc cref="IRequestExecutionQueue{RequestContextType}.RequestServerShutdown"/>
     public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 
-    public RequestExecutionQueue(
-        string serverKind,
-        ILspLogger logger)
+    public RequestExecutionQueue(ILspLogger logger)
     {
-        _serverKind = serverKind;
         _logger = logger;
-    }
-
-    /// <summary>
-    /// Shuts down the queue, stops accepting new messages, and cancels any in-progress or queued tasks. Calling
-    /// this multiple times won't cause any issues.
-    /// </summary>
-    public void Shutdown()
-    {
-        _cancelSource.Cancel();
-
-        // Tell the queue not to accept any more items.
-        // Note: We do not need to spin through the queue manually and cancel items as
-        // 1.  New queue instances are created for each server, so items in the queue would be gc'd.
-        // 2.  Their cancellation tokens are linked to the queue's _cancelSource so are also cancelled.
-        _queue.Complete();
     }
 
     public void Start(ILspServices lspServices)
@@ -107,7 +81,6 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
 
     public Task ExecuteAsync<TRequestType>(
         bool mutatesSolutionState,
-        bool requiresLSPSolution,
         INotificationHandler<TRequestType, RequestContextType> handler,
         TRequestType request,
         string methodName,
@@ -118,7 +91,6 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         var combinedCancellationToken = combinedTokenSource.Token;
         var (item, resultTask) = CreateQueueItem(
             mutatesSolutionState,
-            requiresLSPSolution,
             methodName,
             textDocument: null,
             request,
@@ -132,7 +104,7 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
 
         if (!didEnqueue)
         {
-            return Task.FromException(new InvalidOperationException($"{_serverKind} was requested to shut down."));
+            return Task.FromException(new InvalidOperationException("Server was requested to shut down."));
         }
 
         return resultTask;
@@ -140,7 +112,6 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
 
     public Task ExecuteAsync(
         bool mutatesSolutionState,
-        bool requiresLSPSolution,
         INotificationHandler<RequestContextType> handler,
         string methodName,
         ILspServices lspServices,
@@ -150,7 +121,6 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         var combinedCancellationToken = combinedTokenSource.Token;
         var (item, resultTask) = CreateQueueItem(
             mutatesSolutionState,
-            requiresLSPSolution,
             methodName,
             textDocument: null,
             handler,
@@ -163,7 +133,7 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
 
         if (!didEnqueue)
         {
-            return Task.FromException(new InvalidOperationException($"{_serverKind} was requested to shut down."));
+            return Task.FromException(new InvalidOperationException("Server was requested to shut down."));
         }
 
         return resultTask;
@@ -187,7 +157,6 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
     /// <returns>A task that can be awaited to observe the results of the handing of this request.</returns>
     public Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(
         bool mutatesSolutionState,
-        bool requiresLSPSolution,
         IRequestHandler<TRequestType, TResponseType, RequestContextType> handler,
         TRequestType request,
         string methodName,
@@ -196,7 +165,7 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
     {
         // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
 
-        var textDocument = handler.GetTextDocumentUri(request);
+        var textDocument = handler.GetTextDocumentIdentifier(request);
 
         // Create a combined cancellation token so either the client cancelling it's token or the queue
         // shutting down cancels the request.
@@ -204,7 +173,6 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         var combinedCancellationToken = combinedTokenSource.Token;
         var (item, resultTask) = CreateQueueItem(
             mutatesSolutionState,
-            requiresLSPSolution,
             methodName,
             textDocument,
             request,
@@ -223,15 +191,14 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         // The queue itself is threadsafe (_queue.TryEnqueue and _queue.Complete use the same lock).
         if (!didEnqueue)
         {
-            return Task.FromException<TResponseType>(new InvalidOperationException($"{_serverKind} was requested to shut down."));
+            return Task.FromException<TResponseType>(new InvalidOperationException("Server was requested to shut down."));
         }
 
         return resultTask;
     }
 
-    public virtual (IQueueItem<RequestContextType>, Task<TResponseType>) CreateQueueItem<TRequestType, TResponseType>(
+    internal (IQueueItem<RequestContextType>, Task<TResponseType>) CreateQueueItem<TRequestType, TResponseType>(
         bool mutatesSolutionState,
-        bool requiresLSPSolution,
         string methodName,
         object? textDocument,
         TRequestType request,
@@ -240,7 +207,6 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         CancellationToken cancellationToken)
     {
         return QueueItem<TRequestType, TResponseType, RequestContextType>.Create(mutatesSolutionState,
-            requiresLSPSolution,
             methodName,
             textDocument,
             request,
@@ -249,9 +215,8 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
             cancellationToken);
     }
 
-    public virtual (IQueueItem<RequestContextType>, Task) CreateQueueItem<TRequestType>(
+    internal (IQueueItem<RequestContextType>, Task) CreateQueueItem<TRequestType>(
         bool mutatesSolutionState,
-        bool requiresLSPSolution,
         string methodName,
         object? textDocument,
         TRequestType request,
@@ -260,7 +225,6 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         CancellationToken cancellationToken)
     {
         return QueueItem<TRequestType, VoidReturn, RequestContextType>.Create(mutatesSolutionState,
-            requiresLSPSolution,
             methodName,
             textDocument,
             request,
@@ -269,9 +233,8 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
             cancellationToken);
     }
 
-    public virtual (IQueueItem<RequestContextType>, Task) CreateQueueItem(
+    internal (IQueueItem<RequestContextType>, Task) CreateQueueItem(
         bool mutatesSolutionState,
-        bool requiresLSPSolution,
         string methodName,
         object? textDocument,
         INotificationHandler<RequestContextType> handler,
@@ -279,7 +242,6 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         CancellationToken cancellationToken)
     {
         return QueueItem<VoidReturn, VoidReturn, RequestContextType>.Create(mutatesSolutionState,
-            requiresLSPSolution,
             methodName,
             textDocument,
             VoidReturn.Instance,
@@ -311,11 +273,10 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
                 try
                 {
                     var (work, cancellationToken) = queueItem;
-                    // Record when the work item was been de-queued and the request context preparation started.
-                    work.OnExecutionStart();
 
                     var requestContextFactory = lspServices.GetRequiredService<IRequestContextFactory<RequestContextType>>();
-                    var context = await requestContextFactory.CreateRequestContextAsync(work, queueCancellationToken: this.CancellationToken, requestCancellationToken: cancellationToken);
+                    var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(this.CancellationToken, cancellationToken);
+                    var context = await requestContextFactory.CreateRequestContextAsync(work, cancellationTokenSource.Token);
 
                     if (work.MutatesDocumentState)
                     {
@@ -346,22 +307,38 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         {
             // We encountered an unexpected exception in processing the queue or in a mutating request.
             // Log it, shutdown the queue, and exit the loop.
-            _logger.TraceException(ex);
-            OnRequestServerShutdown($"Error occurred processing queue in {_serverKind}: {ex.Message}.");
+            await _logger.LogExceptionAsync(ex);
+            await OnRequestServerShutdownAsync($"Error occurred processing queue: {ex.Message}.");
             return;
         }
     }
 
-    protected virtual IRequestContextFactory<RequestContextType> GetRequestContextFactory(ILspServices lspServices)
+    protected IRequestContextFactory<RequestContextType> GetRequestContextFactory(ILspServices lspServices)
     {
         return lspServices.GetRequiredService<IRequestContextFactory<RequestContextType>>();
     }
 
-    private void OnRequestServerShutdown(string message)
+    private async Task OnRequestServerShutdownAsync(string message)
     {
         RequestServerShutdown?.Invoke(this, new RequestShutdownEventArgs(message));
 
-        Shutdown();
+        await DisposeAsync();
+    }
+
+    /// <summary>
+    /// Shuts down the queue, stops accepting new messages, and cancels any in-progress or queued tasks.
+    /// </summary>
+    public ValueTask DisposeAsync()
+    {
+        _cancelSource.Cancel();
+
+        // Tell the queue not to accept any more items.
+        // Note: We do not need to spin through the queue manually and cancel items as
+        // 1.  New queue instances are created for each server, so items in the queue would be gc'd.
+        // 2.  Their cancellation tokens are linked to the queue's _cancelSource so are also cancelled.
+        _queue.Complete();
+
+        return new ValueTask();
     }
 
     #region Test Accessor

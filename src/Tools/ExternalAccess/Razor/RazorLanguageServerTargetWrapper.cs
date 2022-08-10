@@ -5,14 +5,15 @@
 using System.Threading.Tasks;
 using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     internal class RazorLanguageServerTargetWrapper : IRazorLanguageServerTarget
     {
-        private readonly ILanguageServer _languageServer;
+        private readonly AbstractLanguageServer<RequestContext> _languageServer;
 
-        public RazorLanguageServerTargetWrapper(ILanguageServer languageServer)
+        public RazorLanguageServerTargetWrapper(AbstractLanguageServer<RequestContext> languageServer)
         {
             _languageServer = languageServer;
         }

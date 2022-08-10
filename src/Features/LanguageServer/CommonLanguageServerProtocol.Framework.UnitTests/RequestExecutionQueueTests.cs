@@ -7,11 +7,9 @@ namespace CommonLanguageServerProtocol.Framework.UnitTests;
 
 public class RequestExecutionQueueTests
 {
-    private const string _serverKind = "ServerKind";
-
     private RequestExecutionQueue<TestRequestContext> GetRequestExecutionQueue()
     {
-        var executionQueue = new RequestExecutionQueue<TestRequestContext>(_serverKind, NoOpLspLogger.Instance);
+        var executionQueue = new RequestExecutionQueue<TestRequestContext>(NoOpLspLogger.Instance);
 
         return executionQueue;
     }

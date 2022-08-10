@@ -47,15 +47,15 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
         throw new NotImplementedException();
     }
 
-    public override void Shutdown()
+    public override async Task ShutdownAsync()
     {
-        base.Shutdown();
+        await base.ShutdownAsync();
         _shuttingDown.SetResult(0);
     }
 
-    public override void Exit()
+    public override async Task ExitAsync()
     {
-        base.Exit();
+        await base.ExitAsync();
         _exiting.SetResult(0);
     }
 
@@ -94,6 +94,7 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
         var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(serverStream, serverStream, CreateJsonMessageFormatter()));
 
         var server = new TestExampleLanguageServer(clientStream, jsonRpc, logger);
+        server.InitializeAsync();
 
         jsonRpc.StartListening();
         server.InitializeTest();

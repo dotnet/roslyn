@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// <summary>
         /// Created when <see cref="ActivateAsync"/> is called.
         /// </summary>
-        private LanguageServer<RequestContext>? _languageServer;
+        private AbstractLanguageServer<RequestContext>? _languageServer;
 
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-            _languageServer = (LanguageServer<RequestContext>)await CreateAsync<RequestContext>(
+            _languageServer = (AbstractLanguageServer<RequestContext>)await CreateAsync<RequestContext>(
                 this,
                 serverStream,
                 serverStream,
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             return Task.CompletedTask;
         }
 
-        internal static async Task<ILanguageServer> CreateAsync<RequestContextType>(
+        internal static async Task<AbstractLanguageServer<RequestContext>> CreateAsync<RequestContextType>(
             AbstractInProcLanguageClient languageClient,
             Stream inputStream,
             Stream outputStream,
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             var logger = await lspLoggerFactory.CreateLoggerAsync(serverTypeName, jsonRpc, cancellationToken).ConfigureAwait(false);
 
-            var server = languageClient.Create(
+            var server = await languageClient.CreateAsync(
                 jsonRpc,
                 languageClient,
                 logger);
@@ -219,12 +219,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             return server;
         }
 
-        public ILanguageServer Create(
+        public async Task<AbstractLanguageServer<RequestContext>> CreateAsync(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
             IRoslynLspLogger logger)
         {
-            return new RoslynLanguageServer(
+            var server = new RoslynLanguageServer(
                 _lspServiceProvider,
                 jsonRpc,
                 capabilitiesProvider,
@@ -232,6 +232,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 logger,
                 SupportedLanguages,
                 ServerKind);
+            await server.InitializeAsync();
+
+            return server;
         }
 
         public abstract ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);

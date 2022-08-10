@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading.Tasks;
 
 namespace CommonLanguageServerProtocol.Framework.UnitTests
 {
@@ -10,29 +11,34 @@ namespace CommonLanguageServerProtocol.Framework.UnitTests
     {
         public static NoOpLspLogger Instance = new NoOpLspLogger();
 
-        public void TraceError(string message)
+        public Task LogErrorAsync(string message)
         {
+            return Task.CompletedTask;
         }
 
-        public void TraceException(Exception exception)
+        public Task LogExceptionAsync(Exception exception)
         {
             throw exception;
         }
 
-        public void TraceInformation(string message)
+        public Task LogInformationAsync(string message)
         {
+            return Task.CompletedTask;
         }
 
-        public void TraceStart(string message)
+        public Task LogStartContextAsync(string context)
         {
+            return Task.CompletedTask;
         }
 
-        public void TraceStop(string message)
+        public Task LogEndContextAsync(string context)
         {
+            return Task.CompletedTask;
         }
 
-        public void TraceWarning(string message)
+        public Task LogWarningAsync(string message)
         {
+            return Task.CompletedTask;
         }
     }
 }

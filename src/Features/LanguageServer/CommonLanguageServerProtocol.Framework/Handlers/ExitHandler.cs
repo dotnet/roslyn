@@ -10,9 +10,9 @@ namespace CommonLanguageServerProtocol.Framework.Handlers;
 [LanguageServerEndpoint("exit")]
 public class ExitHandler<RequestContextType> : INotificationHandler<RequestContextType>
 {
-    private readonly ILifeCycleManager _lifeCycleManager;
+    private readonly LifeCycleManager<RequestContextType> _lifeCycleManager;
 
-    public ExitHandler(ILifeCycleManager lifeCycleManager)
+    public ExitHandler(LifeCycleManager<RequestContextType> lifeCycleManager)
     {
         _lifeCycleManager = lifeCycleManager;
     }
@@ -21,10 +21,8 @@ public class ExitHandler<RequestContextType> : INotificationHandler<RequestConte
 
     public bool RequiresLSPSolution => true;
 
-    public Task HandleNotificationAsync(RequestContextType requestContext, CancellationToken cancellationToken)
+    public async Task HandleNotificationAsync(RequestContextType requestContext, CancellationToken cancellationToken)
     {
-        _lifeCycleManager.Exit();
-
-        return Task.CompletedTask;
+        await _lifeCycleManager.ExitAsync();
     }
 }

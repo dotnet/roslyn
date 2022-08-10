@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return edits.ToArrayAndFree();
         }
 
-        public abstract object? GetTextDocumentUri(RequestType request);
+        public abstract object? GetTextDocumentIdentifier(RequestType request);
         public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
     }
 }

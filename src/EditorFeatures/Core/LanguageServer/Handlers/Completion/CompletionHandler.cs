@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 lz => CommonCompletionUtilities.GetTriggerCharacters(lz.Value)).ToImmutableHashSet();
         }
 
-        public object? GetTextDocumentUri(LSP.CompletionParams request) => request.TextDocument;
+        public object? GetTextDocumentIdentifier(LSP.CompletionParams request) => request.TextDocument;
 
         public async Task<LSP.CompletionList?> HandleRequestAsync(LSP.CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {

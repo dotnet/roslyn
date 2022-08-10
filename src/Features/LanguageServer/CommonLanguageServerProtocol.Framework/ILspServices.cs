@@ -15,7 +15,7 @@ public interface ILspServices : IDisposable
 {
     T GetRequiredService<T>() where T : notnull;
 
-    bool TryGetService(Type @type, out object? service);
+    object? TryGetService(Type @type);
 
     IEnumerable<T> GetRequiredServices<T>();
 

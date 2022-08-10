@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         public bool MutatesSolutionState => true;
         public bool RequiresLSPSolution => false;
 
-        public object? GetTextDocumentUri(LSP.DidCloseTextDocumentParams request) => request.TextDocument;
+        public object? GetTextDocumentIdentifier(LSP.DidCloseTextDocumentParams request) => request.TextDocument;
 
         public Task<object?> HandleRequestAsync(LSP.DidCloseTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
             // GetTextDocumentIdentifier returns null to avoid creating the solution, so the queue is not able to log the uri.
-            context.TraceInformation($"didClose for {request.TextDocument.Uri}");
+            context.TraceInformationAsync($"didClose for {request.TextDocument.Uri}");
 
             context.StopTracking(request.TextDocument.Uri);
 

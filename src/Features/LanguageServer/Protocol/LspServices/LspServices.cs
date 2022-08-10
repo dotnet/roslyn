@@ -73,7 +73,9 @@ internal class LspServices : ILspServices
     public T? GetService<T>()
     {
         var type = typeof(T);
-        return TryGetService(type, out var service) ? (T)service : default(T);
+        var service = (T?)TryGetService(type);
+
+        return service;
     }
 
     public IEnumerable<T> GetRequiredServices<T>()
@@ -81,8 +83,9 @@ internal class LspServices : ILspServices
         throw new NotImplementedException();
     }
 
-    public bool TryGetService(Type type, [NotNullWhen(true)] out object? lspService)
+    public object? TryGetService(Type type)
     {
+        object? lspService;
         if (_lazyLspServices.TryGetValue(type, out var lazyService))
         {
             // If we are creating a stateful LSP service for the first time, we need to check
@@ -99,11 +102,11 @@ internal class LspServices : ILspServices
                 }
             }
 
-            return true;
+            return lspService;
         }
 
         lspService = null;
-        return false;
+        return lspService;
     }
 
     public ImmutableArray<Type> GetRegisteredServices() => _lazyLspServices.Keys.ToImmutableArray();
@@ -131,11 +134,11 @@ internal class LspServices : ILspServices
 
     public bool SupportsGetRegisteredServices()
     {
-        return false;
+        return true;
     }
 
     public bool SupportsGetRequiredServices()
     {
-        return true;
+        return false;
     }
 }

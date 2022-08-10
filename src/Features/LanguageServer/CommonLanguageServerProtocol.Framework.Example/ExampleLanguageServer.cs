@@ -9,13 +9,10 @@ using StreamJsonRpc;
 
 namespace CommonLanguageServerProtocol.Framework.Example;
 
-public class ExampleLanguageServer : LanguageServer<ExampleRequestContext>
+public class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestContext>
 {
-    private const string ExampleServerKindName = "ExampleLanguageServer";
-
-    public ExampleLanguageServer(JsonRpc jsonRpc, ILspLogger logger) : base(jsonRpc, logger, serverKind: ExampleServerKindName)
+    public ExampleLanguageServer(JsonRpc jsonRpc, ILspLogger logger) : base(jsonRpc, logger)
     {
-        Initialize();
     }
 
     protected override ILspServices ConstructLspServices()
@@ -26,7 +23,7 @@ public class ExampleLanguageServer : LanguageServer<ExampleRequestContext>
             .AddSingleton<ILspLogger>(_logger)
             .AddSingleton<IRequestContextFactory<ExampleRequestContext>, ExampleRequestContextFactory>()
             .AddSingleton<IInitializeManager<InitializeParams, InitializeResult>, CapabilitiesManager>()
-            .AddSingleton<ILifeCycleManager>((s) => new LifeCycleManager<ExampleRequestContext>(this));
+            .AddSingleton((s) => new LifeCycleManager<ExampleRequestContext>(this));
 
         var lspServices = new ExampleLspServices(serviceCollection);
 
@@ -36,10 +33,10 @@ public class ExampleLanguageServer : LanguageServer<ExampleRequestContext>
     private static IServiceCollection AddHandlers(IServiceCollection serviceCollection)
     {
         serviceCollection
-            .AddSingleton<IRequestHandler, InitializeHandler<InitializeParams, InitializeResult, ExampleRequestContext>>()
-            .AddSingleton<IRequestHandler, InitializedHandler<InitializedParams, ExampleRequestContext>>()
-            .AddSingleton<IRequestHandler, ShutdownHandler<ExampleRequestContext>>()
-            .AddSingleton<IRequestHandler, ExitHandler<ExampleRequestContext>>();
+            .AddSingleton<IMethodHandler, InitializeHandler<InitializeParams, InitializeResult, ExampleRequestContext>>()
+            .AddSingleton<IMethodHandler, InitializedHandler<InitializedParams, ExampleRequestContext>>()
+            .AddSingleton<IMethodHandler, ShutdownHandler<ExampleRequestContext>>()
+            .AddSingleton<IMethodHandler, ExitHandler<ExampleRequestContext>>();
 
         return serviceCollection;
     }

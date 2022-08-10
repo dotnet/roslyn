@@ -4,22 +4,24 @@
 
 namespace CommonLanguageServerProtocol.Framework;
 
-public class LifeCycleManager<RequestContextType> : ILifeCycleManager
-{
-    private readonly LanguageServer<RequestContextType> _target;
+using System.Threading.Tasks;
 
-    public LifeCycleManager(LanguageServer<RequestContextType> languageServerTarget)
+public class LifeCycleManager<RequestContextType>
+{
+    private readonly AbstractLanguageServer<RequestContextType> _target;
+
+    public LifeCycleManager(AbstractLanguageServer<RequestContextType> languageServerTarget)
     {
         _target = languageServerTarget;
     }
 
-    public void Exit()
+    public Task ExitAsync()
     {
-        _target.Exit();
+        return _target.ExitAsync();
     }
 
-    public void Shutdown()
+    public Task ShutdownAsync()
     {
-        _target.Shutdown();
+        return _target.ShutdownAsync();
     }
 }

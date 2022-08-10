@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 
         public bool RequiresLSPSolution => true;
 
-        public object? GetTextDocumentUri(TestRequest request) => null;
+        public object? GetTextDocumentIdentifier(TestRequest request) => null;
 
         public Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
         {

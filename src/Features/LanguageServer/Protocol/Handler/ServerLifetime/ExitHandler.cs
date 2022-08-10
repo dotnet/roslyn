@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 internal class RoslynLifeCycleManager : LifeCycleManager<RequestContext>, ILspService
 {
-    public RoslynLifeCycleManager(LanguageServer<RequestContext> languageServerTarget) : base(languageServerTarget)
+    public RoslynLifeCycleManager(AbstractLanguageServer<RequestContext> languageServerTarget) : base(languageServerTarget)
     {
     }
 }
@@ -31,17 +31,13 @@ internal class ExitHandler : IRoslynNotificationHandler
 
     public bool MutatesSolutionState => true;
 
-    public bool RequiresLSPSolution => false;
-
-    public Task HandleNotificationAsync(RequestContext requestContext, CancellationToken _)
+    public async Task HandleNotificationAsync(RequestContext requestContext, CancellationToken _)
     {
         if (requestContext.ClientCapabilities is null)
         {
             throw new InvalidOperationException($"{Methods.InitializedName} called before {Methods.InitializeName}");
         }
         var lifeCycleManager = requestContext.GetRequiredLspService<RoslynLifeCycleManager>();
-        lifeCycleManager.Exit();
-
-        return Task.CompletedTask;
+        await lifeCycleManager.ExitAsync();
     }
 }

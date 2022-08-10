@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
-    /// Context for requests handled by <see cref="IRequestHandler"/>
+    /// Context for requests handled by <see cref="IMethodHandler"/>
     /// </summary>
     internal class RequestContext
     {
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public readonly string ServerKind;
 
         /// <summary>
-        /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType, TResponseContextType}.GetTextDocumentUri(RequestType)"/>.
+        /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType, TResponseContextType}.GetTextDocumentIdentifier(RequestType)"/>.
         /// </summary>
         public readonly Document? Document;
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             QueueCancellationToken = queueCancellationToken;
         }
 
-        public static async Task<RequestContext?> CreateAsync(
+        public static async Task<RequestContext> CreateAsync(
             bool mutatesSolutionState,
             TextDocumentIdentifier? textDocument,
             string serverKind,
@@ -99,8 +99,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ImmutableArray<string> supportedLanguages,
             ILspServices lspServices,
             ILspLogger logger,
-            CancellationToken queueCancellationToken,
-            CancellationToken requestCancellationToken)
+            CancellationToken cancellationToken)
         {
             var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
             var documentChangeTracker = mutatesSolutionState ? (IDocumentChangeTracker)lspWorkspaceManager : new NonMutatingDocumentChangeTracker();
@@ -116,16 +115,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // we were given a request associated with a document.  Find the corresponding roslyn document for this. 
                 // There are certain cases where we may be asked for a document that does not exist (for example a document is removed)
                 // For example, document pull diagnostics can ask us after removal to clear diagnostics for a document.
-                document = await lspWorkspaceManager.GetLspDocumentAsync(textDocument, requestCancellationToken).ConfigureAwait(false);
+                document = await lspWorkspaceManager.GetLspDocumentAsync(textDocument, cancellationToken).ConfigureAwait(false);
             }
 
-            workspaceSolution = document?.Project.Solution ?? await lspWorkspaceManager.TryGetHostLspSolutionAsync(requestCancellationToken).ConfigureAwait(false);
-
-            if (workspaceSolution == null)
-            {
-                logger.TraceError("Could not find appropriate solution for operation");
-                return null;
-            }
+            workspaceSolution = document?.Project.Solution ?? await lspWorkspaceManager.TryGetHostLspSolutionAsync(cancellationToken).ConfigureAwait(false);
 
             var context = new RequestContext(
                 workspaceSolution,
@@ -137,7 +130,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 trackedDocuments,
                 supportedLanguages,
                 lspServices,
-                queueCancellationToken);
+                cancellationToken);
             return context;
         }
 
@@ -174,17 +167,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// Logs an informational message.
         /// </summary>
-        public void TraceInformation(string message)
-            => _logger.TraceInformation(message);
+        public Task TraceInformationAsync(string message)
+            => _logger.LogInformationAsync(message);
 
-        public void TraceWarning(string message)
-            => _logger.TraceWarning(message);
+        public Task TraceWarningAsync(string message)
+            => _logger.LogWarningAsync(message);
 
-        public void TraceError(string message)
-            => _logger.TraceError(message);
+        public Task TraceErrorAsync(string message)
+            => _logger.LogErrorAsync(message);
 
-        public void TraceException(Exception exception)
-            => _logger.TraceException(exception);
+        public Task TraceExceptionAsync(Exception exception)
+            => _logger.LogExceptionAsync(exception);
 
         public T GetRequiredLspService<T>() where T : class, ILspService
         {

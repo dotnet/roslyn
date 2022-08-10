@@ -57,19 +57,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                 _feedbackService = feedbackService;
             }
 
-            protected override ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>> GetRequestHandlers()
+            protected override ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> GetRequestHandlers()
             {
                 throw new NotImplementedException();
             }
 
             protected override async Task<TResponseType> ExecuteRequestAsync<TRequestType, TResponseType>(
-                IRequestExecutionQueue<RequestContext> queue, bool mutatesSolutionState, bool requiresLSPSolution,
+                IRequestExecutionQueue<RequestContext> queue, bool mutatesSolutionState,
                 IRequestHandler<TRequestType, TResponseType, RequestContext> handler, TRequestType request, string methodName, CancellationToken cancellationToken)
             {
-                var textDocument = handler.GetTextDocumentUri(request);
+                var textDocument = handler.GetTextDocumentIdentifier(request);
 
                 Uri textDocumentUri;
-                if(textDocument is Uri uri)
+                if (textDocument is Uri uri)
                 {
                     textDocumentUri = uri;
                 }
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                 {
                     try
                     {
-                        return await base.ExecuteRequestAsync(queue, mutatesSolutionState, requiresLSPSolution, handler, request, methodName, cancellationToken).ConfigureAwait(false);
+                        return await base.ExecuteRequestAsync(queue, mutatesSolutionState, handler, request, methodName, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (e is not OperationCanceledException)
                     {

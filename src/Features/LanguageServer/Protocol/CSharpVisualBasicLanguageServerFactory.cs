@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using System.IO;
+using System.Threading.Tasks;
 using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -29,24 +30,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _listenerProvider = listenerProvider;
         }
 
-        public LanguageServer<RequestContext> Create(
+        public async Task<AbstractLanguageServer<RequestContext>> CreateAsync(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
             IRoslynLspLogger logger)
         {
-            return new RoslynLanguageServer(
-                _lspServiceProvider, jsonRpc,
+            var server = new RoslynLanguageServer(
+                _lspServiceProvider,
+                jsonRpc,
                 capabilitiesProvider,
                 _listenerProvider,
                 logger,
                 ProtocolConstants.RoslynLspLanguages,
                 WellKnownLspServerKinds.CSharpVisualBasicLspServer);
+            await server.InitializeAsync();
+
+            return server;
         }
 
-        public LanguageServer<RequestContext> Create(Stream input, Stream output, ICapabilitiesProvider capabilitiesProvider, IRoslynLspLogger logger)
+        public Task<AbstractLanguageServer<RequestContext>> CreateAsync(Stream input, Stream output, ICapabilitiesProvider capabilitiesProvider, IRoslynLspLogger logger)
         {
             var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(output, input));
-            return Create(jsonRpc, capabilitiesProvider, logger);
+            return CreateAsync(jsonRpc, capabilitiesProvider, logger);
         }
     }
 }

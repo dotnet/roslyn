@@ -35,7 +35,7 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
     {
     }
 
-    public override object? GetTextDocumentUri(DocumentDiagnosticParams diagnosticsParams) => diagnosticsParams.TextDocument;
+    public override object? GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams) => diagnosticsParams.TextDocument;
 
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
     {

@@ -15,7 +15,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal class RoslynLanguageServer : LanguageServer<RequestContext>, IClientCapabilitiesProvider
+    internal class RoslynLanguageServer : AbstractLanguageServer<RequestContext>, IClientCapabilitiesProvider
     {
         private readonly ICapabilitiesProvider _capabilitiesProvider;
 
@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         private readonly IServiceCollection _serviceCollection;
         private readonly ImmutableArray<string> _supportedLanguages;
         private Task? _errorShutdownTask;
+        private readonly string _serverKind;
 
         public RoslynLanguageServer(
             AbstractLspServiceProvider lspServiceProvider,
@@ -34,18 +35,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             IRoslynLspLogger logger,
             ImmutableArray<string> supportedLanguages,
             WellKnownLspServerKinds serverKind)
-            : base(jsonRpc, logger, serverKind.ToConvertableString())
+            : base(jsonRpc, logger)
         {
             _lspServiceProvider = lspServiceProvider;
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
+            _serverKind = serverKind.ToConvertableString();
 
             // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
             var lifeCycleManager = new RoslynLifeCycleManager(this);
             _baseServices = GetBaseServices(jsonRpc, this, logger, capabilitiesProvider, lifeCycleManager);
             _serviceCollection = GetServiceCollection(jsonRpc, this, logger, capabilitiesProvider, lifeCycleManager, serverKind.ToConvertableString(), supportedLanguages);
             _supportedLanguages = supportedLanguages;
-
-            Initialize();
         }
 
         protected override ILspServices ConstructLspServices()
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 .AddSingleton<IRoslynLspLogger>(logger)
                 .AddSingleton<IClientCapabilitiesProvider>(clientCapabilitiesProvider)
                 .AddSingleton<ICapabilitiesProvider>(capabilitiesProvider)
-                .AddSingleton<ILifeCycleManager>(lifeCycleManager)
+                .AddSingleton<LifeCycleManager<RequestContext>>(lifeCycleManager)
                 .AddSingleton(new ServerInfoProvider(serverKind, supportedLanguages))
                 .AddSingleton<IRequestContextFactory<RequestContext>, RequestContextFactory>()
                 // TODO: Are these dangerous because of capturing?
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var asyncToken = _listener.BeginAsyncOperation("RequestExecutionQueue_Errored");
             _errorShutdownTask = Task.Run(async () =>
             {
-                _logger?.TraceInformation("Shutting down language server.");
+                await _logger?.LogInformationAsync("Shutting down language server.");
 
                 await clientNotificationService.SendNotificationAsync("window/logMessage", message, CancellationToken.None).ConfigureAwait(false);
 
@@ -121,16 +121,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return requestDispatcher;
         }
 
-        protected override IRequestExecutionQueue<RequestContext> ConstructRequestExecutionQueue()
-        {
-            var queue = new RoslynRequestExecutionQueue(_serverKind, _logger);
-
-            var lspServices = GetLspServices();
-            queue.Start(lspServices);
-
-            return queue;
-        }
-
         public ClientCapabilities GetClientCapabilities()
         {
             var lspServices = GetLspServices();
@@ -140,51 +130,52 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return clientCapabilities;
         }
 
-        internal TestAccessor GetTestAccessor() => new(this);
+        //internal TestAccessor GetTestAccessor() => new(this);
 
-        internal class TestAccessor
-        {
-            private readonly RoslynLanguageServer _server;
+        //internal class TestAccessor
+        //{
+        //    private readonly RoslynLanguageServer _server;
 
-            internal TestAccessor(RoslynLanguageServer server)
-            {
-                _server = server;
-            }
+        //    internal TestAccessor(RoslynLanguageServer server)
+        //    {
+        //        _server = server;
+        //    }
 
-            internal void ExitServer()
-            {
-                _server.Exit();
-            }
+        //    internal Task ExitServerAsync()
+        //    {
+        //        return _server.ExitAsync();
+        //    }
 
-            internal RoslynRequestExecutionQueue.TestAccessor GetQueueAccessor()
-            {
-                var queue = _server.GetRequestExecutionQueue();
-                var concreteQueue = (RequestExecutionQueue<RequestContext>)queue;
-                return concreteQueue.GetTestAccessor();
-            }
+        //    internal RequestExecutionQueue<RequestContext>.TestAccessor GetQueueAccessor()
+        //    {
+        //        var queue = _server.GetRequestExecutionQueue();
+        //        var concreteQueue = (RequestExecutionQueue<RequestContext>)queue;
+        //        return concreteQueue.GetTestAccessor();
+        //    }
 
-            internal T GetRequiredLspService<T>() where T : class, ILspService
-            {
-                var lspServices = _server.GetLspServices();
+        //    internal T GetRequiredLspService<T>() where T : class, ILspService
+        //    {
+        //        var lspServices = _server.GetLspServices();
 
-                return lspServices.GetRequiredService<T>();
-            }
+        //        return lspServices.GetRequiredService<T>();
+        //    }
 
-            internal JsonRpc GetServerRpc()
-            {
-                return ((LanguageServer<RequestContext>)_server).GetTestAccessor().GetServerRpc();
-            }
+        //    internal JsonRpc GetServerRpc()
+        //    {
+        //        throw new NotImplementedException();
+        //        // return ((AbstractLanguageServer<RequestContext>)_server).GetTestAccessor().GetServerRpc();
+        //    }
 
-            internal bool HasShutdownStarted()
-            {
-                return _server.HasShutdownStarted;
-            }
+        //    internal bool HasShutdownStarted()
+        //    {
+        //        return _server.HasShutdownStarted;
+        //    }
 
-            internal void ShutdownServer()
-            {
-                _server.Shutdown();
-            }
-        }
+        //    internal void ShutdownServer()
+        //    {
+        //        _server.ShutdownAsync();
+        //    }
+        //}
 
         public override async ValueTask DisposeAsync()
         {

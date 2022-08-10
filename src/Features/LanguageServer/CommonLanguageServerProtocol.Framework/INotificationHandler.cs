@@ -5,16 +5,23 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-#nullable enable
-
 namespace CommonLanguageServerProtocol.Framework;
 
-public interface INotificationHandler<RequestContextType> : IRequestHandler
+/// <summary>
+/// An interface for handlers of methods which do not return a response and receive no parameters.
+/// </summary>
+/// <typeparam name="RequestContextType">The type of the RequestContext to be used by this handler.</typeparam>
+public interface INotificationHandler<RequestContextType> : IMethodHandler
 {
     Task HandleNotificationAsync(RequestContextType requestContext, CancellationToken cancellationToken);
 }
 
-public interface INotificationHandler<RequestType, RequestContextType> : IRequestHandler
+/// <summary>
+/// An interface for handlers of methods which do not return a response 
+/// </summary>
+/// <typeparam name="RequestType">The type of the Request parameter to be received.</typeparam>
+/// <typeparam name="RequestContextType">The type of the RequestContext to be used by this handler.</typeparam>
+public interface INotificationHandler<RequestType, RequestContextType> : IMethodHandler
 {
     Task HandleNotificationAsync(RequestType request, RequestContextType requestContext, CancellationToken cancellationToken);
 }

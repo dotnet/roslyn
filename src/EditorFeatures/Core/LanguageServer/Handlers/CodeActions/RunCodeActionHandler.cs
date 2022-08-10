@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override bool MutatesSolutionState => true;
         public override bool RequiresLSPSolution => true;
 
-        public override object? GetTextDocumentUri(LSP.ExecuteCommandParams request)
+        public override object? GetTextDocumentIdentifier(LSP.ExecuteCommandParams request)
         {
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
             Assumes.Present(runRequest);

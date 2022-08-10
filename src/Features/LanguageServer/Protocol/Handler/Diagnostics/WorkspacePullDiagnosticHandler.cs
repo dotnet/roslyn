@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
         }
 
-        public override object? GetTextDocumentUri(VSInternalWorkspaceDiagnosticsParams request)
+        public override object? GetTextDocumentIdentifier(VSInternalWorkspaceDiagnosticsParams request)
             => null;
 
         protected override VSInternalWorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     // Each handler treats those as separate worlds that they are responsible for.
                     if (context.IsTracking(document.GetURI()))
                     {
-                        context.TraceInformation($"Skipping tracked document: {document.GetURI()}");
+                        await context.TraceInformationAsync($"Skipping tracked document: {document.GetURI()}");
                         continue;
                     }
 
