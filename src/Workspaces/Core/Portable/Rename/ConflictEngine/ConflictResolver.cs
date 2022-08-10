@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             CancellationToken cancellationToken)
         {
             // when someone e.g. renames a symbol from metadata through the API (IDE blocks this), we need to return
-            var renameSymbolDeclarationLocation = renameLocations.Symbol.Locations.Where(loc => loc.IsInSource).FirstOrDefault();
+            var renameSymbolDeclarationLocation = renameLocations.Symbol.Locations.FirstOrDefault(loc => loc.IsInSource);
             if (renameSymbolDeclarationLocation == null)
             {
                 // Symbol "{0}" is not from source.

@@ -186,7 +186,6 @@ namespace Microsoft.CodeAnalysis.Rename
         public readonly SymbolRenameOptions Options;
 
         // We use arrays so we can represent default immutable arrays.
-
         [DataMember(Order = 1)]
         public readonly ImmutableArray<SerializableRenameLocation> Locations;
 

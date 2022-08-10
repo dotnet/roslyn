@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// Helper class to track the state necessary for finding/resolving conflicts in a 
         /// rename session.
         /// </summary>
-        private class SingleSymbolRenameSession : AbstractRenameSession
+        private class SingleSymbolRenameSession : Session
         {
             // Set of All Locations that will be renamed (does not include non-reference locations that need to be checked for conflicts)
             private readonly SymbolicRenameLocations _renameLocationSet;
@@ -120,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
             }
 
-            public override Task<MutableConflictResolution> ResolveConflictsAsync()
+            public virtual Task<MutableConflictResolution> ResolveConflictsAsync()
             {
                 var baseSolution = _renameLocationSet.Solution;
                 var symbol = _renameLocationSet.Symbol;

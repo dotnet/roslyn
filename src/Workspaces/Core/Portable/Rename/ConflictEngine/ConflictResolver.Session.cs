@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
     internal partial class ConflictResolver
     {
-        private abstract class AbstractRenameSession
+        private abstract class Session
         {
             private readonly CodeCleanupOptionsProvider _fallbackOptions;
             private readonly ImmutableArray<SymbolKey> _nonConflictSymbolKeys;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private ISet<ConflictLocationInfo> _conflictLocations = SpecializedCollections.EmptySet<ConflictLocationInfo>();
             protected readonly CancellationToken CancellationToken;
 
-            protected AbstractRenameSession(
+            protected Session(
                 Solution solution,
                 ImmutableArray<SymbolKey> nonConflictSymbolKeys,
                 CodeCleanupOptionsProvider fallBackOptions,
@@ -43,8 +43,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 _nonConflictSymbolKeys = nonConflictSymbolKeys;
                 _fallbackOptions = fallBackOptions;
             }
-
-            public abstract Task<MutableConflictResolution> ResolveConflictsAsync();
 
             /// <summary>
             /// Replace token needs renaming, annotate the conflict check location and complexify the conflict locations for the document in
@@ -69,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             protected abstract Task<ImmutableHashSet<RenamedSymbolInfo>> GetValidRenamedSymbolsInfoInCurrentSolutionAsync(MutableConflictResolution conflictResolution);
 
             /// <summary>
-            /// Get all changed symbols infomation if its declaration is in <paramref name="projectId"/>.
+            /// Get all changed symbols information if its declaration is in <paramref name="projectId"/>.
             /// </summary>
             protected abstract Task<ImmutableArray<RenamedSymbolInfo>> GetDeclarationChangedSymbolsInfoAsync(MutableConflictResolution conflictResolution, ProjectId projectId);
 
