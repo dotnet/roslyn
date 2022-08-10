@@ -250,16 +250,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             {
                 // check to see if it would override the primary constructor
                 var constructorSymbol = (IMethodSymbol)semanticModel.GetRequiredDeclaredSymbol(constructor, cancellationToken);
+                var constructorOperation = (IMethodBodyOperation)semanticModel.GetRequiredOperation(constructor, cancellationToken);
                 var constructorParamTypes = constructorSymbol.Parameters.SelectAsArray(parameter => parameter.Type);
                 var positionalParamTypes = propertiesToMove.SelectAsArray(p => p.Symbol.Type);
                 if (constructorParamTypes.SequenceEqual(positionalParamTypes))
                 {
                     // found a primary constructor override, now check if we are pretty sure we can remove it safely
-                    if (CSharpOperationAnalysisHelpers.IsSimplePrimaryConstructor(constructor,
+                    if (CSharpOperationAnalysisHelpers.IsSimplePrimaryConstructor(constructorOperation,
                         propertiesToMove.SelectAsArray(result => result.Symbol),
-                        constructorSymbol.Parameters,
-                        semanticModel,
-                        cancellationToken))
+                        constructorSymbol.Parameters))
                     {
                         modifiedMembers.Remove(constructor);
                     }
@@ -275,11 +274,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 else if (constructorSymbol.Parameters.IsSingle() &&
                     constructorSymbol.Parameters.First().Type.Equals(type))
                 {
-                    if (CSharpOperationAnalysisHelpers.IsSimpleCopyConstructor(constructor,
+                    if (CSharpOperationAnalysisHelpers.IsSimpleCopyConstructor(constructorOperation,
                         expectedFields,
-                        constructorSymbol.Parameters.First(),
-                        semanticModel,
-                        cancellationToken))
+                        constructorSymbol.Parameters.First()))
                     {
                         modifiedMembers.Remove(constructor);
                     }
@@ -304,13 +301,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 => member is OperatorDeclarationSyntax { OperatorToken.RawKind: (int)SyntaxKind.EqualsEqualsToken });
             var notEqualsOp = (OperatorDeclarationSyntax?)modifiedMembers.FirstOrDefault(member
                 => member is OperatorDeclarationSyntax { OperatorToken.RawKind: (int)SyntaxKind.ExclamationEqualsToken });
-            if (equalsOp != null && notEqualsOp != null &&
-                CSharpOperationAnalysisHelpers.IsDefaultEqualsOperator(equalsOp, semanticModel, cancellationToken) &&
-                CSharpOperationAnalysisHelpers.IsDefaultNotEqualsOperator(notEqualsOp, semanticModel, cancellationToken))
+            if (equalsOp != null && notEqualsOp != null)
             {
-                // they both evaluate to what would be the generated implementation
-                modifiedMembers.Remove(equalsOp);
-                modifiedMembers.Remove(notEqualsOp);
+                var equalsBodyOperation = (IMethodBodyOperation)semanticModel
+                    .GetRequiredOperation(equalsOp, cancellationToken);
+                var notEqualsBodyOperation = (IMethodBodyOperation)semanticModel
+                    .GetRequiredOperation(notEqualsOp, cancellationToken);
+                if (CSharpOperationAnalysisHelpers.IsDefaultEqualsOperator(equalsBodyOperation) &&
+                    CSharpOperationAnalysisHelpers.IsDefaultNotEqualsOperator(notEqualsBodyOperation))
+                {
+                    // they both evaluate to what would be the generated implementation
+                    modifiedMembers.Remove(equalsOp);
+                    modifiedMembers.Remove(notEqualsOp);
+                }
             }
 
             var methods = modifiedMembers.OfType<MethodDeclarationSyntax>().AsImmutable();
@@ -326,12 +329,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     modifiedMembers.Remove(method);
                 }
                 else if (CSharpOperationAnalysisHelpers.IsSimpleHashCodeMethod(
-                    methodSymbol, operation, expectedFields, semanticModel.Compilation))
+                    semanticModel.Compilation, methodSymbol, operation, expectedFields))
                 {
                     modifiedMembers.Remove(method);
                 }
                 else if (CSharpOperationAnalysisHelpers.IsSimpleEqualsMethod(
-                    methodSymbol, operation, expectedFields, semanticModel.Compilation))
+                    semanticModel.Compilation, methodSymbol, operation, expectedFields))
                 {
                     // the Equals method implementation is fundamentally equivalent to the generated one
                     modifiedMembers.Remove(method);
