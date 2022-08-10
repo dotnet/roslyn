@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -134,21 +133,13 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteInteger(symbol.Arity);
                 visitor.WriteBoolean(symbol.PartialDefinitionPart != null);
                 visitor.WriteRefKindArray(symbol.Parameters);
+                visitor.WriteSymbolKey(symbol.ReturnType);
 
                 // Mark that we're writing out the signature of a method.  This way if we hit a 
                 // method type parameter in our parameter-list or return type, we won't recurse
                 // into it, but will instead only write out the type parameter ordinal.  This
                 // happens with cases like Goo<T>(T t);
                 visitor.PushMethod(symbol);
-
-                if (symbol.MethodKind == MethodKind.Conversion)
-                {
-                    visitor.WriteSymbolKey(symbol.ReturnType);
-                }
-                else
-                {
-                    visitor.WriteSymbolKey(null);
-                }
 
                 visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
 
@@ -245,8 +236,7 @@ namespace Microsoft.CodeAnalysis
                 SymbolKeyReader reader, bool isPartialMethodImplementationPart, IMethodSymbol method)
             {
                 var returnType = (ITypeSymbol?)reader.ReadSymbolKey(contextualSymbol: method.ReturnType, out _).GetAnySymbol();
-                if (returnType != null &&
-                    !reader.Comparer.Equals(returnType, method.ReturnType))
+                if (!reader.IgnoreReturnTypes && !reader.Comparer.Equals(returnType, method.ReturnType))
                 {
                     // ok to early exit here, the topmost caller will reset the position in the stream accordingly.
                     return null;

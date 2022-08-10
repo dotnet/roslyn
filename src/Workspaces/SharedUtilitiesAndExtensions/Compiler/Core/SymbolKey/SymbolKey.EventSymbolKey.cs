@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis
             {
                 visitor.WriteString(symbol.MetadataName);
                 visitor.WriteSymbolKey(symbol.ContainingType);
+                visitor.WriteSymbolKey(symbol.Type);
             }
 
             protected sealed override SymbolKeyResolution Resolve(
@@ -22,14 +23,49 @@ namespace Microsoft.CodeAnalysis
                 var metadataName = reader.ReadString();
                 var containingTypeResolution = reader.ReadSymbolKey(contextualSymbol?.ContainingType, out var containingTypeFailureReason);
 
+                using var result = GetMembersOfNamedType<IEventSymbol>(containingTypeResolution, metadataName);
+
+                var beforeReturnType = reader.Position;
+
+                // We don't actually ever expect more than one result here, but enumeration is cheap so may as well
+                // be future proof
+                IEventSymbol? @event = null;
+                foreach (var candidate in result)
+                {
+                    var returnType = (ITypeSymbol?)reader.ReadSymbolKey(contextualSymbol: candidate.Type, out _).GetAnySymbol();
+                    if (reader.IgnoreReturnTypes || reader.Comparer.Equals(returnType, candidate.Type))
+                    {
+                        @event = candidate;
+                        break;
+                    }
+
+                    // reset ourselves so we can check the return-type against the next candidate.
+                    reader.Position = beforeReturnType;
+                }
+
+                if (reader.Position == beforeReturnType)
+                {
+                    // We didn't find a match.  Read through the stream one final time so we're at the correct location
+                    // after this EventSymbolKey.
+
+                    // Read the return type.
+                    _ = reader.ReadSymbolKey(contextualSymbol: null, out _);
+                }
+
                 if (containingTypeFailureReason != null)
                 {
                     failureReason = $"({nameof(EventSymbolKey)} {nameof(containingTypeResolution)} failed -> {containingTypeFailureReason})";
                     return default;
                 }
 
-                using var result = GetMembersOfNamedType<IEventSymbol>(containingTypeResolution, metadataName);
-                return CreateResolution(result, $"({nameof(EventSymbolKey)} '{metadataName}' not found)", out failureReason);
+                if (@event == null)
+                {
+                    failureReason = $"({nameof(EventSymbolKey)} '{metadataName}' not found)";
+                    return default;
+                }
+
+                failureReason = null;
+                return new SymbolKeyResolution(@event);
             }
         }
     }

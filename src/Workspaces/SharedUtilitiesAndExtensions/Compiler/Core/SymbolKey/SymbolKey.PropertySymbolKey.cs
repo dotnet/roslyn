@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteSymbolKey(symbol.ContainingSymbol);
                 visitor.WriteBoolean(symbol.IsIndexer);
                 visitor.WriteRefKindArray(symbol.Parameters);
+                visitor.WriteSymbolKey(symbol.Type);
                 visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
             }
 
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis
                 //
                 // Because of this, we keep track of where we are in the reader.  Before resolving every parameter list,
                 // we'll mark which method we're on and we'll rewind to this point.
-                var beforeParametersPosition = reader.Position;
+                var beforeParametersAndTypePosition = reader.Position;
 
                 IPropertySymbol? property = null;
                 foreach (var candidate in properties)
@@ -56,13 +57,16 @@ namespace Microsoft.CodeAnalysis
                         break;
 
                     // reset ourselves so we can check the return-type/parameters against the next candidate.
-                    reader.Position = beforeParametersPosition;
+                    reader.Position = beforeParametersAndTypePosition;
                 }
 
-                if (reader.Position == beforeParametersPosition)
+                if (reader.Position == beforeParametersAndTypePosition)
                 {
                     // We didn't find a match.  Read through the stream one final time so we're at the correct location
                     // after this PropertySymbolKey.
+
+                    // Read the return type.
+                    _ = reader.ReadSymbolKey(contextualSymbol: null, out _);
 
                     _ = reader.ReadSymbolKeyArray<IPropertySymbol, ITypeSymbol>(
                         contextualSymbol: null, getContextualSymbol: null, failureReason: out _);
@@ -88,6 +92,13 @@ namespace Microsoft.CodeAnalysis
                 SymbolKeyReader reader,
                 IPropertySymbol property)
             {
+                var returnType = (ITypeSymbol?)reader.ReadSymbolKey(contextualSymbol: property.Type, out _).GetAnySymbol();
+                if (!reader.IgnoreReturnTypes && !reader.Comparer.Equals(returnType, property.Type))
+                {
+                    // ok to early exit here, the topmost caller will reset the position in the stream accordingly.
+                    return null;
+                }
+
                 if (reader.ParameterTypesMatch(
                         property,
                         getContextualType: static (property, i) => SafeGet(property.OriginalDefinition.Parameters, i)?.Type,
