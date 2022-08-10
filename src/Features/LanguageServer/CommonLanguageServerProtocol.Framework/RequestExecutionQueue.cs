@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using System.Collections.Immutable;
 
-#nullable enable
-
 namespace CommonLanguageServerProtocol.Framework;
 
 /// <summary>
@@ -33,7 +31,8 @@ namespace CommonLanguageServerProtocol.Framework;
 /// </para>
 /// <para>
 /// Regardless of whether a request is mutating or not, or blocking or not, is an implementation detail of this class
-/// and any consumers observing the results of the task returned from <see cref="ExecuteAsync{TRequestType, TResponseType}(TRequestType, string, CommonLanguageServerProtocol.Framework.ILspServices, CancellationToken)"/>
+/// and any consumers observing the results of the task returned from
+/// <see cref="ExecuteAsync{TRequestType, TResponseType}(TRequestType, string, ILspServices, CancellationToken)"/>
 /// will see the results of the handling of the request, whenever it occurred.
 /// </para>
 /// <para>
@@ -118,7 +117,6 @@ internal class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueu
             textDocument,
             request,
             handler,
-            lspServices,
             combinedCancellationToken);
 
         // Run a continuation to ensure the cts is disposed of.
@@ -144,7 +142,6 @@ internal class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueu
         object? textDocument,
         TRequestType request,
         IMethodHandler handler,
-        ILspServices lspServices,
         CancellationToken cancellationToken)
     {
         return QueueItem<TRequestType, TResponseType, RequestContextType>.Create(mutatesSolutionState,

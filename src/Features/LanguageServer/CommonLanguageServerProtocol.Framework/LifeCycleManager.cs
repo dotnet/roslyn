@@ -6,6 +6,10 @@ namespace CommonLanguageServerProtocol.Framework;
 
 using System.Threading.Tasks;
 
+/// <summary>
+/// Enables the managment of the server lifecycle from outside of the AbstractlanguageServer object.
+/// </summary>
+/// <typeparam name="RequestContextType"></typeparam>
 public class LifeCycleManager<RequestContextType>
 {
     private readonly AbstractLanguageServer<RequestContextType> _target;
@@ -15,11 +19,18 @@ public class LifeCycleManager<RequestContextType>
         _target = languageServerTarget;
     }
 
+    /// <summary>
+    /// Begin exiting the Language Server, as when <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#exit">exit</see> is called.
+    /// </summary>
+    /// <returns></returns>
     public Task ExitAsync()
     {
         return _target.ExitAsync();
     }
 
+    /// <summary>
+    /// Begin shutting down the Language Server, as when <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#shutdown">shutdown</see> is called.
+    /// </summary>
     public Task ShutdownAsync()
     {
         return _target.ShutdownAsync();

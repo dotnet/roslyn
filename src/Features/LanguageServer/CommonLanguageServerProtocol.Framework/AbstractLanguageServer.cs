@@ -234,14 +234,14 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
 
         _shuttingDown = true;
 
-        await ShutdownRequestExecutionQueue();
+        await ShutdownRequestExecutionQueueAsync();
     }
 
     public virtual async Task ExitAsync()
     {
         try
         {
-            await ShutdownRequestExecutionQueue();
+            await ShutdownRequestExecutionQueueAsync();
 
             var lspServices = GetLspServices();
             lspServices.Dispose();
@@ -256,7 +256,7 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
         }
     }
 
-    private ValueTask ShutdownRequestExecutionQueue()
+    private ValueTask ShutdownRequestExecutionQueueAsync()
     {
         var queue = GetRequestExecutionQueue();
         return queue.DisposeAsync();
@@ -266,21 +266,21 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
     {
     }
 
-    private void RequestExecutionQueue_Errored(object? sender, RequestShutdownEventArgs e)
+    private async void RequestExecutionQueue_Errored(object? sender, RequestShutdownEventArgs e)
     {
         // log message and shut down
-        _logger?.LogWarningAsync($"Request queue is requesting shutdown due to error: {e.Message}");
+        await _logger.LogWarningAsync($"Request queue is requesting shutdown due to error: {e.Message}");
 
         RequestExecutionQueueErroredInternal(e.Message);
 
-        ShutdownAsync();
-        ExitAsync();
+        await ShutdownAsync();
+        await ExitAsync();
     }
 
     /// <summary>
     /// Cleanup the server if we encounter a json rpc disconnect so that we can be restarted later.
     /// </summary>
-    private void JsonRpc_Disconnected(object? sender, JsonRpcDisconnectedEventArgs e)
+    private async void JsonRpc_Disconnected(object? sender, JsonRpcDisconnectedEventArgs e)
     {
         if (_shuttingDown)
         {
@@ -288,10 +288,10 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
             return;
         }
 
-        _ = _logger?.LogWarningAsync($"Encountered unexpected jsonrpc disconnect, Reason={e.Reason}, Description={e.Description}, Exception={e.Exception}");
+        await _logger.LogWarningAsync($"Encountered unexpected jsonrpc disconnect, Reason={e.Reason}, Description={e.Description}, Exception={e.Exception}");
 
-        ShutdownAsync();
-        ExitAsync();
+        await ShutdownAsync();
+        await ExitAsync();
     }
 
     /// <summary>
@@ -305,8 +305,8 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
             disposableLogger.Dispose();
         }
 
-        ShutdownAsync();
-        ExitAsync();
+        await ShutdownAsync();
+        await ExitAsync();
     }
 
     internal TestAccessor GetTestAccessor()
@@ -339,12 +339,12 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
 
         internal bool HasShutdownStarted() => _server.HasShutdownStarted;
 
-        internal Task ShutdownServer()
+        internal Task ShutdownServerAsync()
         {
             return _server.ShutdownAsync();
         }
 
-        internal Task ExitServer()
+        internal Task ExitServerAsync()
         {
             return _server.ExitAsync();
         }

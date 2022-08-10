@@ -10,9 +10,8 @@ namespace CommonLanguageServerProtocol.Framework;
 
 public interface IRequestHandler<TRequestType, TResponseType, TRequestContextType> : IMethodHandler
 {
-    // TODO: rename to GetTextDocumentIdentifier.
     /// <summary>
-    /// Gets the <see cref="Uri"/> of the document from the request, if the request provides one.
+    /// Gets the identifier of the document from the request, if the request provides one.
     /// </summary>
     object? GetTextDocumentIdentifier(TRequestType request);
 

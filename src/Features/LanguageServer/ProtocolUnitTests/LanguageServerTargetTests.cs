@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             var server = await CreateTestLspServerAsync("");
             AssertServerAlive(server);
 
-            server.GetServerAccessor().ShutdownServer();
+            server.GetServerAccessor().ShutdownServerAsync();
             await AssertServerQueueClosed(server).ConfigureAwait(false);
             Assert.False(server.GetServerAccessor().GetServerRpc().IsDisposed);
         }
@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             var server = await CreateTestLspServerAsync("");
             AssertServerAlive(server);
 
-            server.GetServerAccessor().ShutdownServer();
-            server.GetServerAccessor().ExitServer();
+            server.GetServerAccessor().ShutdownServerAsync();
+            server.GetServerAccessor().ExitServerAsync();
             await AssertServerQueueClosed(server).ConfigureAwait(false);
             Assert.True(server.GetServerAccessor().GetServerRpc().IsDisposed);
         }
@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             Assert.False(statefulService.IsDisposed);
             Assert.False(statelessService.IsDisposed);
 
-            server.GetServerAccessor().ShutdownServer();
-            server.GetServerAccessor().ExitServer();
+            server.GetServerAccessor().ShutdownServerAsync();
+            server.GetServerAccessor().ExitServerAsync();
 
             // Only the stateful service should be disposed of on server shutdown.
             Assert.True(statefulService.IsDisposed);

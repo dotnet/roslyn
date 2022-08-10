@@ -29,7 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
         private readonly XamlProjectService _projectService;
         private readonly IXamlLanguageServerFeedbackService? _feedbackService;
 
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XamlRequestExecutionQueueFactory(
@@ -119,49 +118,4 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             }
         }
     }
-
-    /// <summary>
-    /// Implements the Language Server Protocol for XAML
-    /// </summary>
-    //[ExportLspServiceFactory(typeof(RoslynRequestDispatcher), StringConstants.XamlLspLanguagesContract), Shared]
-    //internal sealed class XamlRequestDispatcherFactory : ILspServiceFactory
-    //{
-    //    private readonly XamlProjectService _projectService;
-    //    private readonly IXamlLanguageServerFeedbackService? _feedbackService;
-
-    //    [ImportingConstructor]
-    //    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    //    public XamlRequestDispatcherFactory(
-    //        XamlProjectService projectService,
-    //        [Import(AllowDefault = true)] IXamlLanguageServerFeedbackService? feedbackService)
-    //    {
-    //        _projectService = projectService;
-    //        _feedbackService = feedbackService;
-    //    }
-
-    //    public override ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-    //    {
-    //        return new XamlRequestDispatcher(_projectService, lspServices, _feedbackService);
-    //    }
-
-    //    private class XamlRequestDispatcher : RoslynRequestDispatcher, ILspService
-    //    {
-    //        private readonly XamlProjectService _projectService;
-    //        private readonly IXamlLanguageServerFeedbackService? _feedbackService;
-
-    //        public XamlRequestDispatcher(
-    //            XamlProjectService projectService,
-    //            LspServices services,
-    //            IXamlLanguageServerFeedbackService? feedbackService) : base(services)
-    //        {
-    //            _projectService = projectService;
-    //            _feedbackService = feedbackService;
-    //        }
-
-    //        protected override ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>> GetRequestHandlers()
-    //        {
-    //            throw new NotImplementedException();
-    //        }
-    //    }
-    //}
 }

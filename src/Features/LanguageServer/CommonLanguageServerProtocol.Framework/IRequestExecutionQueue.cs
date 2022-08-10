@@ -31,7 +31,7 @@ public interface IRequestExecutionQueue<RequestContextType> : IAsyncDisposable
     /// Queue a request.
     /// </summary>
     /// <returns>A task that completes when the handler execution is done.</returns>
-    Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(TRequestType? request, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
+    Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(TRequestType request, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
 
     /// <summary>
     /// Start the queue accepting requests once any event handlers have been attached.

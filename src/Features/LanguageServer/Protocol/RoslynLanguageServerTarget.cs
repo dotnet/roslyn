@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
             var lifeCycleManager = new RoslynLifeCycleManager(this);
-            _baseServices = GetBaseServices(jsonRpc, this, logger, capabilitiesProvider, lifeCycleManager);
+            _baseServices = GetBaseServices();
             _serviceCollection = GetServiceCollection(jsonRpc, this, logger, capabilitiesProvider, lifeCycleManager, serverKind.ToConvertableString(), supportedLanguages);
             _supportedLanguages = supportedLanguages;
         }
@@ -71,19 +71,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 .AddSingleton<LifeCycleManager<RequestContext>>(lifeCycleManager)
                 .AddSingleton(new ServerInfoProvider(serverKind, supportedLanguages))
                 .AddSingleton<IRequestContextFactory<RequestContext>, RequestContextFactory>()
-                // TODO: Are these dangerous because of capturing?
                 .AddSingleton<IRequestExecutionQueue<RequestContext>>((serviceProvider) => GetRequestExecutionQueue())
                 .AddSingleton<IClientCapabilitiesManager, ClientCapabilitiesManager>();
 
             return serviceCollection;
         }
 
-        private static ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> GetBaseServices(
-            JsonRpc jsonRpc,
-            IClientCapabilitiesProvider clientCapabilitiesProvider,
-            IRoslynLspLogger logger,
-            ICapabilitiesProvider capabilitiesProvider,
-            RoslynLifeCycleManager lifeCycleManager)
+        private static ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> GetBaseServices()
         {
             var baseServices = ImmutableArray.Create<Lazy<ILspService, LspServiceMetadataView>>();
 
@@ -103,7 +97,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var asyncToken = _listener.BeginAsyncOperation("RequestExecutionQueue_Errored");
             _errorShutdownTask = Task.Run(async () =>
             {
-                await _logger?.LogInformationAsync("Shutting down language server.");
+                await _logger.LogInformationAsync("Shutting down language server.");
 
                 await clientNotificationService.SendNotificationAsync("window/logMessage", message, CancellationToken.None).ConfigureAwait(false);
 
@@ -118,53 +112,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             return clientCapabilities;
         }
-
-        //internal TestAccessor GetTestAccessor() => new(this);
-
-        //internal class TestAccessor
-        //{
-        //    private readonly RoslynLanguageServer _server;
-
-        //    internal TestAccessor(RoslynLanguageServer server)
-        //    {
-        //        _server = server;
-        //    }
-
-        //    internal Task ExitServerAsync()
-        //    {
-        //        return _server.ExitAsync();
-        //    }
-
-        //    internal RequestExecutionQueue<RequestContext>.TestAccessor GetQueueAccessor()
-        //    {
-        //        var queue = _server.GetRequestExecutionQueue();
-        //        var concreteQueue = (RequestExecutionQueue<RequestContext>)queue;
-        //        return concreteQueue.GetTestAccessor();
-        //    }
-
-        //    internal T GetRequiredLspService<T>() where T : class, ILspService
-        //    {
-        //        var lspServices = _server.GetLspServices();
-
-        //        return lspServices.GetRequiredService<T>();
-        //    }
-
-        //    internal JsonRpc GetServerRpc()
-        //    {
-        //        throw new NotImplementedException();
-        //        // return ((AbstractLanguageServer<RequestContext>)_server).GetTestAccessor().GetServerRpc();
-        //    }
-
-        //    internal bool HasShutdownStarted()
-        //    {
-        //        return _server.HasShutdownStarted;
-        //    }
-
-        //    internal void ShutdownServer()
-        //    {
-        //        _server.ShutdownAsync();
-        //    }
-        //}
 
         public override async ValueTask DisposeAsync()
         {

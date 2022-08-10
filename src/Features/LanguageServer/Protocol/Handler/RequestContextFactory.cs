@@ -21,7 +21,7 @@ internal class RequestContextFactory : IRequestContextFactory<RequestContext>, I
         _lspServices = lspServices;
     }
 
-    public Task<RequestContext?> CreateRequestContextAsync(IQueueItem<RequestContext> queueItem, CancellationToken cancellationToken)
+    public Task<RequestContext> CreateRequestContextAsync(IQueueItem<RequestContext> queueItem, CancellationToken cancellationToken)
     {
         var clientCapabilitiesManager = _lspServices.GetRequiredService<IClientCapabilitiesManager>();
         var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();

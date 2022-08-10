@@ -679,10 +679,10 @@ namespace Roslyn.Test.Utilities
                 // Some tests manually call shutdown, so avoid calling shutdown twice if already called.
                 if (!LanguageServer.HasShutdownStarted)
                 {
-                    LanguageServer.GetTestAccessor().ShutdownServer();
+                    LanguageServer.GetTestAccessor().ShutdownServerAsync();
                 }
 
-                LanguageServer.GetTestAccessor().ExitServer();
+                LanguageServer.GetTestAccessor().ExitServerAsync();
                 TestWorkspace.Dispose();
                 _clientRpc.Dispose();
             }

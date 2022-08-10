@@ -9,8 +9,6 @@ using System.Collections.Immutable;
 
 namespace CommonLanguageServerProtocol.Framework;
 
-#nullable enable
-
 public interface ILspServices : IDisposable
 {
     T GetRequiredService<T>() where T : notnull;
