@@ -138,7 +138,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     executor = executor.With(analysisScope.WithSpan(span));
                     var analyzerAndExistingData = SpecializedCollections.SingletonEnumerable((analyzer, existingData));
                     await ExecuteAnalyzerAsync(executor, analyzerAndExistingData, oldMemberSpans, builder).ConfigureAwait(false);
-
                 }
 
                 async Task ExecuteSpanBasedAnalyzersAsync(
