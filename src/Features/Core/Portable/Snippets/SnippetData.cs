@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets
@@ -17,11 +18,13 @@ namespace Microsoft.CodeAnalysis.Snippets
     {
         public readonly string DisplayName;
         public readonly string SnippetIdentifier;
+        public readonly ImmutableArray<string> AdditionalFilterTexts;
 
-        public SnippetData(string displayName, string snippetIdentifier)
+        public SnippetData(string displayName, string snippetIdentifier, ImmutableArray<string> additionalFilterTexts)
         {
             DisplayName = displayName;
             SnippetIdentifier = snippetIdentifier;
+            AdditionalFilterTexts = additionalFilterTexts;
         }
     }
 }

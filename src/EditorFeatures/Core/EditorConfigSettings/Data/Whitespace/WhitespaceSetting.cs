@@ -131,13 +131,10 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
                 foreach (var enumValue in enumValues)
                 {
-                    if (enumValue != null)
+                    var option = storageLocation?.GetEditorConfigStringValue(enumValue, optionSet);
+                    if (option != null)
                     {
-                        var option = storageLocation?.GetEditorConfigStringValue(enumValue, optionSet);
-                        if (option != null)
-                        {
-                            strings.Add(option);
-                        }
+                        strings.Add(option);
                     }
                 }
 

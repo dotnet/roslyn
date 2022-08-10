@@ -19,15 +19,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TodoComments
 {
     public abstract class AbstractTodoCommentTests
     {
-        protected const string DefaultTokenList = "HACK:1|TODO:1|UNDONE:1|UnresolvedMergeConflict:0";
-
         protected abstract TestWorkspace CreateWorkspace(string codeWithMarker);
 
         protected async Task TestAsync(string codeWithMarker)
         {
             using var workspace = CreateWorkspace(codeWithMarker);
 
-            var tokenList = DefaultTokenList;
+            var tokenList = TodoCommentOptions.Default.TokenList;
             workspace.GlobalOptions.SetGlobalOption(new OptionKey(TodoCommentOptionsStorage.TokenList), tokenList);
 
             var hostDocument = workspace.Documents.First();
