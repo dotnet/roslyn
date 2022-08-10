@@ -98,6 +98,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return internalSymbols.ToImmutableAndFree();
         }
 
+        public bool IsReplaced(IDefinition definition, bool checkEnclosingTypes = false)
+            => definition.GetInternalSymbol() is { } internalSymbol && IsReplaced(internalSymbol.GetISymbol(), checkEnclosingTypes);
+
         public bool IsReplaced(ISymbol symbol, bool checkEnclosingTypes = false)
         {
             ISymbol? currentSymbol = symbol;
@@ -119,9 +122,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
             return false;
         }
-
-        public bool IsReplaced(IDefinition definition, bool checkEnclosingTypes = false)
-            => definition.GetInternalSymbol() is { } internalSymbol && IsReplaced(internalSymbol.GetISymbol(), checkEnclosingTypes);
 
         /// <summary>
         /// True if the symbol is a source symbol added during EnC session. 

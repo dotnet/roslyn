@@ -1414,9 +1414,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal uint GetInterpolatedStringHandlerConversionEscapeScope(
-            InterpolatedStringHandlerData data,
+            BoundExpression expression,
             uint scopeOfTheContainingExpression)
-            => GetValEscape(data.Construction, scopeOfTheContainingExpression);
+        {
+            var data = expression.GetInterpolatedStringHandlerData();
+            uint escapeScope = GetValEscape(data.Construction, scopeOfTheContainingExpression);
+
+            var arguments = ArrayBuilder<BoundExpression>.GetInstance();
+            GetInterpolatedStringHandlerArgumentsForEscape(expression, arguments);
+
+            foreach (var argument in arguments)
+            {
+                uint argEscape = GetValEscape(argument, scopeOfTheContainingExpression);
+                escapeScope = Math.Max(escapeScope, argEscape);
+            }
+
+            arguments.Free();
+            return escapeScope;
+        }
 
 #nullable enable
 
@@ -1820,7 +1835,7 @@ moreArguments:
                 if (UseUpdatedEscapeRules)
                 {
                     // SPEC: For a given argument `a` that is passed to parameter `p`:
-                    // SPEC:  1. ...
+                    // SPEC: 1. ...
                     // SPEC: 2. If `p` is `scoped` then `a` does not contribute *safe-to-escape* when considering arguments.
                     if (parameter?.EffectiveScope == DeclarationScope.ValueScoped)
                     {
@@ -2995,8 +3010,7 @@ moreArguments:
 
                     if (conversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
                     {
-                        var data = conversion.Operand.GetInterpolatedStringHandlerData();
-                        return GetInterpolatedStringHandlerConversionEscapeScope(data, scopeOfTheContainingExpression);
+                        return GetInterpolatedStringHandlerConversionEscapeScope(conversion.Operand, scopeOfTheContainingExpression);
                     }
 
                     return GetValEscape(conversion.Operand, scopeOfTheContainingExpression);
@@ -3808,33 +3822,44 @@ moreArguments:
 
             CheckValEscape(expression.Syntax, data.Construction, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
 
+            var arguments = ArrayBuilder<BoundExpression>.GetInstance();
+            GetInterpolatedStringHandlerArgumentsForEscape(expression, arguments);
+
+            bool result = true;
+            foreach (var argument in arguments)
+            {
+                if (!CheckValEscape(argument.Syntax, argument, escapeFrom, escapeTo, checkingReceiver: false, diagnostics))
+                {
+                    result = false;
+                    break;
+                }
+            }
+
+            arguments.Free();
+            return result;
+        }
+
+        private void GetInterpolatedStringHandlerArgumentsForEscape(BoundExpression expression, ArrayBuilder<BoundExpression> arguments)
+        {
             while (true)
             {
                 switch (expression)
                 {
                     case BoundBinaryOperator binary:
-                        if (!checkParts((BoundInterpolatedString)binary.Right))
-                        {
-                            return false;
-                        }
-
+                        getParts((BoundInterpolatedString)binary.Right);
                         expression = binary.Left;
-                        continue;
+                        break;
 
                     case BoundInterpolatedString interpolatedString:
-                        if (!checkParts(interpolatedString))
-                        {
-                            return false;
-                        }
-
-                        return true;
+                        getParts(interpolatedString);
+                        return;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(expression.Kind);
                 }
             }
 
-            bool checkParts(BoundInterpolatedString interpolatedString)
+            void getParts(BoundInterpolatedString interpolatedString)
             {
                 foreach (var part in interpolatedString.Parts)
                 {
@@ -3847,16 +3872,18 @@ moreArguments:
 
                     // The interpolation component is always the first argument to the method, and it was not passed by name
                     // so there can be no reordering.
-                    var argument = call.Arguments[0];
-                    var success = CheckValEscape(argument.Syntax, argument, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
 
-                    if (!success)
+                    // SPEC: For a given argument `a` that is passed to parameter `p`:
+                    // SPEC: 1. ...
+                    // SPEC: 2. If `p` is `scoped` then `a` does not contribute *safe-to-escape* when considering arguments.
+                    if (UseUpdatedEscapeRules &&
+                        call.Method.Parameters[0].EffectiveScope == DeclarationScope.ValueScoped)
                     {
-                        return false;
+                        continue;
                     }
-                }
 
-                return true;
+                    arguments.Add(call.Arguments[0]);
+                }
             }
         }
 

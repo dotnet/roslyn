@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignment
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var editor = document.GetSyntaxEditor(memberDeclaration);
+            var editor = new SyntaxEditor(memberDeclaration, document.Project.Solution.Services);
             foreach (var child in memberDeclaration.DescendantNodes())
             {
                 switch (child)
