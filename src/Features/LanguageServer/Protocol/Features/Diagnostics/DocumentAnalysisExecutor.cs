@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -180,9 +180,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
                 return resultAndTelemetry.AnalysisResult;
             }
-            catch
+            catch when (_onAnalysisException != null)
             {
-                _onAnalysisException?.Invoke();
+                _onAnalysisException.Invoke();
                 throw;
             }
         }
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 builder.Add(DiagnosticData.Create(diagnostic, textDocument));
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
     }
 }

@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Snippets
     {
         public abstract string SnippetIdentifier { get; }
         public abstract string SnippetDisplayName { get; }
+
+        public virtual ImmutableArray<string> AdditionalFilterTexts => ImmutableArray<string>.Empty;
 
         protected readonly SyntaxAnnotation _cursorAnnotation = new();
         protected readonly SyntaxAnnotation _findSnippetAnnotation = new();
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Snippets
                 return null;
             }
 
-            return new SnippetData(SnippetDisplayName, SnippetIdentifier);
+            return new SnippetData(SnippetDisplayName, SnippetIdentifier, AdditionalFilterTexts);
         }
 
         /// <summary>

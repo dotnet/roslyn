@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// <summary>
         /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
         /// </summary>
-        internal static TNode Expand<TNode>(TNode node, SemanticModel semanticModel, HostSolutionServices services, Func<SyntaxNode, bool>? expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default) where TNode : SyntaxNode
+        internal static TNode Expand<TNode>(TNode node, SemanticModel semanticModel, SolutionServices services, Func<SyntaxNode, bool>? expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default) where TNode : SyntaxNode
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// <summary>
         /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
         /// </summary>
-        internal static SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, HostSolutionServices services, Func<SyntaxNode, bool>? expandInsideNode = null, CancellationToken cancellationToken = default)
+        internal static SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, SolutionServices services, Func<SyntaxNode, bool>? expandInsideNode = null, CancellationToken cancellationToken = default)
         {
             if (semanticModel == null)
                 throw new ArgumentNullException(nameof(semanticModel));

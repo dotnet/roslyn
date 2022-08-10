@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.Snippets
         public override string SnippetIdentifier => "cw";
 
         public override string SnippetDisplayName => FeaturesResources.Write_to_the_console;
+
+        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("Console", "WriteLine");
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {

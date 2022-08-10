@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (UseUpdatedEscapeRules)
             {
-                return parameter.Scope == DeclarationScope.ValueScoped ?
+                return parameter.EffectiveScope == DeclarationScope.ValueScoped ?
                     Binder.TopLevelScope :
                     Binder.ExternalScope;
             }
@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (UseUpdatedEscapeRules)
             {
-                return parameter.RefKind is RefKind.None || parameter.Scope != DeclarationScope.Unscoped ? Binder.TopLevelScope : Binder.ExternalScope;
+                return parameter.RefKind is RefKind.None || parameter.EffectiveScope != DeclarationScope.Unscoped ? Binder.TopLevelScope : Binder.ExternalScope;
             }
             else
             {
@@ -1414,9 +1414,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal uint GetInterpolatedStringHandlerConversionEscapeScope(
-            InterpolatedStringHandlerData data,
+            BoundExpression expression,
             uint scopeOfTheContainingExpression)
-            => GetValEscape(data.Construction, scopeOfTheContainingExpression);
+        {
+            var data = expression.GetInterpolatedStringHandlerData();
+            uint escapeScope = GetValEscape(data.Construction, scopeOfTheContainingExpression);
+
+            var arguments = ArrayBuilder<BoundExpression>.GetInstance();
+            GetInterpolatedStringHandlerArgumentsForEscape(expression, arguments);
+
+            foreach (var argument in arguments)
+            {
+                uint argEscape = GetValEscape(argument, scopeOfTheContainingExpression);
+                escapeScope = Math.Max(escapeScope, argEscape);
+            }
+
+            arguments.Free();
+            return escapeScope;
+        }
 
 #nullable enable
 
@@ -1820,9 +1835,9 @@ moreArguments:
                 if (UseUpdatedEscapeRules)
                 {
                     // SPEC: For a given argument `a` that is passed to parameter `p`:
-                    // SPEC:  1. ...
+                    // SPEC: 1. ...
                     // SPEC: 2. If `p` is `scoped` then `a` does not contribute *safe-to-escape* when considering arguments.
-                    if (parameter?.Scope == DeclarationScope.ValueScoped)
+                    if (parameter?.EffectiveScope == DeclarationScope.ValueScoped)
                     {
                         return false;
                     }
@@ -1909,7 +1924,7 @@ moreArguments:
                 }
             }
 
-            scope = paramIndex >= 0 ? parameters[paramIndex].Scope : DeclarationScope.Unscoped;
+            scope = paramIndex >= 0 ? parameters[paramIndex].EffectiveScope : DeclarationScope.Unscoped;
             return effectiveRefKind;
         }
 
@@ -2227,12 +2242,23 @@ moreArguments:
                     return ((BoundLocal)expr).LocalSymbol.RefEscapeScope;
 
                 case BoundKind.ThisReference:
+                    Debug.Assert(this.ContainingMember() is MethodSymbol { ThisParameter: not null });
+
                     var thisref = (BoundThisReference)expr;
 
                     // "this" is an RValue, unless in a struct.
                     if (!thisref.Type.IsValueType)
                     {
                         break;
+                    }
+
+                    if (UseUpdatedEscapeRules)
+                    {
+                        if (this.ContainingMember() is MethodSymbol { ThisParameter: var thisParameter } &&
+                            thisParameter.EffectiveScope == DeclarationScope.Unscoped)
+                        {
+                            return Binder.ExternalScope;
+                        }
                     }
 
                     //"this" is not returnable by reference in a struct.
@@ -2481,6 +2507,8 @@ moreArguments:
                     return CheckLocalRefEscape(node, local, escapeTo, checkingReceiver, diagnostics);
 
                 case BoundKind.ThisReference:
+                    Debug.Assert(this.ContainingMember() is MethodSymbol { ThisParameter: not null });
+
                     var thisref = (BoundThisReference)expr;
 
                     // "this" is an RValue, unless in a struct.
@@ -2492,6 +2520,15 @@ moreArguments:
                     //"this" is not returnable by reference in a struct.
                     if (escapeTo == Binder.ExternalScope)
                     {
+                        if (UseUpdatedEscapeRules)
+                        {
+                            if (this.ContainingMember() is MethodSymbol { ThisParameter: var thisParameter } &&
+                                thisParameter.EffectiveScope == DeclarationScope.Unscoped)
+                            {
+                                // can ref escape to any other level
+                                return true;
+                            }
+                        }
                         Error(diagnostics, ErrorCode.ERR_RefReturnStructThis, node);
                         return false;
                     }
@@ -2973,8 +3010,7 @@ moreArguments:
 
                     if (conversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
                     {
-                        var data = conversion.Operand.GetInterpolatedStringHandlerData();
-                        return GetInterpolatedStringHandlerConversionEscapeScope(data, scopeOfTheContainingExpression);
+                        return GetInterpolatedStringHandlerConversionEscapeScope(conversion.Operand, scopeOfTheContainingExpression);
                     }
 
                     return GetValEscape(conversion.Operand, scopeOfTheContainingExpression);
@@ -3786,33 +3822,44 @@ moreArguments:
 
             CheckValEscape(expression.Syntax, data.Construction, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
 
+            var arguments = ArrayBuilder<BoundExpression>.GetInstance();
+            GetInterpolatedStringHandlerArgumentsForEscape(expression, arguments);
+
+            bool result = true;
+            foreach (var argument in arguments)
+            {
+                if (!CheckValEscape(argument.Syntax, argument, escapeFrom, escapeTo, checkingReceiver: false, diagnostics))
+                {
+                    result = false;
+                    break;
+                }
+            }
+
+            arguments.Free();
+            return result;
+        }
+
+        private void GetInterpolatedStringHandlerArgumentsForEscape(BoundExpression expression, ArrayBuilder<BoundExpression> arguments)
+        {
             while (true)
             {
                 switch (expression)
                 {
                     case BoundBinaryOperator binary:
-                        if (!checkParts((BoundInterpolatedString)binary.Right))
-                        {
-                            return false;
-                        }
-
+                        getParts((BoundInterpolatedString)binary.Right);
                         expression = binary.Left;
-                        continue;
+                        break;
 
                     case BoundInterpolatedString interpolatedString:
-                        if (!checkParts(interpolatedString))
-                        {
-                            return false;
-                        }
-
-                        return true;
+                        getParts(interpolatedString);
+                        return;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(expression.Kind);
                 }
             }
 
-            bool checkParts(BoundInterpolatedString interpolatedString)
+            void getParts(BoundInterpolatedString interpolatedString)
             {
                 foreach (var part in interpolatedString.Parts)
                 {
@@ -3825,16 +3872,18 @@ moreArguments:
 
                     // The interpolation component is always the first argument to the method, and it was not passed by name
                     // so there can be no reordering.
-                    var argument = call.Arguments[0];
-                    var success = CheckValEscape(argument.Syntax, argument, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
 
-                    if (!success)
+                    // SPEC: For a given argument `a` that is passed to parameter `p`:
+                    // SPEC: 1. ...
+                    // SPEC: 2. If `p` is `scoped` then `a` does not contribute *safe-to-escape* when considering arguments.
+                    if (UseUpdatedEscapeRules &&
+                        call.Method.Parameters[0].EffectiveScope == DeclarationScope.ValueScoped)
                     {
-                        return false;
+                        continue;
                     }
-                }
 
-                return true;
+                    arguments.Add(call.Arguments[0]);
+                }
             }
         }
 

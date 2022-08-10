@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
-            var editor = document.GetSyntaxEditor(root);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
             // We use the callback form of ReplaceNode because we may have nested code that
             // needs to be updated in fix-all situations.  For example, nested foreach statements.

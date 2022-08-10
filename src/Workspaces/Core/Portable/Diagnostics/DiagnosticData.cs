@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
 
         /// <summary>

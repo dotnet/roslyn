@@ -625,6 +625,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">{0}을(를) 삭제하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
+        <source>Deleting {0} requires restarting the application because is not supported by the runtime.</source>
+        <target state="new">Deleting {0} requires restarting the application because is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
         <source>Deleting captured variable '{0}' requires restarting the application.</source>
         <target state="translated">캡처된 변수 '{0}'을(를) 삭제하려면 응용 프로그램을 다시 시작해야 합니다.</target>
@@ -3993,16 +3998,6 @@ Do you want to continue?</source>
 '{1}'.</source>
         <target state="translated">'{0}' 분석기에서 다음 예외를 throw했습니다.
 '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Names">
-        <source>Simplify Names</source>
-        <target state="translated">이름 단순화</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Member_Access">
-        <source>Simplify Member Access</source>
-        <target state="translated">멤버 액세스 단순화</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_qualification">
