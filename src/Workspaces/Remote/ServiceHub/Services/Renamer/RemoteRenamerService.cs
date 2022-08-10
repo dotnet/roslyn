@@ -78,21 +78,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (symbol == null)
                     return null;
 
-<<<<<<< HEAD
-                var result = await LightweightRenameLocations.FindRenameLocationsAsync(
-                    symbol, solution, options, cancellationToken).ConfigureAwait(false);
-
-                return result.Dehydrate();
-=======
                 var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(
-                    symbol, solution, options, GetClientOptionsProvider(callbackId), cancellationToken).ConfigureAwait(false);
+                    symbol, solution, options, cancellationToken).ConfigureAwait(false);
 
                 return new SerializableRenameLocations(
                     options,
                     renameLocations.Locations.SelectAsArray(SerializableRenameLocation.Dehydrate),
                     renameLocations.ImplicitLocations.SelectAsArray(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)),
                     renameLocations.ReferencedSymbols.SelectAsArray(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)));
->>>>>>> features/FixAllNamingViolation
             }, cancellationToken);
         }
 
@@ -113,11 +106,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var locations = await SymbolicRenameLocations.TryRehydrateAsync(
                     symbol, solution, GetClientOptionsProvider(callbackId), serializableLocations, cancellationToken).ConfigureAwait(false);
+
                 if (locations is null)
                     return null;
 
+                var fallBackOptions = GetClientOptionsProvider(callbackId);
                 var result = await ConflictResolver.ResolveSymbolicLocationConflictsInCurrentProcessAsync(
-                    locations, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+                    locations, replacementText, nonConflictSymbolKeys, fallBackOptions, cancellationToken).ConfigureAwait(false);
 
                 return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);

@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 try
                 {
-                    var symbolContext = new RenameSymbolContext
+                    var symbolContext = new RenamedSymbolContext
                     (
                         ReplacementText: _replacementText,
                         OriginalText: _originalText,

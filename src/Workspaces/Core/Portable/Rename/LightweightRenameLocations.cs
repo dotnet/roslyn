@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Rename
                         {
                             var rehydratedLocations = await result.Value.RehydrateLocationsAsync(solution, cancellationToken).ConfigureAwait(false);
                             return new LightweightRenameLocations(
-                                solution, options, fallbackOptions,
+                                solution, options,
                                 rehydratedLocations,
                                 result.Value.ImplicitLocations,
                                 result.Value.ReferencedSymbols);

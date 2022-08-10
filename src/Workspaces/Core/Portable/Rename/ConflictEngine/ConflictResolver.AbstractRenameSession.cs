@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -449,29 +450,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     .Select(s => (s, _renameAnnotations.GetAnnotations<RenameActionAnnotation>(s).Single()));
             }
 
-            private ImmutableArray<ISymbol> GetSymbolsInNewSolution(Document newDocument, SemanticModel newDocumentSemanticModel, RenameActionAnnotation conflictAnnotation, SyntaxNodeOrToken tokenOrNode)
-            {
-                var newReferencedSymbols = RenameUtilities.GetSymbolsTouchingPosition(tokenOrNode.Span.Start, newDocumentSemanticModel, newDocument.Project.Solution.Workspace.Services, CancellationToken);
-
-                if (conflictAnnotation.IsInvocationExpression)
-                {
-                    if (tokenOrNode.IsNode)
-                    {
-                        var invocationReferencedSymbols = SymbolsForEnclosingInvocationExpressionWorker((SyntaxNode)tokenOrNode!, newDocumentSemanticModel, CancellationToken);
-                        if (!invocationReferencedSymbols.IsDefault)
-                            newReferencedSymbols = invocationReferencedSymbols;
-                    }
-                }
-
-                // if there are more than one symbol, then remove the alias symbols.
-                // When using (not declaring) an alias, the alias symbol and the target symbol are returned
-                // by GetSymbolsTouchingPosition
-                if (newReferencedSymbols.Length >= 2)
-                    newReferencedSymbols = newReferencedSymbols.WhereAsArray(a => a.Kind != SymbolKind.Alias);
-
-                return newReferencedSymbols;
-            }
-
             private async Task<ImmutableHashSet<ISymbol>> GetNonConflictSymbolsAsync(Project currentProject)
             {
                 if (_nonConflictSymbolKeys.IsDefault)
@@ -621,13 +599,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             private ImmutableArray<ISymbol> GetSymbolsInNewSolution(Document newDocument, SemanticModel newDocumentSemanticModel, RenameActionAnnotation conflictAnnotation, SyntaxNodeOrToken tokenOrNode)
             {
-                var newReferencedSymbols = RenameUtilities.GetSymbolsTouchingPosition(tokenOrNode.Span.Start, newDocumentSemanticModel, newDocument.Project.Solution.Services, _cancellationToken);
+                var newReferencedSymbols = RenameUtilities.GetSymbolsTouchingPosition(tokenOrNode.Span.Start, newDocumentSemanticModel, newDocument.Project.Solution.Services, CancellationToken);
 
                 if (conflictAnnotation.IsInvocationExpression)
                 {
                     if (tokenOrNode.IsNode)
                     {
-                        var invocationReferencedSymbols = SymbolsForEnclosingInvocationExpressionWorker((SyntaxNode)tokenOrNode!, newDocumentSemanticModel, _cancellationToken);
+                        var invocationReferencedSymbols = SymbolsForEnclosingInvocationExpressionWorker((SyntaxNode)tokenOrNode!, newDocumentSemanticModel, CancellationToken);
                         if (!invocationReferencedSymbols.IsDefault)
                             newReferencedSymbols = invocationReferencedSymbols;
                     }
@@ -640,25 +618,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     newReferencedSymbols = newReferencedSymbols.WhereAsArray(a => a.Kind != SymbolKind.Alias);
 
                 return newReferencedSymbols;
-            }
-
-            private async Task<ISymbol> GetRenamedSymbolInCurrentSolutionAsync(MutableConflictResolution conflictResolution)
-            {
-                try
-                {
-                    // get the renamed symbol in complexified new solution
-                    var start = _documentOfRenameSymbolHasBeenRenamed
-                        ? conflictResolution.GetAdjustedTokenStartingPosition(_renameSymbolDeclarationLocation.SourceSpan.Start, _documentIdOfRenameSymbolDeclaration)
-                        : _renameSymbolDeclarationLocation.SourceSpan.Start;
-
-                    var document = conflictResolution.CurrentSolution.GetRequiredDocument(_documentIdOfRenameSymbolDeclaration);
-                    var newSymbol = await SymbolFinder.FindSymbolAtPositionAsync(document, start, cancellationToken: _cancellationToken).ConfigureAwait(false);
-                    return newSymbol;
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical))
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
             }
 
             /// <summary>
@@ -688,7 +647,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     foreach (var language in documentsFromAffectedProjects.Select(d => d.Project.Language).Distinct())
                     {
                         solution.Services.GetProjectServices(language).GetService<IRenameRewriterLanguageService>()
-                            ?.TryAddPossibleNameConflicts(symbol, _replacementText, _possibleNameConflicts);
+                            ?.TryAddPossibleNameConflicts(symbol, replacementText, possibleNameConflicts);
                     }
 
                     await AddDocumentsWithPotentialConflictsAsync(

@@ -175,12 +175,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return true;
         }
 
-        private static bool IsRenameValid(MutableConflictResolution conflictResolution, ISymbol renamedSymbol)
-        {
-            // if we rename an identifier and it now binds to a symbol from metadata this should be treated as
-            // an invalid rename.
-            return conflictResolution.ReplacementTextValid && renamedSymbol != null && renamedSymbol.Locations.Any(static loc => loc.IsInSource);
-        }
+        // private static bool IsRenameValid(MutableConflictResolution conflictResolution, ISymbol renamedSymbol)
+        // {
+        //     // if we rename an identifier and it now binds to a symbol from metadata this should be treated as
+        //     // an invalid rename.
+        //     return conflictResolution.ReplacementTextValid && renamedSymbol != null && renamedSymbol.Locations.Any(static loc => loc.IsInSource);
+        // }
 
         private static async Task AddImplicitConflictsAsync(
             ISymbol renamedSymbol,
