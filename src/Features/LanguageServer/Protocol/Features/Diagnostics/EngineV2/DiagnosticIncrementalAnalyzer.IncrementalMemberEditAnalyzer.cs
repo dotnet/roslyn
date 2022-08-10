@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var span = spanBased ? changedMember.FullSpan : (TextSpan?)null;
                     executor = executor.With(analysisScope.WithSpan(span));
                     var analyzerAndExistingData = SpecializedCollections.SingletonEnumerable((analyzer, existingData));
-                    await ExecuteAnalyzerAsync(executor, analyzerAndExistingData, oldMemberSpans, builder).ConfigureAwait(false);
+                    await ExecuteAnalyzersAsync(executor, analyzerAndExistingData, oldMemberSpans, builder).ConfigureAwait(false);
                 }
 
                 async Task ExecuteSpanBasedAnalyzersAsync(
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return;
 
                     executor = executor.With(analysisScope.WithSpan(changedMember.FullSpan));
-                    await ExecuteAnalyzerAsync(executor, analyzersAndExistingData, oldMemberSpans, builder).ConfigureAwait(false);
+                    await ExecuteAnalyzersAsync(executor, analyzersAndExistingData, oldMemberSpans, builder).ConfigureAwait(false);
                 }
 
                 async Task ExecuteDocumentBasedAnalyzersAsync(
@@ -161,10 +161,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return;
 
                     executor = executor.With(analysisScope.WithSpan(null));
-                    await ExecuteAnalyzerAsync(executor, analyzersAndExistingData, oldMemberSpans, builder).ConfigureAwait(false);
+                    await ExecuteAnalyzersAsync(executor, analyzersAndExistingData, oldMemberSpans, builder).ConfigureAwait(false);
                 }
 
-                async Task ExecuteAnalyzerAsync(
+                async Task ExecuteAnalyzersAsync(
                     DocumentAnalysisExecutor executor,
                     IEnumerable<(DiagnosticAnalyzer, DocumentAnalysisData)> analyzersAndExistingData,
                     ImmutableArray<TextSpan> oldMemberSpans,
