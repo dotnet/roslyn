@@ -300,49 +300,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 var operation = (IMethodBodyOperation)semanticModel.GetRequiredOperation(method, cancellationToken);
                 // property default hashcode and equals methods compare all fields
                 // when generated, including underlying fields accessed from properties
-                var expectedFields = type.GetMembers().OfType<IFieldSymbol>();
+                var expectedFields = type.GetMembers().OfType<IFieldSymbol>().AsImmutable();
 
                 if (methodSymbol.Name == "Clone")
                 {
                     // remove clone method as clone is a reserved method name in records
                     modifiedMembers.Remove(method);
                 }
-                else if (methodSymbol.Name == nameof(GetHashCode) &&
-                    methodSymbol.Parameters.IsEmpty &&
-                    UseSystemHashCode.Analyzer.TryGetAnalyzer(semanticModel.Compilation, out var analyzer))
+                else if (CSharpOperationAnalysisHelpers.IsSimpleHashCodeMethod(
+                    methodSymbol, operation, expectedFields, semanticModel.Compilation))
                 {
-                    // Hash Code method, see if it would be a default implementation that we can remove
-                    var (_, members, _) = analyzer.GetHashedMembers(methodSymbol, operation.BlockBody);
-                    if (members != null)
-                    {
-                        // the user could access a member using either the property or the underlying field
-                        // so anytime they access a property instead of the underlying field we convert it to the
-                        // corresponding underlying field
-                        var actualMembers = members
-                            .SelectAsArray(member => member switch
-                            {
-                                IFieldSymbol field => field,
-                                IPropertySymbol property => property.GetBackingFieldIfAny(),
-                                _ => null
-                            }).WhereNotNull().AsImmutable();
-
-                        if (!actualMembers.HasDuplicates(SymbolEqualityComparer.Default) &&
-                            actualMembers.SetEquals(expectedFields))
-                        {
-                            modifiedMembers.Remove(method);
-                        }
-                    }
+                    modifiedMembers.Remove(method);
                 }
-                else if (methodSymbol.Name == nameof(Equals) &&
-                    methodSymbol.Parameters.IsSingle())
+                else if (CSharpOperationAnalysisHelpers.IsSimpleEqualsMethod(
+                    methodSymbol, operation, expectedFields, semanticModel.Compilation))
                 {
-                    var actualMembers = CSharpOperationAnalysisHelpers.GetEqualizedMembers(operation, methodSymbol);
-                    if (!actualMembers.HasDuplicates(EqualityComparer<IFieldSymbol>.Default) &&
-                        actualMembers.SetEquals(expectedFields))
-                    {
-                        // the Equals method implementation is fundamentally equivalent to the generated one
-                        modifiedMembers.Remove(method);
-                    }
+                    // the Equals method implementation is fundamentally equivalent to the generated one
+                    modifiedMembers.Remove(method);
                 }
             }
 

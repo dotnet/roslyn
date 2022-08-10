@@ -18,82 +18,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
 {
     internal static class CSharpOperationAnalysisHelpers
     {
-        /// <summary>
-        /// Get all the fields (including implicit fields underlying properties) that this
-        /// equals method compares
-        /// </summary>
-        /// <param name="operation"></param>
-        /// <param name="methodSymbol">the symbol of the equals method</param>
-        /// <returns></returns>
-        public static ImmutableArray<IFieldSymbol> GetEqualizedMembers(
-            IMethodBodyOperation operation,
-            IMethodSymbol methodSymbol)
+        public static bool IsSimpleEqualsMethod(
+            IMethodSymbol methodSymbol,
+            IMethodBodyOperation methodBodyOperation,
+            ImmutableArray<IFieldSymbol> expectedComparedFields,
+            Compilation compilation)
         {
-            var type = methodSymbol.ContainingType;
-
-            var body = operation.BlockBody ?? operation.ExpressionBody;
-
-            if (body == null || !methodSymbol.Parameters.IsSingle())
-                return ImmutableArray<IFieldSymbol>.Empty;
-
-            var bodyOps = body.Operations;
-            var parameter = methodSymbol.Parameters.First();
-            var _ = ArrayBuilder<IFieldSymbol>.GetInstance(out var members);
-            ISymbol? otherC = null;
-            IEnumerable<IOperation>? statementsToCheck = null;
-
-            // see whether we are calling on a param of the same type or of object
-            if (parameter.Type.Equals(type))
+            if (methodSymbol.Name == nameof(Equals) &&
+                methodSymbol.Parameters.IsSingle() &&
+                OverridesEquals(compilation, methodSymbol))
             {
-                // we need to check all the statements, and we already have the
-                // variable that is used to access the members
-                otherC = parameter;
-                statementsToCheck = bodyOps;
-            }
-            else if (parameter.Type.SpecialType == SpecialType.System_Object)
-            {
-                // we could look for some cast which rebinds the parameter
-                // to a local of the type such as any of the following:
-                // var otherc = other as C; *null and additional equality checks*
-                // if (other is C otherc) { *additional equality checks* } (optional else) return false;
-                // if (other is not C otherc) { return false; } (optional else) { *additional equality checks* }
-                // if (other is C) { otherc = (C) other;  *additional equality checks* } (optional else) return false;
-                // if (other is not C) { return false; } (optional else) { otherc = (C) other;  *additional equality checks* }
-                // return other is C otherC && ...
-                // return !(other is not C otherC || ...
-
-                // check for single return operation which binds the variable as the first condition in a sequence
-                if (bodyOps is [IReturnOperation { ReturnedValue: IOperation value }])
-                {
-                    otherC = TryAddEqualizedMembersForConditionWithoutBinding(members, value, successRequirement: true, type);
-                    if (otherC != null)
-                        // no more statements to check as this was a return operation
-                        return members.ToImmutable();
-                }
-
-                // check for the first statement as an explicit cast to a variable declaration
-                // like: var otherC = other as C;
-                otherC = GetAssignmentToParameterWithExplicitCast(bodyOps.FirstOrDefault(), parameter);
-                if (otherC != null)
-                {
-                    statementsToCheck = bodyOps.Skip(1);
-                }
-                // check for the first statement as an if statement where the cast check occurs
-                // and a variable assignment happens (either in the if or in a following statement
-                else if (!TryGetBindingCastInFirstIfStatement(bodyOps, type, members, parameter, out otherC, out statementsToCheck))
-                {
-                    return ImmutableArray<IFieldSymbol>.Empty;
-                }
+                var actualMembers = GetEqualizedMembers(methodBodyOperation, methodSymbol);
+                return !actualMembers.HasDuplicates(EqualityComparer<IFieldSymbol>.Default) &&
+                        actualMembers.SetEquals(expectedComparedFields);
             }
 
-            if (otherC == null || statementsToCheck == null ||
-                !TryAddEqualizedMembersForStatements(statementsToCheck, otherC, type, members))
-            {
-                // no patterns matched to bind variable or statements didn't match expectation
-                return ImmutableArray<IFieldSymbol>.Empty;
-            }
+            return false;
+        }
 
-            return members.ToImmutable();
+        public static bool IsSimpleHashCodeMethod(
+            IMethodSymbol methodSymbol,
+            IMethodBodyOperation methodOperation,
+            ImmutableArray<IFieldSymbol> expectedHashedFields,
+            Compilation compilation)
+        {
+            if (methodSymbol.Name == nameof(GetHashCode) &&
+                methodSymbol.Parameters.IsEmpty &&
+                UseSystemHashCode.Analyzer.TryGetAnalyzer(compilation, out var analyzer))
+            {
+                // Hash Code method, see if it would be a default implementation that we can remove
+                var (_, members, _) = analyzer.GetHashedMembers(methodSymbol, methodOperation.BlockBody);
+                if (members != default)
+                {
+                    // the user could access a member using either the property or the underlying field
+                    // so anytime they access a property instead of the underlying field we convert it to the
+                    // corresponding underlying field
+                    var actualMembers = members
+                        .SelectAsArray(member => member switch
+                        {
+                            IFieldSymbol field => field,
+                            IPropertySymbol property => property.GetBackingFieldIfAny(),
+                            _ => null
+                        }).WhereNotNull().AsImmutable();
+
+                    return !actualMembers.HasDuplicates(SymbolEqualityComparer.Default) &&
+                            actualMembers.SetEquals(expectedHashedFields);
+                }
+            }
+            return false;
         }
 
         /// <summary>
@@ -238,6 +210,84 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
             }
             // all conditions passed individually, make sure all properties were assigned to
             return propertiesAlreadyAssigned.Count == properties.Length;
+        }
+
+        /// <summary>
+        /// Get all the fields (including implicit fields underlying properties) that this
+        /// equals method compares
+        /// </summary>
+        /// <param name="operation"></param>
+        /// <param name="methodSymbol">the symbol of the equals method</param>
+        /// <returns></returns>
+        private static ImmutableArray<IFieldSymbol> GetEqualizedMembers(
+            IMethodBodyOperation operation,
+            IMethodSymbol methodSymbol)
+        {
+            var type = methodSymbol.ContainingType;
+
+            var body = operation.BlockBody ?? operation.ExpressionBody;
+
+            if (body == null || !methodSymbol.Parameters.IsSingle())
+                return ImmutableArray<IFieldSymbol>.Empty;
+
+            var bodyOps = body.Operations;
+            var parameter = methodSymbol.Parameters.First();
+            var _ = ArrayBuilder<IFieldSymbol>.GetInstance(out var members);
+            ISymbol? otherC = null;
+            IEnumerable<IOperation>? statementsToCheck = null;
+
+            // see whether we are calling on a param of the same type or of object
+            if (parameter.Type.Equals(type))
+            {
+                // we need to check all the statements, and we already have the
+                // variable that is used to access the members
+                otherC = parameter;
+                statementsToCheck = bodyOps;
+            }
+            else if (parameter.Type.SpecialType == SpecialType.System_Object)
+            {
+                // we could look for some cast which rebinds the parameter
+                // to a local of the type such as any of the following:
+                // var otherc = other as C; *null and additional equality checks*
+                // if (other is C otherc) { *additional equality checks* } (optional else) return false;
+                // if (other is not C otherc) { return false; } (optional else) { *additional equality checks* }
+                // if (other is C) { otherc = (C) other;  *additional equality checks* } (optional else) return false;
+                // if (other is not C) { return false; } (optional else) { otherc = (C) other;  *additional equality checks* }
+                // return other is C otherC && ...
+                // return !(other is not C otherC || ...
+
+                // check for single return operation which binds the variable as the first condition in a sequence
+                if (bodyOps is [IReturnOperation { ReturnedValue: IOperation value }])
+                {
+                    otherC = TryAddEqualizedMembersForConditionWithoutBinding(members, value, successRequirement: true, type);
+                    if (otherC != null)
+                        // no more statements to check as this was a return operation
+                        return members.ToImmutable();
+                }
+
+                // check for the first statement as an explicit cast to a variable declaration
+                // like: var otherC = other as C;
+                otherC = GetAssignmentToParameterWithExplicitCast(bodyOps.FirstOrDefault(), parameter);
+                if (otherC != null)
+                {
+                    statementsToCheck = bodyOps.Skip(1);
+                }
+                // check for the first statement as an if statement where the cast check occurs
+                // and a variable assignment happens (either in the if or in a following statement
+                else if (!TryGetBindingCastInFirstIfStatement(bodyOps, type, members, parameter, out otherC, out statementsToCheck))
+                {
+                    return ImmutableArray<IFieldSymbol>.Empty;
+                }
+            }
+
+            if (otherC == null || statementsToCheck == null ||
+                !TryAddEqualizedMembersForStatements(statementsToCheck, otherC, type, members))
+            {
+                // no patterns matched to bind variable or statements didn't match expectation
+                return ImmutableArray<IFieldSymbol>.Empty;
+            }
+
+            return members.ToImmutable();
         }
 
         /// <summary>
@@ -776,6 +826,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
             remainingStatements = successRequirement ? trueOps : falseOps;
             remainingStatements.Concat(otherOps);
             return true;
+        }
+
+        private static bool OverridesEquals(Compilation compilation, IMethodSymbol? equals)
+        {
+            var objectType = compilation.GetSpecialType(SpecialType.System_Object);
+            var objectEquals = objectType?.GetMembers(nameof(Equals)).FirstOrDefault() as IMethodSymbol;
+
+            var equatableMetadataName = compilation.GetBestTypeByMetadataName("System.IEquatable`1")?.MetadataName;
+            if (equals != null &&
+                equals.ContainingType.Interfaces.FirstOrDefault(
+                    iface => iface.MetadataName == equatableMetadataName) is INamedTypeSymbol equatableType)
+            {
+                if (equatableType.GetMembers(nameof(Equals)).FirstOrDefault() is IMethodSymbol equatableEquals &&
+                    Equals(equals.ContainingType.FindImplementationForInterfaceMember(equatableEquals), equals))
+                {
+                    return true;
+                }
+            }
+
+            while (equals != null)
+            {
+                if (Equals(objectEquals, equals))
+                {
+                    return true;
+                }
+                equals = equals.OverriddenMethod;
+            }
+
+            return false;
         }
     }
 }
