@@ -376,6 +376,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
             VerifyResolution(source, c => c.GetMember("N.C.E"));
         }
 
+        [Fact]
+        public void Field_MissingReturnType()
+        {
+            var source = """
+                namespace N
+                {
+                    public class C
+                    {
+                        public string _f;
+                    }
+                }
+                """;
+
+            VerifyResolution(source, c => c.GetMember("N.C._f"));
+        }
+
         private static void VerifyResolution(string source, Func<Compilation, ISymbol> symbolToResolve)
         {
             var sourceCompilation = (Compilation)CreateCompilation(source, options: new(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
