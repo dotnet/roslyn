@@ -513,7 +513,7 @@ public class Test
 {
     internal protected byte field = 255;    // change modifier and init-value
     internal string P { get { return null; } }       // remove 'set'
-    public int M(ref int n) { return 0;  }   // change ret type
+    public static void M(ref int n) { return 0;  }   // change to static
     event Action<string> myEvent             // add add/remove
     {
         add { }
