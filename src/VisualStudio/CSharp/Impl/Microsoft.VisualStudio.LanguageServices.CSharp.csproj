@@ -57,7 +57,4 @@
       <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="EditorConfigSettings\" />
-  </ItemGroup>
 </Project>
