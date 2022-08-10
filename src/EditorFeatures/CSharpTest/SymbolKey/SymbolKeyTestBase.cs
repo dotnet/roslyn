@@ -109,11 +109,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
             var ret = CodeAnalysis.SymbolKey.GetComparer(ignoreCase, ignoreAssemblyIds).Equals(sid2, sid1);
             if (expectEqual)
             {
-                Assert.True(ret, message);
+                Assert.True(ret, message + $"\r\nSymbols didn't match:\r\nsid1: {sid1}\r\nsid2: {sid2}");
             }
             else
             {
-                Assert.False(ret, message);
+                Assert.False(ret, message + $"\r\nSymbols shouldn't have matched:\r\nsid1: {sid1}\r\nsid2: {sid2}");
             }
         }
 
