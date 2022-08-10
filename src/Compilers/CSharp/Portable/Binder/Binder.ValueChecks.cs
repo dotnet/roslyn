@@ -1435,90 +1435,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
-        private static void GetInvocationArgumentsForEscape(
-            Symbol symbol,
-            BoundExpression? receiver,
-            ImmutableArray<ParameterSymbol> parameters,
-            ImmutableArray<BoundExpression> argsOpt,
-            ImmutableArray<RefKind> argRefKindsOpt,
-            ImmutableArray<int> argsToParamsOpt,
-            bool ignoreArglistRefKinds, // PROTOTYPE: for compatibility with C#10 behavior; investivate if correct or necessary
-            ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, RefKind RefKind)> argsAndParams)
-        {
-            if (receiver is { })
-            {
-                argsAndParams.Add(getReceiver(symbol, receiver));
-            }
-
-            if (!argsOpt.IsDefault)
-            {
-                for (int argIndex = 0; argIndex < argsOpt.Length; argIndex++)
-                {
-                    var argument = argsOpt[argIndex];
-                    if (argument.Kind == BoundKind.ArgListOperator)
-                    {
-                        Debug.Assert(argIndex == argsOpt.Length - 1);
-                        // unwrap varargs and process as more arguments
-                        var argList = (BoundArgListOperator)argument;
-                        getArgList(
-                            argList.Arguments,
-                            ignoreArglistRefKinds ? default : argList.ArgumentRefKindsOpt,
-                            argsAndParams);
-                        break;
-                    }
-
-                    var parameter = argIndex < parameters.Length ?
-                        parameters[argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex]] :
-                        null;
-
-                    var refKind = parameter?.RefKind ?? RefKind.None;
-                    if (!argRefKindsOpt.IsDefault)
-                    {
-                        refKind = argRefKindsOpt[argIndex];
-                        if (refKind == RefKind.None &&
-                            parameter?.RefKind == RefKind.In)
-                        {
-                            refKind = RefKind.In;
-                        }
-                    }
-
-                    argsAndParams.Add((parameter, argument, refKind));
-                }
-            }
-
-            static (ParameterSymbol? Parameter, BoundExpression Argument, RefKind RefKind) getReceiver(Symbol symbol, BoundExpression receiver)
-            {
-                if (symbol is FunctionPointerMethodSymbol)
-                {
-                    return (null, receiver, RefKind.None);
-                }
-                var containingType = symbol.ContainingType;
-                var refKind = containingType.IsStructType() ?
-                    (IsReceiverRefReadOnly(symbol) ? RefKind.RefReadOnly : RefKind.Ref) :
-                    RefKind.None;
-                var method = symbol switch
-                {
-                    MethodSymbol m => m,
-                    PropertySymbol p => p.GetMethod ?? p.SetMethod,
-                    _ => throw ExceptionUtilities.UnexpectedValue(symbol)
-                };
-                return (method?.ThisParameter, receiver, refKind);
-            }
-
-            static void getArgList(
-                ImmutableArray<BoundExpression> argsOpt,
-                ImmutableArray<RefKind> argRefKindsOpt,
-                ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, RefKind RefKind)> argsAndParams)
-            {
-                for (int argIndex = 0; argIndex < argsOpt.Length; argIndex++)
-                {
-                    var argument = argsOpt[argIndex];
-                    var refKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
-                    argsAndParams.Add((null, argument, refKind));
-                }
-            }
-        }
-
         /// <summary>
         /// Computes the scope to which the given invocation can escape
         /// NOTE: the escape scope for ref and val escapes is the same for invocations except for trivial cases (ordinary type returned by val) 
@@ -1807,6 +1723,90 @@ namespace Microsoft.CodeAnalysis.CSharp
             argsAndParamsAll.Free();
 
             return result;
+        }
+
+        private static void GetInvocationArgumentsForEscape(
+            Symbol symbol,
+            BoundExpression? receiver,
+            ImmutableArray<ParameterSymbol> parameters,
+            ImmutableArray<BoundExpression> argsOpt,
+            ImmutableArray<RefKind> argRefKindsOpt,
+            ImmutableArray<int> argsToParamsOpt,
+            bool ignoreArglistRefKinds, // PROTOTYPE: for compatibility with C#10 behavior; investivate if correct or necessary
+            ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, RefKind RefKind)> argsAndParams)
+        {
+            if (receiver is { })
+            {
+                argsAndParams.Add(getReceiver(symbol, receiver));
+            }
+
+            if (!argsOpt.IsDefault)
+            {
+                for (int argIndex = 0; argIndex < argsOpt.Length; argIndex++)
+                {
+                    var argument = argsOpt[argIndex];
+                    if (argument.Kind == BoundKind.ArgListOperator)
+                    {
+                        Debug.Assert(argIndex == argsOpt.Length - 1);
+                        // unwrap varargs and process as more arguments
+                        var argList = (BoundArgListOperator)argument;
+                        getArgList(
+                            argList.Arguments,
+                            ignoreArglistRefKinds ? default : argList.ArgumentRefKindsOpt,
+                            argsAndParams);
+                        break;
+                    }
+
+                    var parameter = argIndex < parameters.Length ?
+                        parameters[argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex]] :
+                        null;
+
+                    var refKind = parameter?.RefKind ?? RefKind.None;
+                    if (!argRefKindsOpt.IsDefault)
+                    {
+                        refKind = argRefKindsOpt[argIndex];
+                        if (refKind == RefKind.None &&
+                            parameter?.RefKind == RefKind.In)
+                        {
+                            refKind = RefKind.In;
+                        }
+                    }
+
+                    argsAndParams.Add((parameter, argument, refKind));
+                }
+            }
+
+            static (ParameterSymbol? Parameter, BoundExpression Argument, RefKind RefKind) getReceiver(Symbol symbol, BoundExpression receiver)
+            {
+                if (symbol is FunctionPointerMethodSymbol)
+                {
+                    return (null, receiver, RefKind.None);
+                }
+                var containingType = symbol.ContainingType;
+                var refKind = containingType.IsStructType() ?
+                    (IsReceiverRefReadOnly(symbol) ? RefKind.RefReadOnly : RefKind.Ref) :
+                    RefKind.None;
+                var method = symbol switch
+                {
+                    MethodSymbol m => m,
+                    PropertySymbol p => p.GetMethod ?? p.SetMethod,
+                    _ => throw ExceptionUtilities.UnexpectedValue(symbol)
+                };
+                return (method?.ThisParameter, receiver, refKind);
+            }
+
+            static void getArgList(
+                ImmutableArray<BoundExpression> argsOpt,
+                ImmutableArray<RefKind> argRefKindsOpt,
+                ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, RefKind RefKind)> argsAndParams)
+            {
+                for (int argIndex = 0; argIndex < argsOpt.Length; argIndex++)
+                {
+                    var argument = argsOpt[argIndex];
+                    var refKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
+                    argsAndParams.Add((null, argument, refKind));
+                }
+            }
         }
 
         /// <summary>
