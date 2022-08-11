@@ -4471,7 +4471,7 @@ class C
                 loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8),
                 filePath: sourceFileA.Path));
 
-            var hotReload = new WatchHotReloadService(workspace.Services, ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
+            var hotReload = new WatchHotReloadService(workspace.Services.SolutionServices, ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
 
             await hotReload.StartSessionAsync(solution, CancellationToken.None);
 
@@ -4538,7 +4538,7 @@ class C
                 loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8),
                 filePath: sourceFileA.Path));
 
-            var hotReload = new UnitTestingHotReloadService(workspace.Services);
+            var hotReload = new UnitTestingHotReloadService(workspace.Services.SolutionServices);
 
             await hotReload.StartSessionAsync(solution, ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"), CancellationToken.None);
 
