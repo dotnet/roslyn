@@ -3,13 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
-    internal sealed class WhitespaceSetting<T> : WhitespaceSetting
+    internal abstract class WhitespaceSetting<T> : WhitespaceSetting
         where T : notnull
     {
         public override bool IsDefinedInEditorConfig => _options.TryGetEditorConfigOption<T>(_option, out _);
