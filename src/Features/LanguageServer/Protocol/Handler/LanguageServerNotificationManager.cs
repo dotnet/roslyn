@@ -5,12 +5,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-public class ClientLanguageServerManager : IClientLanguageServerManager
+internal class ClientLanguageServerManager : IClientLanguageServerManager
 {
     private readonly JsonRpc _jsonRpc;
 
@@ -23,6 +22,9 @@ public class ClientLanguageServerManager : IClientLanguageServerManager
 
         _jsonRpc = jsonRpc;
     }
+
+    public Task<TResponse> SendRequestAsync<TParams, TResponse>(string methodName, TParams @params, CancellationToken cancellationToken)
+        => _jsonRpc.InvokeAsync<TResponse>(methodName, @params);
 
     public async ValueTask SendNotificationAsync(string methodName, CancellationToken cancellationToken)
         => await _jsonRpc.NotifyAsync(methodName).ConfigureAwait(false);

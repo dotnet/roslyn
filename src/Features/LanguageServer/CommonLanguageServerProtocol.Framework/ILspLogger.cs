@@ -9,10 +9,10 @@ namespace CommonLanguageServerProtocol.Framework;
 
 public interface ILspLogger
 {
-    Task LogStartContextAsync(string message);
-    Task LogEndContextAsync(string message);
-    Task LogInformationAsync(string message);
-    Task LogWarningAsync(string message);
-    Task LogErrorAsync(string message);
-    Task LogExceptionAsync(Exception exception);
+    Task LogStartContextAsync(string message, params object[] @params);
+    Task LogEndContextAsync(string message, params object[] @params);
+    Task LogInformationAsync(string message, params object[] @params);
+    Task LogWarningAsync(string message, params object[] @params);
+    Task LogErrorAsync(string message, params object[] @params);
+    Task LogExceptionAsync(Exception exception, string? message = null, params object[] @params);
 }

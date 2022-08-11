@@ -45,38 +45,38 @@ internal class VSMacLspLoggerWrapper : IRoslynLspLogger
         _logger = logger;
     }
 
-    public Task LogErrorAsync(string message)
+    public Task LogErrorAsync(string message, params object[] @params)
     {
         _logger.TraceError(message);
 
         return Task.CompletedTask;
     }
 
-    public Task LogExceptionAsync(Exception exception)
+    public Task LogExceptionAsync(Exception exception, string? message = null, params object[] @params)
     {
         _logger.TraceException(exception);
         return Task.CompletedTask;
     }
 
-    public Task LogInformationAsync(string message)
+    public Task LogInformationAsync(string message, params object[] @params)
     {
         _logger.TraceInformation(message);
         return Task.CompletedTask;
     }
 
-    public Task LogStartContextAsync(string message)
+    public Task LogStartContextAsync(string message, params object[] @params)
     {
         _logger.TraceStart(message);
         return Task.CompletedTask;
     }
 
-    public Task LogEndContextAsync(string message)
+    public Task LogEndContextAsync(string message, params object[] @params)
     {
         _logger.TraceStop(message);
         return Task.CompletedTask;
     }
 
-    public Task LogWarningAsync(string message)
+    public Task LogWarningAsync(string message, params object[] @params)
     {
         _logger.TraceWarning(message);
         return Task.CompletedTask;

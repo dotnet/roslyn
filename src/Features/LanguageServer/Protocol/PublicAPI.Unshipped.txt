@@ -9,6 +9,9 @@ Microsoft.CodeAnalysis.LanguageServer.ExportStatelessLspServiceAttribute.ExportS
 Microsoft.CodeAnalysis.LanguageServer.ExportStatelessLspServiceAttribute.IsStateless.get -> bool
 Microsoft.CodeAnalysis.LanguageServer.ExportStatelessLspServiceAttribute.ServerKind.get -> Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds?
 Microsoft.CodeAnalysis.LanguageServer.ExportStatelessLspServiceAttribute.Type.get -> System.Type
+Microsoft.CodeAnalysis.LanguageServer.Handler.ClientLanguageServerManager.SendNotificationAsync(string methodName, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.LanguageServer.Handler.ClientLanguageServerManager.SendNotificationAsync<TParams>(string methodName, TParams params, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.LanguageServer.Handler.ClientLanguageServerManager.SendRequestAsync<TParams, TResponse>(string methodName, TParams params, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResponse>
 Microsoft.CodeAnalysis.LanguageServer.Handler.IDocumentChangeTracker
 Microsoft.CodeAnalysis.LanguageServer.Handler.IDocumentChangeTracker.StartTracking(System.Uri documentUri, Microsoft.CodeAnalysis.Text.SourceText initialText) -> void
 Microsoft.CodeAnalysis.LanguageServer.Handler.IDocumentChangeTracker.StopTracking(System.Uri documentUri) -> void

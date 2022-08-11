@@ -11,32 +11,32 @@ namespace CommonLanguageServerProtocol.Framework.UnitTests
     {
         public static NoOpLspLogger Instance = new NoOpLspLogger();
 
-        public Task LogErrorAsync(string message)
+        public Task LogErrorAsync(string message, params object[] @params)
         {
             return Task.CompletedTask;
         }
 
-        public Task LogExceptionAsync(Exception exception)
+        public Task LogExceptionAsync(Exception exception, string? message = null, params object[] @params)
         {
             throw exception;
         }
 
-        public Task LogInformationAsync(string message)
+        public Task LogInformationAsync(string message, params object[] @params)
         {
             return Task.CompletedTask;
         }
 
-        public Task LogStartContextAsync(string context)
+        public Task LogStartContextAsync(string context, params object[] @params)
         {
             return Task.CompletedTask;
         }
 
-        public Task LogEndContextAsync(string context)
+        public Task LogEndContextAsync(string context, params object[] @params)
         {
             return Task.CompletedTask;
         }
 
-        public Task LogWarningAsync(string message)
+        public Task LogWarningAsync(string message, params object[] @params)
         {
             return Task.CompletedTask;
         }

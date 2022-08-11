@@ -13,32 +13,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         private NoOpLspLogger() { }
 
-        public Task LogExceptionAsync(Exception exception)
+        public Task LogExceptionAsync(Exception exception, string? message = null, params object[] @params)
         {
             return Task.CompletedTask;
         }
 
-        public Task LogInformationAsync(string message)
+        public Task LogInformationAsync(string message, params object[] @params)
         {
             return Task.CompletedTask;
         }
 
-        public Task LogWarningAsync(string message)
+        public Task LogWarningAsync(string message, params object[] @params)
         {
             return Task.CompletedTask;
         }
 
-        public Task LogErrorAsync(string message)
+        public Task LogErrorAsync(string message, params object[] @params)
         {
             return Task.CompletedTask;
         }
 
-        public Task LogStartContextAsync(string message)
+        public Task LogStartContextAsync(string message, params object[] @params)
         {
             return Task.CompletedTask;
         }
 
-        public Task LogEndContextAsync(string message)
+        public Task LogEndContextAsync(string message, params object[] @params)
         {
             return Task.CompletedTask;
         }
