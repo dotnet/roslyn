@@ -26,5 +26,10 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings.Data
         /// Gets the possible values for the editorconfig setting, returns null if there are no possible values or if it couldn't find the setting.
         /// </summary>
         ImmutableArray<string>? GetSettingValues(OptionSet optionSet);
+
+        /// <summary>
+        /// Returns true if the setting supports severities definition, returns false otherwise.
+        /// </summary>
+        bool SupportsSeverities();
     }
 }

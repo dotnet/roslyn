@@ -75,6 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             {
                 return ImmutableArray.Create(new string[] { "true", "false" });
             }
+
+            public override bool SupportsSeverities() { return true; }
         }
     }
 }

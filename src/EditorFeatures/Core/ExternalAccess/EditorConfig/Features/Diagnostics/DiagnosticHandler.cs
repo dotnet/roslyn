@@ -22,6 +22,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.EditorConfigSettings.Data;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 {
@@ -153,13 +154,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                         string leftSide = splitted[0].Trim(), rightSide = splitted[1].Replace(" ", "");
 
                         var settingsSnapshots = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
-                        var codeStyleSettingsItems = settingsSnapshots.codeStyleSnapshot?.Select(sett => sett.GetSettingName());
-                        var whitespaceSettingsItems = settingsSnapshots.whitespaceSnapshot?.Select(sett => sett.GetSettingName());
-                        var analyzerSettingsItems = settingsSnapshots.analyzerSnapshot?.Select(sett => sett.GetSettingName());
-                        var settingsItems = codeStyleSettingsItems.Concat(whitespaceSettingsItems).Concat(analyzerSettingsItems).WhereNotNull();
+                        var settingsItems = settingsSnapshots.Select(sett => sett.GetSettingName()).WhereNotNull();
 
                         // Checkt that the setting name exists
-                        if (!settingsItems.Contains(leftSide))
+                        if (ShowDiagnosticForSettingName(settingsItems, leftSide))
                         {
                             diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.SettingNotFound, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
                             continue;
@@ -239,6 +237,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 
                 return diagnostics.ToImmutableArray();
 
+                static bool ShowDiagnosticForSettingName(IEnumerable<string> settings, string settingName)
+                {
+                    var prefix = settingName.Split('_').First();
+                    if (prefix == "dotnet" || prefix == "csharp")
+                    {
+                        return !settings.Contains(settingName);
+                    }
+
+                    return false;
+                }
+
                 static DiagnosticData CreateDiagnosticData(TextDocument document, TextLine line, string editorConfigId, DiagnosticSeverity severity, bool isEnabledByDefault, int warningLevel, ProjectId projectId)
                 {
                     var location = new DiagnosticDataLocation(
@@ -259,12 +268,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                     );
                 }
 
-                static bool SettingDefinesSeverities(string settingName, SettingsHelper.SettingsSnapshots settingsSnapshots)
+                static bool SettingDefinesSeverities(string settingName, ImmutableArray<IEditorConfigSettingInfo> settingsSnapshots)
                 {
-                    var codestyleSettings = settingsSnapshots.codeStyleSnapshot?.Where(setting => setting.GetSettingName() == settingName);
+                    var codestyleSettings = settingsSnapshots.Where(setting => setting.GetSettingName() == settingName);
                     if (codestyleSettings.Any())
                     {
-                        return true;
+                        return codestyleSettings.First().SupportsSeverities();
                     }
 
                     return false;
@@ -281,26 +290,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                     return settingName == "csharp_new_line_before_open_brace" || settingName == "csharp_space_between_parentheses";
                 }
 
-                static bool SettingHasValue(string settingName, string settingValue, SettingsHelper.SettingsSnapshots settingsSnapshots, OptionSet optionSet)
+                static bool SettingHasValue(string settingName, string settingValue, ImmutableArray<IEditorConfigSettingInfo> settingsSnapshots, OptionSet optionSet)
                 {
-                    var codestyleSettings = settingsSnapshots.codeStyleSnapshot?.Where(setting => setting.GetSettingName() == settingName);
-                    if (codestyleSettings.Any())
+                    var settings = settingsSnapshots.Where(setting => setting.GetSettingName() == settingName);
+                    if (settings.Any())
                     {
-                        var values = codestyleSettings.First().GetSettingValues(optionSet);
-                        return values != null && values.Contains(settingValue);
-                    }
-
-                    var whitespaceSettings = settingsSnapshots.whitespaceSnapshot?.Where(setting => setting.GetSettingName() == settingName);
-                    if (whitespaceSettings.Any())
-                    {
-                        var values = whitespaceSettings.First().GetSettingValues(optionSet);
-                        return values != null && values.Contains(settingValue);
-                    }
-
-                    var analyzerSettings = settingsSnapshots.analyzerSnapshot?.Where(setting => setting.GetSettingName() == settingName);
-                    if (analyzerSettings.Any())
-                    {
-                        var values = analyzerSettings.First().GetSettingValues(optionSet);
+                        var values = settings.First().GetSettingValues(optionSet);
                         return values != null && values.Contains(settingValue);
                     }
 

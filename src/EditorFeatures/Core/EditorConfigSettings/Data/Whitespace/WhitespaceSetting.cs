@@ -143,5 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
             return null;
         }
+
+        public bool SupportsSeverities() { return false; }
     }
 }

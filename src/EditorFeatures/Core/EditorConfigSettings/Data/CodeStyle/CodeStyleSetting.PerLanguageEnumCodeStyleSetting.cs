@@ -97,6 +97,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
                 return strings.ToImmutableArray();
             }
+
+            public override bool SupportsSeverities() { return true; }
         }
     }
 }

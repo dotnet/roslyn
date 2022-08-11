@@ -82,5 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         {
             return ImmutableArray.Create(new string[] { "none", "silent", "suggestion", "warning", "error" });
         }
+
+        public bool SupportsSeverities() { return false; }
     }
 }
