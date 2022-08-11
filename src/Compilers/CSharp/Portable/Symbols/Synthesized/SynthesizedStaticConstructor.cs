@@ -430,5 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
+
+        internal sealed override bool HasUnscopedRefAttribute => false;
     }
 }
