@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var result = compiler.Run(writer);
             Assert.Equal(0, result);
             AssertEx.Equal($"""
-                warning CS9065: Analyzer reference '{_testFixture.AnalyzerWithFakeCompilerDependency.Path}' specified multiple times
+                warning CS9066: Analyzer reference '{_testFixture.AnalyzerWithFakeCompilerDependency.Path}' specified multiple times
                 warning CS8032: An instance of analyzer Analyzer cannot be created from {_testFixture.AnalyzerWithFakeCompilerDependency.Path} : Method 'get_SupportedDiagnostics' in type 'Analyzer' from assembly 'AnalyzerWithFakeCompilerDependency, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' does not have an implementation..
                 in.cs(1,5): warning CS0219: The variable 'x' is assigned but its value is never used
 
