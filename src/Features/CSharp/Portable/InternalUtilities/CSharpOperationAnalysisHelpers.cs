@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -173,8 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
         public static bool IsSimplePrimaryConstructor(
             IConstructorBodyOperation operation,
             ImmutableArray<IPropertySymbol> properties,
-            ImmutableArray<IParameterSymbol> parameters)
+            ImmutableArray<IParameterSymbol> parameters,
+            out ImmutableArray<(IPropertySymbol property, EqualsValueClauseSyntax? @default)> primaryDefaults,
+            CancellationToken cancellationToken)
         {
+            primaryDefaults = ImmutableArray<(IPropertySymbol, EqualsValueClauseSyntax?)>.Empty;
             var body = GetBlockOfMethodBody(operation);
 
             // We expect the constructor to have exactly one statement per parameter,
@@ -188,13 +193,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                 assignment => (assignment as IParameterReferenceOperation)?.Parameter);
 
             var assignedProperties = assignmentValues.SelectAsArray(value => value.left);
+            var assignedParameters = assignmentValues.SelectAsArray(value => value.right);
 
-            return !assignedProperties.HasDuplicates(SymbolEqualityComparer.Default) &&
+            if (assignmentValues.All(value => value != default && value.left is IPropertySymbol) &&
+                !assignedProperties.HasDuplicates(SymbolEqualityComparer.Default) &&
+                !assignedParameters.HasDuplicates(SymbolEqualityComparer.Default) &&
                 assignedProperties.SetEquals(properties) &&
-                assignmentValues.All(value =>
-                    value != default &&
-                    value.left is IPropertySymbol property &&
-                    properties.IndexOf(property) == parameters.IndexOf(value.right));
+                assignedParameters.SetEquals(parameters))
+            {
+                // order properties in order of the parameters that they were assigned to
+                // e.g if we originally have Properties: [int Y, int X]
+                // and constructor:
+                // public C(int x, int y)
+                // {
+                //     X = x;
+                //     Y = y;
+                // }
+                // then we would re-order the properties to: [int X, int Y]
+                primaryDefaults = assignmentValues
+                    .OrderBy(value => parameters.IndexOf(value.right))
+                    .SelectAsArray(value => ((IPropertySymbol)value.left,
+                        (value.right.DeclaringSyntaxReferences
+                            .FirstOrDefault()?.GetSyntax(cancellationToken) as ParameterSyntax)?.Default));
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -249,7 +273,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
         private static ImmutableArray<(ISymbol left, T right)> GetAssignmentValuesForConstructor<T>(
             ImmutableArray<IOperation> operations,
             Func<IOperation, T?> captureAssignedSymbol)
-            where T : ISymbol
         => operations.SelectAsArray<IOperation, (ISymbol, T)>(operation =>
         {
             if (operation is IExpressionStatementOperation

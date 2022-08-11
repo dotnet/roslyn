@@ -94,24 +94,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            // properties to be added to primary constructor parameters
-            var propertiesToMove = propertyAnalysisResults.SelectAsArray(result => result.Syntax);
-
-            var lineFormattingOptions = await document
-                .GetLineFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var modifiedClassTrivia = GetModifiedClassTrivia(propertiesToMove, originalDeclarationNode, lineFormattingOptions);
-
-            var propertiesToAddAsParams = propertiesToMove.SelectAsArray(p =>
-                SyntaxFactory.Parameter(
-                    GetModifiedAttributeListsForProperty(p),
-                    modifiers: default,
-                    p.Type,
-                    p.Identifier,
-                    @default: null));
 
             // remove converted properties and reformat other methods
             var membersToKeep = GetModifiedMembersForPositionalRecord(
-                originalDeclarationNode, originalType, semanticModel, propertyAnalysisResults, cancellationToken);
+                originalDeclarationNode,
+                originalType,
+                semanticModel,
+                propertyAnalysisResults,
+                out var propertiesAndDefaults, cancellationToken);
+
+            var lineFormattingOptions = await document
+                .GetLineFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var modifiedClassTrivia = GetModifiedClassTrivia(
+                propertiesAndDefaults.SelectAsArray(p => p.property), originalDeclarationNode, lineFormattingOptions);
+
+            var propertiesToAddAsParams = propertiesAndDefaults.SelectAsArray(p =>
+                SyntaxFactory.Parameter(
+                    GetModifiedAttributeListsForProperty(p.property),
+                    modifiers: default,
+                    p.property.Type,
+                    p.property.Identifier,
+                    @default: p.@default));
 
             // if we have a class, move trivia from class keyword to record keyword
             // if struct, split trivia and leading goes to record keyword, trailing goes to struct keyword
@@ -200,18 +203,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         /// modifies constructors and some method modifiers to fall in line with record requirements (e.g. this() initializer)
         /// </summary>
         /// <param name="typeDeclaration">Original type declaration</param>
+        /// <param name="type"></param>
         /// <param name="semanticModel">Semantic model</param>
-        /// <param name="propertiesToMove">Properties we decided to move</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// 
+        /// <param name="propertiesToMove">Properties we decided to move, may return in a different order</param>
+        /// <param name="defaults">properties in order for positional record with associated defaults</param>
+        /// <param name="cancellationToken">cancellationToken</param>
         /// <returns>The list of members from the original type, modified and trimmed for a positional record type usage</returns>
         private static ImmutableArray<MemberDeclarationSyntax> GetModifiedMembersForPositionalRecord(
             TypeDeclarationSyntax typeDeclaration,
             INamedTypeSymbol type,
             SemanticModel semanticModel,
             ImmutableArray<PropertyAnalysisResult> propertiesToMove,
+            out ImmutableArray<(PropertyDeclarationSyntax property, EqualsValueClauseSyntax? @default)> defaults,
             CancellationToken cancellationToken)
         {
+            defaults = ImmutableArray<(PropertyDeclarationSyntax, EqualsValueClauseSyntax?)>.Empty;
             using var _ = ArrayBuilder<MemberDeclarationSyntax>.GetInstance(out var modifiedMembers);
             modifiedMembers.AddRange(typeDeclaration.Members);
 
@@ -252,14 +258,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 var constructorSymbol = (IMethodSymbol)semanticModel.GetRequiredDeclaredSymbol(constructor, cancellationToken);
                 var constructorOperation = (IConstructorBodyOperation)semanticModel.GetRequiredOperation(constructor, cancellationToken);
                 var constructorParamTypes = constructorSymbol.Parameters.SelectAsArray(parameter => parameter.Type);
-                var positionalParamTypes = propertiesToMove.SelectAsArray(p => p.Symbol.Type);
-                if (constructorParamTypes.SequenceEqual(positionalParamTypes))
+                var positionalParams = propertiesToMove.SelectAsArray(p => p.Symbol);
+                var positionalParamTypes = positionalParams.SelectAsArray(s => s.Type);
+                if (constructorParamTypes.SetEquals(positionalParamTypes))
                 {
                     // found a primary constructor override, now check if we are pretty sure we can remove it safely
                     if (CSharpOperationAnalysisHelpers.IsSimplePrimaryConstructor(constructorOperation,
-                        propertiesToMove.SelectAsArray(result => result.Symbol),
-                        constructorSymbol.Parameters))
+                        positionalParams,
+                        constructorSymbol.Parameters,
+                        out var propertySymbolsAndDefaults,
+                        cancellationToken))
                     {
+                        // convert symbols to syntax declarations using our associated result
+                        defaults = propertySymbolsAndDefaults.SelectAsArray(propAndDefault =>
+                            (propertiesToMove.First(result =>
+                                result.Symbol.Equals(propAndDefault.property)).Syntax,
+                            propAndDefault.@default));
                         modifiedMembers.Remove(constructor);
                     }
                     else
