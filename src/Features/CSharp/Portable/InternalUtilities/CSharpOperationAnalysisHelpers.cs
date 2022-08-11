@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                 return false;
             }
 
-            var assignmentValues = GetAssignmentValues(body.Operations,
+            var assignmentValues = GetAssignmentValuesForConstructor(body.Operations,
                 assignment => (assignment as IParameterReferenceOperation)?.Parameter);
 
             var assignedProperties = assignmentValues.SelectAsArray(value => value.left);
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                 return false;
             }
 
-            var assignmentValues = GetAssignmentValues(body.Operations,
+            var assignmentValues = GetAssignmentValuesForConstructor(body.Operations,
                 assignment => assignment switch
                 {
                     IPropertyReferenceOperation
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                 assignedValues.SetEquals(fields);
         }
 
-        private static ImmutableArray<(ISymbol left, T right)> GetAssignmentValues<T>(
+        private static ImmutableArray<(ISymbol left, T right)> GetAssignmentValuesForConstructor<T>(
             ImmutableArray<IOperation> operations,
             Func<IOperation, T?> captureAssignedSymbol)
             where T : ISymbol
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
 
             var bodyOps = body.Operations;
             var parameter = methodSymbol.Parameters.First();
-            var _ = ArrayBuilder<IFieldSymbol>.GetInstance(out var fields);
+            var _1 = ArrayBuilder<IFieldSymbol>.GetInstance(out var fields);
             ISymbol? otherC = null;
             IEnumerable<IOperation>? statementsToCheck = null;
 
@@ -322,29 +322,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                 // return !(other is not C otherC || ...
 
                 // check for single return operation which binds the variable as the first condition in a sequence
-                if (bodyOps is [IReturnOperation { ReturnedValue: IOperation value }])
+                if (bodyOps is [IReturnOperation { ReturnedValue: IOperation value }] &&
+                    TryAddEqualizedFieldsForConditionWithoutBinding(
+                        value, successRequirement: true, type, fields, out var _2))
                 {
-                    otherC = TryAddEqualizedFieldsForConditionWithoutBinding(
-                        value, successRequirement: true, type, fields);
-                    if (otherC != null)
-                        // no more statements to check as this was a return operation
-                        return fields.ToImmutable();
+                    // we're done, no more statements to check
+                    return fields.ToImmutable();
                 }
-                else
+                // check for the first statement as an explicit cast to a variable declaration
+                // like: var otherC = other as C;
+                else if (TryGetAssignmentFromParameterWithExplicitCast(bodyOps.FirstOrDefault(), parameter, out otherC))
                 {
-                    // check for the first statement as an explicit cast to a variable declaration
-                    // like: var otherC = other as C;
-                    otherC = GetAssignmentFromParameterWithExplicitCast(bodyOps.FirstOrDefault(), parameter);
-                    if (otherC != null)
-                    {
-                        statementsToCheck = bodyOps.Skip(1);
-                    }
-                    // check for the first statement as an if statement where the cast check occurs
-                    // and a variable assignment happens (either in the if or in a following statement
-                    else if (!TryGetBindingCastInFirstIfStatement(bodyOps, parameter, type, fields, out otherC, out statementsToCheck))
-                    {
-                        return ImmutableArray<IFieldSymbol>.Empty;
-                    }
+                    // ignore the first statement as we just ensured it was a cast
+                    statementsToCheck = bodyOps.Skip(1);
+                }
+                // check for the first statement as an if statement where the cast check occurs
+                // and a variable assignment happens (either in the if or in a following statement)
+                else if (!TryGetBindingCastInFirstIfStatement(bodyOps, parameter, type, fields, out otherC, out statementsToCheck))
+                {
+                    return ImmutableArray<IFieldSymbol>.Empty;
                 }
             }
 
@@ -362,11 +358,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
         /// Matches: var otherC = (C) other;
         /// or: var otherC = other as C;
         /// </summary>
-        /// <param name="operation">potential variable declaration operation</param>
-        /// <param name="parameter">parameter that should be referenced</param>
-        /// <returns>symbol of declared variable if found, otw null</returns>
-        private static ILocalSymbol? GetAssignmentFromParameterWithExplicitCast(IOperation? operation, IParameterSymbol parameter)
+        private static bool TryGetAssignmentFromParameterWithExplicitCast(
+            IOperation? operation,
+            IParameterSymbol parameter,
+            [NotNullWhen(true)] out ISymbol? assignedVariable)
         {
+            assignedVariable = null;
             if (operation is IVariableDeclarationGroupOperation
                 {
                     Declarations: [IVariableDeclarationOperation
@@ -389,9 +386,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                     }]
                 } && referencedParameter1.Equals(parameter))
             {
-                return castOther;
+                assignedVariable = castOther;
+                return true;
             }
-            return null;
+
+            return false;
         }
 
         /// <summary>
@@ -564,42 +563,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
         /// a binding through an "is" pattern first/>
         /// </summary>
         /// <returns>the cast parameter symbol if found, null if not</returns>
-        private static ISymbol? TryAddEqualizedFieldsForConditionWithoutBinding(
+        private static bool TryAddEqualizedFieldsForConditionWithoutBinding(
             IOperation condition,
             bool successRequirement,
             ISymbol currentObject,
             ArrayBuilder<IFieldSymbol> builder,
+            [NotNullWhen(true)] out ISymbol? boundVariable,
             IEnumerable<IOperation>? additionalConditions = null)
         {
+            boundVariable = null;
             additionalConditions ??= Enumerable.Empty<IOperation>();
             return (successRequirement, condition) switch
             {
                 (_, IUnaryOperation { OperatorKind: UnaryOperatorKind.Not, Operand: IOperation newCondition })
                     => TryAddEqualizedFieldsForConditionWithoutBinding(
-                        newCondition, !successRequirement, currentObject, builder, additionalConditions),
+                        newCondition,
+                        !successRequirement,
+                        currentObject,
+                        builder,
+                        out boundVariable,
+                        additionalConditions),
                 (true, IBinaryOperation
                 {
                     OperatorKind: BinaryOperatorKind.ConditionalAnd,
                     LeftOperand: IOperation leftOperation,
                     RightOperand: IOperation rightOperation,
                 }) => TryAddEqualizedFieldsForConditionWithoutBinding(
-                        leftOperation, successRequirement, currentObject, builder, additionalConditions.Append(rightOperation)),
+                        leftOperation,
+                        successRequirement,
+                        currentObject,
+                        builder,
+                        out boundVariable,
+                        additionalConditions.Append(rightOperation)),
                 (false, IBinaryOperation
                 {
                     OperatorKind: BinaryOperatorKind.ConditionalOr,
                     LeftOperand: IOperation leftOperation,
                     RightOperand: IOperation rightOperation,
                 }) => TryAddEqualizedFieldsForConditionWithoutBinding(
-                        leftOperation, successRequirement, currentObject, builder, additionalConditions.Append(rightOperation)),
+                    leftOperation,
+                    successRequirement,
+                    currentObject,
+                    builder,
+                    out boundVariable,
+                    additionalConditions.Append(rightOperation)),
                 (_, IIsPatternOperation
                 {
                     Pattern: IPatternOperation isPattern
-                }) => TryAddEqualizedFieldsForIsPattern(isPattern),
-                _ => null,
+                }) => TryGetBoundVariableForIsPattern(isPattern, out boundVariable),
+                _ => false,
             };
 
-            ISymbol? TryAddEqualizedFieldsForIsPattern(IPatternOperation isPattern)
+            bool TryGetBoundVariableForIsPattern(IPatternOperation isPattern, [NotNullWhen(true)] out ISymbol? boundVariable)
             {
+                boundVariable = null;
                 // got to the leftmost condition and it is an "is" pattern
                 if (!successRequirement)
                 {
@@ -612,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                     else
                     {
                         // if we don't see "is not" then the pattern sequence is incorrect
-                        return null;
+                        return false;
                     }
                 }
 
@@ -621,19 +638,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                         DeclaredSymbol: ISymbol otherVar,
                         MatchedType: INamedTypeSymbol matchedType,
                     } &&
-                    matchedType.Equals(currentObject.GetSymbolType()))
-                {
+                    matchedType.Equals(currentObject.GetSymbolType()) &&
                     // found the correct binding, add any members we equate in the rest of the binary condition
-                    // if we were in a binary condition at all
-                    // if any of these equate ops are bad, return null (failure case)
-                    return additionalConditions.All(otherCondition => TryAddEqualizedFieldsForCondition(
-                        otherCondition, successRequirement, currentObject, otherVar, builder))
-                        ? otherVar
-                        : null;
+                    // if we were in a binary condition at all, and signal failure if any condition is bad
+                    additionalConditions.All(otherCondition => TryAddEqualizedFieldsForCondition(
+                        otherCondition, successRequirement, currentObject, otherVar, builder)))
+                {
+                    boundVariable = otherVar;
+                    return true;
                 }
-
-                // binding not found, so either something didn't make sense to us or the "is" didn't declare any variable
-                return null;
+                return false;
             }
         }
 
@@ -753,7 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
             otherC = null;
             statementsToCheck = null;
 
-            // we require the if statement (with a cast) to be the first operation in the body
+            // we require the if statement (with or without a cast) to be the first operation in the body
             if (bodyOps.FirstOrDefault() is not IConditionalOperation
                 {
                     Condition: IOperation condition,
@@ -772,24 +786,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                 return false;
             }
 
-            // gives us the symbol if the pattern was a binding one
-            // (and adds members if they did other checks too)
-            otherC = TryAddEqualizedFieldsForConditionWithoutBinding(
-                condition, successRequirement, type, builder);
-
             // if we have no else block, we could get no remaining statements, in that case we take all the
             // statments after the if condition operation
             statementsToCheck = !remainingStatments.IsEmpty ? remainingStatments : bodyOps.Skip(1);
 
-            if (otherC != null)
-                // the if statement contains a cast to a variable binding
-                // like: if (other is C otherC)
-                return true;
-
-            // either there was no pattern match, or the pattern did not bind to a variable declaration
-            // (e.g: if (other is C) or if (other is not C))
-            // we will look for a non-binding "is" pattern and if we find one,
-            // look for a variable assignment in the appropriate block
+            // checks for simple "is" or "is not" statement without a variable binding
             if (condition is IIsTypeOperation
                 {
                     TypeOperand: ITypeSymbol testType1,
@@ -818,16 +819,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                 // we look for an explicit cast to assign a variable like:
                 // var otherC = (C)other;
                 // var otherC = other as C;
-                otherC = GetAssignmentFromParameterWithExplicitCast(statementsToCheck.FirstOrDefault(), parameter);
-                if (otherC != null)
+                if (TryGetAssignmentFromParameterWithExplicitCast(statementsToCheck.FirstOrDefault(), parameter, out otherC))
                 {
                     statementsToCheck = statementsToCheck.Skip(1);
                     return true;
                 }
-            }
 
-            // no explicit cast variable found
-            return false;
+                return false;
+            }
+            // look for the condition to also contain a binding to a variable and optionally additional
+            // checks based on that assigned variable
+            return TryAddEqualizedFieldsForConditionWithoutBinding(
+                condition, successRequirement, type, builder, out otherC);
         }
 
         /// <summary>
