@@ -1904,7 +1904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             method.ContainingType.IsRefLikeType :
                             method.ReturnType.IsRefLikeType;
                     case PropertySymbol property:
-                        return property.Type.IsRefLikeType; // PROTOTYPE: This only makes sense if the getter is called, not the setter.
+                        return property.Type.IsRefLikeType;
                     default:
                         return false;
                 }

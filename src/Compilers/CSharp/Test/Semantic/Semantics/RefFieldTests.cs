@@ -6621,10 +6621,8 @@ class Program
 }");
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.CSharp11)]
-        public void ReturnRefToByValueParameter_01(LanguageVersion languageVersion)
+        [Fact]
+        public void ReturnRefToByValueParameter_01()
         {
             var source =
 @"
@@ -6644,7 +6642,10 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyEmitDiagnostics(
                 // (14,18): error CS8350: This combination of arguments to 'Program.F1<T>(ref S<T>)' is disallowed because it may expose variables referenced by parameter 'x1' outside of their declaration scope
                 //         var y2 = F1(ref x2);
@@ -6654,10 +6655,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "x2").WithArguments("x2").WithLocation(14, 25));
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.CSharp11)]
-        public void ReturnRefToByValueParameter_02(LanguageVersion languageVersion)
+        [Fact]
+        public void ReturnRefToByValueParameter_02()
         {
             var source =
 @"
@@ -6677,7 +6676,10 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyEmitDiagnostics(
                 // (14,18): error CS8350: This combination of arguments to 'Program.F1<T>(ref S<T>, ref S<T>)' is disallowed because it may expose variables referenced by parameter 'x1' outside of their declaration scope
                 //         var z1 = F1(ref x2, ref y2);
@@ -11895,6 +11897,86 @@ ref struct S
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(8, 16));
         }
 
+        [Fact]
+        public void RefStructProperty_01()
+        {
+            var source =
+@"ref struct R<T>
+{
+    public R(ref T t) { } 
+}
+class C
+{
+    R<object> this[R<int> r] => default;
+    static R<object> F1(C c)
+    {
+        int i = 1;
+        var r1 = new R<int>(ref i);
+        return c[r1]; // 1
+    }
+    static R<object> F2(C c)
+    {
+        var r2 = new R<int>();
+        return c[r2];
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,16): error CS8347: Cannot use a result of 'C.this[R<int>]' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
+                //         return c[r1]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c[r1]").WithArguments("C.this[R<int>]", "r").WithLocation(12, 16),
+                // (12,18): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c[r1]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("r1").WithLocation(12, 18));
+        }
+
+        [Fact]
+        public void RefStructProperty_02()
+        {
+            var source =
+@"ref struct R<T>
+{
+}
+class C
+{
+    R<object> this[in int i] => default;
+    static R<object> F1(C c)
+    {
+        int i1 = 1;
+        return c[i1]; // 1
+    }
+    static R<object> F2(C c)
+    {
+        return c[2]; // 2
+    }
+    static R<object> F2(C c, in int i3)
+    {
+        return c[i3];
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,16): error CS8347: Cannot use a result of 'C.this[in int]' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return c[i1]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c[i1]").WithArguments("C.this[in int]", "i").WithLocation(10, 16),
+                // (10,18): error CS8168: Cannot return local 'i1' by reference because it is not a ref local
+                //         return c[i1]; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i1").WithArguments("i1").WithLocation(10, 18),
+                // (14,16): error CS8347: Cannot use a result of 'C.this[in int]' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return c[2]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c[2]").WithArguments("C.this[in int]", "i").WithLocation(14, 16),
+                // (14,18): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return c[2]; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(14, 18));
+        }
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
