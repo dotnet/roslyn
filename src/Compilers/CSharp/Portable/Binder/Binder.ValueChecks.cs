@@ -1558,7 +1558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 isRefEscape,
                 assumeRefStructReturnType: false,
-                ignoreArglistRefKinds: true, // PROTOTYPE: for compatibility with C#10 behavior; investivate if correct or necessary
+                ignoreArglistRefKinds: true, // https://github.com/dotnet/roslyn/issues/63325: for compatibility with C#10 implementation.
                 argsAndParamsAll);
             foreach (var argAndParam in argsAndParamsAll)
             {
@@ -1698,7 +1698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 isRefEscape,
                 assumeRefStructReturnType: false,
-                ignoreArglistRefKinds: true, // PROTOTYPE: for compatibility with C#10 behavior; investivate if correct or necessary
+                ignoreArglistRefKinds: true, // https://github.com/dotnet/roslyn/issues/63325: for compatibility with C#10 implementation.
                 argsAndParamsAll);
             foreach (var argAndParam in argsAndParamsAll)
             {
@@ -1732,7 +1732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
-            bool ignoreArglistRefKinds, // PROTOTYPE: for compatibility with C#10 behavior; investivate if correct or necessary
+            bool ignoreArglistRefKinds,
             ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, RefKind RefKind)> argsAndParams)
         {
             if (receiver is { })

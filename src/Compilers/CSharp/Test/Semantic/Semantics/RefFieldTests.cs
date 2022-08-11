@@ -2824,8 +2824,6 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(10, 72));
         }
 
-        // PROTOTYPE: Add to spec: ref to ref struct in __arglist is unscoped ref.
-
         /// <summary>
         /// ref to ref struct in __arglist is unscoped ref.
         /// </summary>
@@ -3071,7 +3069,6 @@ class Program
         return ref r;
     }
 }";
-            // PROTOTYPE: If the __arglist ref arguments are not scoped, why can't we return __refvalue() by ref?
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics(
                 // (11,20): error CS8157: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
