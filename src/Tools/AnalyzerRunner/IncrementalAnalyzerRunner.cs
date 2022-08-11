@@ -42,7 +42,7 @@ namespace AnalyzerRunner
 
             var usePersistentStorage = _options.UsePersistentStorage;
 
-            var exportProvider = (IMefHostExportProvider)_workspace.Services.HostServices;
+            var exportProvider = _workspace.Services.SolutionServices.ExportProvider;
 
             var globalOptions = exportProvider.GetExports<IGlobalOptionService>().Single().Value;
             globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), _options.AnalysisScope);

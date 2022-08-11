@@ -973,7 +973,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             _storageService?.GetTestAccessor().Shutdown();
             var configuration = new MockPersistentStorageConfiguration(solution.Id, persistentFolder.Path, throwOnFailure);
 
-            _storageService = GetStorageService((IMefHostExportProvider)solution.Workspace.Services.HostServices, configuration, faultInjector, _persistentFolder.Path);
+            _storageService = GetStorageService(solution.Workspace.Services.SolutionServices.ExportProvider, configuration, faultInjector, _persistentFolder.Path);
             var storage = await _storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), CancellationToken.None);
 
             // If we're injecting faults, we expect things to be strange
