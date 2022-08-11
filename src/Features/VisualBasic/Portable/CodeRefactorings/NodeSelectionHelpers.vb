@@ -42,7 +42,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
                 ' pick up on keywords before the declaration, such as "public static int".
                 ' We could potentially use it for every case if that behavior changes
                 Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
-                Return Await VisualBasicSelectedMembers.Instance.GetSelectedMembersAsync(tree, span, allowPartialSelection:=True, cancellationToken).ConfigureAwait(False)
+                Dim selectedMembers = Await VisualBasicSelectedMembers.Instance.
+                    GetSelectedMembersAsync(tree, span, allowPartialSelection:=True, cancellationToken).ConfigureAwait(False)
+                If selectedMembers.Any(Function(member)
+                                           Return TypeOf member Is IncompleteMemberSyntax
+                                       End Function) Then
+                    Return ImmutableArray(Of SyntaxNode).Empty
+                Else
+                    Return selectedMembers
+                End If
             End If
         End Function
     End Module

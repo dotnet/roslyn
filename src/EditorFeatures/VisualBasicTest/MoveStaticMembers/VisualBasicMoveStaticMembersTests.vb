@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.MoveStaticMembers
 Imports Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers
-Imports Microsoft.CodeAnalysis.Testing
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of
     Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveStaticMembers.VisualBasicMoveStaticMembersRefactoringProvider)
 
@@ -2853,6 +2852,22 @@ End Namespace"
 Namespace TestNs
     Public Class Class1
         Public Sha[||] {|BC30205:TestField|} As Integer = 0
+    End Class
+End Namespace"
+
+            Await New Test("", ImmutableArray(Of String).Empty, "") With
+            {
+                .TestCode = initialMarkup,
+                .FixedCode = initialMarkup
+            }.RunAsync().ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestSelectNonEmptySpanInIncompleteField_NoAction() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        [|Public|]{|BC30203:|}
     End Class
 End Namespace"
 
