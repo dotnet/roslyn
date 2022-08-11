@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.Snippets
     {
         public override string SnippetIdentifier => "if";
 
-        public override string SnippetDisplayName => FeaturesResources.Insert_an_if_statement;
+        public override string SnippetDescription => FeaturesResources.if_statement;
+
+        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("statement");
 
         protected abstract void GetIfStatementConditionAndCursorPosition(SyntaxNode node, out SyntaxNode condition, out int cursorPositionNode);
 
