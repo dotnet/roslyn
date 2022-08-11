@@ -204,9 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             RefKind refKind,
             DeclarationScope scope,
-            ConstantValue? defaultValue,
             string name)
-            : base(container, type, ordinal, refKind, scope, defaultValue, name)
+            : base(container, type, ordinal, refKind, scope, defaultValue: null, name)
         {
         }
 
@@ -221,9 +220,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<CustomModifier> refCustomModifiers = default,
             SourceComplexParameterSymbolBase? baseParameterForAttributes = null)
         {
-            if (refCustomModifiers.IsDefaultOrEmpty && baseParameterForAttributes is null)
+            if (refCustomModifiers.IsDefaultOrEmpty && baseParameterForAttributes is null && defaultValue is null)
             {
-                return new SynthesizedParameterSymbol(container, type, ordinal, refKind, scope, defaultValue, name);
+                return new SynthesizedParameterSymbol(container, type, ordinal, refKind, scope, name);
             }
 
             return new SynthesizedComplexParameterSymbol(
