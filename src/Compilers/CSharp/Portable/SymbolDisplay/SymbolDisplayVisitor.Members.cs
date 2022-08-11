@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // https://github.com/dotnet/roslyn/issues/61647: Use public API.
 #if DEBUG
-                    if ((param as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>() is var p)
+                    if ((param as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>() is { } p)
                     {
                         Debug.Assert((p.EffectiveScope, ParameterHelpers.IsRefScopedByDefault(p)) switch
                         {
