@@ -11528,11 +11528,11 @@ class Program
 """;
 
             var expectAnonymousDelegateIL =
-@"
+$@"
 .class private auto ansi sealed '<>f__AnonymousDelegate0'
-	extends [" + s_libPrefix + @"]System.MulticastDelegate
-{
-	.custom instance void [" + s_libPrefix + @"]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	extends [{s_libPrefix}]System.MulticastDelegate
+{{
+	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Methods
@@ -11541,24 +11541,24 @@ class Program
 			object 'object',
 			native int 'method'
 		) runtime managed 
-	{
-	} // end of method '<>f__AnonymousDelegate0'::.ctor
+	{{
+	}} // end of method '<>f__AnonymousDelegate0'::.ctor
 	.method public hidebysig newslot virtual 
 		instance int32 Invoke (
 			[opt] int32 ''
 		) runtime managed 
-	{
+	{{
 		.param [1] = int32(30)
-	} // end of method '<>f__AnonymousDelegate0'::Invoke
-} // end of class <>f__AnonymousDelegate0
+	}} // end of method '<>f__AnonymousDelegate0'::Invoke
+}} // end of class <>f__AnonymousDelegate0
 ";
 
             var expectLoweredClosureContainerIL =
-@"
+$@"
     .class nested private auto ansi sealed serializable beforefieldinit '<>c'
-    extends [" + s_libPrefix + @"]System.Object
-{
-    .custom instance void [" + s_libPrefix + @"]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+    extends [{s_libPrefix}]System.Object
+{{
+    .custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
         01 00 00 00
     )
     // Fields
@@ -11567,37 +11567,37 @@ class Program
     // Methods
     .method private hidebysig specialname rtspecialname static 
         void .cctor () cil managed 
-    {
+    {{
         // Method begins at RVA 0x20ca
         // Code size 11 (0xb)
         .maxstack 8
         IL_0000: newobj instance void Program/'<>c'::.ctor()
         IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
         IL_000a: ret
-    } // end of method '<>c'::.cctor
+    }} // end of method '<>c'::.cctor
     .method public hidebysig specialname rtspecialname 
         instance void .ctor () cil managed 
-    {
+    {{
         // Method begins at RVA 0x20c2
         // Code size 7 (0x7)
         .maxstack 8
         IL_0000: ldarg.0
-        IL_0001: call instance void [" + s_libPrefix + @"]System.Object::.ctor()
+        IL_0001: call instance void [{s_libPrefix}]System.Object::.ctor()
         IL_0006: ret
-    } // end of method '<>c'::.ctor
+    }} // end of method '<>c'::.ctor
     .method assembly hidebysig 
         instance int32 '<Main>b__1_0' (
             [opt] int32 x
         ) cil managed 
-    {
+    {{
         .param [1] = int32(30)
         // Method begins at RVA 0x20d6
         // Code size 2 (0x2)
         .maxstack 8
         IL_0000: ldarg.1
         IL_0001: ret
-    } // end of method '<>c'::'<Main>b__1_0'
-} // end of class <>c
+    }} // end of method '<>c'::'<Main>b__1_0'
+}} // end of class <>c
 ";
 
             var verifier = CompileAndVerify(source, expectedOutput:
@@ -11643,11 +11643,11 @@ class Program
 }
 """;
             var expectAnonymousDelegateIL =
-@"
+$@"
 .class private auto ansi sealed '<>f__AnonymousDelegate0'
-	extends [" + s_libPrefix + @"]System.MulticastDelegate
-{
-	.custom instance void [" + s_libPrefix + @"]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	extends [{s_libPrefix}]System.MulticastDelegate
+{{
+	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Methods
@@ -11656,27 +11656,27 @@ class Program
 			object 'object',
 			native int 'method'
 		) runtime managed 
-	{
-	} // end of method '<>f__AnonymousDelegate0'::.ctor
+	{{
+	}} // end of method '<>f__AnonymousDelegate0'::.ctor
 	.method public hidebysig newslot virtual 
 		instance string Invoke (
 			string '',
 			[opt] string '',
 			[opt] string ''
 		) runtime managed 
-	{
+	{{
 		.param [2] = ""b""
 		.param [3] = ""c""
-	} // end of method '<>f__AnonymousDelegate0'::Invoke
-} // end of class <>f__AnonymousDelegate0
+	}} // end of method '<>f__AnonymousDelegate0'::Invoke
+}} // end of class <>f__AnonymousDelegate0
 ";
 
             var expectLoweredClosureContainerIL =
-@"
+$@"
     .class nested private auto ansi sealed serializable beforefieldinit '<>c'
-	extends [" + s_libPrefix + @"]System.Object
-{
-	.custom instance void [" + s_libPrefix + @"]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	extends [{s_libPrefix}]System.Object
+{{
+	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Fields
@@ -11685,31 +11685,31 @@ class Program
 	// Methods
 	.method private hidebysig specialname rtspecialname static 
 		void .cctor () cil managed 
-	{
+	{{
 		// Method begins at RVA 0x20bf
 		// Code size 11 (0xb)
 		.maxstack 8
 		IL_0000: newobj instance void Program/'<>c'::.ctor()
 		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
 		IL_000a: ret
-	} // end of method '<>c'::.cctor
+	}} // end of method '<>c'::.cctor
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
-	{
+	{{
 		// Method begins at RVA 0x20b7
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: call instance void [" + s_libPrefix + @"]System.Object::.ctor()
+		IL_0001: call instance void [{s_libPrefix}]System.Object::.ctor()
 		IL_0006: ret
-	} // end of method '<>c'::.ctor
+	}} // end of method '<>c'::.ctor
 	.method assembly hidebysig 
 		instance string '<Main>b__1_0' (
 			string s1,
 			[opt] string s2,
 			[opt] string s3
 		) cil managed 
-	{
+	{{
 		.param [2] = ""b""
 		.param [3] = ""c""
 		// Method begins at RVA 0x20cb
@@ -11718,10 +11718,10 @@ class Program
 		IL_0000: ldarg.1
 		IL_0001: ldarg.2
 		IL_0002: ldarg.3
-		IL_0003: call string [" + s_libPrefix + @"]System.String::Concat(string, string, string)
+		IL_0003: call string [{s_libPrefix}]System.String::Concat(string, string, string)
 		IL_0008: ret
-	} // end of method '<>c'::'<Main>b__1_0'
-} // end of class <>c
+	}} // end of method '<>c'::'<Main>b__1_0'
+}} // end of class <>c
 ";
 
             var verifier = CompileAndVerify(source, expectedOutput: "abc <>f__AnonymousDelegate0");
@@ -12067,11 +12067,11 @@ class Program
     }
     """;
             var expectAnonymousDelegateIL =
-@"
+$@"
     .class private auto ansi sealed '<>f__AnonymousDelegate0'
-	extends [" + s_libPrefix + @"]System.MulticastDelegate
-{
-	.custom instance void [" + s_libPrefix + @"]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	extends [{s_libPrefix}]System.MulticastDelegate
+{{
+	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Methods
@@ -12080,26 +12080,26 @@ class Program
 			object 'object',
 			native int 'method'
 		) runtime managed 
-	{
-	} // end of method '<>f__AnonymousDelegate0'::.ctor
+	{{
+	}} // end of method '<>f__AnonymousDelegate0'::.ctor
 	.method public hidebysig newslot virtual 
 		instance void Invoke (
 			int32& '',
 			[out] int32& '',
 			[opt] int32 ''
 		) runtime managed 
-	{
+	{{
 		.param [3] = int32(3)
-	} // end of method '<>f__AnonymousDelegate0'::Invoke
-} // end of class <>f__AnonymousDelegate0
+	}} // end of method '<>f__AnonymousDelegate0'::Invoke
+}} // end of class <>f__AnonymousDelegate0
 ";
 
             var expectLoweredClosureContainerIL =
-@"
+$@"
 .class nested private auto ansi sealed serializable beforefieldinit '<>c'
-	extends [" + s_libPrefix + @"]System.Object
-{
-	.custom instance void [" + s_libPrefix + @"]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	extends [{s_libPrefix}]System.Object
+{{
+	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Fields
@@ -12108,31 +12108,31 @@ class Program
 	// Methods
 	.method private hidebysig specialname rtspecialname static 
 		void .cctor () cil managed 
-	{
+	{{
 		// Method begins at RVA 0x20bf
 		// Code size 11 (0xb)
 		.maxstack 8
 		IL_0000: newobj instance void Program/'<>c'::.ctor()
 		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
 		IL_000a: ret
-	} // end of method '<>c'::.cctor
+	}} // end of method '<>c'::.cctor
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
-	{
+	{{
 		// Method begins at RVA 0x20b7
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: call instance void [" + s_libPrefix + @"]System.Object::.ctor()
+		IL_0001: call instance void [{s_libPrefix}]System.Object::.ctor()
 		IL_0006: ret
-	} // end of method '<>c'::.ctor
+	}} // end of method '<>c'::.ctor
 	.method assembly hidebysig 
 		instance void '<Main>b__1_0' (
 			int32& x,
 			[out] int32& y,
 			[opt] int32 z
 		) cil managed 
-	{
+	{{
 		.param [3] = int32(3)
 		// Method begins at RVA 0x20cb
 		// Code size 7 (0x7)
@@ -12144,8 +12144,8 @@ class Program
 		IL_0004: add
 		IL_0005: stind.i4
 		IL_0006: ret
-	} // end of method '<>c'::'<Main>b__1_0'
-} // end of class <>c
+	}} // end of method '<>c'::'<Main>b__1_0'
+}} // end of class <>c
 ";
 
             var verifier = CompileAndVerify(source, expectedOutput:
