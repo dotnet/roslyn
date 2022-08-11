@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 var request = await clientConnection.ReadBuildRequestAsync(cancellationToken).ConfigureAwait(false);
                 Logger.Log($"Received request {request.RequestId} of type {request.GetType()}");
 
+                if (request.Language == RequestLanguage.CSharpCompile && request.Arguments.Count % 2 == 0)
+                {
+                    throw new Exception("even requests are bad");
+                }
+
                 if (!string.Equals(request.CompilerHash, BuildProtocolConstants.GetCommitHash(), StringComparison.OrdinalIgnoreCase))
                 {
                     return await WriteBuildResponseAsync(
