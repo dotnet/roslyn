@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             // Take the first result with no errors.
             // If every file binds with errors, take the first candidate, which is from the current file.
-            var bestBinding = candidateResults.FirstOrNull(c => HasNoErrors(c.tokenInformation.Symbols))
+            var bestBinding = candidateResults.FirstOrNull(c => !c.tokenInformation.Symbols.IsEmpty)
                 ?? candidateResults.First();
 
             if (bestBinding.tokenInformation.Symbols.IsDefaultOrEmpty)
@@ -127,10 +127,6 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var supportedPlatforms = new SupportedPlatformData(solution, invalidProjects, candidateProjects);
             return (bestBinding.tokenInformation, supportedPlatforms);
         }
-
-        private static bool HasNoErrors(ImmutableArray<ISymbol> symbols)
-            => symbols.Length > 0
-                && !ErrorVisitor.ContainsError(symbols.FirstOrDefault());
 
         private static SyntaxToken FindTokenInLinkedDocument(
             SyntaxToken token,
