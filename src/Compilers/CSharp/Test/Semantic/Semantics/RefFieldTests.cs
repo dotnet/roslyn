@@ -3293,6 +3293,63 @@ class Program
         }
 
         [Fact]
+        public void RefToRefStruct_InstanceMethods()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R
+{
+    public R(ref R other) { }
+    public void F1(ref R other) { }
+    [UnscopedRef] public void F2(ref R other) { }
+}
+class Program
+{
+    static R F0()
+    {
+        var x0 = new R();
+        var y0 = new R(ref x0);
+        return x0;
+    }
+    static R F1()
+    {
+        var x1 = new R();
+        var y1 = new R();
+        y1.F1(ref x1);
+        return x1;
+    }
+    static R F2()
+    {
+        var x2 = new R();
+        var y2 = new R();
+        y2.F2(ref x2); // 1
+        return x2;
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // (27,9): error CS8168: Cannot return local 'y2' by reference because it is not a ref local
+                //         y2.F2(ref x2); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "y2").WithArguments("y2").WithLocation(27, 9));
+        }
+
+        [Fact]
+        public void RefToRefStruct_ConstructorInitializer()
+        {
+            var source =
+@"ref struct R
+{
+    public R(ref R other) { }
+    public R(ref R other, int i) :
+        this(ref other)
+    {
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void NestedFieldAccessor()
         {
             var source =

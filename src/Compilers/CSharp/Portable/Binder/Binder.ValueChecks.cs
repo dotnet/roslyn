@@ -1790,16 +1790,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return (null, receiver, RefKind.None);
                 }
                 var containingType = symbol.ContainingType;
-                var refKind = containingType.IsStructType() ?
-                    (IsReceiverRefReadOnly(symbol) ? RefKind.RefReadOnly : RefKind.Ref) :
-                    RefKind.None;
                 var method = symbol switch
                 {
                     MethodSymbol m => m,
                     PropertySymbol p => p.GetMethod ?? p.SetMethod,
                     _ => throw ExceptionUtilities.UnexpectedValue(symbol)
                 };
-                return (method?.ThisParameter, receiver, refKind);
+                var thisParameter = method?.ThisParameter;
+                var refKind = thisParameter?.RefKind ?? RefKind.None;
+                return (thisParameter, receiver, refKind);
             }
 
             static void getArgList(
