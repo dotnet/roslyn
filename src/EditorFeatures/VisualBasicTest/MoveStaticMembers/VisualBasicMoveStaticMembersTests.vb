@@ -2879,6 +2879,24 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestSelectNonEmptySpanInsideMethodBlock_NoAction() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function Foo() As Integer
+            [|Return 0|]
+        End Function
+    End Class
+End Namespace"
+
+            Await New Test("", ImmutableArray(Of String).Empty, "") With
+            {
+                .TestCode = initialMarkup,
+                .FixedCode = initialMarkup
+            }.RunAsync().ConfigureAwait(False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
         Public Async Function TestSelectNonSharedProperty_NoAction() As Task
             Dim initialMarkup = "
 Namespace TestNs
@@ -2895,7 +2913,7 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        Public Async Function TestSelectPropertyGetter_NoAction() As Task
+        Public Async Function TestSelectPropertyGetter_NoAction1() As Task
             Dim initialMarkup = "
 Namespace TestNs
     Public Class Class1
@@ -2908,6 +2926,56 @@ Namespace TestNs
 End Namespace"
 
             Await TestNoRefactoringAsync(initialMarkup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestSelectPropertyGetter_NoAction2() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared ReadOnly Property TestProperty As Integer
+            [|Get|]
+                Return 0
+            End Get
+        End Property
+    End Class
+End Namespace"
+
+            Await TestNoRefactoringAsync(initialMarkup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMovePropertyWithNonEmptySelection() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared ReadOnly Property Test[|Property As Integer
+            Get
+                Return 0
+            End Get|]
+        End Property
+    End Class
+End Namespace"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("TestProperty")
+            Dim expectedText1 = "
+Namespace TestNs
+    Public Class Class1
+    End Class
+End Namespace"
+            Dim expectedText2 = "Namespace TestNs
+    Class Class1Helpers
+        Public Shared ReadOnly Property TestProperty As Integer
+            Get
+                Return 0
+            End Get
+        End Property
+    End Class
+End Namespace
+"
+
+            Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
