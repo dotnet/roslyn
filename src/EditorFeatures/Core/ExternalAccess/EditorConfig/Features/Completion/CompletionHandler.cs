@@ -62,12 +62,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 
             // Check if we need to display values of the settings
             // Show completion: |setting_name = (caret)
+            // Show completion: |setting_name = setting_va(caret)
             // Show completion: |setting_name = setting_value_1, (caret)
             // Dont't show completion: | setting_name = setting_value (caret)
             var seenWhitespace = false;
             foreach (var element in textToCheck)
             {
-                if (element == ' ')
+                if (char.IsWhiteSpace(element))
                 {
                     seenWhitespace = true;
                 }
@@ -94,11 +95,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             seenWhitespace = false;
             foreach (var element in textToCheck)
             {
-                if (seenWhitespace && !(element == ' '))
+                if (seenWhitespace && !char.IsWhiteSpace(element))
                 {
                     return null;
                 }
-                seenWhitespace = element == ' ';
+                seenWhitespace = char.IsWhiteSpace(element);
             }
 
             return CreateCompletionList(document, textInLine, showValueList: false);
@@ -161,6 +162,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             var foundSetting = settingsSnapshot.Where(sett => sett.GetSettingName() == settingName);
             if (foundSetting.Any())
             {
+                // TODO: Switch to EditorConfig value holder: https://github.com/dotnet/roslyn/issues/63329
                 var allowsMultipleValues = settingName == "csharp_new_line_before_open_brace" || settingName == "csharp_space_between_parentheses";
                 return GenerateSettingValuesCompletionItem(foundSetting.First(), multipleValues, optionSet, allowsMultipleValues: allowsMultipleValues);
             }

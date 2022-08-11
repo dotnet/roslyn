@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
     internal abstract class WhitespaceSetting : IEditorConfigSettingInfo
     {
+        // TODO: Switch to EditorConfig value holder: https://github.com/dotnet/roslyn/issues/63329
         private static readonly ImmutableArray<string> _boolValues = ImmutableArray.Create(new string[] { "true", "false" });
         private static readonly ImmutableArray<string> _intValues = ImmutableArray.Create(new string[] { "2", "4", "8" });
         private static readonly ImmutableArray<string> _spaceWithinParenthesesValues = ImmutableArray.Create(new string[] { "expressions", "type_casts", "control_flow_statements" });
@@ -89,6 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
         public ImmutableArray<string>? GetSettingValues(OptionSet optionSet)
         {
+            // TODO: Switch to EditorConfig value holder: https://github.com/dotnet/roslyn/issues/63329
             var storageLocation = GetEditorConfigStorageLocation();
             var type = Key.Option.DefaultValue?.GetType();
 

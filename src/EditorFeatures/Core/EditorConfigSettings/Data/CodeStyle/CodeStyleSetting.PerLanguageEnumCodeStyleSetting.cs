@@ -3,15 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
@@ -79,23 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
             public override ImmutableArray<string>? GetSettingValues(OptionSet optionSet)
             {
-                var type = typeof(T);
-                var strings = new List<string>();
-                var enumValues = type.GetEnumValues();
-
-                foreach (var enumValue in enumValues)
-                {
-                    var storageLocation = GetEditorConfigStorageLocation(_option);
-                    var codeStyleSetting = new CodeStyleOption2<T>((T)enumValue!, NotificationOption2.Silent);
-                    var option = storageLocation?.GetEditorConfigStringValue(codeStyleSetting, optionSet);
-                    if (option != null)
-                    {
-                        option = option.Contains(':') ? option.Split(':').First() : option;
-                        strings.Add(option);
-                    }
-                }
-
-                return strings.ToImmutableArray();
+                var storageLocation = GetEditorConfigStorageLocation(_option);
+                return GetSettingValuesHelper(storageLocation, optionSet);
             }
         }
     }
