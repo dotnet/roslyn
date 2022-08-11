@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
         /// <param name="parameters">Constructor parameters</param>
         /// <returns>Whether the constructor body matches the pattern described</returns>
         public static bool IsSimplePrimaryConstructor(
-            IMethodBodyOperation operation,
+            IConstructorBodyOperation operation,
             ImmutableArray<IPropertySymbol> properties,
             ImmutableArray<IParameterSymbol> parameters)
         {
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
         /// <param name="fields">all instance fields, including backing fields of constructors</param>
         /// <param name="parameter">parameter to copy constructor</param>
         public static bool IsSimpleCopyConstructor(
-            IMethodBodyOperation operation,
+            IConstructorBodyOperation operation,
             ImmutableArray<IFieldSymbol> fields,
             IParameterSymbol parameter)
         {

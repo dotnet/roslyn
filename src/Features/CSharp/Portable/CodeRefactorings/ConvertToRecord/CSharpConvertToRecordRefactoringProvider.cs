@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             {
                 // check to see if it would override the primary constructor
                 var constructorSymbol = (IMethodSymbol)semanticModel.GetRequiredDeclaredSymbol(constructor, cancellationToken);
-                var constructorOperation = (IMethodBodyOperation)semanticModel.GetRequiredOperation(constructor, cancellationToken);
+                var constructorOperation = (IConstructorBodyOperation)semanticModel.GetRequiredOperation(constructor, cancellationToken);
                 var constructorParamTypes = constructorSymbol.Parameters.SelectAsArray(parameter => parameter.Type);
                 var positionalParamTypes = propertiesToMove.SelectAsArray(p => p.Symbol.Type);
                 if (constructorParamTypes.SequenceEqual(positionalParamTypes))
