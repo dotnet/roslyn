@@ -9522,10 +9522,10 @@ class B2 : A<string>
 {
     public override R<string> F1(scoped R<string> r) => default; // 1
     public override R<string> F2(R<string> r) => default; // 2
-    public override R<string> F3(scoped ref R<string> r) => default; // 3
-    public override R<string> F4(ref R<string> r) => default; // 4
-    public override object this[scoped R<string> r] { get { return null; } set { } } // 5
-    public override object this[int x, R<string> y] => null; // 6
+    public override R<string> F3(scoped ref R<string> r) => default;
+    public override R<string> F4(ref R<string> r) => default;
+    public override object this[scoped R<string> r] { get { return null; } set { } } // 3
+    public override object this[int x, R<string> y] => null; // 4
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
@@ -9536,10 +9536,10 @@ class B2 : A<string>
                 //     public override R<string> F2(R<string> r) => default; // 2
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(13, 31),
                 // (16,76): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     public override object this[scoped R<string> r] { get { return null; } set { } } // 5
+                //     public override object this[scoped R<string> r] { get { return null; } set { } } // 3
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 76),
                 // (17,56): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
-                //     public override object this[int x, R<string> y] => null; // 6
+                //     public override object this[int x, R<string> y] => null; // 4
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 56));
         }
 
@@ -9576,10 +9576,10 @@ class C2 : I<string>
 {
     public R<string> F1(scoped R<string> r) => default; // 1
     public R<string> F2(R<string> r) => default; // 2
-    public R<string> F3(scoped ref R<string> r) => default; // 3
-    public R<string> F4(scoped ref R<string> r) => default;
-    public object this[scoped R<string> r] { get { return null; } set { } } // 4
-    public object this[int x, R<string> y] => null; // 5
+    public R<string> F3(scoped ref R<string> r) => default;
+    public R<string> F4(ref R<string> r) => default;
+    public object this[scoped R<string> r] { get { return null; } set { } } // 3
+    public object this[int x, R<string> y] => null; // 4
 }";
             comp = CreateCompilation(sourceB1, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
@@ -9590,10 +9590,10 @@ class C2 : I<string>
                 //     public R<string> F2(R<string> r) => default; // 2
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(13, 22),
                 // (16,67): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     public object this[scoped R<string> r] { get { return null; } set { } } // 4
+                //     public object this[scoped R<string> r] { get { return null; } set { } } // 3
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 67),
                 // (17,47): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
-                //     public object this[int x, R<string> y] => null; // 5
+                //     public object this[int x, R<string> y] => null; // 4
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 47));
 
             var sourceB2 =
@@ -9610,10 +9610,10 @@ class C4 : I<string>
 {
     R<string> I<string>.F1(scoped R<string> r) => default; // 1
     R<string> I<string>.F2(R<string> r) => default; // 2
-    R<string> I<string>.F3(scoped ref R<string> r) => default; // 3
-    R<string> I<string>.F4(scoped ref R<string> r) => default;
-    object I<string>.this[scoped R<string> r] { get { return null; } set { } } // 4
-    object I<string>.this[int x, R<string> y] => null; // 5
+    R<string> I<string>.F3(scoped ref R<string> r) => default;
+    R<string> I<string>.F4(ref R<string> r) => default;
+    object I<string>.this[scoped R<string> r] { get { return null; } set { } } // 3
+    object I<string>.this[int x, R<string> y] => null; // 4
 }";
             comp = CreateCompilation(sourceB2, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
@@ -9624,10 +9624,10 @@ class C4 : I<string>
                 //     R<string> I<string>.F2(R<string> r) => default; // 2
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(13, 25),
                 // (16,70): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     object I<string>.this[scoped R<string> r] { get { return null; } set { } } // 4
+                //     object I<string>.this[scoped R<string> r] { get { return null; } set { } } // 3
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 70),
                 // (17,50): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
-                //     object I<string>.this[int x, R<string> y] => null; // 5
+                //     object I<string>.this[int x, R<string> y] => null; // 4
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 50));
         }
 
