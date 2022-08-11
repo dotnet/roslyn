@@ -9557,6 +9557,8 @@ public interface I<T>
     R<T> F4(scoped ref R<T> r);
     object this[R<T> r] { get; set; }
     object this[int x, scoped R<T> y] { get; }
+    object this[object x, in R<T> y] { get; set; }
+    object this[scoped in R<T> x, int y] { get; }
 }";
             var comp = CreateCompilation(sourceA);
             comp.VerifyEmitDiagnostics();
@@ -9571,6 +9573,8 @@ public interface I<T>
     public R<int> F4(scoped ref R<int> r) => default;
     public object this[R<int> r] { get { return null; } set { } }
     public object this[int x, scoped R<int> y] => null;
+    public object this[object x, in R<int> y] { get { return null; } set { } }
+    public object this[scoped in R<int> x, int y] => null;
 }
 class C2 : I<string>
 {
@@ -9580,21 +9584,23 @@ class C2 : I<string>
     public R<string> F4(ref R<string> r) => default;
     public object this[scoped R<string> r] { get { return null; } set { } } // 3
     public object this[int x, R<string> y] => null; // 4
+    public object this[object x, scoped in R<string> y] { get { return null; } set { } }
+    public object this[in R<string> x, int y] => null;
 }";
             comp = CreateCompilation(sourceB1, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
-                // (12,22): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                // (14,22): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     public R<string> F1(scoped R<string> r) => default; // 1
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(12, 22),
-                // (13,22): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(14, 22),
+                // (15,22): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     public R<string> F2(R<string> r) => default; // 2
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(13, 22),
-                // (16,67): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(15, 22),
+                // (18,67): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     public object this[scoped R<string> r] { get { return null; } set { } } // 3
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 67),
-                // (17,47): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(18, 67),
+                // (19,47): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
                 //     public object this[int x, R<string> y] => null; // 4
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 47));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(19, 47));
 
             var sourceB2 =
 @"class C3 : I<int>
@@ -9605,6 +9611,8 @@ class C2 : I<string>
     R<int> I<int>.F4(scoped ref R<int> r) => default;
     object I<int>.this[R<int> r] { get { return null; } set { } }
     object I<int>.this[int x, scoped R<int> y] => null;
+    object I<int>.this[object x, in R<int> y] { get { return null; } set { } }
+    object I<int>.this[scoped in R<int> x, int y] => null;
 }
 class C4 : I<string>
 {
@@ -9614,21 +9622,23 @@ class C4 : I<string>
     R<string> I<string>.F4(ref R<string> r) => default;
     object I<string>.this[scoped R<string> r] { get { return null; } set { } } // 3
     object I<string>.this[int x, R<string> y] => null; // 4
+    object I<string>.this[object x, scoped in R<string> y] { get { return null; } set { } }
+    object I<string>.this[in R<string> x, int y] => null;
 }";
             comp = CreateCompilation(sourceB2, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
-                // (12,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                // (14,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     R<string> I<string>.F1(scoped R<string> r) => default; // 1
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(12, 25),
-                // (13,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(14, 25),
+                // (15,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     R<string> I<string>.F2(R<string> r) => default; // 2
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(13, 25),
-                // (16,70): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(15, 25),
+                // (18,70): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     object I<string>.this[scoped R<string> r] { get { return null; } set { } } // 3
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 70),
-                // (17,50): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(18, 70),
+                // (19,50): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
                 //     object I<string>.this[int x, R<string> y] => null; // 4
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 50));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(19, 50));
         }
 
         [CombinatorialData]
