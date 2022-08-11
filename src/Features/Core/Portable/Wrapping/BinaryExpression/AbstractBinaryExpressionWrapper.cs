@@ -7,6 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Precedence;
+using Roslyn.Utilities;
 
 #if DEBUG
 using System.Diagnostics;
@@ -14,9 +18,6 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
 {
-    using Microsoft.CodeAnalysis.Indentation;
-    using Microsoft.CodeAnalysis.Precedence;
-
     internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> : AbstractSyntaxWrapper
         where TBinaryExpressionSyntax : SyntaxNode
     {
@@ -103,19 +104,52 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
         private void AddExpressionsAndOperators(
             PrecedenceKind precedence, SyntaxNode expr, ArrayBuilder<SyntaxNodeOrToken> result)
         {
-            if (expr is TBinaryExpressionSyntax &&
-                precedence == _precedenceService.GetPrecedenceKind(expr))
+            // In-order traverse which visit the left child -> operator in the binary expression -> right child
+            using var pooledStack = SharedPools.Default<Stack<(SyntaxNode node, bool isLeafNode)>>().GetPooledObject();
+            var stack = pooledStack.Object;
+            // Two kinds of node in the tree:
+            // 1. ValidBinaryExpression (non-leaf node), which has left child, operator and right child.
+            // 2. NonValidBinaryExpression (leaf node), and we stop going deeper in the tree.
+            // currentNode represents the node we try to expand. If it is null, then pop element from the stack.
+            var currentNode = expr;
+            while (!stack.IsEmpty() || currentNode != null)
             {
-                _syntaxFacts.GetPartsOfBinaryExpression(
-                    expr, out var left, out var opToken, out var right);
-                AddExpressionsAndOperators(precedence, left, result);
-                result.Add(opToken);
-                AddExpressionsAndOperators(precedence, right, result);
+                if (currentNode != null)
+                {
+                    // If this is a valid binary expression, go to its left child, push the node to stack and note it is a non-leaf node
+                    if (IsValidBinaryExpression(precedence, currentNode))
+                    {
+                        _syntaxFacts.GetPartsOfBinaryExpression(currentNode, out var left, out var _, out var _);
+                        stack.Push((currentNode, false));
+                        currentNode = left;
+                    }
+                    else
+                    {
+                        // This is a leaf node in the tree, push it to the stack, and start popping element.
+                        stack.Push((currentNode, true));
+                        currentNode = null;
+                    }
+                }
+                else
+                {
+                    var (node, isLeafNode) = stack.Pop();
+                    if (isLeafNode)
+                    {
+                        // Add the leaf node to the tree. Because it can't be expanded more, continue popping.
+                        result.Add(node);
+                    }
+                    else
+                    {
+                        // This is a non-leaf node in the tree, so add its operator to result, and try to expand its right subtree
+                        _syntaxFacts.GetPartsOfBinaryExpression(node, out var _, out var opToken, out var right);
+                        result.Add(opToken);
+                        currentNode = right;
+                    }
+                }
             }
-            else
-            {
-                result.Add(expr);
-            }
+
+            bool IsValidBinaryExpression(PrecedenceKind precedence, SyntaxNode? node)
+                => node is TBinaryExpressionSyntax && precedence == _precedenceService.GetPrecedenceKind(node);
         }
     }
 }
