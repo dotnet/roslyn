@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -166,21 +167,21 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             string fullyQualifiedContainerName,
             CancellationToken cancellationToken)
         {
-            AddLocalFunctionInfosRecurse(memberDeclaration);
-
-            return;
-
-            void AddLocalFunctionInfosRecurse(SyntaxNode node)
+            var queue = new Queue<SyntaxNodeOrToken>();
+            queue.Enqueue(memberDeclaration);
+            while (!queue.IsEmpty())
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
+                var node = queue.Dequeue();
                 foreach (var child in node.ChildNodesAndTokens())
                 {
                     if (child.IsNode)
-                        AddLocalFunctionInfosRecurse(child.AsNode()!);
+                    {
+                        queue.Enqueue(child);
+                    }
                 }
 
-                if (node is LocalFunctionStatementSyntax localFunction)
+                if (node.AsNode() is LocalFunctionStatementSyntax localFunction)
                 {
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
