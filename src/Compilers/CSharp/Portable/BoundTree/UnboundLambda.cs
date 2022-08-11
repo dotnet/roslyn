@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Account for the situation where we have trailing required parameters AFTER an optional one, i.e., (int opt1 = 3, T1 req1, ..., TN reqN) => {...}
             // so we will be missing null default values for req1, ..., reqN when exiting the previous loop and the length of the default value builder will
             // be too short.
-            if (parameterDefaultValueBuilder is { })
+            if (parameterDefaultValueBuilder is not null)
             {
                 parameterDefaultValueBuilder.AddMany(null, lambdaSymbol.Parameters.Length - parameterDefaultValueBuilder.Count);
             }

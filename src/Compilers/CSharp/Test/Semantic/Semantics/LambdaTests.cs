@@ -4858,7 +4858,7 @@ class Program
             var lambda = exprs.SelectAsArray(e => GetLambdaSymbol(model, e)).Single();
             var parameter = (SourceParameterSymbol)lambda.Parameters[0];
             Assert.True(parameter.HasOptionalAttribute);
-            Assert.False(parameter.HasExplicitDefaultValue);
+            Assert.True(parameter.HasExplicitDefaultValue);
             Assert.Equal(2, parameter.DefaultValueFromAttributes.Value);
         }
 
@@ -6972,10 +6972,7 @@ class Program
 ";
 
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'arg' of 'Func<int, int>'
-                //         lam1();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam1").WithArguments("arg", "System.Func<int, int>").WithLocation(6, 9));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -6993,10 +6990,7 @@ class Program
 
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'arg' of 'Func<int, int>'
-                //         lam();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("arg", "System.Func<int, int>").WithLocation(6, 9));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

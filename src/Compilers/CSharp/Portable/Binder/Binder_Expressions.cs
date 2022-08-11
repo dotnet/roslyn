@@ -8944,6 +8944,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(ContainingMemberOrLambda is { });
             Debug.Assert(parameterRefKinds.IsDefault || parameterRefKinds.Length == parameterTypes.Length);
+            Debug.Assert(parameterDefaultValues.IsDefault || parameterDefaultValues.Length == parameterTypes.Length);
             Debug.Assert(returnType.Type is { }); // Expecting System.Void rather than null return type.
 
             bool returnsVoid = returnType.Type.IsVoidType();

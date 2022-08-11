@@ -64,6 +64,7 @@ static class Utils
         private static readonly string s_expressionOfTDelegate1ArgTypeName = ExecutionConditionUtil.IsDesktop ?
             "System.Linq.Expressions.Expression`1" :
             "System.Linq.Expressions.Expression1`1";
+        private static readonly string s_libPrefix = ExecutionConditionUtil.IsDesktop ? "mscorlib" : "netstandard";
 
         [Fact]
         public void LanguageVersion()
@@ -11516,21 +11517,22 @@ using System;
 
 class Program
 {
-    // static void Report(object d) => Console.WriteLine(d.GetType());
+    static void Report(object d) => Console.WriteLine(d.GetType());
     public static void Main()
     {   
         var lam = (int x = 30) => x;
         Console.WriteLine(lam() + " " + lam(10));
-       // Report(lam);
+        Report(lam);
     } 
 }
 """;
 
-            var expectAnonymousDelegateIL = """
+            var expectAnonymousDelegateIL =
+@"
 .class private auto ansi sealed '<>f__AnonymousDelegate0'
-	extends [netstandard]System.MulticastDelegate
+	extends [" + s_libPrefix + @"]System.MulticastDelegate
 {
-	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	.custom instance void [" + s_libPrefix + @"]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Methods
@@ -11549,59 +11551,58 @@ class Program
 		.param [1] = int32(30)
 	} // end of method '<>f__AnonymousDelegate0'::Invoke
 } // end of class <>f__AnonymousDelegate0
-""";
+";
 
-
-            var expectLoweredClosureContainerIL = """
-.class nested private auto ansi sealed serializable beforefieldinit '<>c'
-	extends [netstandard]System.Object
+            var expectLoweredClosureContainerIL =
+@"
+    .class nested private auto ansi sealed serializable beforefieldinit '<>c'
+    extends [" + s_libPrefix + @"]System.Object
 {
-	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-		01 00 00 00
-	)
-	// Fields
-	.field public static initonly class Program/'<>c' '<>9'
-	.field public static class '<>f__AnonymousDelegate0' '<>9__0_0'
-	// Methods
-	.method private hidebysig specialname rtspecialname static 
-		void .cctor () cil managed 
-	{
-		// Method begins at RVA 0x20b4
-		// Code size 11 (0xb)
-		.maxstack 8
-		IL_0000: newobj instance void Program/'<>c'::.ctor()
-		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
-		IL_000a: ret
-	} // end of method '<>c'::.cctor
-	.method public hidebysig specialname rtspecialname 
-		instance void .ctor () cil managed 
-	{
-		// Method begins at RVA 0x20ac
-		// Code size 7 (0x7)
-		.maxstack 8
-		IL_0000: ldarg.0
-		IL_0001: call instance void [netstandard]System.Object::.ctor()
-		IL_0006: ret
-	} // end of method '<>c'::.ctor
-	.method assembly hidebysig 
-		instance int32 '<Main>b__0_0' (
-			[opt] int32 x
-		) cil managed 
-	{
-		.param [1] = int32(30)
-		// Method begins at RVA 0x20c0
-		// Code size 2 (0x2)
-		.maxstack 8
-		IL_0000: ldarg.1
-		IL_0001: ret
-	} // end of method '<>c'::'<Main>b__0_0'
+    .custom instance void [" + s_libPrefix + @"]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Fields
+    .field public static initonly class Program/'<>c' '<>9'
+    .field public static class '<>f__AnonymousDelegate0' '<>9__1_0'
+    // Methods
+    .method private hidebysig specialname rtspecialname static 
+        void .cctor () cil managed 
+    {
+        // Method begins at RVA 0x20ca
+        // Code size 11 (0xb)
+        .maxstack 8
+        IL_0000: newobj instance void Program/'<>c'::.ctor()
+        IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+        IL_000a: ret
+    } // end of method '<>c'::.cctor
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x20c2
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [" + s_libPrefix + @"]System.Object::.ctor()
+        IL_0006: ret
+    } // end of method '<>c'::.ctor
+    .method assembly hidebysig 
+        instance int32 '<Main>b__1_0' (
+            [opt] int32 x
+        ) cil managed 
+    {
+        .param [1] = int32(30)
+        // Method begins at RVA 0x20d6
+        // Code size 2 (0x2)
+        .maxstack 8
+        IL_0000: ldarg.1
+        IL_0001: ret
+    } // end of method '<>c'::'<Main>b__1_0'
 } // end of class <>c
-""";
+";
 
-            var verifier = CompileAndVerify(source, expectedOutput: "30 10");
-            var m = ModuleMetadata.CreateFromImage(verifier.EmittedAssemblyData);
-            var reader = m.MetadataReader;
-            CheckNames(reader, reader.GetTypeDefNames(), "<Module>", "<>f__AnonymousDelegate0", "Program", "<>c");
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"30 10
+<>f__AnonymousDelegate0");
             verifier.VerifyTypeIL("<>f__AnonymousDelegate0", expectAnonymousDelegateIL);
             verifier.VerifyTypeIL("<>c", expectLoweredClosureContainerIL);
         }
@@ -11644,9 +11645,9 @@ class Program
             var expectAnonymousDelegateIL =
 @"
 .class private auto ansi sealed '<>f__AnonymousDelegate0'
-	extends [netstandard]System.MulticastDelegate
+	extends [" + s_libPrefix + @"]System.MulticastDelegate
 {
-	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	.custom instance void [" + s_libPrefix + @"]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Methods
@@ -11673,9 +11674,9 @@ class Program
             var expectLoweredClosureContainerIL =
 @"
     .class nested private auto ansi sealed serializable beforefieldinit '<>c'
-	extends [netstandard]System.Object
+	extends [" + s_libPrefix + @"]System.Object
 {
-	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	.custom instance void [" + s_libPrefix + @"]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Fields
@@ -11699,7 +11700,7 @@ class Program
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0001: call instance void [" + s_libPrefix + @"]System.Object::.ctor()
 		IL_0006: ret
 	} // end of method '<>c'::.ctor
 	.method assembly hidebysig 
@@ -11717,7 +11718,7 @@ class Program
 		IL_0000: ldarg.1
 		IL_0001: ldarg.2
 		IL_0002: ldarg.3
-		IL_0003: call string [netstandard]System.String::Concat(string, string, string)
+		IL_0003: call string [" + s_libPrefix + @"]System.String::Concat(string, string, string)
 		IL_0008: ret
 	} // end of method '<>c'::'<Main>b__1_0'
 } // end of class <>c
@@ -11746,14 +11747,10 @@ class Program
     }
 }
 """;
-            var verifier = CompileAndVerify(source, expectedOutput:
+            CompileAndVerify(source, expectedOutput:
 @"<>f__AnonymousDelegate0
 <>f__AnonymousDelegate1
 ");
-
-            var m = ModuleMetadata.CreateFromImage(verifier.EmittedAssemblyData);
-            var reader = m.MetadataReader;
-            CheckNames(reader, reader.GetTypeDefNames(), "<Module>", "<>f__AnonymousDelegate0", "<>f__AnonymousDelegate1", "Program", "<>c");
         }
 
         [Fact]
@@ -11801,14 +11798,11 @@ class Program
     }
 }
 """;
-            var verifier = CompileAndVerify(source, expectedOutput:
+            CompileAndVerify(source, expectedOutput:
 @"<>f__AnonymousDelegate0
 System.Func`2[System.Int32,System.Int32]
 ");
 
-            var m = ModuleMetadata.CreateFromImage(verifier.EmittedAssemblyData);
-            var reader = m.MetadataReader;
-            CheckNames(reader, reader.GetTypeDefNames(), "<Module>", "<>f__AnonymousDelegate0", "Program", "<>c");
         }
 
         [Fact]
@@ -11863,7 +11857,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaNoConversionDefaultParameterValueMatch()
+        public void LambdaDefaultParameterNameMismatch()
         {
             var source = """
 using System;
@@ -11920,7 +11914,7 @@ class Program
 }
 """;
 
-            // TODO: we want to have a warning here, because the default value when calling the named delegate will come from the delegate
+            // PROTOTYPE: we want to have a warning here, because the default value when calling the named delegate will come from the delegate
             // itself and not the underlying lambda which could be confusing.
             CompileAndVerify(source, expectedOutput: "2");
         }
@@ -11941,7 +11935,7 @@ class Program
     }
 }
 """;
-            // TODO: we want to add a warning here, since we have an implicit target-type conversion from a lambda WITH an optional parameter
+            // PROTOTYPE: we want to add a warning here, since we have an implicit target-type conversion from a lambda WITH an optional parameter
             // to a named delegate WITHOUT one, so the default value was useless to specify in code.
             CreateCompilation(source).VerifyDiagnostics(
                     // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Program.D'
@@ -12075,9 +12069,9 @@ class Program
             var expectAnonymousDelegateIL =
 @"
     .class private auto ansi sealed '<>f__AnonymousDelegate0'
-	extends [netstandard]System.MulticastDelegate
+	extends [" + s_libPrefix + @"]System.MulticastDelegate
 {
-	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	.custom instance void [" + s_libPrefix + @"]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Methods
@@ -12103,9 +12097,9 @@ class Program
             var expectLoweredClosureContainerIL =
 @"
 .class nested private auto ansi sealed serializable beforefieldinit '<>c'
-	extends [netstandard]System.Object
+	extends [" + s_libPrefix + @"]System.Object
 {
-	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	.custom instance void [" + s_libPrefix + @"]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Fields
@@ -12129,7 +12123,7 @@ class Program
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0001: call instance void [" + s_libPrefix + @"]System.Object::.ctor()
 		IL_0006: ret
 	} // end of method '<>c'::.ctor
 	.method assembly hidebysig 
@@ -12160,6 +12154,67 @@ class Program
 <>f__AnonymousDelegate0");
             verifier.VerifyTypeIL("<>f__AnonymousDelegate0", expectAnonymousDelegateIL);
             verifier.VerifyTypeIL("<>c", expectLoweredClosureContainerIL);
+        }
+
+        [Fact]
+        public void LambdaOutOfOrderParameterInvocation_AllParametersSpecified()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Main()
+    {
+        var lam = (string a, string b, string c = "c") => $"{a}{b}{c}";
+        Console.WriteLine(lam(b: "b", c: "a", a: "c"));
+    }
+ }
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,31): error CS1746: The delegate '<anonymous delegate>' does not have a parameter named 'b'
+                //         Console.WriteLine(lam(b: "b", c: "a", a: "c"));
+                Diagnostic(ErrorCode.ERR_BadNamedArgumentForDelegateInvoke, "b").WithArguments("<anonymous delegate>", "b").WithLocation(8, 31));
+        }
+
+        [Fact]
+        public void LambdaOutOfOrderParameterInvocation_MissingOptionalParameter()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Main()
+    {
+        var lam = (string a, string b, string c = "c") => $"{a}{b}{c}";
+        Console.WriteLine(lam(b: "a", a: "b"));
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,31): error CS1746: The delegate '<anonymous delegate>' does not have a parameter named 'b'
+                //         Console.WriteLine(lam(b: "a", a: "b"));
+                Diagnostic(ErrorCode.ERR_BadNamedArgumentForDelegateInvoke, "b").WithArguments("<anonymous delegate>", "b").WithLocation(8, 31));
+        }
+
+        [Fact]
+        public void LambdaOptionalParameterDecimalExpression()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Main()
+    {
+        var lam = (decimal dec =  Decimal.One / (decimal) 3) => dec; 
+        Console.WriteLine(lam());
+    }
+
+}
+""";
+            CompileAndVerify(source, expectedOutput: "0.3333333333333333333333333333");
         }
     }
 }
