@@ -1998,7 +1998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             try
             {
-                foreach (var (parameter, argument, refKind) in argsAndParams)
+                foreach (var (_, argument, refKind) in argsAndParams)
                 {
                     if (refKind.IsWritableReference() && argument.Type?.IsRefLikeType == true)
                     {
@@ -2112,7 +2112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 2. All `ref` or `out` arguments of `ref struct` types must be assignable by a value with that *safe-to-escape*.
             //    This applies even when the `ref` argument matches a `scoped ref` parameter.
             bool result = true;
-            foreach (var (parameter, argument, refKind) in argsAndParams)
+            foreach (var (_, argument, refKind) in argsAndParams)
             {
                 if (!refKind.IsWritableReference() || argument.Type?.IsRefLikeType != true)
                 {
