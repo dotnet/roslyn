@@ -3141,6 +3141,164 @@ class Program
         }
 
         [Fact]
+        public void ImplicitIn_01()
+        {
+            var source =
+@"ref struct R<T>
+{
+    public void F(in T t)  { }
+}
+class Program
+{
+    static R<int> F1()
+    {
+        var r1 = new R<int>();
+        int i = 1;
+        r1.F(in i); // 1
+        return r1;
+    }
+    static R<int> F2()
+    {
+        var r2 = new R<int>();
+        int i = 2;
+        r2.F(i); // 2
+        return r2;
+    }
+    static R<int> F3()
+    {
+        var r3 = new R<int>();
+        r3.F(3); // 3
+        return r3;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,9): error CS8350: This combination of arguments to 'R<int>.F(in int)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         r1.F(in i); // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r1.F(in i)").WithArguments("R<int>.F(in int)", "t").WithLocation(11, 9),
+                // (11,17): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         r1.F(in i); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(11, 17),
+                // (18,9): error CS8350: This combination of arguments to 'R<int>.F(in int)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         r2.F(i); // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r2.F(i)").WithArguments("R<int>.F(in int)", "t").WithLocation(18, 9),
+                // (18,14): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         r2.F(i); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(18, 14),
+                // (24,9): error CS8350: This combination of arguments to 'R<int>.F(in int)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         r3.F(3); // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r3.F(3)").WithArguments("R<int>.F(in int)", "t").WithLocation(24, 9),
+                // (24,14): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         r3.F(3); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "3").WithLocation(24, 14));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void ImplicitIn_02(LanguageVersion languageVersion)
+        {
+            var source =
+@"class Program
+{
+    static ref readonly T F<T>(in T t)
+    {
+        return ref t;
+    }
+    static ref readonly int F1()
+    {
+        int i1 = 1;
+        return ref F(in i1); // 1
+    }
+    static ref readonly int F2()
+    {
+        int i2 = 2;
+        return ref F(i2); // 2
+    }
+    static ref readonly int F3()
+    {
+        return ref F(3); // 3
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics(
+                // (10,20): error CS8347: Cannot use a result of 'Program.F<int>(in int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         return ref F(in i1); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(in i1)").WithArguments("Program.F<int>(in int)", "t").WithLocation(10, 20),
+                // (10,25): error CS8168: Cannot return local 'i1' by reference because it is not a ref local
+                //         return ref F(in i1); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i1").WithArguments("i1").WithLocation(10, 25),
+                // (15,20): error CS8347: Cannot use a result of 'Program.F<int>(in int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         return ref F(i2); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(i2)").WithArguments("Program.F<int>(in int)", "t").WithLocation(15, 20),
+                // (15,22): error CS8168: Cannot return local 'i2' by reference because it is not a ref local
+                //         return ref F(i2); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i2").WithArguments("i2").WithLocation(15, 22),
+                // (19,20): error CS8347: Cannot use a result of 'Program.F<int>(in int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         return ref F(3); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(3)").WithArguments("Program.F<int>(in int)", "t").WithLocation(19, 20),
+                // (19,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref F(3); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "3").WithLocation(19, 22));
+        }
+
+        [Fact]
+        public void ImplicitIn_03()
+        {
+            var source =
+@"class Program
+{
+    static ref readonly T F<T>(in T x, scoped in T y)
+    {
+        return ref x;
+    }
+    static ref readonly int F1()
+    {
+        int x1 = 1;
+        int y1 = 1;
+        return ref F(in x1, in y1); // 1
+    }
+    static ref readonly int F2()
+    {
+        int x2 = 2;
+        int y2 = 2;
+        return ref F(x2, in y2); // 2
+    }
+    static ref readonly int F3()
+    {
+        int y3 = 3;
+        return ref F(3, in y3); // 3
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,20): error CS8347: Cannot use a result of 'Program.F<int>(in int, in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ref F(in x1, in y1); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(in x1, in y1)").WithArguments("Program.F<int>(in int, in int)", "x").WithLocation(11, 20),
+                // (11,25): error CS8168: Cannot return local 'x1' by reference because it is not a ref local
+                //         return ref F(in x1, in y1); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x1").WithArguments("x1").WithLocation(11, 25),
+                // (17,20): error CS8347: Cannot use a result of 'Program.F<int>(in int, in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ref F(x2, in y2); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(x2, in y2)").WithArguments("Program.F<int>(in int, in int)", "x").WithLocation(17, 20),
+                // (17,22): error CS8168: Cannot return local 'x2' by reference because it is not a ref local
+                //         return ref F(x2, in y2); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x2").WithArguments("x2").WithLocation(17, 22),
+                // (22,20): error CS8347: Cannot use a result of 'Program.F<int>(in int, in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ref F(3, in y3); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(3, in y3)").WithArguments("Program.F<int>(in int, in int)", "x").WithLocation(22, 20),
+                // (22,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref F(3, in y3); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "3").WithLocation(22, 22));
+        }
+
+        [Fact]
         public void NestedFieldAccessor()
         {
             var source =

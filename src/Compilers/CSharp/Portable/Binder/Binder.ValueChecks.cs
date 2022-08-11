@@ -1549,7 +1549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             uint escapeScope = Binder.ExternalScope;
 
             var argsAndParamsAll = ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, bool IsRefEscape)>.GetInstance();
-            GetInvocationArgumentsForEscapeWithUpdatedRules(
+            GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
                 symbol,
                 receiver,
                 parameters,
@@ -1689,7 +1689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool result = true;
 
             var argsAndParamsAll = ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, bool IsRefEscape)>.GetInstance();
-            GetInvocationArgumentsForEscapeWithUpdatedRules(
+            GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
                 symbol,
                 receiver,
                 parameters,
@@ -1725,6 +1725,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        /// <summary>
+        /// Returns the set of arguments to be considered for escape analysis of a method invocation.
+        /// Each argument is returned with the correponding parameter and ref kind. Arguments are not
+        /// filtered - all arguments are included exactly once in the array, and the caller is responsible for
+        /// determining which arguments affect escape analysis. This method is used for method invocation
+        /// analysis, regardless of whether UseUpdatedEscapeRules is set.
+        /// </summary>
         private static void GetInvocationArgumentsForEscape(
             Symbol symbol,
             BoundExpression? receiver,
@@ -1765,11 +1772,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!argRefKindsOpt.IsDefault)
                     {
                         refKind = argRefKindsOpt[argIndex];
-                        if (refKind == RefKind.None &&
-                            parameter?.RefKind == RefKind.In)
-                        {
-                            refKind = RefKind.In;
-                        }
+                    }
+                    if (refKind == RefKind.None &&
+                        parameter?.RefKind == RefKind.In)
+                    {
+                        refKind = RefKind.In;
                     }
 
                     argsAndParams.Add((parameter, argument, refKind));
@@ -1815,7 +1822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// whether analysis should consider value or ref escape. Not all method arguments
         /// are included, and some arguments may be included twice - once for value, once for ref.
         /// </summary>
-        private void GetInvocationArgumentsForEscapeWithUpdatedRules(
+        private void GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
             Symbol symbol,
             BoundExpression? receiver,
             ImmutableArray<ParameterSymbol> parameters,
@@ -2060,7 +2067,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             uint escapeScope = Binder.ExternalScope;
             (ParameterSymbol? Parameter, BoundExpression Argument, bool IsRefEscape)? argAndParamToEscape = null;
             var argsAndParamsAll = ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, bool IsRefEscape)>.GetInstance();
-            GetInvocationArgumentsForEscapeWithUpdatedRules(
+            GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
                 symbol,
                 receiverOpt,
                 parameters,
