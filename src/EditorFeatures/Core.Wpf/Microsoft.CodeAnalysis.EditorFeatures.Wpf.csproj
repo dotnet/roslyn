@@ -78,14 +78,4 @@
   <ItemGroup>
     <EmbeddedResource Update="EditorFeaturesWpfResources.resx" GenerateSource="true" />
   </ItemGroup>
-
-
-  <!-- TODO: Remove once we consume an SDK with the fix from https://github.com/dotnet/wpf/pull/6799 -->
-  <Target Name="RemoveDuplicateAnalyzers" BeforeTargets="CoreCompile">
-    <ItemGroup>
-        <FilteredAnalyzer Include="@(Analyzer->Distinct())" />
-        <Analyzer Remove="@(Analyzer)" />
-        <Analyzer Include="@(FilteredAnalyzer)" />
-    </ItemGroup>
-  </Target>
 </Project>

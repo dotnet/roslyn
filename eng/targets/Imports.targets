@@ -367,6 +367,15 @@
     </ItemGroup>
   </Target>
   
+  <!-- TODO: Remove once we consume an SDK with the fix from https://github.com/dotnet/wpf/pull/6799 -->
+  <Target Name="RemoveDuplicateAnalyzers" BeforeTargets="CoreCompile" Condition="'$(UseWpf)' == 'true'">
+    <ItemGroup>
+        <FilteredAnalyzer Include="@(Analyzer->Distinct())" />
+        <Analyzer Remove="@(Analyzer)" />
+        <Analyzer Include="@(FilteredAnalyzer)" />
+    </ItemGroup>
+  </Target>
+
   <Import Project="DoNotDeployToSymStore_Workaround.targets" Condition="'$(UsingToolPdbConverter)' == 'false'" />
   <Import Project="DoNotGenerateSatelliteAssemblies_Workaround.targets" Condition="'$(GenerateSatelliteAssemblies)' == 'false'" />
 </Project>
