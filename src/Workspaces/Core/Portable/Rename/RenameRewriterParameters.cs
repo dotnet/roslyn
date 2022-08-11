@@ -9,19 +9,16 @@ using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Rename
-{
-    internal readonly record struct RenameRewriterParameters(
-        ISet<TextSpan> ConflictLocationSpans,
-        Solution OriginalSolution,
-        SyntaxTree OriginalSyntaxTree,
-        RenamedSpansTracker RenameSpansTracker,
-        SyntaxNode SyntaxRoot,
-        Document Document,
-        SemanticModel SemanticModel,
-        AnnotationTable<RenameAnnotation> RenameAnnotations,
-        ImmutableArray<LocationRenameContext> TokenTextSpanRenameContexts,
-        ImmutableArray<LocationRenameContext> StringAndCommentsTextSpanRenameContexts,
-        ImmutableArray<RenamedSymbolContext> RenameSymbolContexts,
-        CancellationToken CancellationToken);
-}
+namespace Microsoft.CodeAnalysis.Rename;
+
+internal readonly record struct RenameRewriterParameters(
+    ISet<TextSpan> ConflictLocationSpans,
+    Solution OriginalSolution,
+    SyntaxTree OriginalSyntaxTree,
+    RenamedSpansTracker RenameSpansTracker,
+    SyntaxNode SyntaxRoot,
+    Document Document,
+    SemanticModel SemanticModel,
+    AnnotationTable<RenameAnnotation> RenameAnnotations,
+    DocumentRenameInfo DocumentRenameInfo,
+    CancellationToken CancellationToken);

@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             /// Mapping from the containgSpan of a common trivia/string identifier to a set of Locations needs to rename inside it.
             /// It is created by using a regex in to find the matched text when renaming inside a string/identifier.
             /// </summary>
-            private readonly ImmutableDictionary<TextSpan, ImmutableHashSet<LocationRenameContext>> _stringAndCommentRenameContexts;
+            private readonly MultiDictionary<TextSpan, LocationRenameContext> _stringAndCommentRenameContexts;
 
             private readonly ImmutableHashSet<string> _replacementTexts;
             private readonly ImmutableHashSet<string> _originalTexts;
@@ -123,13 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 _isProcessingComplexifiedSpans = false;
                 _skipRenameForComplexification = 0;
 
-                // TODO: These contexts are not changed for a document. ConflictResolver.Session should be refactored to cache them in a dictionary,
-                _renamedSymbolContexts = CreateSymbolKeyToRenamedSymbolContextMap(parameters.RenameSymbolContexts, SymbolKey.GetComparer());
-                _textSpanToLocationContextMap = CreateTextSpanToLocationContextMap(parameters.TokenTextSpanRenameContexts);
-                _stringAndCommentRenameContexts = GroupStringAndCommentsTextSpanRenameContexts(parameters.StringAndCommentsTextSpanRenameContexts);
-                _replacementTexts = _renamedSymbolContexts.Select(pair => pair.Value.ReplacementText).ToImmutableHashSet();
-                _originalTexts = _renamedSymbolContexts.Select(pair => pair.Value.OriginalText).ToImmutableHashSet();
-                _allPossibleConflictNames = _renamedSymbolContexts.SelectMany(pair => pair.Value.PossibleNameConflicts).ToImmutableHashSet();
+                (_textSpanToLocationContextMap, _renamedSymbolContexts, _stringAndCommentRenameContexts,_replacementTexts, _originalTexts, _allPossibleConflictNames) = parameters.documentRenameInfo;
             }
 
             public override SyntaxNode? Visit(SyntaxNode? node)

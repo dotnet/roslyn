@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             ''' <summary>
             ''' Mapping from the symbolKey to all the possible symbols might be renamed in the document.
             ''' </summary>
-            Private ReadOnly _stringAndCommentRenameContexts As ImmutableDictionary(Of TextSpan, ImmutableHashSet(Of LocationRenameContext))
+            Private ReadOnly _stringAndCommentRenameContexts As MultiDictionary(Of TextSpan, LocationRenameContext)
 
             ''' <summary>
             ''' Mapping from the containgSpan of a common trivia/string identifier to a set of Locations needs to rename inside it.
@@ -106,13 +106,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 _renameAnnotations = parameters.RenameAnnotations
                 _renameSpansTracker = parameters.RenameSpansTracker
 
-                ' TODO: These contexts are not changed for a document. ConflictResolver.Session should be refactored to cache them in a dictionary,
-                _renamedSymbolContexts = CreateSymbolKeyToRenamedSymbolContextMap(parameters.RenameSymbolContexts, SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False))
-                _textSpanToLocationContextMap = CreateTextSpanToLocationContextMap(parameters.TokenTextSpanRenameContexts)
-                _stringAndCommentRenameContexts = GroupStringAndCommentsTextSpanRenameContexts(parameters.StringAndCommentsTextSpanRenameContexts)
-                _replacementTexts = _renamedSymbolContexts.Select(Function(pair) pair.Value.ReplacementText).ToImmutableHashSet(CaseInsensitiveComparison.Comparer)
-                _originalTexts = _renamedSymbolContexts.Select(Function(pair) pair.Value.OriginalText).ToImmutableHashSet(CaseInsensitiveComparison.Comparer)
-                _allPossibleConflictNames = _renamedSymbolContexts.SelectMany(Function(pair) pair.Value.PossibleNameConflicts).ToImmutableHashSet(CaseInsensitiveComparison.Comparer)
+                _renamedSymbolContexts = parameters.DocumentRenameInfo.RenamedSymbolContexts
+                _textSpanToLocationContextMap = parameters.DocumentRenameInfo.TextSpanToLocationContexts
+                _stringAndCommentRenameContexts = parameters.DocumentRenameInfo.TextSpanToStringAndCommentRenameContexts
+                _replacementTexts = parameters.DocumentRenameInfo.AllReplacementTexts
+                _originalTexts = parameters.DocumentRenameInfo.AllOriginalText
+                _allPossibleConflictNames = parameters.DocumentRenameInfo.AllPossibleConflictNames
             End Sub
 
             Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode
@@ -403,7 +402,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
                 Dim newTrivia = MyBase.VisitTrivia(trivia)
 
-                Dim textSpanRenameContexts As ImmutableHashSet(Of LocationRenameContext) = Nothing
+                Dim textSpanRenameContexts As MultiDictionary(Of TextSpan, LocationRenameContext).ValueSet = Nothing
                 If Not trivia.HasStructure AndAlso _stringAndCommentRenameContexts.TryGetValue(trivia.Span, textSpanRenameContexts) Then
                     Dim subSpanToReplacementText = CreateSubSpanToReplacementTextDictionary(textSpanRenameContexts)
                     Return RenameInCommentTrivia(trivia, newTrivia, subSpanToReplacementText)
@@ -708,7 +707,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             End Function
 
             Private Function RenameWithinToken(token As SyntaxToken, newToken As SyntaxToken) As SyntaxToken
-                Dim locationSymbolContexts As ImmutableHashSet(Of LocationRenameContext) = Nothing
+                Dim locationSymbolContexts As MultiDictionary(Of TextSpan, LocationRenameContext).ValueSet = Nothing
                 If _isProcessingComplexifiedSpans OrElse Not _stringAndCommentRenameContexts.TryGetValue(token.Span, locationSymbolContexts) OrElse locationSymbolContexts.Count = 0 Then
                     Return newToken
                 End If

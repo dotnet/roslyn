@@ -8,6 +8,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine;
 
+/// <summary>
+/// Contains all the immutable information to rename a document.
+/// </summary>
 internal record DocumentRenameInfo(
     ImmutableDictionary<TextSpan, LocationRenameContext> TextSpanToLocationContexts,
     ImmutableDictionary<SymbolKey, RenamedSymbolContext> RenamedSymbolContexts,
