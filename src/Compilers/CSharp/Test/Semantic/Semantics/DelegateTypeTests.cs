@@ -11496,18 +11496,6 @@ class Program
 }");
         }
 
-        internal static void CheckNames(IEnumerable<MetadataReader> readers, IEnumerable<StringHandle> handles, params string[] expectedNames)
-        {
-            var actualNames = readers.GetStrings(handles);
-            AssertEx.Equal(expectedNames, actualNames);
-        }
-
-        internal static void CheckNames(MetadataReader reader, IEnumerable<StringHandle> handles, params string[] expectedNames)
-        {
-            CheckNames(new[] { reader }, handles, expectedNames);
-        }
-
-
         [Fact]
         public void LambdaWithDefaultParameter()
         {
@@ -11770,13 +11758,9 @@ class Program
     }
 }
 """;
-            var verifier = CompileAndVerify(source, expectedOutput:
+            CompileAndVerify(source, expectedOutput:
  @"<>f__AnonymousDelegate0
 <>f__AnonymousDelegate0");
-
-            var m = ModuleMetadata.CreateFromImage(verifier.EmittedAssemblyData);
-            var reader = m.MetadataReader;
-            CheckNames(reader, reader.GetTypeDefNames(), "<Module>", "<>f__AnonymousDelegate0", "Program", "<>c");
         }
 
         [Fact]
