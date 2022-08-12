@@ -42,8 +42,6 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                  options.QualifyEventAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
         }
 
-        protected abstract string GetLanguageName();
-
         /// <summary>
         /// Reports on whether the specified member is suitable for qualification. Some member
         /// access expressions cannot be qualified; for instance if they begin with <c>base.</c>,
