@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Options;
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private static Compilation CreateCompilation(Project project, PortableExecutableReference reference)
         {
-            var compilationService = project.LanguageServices.GetRequiredService<ICompilationFactoryService>();
+            var compilationService = project.Services.GetRequiredService<ICompilationFactoryService>();
             var compilation = compilationService.CreateCompilation("TempAssembly", compilationService.GetDefaultCompilationOptions());
             return compilation.WithReferences(reference);
         }

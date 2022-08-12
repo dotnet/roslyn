@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 if (_lazyImportedProviders == null)
                 {
                     var language = _service.Language;
-                    var mefExporter = (IMefHostExportProvider)_service._services.HostServices;
+                    var mefExporter = _service._services.ExportProvider;
 
                     var providers = ExtensionOrderer.Order(
                             mefExporter.GetExports<CompletionProvider, CompletionProviderMetadata>()

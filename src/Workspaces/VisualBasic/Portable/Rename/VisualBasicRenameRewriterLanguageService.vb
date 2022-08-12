@@ -6,7 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
@@ -122,9 +122,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 _stringAndCommentTextSpans = parameters.StringAndCommentTextSpans
                 _aliasSymbol = TryCast(_renamedSymbol, IAliasSymbol)
                 _renamableDeclarationLocation = _renamedSymbol.Locations.Where(Function(loc) loc.IsInSource AndAlso loc.SourceTree Is _semanticModel.SyntaxTree).FirstOrDefault()
-                _simplificationService = parameters.Document.Project.LanguageServices.GetRequiredService(Of ISimplificationService)()
-                _syntaxFactsService = parameters.Document.Project.LanguageServices.GetRequiredService(Of ISyntaxFactsService)()
-                _semanticFactsService = parameters.Document.Project.LanguageServices.GetRequiredService(Of ISemanticFactsService)()
+                _simplificationService = parameters.Document.Project.Services.GetRequiredService(Of ISimplificationService)()
+                _syntaxFactsService = parameters.Document.Project.Services.GetRequiredService(Of ISyntaxFactsService)()
+                _semanticFactsService = parameters.Document.Project.Services.GetRequiredService(Of ISemanticFactsService)()
                 _isVerbatim = _syntaxFactsService.IsVerbatimIdentifier(_replacementText)
                 _renameAnnotations = parameters.RenameAnnotations
             End Sub

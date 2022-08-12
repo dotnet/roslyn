@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     if (!typeOnly || symbol is ITypeSymbol)
                     {
-                        var options = _globalOptions.GetMetadataAsSourceOptions(document.Project.LanguageServices);
+                        var options = _globalOptions.GetMetadataAsSourceOptions(document.Project.Services);
                         var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, signaturesOnly: false, options, cancellationToken).ConfigureAwait(false);
 
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;

@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 End If
 
                 ' create commit formatting cleanup provider that has line commit specific behavior
-                Dim formattingOptions = buffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.LanguageServices, isExplicitFormat)
+                Dim formattingOptions = buffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.Services, isExplicitFormat)
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
                     document.Id,
                     document.Project.Services,
@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         Private Shared Function GetCommitFormattingCleanupProvider(
             documentId As DocumentId,
-            languageServices As HostProjectServices,
+            languageServices As CodeAnalysis.Host.LanguageServices,
             options As SyntaxFormattingOptions,
             spanToFormat As SnapshotSpan,
             oldSnapshot As ITextSnapshot,
@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         Private Shared Function GetFormattingRules(
             documentId As DocumentId,
-            languageServices As HostProjectServices,
+            languageServices As CodeAnalysis.Host.LanguageServices,
             options As SyntaxFormattingOptions,
             spanToFormat As SnapshotSpan,
             oldDirtySpan As SnapshotSpan,
@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Private Shared Function GetNumberOfIndentOperations(
-            languageServices As HostProjectServices,
+            languageServices As CodeAnalysis.Host.LanguageServices,
             options As SyntaxFormattingOptions,
             syntaxTree As SyntaxTree,
             span As SnapshotSpan,

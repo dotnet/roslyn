@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 return;
 
             var data = await ImplementAbstractClassData.TryGetDataAsync(
-                document, classNode, GetClassIdentifier(classNode), context.Options.GetImplementTypeGenerationOptions(document.Project.LanguageServices), cancellationToken).ConfigureAwait(false);
+                document, classNode, GetClassIdentifier(classNode), context.Options.GetImplementTypeGenerationOptions(document.Project.Services), cancellationToken).ConfigureAwait(false);
             if (data == null)
                 return;
 

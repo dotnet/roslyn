@@ -145,10 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());
                 }
-                if (refKind == RefKind.Out && scope == DeclarationScope.Unscoped)
-                {
-                    scope = DeclarationScope.RefScoped;
-                }
 
                 if (parameterSyntax is ParameterSyntax concreteParam)
                 {
@@ -190,6 +186,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // error CS0631: ref and out are not valid in this context
                     diagnostics.Add(ErrorCode.ERR_IllegalRefParam, refnessKeyword.GetLocation());
+                }
+
+                if (scope == DeclarationScope.Unscoped &&
+                    IsRefScopedByDefault(refKind, parameterType))
+                {
+                    scope = DeclarationScope.RefScoped;
                 }
 
                 TParameterSymbol parameter = parameterCreationFunc(withTypeParametersBinder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, scope, diagnostics);
@@ -306,28 +308,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static bool RequiresLifetimeAnnotationAttribute(ParameterSymbol parameter)
+        internal static bool RequiresScopedRefAttribute(ParameterSymbol parameter)
         {
             Debug.Assert(!parameter.IsThis);
 
-            var scope = parameter.Scope;
+            var scope = parameter.DeclaredScope;
             if (scope == DeclarationScope.Unscoped)
             {
                 return false;
             }
-            if (parameter.RefKind == RefKind.Out)
+            if (IsRefScopedByDefault(parameter))
             {
                 return scope == DeclarationScope.ValueScoped;
             }
             return true;
         }
 
-        internal static void EnsureLifetimeAnnotationAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
+        internal static bool IsRefScopedByDefault(ParameterSymbol parameter)
         {
-            EnsureLifetimeAnnotationAttributeExists(moduleBuilder.Compilation, parameters, diagnostics: null, modifyCompilation: false, moduleBuilder);
+            return IsRefScopedByDefault(parameter.RefKind, parameter.TypeWithAnnotations);
         }
 
-        internal static void EnsureLifetimeAnnotationAttributeExists(CSharpCompilation? compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
+        internal static bool IsRefScopedByDefault(RefKind refKind, TypeWithAnnotations parameterType)
+        {
+            switch (refKind)
+            {
+                case RefKind.Out:
+                    return true;
+                case RefKind.Ref:
+                case RefKind.In:
+                    return parameterType.IsRefLikeType();
+                default:
+                    return false;
+            }
+        }
+
+        internal static void EnsureScopedRefAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
+        {
+            EnsureScopedRefAttributeExists(moduleBuilder.Compilation, parameters, diagnostics: null, modifyCompilation: false, moduleBuilder);
+        }
+
+        internal static void EnsureScopedRefAttributeExists(CSharpCompilation? compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
         {
             // These parameters might not come from a compilation (example: lambdas evaluated in EE).
             // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
@@ -336,22 +357,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            EnsureLifetimeAnnotationAttributeExists(compilation, parameters, diagnostics, modifyCompilation, moduleBuilder: null);
+            EnsureScopedRefAttributeExists(compilation, parameters, diagnostics, modifyCompilation, moduleBuilder: null);
         }
 
-        private static void EnsureLifetimeAnnotationAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag? diagnostics, bool modifyCompilation, PEModuleBuilder? moduleBuilder)
+        private static void EnsureScopedRefAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag? diagnostics, bool modifyCompilation, PEModuleBuilder? moduleBuilder)
         {
             foreach (var parameter in parameters)
             {
-                if (RequiresLifetimeAnnotationAttribute(parameter))
+                if (RequiresScopedRefAttribute(parameter))
                 {
                     if (moduleBuilder is { })
                     {
-                        moduleBuilder.EnsureLifetimeAnnotationAttributeExists();
+                        moduleBuilder.EnsureScopedRefAttributeExists();
                     }
                     else
                     {
-                        compilation.EnsureLifetimeAnnotationAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
+                        compilation.EnsureScopedRefAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
                     }
                 }
             }
@@ -605,6 +626,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int firstDefault,
             BindingDiagnosticBag diagnostics)
         {
+            // This method may be called early, before parameter.Type has been resolved,
+            // so code below should use parameter.TypeWithAnnotations instead if unsure.
+
             int parameterIndex = parameter.Ordinal;
             bool isDefault = parameterSyntax is ParameterSyntax { Default: { } };
 
@@ -648,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, parameter.Type);
             }
 
-            if (parameter.Scope == DeclarationScope.ValueScoped && !parameter.Type.IsErrorTypeOrRefLikeType())
+            if (parameter.DeclaredScope == DeclarationScope.ValueScoped && !parameter.TypeWithAnnotations.IsRefLikeType())
             {
                 diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, parameterSyntax.Location);
             }

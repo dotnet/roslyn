@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
 
             var results = await _encService.EmitSolutionUpdateAsync(sessionId, solution, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
-            if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
+            if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
             {
                 _encService.CommitSolutionUpdate(sessionId, out _);
             }

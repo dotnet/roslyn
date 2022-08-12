@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -41,7 +41,7 @@ class Test {
             var nugetCompletionProvider = new DebugAssertTestCompletionProvider();
             var reference = new MockAnalyzerReference(nugetCompletionProvider);
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
-            var completionService = project.LanguageServices.GetRequiredService<CompletionService>();
+            var completionService = project.Services.GetRequiredService<CompletionService>();
 
             var document = project.Documents.Single();
             var caretPosition = workspace.DocumentWithCursor.CursorPosition ?? throw new InvalidOperationException();

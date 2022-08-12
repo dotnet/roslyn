@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
@@ -146,8 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 _renamableDeclarationLocation = _renamedSymbol.Locations.FirstOrDefault(loc => loc.IsInSource && loc.SourceTree == _semanticModel.SyntaxTree);
                 _isVerbatim = _replacementText.StartsWith("@", StringComparison.Ordinal);
 
-                _simplificationService = parameters.Document.Project.LanguageServices.GetRequiredService<ISimplificationService>();
-                _semanticFactsService = parameters.Document.Project.LanguageServices.GetRequiredService<ISemanticFactsService>();
+                _simplificationService = parameters.Document.Project.Services.GetRequiredService<ISimplificationService>();
+                _semanticFactsService = parameters.Document.Project.Services.GetRequiredService<ISemanticFactsService>();
             }
 
             public override SyntaxNode? Visit(SyntaxNode? node)

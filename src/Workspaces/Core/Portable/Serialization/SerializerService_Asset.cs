@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 var offset = reader.ReadInt64();
                 var size = reader.ReadInt64();
 
-                var storage = storage2.AttachTemporaryTextStorage(name, offset, size, checksumAlgorithm, encoding, cancellationToken);
+                var storage = storage2.AttachTemporaryTextStorage(name, offset, size, checksumAlgorithm, encoding);
                 if (storage is ITemporaryTextStorageWithName storageWithName)
                 {
                     return new SerializableSourceText(storageWithName);

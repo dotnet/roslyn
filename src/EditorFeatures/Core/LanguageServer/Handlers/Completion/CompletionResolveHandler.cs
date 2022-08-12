@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var document = context.Document;
             Contract.ThrowIfNull(document);
 
-            var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
+            var completionService = document.Project.Services.GetRequiredService<CompletionService>();
 
             var cacheEntry = GetCompletionListCacheEntry(completionItem);
             if (cacheEntry == null)

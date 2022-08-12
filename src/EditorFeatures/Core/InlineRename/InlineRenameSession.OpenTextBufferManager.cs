@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                                 var linkedRenameSpan = _session._renameInfo.GetConflictEditSpan(
                                      new InlineRenameLocation(newDocument, replacement.NewSpan), GetTriggerText(newDocument, replacement.NewSpan),
                                      GetWithoutAttributeSuffix(_session.ReplacementText,
-                                        document.GetLanguageService<LanguageServices.ISyntaxFactsService>().IsCaseSensitive), cancellationToken);
+                                        document.GetLanguageService<LanguageService.ISyntaxFactsService>().IsCaseSensitive), cancellationToken);
 
                                 if (linkedRenameSpan.HasValue)
                                 {
@@ -589,7 +589,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _session._threadingContext.ThrowIfNotOnUIThread();
 
                 var textDiffService = preMergeDocument.Project.Solution.Services.GetService<IDocumentTextDifferencingService>();
-                var contentType = preMergeDocument.Project.LanguageServices.GetService<IContentTypeLanguageService>().GetDefaultContentType();
+                var contentType = preMergeDocument.Project.Services.GetService<IContentTypeLanguageService>().GetDefaultContentType();
 
                 // TODO: Track all spans at once
 

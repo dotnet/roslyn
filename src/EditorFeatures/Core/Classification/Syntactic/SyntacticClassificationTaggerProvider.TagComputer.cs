@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Classification
             public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
             private IClassificationService? TryGetClassificationService(ITextSnapshot snapshot)
-                => _workspace?.Services.GetLanguageServices(snapshot.ContentType)?.GetService<IClassificationService>();
+                => _workspace?.Services.SolutionServices.GetProjectServices(snapshot.ContentType)?.GetService<IClassificationService>();
 
             #region Workspace Hookup
 

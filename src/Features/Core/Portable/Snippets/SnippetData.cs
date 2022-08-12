@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets
@@ -15,13 +16,15 @@ namespace Microsoft.CodeAnalysis.Snippets
     /// </summary>
     internal struct SnippetData
     {
-        public readonly string DisplayName;
+        public readonly string Description;
         public readonly string SnippetIdentifier;
+        public readonly ImmutableArray<string> AdditionalFilterTexts;
 
-        public SnippetData(string displayName, string snippetIdentifier)
+        public SnippetData(string description, string snippetIdentifier, ImmutableArray<string> additionalFilterTexts)
         {
-            DisplayName = displayName;
+            Description = description;
             SnippetIdentifier = snippetIdentifier;
+            AdditionalFilterTexts = additionalFilterTexts;
         }
     }
 }
