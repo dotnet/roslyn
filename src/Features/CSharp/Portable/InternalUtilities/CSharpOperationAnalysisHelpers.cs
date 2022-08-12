@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
@@ -174,12 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
         /// <returns>Whether the constructor body matches the pattern described</returns>
         public static bool IsSimplePrimaryConstructor(
             IConstructorBodyOperation operation,
-            ImmutableArray<IPropertySymbol> properties,
-            ImmutableArray<IParameterSymbol> parameters,
-            out ImmutableArray<(IPropertySymbol property, EqualsValueClauseSyntax? @default)> primaryDefaults,
-            CancellationToken cancellationToken)
+            ref ImmutableArray<IPropertySymbol> properties,
+            ImmutableArray<IParameterSymbol> parameters)
         {
-            primaryDefaults = ImmutableArray<(IPropertySymbol, EqualsValueClauseSyntax?)>.Empty;
             var body = GetBlockOfMethodBody(operation);
 
             // We expect the constructor to have exactly one statement per parameter,
@@ -210,11 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                 //     Y = y;
                 // }
                 // then we would re-order the properties to: [int X, int Y]
-                primaryDefaults = assignmentValues
-                    .OrderBy(value => parameters.IndexOf(value.right))
-                    .SelectAsArray(value => ((IPropertySymbol)value.left,
-                        (value.right.DeclaringSyntaxReferences
-                            .FirstOrDefault()?.GetSyntax(cancellationToken) as ParameterSyntax)?.Default));
+                properties = parameters.SelectAsArray(param =>
+                    (IPropertySymbol)assignmentValues.First(value => value.right.Equals(param)).left);
                 return true;
             }
 
@@ -270,6 +263,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                 assignedValues.SetEquals(fields);
         }
 
+        public static (ImmutableArray<ArgumentSyntax> initializerArguments, ImmutableArray<SyntaxNode> assignmentsToRemove)
+            GetInitializerValuesForNonPrimaryConstructor(
+            IConstructorBodyOperation operation,
+            ImmutableArray<IPropertySymbol> positionalParams)
+        {
+            var body = GetBlockOfMethodBody(operation);
+            var bodyOps = body?.Operations ?? ImmutableArray<IOperation>.Empty;
+            var _1 = ArrayBuilder<ArgumentSyntax>.GetInstance(out var initializerBuilder);
+            var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var removalBuilder);
+
+            // make sure the assignment wouldn't reference local variables we may have declared
+            var assignmentValues = GetAssignmentValuesForConstructor(bodyOps,
+                assignment => IsSafeAssignment(assignment)
+                    ? assignment.Syntax as ExpressionSyntax
+                    : null);
+
+            foreach (var property in positionalParams)
+            {
+                var assignmentIndex = assignmentValues.IndexOf(value => property.Equals(value.left));
+                if (assignmentIndex == -1)
+                {
+                    // no assignment found, use "default" (or "null" for nullable types)
+                    initializerBuilder.Add(SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                        property.Type.NullableAnnotation == NullableAnnotation.Annotated
+                            ? SyntaxKind.NullLiteralExpression
+                            : SyntaxKind.DefaultLiteralExpression)));
+                }
+                else
+                {
+                    // found a valid assignment to the parameter, add the expression it was assigned to
+                    // to the initializer list, and add the eniter statement to be deleted
+                    initializerBuilder.Add(SyntaxFactory.Argument(assignmentValues[assignmentIndex].right));
+                    removalBuilder.Add(bodyOps[assignmentIndex].Syntax);
+                }
+            }
+
+            return (initializerBuilder.AsImmutable(), removalBuilder.AsImmutable());
+        }
+
         private static ImmutableArray<(ISymbol left, T right)> GetAssignmentValuesForConstructor<T>(
             ImmutableArray<IOperation> operations,
             Func<IOperation, T?> captureAssignedSymbol)
@@ -299,6 +331,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
 
             return default;
         });
+
+        /// <summary>
+        /// Determines whether the operation is safe to move into the "this(...)" initializer
+        /// i.e. Doesn't reference any other created variables but the parameters
+        /// </summary>
+        private static bool IsSafeAssignment(IOperation operation)
+            => operation.WalkDownConversion() switch
+            {
+                // literals don't make references
+                ILiteralOperation or
+                IParameterReferenceOperation or
+                IDefaultValueOperation => true,
+                IMemberReferenceOperation memberReference
+                    => memberReference.Instance == null ||
+                    IsSafeAssignment(memberReference.Instance),
+                IInvocationOperation invocation
+                    => (invocation.Instance == null ||
+                        IsSafeAssignment(invocation.Instance)) &&
+                    invocation.Arguments.All(arg => IsSafeAssignment(arg.Value)),
+                IUnaryOperation unary => IsSafeAssignment(unary.Operand),
+                IBinaryOperation binary
+                    => IsSafeAssignment(binary.LeftOperand) &&
+                    IsSafeAssignment(binary.RightOperand),
+                IConditionalAccessOperation conditionalAccess
+                    => IsSafeAssignment(conditionalAccess.Operation),
+                // ensure that we have a false branch since we're expecting a ternary operator here
+                // like Prop = b ? foo : bar;
+                IConditionalOperation { WhenFalse: IOperation whenFalse } condition
+                    => IsSafeAssignment(condition.Condition) &&
+                    IsSafeAssignment(condition.WhenTrue) &&
+                    IsSafeAssignment(whenFalse),
+                ICoalesceOperation coalesce
+                    => IsSafeAssignment(coalesce.Value) &&
+                    IsSafeAssignment(coalesce.WhenNull),
+                IIsTypeOperation isType => IsSafeAssignment(isType.ValueOperand),
+                IIsPatternOperation isPattern => IsSafeAssignment(isPattern.Value),
+                ISwitchExpressionOperation switchExpression
+                    => IsSafeAssignment(switchExpression.Value) &&
+                    switchExpression.Arms.All(arm => IsSafeAssignment(arm.Value)),
+                _ => false
+            };
 
         /// <summary>
         /// Get all the fields (including implicit fields underlying properties) that this

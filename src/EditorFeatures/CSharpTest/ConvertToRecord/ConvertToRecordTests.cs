@@ -2342,7 +2342,7 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndModifyConstructorOrderAndDefaults()
+        public async Task TestMovePropertiesAndModifyPrimaryConstructorOrderAndDefaults()
         {
             var initialMarkup = @"
 namespace N
@@ -2364,6 +2364,387 @@ namespace N
 namespace N
 {
     public record C(bool B = false, int P = 0);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndProvideThisInitializerValuesWithOperators()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(bool b, int p)
+        {
+            P = p;
+            B = b;
+        }
+
+        public C(bool b1, bool b2, bool b3)
+        {
+            P = b1 ? 1 : 0;
+            B = !b2 == b3;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(bool B, int P)
+    {
+
+        public C(bool b1, bool b2, bool b3) : this(!b2 == b3, b1 ? 1 : 0)
+        {
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndProvideThisInitializerValuesWithReferences()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public record R(int Foo, int Bar)
+    {
+        public int field = 10;
+
+        public bool IsBarNum(int num)
+        {
+            return Bar == num;
+        }
+    }
+
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(bool b, int p)
+        {
+            P = p;
+            B = b;
+        }
+
+        public C(R r)
+        {
+            P = r.field;
+            B = r.IsBarNum(r.Foo);
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record R(int Foo, int Bar)
+    {
+        public int field = 10;
+
+        public bool IsBarNum(int num)
+        {
+            return Bar == num;
+        }
+    }
+
+    public record C(bool B, int P)
+    {
+
+        public C(R r) : this(r.IsBarNum(r.Foo), r.field)
+        {
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndProvideThisInitializerValuesWithNullOperations()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public record R(int? Foo, int Bar)
+    {
+        public int field = 10;
+
+        public bool IsBarNum(int num)
+        {
+            return Bar == num;
+        }
+    }
+
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool? B { get; init; }
+
+        public C(bool? b, int p)
+        {
+            P = p;
+            B = b;
+        }
+
+        public C(R? r, int backup)
+        {
+            P = r?.Foo ?? 10;
+            B = r?.IsBarNum(backup);
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record R(int? Foo, int Bar)
+    {
+        public int field = 10;
+
+        public bool IsBarNum(int num)
+        {
+            return Bar == num;
+        }
+    }
+
+    public record C(bool? B, int P)
+    {
+
+        public C(R? r, int backup) : this(r?.IsBarNum(backup), r?.Foo ?? 10)
+        {
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndProvideThisInitializerValuesWithIsExpressions()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(bool b, int p)
+        {
+            P = p;
+            B = b;
+        }
+
+        public C(object b1, bool b2, object b3)
+        {
+            P = b1 is int ? 1 : 0;
+            B = !b2 && b3 is C { P: 10 };
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(bool B, int P)
+    {
+
+        public C(object b1, bool b2, object b3) : this(!b2 && b3 is C { P: 10 }, b1 is int ? 1 : 0)
+        {
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndProvideThisInitializerValuesWithSwitchExpressions()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(bool b, int p)
+        {
+            P = p;
+            B = b;
+        }
+
+        public C(int f1, bool b2, bool b3)
+        {
+            P = f1 switch
+            {
+                1 => 0,
+                0 => 1,
+                _ => default
+            };
+            B = !b2 && b3;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(bool B, int P)
+    {
+
+        public C(int f1, bool b2, bool b3) : this(!b2 && b3, f1 switch
+        {
+            1 => 0,
+            0 => 1,
+            _ => default
+        })
+        {
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndProvideThisInitializerValuesWithSideEffects()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(bool b, int p)
+        {
+            P = p;
+            B = b;
+        }
+
+        public C(bool b1, bool b2)
+        {
+            P = b1 ? 1 : 0;
+            Console.WriteLine(""Side effect"");
+            B = !b2;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+
+namespace N
+{
+    public record C(bool B, int P)
+    {
+
+        public C(bool b1, bool b2) : this(!b2, b1 ? 1 : 0)
+        {
+            Console.WriteLine(""Side effect"");
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndProvideThisInitializerValuesComplex()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(bool b, int p)
+        {
+            P = p;
+            B = b;
+        }
+
+        public C(bool b1, bool b2)
+        {
+            P = b1 ? 1 : 0;
+            var b = !b2;
+            B = b;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(bool B, int P)
+    {
+
+        public C(bool b1, bool b2) : this(default, b1 ? 1 : 0)
+        {
+            var b = !b2;
+            B = b;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndProvideThisInitializerDefaultAndNull()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int? P { get; init; }
+        public bool B { get; init; }
+
+        public C(bool b, int? p)
+        {
+            P = p;
+            B = b;
+        }
+
+        public C(bool b1, bool b2)
+        {
+            var b = !b2 || b2;
+            B = b;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(bool B, int? P)
+    {
+
+        public C(bool b1, bool b2) : this(default, null)
+        {
+            var b = !b2 || b2;
+            B = b;
+        }
+    }
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);

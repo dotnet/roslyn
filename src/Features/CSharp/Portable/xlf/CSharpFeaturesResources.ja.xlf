@@ -257,11 +257,6 @@
         <target state="translated">警告: 一時変数をインライン化すると、コードの意味が変わる可能性があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Warning_constructor_signature_conflicts_with_primary_constructor">
-        <source>Warning: Constructor signature conflicts with primary constructor</source>
-        <target state="new">Warning: Constructor signature conflicts with primary constructor</target>
-        <note />
-      </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
         <source>asynchronous foreach statement</source>
         <target state="translated">非同期の foreach ステートメント</target>
