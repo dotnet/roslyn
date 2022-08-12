@@ -592,5 +592,63 @@ class C {
                 ExactActionSetOffered = new[] { string.Format(FeaturesResources.Add_argument_name_0, "arg2") },
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [WorkItem(63362, "https://github.com/dotnet/roslyn/issues/63362")]
+        public async Task TestTrivia()
+        {
+            await VerifyCS.VerifyRefactoringAsync(@"
+class C
+{
+    static void F(string x, string y)
+    {
+        F(
+                // TODO: 1
+                nu[||]ll
+                // TODO: 2
+            ,   null
+            );
+    }
+}
+", @"
+class C
+{
+    static void F(string x, string y)
+    {
+        F(
+                // TODO: 1
+                x: null
+                // TODO: 2
+            ,   null
+            );
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [WorkItem(63362, "https://github.com/dotnet/roslyn/issues/63362")]
+        public async Task TestTrivia_Attribute()
+        {
+            await VerifyCS.VerifyRefactoringAsync(@"
+[My(
+    // Comment
+    [||]null/*comment2*/,
+    null)]
+class MyAttribute : System.Attribute
+{
+    public MyAttribute(string x, string y) { }
+}
+", @"
+[My(
+    // Comment
+    x: null/*comment2*/,
+    null)]
+class MyAttribute : System.Attribute
+{
+    public MyAttribute(string x, string y) { }
+}
+");
+        }
     }
 }
