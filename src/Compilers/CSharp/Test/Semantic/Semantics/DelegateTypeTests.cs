@@ -12217,6 +12217,9 @@ class Program
     }
 }
 """;
+            // PROTOTYPE: Do we want to allow [Caller{MemberName, LineNumber, FilePath}] attributes for lambdas since
+            // we now have default parameters? The current behavior is to ignore these attributes so that the provided
+            // default would always be used in these cases.
             CompileAndVerify(source, expectedOutput: "file::member:0");
         }
     }
