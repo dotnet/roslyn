@@ -607,9 +607,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         // https://github.com/dotnet/roslyn/issues/46718: give diagnostics on return points, not constructor signature
                         var exitLocation = method.DeclaringSyntaxReferences.IsEmpty ? null : method.Locations.FirstOrDefault();
+                        var alreadyWarnedMembers = PooledHashSet<Symbol>.GetInstance();
                         foreach (var member in method.ContainingType.GetMembersUnordered())
                         {
-                            checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation, forcePropertyAnalysis: false);
+                            if (checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation, forcePropertyAnalysis: false) is { } warnedMember)
+                            {
+                                alreadyWarnedMembers.Add(warnedMember);
+                            }
                         }
 
                         // If this constructor is adding `SetsRequiredMembers` and the base or this constructor did not have it, we need
@@ -618,16 +622,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var chainedConstructorEnforcesRequiredMembers = GetBaseOrThisInitializer()?.ShouldCheckRequiredMembers() ?? false;
 
-                        if (chainedConstructorEnforcesRequiredMembers && !method.ShouldCheckRequiredMembers() && method.ContainingType.BaseTypeNoUseSiteDiagnostics is { } baseType)
+                        if (chainedConstructorEnforcesRequiredMembers && !method.ShouldCheckRequiredMembers())
                         {
                             // Members of the current type were checked above. We need to grab all the required members from the base
                             // type and enforce them as well. We don't need to check the non-required members: those warnings would have
                             // been reported in constructor of the type that defined them.
-                            foreach (var member in baseType.AllRequiredMembers)
+                            foreach (var (_, member) in method.ContainingType.AllRequiredMembers)
                             {
-                                checkMemberStateOnConstructorExit(method, member.Value, state, thisSlot, exitLocation, forcePropertyAnalysis: true);
+                                if (alreadyWarnedMembers.Contains(member))
+                                {
+                                    continue;
+                                }
+
+                                checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation, forcePropertyAnalysis: true);
                             }
                         }
+
+                        alreadyWarnedMembers.Free();
                     }
                     else
                     {
@@ -645,12 +656,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            void checkMemberStateOnConstructorExit(MethodSymbol constructor, Symbol member, LocalState state, int thisSlot, Location? exitLocation, bool forcePropertyAnalysis)
+            Symbol? checkMemberStateOnConstructorExit(MethodSymbol constructor, Symbol member, LocalState state, int thisSlot, Location? exitLocation, bool forcePropertyAnalysis)
             {
                 var isStatic = !constructor.RequiresInstanceReceiver();
                 if (member.IsStatic != isStatic)
                 {
-                    return;
+                    return null;
                 }
 
                 // This is not required for correctness, but in the case where the member has
@@ -659,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Therefore we skip this check when the member has an initializer to reduce noise.
                 if (HasInitializer(member))
                 {
-                    return;
+                    return null;
                 }
 
                 TypeWithAnnotations symbolType;
@@ -678,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         symbol = e;
                         if (field is null)
                         {
-                            return;
+                            return null;
                         }
                         break;
                     case PropertySymbol p when forcePropertyAnalysis:
@@ -687,20 +698,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         symbol = p;
                         break;
                     default:
-                        return;
+                        return null;
                 }
                 if (field?.IsConst ?? false)
                 {
-                    return;
+                    return null;
                 }
                 if (symbolType.Type.IsValueType || symbolType.Type.IsErrorType())
                 {
-                    return;
+                    return null;
                 }
 
                 if (symbol.IsRequired() && constructor.ShouldCheckRequiredMembers())
                 {
-                    return;
+                    return null;
                 }
 
                 var annotations = symbol.GetFlowAnalysisAnnotations();
@@ -708,17 +719,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We assume that if a member has AllowNull then the user
                     // does not care that we exit at a point where the member might be null.
-                    return;
+                    return null;
                 }
                 symbolType = ApplyUnconditionalAnnotations(symbolType, annotations);
                 if (!symbolType.NullableAnnotation.IsNotAnnotated())
                 {
-                    return;
+                    return null;
                 }
                 var slot = GetOrCreateSlot(symbol, thisSlot);
                 if (slot < 0)
                 {
-                    return;
+                    return null;
                 }
 
                 var memberState = state[slot];
@@ -729,7 +740,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var info = new CSDiagnosticInfo(ErrorCode.WRN_UninitializedNonNullableField, new object[] { symbol.Kind.Localize(), symbol.Name }, ImmutableArray<Symbol>.Empty, additionalLocations: symbol.Locations);
                     Diagnostics.Add(info, exitLocation ?? symbol.Locations.FirstOrNone());
+                    return symbol;
                 }
+
+                return null;
             }
 
             void enforceMemberNotNullOnMember(SyntaxNode? syntaxOpt, LocalState state, MethodSymbol method, string memberName)
@@ -858,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case PropertySymbol { IsRequired: true }:
                                     break;
                                 case PropertySymbol:
-                                    // skip any manually implemented properties.
+                                    // skip any manually implemented non-required properties.
                                     continue;
                                 case FieldSymbol { IsConst: true }:
                                     continue;
