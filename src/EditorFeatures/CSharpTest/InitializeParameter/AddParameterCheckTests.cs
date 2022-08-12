@@ -1701,6 +1701,31 @@ class C
 
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(63307, "https://github.com/dotnet/roslyn/issues/63307")]
+        public async Task TestNotOnIndexerParameterInRecordWithParameter()
+        {
+            var code = @"
+record R(string S)
+{
+    int this[[||]string s]
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            }.RunAsync();
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestNotOnIndexerParameters()
         {
@@ -2738,15 +2763,17 @@ class C
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         [WorkItem(58779, "https://github.com/dotnet/roslyn/issues/58779")]
-        public async Task TestNotInRecord()
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public async Task TestNotInRecord(LanguageVersion version)
         {
             var code = @"
 record C([||]string s) { public string s; }";
             await new VerifyCS.Test
             {
-                LanguageVersion = LanguageVersion.CSharp10,
+                LanguageVersion = version,
                 TestCode = code,
                 FixedCode = code,
             }.RunAsync();

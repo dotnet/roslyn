@@ -30,12 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         {
         }
 
-        protected override ISyntaxFacts SyntaxFacts
-            => CSharpSyntaxFacts.Instance;
-
-        protected override bool SupportsRecords(ParseOptions options)
-            => false;
-
         protected override bool IsFunctionDeclaration(SyntaxNode node)
             => InitializeParameterHelpers.IsFunctionDeclaration(node);
 

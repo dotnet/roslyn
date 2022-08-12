@@ -16,12 +16,10 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -44,9 +42,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatementOpt);
         protected abstract Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType);
         protected abstract Accessibility DetermineDefaultPropertyAccessibility();
-
-        protected override bool SupportsRecords(ParseOptions options)
-            => false;
 
         protected override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt,
