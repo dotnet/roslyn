@@ -12199,5 +12199,25 @@ class Program
 """;
             CompileAndVerify(source, expectedOutput: "0.3333333333333333333333333333");
         }
+
+        [Fact]
+        public void CallerAttributesOnLambdaWithDefaultParam()
+        {
+            var source = """
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        var lam = ([CallerMemberName] string member = "member", [CallerFilePath] string filePath = "file", 
+                                [CallerLineNumber] int lineNumber = 0) => Console.WriteLine($"{filePath}::{member}:{lineNumber}");
+        lam();
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "file::member:0");
+        }
     }
 }

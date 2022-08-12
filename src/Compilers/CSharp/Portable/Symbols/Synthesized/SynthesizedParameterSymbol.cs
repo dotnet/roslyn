@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly RefKind _refKind;
         private readonly DeclarationScope _scope;
-        private readonly ConstantValue? _defaultValue;
 
         public SynthesizedParameterSymbolBase(
             MethodSymbol? container,
@@ -29,7 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             RefKind refKind,
             DeclarationScope scope,
-            ConstantValue? defaultValue,
             string name)
         {
             Debug.Assert(type.HasType);
@@ -41,7 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _ordinal = ordinal;
             _refKind = refKind;
             _scope = scope;
-            _defaultValue = defaultValue;
             _name = name;
         }
 
@@ -77,14 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ExplicitDefaultConstantValue != null; }
         }
 
+        internal override ConstantValue? ExplicitDefaultConstantValue => null;
+
         public override bool IsImplicitlyDeclared
         {
             get { return true; }
-        }
-
-        internal override ConstantValue? ExplicitDefaultConstantValue
-        {
-            get { return _defaultValue; }
         }
 
         internal override bool IsIDispatchConstant
@@ -99,17 +93,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsCallerLineNumber
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsCallerFilePath
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsCallerMemberName
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override int CallerArgumentExpressionParameterIndex
@@ -205,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             DeclarationScope scope,
             string name)
-            : base(container, type, ordinal, refKind, scope, defaultValue: null, name)
+            : base(container, type, ordinal, refKind, scope, name)
         {
         }
 
@@ -283,6 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // The parameter containing attributes to inherit into this synthesized parameter, if any.
         private readonly SourceComplexParameterSymbolBase? _baseParameterForAttributes;
+        private readonly ConstantValue? _defaultValue;
 
         public SynthesizedComplexParameterSymbol(
             MethodSymbol? container,
@@ -294,13 +289,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             ImmutableArray<CustomModifier> refCustomModifiers,
             SourceComplexParameterSymbolBase? baseParameterForAttributes)
-            : base(container, type, ordinal, refKind, scope, defaultValue, name)
+            : base(container, type, ordinal, refKind, scope, name)
         {
             Debug.Assert(!refCustomModifiers.IsDefault);
             Debug.Assert(!refCustomModifiers.IsEmpty || baseParameterForAttributes is object || defaultValue is not null);
 
             _refCustomModifiers = refCustomModifiers;
             _baseParameterForAttributes = baseParameterForAttributes;
+            _defaultValue = defaultValue;
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -319,7 +315,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsMetadataOptional => _baseParameterForAttributes is not null ? _baseParameterForAttributes.IsMetadataOptional == true : base.IsMetadataOptional;
 
-        internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes?.ExplicitDefaultConstantValue ?? base.ExplicitDefaultConstantValue;
+        internal override bool IsCallerLineNumber
+        {
+            get => _baseParameterForAttributes?.IsCallerLineNumber ?? false;
+        }
+
+        internal override bool IsCallerFilePath
+        {
+            get => _baseParameterForAttributes?.IsCallerFilePath ?? false;
+        }
+
+        internal override bool IsCallerMemberName
+        {
+            get => _baseParameterForAttributes?.IsCallerMemberName ?? false;
+        }
+
+        internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes?.ExplicitDefaultConstantValue ?? _defaultValue;
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
@@ -338,5 +349,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return base.NotNullIfParameterNotNull;
             }
         }
+
     }
 }
