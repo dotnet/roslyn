@@ -27,4 +27,4 @@ namespace Microsoft.CodeAnalysis
 
         public static readonly InputNode<MetadataReference> MetadataReferences = new InputNode<MetadataReference>(b => b.Compilation.ExternalReferences);
     }
-    }
+}
