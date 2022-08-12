@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         QualifiedNameSyntax,
         IdentifierNameSyntax>
     {
+        private static readonly ObjectPool<Queue<SyntaxNodeOrToken>> s_queuePool = SharedPools.Default<Queue<SyntaxNodeOrToken>>();
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpDeclaredSymbolInfoFactoryService()
@@ -167,7 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             string fullyQualifiedContainerName,
             CancellationToken cancellationToken)
         {
-            var queue = new Queue<SyntaxNodeOrToken>();
+            using var pooledQueue = s_queuePool.GetPooledObject();
+            var queue = pooledQueue.Object;
             queue.Enqueue(memberDeclaration);
             while (!queue.IsEmpty())
             {
