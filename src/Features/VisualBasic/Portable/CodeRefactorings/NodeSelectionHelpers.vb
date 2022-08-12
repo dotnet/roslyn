@@ -44,9 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
                 Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
                 Dim selectedMembers = Await VisualBasicSelectedMembers.Instance.
                     GetSelectedMembersAsync(tree, span, allowPartialSelection:=True, cancellationToken).ConfigureAwait(False)
-                If selectedMembers.Any(Function(member)
-                                           Return TypeOf member Is IncompleteMemberSyntax
-                                       End Function) Then
+                If selectedMembers.OfType(Of IncompleteMemberSyntax)().Any() Then
                     Return ImmutableArray(Of SyntaxNode).Empty
                 Else
                     Return selectedMembers
