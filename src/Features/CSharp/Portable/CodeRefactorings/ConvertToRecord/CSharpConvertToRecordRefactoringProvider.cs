@@ -217,7 +217,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             out ImmutableArray<(PropertyDeclarationSyntax property, EqualsValueClauseSyntax? @default)> defaults,
             CancellationToken cancellationToken)
         {
-            defaults = ImmutableArray<(PropertyDeclarationSyntax, EqualsValueClauseSyntax?)>.Empty;
+            // without any knowledge of a constructor, we don't provide defaults
+            // and we maintain the order we saw the properties
+            defaults = propertiesToMove.SelectAsArray
+                <PropertyAnalysisResult, (PropertyDeclarationSyntax, EqualsValueClauseSyntax?)>
+                (result => (result.Syntax, null));
             using var _ = ArrayBuilder<MemberDeclarationSyntax>.GetInstance(out var modifiedMembers);
             modifiedMembers.AddRange(typeDeclaration.Members);
 

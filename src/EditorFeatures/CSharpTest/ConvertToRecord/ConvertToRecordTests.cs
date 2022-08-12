@@ -2314,6 +2314,62 @@ namespace N
         }
 
         [Fact]
+        public async Task TestMovePropertiesAndModifyOrderFromPrimaryConstructor()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(bool b, int p)
+        {
+            P = p;
+            B = b;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(bool B, int P);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndModifyConstructorOrderAndDefaults()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(bool b = false, int p = 0)
+        {
+            P = p;
+            B = b;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(bool B = false, int P = 0);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestMovePropertiesAndKeepComplexPrimaryConstructor1()
         {
             var initialMarkup = @"
