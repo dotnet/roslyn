@@ -82,6 +82,11 @@
     <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
 
+  <!-- Needed to override the transitive 9.0.1 version brought in by the 16.1.1 Microsoft.NET.Test.Sdk -->
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+  </ItemGroup>
+
   <!-- Use a different versioning scheme for nuget packages -->
   <PropertyGroup>
     <VersionPrefix>$(NugetPackagePrefix)</VersionPrefix>
