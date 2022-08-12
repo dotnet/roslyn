@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             return ReadAssemblyMvidOrEmpty(new BinaryReader(stream));
         }
+        
+        
+        
 
         private static Guid ReadAssemblyMvidOrEmpty(BinaryReader reader)
         {
