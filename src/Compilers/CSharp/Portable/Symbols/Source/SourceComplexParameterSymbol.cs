@@ -827,16 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool IsValidUnscopedRefAttributeTarget()
         {
-            switch (RefKind)
-            {
-                case RefKind.Out:
-                    return true;
-                case RefKind.Ref:
-                    var type = Type;
-                    return type is null || type.IsErrorTypeOrRefLikeType();
-                default:
-                    return false;
-            }
+            return ParameterHelpers.IsRefScopedByDefault(this);
         }
 
         private static bool? DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(AttributeDescription description, CSharpAttributeData attribute)
