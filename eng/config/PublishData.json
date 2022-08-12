@@ -106,7 +106,7 @@
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.2]"
     },
-    "release/dev17.3-vs-deps": {
+    "release/dev17.3": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
@@ -115,7 +115,7 @@
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.3]"
     },
-    "release/dev17.4-vs-deps": {
+    "release/dev17.4": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
@@ -125,16 +125,6 @@
       "insertionTitlePrefix": "[d17.4p1]"
     },
     "main": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[Validation]",
-      "insertionCreateDraftPR": true
-    },
-    "main-vs-deps": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
