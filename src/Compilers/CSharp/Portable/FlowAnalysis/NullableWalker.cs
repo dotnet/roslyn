@@ -855,6 +855,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var memberToInitialize = member;
                             switch (member)
                             {
+                                case PropertySymbol { IsRequired: true }:
+                                    break;
                                 case PropertySymbol:
                                     // skip any manually implemented properties.
                                     continue;
