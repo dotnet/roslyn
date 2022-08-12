@@ -15,11 +15,7 @@ internal class RequiredKeywordRecommender : AbstractSyntacticSingleKeywordRecomm
 {
     private static readonly ISet<SyntaxKind> s_validModifiers = SyntaxKindSet.AllMemberModifiers.Where(s => s is not (SyntaxKind.RequiredKeyword or SyntaxKind.StaticKeyword or SyntaxKind.ReadOnlyKeyword or SyntaxKind.ConstKeyword)).ToSet();
 
-    private static readonly ISet<SyntaxKind> s_validTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
-    {
-        SyntaxKind.StructDeclaration,
-        SyntaxKind.ClassDeclaration,
-    };
+    private static readonly ISet<SyntaxKind> s_validTypeDeclarations = SyntaxKindSet.ClassStructRecordTypeDeclarations;
 
     public RequiredKeywordRecommender()
         : base(SyntaxKind.RequiredKeyword)
