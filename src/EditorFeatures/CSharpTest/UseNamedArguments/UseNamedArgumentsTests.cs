@@ -2,37 +2,55 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UseNamedArguments;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNamedArguments
 {
-    public class UseNamedArgumentsTests : AbstractCSharpCodeActionTest
+    using VerifyCS = CSharpCodeRefactoringVerifier<CSharpUseNamedArgumentsCodeRefactoringProvider>;
+
+    public class UseNamedArgumentsTests
     {
-        private static readonly ParseOptions CSharp72 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
-
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CSharpUseNamedArgumentsCodeRefactoringProvider();
-
-        private Task TestWithCSharp7(string initialMarkup, string expectedMarkup)
+        private static Task TestMissingInRegularAndScriptAsync(string code)
         {
-            return TestAsync(
-                initialMarkup, expectedMarkup, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7));
+            return VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        private Task TestWithCSharp7_2(string initialMarkup, string expectedMarkup, int index = 0)
+        private static Task TestWithCSharp7(string initialMarkup, string expectedMarkup)
         {
-            return TestAsync(
-                initialMarkup, expectedMarkup, index: index, parseOptions: CSharp72);
+            return new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                LanguageVersion = LanguageVersion.CSharp7,
+            }.RunAsync();
+        }
+
+        private static Task TestWithCSharp7_2(string initialMarkup, string expectedMarkup, int index = 0)
+        {
+            return new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                CodeActionIndex = index,
+                LanguageVersion = LanguageVersion.CSharp7_2,
+            }.RunAsync();
+        }
+
+        private static Task TestWithCSharp7_3(string initialMarkup, string expectedMarkup)
+        {
+            return new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                LanguageVersion = LanguageVersion.CSharp7_3,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
@@ -75,11 +93,13 @@ index: 1);
         {
             // Because we're on the last argument, we should only offer one refactoring to the user.
             var initialMarkup = @"class C { void M(int arg1, int arg2) => M(1, [||]2); }";
-            await TestActionCountAsync(initialMarkup, count: 1, parameters: new TestParameters(parseOptions: CSharp72));
-
-            await TestWithCSharp7_2(
-initialMarkup,
-@"class C { void M(int arg1, int arg2) => M(1, arg2: 2); }");
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = @"class C { void M(int arg1, int arg2) => M(1, arg2: 2); }",
+                LanguageVersion = LanguageVersion.CSharp7_2,
+                ExactActionSetOffered = new[] { string.Format(FeaturesResources.Add_argument_name_0, "arg2") },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
@@ -331,7 +351,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestNotMissingWhenInsideSingleLineArgument2_CSharp7()
         {
-            await TestInRegularAndScript1Async(
+            await TestWithCSharp7(
 @"class C
 {
     void M(int arg1, int arg2) 
@@ -341,15 +361,14 @@ class C
 {
     void M(int arg1, int arg2) 
         => M(arg1: 1 + 2, arg2: 2);
-}",
-                parameters: new TestParameters(parseOptions: TestOptions.Regular7));
+}");
         }
 
         [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestNotMissingWhenInsideSingleLineArgument2()
         {
-            await TestInRegularAndScript1Async(
+            await TestWithCSharp7_3(
 @"class C
 {
     void M(int arg1, int arg2)
@@ -359,7 +378,7 @@ class C
 {
     void M(int arg1, int arg2)
         => M(arg1: 1 + 2, 2);
-}", parameters: new TestParameters(parseOptions: TestOptions.Regular7_3));
+}");
         }
 
         [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
@@ -406,7 +425,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestMissingNotOnStartingLineOfArgument1()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"
 using System;
 
@@ -423,14 +442,14 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestMissingWithSelection()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"
 using System;
 
 class C
 {
     void M(Action arg1, int arg2) 
-        => M([|1 + 2|], 3);
+        => M([|{|CS1503:1 + 2|}|], 3);
 }");
         }
 
@@ -468,7 +487,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestOnTuple()
         {
-            await TestInRegularAndScript1Async(
+            await VerifyCS.VerifyRefactoringAsync(
 @"using System.Linq;
 class C
 {
@@ -526,13 +545,13 @@ class C : System.Attribute
         public async Task TestMissingForImplicitIndexIndexer()
         {
             await TestMissingInRegularAndScriptAsync(
-                @"class C { string M(string arg1) => arg1[[||]^1]; }" + TestSources.Index);
+                @"class C { string M(string arg1) => {|CS0029:arg1[[||]^1]|}; }" + TestSources.Index);
         }
 
         [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
         public async Task TestForRealRangeIndexer()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
                 @"using System; 
 class C { 
     int this[Range range] => default; 
@@ -548,7 +567,7 @@ class C {
         [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
         public async Task TestForRealIndexIndexer()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
                 @"using System; 
 class C { 
     int this[Index index] => default; 
@@ -566,11 +585,12 @@ class C {
         {
             // Because we're on the last argument that doesn't have a name, we should only offer one refactoring to the user.
             var initialMarkup = @"class C { void M(int arg1, int arg2, int arg3) => M(1, [||]2, arg3: 3); }";
-            await TestActionCountAsync(initialMarkup, count: 1);
-
-            await TestInRegularAndScriptAsync(
-                initialMarkup,
-                @"class C { void M(int arg1, int arg2, int arg3) => M(1, arg2: 2, arg3: 3); }");
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = @"class C { void M(int arg1, int arg2, int arg3) => M(1, arg2: 2, arg3: 3); }",
+                ExactActionSetOffered = new[] { string.Format(FeaturesResources.Add_argument_name_0, "arg2") },
+            }.RunAsync();
         }
     }
 }
