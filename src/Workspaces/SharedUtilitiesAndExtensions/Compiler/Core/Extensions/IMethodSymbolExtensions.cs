@@ -112,9 +112,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static bool IsAsyncEffectivelyReturningVoidTask(this IMethodSymbol method, Compilation compilation)
         {
-            return method.IsAsync
-                && method.ReturnType is INamedTypeSymbol { Arity: 0 }
-                && method.ReturnType.Equals(compilation.TaskType()) || method.ReturnType.GetAttributes().Any(a => a.AttributeClass?.Equals(compilation.AsyncMethodBuilderAttribute()) ?? false);
+            if (!method.IsAsync)
+                return false;
+
+            if (method.ReturnType is not INamedTypeSymbol { Arity: 0 })
+                return false;
+
+            // `Task` type doesn't have an `AsyncMethodBuilder` attribute, so we need to check for it separately
+            return method.ReturnType.Equals(compilation.TaskType()) ||
+                   method.ReturnType.GetAttributes().Any(a => a.AttributeClass?.Equals(compilation.AsyncMethodBuilderAttribute()) ?? false);
         }
     }
 }
