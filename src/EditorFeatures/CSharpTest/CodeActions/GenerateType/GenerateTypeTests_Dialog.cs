@@ -2299,6 +2299,42 @@ typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions, false));
     }
+
+    [Fact]
+    public async Task GenerateType_QualifiedBaseList()
+    {
+        await TestWithMockedGenerateTypeDialog(
+initial: @"
+using System.Collections.Generic;
+
+struct C : A.B.[|$$INewType|]
+{
+}
+
+namespace A.B
+{
+}",
+languageName: LanguageNames.CSharp,
+typeName: "$$INewType",
+expected: @"
+using System.Collections.Generic;
+
+struct C : A.B.INewType
+{
+}
+
+namespace A.B
+{
+    public interface $$INewType
+    {
+    }
+}",
+accessibility: Accessibility.Public,
+typeKind: TypeKind.Interface,
+isNewFile: false,
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Interface, false));
+    }
+
     #endregion
     #region Delegates
     [Fact]
