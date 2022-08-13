@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
 
                 // Wait for the compilation and a monitor to detect if the server disconnects
-                var serverCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                using var serverCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
                 logger.Log($"Begin reading response for {request.RequestId}");
 

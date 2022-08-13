@@ -235,8 +235,9 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
 
             // Hook up the presenter's cancellation token to our overall governing cancellation token.  In other
             // words, if something else decides to present in the presenter (like a find-refs call) we'll hear about
-            // that and can cancel all our work.
-            presenterCancellationToken.Register(() => cancellationTokenSource.Cancel());
+            // that and can cancel all our work. The cancellation callback triggers cancellation asynchronously to avoid
+            // blocking when disposing of the cancellation token registration.
+            using var _ = presenterCancellationToken.Register(() => cancellationTokenSource.CancelAfter(0));
 
             // now actually wait for the find work to be done.
             await findTask.ConfigureAwait(false);

@@ -121,7 +121,9 @@ namespace RunTests
                     }, cancellationToken);
                 };
 
-            var registration = cancellationToken.Register(() =>
+            if (cancellationToken.CanBeCanceled)
+            {
+                var registration = cancellationToken.Register(() =>
                 {
                     if (tcs.TrySetCanceled())
                     {
@@ -139,6 +141,11 @@ namespace RunTests
                         }
                     }
                 });
+
+                // Dispose of the registration as soon as we no longer need it. Avoid calling Dispose on a synchronous
+                // call stack since it can block (and potentially deadlock) if the callback is currently executing.
+                tcs.Task.ContinueWith(_ => registration.Dispose(), CancellationToken.None, TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default);
+            }
 
             process.Start();
             onProcessStartHandler?.Invoke(process);

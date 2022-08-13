@@ -569,20 +569,58 @@ namespace Roslyn.Utilities
                     // the antecedent to avoid wrapping in two layers of AggregateException.
                     RoslynDebug.AssertNotNull(task.Exception);
                     if (task.Exception.InnerExceptions.Count > 0)
-                        this.TrySetException(task.Exception.InnerExceptions);
+                        base.TrySetException(task.Exception.InnerExceptions);
                     else
-                        this.TrySetException(task.Exception);
+                        base.TrySetException(task.Exception);
                 }
                 else
                 {
-                    this.TrySetResult(task.Result);
+                    base.TrySetResult(task.Result);
                 }
 
                 _cancellationTokenRegistration.Dispose();
             }
 
             public void Cancel()
-                => this.TrySetCanceled(_cancellationToken);
+                => base.TrySetCanceled(_cancellationToken);
+
+#pragma warning disable IDE0051 // Remove unused private members
+            [Obsolete("Do not use this API.", error: true)]
+            private new void SetCanceled()
+                => throw new InvalidOperationException();
+
+            [Obsolete("Do not use this API.", error: true)]
+            private new void SetException(IEnumerable<Exception> exceptions)
+                => throw new InvalidOperationException();
+
+            [Obsolete("Do not use this API.", error: true)]
+            private new void SetException(Exception exception)
+                => throw new InvalidOperationException();
+
+            [Obsolete("Do not use this API.", error: true)]
+            private new void SetResult(T result)
+                => throw new InvalidOperationException();
+
+            [Obsolete("Do not use this API.", error: true)]
+            private new bool TrySetCanceled()
+                => throw new InvalidOperationException();
+
+            [Obsolete("Do not use this API.", error: true)]
+            private new bool TrySetCanceled(CancellationToken cancellationToken)
+                => throw new InvalidOperationException();
+
+            [Obsolete("Do not use this API.", error: true)]
+            private new bool TrySetException(IEnumerable<Exception> exceptions)
+                => throw new InvalidOperationException();
+
+            [Obsolete("Do not use this API.", error: true)]
+            private new bool TrySetException(Exception exception)
+                => throw new InvalidOperationException();
+
+            [Obsolete("Do not use this API.", error: true)]
+            private new bool TrySetResult(T result)
+                => throw new InvalidOperationException();
+#pragma warning restore IDE0051 // Remove unused private members
         }
     }
 }

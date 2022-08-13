@@ -571,9 +571,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             AddHandler presenter.UiUpdated, uiUpdated
             Dim ct = New CancellationTokenSource(timeoutMs)
-            ct.Token.Register(Sub() tcs.TrySetCanceled(), useSynchronizationContext:=False)
-
-            Await tcs.Task.ConfigureAwait(True)
+            Using registration = ct.Token.Register(Sub() tcs.TrySetCanceled(), useSynchronizationContext:=False)
+                Await tcs.Task.ConfigureAwait(True)
+            End Using
         End Function
 
         Public Overloads Sub SendTypeCharsToSpecificViewAndBuffer(typeChars As String, view As IWpfTextView, buffer As ITextBuffer)

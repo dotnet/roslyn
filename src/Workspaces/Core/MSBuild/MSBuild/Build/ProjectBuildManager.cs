@@ -253,10 +253,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             var taskSource = new TaskCompletionSource<MSB.Execution.BuildResult>();
 
             // enable cancellation of build
-            CancellationTokenRegistration registration = default;
             if (cancellationToken.CanBeCanceled)
             {
-                registration = cancellationToken.Register(() =>
+                var registration = cancellationToken.Register(() =>
                 {
                     // Note: We only ever expect that a single submission is being built,
                     // even though we're calling CancelAllSubmissions(). If MSBuildWorkspace is
@@ -264,8 +263,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
                     taskSource.TrySetCanceled();
                     buildManager.CancelAllSubmissions();
-                    registration.Dispose();
                 });
+
+                // Dispose of the registration as soon as we no longer need it. Avoid calling Dispose on a synchronous
+                // call stack since it can block (and potentially deadlock) if the callback is currently executing.
+                taskSource.Task.ContinueWith(_ => registration.Dispose(), CancellationToken.None, TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default);
             }
 
             // execute build async
@@ -277,7 +279,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                     try
                     {
                         var result = sub.BuildResult;
-                        registration.Dispose();
                         taskSource.TrySetResult(result);
                     }
                     catch (Exception e)

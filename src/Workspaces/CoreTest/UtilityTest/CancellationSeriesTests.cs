@@ -120,7 +120,7 @@ namespace Roslyn.Utilities
 
             var exception = new Exception();
 
-            token1.Register(() => throw exception);
+            using var _ = token1.Register(() => throw exception);
 
             var aggregateException = Assert.Throws<AggregateException>(() => series.CreateNext());
 

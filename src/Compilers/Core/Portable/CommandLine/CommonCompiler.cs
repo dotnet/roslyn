@@ -897,6 +897,7 @@ namespace Microsoft.CodeAnalysis
             if (analyzerCts != null)
             {
                 analyzerCts.Cancel();
+                analyzerCts.Dispose();
             }
 
             var exitCode = ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation)
@@ -919,6 +920,7 @@ namespace Microsoft.CodeAnalysis
                 ReportAnalyzerUtil.Report(consoleOutput, analyzerDriver, driverTimingInfo, Culture, compilation.Options.ConcurrentBuild);
             }
 
+            analyzerDriver?.Dispose();
             return exitCode;
         }
 

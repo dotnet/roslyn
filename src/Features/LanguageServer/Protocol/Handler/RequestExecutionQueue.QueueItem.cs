@@ -87,8 +87,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 RequestTelemetryLogger telemetryLogger,
                 CancellationToken cancellationToken)
             {
-                // Set the tcs state to cancelled if the token gets cancelled outside of our callback (for example the server shutting down).
-                cancellationToken.Register(() => _completionSource.TrySetCanceled(cancellationToken));
+                if (cancellationToken.CanBeCanceled)
+                {
+                    // Set the tcs state to cancelled if the token gets cancelled outside of our callback (for example the server shutting down).
+                    var registration = cancellationToken.Register(() => _completionSource.TrySetCanceled(cancellationToken));
+
+                    // Dispose of the registration as soon as we no longer need it. Avoid calling Dispose on a
+                    // synchronous call stack since it can block (and potentially deadlock) if the callback is currently
+                    // executing.
+                    _completionSource.Task.ContinueWith(_ => registration.Dispose(), CancellationToken.None, TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default);
+                }
 
                 Metrics = new RequestMetrics(methodName, telemetryLogger);
 
