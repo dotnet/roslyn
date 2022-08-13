@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // use 64bit OOP
         public static readonly Option2<bool> OOP64Bit = new(
-            FeatureName, nameof(OOP64Bit), defaultValue: true,
+            FeatureName, nameof(OOP64Bit), defaultValue: false,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OOP64Bit)));
 
         public static readonly Option2<bool> OOPServerGCFeatureFlag = new(
