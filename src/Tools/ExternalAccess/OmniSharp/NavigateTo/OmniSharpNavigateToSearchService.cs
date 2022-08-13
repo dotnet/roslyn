@@ -36,7 +36,7 @@ internal static class OmniSharpNavigateToSearcher
         return searcher.SearchAsync(searchCurrentDocument: false, cancellationToken);
     }
 
-    private class OmniSharpNavigateToCallbackImpl : INavigateToSearchCallback
+    private sealed class OmniSharpNavigateToCallbackImpl : INavigateToSearchCallback
     {
         private readonly OmniSharpNavigateToCallback _callback;
 
