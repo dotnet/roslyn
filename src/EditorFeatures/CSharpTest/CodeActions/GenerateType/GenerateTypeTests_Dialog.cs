@@ -2283,7 +2283,7 @@ struct C : IEnumerable<[|$$NewType|]>
 {
 }",
 languageName: LanguageNames.CSharp,
-typeName: "$$NewType",
+typeName: "NewType",
 expected: @"
 using System.Collections.Generic;
 
@@ -2291,7 +2291,7 @@ struct C : IEnumerable<NewType>
 {
 }
 
-public class $$NewType
+public class NewType
 {
 }",
 accessibility: Accessibility.Public,
@@ -2315,7 +2315,7 @@ namespace A.B
 {
 }",
 languageName: LanguageNames.CSharp,
-typeName: "$$INewType",
+typeName: "INewType",
 expected: @"
 using System.Collections.Generic;
 
@@ -2325,7 +2325,7 @@ struct C : A.B.INewType
 
 namespace A.B
 {
-    public interface $$INewType
+    public interface INewType
     {
     }
 }",
@@ -2350,7 +2350,7 @@ namespace A.B
 {
 }",
 languageName: LanguageNames.CSharp,
-typeName: "$$INewType",
+typeName: "INewType",
 expected: @"
 using System.Collections.Generic;
 
@@ -2360,7 +2360,7 @@ struct C : global::A.B.INewType
 
 namespace A.B
 {
-    public interface $$INewType
+    public interface INewType
     {
     }
 }",
