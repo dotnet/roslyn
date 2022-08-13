@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 
         private static bool IsProgramClass(ClassDeclarationSyntax declaration)
         {
-            return declaration.Identifier.Text == WellKnownMemberNames.TopLevelStatementsEntryPointTypeName &&
+            return declaration.Identifier.ValueText == WellKnownMemberNames.TopLevelStatementsEntryPointTypeName &&
                    declaration.Modifiers.Any(SyntaxKind.PartialKeyword);
         }
 
