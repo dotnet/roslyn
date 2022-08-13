@@ -56,17 +56,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var isExactNameSearch = query.Kind == SearchKind.Exact ||
                     (query.Kind == SearchKind.ExactIgnoreCase && !syntaxFacts.IsCaseSensitive);
 
-                // Do a quick syntactic check first using our cheaply built indices.  That will help us avoid creating
-                // a compilation here if it's not necessary.  In the case of an exact name search we can call a special 
-                // overload that quickly uses the direct bloom-filter identifier maps in the index.  If it's nto an 
-                // exact name search, then we will run the query's predicate over every DeclaredSymbolInfo stored in
-                // the doc.
-                var containsSymbol = isExactNameSearch
-                    ? await project.ContainsSymbolsWithNameAsync(query.Name!, cancellationToken).ConfigureAwait(false)
-                    : await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false);
+                // This shortcut only works if there cannot be any generated documents. If there are generated documents, then
+                // we'll need to realize the compilation to get them before concluding the symbol doesn't exist.
+                if (!project.State.SourceGenerators.Any())
+                {
+                    // Do a quick syntactic check first using our cheaply built indices.  That will help us avoid creating
+                    // a compilation here if it's not necessary.  In the case of an exact name search we can call a special 
+                    // overload that quickly uses the direct bloom-filter identifier maps in the index.  If it's nto an 
+                    // exact name search, then we will run the query's predicate over every DeclaredSymbolInfo stored in
+                    // the doc.
+                    var containsSymbol = isExactNameSearch
+                        ? await project.ContainsSymbolsWithNameAsync(query.Name!, cancellationToken).ConfigureAwait(false)
+                        : await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false);
 
-                if (!containsSymbol)
-                    return;
+                    if (!containsSymbol)
+                        return;
+                }
 
                 var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 

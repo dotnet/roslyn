@@ -11,9 +11,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -186,6 +188,19 @@ Inner i;
             Assert.Equal(expectedSymbol, actualSymbol);
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem(63375, "https://github.com/dotnet/roslyn/issues/63375")]
+        public async Task FindDeclarationsAsync_GeneratedSymbol(TestHost testHost)
+        {
+            using var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project, testHost);
+            var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator(content: "class Generated {}"));
+            project = project.AddAnalyzerReference(analyzerReference);
+
+            var declaration = (await SymbolFinder.FindDeclarationsAsync(project, "Generated", ignoreCase: true)).Single();
+            var expectedSymbol = (await project.GetRequiredCompilationAsync(CancellationToken.None)).GlobalNamespace.GetMembers("Generated").Single();
+            Assert.Equal(expectedSymbol, declaration);
+        }
+
         #endregion
 
         #region FindSourceDeclarationsAsync_Project
@@ -289,6 +304,19 @@ Inner i;
                 using var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project);
                 var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, "Test", true, SymbolFilter.All, new CancellationToken(true));
             });
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(63375, "https://github.com/dotnet/roslyn/issues/63375")]
+        public async Task FindSourceDeclarationsAsync_Project_GeneratedSymbol(TestHost testHost)
+        {
+            using var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project, testHost);
+            var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator(content: "class Generated {}"));
+            project = project.AddAnalyzerReference(analyzerReference);
+
+            var declaration = (await SymbolFinder.FindSourceDeclarationsAsync(project, "Generated", ignoreCase: true)).Single();
+            var expectedSymbol = (await project.GetRequiredCompilationAsync(CancellationToken.None)).GlobalNamespace.GetMembers("Generated").Single();
+            Assert.Equal(expectedSymbol, declaration);
         }
 
         #endregion
@@ -396,6 +424,19 @@ Inner i;
             });
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem(63375, "https://github.com/dotnet/roslyn/issues/63375")]
+        public async Task FindSourceDeclarationsAsync_Solution_GeneratedSymbol(TestHost testHost)
+        {
+            using var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project, testHost);
+            var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator(content: "class Generated {}"));
+            project = project.AddAnalyzerReference(analyzerReference);
+
+            var declaration = (await SymbolFinder.FindSourceDeclarationsAsync(project.Solution, "Generated", ignoreCase: true)).Single();
+            var expectedSymbol = (await project.GetRequiredCompilationAsync(CancellationToken.None)).GlobalNamespace.GetMembers("Generated").Single();
+            Assert.Equal(expectedSymbol, declaration);
+        }
+
         #endregion
 
         #region FindSourceDeclarationsAsync_Project_Func
@@ -461,6 +502,19 @@ Inner i;
                 using var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project);
                 var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, str => str.Contains("Test"), SymbolFilter.All, new CancellationToken(true));
             });
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(63375, "https://github.com/dotnet/roslyn/issues/63375")]
+        public async Task FindSourceDeclarationsAsync_Project_Func_GeneratedSymbol(TestHost testHost)
+        {
+            using var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project, testHost);
+            var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator(content: "class Generated {}"));
+            project = project.AddAnalyzerReference(analyzerReference);
+
+            var declaration = (await SymbolFinder.FindSourceDeclarationsAsync(project, str => str == "Generated")).Single();
+            var expectedSymbol = (await project.GetRequiredCompilationAsync(CancellationToken.None)).GlobalNamespace.GetMembers("Generated").Single();
+            Assert.Equal(expectedSymbol, declaration);
         }
 
         #endregion
@@ -530,6 +584,19 @@ Inner i;
             });
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem(63375, "https://github.com/dotnet/roslyn/issues/63375")]
+        public async Task FindSourceDeclarationsAsync_Solution_Func_GeneratedSymbol(TestHost testHost)
+        {
+            using var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project, testHost);
+            var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator(content: "class Generated {}"));
+            project = project.AddAnalyzerReference(analyzerReference);
+
+            var declaration = (await SymbolFinder.FindSourceDeclarationsAsync(project.Solution, str => str == "Generated")).Single();
+            var expectedSymbol = (await project.GetRequiredCompilationAsync(CancellationToken.None)).GlobalNamespace.GetMembers("Generated").Single();
+            Assert.Equal(expectedSymbol, declaration);
+        }
+
         #endregion
 
         #region FindSourceDeclarationsWithPatternAsync_Project
@@ -594,6 +661,19 @@ Inner i;
             });
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem(63375, "https://github.com/dotnet/roslyn/issues/63375")]
+        public async Task FindSourceDeclarationsWithPatternAsync_Project_GeneratedSymbol(TestHost testHost)
+        {
+            using var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project, testHost);
+            var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator(content: "class Generated {}"));
+            project = project.AddAnalyzerReference(analyzerReference);
+
+            var declaration = (await SymbolFinder.FindSourceDeclarationsWithPatternAsync(project, "Generated")).Single();
+            var expectedSymbol = (await project.GetRequiredCompilationAsync(CancellationToken.None)).GlobalNamespace.GetMembers("Generated").Single();
+            Assert.Equal(expectedSymbol, declaration);
+        }
+
         #endregion
 
         #region FindSourceDeclarationsWithPatternAsync_Solution
@@ -656,6 +736,19 @@ Inner i;
                 using var workspace = CreateWorkspaceWithSolution(SolutionKind.SingleClass, out var solution);
                 await SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, "test", SymbolFilter.All, new CancellationToken(true));
             });
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(63375, "https://github.com/dotnet/roslyn/issues/63375")]
+        public async Task FindSourceDeclarationsWithPatternAsync_Solution_GeneratedSymbol(TestHost testHost)
+        {
+            using var workspace = CreateWorkspaceWithProject(SolutionKind.SingleClass, out var project, testHost);
+            var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator(content: "class Generated {}"));
+            project = project.AddAnalyzerReference(analyzerReference);
+
+            var declaration = (await SymbolFinder.FindSourceDeclarationsWithPatternAsync(project.Solution, "Generated")).Single();
+            var expectedSymbol = (await project.GetRequiredCompilationAsync(CancellationToken.None)).GlobalNamespace.GetMembers("Generated").Single();
+            Assert.Equal(expectedSymbol, declaration);
         }
 
         #endregion
