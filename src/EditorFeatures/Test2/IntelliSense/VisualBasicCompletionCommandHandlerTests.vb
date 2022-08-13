@@ -1212,7 +1212,7 @@ End Module
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27446"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestProjections() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <Document>
@@ -1255,10 +1255,12 @@ End Module|}          </Document>)
                 ' unmap our source spans without changing the top buffer
                 projection.ReplaceSpans(0, sourceSpans.Count, {subjectBuffer.CurrentSnapshot.CreateTrackingSpan(0, subjectBuffer.CurrentSnapshot.Length, SpanTrackingMode.EdgeInclusive)}, EditOptions.DefaultMinimalChange, editTag:=Nothing)
 
-                state.SendBackspace()
-                state.SendTypeChars("b")
+                ' Editor operations are not directly handled in the new completion. 
+                ' Therefore, for this part of the test we can only user the buffer and the view specified.
+                state.SendBackspaceToSpecificViewAndBuffer(view, subjectBuffer)
+                state.SendTypeCharsToSpecificViewAndBuffer("b", view, subjectBuffer)
 
-                Await state.AssertSelectedCompletionItem(displayText:="bbb")
+                Await state.AssertSelectedCompletionItem(displayText:="bbb", projectionsView:=view)
 
                 ' prepare to remap our subject buffer
                 Dim subjectBufferText = subjectDocument.GetTextBuffer().CurrentSnapshot.GetText()
