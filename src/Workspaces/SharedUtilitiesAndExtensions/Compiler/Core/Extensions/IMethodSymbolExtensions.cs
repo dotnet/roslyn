@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -105,5 +106,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||
                 methodSymbol.ReturnType.OriginalDefinition.Equals(taskType) ||
                 methodSymbol.ReturnType.OriginalDefinition.Equals(genericTaskType));
+
+        /// <summary>
+        /// Tells if an async method returns a task-like type, awaiting for which produces <see langword="void"/> result
+        /// </summary>
+        public static bool IsAsyncEffectivelyReturningVoidTask(this IMethodSymbol method, Compilation compilation)
+        {
+            return method.IsAsync
+                && method.ReturnType is INamedTypeSymbol { Arity: 0 }
+                && method.ReturnType.Equals(compilation.TaskType()) || method.ReturnType.GetAttributes().Any(a => a.AttributeClass?.Equals(compilation.AsyncMethodBuilderAttribute()) ?? false);
+        }
     }
 }

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                     // this will be null for expression-bodied properties & indexer (not for individual getters & setters, those do have a symbol),
                     // both of which are a shorthand for the getter and always return a value
                     var method = document.SemanticModel.GetDeclaredSymbol(arrowExpression.Parent, cancellationToken) as IMethodSymbol;
-                    var createReturnStatement = !method?.ReturnsVoid ?? true;
+                    var createReturnStatement = (!method?.ReturnsVoid ?? true) && !method.IsAsyncEffectivelyReturningVoidTask(document.SemanticModel.Compilation);
 
                     return RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
                         document, arrowExpression, expression, newLocalName,
