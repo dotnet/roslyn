@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis
         public static SymbolKeyResolution ResolveString(
             string symbolKey, Compilation compilation,
             bool ignoreAssemblyKey = false,
-            bool ignoreReturnTypes = true,
+            bool ignoreReturnTypes = false,
             CancellationToken cancellationToken = default)
         {
             return ResolveString(symbolKey, compilation, ignoreAssemblyKey, ignoreReturnTypes, out _, cancellationToken);
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis
             string symbolKey, Compilation compilation, bool ignoreAssemblyKey,
             out string? failureReason, CancellationToken cancellationToken)
         {
-            return ResolveString(symbolKey, compilation, ignoreAssemblyKey, ignoreReturnTypes: true, out failureReason, cancellationToken);
+            return ResolveString(symbolKey, compilation, ignoreAssemblyKey, ignoreReturnTypes: false, out failureReason, cancellationToken);
         }
 
         public static SymbolKeyResolution ResolveString(
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis
         public SymbolKeyResolution Resolve(
             Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
         {
-            return Resolve(compilation, ignoreAssemblyKey, ignoreReturnTypes: true, cancellationToken);
+            return Resolve(compilation, ignoreAssemblyKey, ignoreReturnTypes: false, cancellationToken);
         }
 
         /// <summary>
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis
         /// <paramref name="compilation"/> to a matching symbol.
         /// </summary>
         public SymbolKeyResolution Resolve(
-            Compilation compilation, bool ignoreAssemblyKey = false, bool ignoreReturnTypes = true, CancellationToken cancellationToken = default)
+            Compilation compilation, bool ignoreAssemblyKey = false, bool ignoreReturnTypes = false, CancellationToken cancellationToken = default)
         {
             return ResolveString(_symbolKeyData, compilation, ignoreAssemblyKey, ignoreReturnTypes, cancellationToken);
         }
