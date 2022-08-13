@@ -2373,6 +2373,41 @@ typeKind: TypeKind.Interface,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Interface, false));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateType_AliasQualifiedBaseList()
+        {
+            await TestWithMockedGenerateTypeDialog(
+initial: @"
+using System.Collections.Generic;
+
+struct C : global::A.B.[|$$INewType|]
+{
+}
+
+namespace A.B
+{
+}",
+languageName: LanguageNames.CSharp,
+typeName: "$$INewType",
+expected: @"
+using System.Collections.Generic;
+
+struct C : global::A.B.INewType
+{
+}
+
+namespace A.B
+{
+    public interface $$INewType
+    {
+    }
+}",
+accessibility: Accessibility.Public,
+typeKind: TypeKind.Interface,
+isNewFile: false,
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Interface, false));
+        }
         #endregion
         #region Delegates
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
