@@ -649,7 +649,7 @@ using System;
 
 {modifier} partial class Program
 {{
-    int x;
+    static int x;
 }}
 ",
                 FixedCode = $@"
@@ -657,7 +657,7 @@ using System;
 
 {modifier} partial class Program
 {{
-    int x;
+    static int x;
 
     private static void Main(string[] args)
     {{
