@@ -631,65 +631,39 @@ partial class Program
             }.RunAsync();
         }
 
-        [Fact]
+        [Theory]
         [WorkItem(62943, "https://github.com/dotnet/roslyn/issues/62943")]
-        public async Task TestHasExistingPublicPart()
+        [InlineData("public")]
+        [InlineData("internal")]
+        [InlineData("static")]
+        [InlineData("abstract")]
+        [InlineData("file")]
+        public async Task TestHasExistingPart_KeepsModifiers(string modifier)
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
+                TestCode = $@"
 using System;
 
-{|IDE0211:Console|}.WriteLine(0);
+{{|IDE0211:Console|}}.WriteLine(0);
 
-public partial class Program
-{
+{modifier} partial class Program
+{{
     int x;
-}
+}}
 ",
-                FixedCode = @"
+                FixedCode = $@"
 using System;
 
-public partial class Program
-{
+{modifier} partial class Program
+{{
     int x;
 
     private static void Main(string[] args)
-    {
+    {{
         Console.WriteLine(0);
-    }
-}",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        [WorkItem(62943, "https://github.com/dotnet/roslyn/issues/62943")]
-        public async Task TestHasExistingPart_KeepsModifiers()
-        {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
-using System;
-
-{|IDE0211:Console|}.WriteLine(0);
-
-static partial class Program
-{
-}
-",
-                FixedCode = @"
-using System;
-
-static partial class Program
-{
-    private static void Main(string[] args)
-    {
-        Console.WriteLine(0);
-    }
-}",
+    }}
+}}",
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
