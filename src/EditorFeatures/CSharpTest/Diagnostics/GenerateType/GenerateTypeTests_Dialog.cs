@@ -2309,6 +2309,35 @@ typeKind: TypeKind.Structure,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure, false));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WorkItem(63280, "https://github.com/dotnet/roslyn/issues/63280")]
+        public async Task GenerateType_GenericBaseList()
+        {
+            await TestWithMockedGenerateTypeDialog(
+initial: @"
+using System.Collections.Generic;
+
+struct C : IEnumerable<[|$$NewType|]>
+{
+}",
+languageName: LanguageNames.CSharp,
+typeName: "$$NewType",
+expected: @"
+using System.Collections.Generic;
+
+struct C : IEnumerable<NewType>
+{
+}
+
+public class $$NewType
+{
+}",
+accessibility: Accessibility.Public,
+typeKind: TypeKind.Class,
+isNewFile: false,
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions, false));
+        }
         #endregion
         #region Delegates
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]

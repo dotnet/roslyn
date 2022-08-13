@@ -170,9 +170,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 if (assertGenerateTypeDialogOptions != null)
                 {
-                    Assert.True(assertGenerateTypeDialogOptions.IsPublicOnlyAccessibility == generateTypeDialogOptions.IsPublicOnlyAccessibility);
-                    Assert.True(assertGenerateTypeDialogOptions.TypeKindOptions == generateTypeDialogOptions.TypeKindOptions);
-                    Assert.True(assertGenerateTypeDialogOptions.IsAttribute == generateTypeDialogOptions.IsAttribute);
+                    Assert.Equal(assertGenerateTypeDialogOptions.IsPublicOnlyAccessibility, generateTypeDialogOptions.IsPublicOnlyAccessibility);
+                    Assert.Equal(assertGenerateTypeDialogOptions.TypeKindOptions, generateTypeDialogOptions.TypeKindOptions);
+                    Assert.Equal(assertGenerateTypeDialogOptions.IsAttribute, generateTypeDialogOptions.IsAttribute);
                 }
 
                 if (assertTypeKindPresent != null)

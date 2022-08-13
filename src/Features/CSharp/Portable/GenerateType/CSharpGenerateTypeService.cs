@@ -662,23 +662,16 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 return false;
             }
 
-            var node = expression as SyntaxNode;
-
-            while (node != null)
+            if (expression.Parent is BaseTypeSyntax { Parent: BaseListSyntax baseList })
             {
-                if (node is BaseListSyntax)
+                if (baseList.Parent.IsKind(SyntaxKind.InterfaceDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordStructDeclaration))
                 {
-                    if (node.Parent.IsKind(SyntaxKind.InterfaceDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordStructDeclaration))
-                    {
-                        typeKindValue = TypeKindOptions.Interface;
-                        return true;
-                    }
-
-                    typeKindValue = TypeKindOptions.BaseList;
+                    typeKindValue = TypeKindOptions.Interface;
                     return true;
                 }
 
-                node = node.Parent;
+                typeKindValue = TypeKindOptions.BaseList;
+                return true;
             }
 
             return false;
