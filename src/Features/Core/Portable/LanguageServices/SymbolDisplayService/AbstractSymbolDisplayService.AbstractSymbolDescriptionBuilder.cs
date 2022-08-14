@@ -246,9 +246,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 const int maxTextSize = 70;
                 var documentationComment = symbol.GetDocumentationComment(GetCompilation(), expandIncludes: true, expandInheritdoc: true);
                 var exceptionTypes = documentationComment.ExceptionTypes;
-                var formatter = Services.GetLanguageServices(_semanticModel.Language).GetRequiredService<IDocumentationCommentFormattingService>();
                 if (exceptionTypes.Any())
                 {
+                    var formatter = Services.GetLanguageServices(_semanticModel.Language).GetRequiredService<IDocumentationCommentFormattingService>();
                     var parts = new List<TaggedText>();
                     parts.AddLineBreak();
                     parts.AddText(WorkspacesResources.Exceptions_colon);
