@@ -116,10 +116,8 @@ namespace Microsoft.CodeAnalysis
             /// compilation state as the now 'old' state
             /// </summary>
             public ICompilationTracker Fork(
-                HostWorkspaceServices solutionServices,
                 ProjectState newProject,
-                CompilationAndGeneratorDriverTranslationAction? translate = null,
-                CancellationToken cancellationToken = default)
+                CompilationAndGeneratorDriverTranslationAction? translate)
             {
                 var state = ReadState();
 
