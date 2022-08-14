@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-                => new CSharpCompletionService(languageServices.ProjectServices.SolutionServices);
+                => new CSharpCompletionService(languageServices.LanguageServices.SolutionServices);
         }
 
         private CompletionRules _latestRules = CompletionRules.Default;
 
-        private CSharpCompletionService(HostSolutionServices services)
+        private CSharpCompletionService(SolutionServices services)
             : base(services)
         {
         }

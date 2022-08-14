@@ -147,6 +147,42 @@ Possible workarounds are:
     }
     ```
 
+## Instance method on ref struct may capture unscoped ref parameters
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.4.***
+
+With language version C# 11 or later, or with .NET 7.0 or later, a `ref struct` instance method invocation is assumed to capture unscoped `ref` or `in` parameters.
+
+```csharp
+R<int> Use(R<int> r)
+{
+    int i = 42;
+    r.MayCaptureArg(ref i); // error CS8350: may expose variables referenced by parameter 't' outside of their declaration scope
+    return r;
+}
+
+ref struct R<T>
+{
+    public void MayCaptureArg(ref T t) { }
+}
+```
+
+A possible workaround, if the `ref` or `in` parameter is not captured in the `ref struct` instance method, is to declare the parameter as `scoped ref` or `scoped in`.
+
+```csharp
+R<int> Use(R<int> r)
+{
+    int i = 42;
+    r.CannotCaptureArg(ref i); // ok
+    return r;
+}
+
+ref struct R<T>
+{
+    public void CannotCaptureArg(scoped ref T t) { }
+}
+```
+
 ## Method ref struct return escape analysis depends on ref escape of ref arguments
 
 ***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
@@ -185,6 +221,27 @@ static R Create()
 {
     int i = 0;
     return CannotCaptureArg(ref i); // ok
+}
+```
+
+## `ref` to `ref struct argument considered unscoped in `__arglist`
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.4.***
+
+With language version C# 11 or later, or with .NET 7.0 or later, a `ref` to a `ref struct` type is considered an unscoped reference when passed as an argument to `__arglist`.
+
+```csharp
+ref struct R { }
+
+class Program
+{
+    static void MayCaptureRef(__arglist) { }
+
+    static void Main()
+    {
+        var r = new R();
+        MayCaptureRef(__arglist(ref r)); // error: may expose variables outside of their declaration scope
+    }
 }
 ```
 
