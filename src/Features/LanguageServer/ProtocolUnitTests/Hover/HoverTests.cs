@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
             using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
             var expectedLocation = testLspServer.GetLocations("caret").Single();
             var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
-            VerifyVSContent(results, $"string A.Method(int i)|A great method|{FeaturesResources.Exceptions_colon}|  System.NullReferenceException: Line 1|Line 2|Line3");
+            VerifyVSContent(results, $"string A.Method(int i)|A great method|{FeaturesResources.Exceptions_colon}|  System.NullReferenceException: Line 1.|Line 2.|Line3.");
         }
 
         [Fact]
