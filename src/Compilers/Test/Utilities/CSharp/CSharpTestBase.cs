@@ -2235,7 +2235,7 @@ namespace System.Diagnostics.CodeAnalysis
             return comp;
         }
 
-        protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var reference = CreateEmptyCompilation(
                 SpanSource,

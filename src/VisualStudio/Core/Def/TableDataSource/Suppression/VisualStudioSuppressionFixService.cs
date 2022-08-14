@@ -192,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                             var text = await tree.GetTextAsync(cancellationToken).ConfigureAwait(false);
                             foreach (var diagnostic in group)
                             {
-                                builder.Add(diagnostic.WithCalculatedSpan(text));
+                                builder.Add(diagnostic.WithSpan(text, tree));
                             }
                         }
                     }
