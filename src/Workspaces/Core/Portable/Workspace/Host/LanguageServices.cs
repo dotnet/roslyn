@@ -6,16 +6,18 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    // TODO(cyrusn): Make public.  Tracked through https://github.com/dotnet/roslyn/issues/62914
-    internal sealed class HostProjectServices
+    /// <summary>
+    /// Per language services provided by the host environment.
+    /// </summary>
+    public sealed class LanguageServices
     {
         private readonly HostLanguageServices _services;
 
-        public HostSolutionServices SolutionServices => _services.WorkspaceServices.SolutionServices;
+        public SolutionServices SolutionServices => _services.WorkspaceServices.SolutionServices;
 
         // This ensures a single instance of this type associated with each HostLanguageServices.
         [Obsolete("Do not call directly.  Use HostLanguageServices.ProjectServices to acquire an instance")]
-        internal HostProjectServices(HostLanguageServices services)
+        internal LanguageServices(HostLanguageServices services)
         {
             _services = services;
         }

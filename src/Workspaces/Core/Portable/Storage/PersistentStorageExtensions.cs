@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Storage
         public static IChecksummedPersistentStorageService GetPersistentStorageService(this HostWorkspaceServices services)
             => GetPersistentStorageService(services.SolutionServices);
 
-        public static IChecksummedPersistentStorageService GetPersistentStorageService(this HostSolutionServices services)
+        public static IChecksummedPersistentStorageService GetPersistentStorageService(this SolutionServices services)
         {
             var workspaceConfiguration = services.GetService<IWorkspaceConfigurationService>();
             var configuration = services.GetRequiredService<IPersistentStorageConfiguration>();
