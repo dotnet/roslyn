@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     }
                     else if (token.IsKind(SyntaxKind.Utf8StringLiteralToken, SyntaxKind.Utf8SingleLineRawStringLiteralToken, SyntaxKind.Utf8MultiLineRawStringLiteralToken) && token.Text.EndsWith("u8", StringComparison.OrdinalIgnoreCase))
                     {
-                        AddClassification(new TextSpan(token.Span.End - 2, 2), ClassificationTypeNames.Keyword);
+                        AddClassification(new TextSpan(token.Span.End - "u8".Length, "u8".Length), ClassificationTypeNames.Keyword);
                     }
                 }
             }
