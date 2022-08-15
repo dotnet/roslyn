@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         public abstract Workspace Workspace { get; }
 
-        internal HostSolutionServices SolutionServices { get; }
+        internal SolutionServices SolutionServices { get; }
 
         /// <summary>
         /// Gets a workspace specific service provided by the host identified by the service type. 
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Host
         protected HostWorkspaceServices()
         {
 #pragma warning disable 618 // 'HostProjectServices.HostSolutionServices(HostLanguageServices)' is obsolete: 'Do not call directly.
-            SolutionServices = new HostSolutionServices(this);
+            SolutionServices = new SolutionServices(this);
 #pragma warning restore
         }
 

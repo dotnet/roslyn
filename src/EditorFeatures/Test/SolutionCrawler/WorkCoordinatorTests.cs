@@ -1068,7 +1068,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             //Assert.Equal(1, worker.ClosedNonSourceDocumentIds.Count);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/62479")]
         public async Task AnalyzerConfigDocumentOpenedClosedEvents()
         {
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));

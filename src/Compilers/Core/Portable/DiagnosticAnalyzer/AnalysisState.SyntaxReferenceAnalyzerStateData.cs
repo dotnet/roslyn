@@ -73,10 +73,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ProcessedNodes = new HashSet<SyntaxNode>();
             }
 
-            public void ClearNodeAnalysisState()
+            public void OnAllActionsExecutedForNode(SyntaxNode node)
             {
                 CurrentNode = null;
                 ProcessedActions.Clear();
+                ProcessedNodes.Add(node);
             }
 
             public override void Free()
@@ -101,10 +102,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ProcessedOperations = new HashSet<IOperation>();
             }
 
-            public void ClearNodeAnalysisState()
+            public void OnAllActionsExecutedForOperation(IOperation operation)
             {
                 CurrentOperation = null;
                 ProcessedActions.Clear();
+                ProcessedOperations.Add(operation);
             }
 
             public override void Free()
