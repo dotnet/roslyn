@@ -262,7 +262,7 @@ Remarks&nbsp;are&nbsp;cool&nbsp;too\.
             var results = await RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(expectedMarkdown, results.Contents.First);
+            Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
         }
 
         [Fact]
@@ -329,7 +329,7 @@ Remarks are cool too.
             var results = await RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(expectedText, results.Contents.First);
+            Assert.Equal(expectedText, results.Contents.Fourth.Value);
         }
 
         [Fact]
@@ -383,7 +383,7 @@ _italic\_&nbsp;\*\*text\*\*_
             var results = await RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(expectedMarkdown, results.Contents.First);
+            Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
         }
 
         private static async Task<LSP.Hover> RunGetHoverAsync(
