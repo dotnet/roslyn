@@ -3821,6 +3821,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor).GetPublicSymbol();
         }
 
+        protected override IMethodSymbol CommonCreateBuiltinOperator(Operations.BinaryOperatorKind kind, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType, bool isChecked)
+        {
+            var csharpReturnType = returnType.EnsureCSharpSymbolOrNull(nameof(returnType));
+            var csharpLeftType = leftType.EnsureCSharpSymbolOrNull(nameof(leftType));
+            var csharpRightType = rightType.EnsureCSharpSymbolOrNull(nameof(rightType));
+
+            // caller already checked all of these were not null.
+            Debug.Assert(csharpReturnType is not null);
+            Debug.Assert(csharpLeftType is not null);
+            Debug.Assert(csharpRightType is not null);
+
+            var op = kind switch
+            {
+                Operations.BinaryOperatorKind.Add => BinaryOperatorKind.Addition,
+                Operations.BinaryOperatorKind.And => BinaryOperatorKind.And,
+                Operations.BinaryOperatorKind.Divide => BinaryOperatorKind.Division,
+                Operations.BinaryOperatorKind.Equals => BinaryOperatorKind.Equal,
+                Operations.BinaryOperatorKind.GreaterThan => BinaryOperatorKind.GreaterThan,
+                Operations.BinaryOperatorKind.GreaterThanOrEqual => BinaryOperatorKind.GreaterThanOrEqual,
+                Operations.BinaryOperatorKind.LeftShift => BinaryOperatorKind.LeftShift,
+                Operations.BinaryOperatorKind.LessThan => BinaryOperatorKind.LessThan,
+                Operations.BinaryOperatorKind.LessThanOrEqual => BinaryOperatorKind.LessThanOrEqual,
+                Operations.BinaryOperatorKind.Multiply => BinaryOperatorKind.Multiplication,
+                Operations.BinaryOperatorKind.Or => BinaryOperatorKind.Or,
+                Operations.BinaryOperatorKind.NotEquals => BinaryOperatorKind.NotEqual,
+                Operations.BinaryOperatorKind.Remainder => BinaryOperatorKind.Remainder,
+                Operations.BinaryOperatorKind.RightShift => BinaryOperatorKind.RightShift,
+                Operations.BinaryOperatorKind.UnsignedRightShift => BinaryOperatorKind.UnsignedRightShift,
+                Operations.BinaryOperatorKind.Subtract => BinaryOperatorKind.Subtraction,
+                Operations.BinaryOperatorKind.ExclusiveOr => BinaryOperatorKind.Xor,
+                _ => throw new ArgumentException($"Unknown kind", nameof(kind)),
+            };
+
+            var operatorName = OperatorFacts.BinaryOperatorNameFromOperatorKind(op, isChecked);
+
+            return new SynthesizedIntrinsicOperatorSymbol(csharpLeftType, operatorName, csharpRightType, csharpReturnType, isChecked).GetPublicSymbol();
+        }
+
         protected override ITypeSymbol CommonDynamicType
         {
             get { return DynamicType.GetPublicSymbol(); }

@@ -1496,28 +1496,28 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="kind">The specific binary operator kind being created.</param>
         /// <param name="returnType">The return type of the binary operator.</param>
-        /// <param name="left">The type of the left operand of the binary operator.</param>
-        /// <param name="right">The type of the right operand of the binary operator.</param>
+        /// <param name="leftType">The type of the left operand of the binary operator.</param>
+        /// <param name="rightType">The type of the right operand of the binary operator.</param>
         /// <param name="isChecked">Whether or not this is a checked binary operator.  For example <c>int int.operator
         /// checked +(int v1, int v2)</c>.</param>
         /// <returns></returns>
-        public IMethodSymbol CreateBuiltinOperator(BinaryOperatorKind kind, ITypeSymbol returnType, ITypeSymbol left, ITypeSymbol right, bool isChecked)
+        public IMethodSymbol CreateBuiltinOperator(BinaryOperatorKind kind, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType, bool isChecked)
         {
             // Can't check 'kind' here as VB and C# support a different subset of kinds.
 
             if (returnType is null)
                 throw new ArgumentNullException(nameof(returnType));
 
-            if (left is null)
-                throw new ArgumentNullException(nameof(left));
+            if (leftType is null)
+                throw new ArgumentNullException(nameof(leftType));
 
-            if (right is null)
-                throw new ArgumentNullException(nameof(right));
+            if (rightType is null)
+                throw new ArgumentNullException(nameof(rightType));
 
-            return CommonCreateBuiltinOperator(kind, returnType, left, right, isChecked);
+            return CommonCreateBuiltinOperator(kind, returnType, leftType, rightType, isChecked);
         }
 
-        protected abstract IMethodSymbol CommonCreateBuiltinOperator(BinaryOperatorKind kind, ITypeSymbol returnType, ITypeSymbol left, ITypeSymbol right, bool isChecked);
+        protected abstract IMethodSymbol CommonCreateBuiltinOperator(BinaryOperatorKind kind, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType, bool isChecked);
 
         /// <summary>
         /// Creates an <see cref="IMethodSymbol"/> whose <see cref="IMethodSymbol.MethodKind"/> is <see
@@ -1527,23 +1527,23 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="kind">The specific unary operator kind being created.</param>
         /// <param name="returnType">The return type of the unary operator.</param>
-        /// <param name="value">The value the operator applies to.</param>
+        /// <param name="valueType">The type the operator applies to.</param>
         /// <param name="isChecked">Whether or not this is a unary binary operator..</param>
         /// <returns></returns>
-        public IMethodSymbol CreateBuiltinOperator(UnaryOperatorKind kind, ITypeSymbol returnType, ITypeSymbol value, bool isChecked)
+        public IMethodSymbol CreateBuiltinOperator(UnaryOperatorKind kind, ITypeSymbol returnType, ITypeSymbol valueType, bool isChecked)
         {
             // Can't check 'kind' here as VB and C# support a different subset of kinds.
 
             if (returnType is null)
                 throw new ArgumentNullException(nameof(returnType));
 
-            if (value is null)
-                throw new ArgumentNullException(nameof(value));
+            if (valueType is null)
+                throw new ArgumentNullException(nameof(valueType));
 
-            return CommonCreateBuiltinOperator(kind, returnType, value, isChecked);
+            return CommonCreateBuiltinOperator(kind, returnType, valueType, isChecked);
         }
 
-        protected abstract IMethodSymbol CommonCreateBuiltinOperator(UnaryOperatorKind kind, ITypeSymbol returnType, ITypeSymbol value, bool isChecked);
+        protected abstract IMethodSymbol CommonCreateBuiltinOperator(UnaryOperatorKind kind, ITypeSymbol returnType, ITypeSymbol valueType, bool isChecked);
 
         /// <summary>
         /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/> according
