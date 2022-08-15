@@ -26,13 +26,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicSyntaxTreeFactoryService(provider.ProjectServices.SolutionServices)
+            Return New VisualBasicSyntaxTreeFactoryService(provider.LanguageServices.SolutionServices)
         End Function
 
         Partial Friend Class VisualBasicSyntaxTreeFactoryService
             Inherits AbstractSyntaxTreeFactoryService
 
-            Public Sub New(services As HostSolutionServices)
+            Public Sub New(services As SolutionServices)
                 MyBase.New(services)
             End Sub
 

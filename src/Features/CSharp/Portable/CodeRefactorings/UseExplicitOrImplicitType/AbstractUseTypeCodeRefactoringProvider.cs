@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;

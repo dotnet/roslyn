@@ -88,11 +88,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             foreach (var snippetData in snippets)
             {
                 var completionItem = SnippetCompletionItem.Create(
-                    displayText: snippetData.DisplayName,
+                    displayText: snippetData.SnippetIdentifier,
                     displayTextSuffix: "",
                     position: position,
                     snippetIdentifier: snippetData.SnippetIdentifier,
-                    glyph: Glyph.Snippet);
+                    glyph: Glyph.Snippet,
+                    inlineDescription: snippetData.Description,
+                    additionalFilterTexts: snippetData.AdditionalFilterTexts);
                 context.AddItem(completionItem);
             }
         }

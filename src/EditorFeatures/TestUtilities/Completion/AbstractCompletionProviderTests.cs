@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;

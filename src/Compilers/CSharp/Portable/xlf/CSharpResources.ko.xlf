@@ -482,6 +482,11 @@
         <target state="translated">'System.Runtime.CompilerServices.RequiredMemberAttribute'를 사용하지 마세요. 대신 필수 필드 및 특성에 'required' 키워드를 사용하세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitScopedRef">
+        <source>Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</source>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
         <source>The given expression cannot be used in a fixed statement</source>
         <target state="translated">fixed 문에서는 지정된 식을 사용할 수 없습니다.</target>
@@ -1352,6 +1357,11 @@
         <target state="translated">대상 런타임이 인터페이스 멤버의 'protected', 'protected internal' 또는 'private protected' 접근성을 지원하지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportRefFields">
+        <source>Target runtime doesn't support ref fields.</source>
+        <target state="new">Target runtime doesn't support ref fields.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces">
         <source>Target runtime doesn't support static abstract members in interfaces.</source>
         <target state="translated">대상 런타임은 인터페이스에서 정적 추상 멤버를 지원하지 않습니다.</target>
@@ -1573,8 +1583,8 @@
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
-        <source>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</source>
-        <target state="new">UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</target>
+        <source>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</source>
+        <target state="new">UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
