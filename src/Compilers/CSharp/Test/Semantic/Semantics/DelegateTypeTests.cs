@@ -12225,7 +12225,7 @@ class Program
         }
 
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void CallerArgumentExpressionAttributeOnLambdaWithDefaultParam()
         {
             var source = """
@@ -12241,7 +12241,7 @@ class Program
     }
 }
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net60, expectedOutput: "callerArgExpression");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net60, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped);
         }
     }
 }
