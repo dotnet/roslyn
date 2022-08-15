@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -956,6 +957,20 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<ConversionOperatorDeclarationSyntax>(
                 Generator.OperatorDeclaration(OperatorKind.ExplicitConversion, parameters, returnType),
                 "explicit operator bool (global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
+        }
+
+        [Fact, WorkItem(63410, "https://github.com/dotnet/roslyn/issues/63410")]
+        public void TestCheckedOperator()
+        {
+            var comp = CSharpCompilation.Create(null, new[] { SyntaxFactory.ParseSyntaxTree("""
+                public class C
+                {
+                    public static C operator checked ++(C x) => x;
+                    public static C operator ++(C x) => x;
+                }
+                """) });
+            var operatorSymbol = (IMethodSymbol)comp.GetTypeByMetadataName("C").GetMembers(WellKnownMemberNames.CheckedIncrementOperatorName).Single();
+            VerifySyntax<OperatorDeclarationSyntax>(Generator.OperatorDeclaration(operatorSymbol), "public static global::C operator checked ++(global::C x)\r\n{\r\n}");
         }
 
         [Fact]

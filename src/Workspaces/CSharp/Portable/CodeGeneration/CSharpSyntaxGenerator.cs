@@ -243,6 +243,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode OperatorDeclaration(OperatorKind kind, IEnumerable<SyntaxNode>? parameters = null, SyntaxNode? returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default, IEnumerable<SyntaxNode>? statements = null)
         {
+            return OperatorDeclaration((int)GetTokenKind(kind), isChecked: false, parameters, returnType, accessibility, modifiers, statements);
+        }
+
+        private protected override SyntaxNode OperatorDeclaration(int syntaxKind, bool isChecked, IEnumerable<SyntaxNode>? parameters = null, SyntaxNode? returnType = null, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default, IEnumerable<SyntaxNode>? statements = null)
+        {
             var hasBody = !modifiers.IsAbstract && (!modifiers.IsPartial || statements != null);
             var returnTypeNode = returnType != null ? (TypeSyntax)returnType : SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword));
             var parameterList = AsParameterList(parameters);
@@ -251,22 +256,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var modifierList = AsModifierList(accessibility, modifiers, SyntaxKind.OperatorDeclaration);
             var attributes = default(SyntaxList<AttributeListSyntax>);
 
-            if (kind is OperatorKind.ImplicitConversion or OperatorKind.ExplicitConversion)
+            if ((SyntaxKind)syntaxKind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword)
             {
                 return SyntaxFactory.ConversionOperatorDeclaration(
-                    attributes, modifierList, SyntaxFactory.Token(GetTokenKind(kind)),
+                    attributes, modifierList, SyntaxFactory.Token((SyntaxKind)syntaxKind),
+                    explicitInterfaceSpecifier: null,
                     SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
-                    returnTypeNode, parameterList, body, semicolon);
+                    checkedKeyword: isChecked ? SyntaxFactory.Token(SyntaxKind.CheckedKeyword) : default,
+                    returnTypeNode, parameterList, body, expressionBody: null, semicolon);
             }
             else
             {
                 return SyntaxFactory.OperatorDeclaration(
                     attributes, modifierList, returnTypeNode,
+                    explicitInterfaceSpecifier: null,
                     SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
-                    SyntaxFactory.Token(GetTokenKind(kind)),
-                    parameterList, body, semicolon);
+                    checkedKeyword: isChecked ? SyntaxFactory.Token(SyntaxKind.CheckedKeyword) : default,
+                    SyntaxFactory.Token((SyntaxKind)syntaxKind),
+                    parameterList, body, expressionBody: null, semicolon);
             }
         }
+
+        private protected override int GetOperatorSyntaxKind(IMethodSymbol method, out bool isChecked)
+        {
+            var operatorKind = CSharp.SyntaxFacts.GetOperatorKind(method.Name);
+            if (operatorKind == SyntaxKind.None)
+            {
+                throw new ArgumentException("Unknown operator kind.");
+            }
+
+            isChecked = method.Name.StartsWith("op_Checked");
+            return (int)operatorKind;
+        }
+
 
         private static SyntaxKind GetTokenKind(OperatorKind kind)
             => kind switch
