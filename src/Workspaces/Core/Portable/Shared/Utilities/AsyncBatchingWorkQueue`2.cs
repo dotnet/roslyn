@@ -208,7 +208,9 @@ namespace Roslyn.Utilities
             try
             {
                 var (nextBatch, batchCancellationToken) = GetNextBatchAndResetQueue();
-                if (nextBatch.IsDefault)
+
+                // We may have no items if the entire batch was canceled (and no new work was added).
+                if (nextBatch.IsEmpty)
                     return default;
 
                 return await _processBatchAsync(nextBatch, batchCancellationToken).ConfigureAwait(false);
@@ -265,16 +267,15 @@ namespace Roslyn.Utilities
                 _uniqueItems.Clear();
                 _taskInFlight = false;
 
-                // We may have gotten no work if the client called CancelExistingWork directly.
-                if (builder.Count == 0)
-                    return default;
-
-                // If we had an item to process, we must have a cancellation token for it.
-                Contract.ThrowIfNull(itemCancellationToken);
+                if (builder.Count > 0)
+                {
+                    // If we had an item to process, we must have a cancellation token for it.
+                    Contract.ThrowIfNull(itemCancellationToken);
+                }
 
                 var items = builder.ToImmutable();
 
-                return (items, itemCancellationToken.Value);
+                return (items, itemCancellationToken.GetValueOrDefault());
             }
         }
     }
