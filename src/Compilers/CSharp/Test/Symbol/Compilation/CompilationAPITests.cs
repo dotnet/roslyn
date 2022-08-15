@@ -2720,6 +2720,110 @@ public class C { public static FrameworkName Goo() { return null; }}";
             });
         }
 
+        [Theory]
+        [InlineData(WellKnownMemberNames.CheckedAdditionOperatorName, "int.operator checked +(int, int)")]
+        [InlineData(WellKnownMemberNames.AdditionOperatorName, "int.operator +(int, int)")]
+        [InlineData(WellKnownMemberNames.BitwiseAndOperatorName, "int.operator &(int, int)")]
+        [InlineData(WellKnownMemberNames.CheckedDivisionOperatorName, "int.operator checked /(int, int)")]
+        [InlineData(WellKnownMemberNames.DivisionOperatorName, "int.operator /(int, int)")]
+        [InlineData(WellKnownMemberNames.EqualityOperatorName, "int.operator ==(int, int)")]
+        [InlineData(WellKnownMemberNames.GreaterThanOperatorName, "int.operator >(int, int)")]
+        [InlineData(WellKnownMemberNames.GreaterThanOrEqualOperatorName, "int.operator >=(int, int)")]
+        [InlineData(WellKnownMemberNames.LeftShiftOperatorName, "int.operator <<(int, int)")]
+        [InlineData(WellKnownMemberNames.LessThanOperatorName, "int.operator <(int, int)")]
+        [InlineData(WellKnownMemberNames.LessThanOrEqualOperatorName, "int.operator <=(int, int)")]
+        [InlineData(WellKnownMemberNames.CheckedMultiplyOperatorName, "int.operator checked *(int, int)")]
+        [InlineData(WellKnownMemberNames.MultiplyOperatorName, "int.operator *(int, int)")]
+        [InlineData(WellKnownMemberNames.BitwiseOrOperatorName, "int.operator |(int, int)")]
+        [InlineData(WellKnownMemberNames.InequalityOperatorName, "int.operator !=(int, int)")]
+        [InlineData(WellKnownMemberNames.ModulusOperatorName, "int.operator %(int, int)")]
+        [InlineData(WellKnownMemberNames.RightShiftOperatorName, "int.operator >>(int, int)")]
+        [InlineData(WellKnownMemberNames.UnsignedRightShiftOperatorName, "int.operator >>>(int, int)")]
+        [InlineData(WellKnownMemberNames.CheckedSubtractionOperatorName, "int.operator checked -(int, int)")]
+        [InlineData(WellKnownMemberNames.SubtractionOperatorName, "int.operator -(int, int)")]
+        [InlineData(WellKnownMemberNames.ExclusiveOrOperatorName, "int.operator ^(int, int)")]
+        public void CreateBuiltinBinaryOperator_Supported(
+            string name, string display)
+        {
+            var compilation = CreateCompilation("");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+            var op = compilation.CreateBuiltinOperator(name, intType, intType, intType, isChecked: false);
+            var result = op.ToDisplayString();
+            AssertEx.Equal(display, result);
+        }
+
+        [Fact]
+        public void CreateBuiltinBinaryOperator_NotSupported()
+        {
+            var compilation = CreateCompilation("");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+
+            // vb binary operator name
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.LikeOperatorName, intType, intType, intType, isChecked: false));
+
+            // unary operator name
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType, intType, isChecked: false));
+        }
+
+        [Fact]
+        public void CreateBuiltinBinaryOperator_NullChecks()
+        {
+            var compilation = CreateCompilation("");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+            Assert.Throws<ArgumentNullException>(() => compilation.CreateBuiltinOperator(
+                WellKnownMemberNames.AdditionOperatorName, null, intType, intType, isChecked: false));
+            Assert.Throws<ArgumentNullException>(() => compilation.CreateBuiltinOperator(
+                WellKnownMemberNames.AdditionOperatorName, intType, null, intType, isChecked: false));
+            Assert.Throws<ArgumentNullException>(() => compilation.CreateBuiltinOperator(
+                WellKnownMemberNames.AdditionOperatorName, intType, intType, null, isChecked: false));
+        }
+
+        [Theory]
+        [InlineData(WellKnownMemberNames.UnaryPlusOperatorName, "int.operator +(int)")]
+        [InlineData(WellKnownMemberNames.CheckedUnaryNegationOperatorName, "int.operator checked -(int)")]
+        [InlineData(WellKnownMemberNames.UnaryNegationOperatorName, "int.operator -(int)")]
+        [InlineData(WellKnownMemberNames.OnesComplementOperatorName, "int.operator ~(int)")]
+        [InlineData(WellKnownMemberNames.LogicalNotOperatorName, "int.operator !(int)")]
+        [InlineData(WellKnownMemberNames.CheckedIncrementOperatorName, "int.operator checked ++(int)")]
+        [InlineData(WellKnownMemberNames.IncrementOperatorName, "int.operator ++(int)")]
+        [InlineData(WellKnownMemberNames.CheckedDecrementOperatorName, "int.operator checked --(int)")]
+        [InlineData(WellKnownMemberNames.DecrementOperatorName, "int.operator --(int)")]
+        [InlineData(WellKnownMemberNames.TrueOperatorName, "int.operator true(int)")]
+        [InlineData(WellKnownMemberNames.FalseOperatorName, "int.operator false(int)")]
+        public void CreateBuiltinUnaryOperator_Supported(
+            string name, string display)
+        {
+            var compilation = CreateCompilation("");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+            var op = compilation.CreateBuiltinOperator(name, intType, intType, isChecked: false);
+            var result = op.ToDisplayString();
+            AssertEx.Equal(display, result);
+        }
+
+        [Fact]
+        public void CreateBuiltinUnaryOperator_NotSupported()
+        {
+            var compilation = CreateCompilation("");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+
+            // Binary operator name
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, isChecked: false));
+        }
+
+        [Fact]
+        public void CreateBuiltinUnaryOperator_NullChecks()
+        {
+            var compilation = CreateCompilation("");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+            Assert.Throws<ArgumentNullException>(() => compilation.CreateBuiltinOperator(
+                WellKnownMemberNames.UnaryPlusOperatorName, null, intType, isChecked: false));
+            Assert.Throws<ArgumentNullException>(() => compilation.CreateBuiltinOperator(
+                WellKnownMemberNames.UnaryPlusOperatorName, intType, null, isChecked: false));
+        }
+
         [Fact]
         [WorkItem(36046, "https://github.com/dotnet/roslyn/issues/36046")]
         public void ConstructTypeWithNullability()
