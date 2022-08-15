@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         public override string SnippetDescription => FeaturesResources.class_;
 
-
         protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
