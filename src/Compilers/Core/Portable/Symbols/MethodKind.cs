@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis
         /// An anonymous method or lambda expression
         /// </summary>
         AnonymousFunction = 0,
+
         /// <summary>
         /// <inheritdoc cref="AnonymousFunction"/>
         /// </summary>

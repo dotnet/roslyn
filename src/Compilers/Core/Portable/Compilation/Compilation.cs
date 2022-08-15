@@ -1489,6 +1489,63 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<NullableAnnotation> memberNullableAnnotations);
 
         /// <summary>
+        /// Creates an <see cref="IMethodSymbol"/> whose <see cref="IMethodSymbol.MethodKind"/> is <see
+        /// cref="MethodKind.BuiltinOperator"/> for a binary operator. Built-in operators are commonly created for
+        /// symbols like <c>bool int.operator==(int v1, int v2)</c> which the language implicitly supports, even if such
+        /// a symbol is not explicitly defined for that type in either source or metadata.
+        /// </summary>
+        /// <param name="kind">The specific binary operator kind being created.</param>
+        /// <param name="returnType">The return type of the binary operator.</param>
+        /// <param name="left">The type of the left operand of the binary operator.</param>
+        /// <param name="right">The type of the right operand of the binary operator.</param>
+        /// <param name="isChecked">Whether or not this is a checked binary operator.  For example <c>int int.operator
+        /// checked +(int v1, int v2)</c>.</param>
+        /// <returns></returns>
+        public IMethodSymbol CreateBuiltinOperator(BinaryOperatorKind kind, ITypeSymbol returnType, ITypeSymbol left, ITypeSymbol right, bool isChecked)
+        {
+            // Can't check 'kind' here as VB and C# support a different subset of kinds.
+
+            if (returnType is null)
+                throw new ArgumentNullException(nameof(returnType));
+
+            if (left is null)
+                throw new ArgumentNullException(nameof(left));
+
+            if (right is null)
+                throw new ArgumentNullException(nameof(right));
+
+            return CommonCreateBuiltinOperator(kind, returnType, left, right, isChecked);
+        }
+
+        protected abstract IMethodSymbol CommonCreateBuiltinOperator(BinaryOperatorKind kind, ITypeSymbol returnType, ITypeSymbol left, ITypeSymbol right, bool isChecked);
+
+        /// <summary>
+        /// Creates an <see cref="IMethodSymbol"/> whose <see cref="IMethodSymbol.MethodKind"/> is <see
+        /// cref="MethodKind.BuiltinOperator"/> for a unary operator. Built-in operators are commonly created for
+        /// symbols like <c>bool int.operator==(int v1, int v2)</c> which the language implicitly supports, even if such
+        /// a symbol is not explicitly defined for that type in either source or metadata.
+        /// </summary>
+        /// <param name="kind">The specific unary operator kind being created.</param>
+        /// <param name="returnType">The return type of the unary operator.</param>
+        /// <param name="value">The value the operator applies to.</param>
+        /// <param name="isChecked">Whether or not this is a unary binary operator..</param>
+        /// <returns></returns>
+        public IMethodSymbol CreateBuiltinOperator(UnaryOperatorKind kind, ITypeSymbol returnType, ITypeSymbol value, bool isChecked)
+        {
+            // Can't check 'kind' here as VB and C# support a different subset of kinds.
+
+            if (returnType is null)
+                throw new ArgumentNullException(nameof(returnType));
+
+            if (value is null)
+                throw new ArgumentNullException(nameof(value));
+
+            return CommonCreateBuiltinOperator(kind, returnType, value, isChecked);
+        }
+
+        protected abstract IMethodSymbol CommonCreateBuiltinOperator(UnaryOperatorKind kind, ITypeSymbol returnType, ITypeSymbol value, bool isChecked);
+
+        /// <summary>
         /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/> according
         /// to this compilation's programming language.
         /// </summary>
