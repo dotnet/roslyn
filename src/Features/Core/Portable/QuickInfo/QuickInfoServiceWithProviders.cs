@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 {
                     if (!extensionManager.IsDisabled(provider))
                     {
-                        var context = new CommonQuickInfoContext(_services.WorkspaceServices, semanticModel, position, options, cancellationToken);
+                        var context = new CommonQuickInfoContext(_services.WorkspaceServices.SolutionServices, semanticModel, position, options, cancellationToken);
 
                         var info = await provider.GetQuickInfoAsync(context).ConfigureAwait(false);
                         if (info != null)

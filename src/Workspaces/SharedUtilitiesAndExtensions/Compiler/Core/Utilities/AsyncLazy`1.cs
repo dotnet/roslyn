@@ -299,10 +299,7 @@ namespace Roslyn.Utilities
 
         private Request CreateNewRequest_NoLock()
         {
-            if (_requests == null)
-            {
-                _requests = new HashSet<Request>();
-            }
+            _requests ??= new HashSet<Request>();
 
             var request = new Request();
             _requests.Add(request);

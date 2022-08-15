@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         {
             var compilation = CreateCompilation(
                 source,
-                parseOptions: SyntaxHelpers.ParseOptions,
+                parseOptions: SyntaxHelpers.PreviewParseOptions,
                 options: (outputKind == OutputKind.DynamicallyLinkedLibrary) ? TestOptions.DebugDll : TestOptions.DebugExe,
                 targetFramework: targetFramework);
 

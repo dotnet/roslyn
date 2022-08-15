@@ -22,6 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     {
         internal readonly OptionStore OptionStore;
         private readonly List<BindingExpressionBase> _bindingExpressions = new List<BindingExpressionBase>();
+        private readonly List<OptionPageSearchHandler> _searchHandlers = new();
 
         protected AbstractOptionPageControl(OptionStore optionStore)
         {
@@ -73,6 +74,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 UpdateSourceTrigger = UpdateSourceTrigger.Default
             };
 
+            AddSearchHandler(checkbox);
+
             var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
             _bindingExpressions.Add(bindingExpression);
         }
@@ -87,6 +90,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 Converter = new NullableBoolOptionConverter(onNullValue)
             };
 
+            AddSearchHandler(checkbox);
+
             var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
             _bindingExpressions.Add(bindingExpression);
         }
@@ -99,6 +104,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 Path = new PropertyPath("Value"),
                 UpdateSourceTrigger = UpdateSourceTrigger.Default
             };
+
+            AddSearchHandler(checkbox);
 
             var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
             _bindingExpressions.Add(bindingExpression);
@@ -113,6 +120,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 UpdateSourceTrigger = UpdateSourceTrigger.Default,
                 Converter = new NullableBoolOptionConverter(onNullValue)
             };
+
+            AddSearchHandler(checkbox);
 
             var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
             _bindingExpressions.Add(bindingExpression);
@@ -144,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        private protected void BindToOption<T>(ComboBox comboBox, Option2<T> optionKey)
+        private protected void BindToOption<T>(ComboBox comboBox, Option2<T> optionKey, ContentControl label = null)
         {
             var binding = new Binding()
             {
@@ -154,11 +163,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 ConverterParameter = comboBox
             };
 
+            AddSearchHandler(comboBox);
+
+            if (label is not null)
+                AddSearchHandler(label);
+
             var bindingExpression = comboBox.SetBinding(ComboBox.SelectedIndexProperty, binding);
             _bindingExpressions.Add(bindingExpression);
         }
 
-        private protected void BindToOption<T>(ComboBox comboBox, PerLanguageOption2<T> optionKey, string languageName)
+        private protected void BindToOption<T>(ComboBox comboBox, PerLanguageOption2<T> optionKey, string languageName, ContentControl label = null)
         {
             var binding = new Binding()
             {
@@ -167,6 +181,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 Converter = new ComboBoxItemTagToIndexConverter(),
                 ConverterParameter = comboBox
             };
+
+            AddSearchHandler(comboBox);
+
+            if (label is not null)
+                AddSearchHandler(label);
 
             var bindingExpression = comboBox.SetBinding(ComboBox.SelectedIndexProperty, binding);
             _bindingExpressions.Add(bindingExpression);
@@ -182,6 +201,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 Converter = new RadioButtonCheckedConverter(),
                 ConverterParameter = optionValue
             };
+
+            AddSearchHandler(radiobutton);
 
             var bindingExpression = radiobutton.SetBinding(RadioButton.IsCheckedProperty, binding);
             _bindingExpressions.Add(bindingExpression);
@@ -201,6 +222,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         internal virtual void Close()
         {
+        }
+
+        internal virtual void OnSearch(string searchString)
+        {
+            var shouldScrollIntoView = true;
+            foreach (var handler in _searchHandlers)
+            {
+                if (handler.TryHighlightSearchString(searchString) && shouldScrollIntoView)
+                {
+                    handler.EnsureVisible();
+                    shouldScrollIntoView = false;
+                }
+            }
+        }
+
+        private protected void AddSearchHandler(ComboBox comboBox)
+        {
+            foreach (ComboBoxItem item in comboBox.Items)
+            {
+                AddSearchHandler(item);
+            }
+        }
+
+        private protected void AddSearchHandler(ContentControl control)
+        {
+            Debug.Assert(control.Content is string, $"I don't know how to add keyword search support for the '{control.GetType().Name}' control with content type '{control.Content?.GetType().Name ?? "null"}'");
+            if (control.Content is string content)
+            {
+                _searchHandlers.Add(new OptionPageSearchHandler(control, content));
+            }
         }
     }
 

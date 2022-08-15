@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             using (Logger.LogBlock(FunctionId.AbstractConvertTupleToStructCodeRefactoringProvider_ConvertToStructAsync, cancellationToken))
             {
                 var solution = document.Project.Solution;
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
                     var result = await client.TryInvokeAsync<IRemoteConvertTupleToStructCodeRefactoringService, SerializableConvertTupleToStructResult>(

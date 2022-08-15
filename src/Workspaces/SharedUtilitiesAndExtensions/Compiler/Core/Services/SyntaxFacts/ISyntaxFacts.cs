@@ -318,6 +318,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
         bool LooksGeneric(SyntaxNode simpleName);
 
+        SeparatedSyntaxList<SyntaxNode> GetTypeArgumentsOfGenericName(SyntaxNode? genericName);
+
         SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString);
 
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode node);
@@ -520,6 +522,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         #region GetPartsOfXXX members
 
         void GetPartsOfAnyIsTypeExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode type);
+        void GetPartsOfArgumentList(SyntaxNode node, out SyntaxToken openParenToken, out SeparatedSyntaxList<SyntaxNode> arguments, out SyntaxToken closeParenToken);
         void GetPartsOfBaseNamespaceDeclaration(SyntaxNode node, out SyntaxNode name, out SyntaxList<SyntaxNode> imports, out SyntaxList<SyntaxNode> members);
         void GetPartsOfBaseObjectCreationExpression(SyntaxNode node, out SyntaxNode? argumentList, out SyntaxNode? initializer);
         void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);

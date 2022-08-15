@@ -515,7 +515,7 @@ public class C
 {
     public void M()
     {
-        var x = [|new|] byte[] { 34, 92, 0, 7, 8, 12, 10, 13, 9, 11 };
+        var x = [|new|] byte[] { 34, 92, 10, 13, 9 };
     }
 }",
                 FixedCode =
@@ -524,7 +524,7 @@ public class C
 {
     public void M()
     {
-        var x = ""\""\\\0\a\b\f\n\r\t\v""u8.ToArray();
+        var x = ""\""\\\n\r\t""u8.ToArray();
     }
 }",
                 CodeActionValidationMode = CodeActionValidationMode.None,
@@ -761,41 +761,8 @@ ref struct S
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
-        // Various cases copied from https://github.com/dotnet/runtime/blob/main/src/libraries/Common/tests/Tests/System/Net/aspnetcore/Http3/QPackDecoderTest.cs
-        [InlineData(new byte[] { 0x37, 0x02, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x6c, 0x61, 0x74, 0x65 }, "7translate")]
-        [InlineData(new byte[] { 0x3f, 0x01 }, "?")]
-        public async Task TestValidUtf8Strings(byte[] bytes, string stringValue)
-        {
-            await new VerifyCS.Test
-            {
-                TestCode =
-$@"
-public class C
-{{
-    private static readonly byte[] _bytes = [|new|] byte[] {{ {string.Join(", ", bytes)} }};
-}}
-",
-                FixedCode =
-$@"
-public class C
-{{
-    private static readonly byte[] _bytes = ""{stringValue}""u8.ToArray();
-}}
-",
-                CodeActionValidationMode = CodeActionValidationMode.None,
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersion.Preview
-            }.RunAsync();
-
-            // Lets make sure there aren't any false positives here, and make sure the byte array actually
-            // correctly round-trips via UTF-8
-            var newStringValue = Encoding.UTF8.GetString(bytes);
-            Assert.Equal(stringValue, newStringValue);
-            var newBytes = Encoding.UTF8.GetBytes(stringValue);
-            Assert.Equal(bytes, newBytes);
-        }
-
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        // Standard C# escape characters
+        [InlineData(new byte[] { 0, 7, 8, 12, 11 })]
         // Various cases copied from https://github.com/dotnet/runtime/blob/main/src/libraries/Common/tests/Tests/System/Net/aspnetcore/Http2/HuffmanDecodingTests.cs
         [InlineData(new byte[] { 0xff, 0xcf })]
         [InlineData(new byte[] { 0b100111_00, 0b101_10100, 0b0_101000_0, 0b0111_1111 })]
@@ -803,8 +770,12 @@ public class C
         [InlineData(new byte[] { 0xfe, 0x53 })]
         [InlineData(new byte[] { 0xff, 0xff, 0xf6, 0xff, 0xff, 0xfd, 0x68 })]
         [InlineData(new byte[] { 0xff, 0xff, 0xf9, 0xff, 0xff, 0xfd, 0x86 })]
-        // _headerNameHuffmanBytes from https://github.com/dotnet/runtime/blob/main/src/libraries/Common/tests/Tests/System/Net/aspnetcore/Http3/QPackDecoderTest.cs
+        // Various cases copied from https://github.com/dotnet/runtime/blob/main/src/libraries/Common/tests/Tests/System/Net/aspnetcore/Http3/QPackDecoderTest.cs
         [InlineData(new byte[] { 0xa8, 0xbe, 0x16, 0x9c, 0xa3, 0x90, 0xb6, 0x7f })]
+        [InlineData(new byte[] { 0x37, 0x02, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x6c, 0x61, 0x74, 0x65 })]
+        [InlineData(new byte[] { 0x3f, 0x01 })]
+        // DaysInMonth365 from https://github.com/dotnet/runtime/blob/b5a8ece073110140e2d9696cdfdc047ec78c2fa1/src/libraries/System.Private.CoreLib/src/System/DateTime.cs
+        [InlineData(new byte[] { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 })]
         public async Task TestInvalidUtf8Strings(byte[] bytes)
         {
             await new VerifyCS.Test
@@ -820,12 +791,61 @@ public class C
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview
             }.RunAsync();
+        }
 
-            // Lets make sure there aren't any false negatives here, and see if the byte array would actually
-            // correctly round-trip via UTF-8
-            var stringValue = Encoding.UTF8.GetString(bytes);
-            var newBytes = Encoding.UTF8.GetBytes(stringValue);
-            Assert.NotEqual(bytes, newBytes);
+        [Fact]
+        public async Task TestDoesNotOfferForControlCharacters()
+        {
+            // Copied from https://github.com/dotnet/runtime/blob/6a889d234267a4c96ed21d0e1660dce787d78a38/src/libraries/Microsoft.CSharp/src/Microsoft/CSharp/RuntimeBinder/Semantics/Conversion.cs
+            var input = """
+                class C
+                {
+                    internal enum ConvKind
+                    {
+                        Identity = 1,  // Identity conversion
+                        Implicit = 2,  // Implicit conversion
+                        Explicit = 3,  // Explicit conversion
+                        Unknown = 4,  // Unknown so call canConvert
+                        None = 5,  // None
+                    }
+
+                    private const byte ID = (byte)ConvKind.Identity;  // 0x01
+                    private const byte IMP = (byte)ConvKind.Implicit; // 0x02
+                    private const byte EXP = (byte)ConvKind.Explicit; // 0x03
+                    private const byte NO = (byte)ConvKind.None;      // 0x05
+                    private const byte CONV_KIND_MASK = 0x0F;
+                    private const byte UDC = 0x40;
+                    private const byte XUD = EXP | UDC;
+                    private const byte IUD = IMP | UDC;
+
+                    private static readonly byte[][] s_simpleTypeConversions =
+                    {
+                        // to:                   BYTE I2   I4   I8   FLT  DBL  DEC  CHAR BOOL SBYTE U2   U4   U8
+                        /* from */
+                         new byte[] /* BYTE */ { ID,  IMP, IMP, IMP, IMP, IMP, IUD, EXP, NO,  EXP,  IMP, IMP, IMP },
+                         new byte[] /*   I2 */ { EXP, ID,  IMP, IMP, IMP, IMP, IUD, EXP, NO,  EXP,  EXP, EXP, EXP },
+                         new byte[] /*   I4 */ { EXP, EXP, ID,  IMP, IMP, IMP, IUD, EXP, NO,  EXP,  EXP, EXP, EXP },
+                         new byte[] /*   I8 */ { EXP, EXP, EXP, ID,  IMP, IMP, IUD, EXP, NO,  EXP,  EXP, EXP, EXP },
+                         new byte[] /*  FLT */ { EXP, EXP, EXP, EXP, ID,  IMP, XUD, EXP, NO,  EXP,  EXP, EXP, EXP },
+                         new byte[] /*  DBL */ { EXP, EXP, EXP, EXP, EXP, ID,  XUD, EXP, NO,  EXP,  EXP, EXP, EXP },
+                         new byte[] /*  DEC */ { XUD, XUD, XUD, XUD, XUD, XUD, ID,  XUD, NO,  XUD,  XUD, XUD, XUD },
+                         new byte[] /* CHAR */ { EXP, EXP, IMP, IMP, IMP, IMP, IUD, ID,  NO,  EXP,  IMP, IMP, IMP },
+                         new byte[] /* BOOL */ { NO,  NO,  NO,  NO,  NO,  NO,  NO,  NO,  ID,  NO,   NO,  NO,  NO  },
+                         new byte[] /*SBYTE */ { EXP, IMP, IMP, IMP, IMP, IMP, IUD, EXP, NO,  ID,   EXP, EXP, EXP },
+                         new byte[] /*   U2 */ { EXP, EXP, IMP, IMP, IMP, IMP, IUD, EXP, NO,  EXP,  ID,  IMP, IMP },
+                         new byte[] /*   U4 */ { EXP, EXP, EXP, IMP, IMP, IMP, IUD, EXP, NO,  EXP,  EXP, ID,  IMP },
+                         new byte[] /*   U8 */ { EXP, EXP, EXP, EXP, IMP, IMP, IUD, EXP, NO,  EXP,  EXP, EXP, ID  },
+                    };
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = input,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
@@ -1461,6 +1481,72 @@ public class C
     }
 }
 ",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        public async Task TestTargettingReadOnlySpan1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+using System;
+
+public class C
+{
+    public void M()
+    {
+        ReadOnlySpan<byte> x = [|new|] byte[] { 65, 66, 67 };
+    }
+}",
+                FixedCode =
+@"
+using System;
+
+public class C
+{
+    public void M()
+    {
+        ReadOnlySpan<byte> x = ""ABC""u8;
+    }
+}",
+                CodeActionValidationMode = CodeActionValidationMode.None,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+                LanguageVersion = LanguageVersion.Preview
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        public async Task TestTargettingReadOnlySpan2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+using System;
+
+public class C
+{
+    public void M(ReadOnlySpan<byte> x)
+    {
+        M(/* 1 */[|new|] byte[] { 65, 66, 67 }/* 2 */);
+    }
+}",
+                FixedCode =
+@"
+using System;
+
+public class C
+{
+    public void M(ReadOnlySpan<byte> x)
+    {
+        M(/* 1 */""ABC""u8/* 2 */);
+    }
+}",
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 LanguageVersion = LanguageVersion.Preview

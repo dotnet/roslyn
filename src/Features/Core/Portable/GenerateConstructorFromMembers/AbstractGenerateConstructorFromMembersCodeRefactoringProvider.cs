@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             if (canAddNullCheck)
             {
-                var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+                var globalOptions = document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
                 var optionValue = globalOptions.GetGenerateConstructorFromMembersOptionsAddNullChecks(document.Project.Language);
 
                 pickMemberOptions.Add(new PickMembersOption(

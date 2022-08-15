@@ -1,5 +1,35 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## Types cannot be named `scoped`
+
+***Introduced in Visual Studio 2022 version 17.4.*** Starting in C# 11, types cannot be named `scoped`. The compiler will report an error on all such type names. To work around this, the type name and all usages must be escaped with an `@`:
+
+```csharp
+class scoped {} // Error CS9056
+class @scoped {} // No error
+```
+
+```csharp
+ref scoped local; // Error
+ref scoped.nested local; // Error
+ref @scoped local2; // No error
+```
+
+This was done as `scoped` is now a modifier for variable declarations and reserved following `ref` in a ref type.
+
+## Types cannot be named `file`
+
+***Introduced in Visual Studio 2022 version 17.4.*** Starting in C# 11, types cannot be named `file`. The compiler will report an error on all such type names. To work around this, the type name and all usages must be escaped with an `@`:
+
+```csharp
+class file {} // Error CS9056
+class @file {} // No error
+```
+
+This was done as `file` is now a modifier for type declarations.
+
+You can learn more about this change in the associated [csharplang issue](https://github.com/dotnet/csharplang/issues/6011).
+
 ## Required spaces in #line span directives
 
 ***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
@@ -83,11 +113,6 @@ Possible workarounds are:
 
 1. Rename the type parameter or parameter to avoid shadowing the name from outer scope.
 1. Use a string literal instead of the `nameof` operator.
-1. Downgrade the `<LangVersion>` element to 9.0 or earlier.
-
-Note: The break will also apply to C# 10 and earlier when .NET 7 ships, but is
-currently scoped down to users of LangVer=preview.  
-Tracked by https://github.com/dotnet/roslyn/issues/60640
 
 ## Cannot return an out parameter by reference
 

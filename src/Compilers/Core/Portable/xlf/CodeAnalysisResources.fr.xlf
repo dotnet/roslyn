@@ -49,6 +49,16 @@
         <target state="translated">Modifier et continuer ne peut pas reprendre l’itérateur suspendu, car l’instruction yield return correspondante a été supprimée</target>
         <note />
       </trans-unit>
+      <trans-unit id="GeneratorNameColumnHeader">
+        <source>Generator</source>
+        <target state="new">Generator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorTotalExecutionTime">
+        <source>Total generator execution time: {0} seconds.</source>
+        <target state="new">Total generator execution time: {0} seconds.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HintNameInvalidChar">
         <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
         <target state="translated">Le hintName « {0} » contient un caractère non valide « {1} » à la position {2}.</target>

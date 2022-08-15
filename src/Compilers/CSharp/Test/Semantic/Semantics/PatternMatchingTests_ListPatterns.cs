@@ -451,18 +451,18 @@ class C
 ";
         var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.Regular10);
         compilation.VerifyDiagnostics(
-            // (2,16): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (2,16): error CS8936: Feature 'list pattern' is not available in C# 10.0. Please use language version 11.0 or greater.
             // _ = new C() is [];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[]").WithArguments("list pattern").WithLocation(2, 16),
-            // (3,16): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "[]").WithArguments("list pattern", "11.0").WithLocation(2, 16),
+            // (3,16): error CS8936: Feature 'list pattern' is not available in C# 10.0. Please use language version 11.0 or greater.
             // _ = new C() is [.. var x];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[.. var x]").WithArguments("list pattern").WithLocation(3, 16),
-            // (4,16): error CS9002: Slice patterns may only be used once and directly inside a list pattern.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "[.. var x]").WithArguments("list pattern", "11.0").WithLocation(3, 16),
+            // (4,16): error CS8980: Slice patterns may only be used once and directly inside a list pattern.
             // _ = new C() is .. var y;
             Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, ".. var y").WithLocation(4, 16)
             );
 
-        compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularNext);
+        compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.Regular11);
         compilation.VerifyDiagnostics(
             // (4,16): error CS9002: Slice patterns may only be used once and directly inside a list pattern.
             // _ = new C() is .. var y;

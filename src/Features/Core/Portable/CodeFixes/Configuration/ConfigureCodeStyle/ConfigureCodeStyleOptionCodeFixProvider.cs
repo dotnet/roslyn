@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                 // For example, if the option value is CodeStyleOption<bool>, we will have two nested actions, one for 'true' setting and one
                 // for 'false' setting. If the option value is CodeStyleOption<SomeEnum>, we will have a nested action for each enum field.
                 using var _ = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
-                var optionSet = project.Solution.Workspace.Options;
+                var optionSet = project.Solution.Options;
                 var hasMultipleOptions = codeStyleOptions.Length > 1;
                 foreach (var (optionKey, codeStyleOption, editorConfigLocation, perLanguageOption) in codeStyleOptions.OrderBy(t => t.optionKey.Option.Name))
                 {

@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             : base(IDEDiagnosticIds.InlineAsTypeCheckId,
                    EnforceOnBuildValues.InlineAsType,
                    CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                         nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {

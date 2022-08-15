@@ -92,10 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 s_delay = currentDelay;
             }
 
-            if (currentDelay != null)
-            {
-                currentDelay.Reset();
-            }
+            currentDelay?.Reset();
         }
 
         private static void RestoreGCLatencyMode(GCLatencyMode originalMode)

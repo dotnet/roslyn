@@ -106,14 +106,14 @@
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.2]"
     },
-    "release/dev17.3": {
+    "release/dev17.3-vs-deps": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
       ],
       "vsBranch": "rel/d17.3",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.3p2]"
+      "insertionTitlePrefix": "[d17.3p3]"
     },
     "main": {
       "nugetKind": [
@@ -132,17 +132,7 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[d17.3p3]"
-    },
-    "release/dev17.4-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
+      "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.4p1]"
     }
   }

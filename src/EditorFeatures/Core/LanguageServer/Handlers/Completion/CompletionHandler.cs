@@ -338,12 +338,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     var completionItem = completionList.Items[i];
                     var commitCharacters = completionItem.CommitCharacters;
-                    if (commitCharacters == null)
-                    {
-                        // The commit characters on the item are null, this means the commit characters are actually
-                        // the default commit characters we passed in the initialize request.
-                        commitCharacters = defaultCommitCharacters;
-                    }
+                    // The commit characters on the item are null, this means the commit characters are actually
+                    // the default commit characters we passed in the initialize request.
+                    commitCharacters ??= defaultCommitCharacters;
 
                     commitCharacterReferences.TryGetValue(commitCharacters, out var existingCount);
                     existingCount++;

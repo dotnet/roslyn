@@ -873,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat.TestFormat
                 .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
                     | SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier)
-                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
+                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes);
 
         internal virtual string GetDebuggerDisplay()
         {

@@ -1,1 +1,10 @@
-
+Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsFile.get -> bool
+Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsFile(bool isFile) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.TextDocumentEventArgs
+Microsoft.CodeAnalysis.TextDocumentEventArgs.Document.get -> Microsoft.CodeAnalysis.TextDocument
+Microsoft.CodeAnalysis.TextDocumentEventArgs.TextDocumentEventArgs(Microsoft.CodeAnalysis.TextDocument document) -> void
+Microsoft.CodeAnalysis.Workspace.RaiseTextDocumentClosedEventAsync(Microsoft.CodeAnalysis.TextDocument document) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.Workspace.RaiseTextDocumentOpenedEventAsync(Microsoft.CodeAnalysis.TextDocument document) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.Workspace.TextDocumentClosed -> System.EventHandler<Microsoft.CodeAnalysis.TextDocumentEventArgs>
+Microsoft.CodeAnalysis.Workspace.TextDocumentOpened -> System.EventHandler<Microsoft.CodeAnalysis.TextDocumentEventArgs>
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.File.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers

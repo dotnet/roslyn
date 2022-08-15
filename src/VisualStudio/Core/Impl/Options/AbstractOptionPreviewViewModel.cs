@@ -103,10 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             private set
             {
                 // make sure we close previous view.
-                if (_textViewHost != null)
-                {
-                    _textViewHost.Close();
-                }
+                _textViewHost?.Close();
 
                 SetProperty(ref _textViewHost, value);
             }
