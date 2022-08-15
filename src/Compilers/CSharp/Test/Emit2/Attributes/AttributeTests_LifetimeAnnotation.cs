@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
             var comp = CreateCompilation(new[] { ScopedRefAttributeDefinition, source });
             var expected =
-@" void Program.F(ref System.Int32 i)
+@"void Program.F(ref System.Int32 i)
     [ScopedRef] ref System.Int32 i
 ";
             CompileAndVerify(comp, symbolValidator: module =>
@@ -137,7 +137,7 @@ using System.Runtime.CompilerServices;
     [ScopedRef] event EventHandler E;
     [ScopedRef] object P { get; }
     [ScopedRef] static object M1() => throw null;
-    [ScopedRef] static object M2() => throw null;
+    [return: ScopedRef] static object M2() => throw null;
     static void M3<[ScopedRef] T>() { }
 }
 namespace System.Runtime.CompilerServices
@@ -264,7 +264,7 @@ ref struct R { }
             Assert.Equal(DeclarationScope.RefScoped, parameter.DeclaredScope);
 
             method = comp.GetMember<MethodSymbol>("A.F4");
-            Assert.Equal("void A.F4(scoped ref R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
+            Assert.Equal("void A.F4(ref R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             parameter = method.Parameters[0];
             Assert.Equal(DeclarationScope.RefScoped, parameter.DeclaredScope);
         }
@@ -335,9 +335,6 @@ struct S
     [ScopedRef] ref System.Int32 i
 void S.F(R r)
     [ScopedRef] R r
-S S.op_Addition(S a, in R b)
-    S a
-    [ScopedRef] in R b
 System.Object S.this[in System.Int32 i].get
     [ScopedRef] in System.Int32 i
 ";
@@ -388,6 +385,33 @@ class Program
                 Assert.Null(GetScopedRefType(module));
                 AssertScopedRefAttributes(module, "");
             });
+        }
+
+        [Fact]
+        public void EmitAttribute_RefToRefStructParameters()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    public static void F0(R r) { }
+    public static void F1(ref R r) { }
+    public static void F2(in R r) { }
+    public static void F3(out R r) { r = default; }
+    public static void F4(scoped ref R r) { }
+    public static void F5(scoped in R r) { }
+    public static void F6(scoped out R r) { r = default; }
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"";
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                Assert.Null(GetScopedRefType(module));
+                AssertScopedRefAttributes(module, expected);
+            });
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test additional cases with [UnscopedRef].
         }
 
         [Fact]
