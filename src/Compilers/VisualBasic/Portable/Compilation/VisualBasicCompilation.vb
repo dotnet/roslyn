@@ -2920,31 +2920,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim vbLeftType = leftType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(leftType))
             Dim vbRightType = returnType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(rightType))
 
-            Dim nameOk =
-                name = WellKnownMemberNames.AdditionOperatorName OrElse
-                name = WellKnownMemberNames.ConcatenateOperatorName OrElse
-                name = WellKnownMemberNames.LikeOperatorName OrElse
-                name = WellKnownMemberNames.EqualityOperatorName OrElse
-                name = WellKnownMemberNames.InequalityOperatorName OrElse
-                name = WellKnownMemberNames.LessThanOrEqualOperatorName OrElse
-                name = WellKnownMemberNames.GreaterThanOrEqualOperatorName OrElse
-                name = WellKnownMemberNames.LessThanOperatorName OrElse
-                name = WellKnownMemberNames.GreaterThanOperatorName OrElse
-                name = WellKnownMemberNames.SubtractionOperatorName OrElse
-                name = WellKnownMemberNames.MultiplyOperatorName OrElse
-                name = WellKnownMemberNames.ExponentOperatorName OrElse
-                name = WellKnownMemberNames.DivisionOperatorName OrElse
-                name = WellKnownMemberNames.ModulusOperatorName OrElse
-                name = WellKnownMemberNames.IntegerDivisionOperatorName OrElse
-                name = WellKnownMemberNames.LeftShiftOperatorName OrElse
-                name = WellKnownMemberNames.RightShiftOperatorName OrElse
-                name = WellKnownMemberNames.ExclusiveOrOperatorName OrElse
-                name = WellKnownMemberNames.BitwiseOrOperatorName OrElse
-                name = WellKnownMemberNames.BitwiseAndOperatorName
-
-            If Not nameOk Then
-                Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
-            End If
+            Select Case name
+                Case WellKnownMemberNames.AdditionOperatorName,
+                     WellKnownMemberNames.ConcatenateOperatorName,
+                     WellKnownMemberNames.LikeOperatorName,
+                     WellKnownMemberNames.EqualityOperatorName,
+                     WellKnownMemberNames.InequalityOperatorName,
+                     WellKnownMemberNames.LessThanOrEqualOperatorName,
+                     WellKnownMemberNames.GreaterThanOrEqualOperatorName,
+                     WellKnownMemberNames.LessThanOperatorName,
+                     WellKnownMemberNames.GreaterThanOperatorName,
+                     WellKnownMemberNames.SubtractionOperatorName,
+                     WellKnownMemberNames.MultiplyOperatorName,
+                     WellKnownMemberNames.ExponentOperatorName,
+                     WellKnownMemberNames.DivisionOperatorName,
+                     WellKnownMemberNames.ModulusOperatorName,
+                     WellKnownMemberNames.IntegerDivisionOperatorName,
+                     WellKnownMemberNames.LeftShiftOperatorName,
+                     WellKnownMemberNames.RightShiftOperatorName,
+                     WellKnownMemberNames.ExclusiveOrOperatorName,
+                     WellKnownMemberNames.BitwiseOrOperatorName,
+                     WellKnownMemberNames.BitwiseAndOperatorName
+                    Exit Select
+                Case Else
+                    Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
+            End Select
 
             Return New SynthesizedIntrinsicOperatorSymbol(
                 vbLeftType, name, vbRightType, vbReturnType, isChecked)
@@ -2959,18 +2959,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim vbReturnType = returnType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(returnType))
             Dim vbValueType = returnType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(valueType))
 
-            Dim nameOk =
-                name = WellKnownMemberNames.UnaryPlusOperatorName OrElse
-                name = WellKnownMemberNames.UnaryNegationOperatorName OrElse
-                name = WellKnownMemberNames.OnesComplementOperatorName OrElse
-                name = WellKnownMemberNames.ImplicitConversionName OrElse
-                name = WellKnownMemberNames.ExplicitConversionName OrElse
-                name = WellKnownMemberNames.TrueOperatorName OrElse
-                name = WellKnownMemberNames.FalseOperatorName
-
-            If Not nameOk Then
-                Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
-            End If
+            Select Case name
+                Case WellKnownMemberNames.UnaryPlusOperatorName,
+                     WellKnownMemberNames.UnaryNegationOperatorName,
+                     WellKnownMemberNames.OnesComplementOperatorName,
+                     WellKnownMemberNames.ImplicitConversionName,
+                     WellKnownMemberNames.ExplicitConversionName,
+                     WellKnownMemberNames.TrueOperatorName,
+                     WellKnownMemberNames.FalseOperatorName
+                    Exit Select
+                Case Else
+                    Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
+            End Select
 
             Return New SynthesizedIntrinsicOperatorSymbol(
                 vbValueType, name, vbReturnType, isChecked)

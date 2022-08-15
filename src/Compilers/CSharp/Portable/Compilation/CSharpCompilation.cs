@@ -3860,7 +3860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or WellKnownMemberNames.SubtractionOperatorName
                 or WellKnownMemberNames.ExclusiveOrOperatorName;
             if (!nameOk)
-                throw new ArgumentException($"Illegal binary operator name '{name}'", nameof(name));
+                throw new ArgumentException($"Illegal operator name '{name}'", nameof(name));
 
             return new SynthesizedIntrinsicOperatorSymbol(csharpLeftType, name, csharpRightType, csharpReturnType, isChecked).GetPublicSymbol();
         }
