@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis
 
                         case MethodKind.BuiltinOperator:
                             WriteType(SymbolKeyType.BuiltinOperator);
-                            BuiltinOperatorSymbolKey.Create(methodSymbol, this);
+                            BuiltinOperatorSymbolKey.Instance.Create(methodSymbol, this);
                             break;
 
                         case MethodKind.ReducedExtension:
