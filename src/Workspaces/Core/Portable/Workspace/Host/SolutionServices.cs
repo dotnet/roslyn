@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Host
             _services = services;
         }
 
-        internal IMefHostExportProvider ExportProvider => _services.SolutionServices.ExportProvider;
+        internal IMefHostExportProvider ExportProvider => (IMefHostExportProvider)_services.HostServices;
 
         /// <inheritdoc cref="HostWorkspaceServices.GetService"/>
         public TWorkspaceService? GetService<TWorkspaceService>() where TWorkspaceService : IWorkspaceService
