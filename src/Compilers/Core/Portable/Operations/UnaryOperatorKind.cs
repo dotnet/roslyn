@@ -48,16 +48,6 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Represents the C# '^' operator.
         /// </summary>
         Hat = 0x7,
-
-        /// <summary>
-        /// Represents the C# '++' operator.
-        /// </summary>
-        Increment = 0x8,
-
-        /// <summary>
-        /// Represents the C# '--' operator.
-        /// </summary>
-        Decrement = 0x9,
     }
 }
 
