@@ -4,7 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             MyBase.New(expression, newExpression, semanticModel, cancellationToken, skipVerificationForReplacedNode, failOnOverloadResolutionFailuresInOriginalCode)
         End Sub
 
-        Protected Overrides ReadOnly Property SyntaxFactsService As CodeAnalysis.LanguageServices.ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+        Protected Overrides ReadOnly Property SyntaxFactsService As CodeAnalysis.LanguageService.ISyntaxFacts = VisualBasicSyntaxFacts.Instance
         Protected Overrides Function CanAccessInstanceMemberThrough(expression As ExpressionSyntax) As Boolean
             ' vb can reference an instance member by just writing `.X` (when in a 'with' block), or by writing Me.X,
             ' MyBase.X and MyClass.X (the latter is not just for accessing static members).

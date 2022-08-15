@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -6366,7 +6366,7 @@ class C
 </Workspace>
 ";
             using var workspace = TestWorkspace.Create(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive);
-            await TestWithOptionsAsync(workspace, MainDescription($"({ FeaturesResources.parameter }) int x = 1"));
+            await TestWithOptionsAsync(workspace, MainDescription($"({FeaturesResources.parameter}) int x = 1"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6410,7 +6410,7 @@ public class C
     }
 }
 ",
-                MainDescription($"({ FeaturesResources.local_variable }) ValueTuple y"));
+                MainDescription($"({FeaturesResources.local_variable}) ValueTuple y"));
         }
 
         [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
@@ -6446,7 +6446,7 @@ public class C
     }
 }
 ",
-                MainDescription($"({ FeaturesResources.local_variable }) ValueTuple<int> y"));
+                MainDescription($"({FeaturesResources.local_variable}) ValueTuple<int> y"));
         }
 
         [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
@@ -6482,7 +6482,7 @@ public class C
     }
 }
 ",
-                MainDescription($"({ FeaturesResources.local_variable }) (int, int) y"));
+                MainDescription($"({FeaturesResources.local_variable}) (int, int) y"));
         }
 
         [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
@@ -6756,7 +6756,7 @@ class Program
     }
 }
 ",
-            MainDescription($"({ FeaturesResources.parameter }) ? b"));
+            MainDescription($"({FeaturesResources.parameter}) ? b"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

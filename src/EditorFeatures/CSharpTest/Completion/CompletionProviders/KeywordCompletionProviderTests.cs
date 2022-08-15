@@ -550,7 +550,7 @@ class C
 {{
     void M()
     {{
-        var data = (n$$) { (hasNewline ? Environment.NewLine : string.Empty) } M();
+        var data = (n$$) {(hasNewline ? Environment.NewLine : string.Empty)} M();
     }}
 }}";
 
@@ -588,7 +588,7 @@ class C
             var markup =
 $@"class C
 {{
-    bool Prop => (t$$)  { (hasExpression ? "n" : string.Empty) }
+    bool Prop => (t$$)  {(hasExpression ? "n" : string.Empty)}
     private int n;
 }}";
             if (hasExpression)
@@ -620,7 +620,9 @@ $@"class C
         [Theory]
         [InlineData("class")]
         [InlineData("struct")]
-        public async Task SuggestRequiredInClassOrStruct(string type)
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public async Task SuggestRequiredInClassOrStructOrRecord(string type)
         {
             var markup = $$"""
                 {{type}} C
