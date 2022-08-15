@@ -4058,5 +4058,22 @@ class D
 }
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseDll).VerifyDiagnostics();
         }
+
+        [WorkItem(63384, "https://github.com/dotnet/roslyn/issues/63384")]
+        [Theory]
+        [InlineData("nuint")]
+        [InlineData("nint")]
+        public void NativeIntegerThis(string type)
+        {
+            var compilation = CreateCompilationWithMscorlibAndSpan(
+    $$"""
+        ref struct S
+        {
+            static int M({{type}} ptr) => ptr.GetHashCode();
+        }
+    """);
+
+            compilation.VerifyDiagnostics();
+        }
     }
 }
