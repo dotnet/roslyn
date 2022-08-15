@@ -1734,6 +1734,90 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Return type.GetMembers().OfType(Of IPropertySymbol)().SelectAsArray(Function(p) p.NullableAnnotation)
         End Function
 
+        <Theory>
+        <InlineData(WellKnownMemberNames.AdditionOperatorName, "Public Shared Operator +(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.ConcatenateOperatorName, "Public Shared Operator &(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.LikeOperatorName, "Public Shared Operator Like(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.EqualityOperatorName, "Public Shared Operator =(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.InequalityOperatorName, "Public Shared Operator <>(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.LessThanOrEqualOperatorName, "Public Shared Operator <=(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.GreaterThanOrEqualOperatorName, "Public Shared Operator >=(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.LessThanOperatorName, "Public Shared Operator <(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.GreaterThanOperatorName, "Public Shared Operator >(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.SubtractionOperatorName, "Public Shared Operator -(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.MultiplyOperatorName, "Public Shared Operator *(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.ExponentOperatorName, "Public Shared Operator ^(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.DivisionOperatorName, "Public Shared Operator /(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.ModulusOperatorName, "Public Shared Operator Mod(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.IntegerDivisionOperatorName, "Public Shared Operator \(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.LeftShiftOperatorName, "Public Shared Operator <<(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.RightShiftOperatorName, "Public Shared Operator >>(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.ExclusiveOrOperatorName, "Public Shared Operator Xor(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.BitwiseOrOperatorName, "Public Shared Operator Or(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.BitwiseAndOperatorName, "Public Shared Operator And(left As Integer, right As Integer) As Integer")>
+        Public Sub CreateBuiltinBinaryOperator_Supported(name As String, display As String)
+            Dim compilation = CreateCompilation("")
+            Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+            Dim op = compilation.CreateBuiltinOperator(name, intType, intType, intType, isChecked:=False)
+            Dim result = op.ToDisplayString()
+            AssertEx.Equal(display, result)
+        End Sub
+
+        <Fact>
+        Public Sub CreateBuiltinBinaryOperator_NotSupported()
+            Dim compilation = CreateCompilation("")
+            Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+
+            ' c# binary operator name
+            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.IncrementOperatorName, intType, intType, intType, isChecked:=False))
+
+            ' unary operator name
+            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType, intType, isChecked:=False))
+        End Sub
+
+        <Fact>
+        Public Sub CreateBuiltinBinaryOperator_NullChecks()
+            Dim compilation = CreateCompilation("")
+            Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+            Assert.Throws(Of ArgumentNullException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, Nothing, intType, intType, isChecked:=False))
+            Assert.Throws(Of ArgumentNullException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, Nothing, intType, isChecked:=False))
+            Assert.Throws(Of ArgumentNullException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, Nothing, isChecked:=False))
+        End Sub
+
+        <Theory>
+        <InlineData(WellKnownMemberNames.UnaryPlusOperatorName, "Public Shared Operator +(value As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.UnaryNegationOperatorName, "Public Shared Operator -(value As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.OnesComplementOperatorName, "Public Shared Operator Not(value As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.ImplicitConversionName, "Public Shared Operator CType(value As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.ExplicitConversionName, "Public Shared Operator CType(value As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.TrueOperatorName, "Public Shared Operator IsTrue(value As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.FalseOperatorName, "Public Shared Operator IsFalse(value As Integer) As Integer")>
+        Public Sub CreateBuiltinUnaryOperator_Supported(name As String, display As String)
+            Dim compilation = CreateCompilation("")
+            Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+            Dim op = compilation.CreateBuiltinOperator(name, intType, intType, isChecked:=False)
+            Dim result = op.ToDisplayString()
+            AssertEx.Equal(display, result)
+        End Sub
+
+        <Fact>
+        Public Sub CreateBuiltinUnaryOperator_NotSupported()
+            Dim compilation = CreateCompilation("")
+            Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+
+            ' Binary operator name
+            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, isChecked:=False))
+        End Sub
+
+        <Fact>
+        Public Sub CreateBuiltinUnaryOperator_NullChecks()
+            Dim compilation = CreateCompilation("")
+            Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+            Assert.Throws(Of ArgumentNullException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, Nothing, intType, isChecked:=False))
+            Assert.Throws(Of ArgumentNullException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, Nothing, isChecked:=False))
+        End sub
+
+
         <Fact()>
         <WorkItem(36046, "https://github.com/dotnet/roslyn/issues/36046")>
         Public Sub ConstructTypeWithNullability()
