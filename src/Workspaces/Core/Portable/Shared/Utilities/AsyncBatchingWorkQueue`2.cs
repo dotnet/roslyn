@@ -42,7 +42,7 @@ namespace Roslyn.Utilities
         private readonly Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask<TResult>> _processBatchAsync;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly CancellationToken _cancellationToken;
-        private readonly CancellationSeries _cancellationSeries = new();
+        private readonly CancellationSeries _cancellationSeries;
 
         #region protected by lock
 
@@ -102,7 +102,8 @@ namespace Roslyn.Utilities
             _uniqueItems = new SegmentedHashSet<TItem>(equalityComparer);
 
             // Combine with our cancellation token so that any batch is controlled by that token as well.
-            _lastBatchCancellationToken = _cancellationSeries.CreateNext(_cancellationToken);
+            _cancellationSeries = new CancellationSeries(cancellationToken);
+            CancelExistingWork();
         }
 
         /// <summary>
