@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -35,7 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var varIdentifier = SyntaxFactory.IdentifierName("var");
-            var collectionIdentifier = SyntaxFactory.IdentifierName("collection");
+            var enumerationSymbol = semanticModel.LookupSymbols(position).First(symbol => symbol.GetSymbolType() != null &&
+                symbol.GetSymbolType()!.AllInterfaces.Any(namedSymbol => namedSymbol.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T or SpecialType.System_Collections_IEnumerable)); 
+            var collectionIdentifier = enumeration is null
+                ? SyntaxFactory.IdentifierName("collection")
+                : SyntaxFactory.IdentifierName(enumeration.Name);
             var itemString = NameGenerator.GenerateUniqueName(
                 "item", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
             var foreachLoopSyntax = SyntaxFactory.ForEachStatement(varIdentifier, itemString, collectionIdentifier, SyntaxFactory.Block());
