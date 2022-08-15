@@ -965,11 +965,6 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">'{0}' öğesini satır içine al ve koru</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_a_foreach_loop">
-        <source>Insert a 'foreach' loop</source>
-        <target state="new">Insert a 'foreach' loop</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">Yetersiz onaltılık basamak</target>
@@ -3422,6 +3417,11 @@ If the "d" format specifier is used without other custom format specifiers, it's
         <source>external</source>
         <target state="translated">dış</target>
         <note>External means "external source", meaning source files that are not part of the current solution</note>
+      </trans-unit>
+      <trans-unit id="foreach_loop">
+        <source>foreach_loop</source>
+        <target state="new">foreach_loop</target>
+        <note />
       </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class CSharpForEachSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
     {
-        protected override string ItemToCommit => FeaturesResources.Insert_a_foreach_loop;
+        protected override string ItemToCommit => "foreach";
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsertForEachSnippetInMethodTest()
@@ -102,6 +102,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     public Program()
     {
         foreach (var item in collection)
+        {$$
+        }
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InserForEachSnippetWithCollectionTest()
+        {
+            var markupBeforeCommit =
+@"using System;
+using System.Collections.Generic;
+
+class Program
+{
+    public Program()
+    {
+        var list = new List<int> { 1, 2, 3 };
+        $$
+    }
+}";
+
+            var expectedCodeAfterCommit =
+@"using System;
+using System.Collections.Generic;
+
+class Program
+{
+    public Program()
+    {
+        var list = new List<int> { 1, 2, 3 };
+        foreach (var item in list)
         {$$
         }
     }

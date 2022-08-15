@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -36,11 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var varIdentifier = SyntaxFactory.IdentifierName("var");
-            var enumerationSymbol = semanticModel.LookupSymbols(position).First(symbol => symbol.GetSymbolType() != null &&
-                symbol.GetSymbolType()!.AllInterfaces.Any(namedSymbol => namedSymbol.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T or SpecialType.System_Collections_IEnumerable)); 
-            var collectionIdentifier = enumeration is null
+            var enumerationSymbol = semanticModel.LookupSymbols(position).FirstOrDefault(symbol => symbol.GetSymbolType() != null &&
+                symbol.GetSymbolType()!.AllInterfaces.Any(namedSymbol => namedSymbol.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T or SpecialType.System_Collections_IEnumerable));
+            var collectionIdentifier = enumerationSymbol is null
                 ? SyntaxFactory.IdentifierName("collection")
-                : SyntaxFactory.IdentifierName(enumeration.Name);
+                : SyntaxFactory.IdentifierName(enumerationSymbol.Name);
             var itemString = NameGenerator.GenerateUniqueName(
                 "item", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
             var foreachLoopSyntax = SyntaxFactory.ForEachStatement(varIdentifier, itemString, collectionIdentifier, SyntaxFactory.Block());

@@ -965,11 +965,6 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Inline et conserver '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_a_foreach_loop">
-        <source>Insert a 'foreach' loop</source>
-        <target state="new">Insert a 'foreach' loop</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">Chiffres hexadécimaux insuffisants</target>
@@ -3422,6 +3417,11 @@ Si le spécificateur de format "d" est utilisé sans autres spécificateurs de f
         <source>external</source>
         <target state="translated">externe</target>
         <note>External means "external source", meaning source files that are not part of the current solution</note>
+      </trans-unit>
+      <trans-unit id="foreach_loop">
+        <source>foreach_loop</source>
+        <target state="new">foreach_loop</target>
+        <note />
       </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>

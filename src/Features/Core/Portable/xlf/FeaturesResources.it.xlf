@@ -965,11 +965,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Imposta come inline e mantieni '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_a_foreach_loop">
-        <source>Insert a 'foreach' loop</source>
-        <target state="new">Insert a 'foreach' loop</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">Cifre esadecimali insufficienti</target>
@@ -3422,6 +3417,11 @@ Se l'identificatore di formato "d" viene usato senza altri identificatori di for
         <source>external</source>
         <target state="translated">external</target>
         <note>External means "external source", meaning source files that are not part of the current solution</note>
+      </trans-unit>
+      <trans-unit id="foreach_loop">
+        <source>foreach_loop</source>
+        <target state="new">foreach_loop</target>
+        <note />
       </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>

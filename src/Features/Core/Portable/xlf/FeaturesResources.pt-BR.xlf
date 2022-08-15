@@ -965,11 +965,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Embutir e manter '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_a_foreach_loop">
-        <source>Insert a 'foreach' loop</source>
-        <target state="new">Insert a 'foreach' loop</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">Dígitos hexadecimais insuficientes</target>
@@ -3422,6 +3417,11 @@ Se o especificador de formato "d" for usado sem outros especificadores de format
         <source>external</source>
         <target state="translated">externo</target>
         <note>External means "external source", meaning source files that are not part of the current solution</note>
+      </trans-unit>
+      <trans-unit id="foreach_loop">
+        <source>foreach_loop</source>
+        <target state="new">foreach_loop</target>
+        <note />
       </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>
