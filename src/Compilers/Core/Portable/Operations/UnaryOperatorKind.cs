@@ -50,24 +50,14 @@ namespace Microsoft.CodeAnalysis.Operations
         Hat = 0x7,
 
         /// <summary>
-        /// Represents the C# postfix '++' operator.
+        /// Represents the C# '++' operator.
         /// </summary>
-        PostfixIncrement = 0x8,
+        Increment = 0x8,
 
         /// <summary>
-        /// Represents the C# postfix '--' operator.
+        /// Represents the C# '--' operator.
         /// </summary>
-        PostfixDecrement = 0x9,
-
-        /// <summary>
-        /// Represents the C# prefix '++' operator.
-        /// </summary>
-        PrefixIncrement = 0xA,
-
-        /// <summary>
-        /// Represents the C# prefix '--' operator.
-        /// </summary>
-        PrefixDecrement = 0xB,
+        Decrement = 0x9,
     }
 }
 
