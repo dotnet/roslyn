@@ -19,7 +19,7 @@ usage()
   echo "Actions:"
   echo "  --restore                  Restore dependencies (short: -r)"
   echo "  --build                    Build solution (short: -b)"
-  echo "  --source-build             Source-build the solution (short: -sb)"
+  echo "  --sourceBuild              Source-build the solution (short: -sb)"
   echo "                             Will additionally trigger the following actions: --restore, --build, --pack"
   echo "                             If --configuration is not set explicitly, will also set it to 'Release'"
   echo "  --rebuild                  Rebuild solution"
