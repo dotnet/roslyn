@@ -3821,7 +3821,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor).GetPublicSymbol();
         }
 
-        protected override IMethodSymbol CommonCreateBuiltinOperator(Operations.BinaryOperatorKind kind, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType, bool isChecked)
+        protected override IMethodSymbol CommonCreateBuiltinOperator(
+            Operations.BinaryOperatorKind kind,
+            ITypeSymbol returnType,
+            ITypeSymbol leftType,
+            ITypeSymbol rightType,
+            bool isChecked)
         {
             var csharpReturnType = returnType.EnsureCSharpSymbolOrNull(nameof(returnType));
             var csharpLeftType = leftType.EnsureCSharpSymbolOrNull(nameof(leftType));
@@ -3857,6 +3862,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operatorName = OperatorFacts.BinaryOperatorNameFromOperatorKind(op, isChecked);
 
             return new SynthesizedIntrinsicOperatorSymbol(csharpLeftType, operatorName, csharpRightType, csharpReturnType, isChecked).GetPublicSymbol();
+        }
+
+        protected override IMethodSymbol CommonCreateBuiltinOperator(
+            Operations.UnaryOperatorKind kind,
+            ITypeSymbol returnType,
+            ITypeSymbol valueType,
+            bool isChecked)
+        {
+            var csharpReturnType = returnType.EnsureCSharpSymbolOrNull(nameof(returnType));
+            var csharpValueType = valueType.EnsureCSharpSymbolOrNull(nameof(valueType));
+
+            // caller already checked all of these were not null.
+            Debug.Assert(csharpReturnType is not null);
+            Debug.Assert(csharpValueType is not null);
+
+            var op = kind switch
+            {
+                Operations.UnaryOperatorKind.Plus => UnaryOperatorKind.UnaryPlus,
+                Operations.UnaryOperatorKind.Minus => UnaryOperatorKind.UnaryMinus,
+                Operations.UnaryOperatorKind.BitwiseNegation => UnaryOperatorKind.BitwiseComplement,
+                Operations.UnaryOperatorKind.Not => UnaryOperatorKind.LogicalNegation,
+                Operations.UnaryOperatorKind.PostfixIncrement => UnaryOperatorKind.PostfixIncrement,
+                Operations.UnaryOperatorKind.PrefixIncrement => UnaryOperatorKind.PrefixIncrement,
+                Operations.UnaryOperatorKind.PostfixDecrement => UnaryOperatorKind.PostfixDecrement,
+                Operations.UnaryOperatorKind.PrefixDecrement => UnaryOperatorKind.PrefixDecrement,
+                Operations.UnaryOperatorKind.True => UnaryOperatorKind.True,
+                Operations.UnaryOperatorKind.False => UnaryOperatorKind.False,
+                _ => throw new ArgumentException($"Unknown kind", nameof(kind)),
+            };
+
+            var name = OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked);
+            return new SynthesizedIntrinsicOperatorSymbol(csharpValueType, name, csharpReturnType, isChecked).GetPublicSymbol();
         }
 
         protected override ITypeSymbol CommonDynamicType
