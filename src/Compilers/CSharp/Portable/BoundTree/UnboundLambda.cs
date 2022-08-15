@@ -651,26 +651,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var param = lambdaSymbol.Parameters[i];
                 var constVal = param.ExplicitDefaultConstantValue;
-                if (constVal != null)
+                if (constVal != null && parameterDefaultValueBuilder == null)
                 {
-                    if (parameterDefaultValueBuilder == null)
-                    {
-                        parameterDefaultValueBuilder = ArrayBuilder<ConstantValue?>.GetInstance(ParameterCount);
+                    parameterDefaultValueBuilder = ArrayBuilder<ConstantValue?>.GetInstance(ParameterCount);
+                    parameterDefaultValueBuilder.AddMany(null, i);
+                }
 
-                        // front fill the array with nulls because all the parameters before this one must have been non-default.
-                        parameterDefaultValueBuilder.AddMany(null, i);
-                    }
-
+                if (parameterDefaultValueBuilder != null)
+                {
                     parameterDefaultValueBuilder.Add(constVal);
                 }
-            }
-
-            // Account for the situation where we have trailing required parameters AFTER an optional one, i.e., (int opt1 = 3, T1 req1, ..., TN reqN) => {...}
-            // so we will be missing null default values for req1, ..., reqN when exiting the previous loop and the length of the default value builder will
-            // be too short.
-            if (parameterDefaultValueBuilder is not null)
-            {
-                parameterDefaultValueBuilder.AddMany(null, lambdaSymbol.Parameters.Length - parameterDefaultValueBuilder.Count);
             }
 
             var parameterDefaultValues = parameterDefaultValueBuilder?.ToImmutableAndFree() ?? default;

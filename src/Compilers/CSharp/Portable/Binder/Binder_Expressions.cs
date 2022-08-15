@@ -8853,7 +8853,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterScopes = parameters.Any(p => p.EffectiveScope != DeclarationScope.Unscoped) ?
                 parameters.SelectAsArray(p => p.EffectiveScope) :
                 default;
-            return GetMethodGroupOrLambdaDelegateType(node.Syntax, method.RefKind, method.ReturnTypeWithAnnotations, method.ParameterRefKinds, parameterScopes, method.ParameterTypesWithAnnotations);
+
+            // PROTOTYPE: bind default values and pass them through here to allow support for default parameters in method groups
+            return GetMethodGroupOrLambdaDelegateType(node.Syntax, method.RefKind, method.ReturnTypeWithAnnotations, method.ParameterRefKinds, parameterScopes, method.ParameterTypesWithAnnotations, parameterDefaultValues: default);
         }
 
         /// <summary>
@@ -8940,7 +8942,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> parameterRefKinds,
             ImmutableArray<DeclarationScope> parameterScopes,
             ImmutableArray<TypeWithAnnotations> parameterTypes,
-            ImmutableArray<ConstantValue?> parameterDefaultValues = default)
+            ImmutableArray<ConstantValue?> parameterDefaultValues)
         {
             Debug.Assert(ContainingMemberOrLambda is { });
             Debug.Assert(parameterRefKinds.IsDefault || parameterRefKinds.Length == parameterTypes.Length);

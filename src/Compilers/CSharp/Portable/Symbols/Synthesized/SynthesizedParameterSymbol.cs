@@ -74,11 +74,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ExplicitDefaultConstantValue != null; }
         }
 
-        internal override ConstantValue? ExplicitDefaultConstantValue => null;
-
         public override bool IsImplicitlyDeclared
         {
             get { return true; }
+        }
+
+        internal override ConstantValue? ExplicitDefaultConstantValue
+        {
+            get { return null; }
         }
 
         internal override bool IsIDispatchConstant
@@ -313,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override MarshalPseudoCustomAttributeData? MarshallingInformation => _baseParameterForAttributes?.MarshallingInformation;
 
-        internal override bool IsMetadataOptional => _baseParameterForAttributes is not null ? _baseParameterForAttributes.IsMetadataOptional == true : base.IsMetadataOptional;
+        internal override bool IsMetadataOptional => _baseParameterForAttributes?.IsMetadataOptional ?? base.IsMetadataOptional;
 
         internal override bool IsCallerLineNumber
         {
@@ -349,6 +352,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return base.NotNullIfParameterNotNull;
             }
         }
-
     }
 }

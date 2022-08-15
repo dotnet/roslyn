@@ -12211,16 +12211,17 @@ class Program
 {
     public static void Main()
     {
-        var lam = ([CallerMemberName] string member = "member", [CallerFilePath] string filePath = "file", 
-                                [CallerLineNumber] int lineNumber = 0) => Console.WriteLine($"{filePath}::{member}:{lineNumber}");
-        lam();
+        var lam = (int arg, [CallerMemberName] string member = "member", [CallerFilePath] string filePath = "file", 
+                                [CallerLineNumber] int lineNumber = 0, 
+                                [CallerArgumentExpression("arg")] string argExpression = "callerArgExpression") => Console.WriteLine($"{filePath}::{member}({argExpression}):{lineNumber}");
+        lam(3);
     }
 }
 """;
-            // PROTOTYPE: Do we want to allow [Caller{MemberName, LineNumber, FilePath}] attributes for lambdas since
+            // PROTOTYPE: Do we want to allow [Caller{MemberName, LineNumber, FilePath, ArgumentExpression}] attributes for lambdas since
             // we now have default parameters? The current behavior is to ignore these attributes so that the provided
             // default would always be used in these cases.
-            CompileAndVerify(source, expectedOutput: "file::member:0");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net60, expectedOutput: "file::member(callerArgExpression):0");
         }
     }
 }

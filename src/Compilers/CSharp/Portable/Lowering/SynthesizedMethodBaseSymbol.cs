@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected void AssignTypeMapAndTypeParameters(TypeMap typeMap, ImmutableArray<TypeParameterSymbol> typeParameters)
+
         {
             Debug.Assert(typeMap != null);
             Debug.Assert(this.TypeMap == null);
