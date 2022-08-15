@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -71,25 +72,25 @@ namespace Roslyn.SyntaxVisualizer.Control
         /// <remarks>
         /// Every unselected item in the TreeView has a foreground (indicating if it is a node/
         /// token/trivia) and background color (indicating the presence of diagnostics). When an
-        /// item is selected (active or inactive), we want to ensure that it looks obviously 
+        /// item is selected (active or inactive), we want to ensure that it looks obviously
         /// selected while maintaining contrasting colors.
-        /// 
+        ///
         /// To that end, we want to use these custom colors when unselected and the ControlTemplate
         /// colors when selected. Unfortunately, our use of hard-coded color values to instantiate
         /// TreeViewItems in code makes this very difficult to accomplish declaratively. We should
         /// remove the hard-coded color approach in favor of a data class with a DataTemplate in
         /// the future.
-        /// 
-        /// Instead, we listen for when items are selected/unselected and manually swap colors 
-        /// around. With the goal of using custom colors when unselected and the ControlTemplate 
+        ///
+        /// Instead, we listen for when items are selected/unselected and manually swap colors
+        /// around. With the goal of using custom colors when unselected and the ControlTemplate
         /// when selected, we handle the colors by:
         ///
         ///   - Background colors: The item's control template hides the specified background color
-        /// when it is selected (active or inactive) by overlaying a Border colored by the 
-        /// highlight brush. When the item becomes unselected again, the added Border is hidden, 
+        /// when it is selected (active or inactive) by overlaying a Border colored by the
+        /// highlight brush. When the item becomes unselected again, the added Border is hidden,
         /// allowing the originally specified background color to show again, so we don't need any
         /// custom handling.
-        /// 
+        ///
         ///   - Foreground colors: The item's control template does *not* override the specified
         /// foreground when it is selected. To use the control templates correctly themed defaults,
         /// we temporarily clear the specified foreground color and restore it when the item is
@@ -331,7 +332,7 @@ namespace Roslyn.SyntaxVisualizer.Control
         // the children for any given item are only populated when the item is selected. If lazy is
         // false then the entire tree is populated at once (and this can result in bad performance when
         // displaying large trees).
-        public void DisplaySyntaxTree(SyntaxTree tree, SemanticModel? model = null, bool lazy = true, Workspace? workspace = null)
+        public void DisplaySyntaxTree(Document document, SyntaxTree tree, SemanticModel? model = null, bool lazy = true, Workspace? workspace = null)
         {
             if (tree != null)
             {
@@ -342,7 +343,9 @@ namespace Roslyn.SyntaxVisualizer.Control
 
                 if (model != null && workspace != null)
                 {
-                    classifiedSpans = Classifier.GetClassifiedSpans(model, tree.GetRoot().FullSpan, workspace).ToImmutableArray();
+                    var root = ThreadHelper.JoinableTaskFactory.Run(() => tree.GetRootAsync());
+                    classifiedSpans = ThreadHelper.JoinableTaskFactory.Run(
+                        () => Classifier.GetClassifiedSpansAsync(document, root.FullSpan, CancellationToken.None)).ToImmutableArray();
                 }
                 else
                 {
