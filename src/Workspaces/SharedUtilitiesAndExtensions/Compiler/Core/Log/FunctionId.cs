@@ -548,5 +548,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Refactoring_FixAllOccurrencesPreviewChanges = 563,
 
         LSP_UsedForkedSolution = 571,
+
+        SpellCheckFixer_CouldNotFindDocument = 580,
+        SpellCheckFixer_LanguageDoesNotSupportRename = 581,
+        SpellCheckFixer_LanguageCouldNotGetRenameInfo = 582,
+        SpellCheckFixer_RenameSpanNotWithinTokenSpan = 583,
+        SpellCheckFixer_ReplacementTextInvalid = 584,
+        SpellCheckFixer_TryApplyChangesFailure = 585,
     }
 }
