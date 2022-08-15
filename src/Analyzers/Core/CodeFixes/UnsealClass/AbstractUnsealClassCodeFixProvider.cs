@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UnsealClass
                 var document = solution.GetDocument(documentId);
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var editor = document.GetSyntaxEditor(root);
+                var editor = new SyntaxEditor(root, document.Project.Solution.Services);
                 var generator = editor.Generator;
 
                 foreach (var syntaxReference in syntaxReferences)
