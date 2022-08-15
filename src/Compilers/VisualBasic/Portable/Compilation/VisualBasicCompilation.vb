@@ -2910,7 +2910,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function CommonCreateBuiltinOperator(
-                kind As Operations.BinaryOperatorKind,
+                name As String,
                 returnType As ITypeSymbol,
                 leftType As ITypeSymbol,
                 rightType As ITypeSymbol,
@@ -2920,58 +2920,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim vbLeftType = leftType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(leftType))
             Dim vbRightType = returnType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(rightType))
 
-            Dim op As BinaryOperatorKind
-            Select Case kind
-                Case Operations.BinaryOperatorKind.Add
-                    op = BinaryOperatorKind.Add
-                Case Operations.BinaryOperatorKind.Concatenate
-                    op = BinaryOperatorKind.Concatenate
-                Case Operations.BinaryOperatorKind.Like
-                    op = BinaryOperatorKind.Like
-                Case Operations.BinaryOperatorKind.Equals
-                    op = BinaryOperatorKind.Equals
-                Case Operations.BinaryOperatorKind.NotEquals
-                    op = BinaryOperatorKind.NotEquals
-                Case Operations.BinaryOperatorKind.LessThanOrEqual
-                    op = BinaryOperatorKind.LessThanOrEqual
-                Case Operations.BinaryOperatorKind.GreaterThanOrEqual
-                    op = BinaryOperatorKind.GreaterThanOrEqual
-                Case Operations.BinaryOperatorKind.LessThan
-                    op = BinaryOperatorKind.LessThan
-                Case Operations.BinaryOperatorKind.GreaterThan
-                    op = BinaryOperatorKind.GreaterThan
-                Case Operations.BinaryOperatorKind.Subtract
-                    op = BinaryOperatorKind.Subtract
-                Case Operations.BinaryOperatorKind.Multiply
-                    op = BinaryOperatorKind.Multiply
-                Case Operations.BinaryOperatorKind.Power
-                    op = BinaryOperatorKind.Power
-                Case Operations.BinaryOperatorKind.Divide
-                    op = BinaryOperatorKind.Divide
-                Case Operations.BinaryOperatorKind.Remainder
-                    op = BinaryOperatorKind.Modulo
-                Case Operations.BinaryOperatorKind.IntegerDivide
-                    op = BinaryOperatorKind.IntegerDivide
-                Case Operations.BinaryOperatorKind.LeftShift
-                    op = BinaryOperatorKind.LeftShift
-                Case Operations.BinaryOperatorKind.RightShift
-                    op = BinaryOperatorKind.RightShift
-                Case Operations.BinaryOperatorKind.ExclusiveOr
-                    op = BinaryOperatorKind.Xor
-                Case Operations.BinaryOperatorKind.Or
-                    op = BinaryOperatorKind.Or
-                Case Operations.BinaryOperatorKind.And
-                    op = BinaryOperatorKind.And
-                Case Else
-                    Throw New ArgumentException($"Unknown kind '{kind}'", NameOf(kind))
-            End Select
+            Dim nameOk =
+                name = WellKnownMemberNames.AdditionOperatorName OrElse
+                name = WellKnownMemberNames.ConcatenateOperatorName OrElse
+                name = WellKnownMemberNames.LikeOperatorName OrElse
+                name = WellKnownMemberNames.EqualityOperatorName OrElse
+                name = WellKnownMemberNames.InequalityOperatorName OrElse
+                name = WellKnownMemberNames.LessThanOrEqualOperatorName OrElse
+                name = WellKnownMemberNames.GreaterThanOrEqualOperatorName OrElse
+                name = WellKnownMemberNames.LessThanOperatorName OrElse
+                name = WellKnownMemberNames.GreaterThanOperatorName OrElse
+                name = WellKnownMemberNames.SubtractionOperatorName OrElse
+                name = WellKnownMemberNames.MultiplyOperatorName OrElse
+                name = WellKnownMemberNames.ExponentOperatorName OrElse
+                name = WellKnownMemberNames.DivisionOperatorName OrElse
+                name = WellKnownMemberNames.ModulusOperatorName OrElse
+                name = WellKnownMemberNames.IntegerDivisionOperatorName OrElse
+                name = WellKnownMemberNames.LeftShiftOperatorName OrElse
+                name = WellKnownMemberNames.RightShiftOperatorName OrElse
+                name = WellKnownMemberNames.ExclusiveOrOperatorName OrElse
+                name = WellKnownMemberNames.BitwiseOrOperatorName OrElse
+                name = WellKnownMemberNames.BitwiseAndOperatorName
+
+            If Not nameOk Then
+                Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
+            End If
 
             Return New SynthesizedIntrinsicOperatorSymbol(
-                vbLeftType, OverloadResolution.TryGetOperatorName(op), vbRightType, vbReturnType, isChecked)
+                vbLeftType, name, vbRightType, vbReturnType, isChecked)
         End Function
 
         Protected Overrides Function CommonCreateBuiltinOperator(
-                kind As Operations.UnaryOperatorKind,
+                name As String,
                 returnType As ITypeSymbol,
                 valueType As ITypeSymbol,
                 isChecked As Boolean) As IMethodSymbol
@@ -2979,24 +2959,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim vbReturnType = returnType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(returnType))
             Dim vbValueType = returnType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(valueType))
 
-            Dim op As UnaryOperatorKind
-            Select Case kind
-                Case Operations.UnaryOperatorKind.Plus
-                    op = UnaryOperatorKind.Plus
-                Case Operations.UnaryOperatorKind.Minus
-                    op = UnaryOperatorKind.Minus
-                Case Operations.UnaryOperatorKind.Not
-                    op = UnaryOperatorKind.Not
-                Case Operations.UnaryOperatorKind.True
-                    op = UnaryOperatorKind.IsTrue
-                Case Operations.UnaryOperatorKind.False
-                    op = UnaryOperatorKind.IsFalse
-                Case Else
-                    Throw New ArgumentException($"Unknown kind '{kind}'", NameOf(kind))
-            End Select
+            Dim nameOk =
+                name = WellKnownMemberNames.UnaryPlusOperatorName OrElse
+                name = WellKnownMemberNames.UnaryNegationOperatorName OrElse
+                name = WellKnownMemberNames.OnesComplementOperatorName OrElse
+                name = WellKnownMemberNames.ImplicitConversionName OrElse
+                name = WellKnownMemberNames.ExplicitConversionName OrElse
+                name = WellKnownMemberNames.TrueOperatorName OrElse
+                name = WellKnownMemberNames.FalseOperatorName
+
+            If Not nameOk Then
+                Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
+            End If
 
             Return New SynthesizedIntrinsicOperatorSymbol(
-                vbValueType, OverloadResolution.TryGetOperatorName(op), vbReturnType, isChecked)
+                vbValueType, name, vbReturnType, isChecked)
         End Function
 
         Protected Overrides ReadOnly Property CommonDynamicType As ITypeSymbol

@@ -1494,16 +1494,16 @@ namespace Microsoft.CodeAnalysis
         /// symbols like <c>bool int.operator==(int v1, int v2)</c> which the language implicitly supports, even if such
         /// a symbol is not explicitly defined for that type in either source or metadata.
         /// </summary>
-        /// <param name="kind">The specific binary operator kind being created.</param>
+        /// <param name="name">The binary operator name.  Should be one of the names from <see cref="WellKnownMemberNames"/>.</param>
         /// <param name="returnType">The return type of the binary operator.</param>
         /// <param name="leftType">The type of the left operand of the binary operator.</param>
         /// <param name="rightType">The type of the right operand of the binary operator.</param>
         /// <param name="isChecked">Whether or not this is a checked binary operator.  For example <c>int int.operator
         /// checked +(int v1, int v2)</c>.</param>
         /// <returns></returns>
-        public IMethodSymbol CreateBuiltinOperator(BinaryOperatorKind kind, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType, bool isChecked)
+        public IMethodSymbol CreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType, bool isChecked)
         {
-            // Can't check 'kind' here as VB and C# support a different subset of kinds.
+            // Can't check 'name' here as VB and C# support a different subset of names.
 
             if (returnType is null)
                 throw new ArgumentNullException(nameof(returnType));
@@ -1514,10 +1514,10 @@ namespace Microsoft.CodeAnalysis
             if (rightType is null)
                 throw new ArgumentNullException(nameof(rightType));
 
-            return CommonCreateBuiltinOperator(kind, returnType, leftType, rightType, isChecked);
+            return CommonCreateBuiltinOperator(name, returnType, leftType, rightType, isChecked);
         }
 
-        protected abstract IMethodSymbol CommonCreateBuiltinOperator(BinaryOperatorKind kind, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType, bool isChecked);
+        protected abstract IMethodSymbol CommonCreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType, bool isChecked);
 
         /// <summary>
         /// Creates an <see cref="IMethodSymbol"/> whose <see cref="IMethodSymbol.MethodKind"/> is <see
@@ -1525,14 +1525,14 @@ namespace Microsoft.CodeAnalysis
         /// symbols like <c>bool int.operator==(int v1, int v2)</c> which the language implicitly supports, even if such
         /// a symbol is not explicitly defined for that type in either source or metadata.
         /// </summary>
-        /// <param name="kind">The specific unary operator kind being created.</param>
+        /// <param name="name">The unary operator name.  Should be one of the names from <see cref="WellKnownMemberNames"/>.</param>
         /// <param name="returnType">The return type of the unary operator.</param>
         /// <param name="valueType">The type the operator applies to.</param>
         /// <param name="isChecked">Whether or not this is a unary binary operator..</param>
         /// <returns></returns>
-        public IMethodSymbol CreateBuiltinOperator(UnaryOperatorKind kind, ITypeSymbol returnType, ITypeSymbol valueType, bool isChecked)
+        public IMethodSymbol CreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol valueType, bool isChecked)
         {
-            // Can't check 'kind' here as VB and C# support a different subset of kinds.
+            // Can't check 'name' here as VB and C# support a different subset of names.
 
             if (returnType is null)
                 throw new ArgumentNullException(nameof(returnType));
@@ -1540,10 +1540,10 @@ namespace Microsoft.CodeAnalysis
             if (valueType is null)
                 throw new ArgumentNullException(nameof(valueType));
 
-            return CommonCreateBuiltinOperator(kind, returnType, valueType, isChecked);
+            return CommonCreateBuiltinOperator(name, returnType, valueType, isChecked);
         }
 
-        protected abstract IMethodSymbol CommonCreateBuiltinOperator(UnaryOperatorKind kind, ITypeSymbol returnType, ITypeSymbol valueType, bool isChecked);
+        protected abstract IMethodSymbol CommonCreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol valueType, bool isChecked);
 
         /// <summary>
         /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/> according

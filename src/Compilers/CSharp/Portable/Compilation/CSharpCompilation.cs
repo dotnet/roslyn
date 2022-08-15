@@ -3822,7 +3822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected override IMethodSymbol CommonCreateBuiltinOperator(
-            Operations.BinaryOperatorKind kind,
+            string name,
             ITypeSymbol returnType,
             ITypeSymbol leftType,
             ITypeSymbol rightType,
@@ -3837,35 +3837,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(csharpLeftType is not null);
             Debug.Assert(csharpRightType is not null);
 
-            var op = kind switch
-            {
-                Operations.BinaryOperatorKind.Add => BinaryOperatorKind.Addition,
-                Operations.BinaryOperatorKind.And => BinaryOperatorKind.And,
-                Operations.BinaryOperatorKind.Divide => BinaryOperatorKind.Division,
-                Operations.BinaryOperatorKind.Equals => BinaryOperatorKind.Equal,
-                Operations.BinaryOperatorKind.GreaterThan => BinaryOperatorKind.GreaterThan,
-                Operations.BinaryOperatorKind.GreaterThanOrEqual => BinaryOperatorKind.GreaterThanOrEqual,
-                Operations.BinaryOperatorKind.LeftShift => BinaryOperatorKind.LeftShift,
-                Operations.BinaryOperatorKind.LessThan => BinaryOperatorKind.LessThan,
-                Operations.BinaryOperatorKind.LessThanOrEqual => BinaryOperatorKind.LessThanOrEqual,
-                Operations.BinaryOperatorKind.Multiply => BinaryOperatorKind.Multiplication,
-                Operations.BinaryOperatorKind.Or => BinaryOperatorKind.Or,
-                Operations.BinaryOperatorKind.NotEquals => BinaryOperatorKind.NotEqual,
-                Operations.BinaryOperatorKind.Remainder => BinaryOperatorKind.Remainder,
-                Operations.BinaryOperatorKind.RightShift => BinaryOperatorKind.RightShift,
-                Operations.BinaryOperatorKind.UnsignedRightShift => BinaryOperatorKind.UnsignedRightShift,
-                Operations.BinaryOperatorKind.Subtract => BinaryOperatorKind.Subtraction,
-                Operations.BinaryOperatorKind.ExclusiveOr => BinaryOperatorKind.Xor,
-                _ => throw new ArgumentException($"Unknown kind '{kind}'", nameof(kind)),
-            };
+            var nameOk = name
+                is WellKnownMemberNames.CheckedAdditionOperatorName
+                or WellKnownMemberNames.AdditionOperatorName
+                or WellKnownMemberNames.BitwiseAndOperatorName
+                or WellKnownMemberNames.CheckedDivisionOperatorName
+                or WellKnownMemberNames.DivisionOperatorName
+                or WellKnownMemberNames.EqualityOperatorName
+                or WellKnownMemberNames.GreaterThanOperatorName
+                or WellKnownMemberNames.GreaterThanOrEqualOperatorName
+                or WellKnownMemberNames.LeftShiftOperatorName
+                or WellKnownMemberNames.LessThanOperatorName
+                or WellKnownMemberNames.LessThanOrEqualOperatorName
+                or WellKnownMemberNames.CheckedMultiplyOperatorName
+                or WellKnownMemberNames.MultiplyOperatorName
+                or WellKnownMemberNames.BitwiseOrOperatorName
+                or WellKnownMemberNames.InequalityOperatorName
+                or WellKnownMemberNames.ModulusOperatorName
+                or WellKnownMemberNames.RightShiftOperatorName
+                or WellKnownMemberNames.UnsignedRightShiftOperatorName
+                or WellKnownMemberNames.CheckedSubtractionOperatorName
+                or WellKnownMemberNames.SubtractionOperatorName
+                or WellKnownMemberNames.ExclusiveOrOperatorName;
+            if (!nameOk)
+                throw new ArgumentException($"Illegal binary operator name '{name}'", nameof(name));
 
-            var operatorName = OperatorFacts.BinaryOperatorNameFromOperatorKind(op, isChecked);
-
-            return new SynthesizedIntrinsicOperatorSymbol(csharpLeftType, operatorName, csharpRightType, csharpReturnType, isChecked).GetPublicSymbol();
+            return new SynthesizedIntrinsicOperatorSymbol(csharpLeftType, name, csharpRightType, csharpReturnType, isChecked).GetPublicSymbol();
         }
 
         protected override IMethodSymbol CommonCreateBuiltinOperator(
-            Operations.UnaryOperatorKind kind,
+            string name,
             ITypeSymbol returnType,
             ITypeSymbol valueType,
             bool isChecked)
@@ -3877,20 +3878,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(csharpReturnType is not null);
             Debug.Assert(csharpValueType is not null);
 
-            var op = kind switch
-            {
-                Operations.UnaryOperatorKind.Plus => UnaryOperatorKind.UnaryPlus,
-                Operations.UnaryOperatorKind.Minus => UnaryOperatorKind.UnaryMinus,
-                Operations.UnaryOperatorKind.BitwiseNegation => UnaryOperatorKind.BitwiseComplement,
-                Operations.UnaryOperatorKind.Not => UnaryOperatorKind.LogicalNegation,
-                Operations.UnaryOperatorKind.Increment => UnaryOperatorKind.PostfixIncrement,
-                Operations.UnaryOperatorKind.Decrement => UnaryOperatorKind.PostfixDecrement,
-                Operations.UnaryOperatorKind.True => UnaryOperatorKind.True,
-                Operations.UnaryOperatorKind.False => UnaryOperatorKind.False,
-                _ => throw new ArgumentException($"Unknown kind '{kind}'", nameof(kind)),
-            };
+            var nameOk = name
+                is WellKnownMemberNames.UnaryPlusOperatorName
+                or WellKnownMemberNames.CheckedUnaryNegationOperatorName
+                or WellKnownMemberNames.UnaryNegationOperatorName
+                or WellKnownMemberNames.OnesComplementOperatorName
+                or WellKnownMemberNames.LogicalNotOperatorName
+                or WellKnownMemberNames.CheckedIncrementOperatorName
+                or WellKnownMemberNames.IncrementOperatorName
+                or WellKnownMemberNames.CheckedDecrementOperatorName
+                or WellKnownMemberNames.DecrementOperatorName
+                or WellKnownMemberNames.TrueOperatorName
+                or WellKnownMemberNames.FalseOperatorName;
 
-            var name = OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked);
+            if (!nameOk)
+                throw new ArgumentException($"Illegal operator name '{name}'", nameof(name));
+
             return new SynthesizedIntrinsicOperatorSymbol(csharpValueType, name, csharpReturnType, isChecked).GetPublicSymbol();
         }
 
