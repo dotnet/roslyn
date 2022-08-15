@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletio
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -125,6 +125,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Overloads Sub SendReturn()
             Dim handler = GetHandler(Of IChainedCommandHandler(Of ReturnKeyCommandArgs))()
             MyBase.SendReturn(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() EditorOperations.InsertNewLine())
+        End Sub
+
+        Public Sub SendBackspaces(count As Integer)
+            For i = 0 To count - 1
+                Me.SendBackspace()
+            Next
         End Sub
 
         Public Overrides Sub SendBackspace()

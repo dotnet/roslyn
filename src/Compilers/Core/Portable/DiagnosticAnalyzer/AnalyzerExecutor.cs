@@ -1397,7 +1397,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            analyzerState?.ClearNodeAnalysisState();
+            analyzerState?.OnAllActionsExecutedForNode(node);
         }
 
         internal static ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> GetOperationActionsByKind(IEnumerable<OperationAnalyzerAction> operationActions)
@@ -1532,7 +1532,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            analyzerState?.ClearNodeAnalysisState();
+            analyzerState?.OnAllActionsExecutedForOperation(operation);
         }
 
         internal static bool CanHaveExecutableCodeBlock(ISymbol symbol)

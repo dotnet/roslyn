@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => new CSharpBlockStructureService(languageServices.ProjectServices.SolutionServices);
+            => new CSharpBlockStructureService(languageServices.LanguageServices.SolutionServices);
     }
 
     internal class CSharpBlockStructureService : BlockStructureServiceWithProviders
     {
-        public CSharpBlockStructureService(HostSolutionServices services)
+        public CSharpBlockStructureService(SolutionServices services)
             : base(services)
         {
         }
