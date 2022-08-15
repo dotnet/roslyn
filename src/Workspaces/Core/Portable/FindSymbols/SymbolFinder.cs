@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ISymbol> FindSymbolAtPositionAsync(
             SemanticModel semanticModel,
             int position,
-            HostSolutionServices services,
+            SolutionServices services,
             CancellationToken cancellationToken = default)
         {
             if (semanticModel is null)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<TokenSemanticInfo> GetSemanticInfoAtPositionAsync(
             SemanticModel semanticModel,
             int position,
-            HostSolutionServices services,
+            SolutionServices services,
             CancellationToken cancellationToken)
         {
             var token = await GetTokenAtPositionAsync(semanticModel, position, services, cancellationToken).ConfigureAwait(false);
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static Task<SyntaxToken> GetTokenAtPositionAsync(
             SemanticModel semanticModel,
             int position,
-            HostSolutionServices services,
+            SolutionServices services,
             CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;

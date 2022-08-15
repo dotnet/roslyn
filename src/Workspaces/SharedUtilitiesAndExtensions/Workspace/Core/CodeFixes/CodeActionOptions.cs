@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 #if CODE_STYLE
         public static readonly CodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(GetDefault);
 #else
-        public static readonly CodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(static ls => GetDefault(ls.ProjectServices));
+        public static readonly CodeActionOptionsProvider DefaultProvider = new DelegatingCodeActionOptionsProvider(static ls => GetDefault(ls));
 #endif
 
         /// <summary>
@@ -72,13 +72,13 @@ namespace Microsoft.CodeAnalysis.CodeActions
             CodeStyleOptions = codeStyleOptions;
         }
 
-        public static CodeActionOptions GetDefault(HostProjectServices languageServices)
+        public static CodeActionOptions GetDefault(LanguageServices languageServices)
             => new(
                 CodeCleanupOptions.GetDefault(languageServices),
                 CodeGenerationOptions.GetDefault(languageServices),
                 IdeCodeStyleOptions.GetDefault(languageServices));
 #else
-        public static CodeActionOptions GetDefault(HostLanguageServices languageServices)
+        public static CodeActionOptions GetDefault(LanguageServices languageServices)
             => new();
 #endif
         public CodeActionOptionsProvider CreateProvider()
@@ -97,48 +97,48 @@ namespace Microsoft.CodeAnalysis.CodeActions
         SimplifierOptionsProvider,
         AddImportPlacementOptionsProvider
     {
-        CodeActionOptions GetOptions(HostLanguageServices languageService);
+        CodeActionOptions GetOptions(LanguageServices languageService);
     }
 
     internal abstract class AbstractCodeActionOptionsProvider : CodeActionOptionsProvider
     {
-        public abstract CodeActionOptions GetOptions(HostLanguageServices languageService);
+        public abstract CodeActionOptions GetOptions(LanguageServices languageServices);
 
 #if !CODE_STYLE
-        ValueTask<LineFormattingOptions> OptionsProvider<LineFormattingOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<LineFormattingOptions> OptionsProvider<LineFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.FormattingOptions.LineFormatting);
 
-        ValueTask<DocumentFormattingOptions> OptionsProvider<DocumentFormattingOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<DocumentFormattingOptions> OptionsProvider<DocumentFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.DocumentFormattingOptions);
 
-        ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.FormattingOptions);
 
-        ValueTask<SimplifierOptions> OptionsProvider<SimplifierOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<SimplifierOptions> OptionsProvider<SimplifierOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.SimplifierOptions);
 
-        ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.AddImportOptions);
 
-        ValueTask<OrganizeImportsOptions> OptionsProvider<OrganizeImportsOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<OrganizeImportsOptions> OptionsProvider<OrganizeImportsOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.GetOrganizeImportsOptions());
 
-        ValueTask<CodeCleanupOptions> OptionsProvider<CodeCleanupOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<CodeCleanupOptions> OptionsProvider<CodeCleanupOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions);
 
-        ValueTask<CodeGenerationOptions> OptionsProvider<CodeGenerationOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<CodeGenerationOptions> OptionsProvider<CodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(GetOptions(languageServices).CodeGenerationOptions);
 
-        ValueTask<NamingStylePreferences> OptionsProvider<NamingStylePreferences>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<NamingStylePreferences> OptionsProvider<NamingStylePreferences>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(GetOptions(languageServices).CodeGenerationOptions.NamingStyle);
 
-        ValueTask<CleanCodeGenerationOptions> OptionsProvider<CleanCodeGenerationOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<CleanCodeGenerationOptions> OptionsProvider<CleanCodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         {
             var codeActionOptions = GetOptions(languageServices);
             return ValueTaskFactory.FromResult(new CleanCodeGenerationOptions(codeActionOptions.CodeGenerationOptions, codeActionOptions.CleanupOptions));
         }
 
-        ValueTask<CodeAndImportGenerationOptions> OptionsProvider<CodeAndImportGenerationOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        ValueTask<CodeAndImportGenerationOptions> OptionsProvider<CodeAndImportGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         {
             var codeActionOptions = GetOptions(languageServices);
             return ValueTaskFactory.FromResult(new CodeAndImportGenerationOptions(codeActionOptions.CodeGenerationOptions, codeActionOptions.CleanupOptions.AddImportOptions));
@@ -148,12 +148,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
     internal sealed class DelegatingCodeActionOptionsProvider : AbstractCodeActionOptionsProvider
     {
-        private readonly Func<HostLanguageServices, CodeActionOptions> _delegate;
+        private readonly Func<LanguageServices, CodeActionOptions> _delegate;
 
-        public DelegatingCodeActionOptionsProvider(Func<HostLanguageServices, CodeActionOptions> @delegate)
+        public DelegatingCodeActionOptionsProvider(Func<LanguageServices, CodeActionOptions> @delegate)
             => _delegate = @delegate;
 
-        public override CodeActionOptions GetOptions(HostLanguageServices languageService)
+        public override CodeActionOptions GetOptions(LanguageServices languageService)
             => _delegate(languageService);
     }
 
@@ -175,10 +175,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
 #endif
 
 #if !CODE_STYLE
-        public static ImplementTypeGenerationOptions GetImplementTypeGenerationOptions(this CodeActionOptionsProvider provider, HostLanguageServices languageServices)
+        public static ImplementTypeGenerationOptions GetImplementTypeGenerationOptions(this CodeActionOptionsProvider provider, LanguageServices languageServices)
             => new(provider.GetOptions(languageServices).ImplementTypeOptions, provider);
 
-        public static ExtractMethodGenerationOptions GetExtractMethodGenerationOptions(this CodeActionOptionsProvider provider, HostLanguageServices languageServices)
+        public static ExtractMethodGenerationOptions GetExtractMethodGenerationOptions(this CodeActionOptionsProvider provider, LanguageServices languageServices)
         {
             var codeActionOptions = provider.GetOptions(languageServices);
             return new(codeActionOptions.CodeGenerationOptions)
