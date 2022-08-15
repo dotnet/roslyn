@@ -210,5 +210,69 @@ class A
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCrossLanguage_BuiltinBinaryOperator1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Module Program
+    Sub Goo()
+        Dim a = 5 $$[|+|] 5
+        Dim b = 1 [|+|] 1
+        Dim x = 1 - 1
+    End Sub
+End Module
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class A
+{
+    void Goo()
+    {
+        var a = 5 [|+|] 5;
+        var b = 1 [|+|] 1;
+        var c = 1 - 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCrossLanguage_BuiltinBinaryOperator2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Module Program
+    Sub Goo()
+        Dim a = 5 [|+|] 5
+        Dim b = 1 [|+|] 1
+        Dim x = 1 - 1
+    End Sub
+End Module
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class A
+{
+    void Goo()
+    {
+        var a = 5 $$[|+|] 5;
+        var b = 1 [|+|] 1;
+        var c = 1 - 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace
