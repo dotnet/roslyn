@@ -202,8 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var scope = (RefKind == RefKind.Out && DeclaredScope == DeclarationScope.Unscoped) ? DeclarationScope.RefScoped : DeclaredScope;
-
+                var scope = ParameterHelpers.CalculateEffectiveScope(this);
                 if (scope != DeclarationScope.Unscoped &&
                     HasUnscopedRefAttribute)
                 {

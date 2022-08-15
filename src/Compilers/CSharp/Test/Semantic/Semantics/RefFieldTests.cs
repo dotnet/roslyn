@@ -14626,7 +14626,7 @@ public class A<T>
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(ref r)").WithArguments("A<int>.F3A(ref R<int>)", "r3").WithLocation(19, 20),
                 // (19,28): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref F3A(ref r); // 3
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(19, 28));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(19, 28));
 
             var baseType = comp.GetMember<NamedTypeSymbol>("B1").BaseTypeNoUseSiteDiagnostics;
             VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "ref R<System.Int32> r1", RefKind.Ref, DeclarationScope.RefScoped);
@@ -14770,10 +14770,9 @@ public class A<T>
                 // (13,21): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
                 //     public ref T M([UnscopedRef] scoped out T t4) // 2
                 Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(13, 21),
-                // (18,22): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                // (18,22): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
                 //     public ref T M2([UnscopedRef] scoped in R<T> t4) // 3
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(18, 22)
-                );
+                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(18, 22));
 
             var type = comp.GetMember<NamedTypeSymbol>("A");
             VerifyParameterSymbol(type.GetMethod("F4A").Parameters[0], "ref R<T> r4", RefKind.Ref, DeclarationScope.Unscoped);
@@ -14937,13 +14936,7 @@ public class A<T>
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F3A(out i)").WithArguments("A<int>.F3A(out int)", "t3").WithLocation(16, 20),
                 // (16,28): error CS8168: Cannot return local 'i' by reference because it is not a ref local
                 //         return ref F3A(out i); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(16, 28),
-                // (21,20): error CS8347: Cannot use a result of 'A<int>.F4A(out int)' in this context because it may expose variables referenced by parameter 't4' outside of their declaration scope
-                //         return ref F4A(out i); // 2
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F4A(out i)").WithArguments("A<int>.F4A(out int)", "t4").WithLocation(21, 20),
-                // (21,28): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                //         return ref F4A(out i); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(21, 28));
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(16, 28));
 
             var baseType = comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics;
             VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "out System.Int32 t1", RefKind.Out, DeclarationScope.RefScoped);

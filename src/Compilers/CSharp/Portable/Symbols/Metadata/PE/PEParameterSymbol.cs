@@ -301,10 +301,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                     scope = DeclarationScope.Unscoped;
                 }
-                else if (refKind == RefKind.Out)
-                {
-                    scope = DeclarationScope.RefScoped;
-                }
                 else if (_moduleSymbol.Module.HasScopedRefAttribute(_handle))
                 {
                     if (isByRef)

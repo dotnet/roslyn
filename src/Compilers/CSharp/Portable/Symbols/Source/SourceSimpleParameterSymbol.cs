@@ -129,17 +129,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ConstantValue.NotAvailable; }
         }
 
-        internal override DeclarationScope EffectiveScope
-        {
-            get
-            {
-                if (RefKind == RefKind.Out && DeclaredScope == DeclarationScope.Unscoped)
-                {
-                    return DeclarationScope.RefScoped;
-                }
-
-                return DeclaredScope;
-            }
-        }
+        internal override DeclarationScope EffectiveScope => ParameterHelpers.CalculateEffectiveScope(this);
     }
 }
