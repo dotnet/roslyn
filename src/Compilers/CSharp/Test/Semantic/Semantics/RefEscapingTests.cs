@@ -4065,7 +4065,7 @@ class D
         [InlineData("nint")]
         public void NativeIntegerThis(string type)
         {
-            var compilation = CreateCompilationWithMscorlibAndSpan(
+            var compilation = CreateCompilation(
     $$"""
         ref struct S
         {
