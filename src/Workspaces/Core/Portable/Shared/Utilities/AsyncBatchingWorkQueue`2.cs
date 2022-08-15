@@ -42,7 +42,7 @@ namespace Roslyn.Utilities
         private readonly Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask<TResult>> _processBatchAsync;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly CancellationToken _cancellationToken;
-        private readonly CancellationSeries? _cancellationSeries;
+        private readonly CancellationSeries _cancellationSeries = new();
 
         #region protected by lock
 
@@ -79,21 +79,15 @@ namespace Roslyn.Utilities
         /// </summary>
         private bool _taskInFlight = false;
 
+        /// <summary>
+        /// Token controlling any items in the queue that haven't run yet.
+        /// </summary>
+        private CancellationToken _lastBatchCancellationToken;
+
         #endregion
 
         public AsyncBatchingWorkQueue(
             TimeSpan delay,
-            Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask<TResult>> processBatchAsync,
-            IEqualityComparer<TItem>? equalityComparer,
-            IAsynchronousOperationListener asyncListener,
-            CancellationToken cancellationToken)
-            : this(delay, cancelOnNewWork: false, processBatchAsync, equalityComparer, asyncListener, cancellationToken)
-        {
-        }
-
-        public AsyncBatchingWorkQueue(
-            TimeSpan delay,
-            bool cancelOnNewWork,
             Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask<TResult>> processBatchAsync,
             IEqualityComparer<TItem>? equalityComparer,
             IAsynchronousOperationListener asyncListener,
@@ -107,19 +101,29 @@ namespace Roslyn.Utilities
 
             _uniqueItems = new SegmentedHashSet<TItem>(equalityComparer);
 
-            if (cancelOnNewWork)
-                _cancellationSeries = new();
+            // Combine with our cancellation token so that any batch is controlled by that token as well.
+            _lastBatchCancellationToken = _cancellationSeries.CreateNext(_cancellationToken);
         }
 
-        public void AddWork(TItem item)
+        /// <summary>
+        /// Cancels any outstanding work in this queue.  Work that has not yet started will never run. Work that is in
+        /// progress will request cancellation in a standard best effort fashion.
+        /// </summary>
+        public void CancelExistingWork()
+        {
+            lock (_gate)
+                _lastBatchCancellationToken = _cancellationSeries.CreateNext();
+        }
+
+        public void AddWork(TItem item, bool cancelExistingWork = false)
         {
             using var _ = ArrayBuilder<TItem>.GetInstance(out var items);
             items.Add(item);
 
-            AddWork(items);
+            AddWork(items, cancelExistingWork);
         }
 
-        public void AddWork(IEnumerable<TItem> items)
+        public void AddWork(IEnumerable<TItem> items, bool cancelExistingWork = false)
         {
             // Don't do any more work if we've been asked to shutdown.
             if (_cancellationToken.IsCancellationRequested)
@@ -128,7 +132,7 @@ namespace Roslyn.Utilities
             lock (_gate)
             {
                 // add our work to the set we'll process in the next batch.
-                AddItemsToBatch(items);
+                AddItemsToBatch(items, cancelExistingWork);
 
                 if (!_taskInFlight)
                 {
@@ -142,17 +146,17 @@ namespace Roslyn.Utilities
 
             return;
 
-            void AddItemsToBatch(IEnumerable<TItem> items)
+            void AddItemsToBatch(IEnumerable<TItem> items, bool cancelExistingWork)
             {
-                // If we're a cancellable queue, then cancel any items in the queue, and create a new CT for this latest
-                // batch of work.
-                var cancellationToken = _cancellationSeries?.CreateNext() ?? default;
+                // if we were asked to cancel the prior set of items, do so now.
+                if (cancelExistingWork)
+                    CancelExistingWork();
 
                 // no equality comparer.  We want to process all items.
                 if (_equalityComparer == null)
                 {
                     foreach (var item in items)
-                        _nextBatch.Add((item, cancellationToken));
+                        _nextBatch.Add((item, _lastBatchCancellationToken));
                 }
                 else
                 {
@@ -160,7 +164,7 @@ namespace Roslyn.Utilities
                     foreach (var item in items)
                     {
                         if (_uniqueItems.Add(item))
-                            _nextBatch.Add((item, cancellationToken));
+                            _nextBatch.Add((item, _lastBatchCancellationToken));
                     }
                 }
             }
@@ -202,12 +206,11 @@ namespace Roslyn.Utilities
             cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                var (nextBatch, itemCancellationToken) = GetNextBatchAndResetQueue();
+                var (nextBatch, batchCancellationToken) = GetNextBatchAndResetQueue();
+                if (nextBatch.IsDefault)
+                    return default;
 
-                // Create a cancellation token that will cancel the batch if the queue is iteself canceled, or if that
-                // batch was specifically canceled (only happens if this queue is constructed with cancelOnNewWork:true)
-                using var batchCancellation = CancellationTokenSource.CreateLinkedTokenSource(itemCancellationToken, _cancellationToken);
-                return await _processBatchAsync(nextBatch, batchCancellation.Token).ConfigureAwait(false);
+                return await _processBatchAsync(nextBatch, batchCancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (!_cancellationToken.IsCancellationRequested)
             {
@@ -229,7 +232,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private (ImmutableSegmentedList<TItem> items, CancellationToken itemCancellationToken) GetNextBatchAndResetQueue()
+        private (ImmutableSegmentedList<TItem> items, CancellationToken batchCancellationToken) GetNextBatchAndResetQueue()
         {
             lock (_gate)
             {
@@ -255,17 +258,18 @@ namespace Roslyn.Utilities
                     }
                 }
 
-                // We must still have at least one non-canceled item to process.
-                Contract.ThrowIfTrue(builder.Count == 0);
-
-                // We must always have uncanceled token.
-                Contract.ThrowIfNull(itemCancellationToken);
-
                 // mark there being no existing update task so that the next OOP notification will
                 // kick one off.
                 _nextBatch.Clear();
                 _uniqueItems.Clear();
                 _taskInFlight = false;
+
+                // We may have gotten no work if the client called CancelExistingWork directly.
+                if (builder.Count == 0)
+                    return default;
+
+                // If we had an item to process, we must have a cancellation token for it.
+                Contract.ThrowIfNull(itemCancellationToken);
 
                 var items = builder.ToImmutable();
 

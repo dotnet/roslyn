@@ -34,11 +34,8 @@ namespace Microsoft.CodeAnalysis.Host
             // make a scheduler that runs on the thread pool
             var listenerProvider = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
 
-            // 'cancelOnNewWork' so that every time we add a new item, we cancel the prior item so that batch can stop
-            // as soon as possible and move onto the next batch.
             _workQueue = new AsyncBatchingWorkQueue(
                 DelayTimeSpan.NearImmediate,
-                cancelOnNewWork: true,
                 BuildCompilationsForVisibleDocumentsAsync,
                 listenerProvider.GetListener(),
                 _disposalCancellationSource.Token);
@@ -75,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Host
         private void Rebuild()
         {
             // Stop any work on the current batch and start the next job.
-            _workQueue.AddWork();
+            _workQueue.AddWork(cancelExistingWork: true);
         }
 
         private async ValueTask BuildCompilationsForVisibleDocumentsAsync(CancellationToken cancellationToken)

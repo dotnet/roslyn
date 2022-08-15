@@ -20,21 +20,6 @@ namespace Roslyn.Utilities
             IAsynchronousOperationListener asyncListener,
             CancellationToken cancellationToken)
             : this(delay,
-                   cancelOnNewWork: false,
-                   processBatchAsync,
-                   asyncListener,
-                   cancellationToken)
-        {
-        }
-
-        public AsyncBatchingWorkQueue(
-            TimeSpan delay,
-            bool cancelOnNewWork,
-            Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask> processBatchAsync,
-            IAsynchronousOperationListener asyncListener,
-            CancellationToken cancellationToken)
-            : this(delay,
-                  cancelOnNewWork,
                    processBatchAsync,
                    equalityComparer: null,
                    asyncListener,
@@ -44,12 +29,11 @@ namespace Roslyn.Utilities
 
         public AsyncBatchingWorkQueue(
             TimeSpan delay,
-            bool cancelOnNewWork,
             Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask> processBatchAsync,
             IEqualityComparer<TItem>? equalityComparer,
             IAsynchronousOperationListener asyncListener,
             CancellationToken cancellationToken)
-            : base(delay, cancelOnNewWork, Convert(processBatchAsync), equalityComparer, asyncListener, cancellationToken)
+            : base(delay, Convert(processBatchAsync), equalityComparer, asyncListener, cancellationToken)
         {
         }
 

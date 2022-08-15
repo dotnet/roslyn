@@ -19,24 +19,14 @@ namespace Roslyn.Utilities
             Func<CancellationToken, ValueTask> processBatchAsync,
             IAsynchronousOperationListener asyncListener,
             CancellationToken cancellationToken)
-            : this(delay, cancelOnNewWork: false, processBatchAsync, asyncListener, cancellationToken)
-        {
-        }
-
-        public AsyncBatchingWorkQueue(
-            TimeSpan delay,
-            bool cancelOnNewWork,
-            Func<CancellationToken, ValueTask> processBatchAsync,
-            IAsynchronousOperationListener asyncListener,
-            CancellationToken cancellationToken)
-            : base(delay, cancelOnNewWork, Convert(processBatchAsync), EqualityComparer<VoidResult>.Default, asyncListener, cancellationToken)
+            : base(delay, Convert(processBatchAsync), EqualityComparer<VoidResult>.Default, asyncListener, cancellationToken)
         {
         }
 
         private static Func<ImmutableSegmentedList<VoidResult>, CancellationToken, ValueTask> Convert(Func<CancellationToken, ValueTask> processBatchAsync)
             => (items, ct) => processBatchAsync(ct);
 
-        public void AddWork()
-            => base.AddWork(default(VoidResult));
+        public void AddWork(bool cancelExistingWork = false)
+            => base.AddWork(default(VoidResult), cancelExistingWork);
     }
 }
