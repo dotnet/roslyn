@@ -3856,7 +3856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Operations.BinaryOperatorKind.UnsignedRightShift => BinaryOperatorKind.UnsignedRightShift,
                 Operations.BinaryOperatorKind.Subtract => BinaryOperatorKind.Subtraction,
                 Operations.BinaryOperatorKind.ExclusiveOr => BinaryOperatorKind.Xor,
-                _ => throw new ArgumentException($"Unknown kind", nameof(kind)),
+                _ => throw new ArgumentException($"Unknown kind '{kind}'", nameof(kind)),
             };
 
             var operatorName = OperatorFacts.BinaryOperatorNameFromOperatorKind(op, isChecked);
@@ -3889,7 +3889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Operations.UnaryOperatorKind.PrefixDecrement => UnaryOperatorKind.PrefixDecrement,
                 Operations.UnaryOperatorKind.True => UnaryOperatorKind.True,
                 Operations.UnaryOperatorKind.False => UnaryOperatorKind.False,
-                _ => throw new ArgumentException($"Unknown kind", nameof(kind)),
+                _ => throw new ArgumentException($"Unknown kind '{kind}'", nameof(kind)),
             };
 
             var name = OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked);
