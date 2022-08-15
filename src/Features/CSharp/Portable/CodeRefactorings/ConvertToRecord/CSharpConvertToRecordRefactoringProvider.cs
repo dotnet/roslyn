@@ -101,7 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 originalType,
                 semanticModel,
                 propertyAnalysisResults,
-                out var propertiesAndDefaults, cancellationToken);
+                out var propertiesAndDefaults,
+                cancellationToken);
 
             var lineFormattingOptions = await document
                 .GetLineFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
@@ -206,6 +207,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         /// <param name="type"></param>
         /// <param name="semanticModel">Semantic model</param>
         /// <param name="propertiesToMove">Properties we decided to move, may return in a different order</param>
+        /// <param name="additionalInheritedProperties">Additional Primary constructor parameters
+        /// which correspond to a property in the base record</param>
         /// <param name="defaults">properties in order for positional record with associated defaults</param>
         /// <param name="cancellationToken">cancellationToken</param>
         /// <returns>The list of members from the original type, modified and trimmed for a positional record type usage</returns>
@@ -214,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             INamedTypeSymbol type,
             SemanticModel semanticModel,
             ImmutableArray<PropertyAnalysisResult> propertiesToMove,
-            out ImmutableArray<(PropertyDeclarationSyntax property, EqualsValueClauseSyntax? @default)> defaults,
+            out ImmutableArray<(SyntaxNode property, EqualsValueClauseSyntax? @default)> defaults,
             CancellationToken cancellationToken)
         {
             // without any knowledge of a constructor, we don't provide defaults
@@ -238,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             // remove properties we're bringing up to positional params
             // or keep them as overrides and link the positional param to the original property
-            foreach (var result in propertiesToMove)
+            foreach (var result in propertiesToMove.Where(prop => !prop.IsInherited))
             {
                 var property = result.Syntax;
                 if (result.KeepAsOverride)
@@ -391,6 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         // 5. Rest of class documentation comments
         private static SyntaxTriviaList GetModifiedClassTrivia(
             ImmutableArray<PropertyDeclarationSyntax> properties,
+            ImmutableArray<IPropertySymbol> inheritedProperties,
             TypeDeclarationSyntax typeDeclaration,
             LineFormattingOptions lineFormattingOptions)
         {
@@ -428,7 +432,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return SyntaxFactory.TriviaList(classTrivia.Concat(propertyNonDocComments).Select(trivia => trivia.AsElastic()));
             }
 
-            var propertyParamComments = CreateParamComments(properties, exteriorTrivia!.Value, lineFormattingOptions);
+            // comments for inherited parameters go first
+            var propertyParamComments = CreateInheritedParamComments(inheritedProperties, exteriorTrivia, lineFormattingOptions)
+                .Concat(CreateParamComments(properties, exteriorTrivia!.Value, lineFormattingOptions));
             var classDocComment = classTrivia.FirstOrNull(trivia => trivia.IsDocComment());
             DocumentationCommentTriviaSyntax newClassDocComment;
 
@@ -619,12 +625,35 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 // add an extra line and space with the exterior trivia, so that our params start on the next line and each
                 // param goes on a new line with the continuation trivia
                 // when adding a new line, the continue flag adds a single line documentation trivia, but we don't necessarily want that
-                yield return SyntaxFactory.XmlText(
-                    SyntaxFactory.XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false),
-                    SyntaxFactory.XmlTextLiteral(" ").WithLeadingTrivia(exteriorTrivia));
+                yield return GetContinuationSpace(exteriorTrivia, lineFormattingOptions);
                 yield return SyntaxFactory.XmlParamElement(property.Identifier.ValueText, paramContent.AsArray());
             }
         }
+
+        private static IEnumerable<XmlNodeSyntax> CreateInheritedParamComments(
+            ImmutableArray<IPropertySymbol> properties,
+            SyntaxTriviaList exteriorTrivia,
+            LineFormattingOptions lineFormattingOptions)
+        {
+            foreach (var property in properties)
+            {
+                yield return GetContinuationSpace(exteriorTrivia, lineFormattingOptions);
+                yield return SyntaxFactory.XmlParamElement(property.Name,
+                    SyntaxFactory.XmlElement(
+                        SyntaxFactory.XmlElementStartTag(DocumentationCommentXmlNames.InheritdocElementName,
+                            SyntaxFactory.List(ImmutableArray.Create(
+                                SyntaxFactory.XmlCrefAttribute(SyntaxFactory.TypeCref(
+                                    SyntaxFactory.ParseTypeName(property.ContainingType.MetadataName))),
+                                SyntaxFactory.XmlTextAttribute(
+                                    DocumentationCommentXmlNames.PathAttributeName,
+                                    string.Format("/param[@name='{0}']", property.Name)))))));
+            }
+        }
+
+        private static XmlTextSyntax GetContinuationSpace(SyntaxTriviaList exteriorTrivia, LineFormattingOptions lineFormattingOptions)
+            => SyntaxFactory.XmlText(
+                    SyntaxFactory.XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false),
+                    SyntaxFactory.XmlTextLiteral(" ").WithLeadingTrivia(exteriorTrivia));
         #endregion
     }
 }

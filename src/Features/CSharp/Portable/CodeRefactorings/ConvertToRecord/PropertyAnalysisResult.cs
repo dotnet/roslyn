@@ -5,13 +5,18 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 {
-    internal record PropertyAnalysisResult(PropertyDeclarationSyntax Syntax, IPropertySymbol Symbol, bool KeepAsOverride)
+    internal record PropertyAnalysisResult(
+        SyntaxNode Syntax,
+        IPropertySymbol Symbol,
+        bool KeepAsOverride,
+        bool IsInherited)
     {
 
         public static ImmutableArray<PropertyAnalysisResult> AnalyzeProperties(
@@ -20,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            // first get all property symbols
+            // get all declared property symbols, put inherited property symbols first
             var symbols = properties
                 .SelectAsArray(p => (IPropertySymbol)semanticModel.GetRequiredDeclaredSymbol(p, cancellationToken));
 
@@ -29,16 +34,42 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             var allowSetToInitConversion = !symbols
                 .Any(symbol => symbol.SetMethod is IMethodSymbol { IsInitOnly: true });
 
-            return properties.ZipAsArray(symbols, (syntax, symbol)
+            var declaredResults = properties.ZipAsArray(symbols, (syntax, symbol)
                 => ShouldConvertProperty(syntax, symbol, type) switch
                 {
                     ConvertStatus.DoNotConvert => null,
-                    ConvertStatus.Override => new PropertyAnalysisResult(syntax, symbol, true),
+                    ConvertStatus.Override
+                        => new PropertyAnalysisResult(syntax, symbol, KeepAsOverride: true, IsInherited: false),
                     ConvertStatus.OverrideIfConvertingSetToInit
-                        => new PropertyAnalysisResult(syntax, symbol, !allowSetToInitConversion),
-                    ConvertStatus.AlwaysConvert => new PropertyAnalysisResult(syntax, symbol, false),
+                        => new PropertyAnalysisResult(syntax, symbol, !allowSetToInitConversion, IsInherited: false),
+                    ConvertStatus.AlwaysConvert
+                        => new PropertyAnalysisResult(syntax, symbol, KeepAsOverride: false, IsInherited: false),
                     _ => throw ExceptionUtilities.Unreachable,
                 }).WhereNotNull().AsImmutable();
+
+            // add inherited properties from a potential base record
+            var inheritedProperties = GetInheritedPositionalParams(type, cancellationToken);
+            return declaredResults.Concat(
+                inheritedProperties.SelectAsArray(property
+                    => new PropertyAnalysisResult(
+                        property.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax(),
+                        property,
+                        KeepAsOverride: false,
+                        IsInherited: true)));
+        }
+
+        private static ImmutableArray<IPropertySymbol> GetInheritedPositionalParams(
+            INamedTypeSymbol currentType,
+            CancellationToken cancellationToken)
+        {
+            var baseType = currentType.BaseType;
+            if (baseType != null && baseType.TryGetRecordPrimaryConstructor(out var basePrimary))
+            {
+                return basePrimary.Parameters
+                    .SelectAsArray(param => param.GetAssociatedSynthesizedRecordProperty(cancellationToken)!);
+            }
+
+            return ImmutableArray<IPropertySymbol>.Empty;
         }
 
         // for each property, say whether we can convert
