@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             Public Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IClassificationService.AddLexicalClassifications
             End Sub
 
-            Public Sub AddSyntacticClassifications(services As HostSolutionServices, root As SyntaxNode, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IClassificationService.AddSyntacticClassifications
+            Public Sub AddSyntacticClassifications(services As SolutionServices, root As SyntaxNode, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IClassificationService.AddSyntacticClassifications
             End Sub
 
             Public Function AddSemanticClassificationsAsync(document As Document, textSpan As TextSpan, options As ClassificationOptions, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddSemanticClassificationsAsync
@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 Return New ValueTask(Of TextChangeRange?)
             End Function
 
-            Public Function ComputeSyntacticChangeRange(services As HostSolutionServices, oldRoot As SyntaxNode, newRoot As SyntaxNode, timeout As TimeSpan, cancellationToken As CancellationToken) As TextChangeRange? Implements IClassificationService.ComputeSyntacticChangeRange
+            Public Function ComputeSyntacticChangeRange(services As SolutionServices, oldRoot As SyntaxNode, newRoot As SyntaxNode, timeout As TimeSpan, cancellationToken As CancellationToken) As TextChangeRange? Implements IClassificationService.ComputeSyntacticChangeRange
                 Return Nothing
             End Function
 

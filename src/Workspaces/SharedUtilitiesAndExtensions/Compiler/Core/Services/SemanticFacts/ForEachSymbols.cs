@@ -4,7 +4,7 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal struct ForEachSymbols
     {

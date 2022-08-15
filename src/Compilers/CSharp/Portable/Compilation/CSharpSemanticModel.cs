@@ -5301,8 +5301,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (imports.IsEmpty)
                     continue;
 
-                Debug.Assert(imports.Usings.All(static u => u.UsingDirectiveReference != null));
-
                 // Try to create a node corresponding to the imports of the next higher binder scope. Then create the
                 // node corresponding to this set of imports and chain it to that.
                 builder.Add(new SimpleImportScope(

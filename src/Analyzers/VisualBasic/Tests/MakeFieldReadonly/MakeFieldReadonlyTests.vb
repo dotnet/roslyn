@@ -1080,5 +1080,63 @@ End Class
 
             Await TestMissingAsync(initialMarkup)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(59720, "https://github.com/dotnet/roslyn/issues/59720")>
+        Public Async Function TestForToLoop() As Task
+            Dim initialMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+Module Program
+    Dim [|i|] As Integer
+    Sub Main()
+        For i = 1 To 10
+        Next
+    End Sub
+End Module
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+
+            Await TestMissingAsync(initialMarkup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(59720, "https://github.com/dotnet/roslyn/issues/59720")>
+        Public Async Function TestForToLoop_ReadAsInitialValue() As Task
+            Dim initialMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+Module Program
+    Dim [|x|] As Integer = 5
+    Sub Main()
+        For i = x To 10
+        Next
+    End Sub
+End Module
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+
+            Dim expectedMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+Module Program
+    ReadOnly x As Integer = 5
+    Sub Main()
+        For i = x To 10
+        Next
+    End Sub
+End Module
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+
+            Await TestInRegularAndScript1Async(initialMarkup, expectedMarkup)
+        End Function
+
     End Class
 End Namespace

@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (documentState.IsRazorDocument())
                 {
-                    return _lazyRazorDesignTimeOptions ??= new RazorDesignTimeAnalyzerConfigOptions(_projectState.LanguageServices.ProjectServices.SolutionServices);
+                    return _lazyRazorDesignTimeOptions ??= new RazorDesignTimeAnalyzerConfigOptions(_projectState.LanguageServices.LanguageServices.SolutionServices);
                 }
 
                 var filePath = GetEffectiveFilePath(documentState);
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly ILegacyGlobalOptionsWorkspaceService? _globalOptions;
 
-            public RazorDesignTimeAnalyzerConfigOptions(HostSolutionServices services)
+            public RazorDesignTimeAnalyzerConfigOptions(SolutionServices services)
             {
                 // not available OOP:
                 _globalOptions = services.GetService<ILegacyGlobalOptionsWorkspaceService>();

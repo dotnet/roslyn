@@ -45,7 +45,7 @@ internal interface AddImportPlacementOptionsProvider
 internal static partial class AddImportPlacementOptionsProviders
 {
 #if !CODE_STYLE
-    public static AddImportPlacementOptions GetAddImportPlacementOptions(this AnalyzerConfigOptions options, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions, HostProjectServices languageServices)
+    public static AddImportPlacementOptions GetAddImportPlacementOptions(this AnalyzerConfigOptions options, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions, LanguageServices languageServices)
         => languageServices.GetRequiredService<IAddImportsService>().GetAddImportOptions(options, allowInHiddenRegions, fallbackOptions);
 
     public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, AddImportPlacementOptions? fallbackOptions, CancellationToken cancellationToken)
@@ -61,6 +61,6 @@ internal static partial class AddImportPlacementOptionsProviders
         => document.Services.GetService<ISpanMappingService>()?.SupportsMappingImportDirectives == true;
 
     public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, AddImportPlacementOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await GetAddImportPlacementOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+        => await GetAddImportPlacementOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 #endif
 }

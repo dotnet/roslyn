@@ -1477,7 +1477,7 @@ class C
         return ref x;
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSpan(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 10
 10");
