@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> refKinds = default;
             ImmutableArray<DeclarationScope> scopes = default;
             ImmutableArray<TypeWithAnnotations> types = default;
+            ImmutableArray<EqualsValueClauseSyntax?> defaultValues = default;
             RefKind returnRefKind = RefKind.None;
             TypeWithAnnotations returnType = default;
             ImmutableArray<SyntaxList<AttributeListSyntax>> parameterAttributes = default;
@@ -100,6 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance();
                 var scopesBuilder = ArrayBuilder<DeclarationScope>.GetInstance();
                 var attributesBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
+                var defaultValueBuilder = ArrayBuilder<EqualsValueClauseSyntax?>.GetInstance();
 
                 // In the batch compiler case we probably should have given a syntax error if the
                 // user did something like (int x, y)=>x+y -- but in the IDE scenario we might be in
@@ -118,11 +120,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     checkAttributes(syntax, p.AttributeLists, diagnostics);
-
-                    if (p.Default != null)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_DefaultValueNotAllowed, p.Default.EqualsToken);
-                    }
 
                     if (p.IsArgList)
                     {
@@ -157,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKindsBuilder.Add(refKind);
                     scopesBuilder.Add(scope);
                     attributesBuilder.Add(syntax.Kind() == SyntaxKind.ParenthesizedLambdaExpression ? p.AttributeLists : default);
+                    defaultValueBuilder.Add(p.Default);
                 }
 
                 discardsOpt = computeDiscards(parameterSyntaxList.Value, underscoresCount);
@@ -181,10 +179,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     parameterAttributes = attributesBuilder.ToImmutable();
                 }
 
+                if (defaultValueBuilder.Any(v => v != null))
+                {
+                    defaultValues = defaultValueBuilder.ToImmutable();
+                }
+
                 typesBuilder.Free();
                 scopesBuilder.Free();
                 refKindsBuilder.Free();
                 attributesBuilder.Free();
+                defaultValueBuilder.Free();
             }
 
             if (hasSignature)
@@ -194,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, isAsync, isStatic);
+            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, parameterSyntaxList, defaultValues, isAsync, isStatic);
 
             static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
             {
@@ -227,6 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+
         }
 
         private (RefKind, TypeWithAnnotations) BindExplicitLambdaReturnType(TypeSyntax syntax, BindingDiagnosticBag diagnostics)
@@ -261,6 +266,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var hasTypes = parameterSyntaxList[0].Type != null;
 
+                checkForImplicitDefault(hasTypes, parameterSyntaxList[0], diagnostics);
+
                 for (int i = 1, n = parameterSyntaxList.Count; i < n; i++)
                 {
                     var parameter = parameterSyntaxList[i];
@@ -270,12 +277,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!parameter.Identifier.IsMissing)
                     {
                         var thisParameterHasType = parameter.Type != null;
+
                         if (hasTypes != thisParameterHasType)
                         {
                             diagnostics.Add(ErrorCode.ERR_InconsistentLambdaParameterUsage,
                                 parameter.Type?.GetLocation() ?? parameter.Identifier.GetLocation());
                         }
+
+                        checkForImplicitDefault(thisParameterHasType, parameter, diagnostics);
                     }
+                }
+            }
+
+            static void checkForImplicitDefault(bool hasType, ParameterSyntax param, BindingDiagnosticBag diagnostics)
+            {
+                if (!hasType && param.Default != null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedDefaultParameter,
+                        param.Identifier.GetLocation(), param.Identifier.Text);
                 }
             }
         }
@@ -289,21 +308,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             var data = lambda.Data;
             if (data.HasExplicitlyTypedParameterList)
             {
+                int firstDefault = -1;
                 for (int i = 0; i < lambda.ParameterCount; i++)
                 {
-                    // UNDONE: Where do we report improper use of pointer types?
-                    var type = data.ParameterTypeWithAnnotations(i).Type;
-                    if (type is { })
+                    // paramSyntax should not be null here; we should always be operating on an anonymous function which will have parameter information
+                    var paramSyntax = lambda.ParameterSyntax(i);
+                    Debug.Assert(paramSyntax is { });
+                    if (paramSyntax.Default != null && firstDefault == -1)
                     {
-                        if (type.IsStatic)
-                        {
-                            Error(diagnostics, ErrorFacts.GetStaticClassParameterCode(useWarning: false), syntax, type);
-                        }
-                        if (data.Scope(i) == DeclarationScope.ValueScoped && !type.IsErrorTypeOrRefLikeType())
-                        {
-                            diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, data.ParameterLocation(i));
-                        }
+                        firstDefault = i;
                     }
+
+                    // UNDONE: Where do we report improper use of pointer types?
+                    ParameterHelpers.ReportParameterErrors(owner: null, paramSyntax, ordinal: i, isParams: false, lambda.ParameterTypeWithAnnotations(i),
+                         lambda.RefKind(i), lambda.Scope(i), containingSymbol: null, thisKeyword: default, paramsKeyword: default, firstDefault, diagnostics);
                 }
             }
 
