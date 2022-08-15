@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
@@ -48,20 +49,28 @@ namespace Microsoft.CodeAnalysis
                 var returnTypeSymbol = (ITypeSymbol?)returnType.GetAnySymbol();
                 Contract.ThrowIfNull(returnTypeSymbol);
 
-                switch (parameterTypes.Count)
+                try
                 {
-                    case 1:
-                        failureReason = null;
-                        var unaryOperator = reader.Compilation.CreateBuiltinOperator(name, returnTypeSymbol, parameterTypes[0], isChecked);
-                        return new SymbolKeyResolution(unaryOperator);
-                    case 2:
-                        failureReason = null;
-                        var binaryOperator = reader.Compilation.CreateBuiltinOperator(name, returnTypeSymbol, parameterTypes[0], parameterTypes[1], isChecked);
-                        return new SymbolKeyResolution(binaryOperator);
+                    switch (parameterTypes.Count)
+                    {
+                        case 1:
+                            failureReason = null;
+                            var unaryOperator = reader.Compilation.CreateBuiltinOperator(name, returnTypeSymbol, parameterTypes[0], isChecked);
+                            return new SymbolKeyResolution(unaryOperator);
+                        case 2:
+                            failureReason = null;
+                            var binaryOperator = reader.Compilation.CreateBuiltinOperator(name, returnTypeSymbol, parameterTypes[0], parameterTypes[1], isChecked);
+                            return new SymbolKeyResolution(binaryOperator);
 
-                    default:
-                        failureReason = $"({nameof(BuiltinOperatorSymbolKey)} {nameof(parameterTypes)} failed -> count was {parameterTypes.Count})";
-                        return default;
+                        default:
+                            failureReason = $"({nameof(BuiltinOperatorSymbolKey)} {nameof(parameterTypes)} failed -> count was {parameterTypes.Count})";
+                            return default;
+                    }
+                }
+                catch (ArgumentException ex)
+                {
+                    failureReason = $"({nameof(BuiltinOperatorSymbolKey)} failed -> {ex.Message})";
+                    return default;
                 }
             }
         }
