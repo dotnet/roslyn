@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                     // don't need to remove argument syntaxes as the base initializer will already get removed
                     if (assignmentValue.right.Parent is not ArgumentSyntax)
                     {
-                        removalBuilder.Add(assignmentValue.right.Parent);
+                        removalBuilder.Add(assignmentValue.right.Parent!);
                     }
                 }
             }
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
             Func<IOperation, T?> captureAssignedSymbol)
         {
             var body = GetBlockOfMethodBody(constructorOperation);
-            var _ = ArrayBuilder<(ISymbol? left, T? right)>.GetInstance(out var builder);
+            var _ = ArrayBuilder<(ISymbol left, T right)>.GetInstance(out var builder);
 
             // We expect the constructor to have exactly one statement per property,
             // where the statement is a simple assignment from the parameter's property to the property
