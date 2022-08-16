@@ -658,56 +658,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             ISymbol otherC,
             INamedTypeSymbol type,
             ArrayBuilder<IFieldSymbol> builder)
-        {
-            while (!statementsToCheck.IsEmpty())
+            => statementsToCheck.FirstOrDefault() switch
             {
-                // iterate. We don't use a for loop because we could potentially
-                // be changing this list based on what statements we see
-                var statement = statementsToCheck.First();
-                statementsToCheck = statementsToCheck.Skip(1);
-                switch (statement)
+                IReturnOperation
                 {
-                    case IReturnOperation
+                    ReturnedValue: ILiteralOperation
                     {
-                        ReturnedValue: ILiteralOperation
-                        {
-                            ConstantValue.HasValue: true,
-                            ConstantValue.Value: true,
-                        }
-                    }:
-                        // we are done with the comparison, the final statment does no checks
-                        // but there should be no more statements
-                        return true;
-                    case IReturnOperation { ReturnedValue: IOperation value }:
-                        return TryAddEqualizedFieldsForCondition(value, successRequirement: true, currentObject: type, otherObject: otherC, builder: builder);
-                    case IConditionalOperation
-                    {
-                        Condition: IOperation condition,
-                        WhenTrue: IOperation whenTrue,
-                        WhenFalse: var whenFalse,
-                    }:
-                        // 1. Check structure of if statment, get success requirement
-                        // and any potential statments in the non failure block
-                        // 2. Check condition for compared members
-                        if (!TryGetSuccessCondition(
-                            whenTrue, whenFalse, statementsToCheck.AsImmutable(), out var successRequirement, out var remainingStatements) ||
-                            !TryAddEqualizedFieldsForCondition(
-                                condition, successRequirement, type, otherC, builder))
-                        {
-                            return false;
-                        }
-
-                        // the statements to check are now all the statements from the branch that doesn't return false
-                        statementsToCheck = remainingStatements;
-                        break;
-                    default:
-                        return false;
+                        ConstantValue.HasValue: true,
+                        ConstantValue.Value: true,
+                    }
                 }
-            }
-
-            // pattern not matched, we should see a return statement before the end of the statements
-            return false;
-        }
+                    // we are done with the comparison, the final statment does no checks
+                    => true,
+                IReturnOperation { ReturnedValue: IOperation value } => TryAddEqualizedFieldsForCondition(
+                    value, successRequirement: true, currentObject: type, otherObject: otherC, builder: builder),
+                IConditionalOperation
+                {
+                    Condition: IOperation condition,
+                    WhenTrue: IOperation whenTrue,
+                    WhenFalse: var whenFalse,
+                }
+                    // 1. Check structure of if statment, get success requirement
+                    // and any potential statments in the non failure block
+                    // 2. Check condition for compared members
+                    // 3. Check remaining members in non failure block
+                    => TryGetSuccessCondition(whenTrue, whenFalse, statementsToCheck.Skip(1).AsImmutable(),
+                        out var successRequirement, out var remainingStatements) &&
+                    TryAddEqualizedFieldsForCondition(
+                            condition, successRequirement, type, otherC, builder) &&
+                    TryAddEqualizedFieldsForStatements(remainingStatements, otherC, type, builder),
+                _ => false
+            };
 
         private static bool TryAddFieldFromComparison(
             IMemberReferenceOperation memberReference1,
