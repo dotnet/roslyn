@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1013,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 // Accessing a volatile field is sideeffecting because it establishes an acquire fence.
                 // Otherwise, accessing an unused instance field on a struct is a noop. Just emit an unused receiver.
-                if (!field.IsVolatile && !field.IsStatic && fieldAccess.ReceiverOpt.Type.IsVerifierValue())
+                if (!field.IsVolatile && !field.IsStatic && fieldAccess.ReceiverOpt.Type.IsVerifierValue() && field.RefKind == RefKind.None)
                 {
                     EmitExpression(fieldAccess.ReceiverOpt, used: false);
                     return;
@@ -1025,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             EmitFieldLoadNoIndirection(fieldAccess, used);
 
-            if (used && field.RefKind != RefKind.None)
+            if (field.RefKind != RefKind.None)
             {
                 EmitLoadIndirect(field.Type, fieldAccess.Syntax);
             }

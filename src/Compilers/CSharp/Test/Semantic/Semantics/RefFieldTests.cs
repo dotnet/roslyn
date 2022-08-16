@@ -6215,7 +6215,8 @@ class Program
         public void ReadAndDiscard()
         {
             var source =
-@"ref struct S<T>
+@"using System;
+ref struct S<T>
 {
     public ref T F;
     public S(ref T t) { F = ref t; }
@@ -6225,9 +6226,21 @@ class Program
     static void Main()
     {
         int i = 1;
-        ReadAndDiscard1(ref i);
-        ReadAndDiscardNoArg<int>();
-        ReadAndDiscard2(new S<int>(ref i));
+        Try(() => ReadAndDiscard1(ref i));
+        Try(() => ReadAndDiscardNoArg<int>());
+        Try(() => ReadAndDiscard2(new S<int>(ref i)));
+
+        void Try(Action a)
+        {
+            try
+            {
+                a();
+            }
+            catch (NullReferenceException)
+            {
+                System.Console.WriteLine(""NullReferenceException"");
+            }
+        }
     }
     static void ReadAndDiscard1<T>(ref T t)
     {
@@ -6242,32 +6255,45 @@ class Program
         _ = s.F;
     }
 }";
-            // https://github.com/dotnet/roslyn/issues/62122: The dereference of a ref field
-            // should be emitted to IL, even if the value is ignored, because the behavior
-            // may be observable as a NullReferenceException.
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(""));
-            verifier.VerifyIL("Program.ReadAndDiscard1<T>",
-@"{
-  // Code size        8 (0x8)
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("NullReferenceException"));
+            verifier.VerifyIL("Program.ReadAndDiscard1<T>", """
+{
+  // Code size       18 (0x12)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  newobj     ""S<T>..ctor(ref T)""
-  IL_0006:  pop
-  IL_0007:  ret
-}");
-            verifier.VerifyIL("Program.ReadAndDiscardNoArg<T>",
-@"{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
-}");
-            verifier.VerifyIL("Program.ReadAndDiscard2<T>",
-@"{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
-}");
+  IL_0001:  newobj     "S<T>..ctor(ref T)"
+  IL_0006:  ldfld      "ref T S<T>.F"
+  IL_000b:  ldobj      "T"
+  IL_0010:  pop
+  IL_0011:  ret
+}
+""");
+            verifier.VerifyIL("Program.ReadAndDiscardNoArg<T>", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (S<T> V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S<T>"
+  IL_0008:  ldloc.0
+  IL_0009:  ldfld      "ref T S<T>.F"
+  IL_000e:  ldobj      "T"
+  IL_0013:  pop
+  IL_0014:  ret
+}
+""");
+            verifier.VerifyIL("Program.ReadAndDiscard2<T>", """
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "ref T S<T>.F"
+  IL_0006:  ldobj      "T"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
         }
 
         [Fact]
