@@ -1525,7 +1525,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (forkTracker)
                 {
-                    newTrackerMap = newTrackerMap.Add(projectId, tracker.Fork(Services, newProjectState, translate));
+                    newTrackerMap = newTrackerMap.Add(projectId, tracker.Fork(newProjectState, translate));
                 }
             }
 
@@ -1569,7 +1569,7 @@ namespace Microsoft.CodeAnalysis
             var builder = ImmutableDictionary.CreateBuilder<ProjectId, ICompilationTracker>();
 
             foreach (var (id, tracker) in _projectIdToTrackerMap)
-                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(Services, tracker.ProjectState));
+                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(tracker.ProjectState, translate: null));
 
             return builder.ToImmutable();
 
