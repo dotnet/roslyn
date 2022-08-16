@@ -2747,7 +2747,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         {
             var compilation = CreateCompilation("");
             var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
-            var op = compilation.CreateBuiltinOperator(name, intType, intType, intType, isChecked: false);
+            var op = compilation.CreateBuiltinOperator(name, intType, intType, intType, SyntaxFacts.IsCheckedOperator(name));
             var result = op.ToDisplayString();
             AssertEx.Equal(display, result);
         }
@@ -2765,6 +2765,14 @@ public class C { public static FrameworkName Goo() { return null; }}";
             // unary operator name
             Assert.Throws<ArgumentException>(() =>
                 compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType, intType, isChecked: false));
+
+            // mismatched checked
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType, isChecked: true));
+
+            // mismatched checked
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, intType, isChecked: false));
         }
 
         [Fact]

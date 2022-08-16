@@ -3837,30 +3837,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(csharpLeftType is not null);
             Debug.Assert(csharpRightType is not null);
 
-            var nameOk = name
-                is WellKnownMemberNames.CheckedAdditionOperatorName
-                or WellKnownMemberNames.AdditionOperatorName
-                or WellKnownMemberNames.BitwiseAndOperatorName
-                or WellKnownMemberNames.CheckedDivisionOperatorName
-                or WellKnownMemberNames.DivisionOperatorName
-                or WellKnownMemberNames.EqualityOperatorName
-                or WellKnownMemberNames.GreaterThanOperatorName
-                or WellKnownMemberNames.GreaterThanOrEqualOperatorName
-                or WellKnownMemberNames.LeftShiftOperatorName
-                or WellKnownMemberNames.LessThanOperatorName
-                or WellKnownMemberNames.LessThanOrEqualOperatorName
-                or WellKnownMemberNames.CheckedMultiplyOperatorName
-                or WellKnownMemberNames.MultiplyOperatorName
-                or WellKnownMemberNames.BitwiseOrOperatorName
-                or WellKnownMemberNames.InequalityOperatorName
-                or WellKnownMemberNames.ModulusOperatorName
-                or WellKnownMemberNames.RightShiftOperatorName
-                or WellKnownMemberNames.UnsignedRightShiftOperatorName
-                or WellKnownMemberNames.CheckedSubtractionOperatorName
-                or WellKnownMemberNames.SubtractionOperatorName
-                or WellKnownMemberNames.ExclusiveOrOperatorName;
-            if (!nameOk)
+            var syntaxKind = SyntaxFacts.GetOperatorKind(name);
+            if (syntaxKind == SyntaxKind.None)
                 throw new ArgumentException($"Illegal operator name '{name}'", nameof(name));
+
+            var binaryOperatorName = OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(syntaxKind, isChecked);
+            if (binaryOperatorName != name)
+                throw new ArgumentException($"'{name}' was not a valid binary operator name along with isChecked={isChecked}", nameof(name));
 
             return new SynthesizedIntrinsicOperatorSymbol(csharpLeftType, name, csharpRightType, csharpReturnType, isChecked).GetPublicSymbol();
         }
