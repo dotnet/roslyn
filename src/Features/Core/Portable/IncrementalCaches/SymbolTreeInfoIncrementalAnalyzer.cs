@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -24,14 +25,14 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             // Shared with SymbolTreeInfoCacheService.  We populate the values, they read from them.
 
             private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectIdToInfo;
-            private readonly ConcurrentDictionary<MetadataId, MetadataInfo> _metadataIdToInfo;
+            private readonly ConcurrentDictionary<MetadataId, SymbolTreeInfoCacheService.MetadataInfo> _metadataIdToInfo;
 
             public SymbolTreeInfoIncrementalAnalyzer(
-                ConcurrentDictionary<ProjectId, SymbolTreeInfo> projectToInfo,
-                ConcurrentDictionary<MetadataId, MetadataInfo> metadataIdToInfo)
+                ISymbolTreeInfoCacheService cacheService)
             {
-                _projectIdToInfo = projectToInfo;
-                _metadataIdToInfo = metadataIdToInfo;
+                var concreteCacheService = (SymbolTreeInfoCacheService)cacheService;
+                _projectIdToInfo = concreteCacheService.ProjectIdToInfo;
+                _metadataIdToInfo = concreteCacheService.MetadataIdToInfo;
             }
 
             private static bool SupportAnalysis(Project project)
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 // ⚠ This local function must be 'async' to ensure exceptions are captured in the resulting task and
                 // not thrown directly to the caller.
                 static async Task UpdateReferenceAsync(
-                    ConcurrentDictionary<MetadataId, MetadataInfo> metadataIdToInfo,
+                    ConcurrentDictionary<MetadataId, SymbolTreeInfoCacheService.MetadataInfo> metadataIdToInfo,
                     Project project,
                     PortableExecutableReference reference,
                     CancellationToken cancellationToken)
@@ -158,7 +159,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                         // Note, getting the info may fail (for example, bogus metadata).  That's ok.  
                         // We still want to cache that result so that don't try to continuously produce
                         // this info over and over again.
-                        metadataInfo = new MetadataInfo(info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
+                        metadataInfo = new SymbolTreeInfoCacheService.MetadataInfo(info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
                         metadataIdToInfo[metadataId] = metadataInfo;
                     }
 

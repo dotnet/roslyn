@@ -2,17 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.IncrementalCaches
+namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 {
-    internal partial class SymbolTreeInfoIncrementalAnalyzerProvider
+    internal sealed partial class SymbolTreeInfoCacheService
     {
-        private readonly struct MetadataInfo
+        public readonly struct MetadataInfo
         {
             /// <summary>
             /// Can't be null.  Even if we weren't able to read in metadata, we'll still create an empty

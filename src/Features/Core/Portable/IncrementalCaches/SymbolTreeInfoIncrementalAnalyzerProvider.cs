@@ -31,18 +31,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     /// </summary>
     [Shared]
     [ExportIncrementalAnalyzerProvider(nameof(SymbolTreeInfoIncrementalAnalyzerProvider), new[] { WorkspaceKind.RemoteWorkspace })]
-    [ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService))]
-    internal partial class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, IWorkspaceServiceFactory
+    internal partial class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        // Concurrent dictionaries so they can be read from the SymbolTreeInfoCacheService while they are being
-        // populated/updated by the IncrementalAnalyzer.
-        //
-        // We always  keep around the latest computed information produced by the incremental analyzer.  That way the
-        // values are hopefully ready when someone calls on them for the current solution.
-
-        private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectIdToInfo = new();
-        private readonly ConcurrentDictionary<MetadataId, MetadataInfo> _metadataIdToInfo = new();
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SymbolTreeInfoIncrementalAnalyzerProvider()
@@ -50,9 +40,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new SymbolTreeInfoIncrementalAnalyzer(_projectIdToInfo, _metadataIdToInfo);
-
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new SymbolTreeInfoCacheService(_projectIdToInfo, _metadataIdToInfo);
+            => new SymbolTreeInfoIncrementalAnalyzer(workspace.Services.SolutionServices.GetRequiredService<ISymbolTreeInfoCacheService>());
     }
 }
