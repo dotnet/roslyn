@@ -14674,36 +14674,44 @@ public ref struct R<T>
 }
 public class A<T>
 {
-    public ref T F4A([UnscopedRef] scoped ref R<T> r4) // 1
+    public ref T F1([UnscopedRef] scoped ref R<T> r1) // 1
     {
-        return ref r4.F;
+        return ref r1.F;
     }
-    public ref T M([UnscopedRef] scoped out T t4) // 2
+    public ref T F2([UnscopedRef] scoped out T t2) // 2
     {
-        t4 = default;
-        return ref t4;
+        t2 = default;
+        return ref t2;
     }
-    public ref T M2([UnscopedRef] scoped in R<T> t4) // 3
+    public ref T F3([UnscopedRef] scoped in R<T> t3) // 3
+    {
+        throw null;
+    }
+    public ref T F4([UnscopedRef] scoped R<T> t4) // 4
     {
         throw null;
     }
 }";
             var comp = CreateCompilation(new[] { sourceA, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (9,23): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
-                //     public ref T F4A([UnscopedRef] scoped ref R<T> r4) // 1
-                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(9, 23),
-                // (13,21): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
-                //     public ref T M([UnscopedRef] scoped out T t4) // 2
-                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(13, 21),
+                // (9,22): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
+                //     public ref T F1([UnscopedRef] scoped ref R<T> r1) // 1
+                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(9, 22),
+                // (13,22): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
+                //     public ref T F2([UnscopedRef] scoped out T t2) // 2
+                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(13, 22),
                 // (18,22): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
-                //     public ref T M2([UnscopedRef] scoped in R<T> t4) // 3
-                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(18, 22));
+                //     public ref T F3([UnscopedRef] scoped in R<T> t3) // 3
+                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(18, 22),
+                // (22,22): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     public ref T F4([UnscopedRef] scoped R<T> t4) // 4
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(22, 22));
 
             var type = comp.GetMember<NamedTypeSymbol>("A");
-            VerifyParameterSymbol(type.GetMethod("F4A").Parameters[0], "ref R<T> r4", RefKind.Ref, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(type.GetMethod("M").Parameters[0], "out T t4", RefKind.Out, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(type.GetMethod("M2").Parameters[0], "in R<T> t4", RefKind.In, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(type.GetMethod("F1").Parameters[0], "ref R<T> r1", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(type.GetMethod("F2").Parameters[0], "out T t2", RefKind.Out, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(type.GetMethod("F3").Parameters[0], "in R<T> t3", RefKind.In, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(type.GetMethod("F4").Parameters[0], "R<T> t4", RefKind.None, DeclarationScope.Unscoped);
         }
 
         [Fact, WorkItem(63070, "https://github.com/dotnet/roslyn/issues/63070")]
