@@ -9,12 +9,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine;
 
 /// <summary>
-/// Contains all the immutable information to rename a document.
+/// Contains all the immutable information to rename and perform conflict checking for a document.
 /// </summary>
-internal record DocumentRenameInfo(
+internal partial record DocumentRenameInfo(
     ImmutableDictionary<TextSpan, LocationRenameContext> TextSpanToLocationContexts,
     ImmutableDictionary<SymbolKey, RenamedSymbolContext> RenamedSymbolContexts,
-    MultiDictionary<TextSpan, StringAndCommentRenameInfo> TextSpanToStringAndCommentRenameContexts,
+    MultiDictionary<TextSpan, StringAndCommentRenameContext> TextSpanToStringAndCommentRenameContexts,
     ImmutableHashSet<string> AllReplacementTexts,
     ImmutableHashSet<string> AllOriginalText,
     ImmutableHashSet<string> AllPossibleConflictNames)
@@ -33,22 +33,41 @@ internal record DocumentRenameInfo(
         }
     }
 
-    public (DocumentRenameInfo newDocumentRenameInfo, bool isOverlappingLocation) WithStringAndCommentRenameContext(LocationRenameContext locationRenameContext)
+    public DocumentRenameInfo WithRenamedSymbolContext(ISymbol symbol, string replacementText, bool replacementTextValid)
     {
-        RoslynDebug.Assert(locationRenameContext.RenameLocation.IsRenameInStringOrComment);
-        var containingLocationSpan = locationRenameContext.RenameLocation.ContainingLocationForStringOrComment;
-        if (TextSpanToStringAndCommentRenameContexts.TryGetValue(containingLocationSpan, out var replacementLocations))
+        var symbolKey = symbol.GetSymbolKey();
+        if (RenamedSymbolContexts.ContainsKey(symbolKey))
         {
-            if (replacementLocations.Contains(locationRenameContext))
-            {
-                return (this, true);
-            }
-
+            return this;
         }
         else
         {
-
+            var symbolContext = new RenamedSymbolContext(replacementText, symbol.Name, symbol, symbol as IAliasSymbol, replacementTextValid);
+            return this with { RenamedSymbolContexts = RenamedSymbolContexts.Add(symbolKey, symbolContext) };
         }
+    }
 
+    public (DocumentRenameInfo newDocumentRenameInfo, bool isOverlappingLocation) WithStringAndCommentRenameContext(StringAndCommentRenameContext stringAndCommentRenameContext)
+    {
+        RoslynDebug.Assert(stringAndCommentRenameContext.RenameLocation.IsRenameInStringOrComment);
+        var containingLocationSpan = stringAndCommentRenameContext.RenameLocation.ContainingLocationForStringOrComment;
+        if (TextSpanToStringAndCommentRenameContexts.TryGetValue(containingLocationSpan, out var replacementLocations))
+        {
+            if (replacementLocations.Contains(stringAndCommentRenameContext))
+            {
+                return (this, true);
+            }
+            else
+            {
+                // We should convert all the field here to a builder pattern
+                TextSpanToStringAndCommentRenameContexts.Add(containingLocationSpan, stringAndCommentRenameContext);
+                return (this, false);
+            }
+        }
+        else
+        {
+            TextSpanToStringAndCommentRenameContexts.Add(containingLocationSpan, stringAndCommentRenameContext);
+            return (this, false);
+        }
     }
 }

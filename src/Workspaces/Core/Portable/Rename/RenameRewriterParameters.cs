@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.Rename;
 internal readonly record struct RenameRewriterParameters(
     ISet<TextSpan> ConflictLocationSpans,
     Solution OriginalSolution,
-    SyntaxTree OriginalSyntaxTree,
     RenamedSpansTracker RenameSpansTracker,
     SyntaxNode SyntaxRoot,
     Document Document,

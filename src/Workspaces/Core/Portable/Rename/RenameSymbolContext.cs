@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.Rename
     internal readonly record struct RenamedSymbolContext(
         string ReplacementText,
         string OriginalText,
-        ICollection<string> PossibleNameConflicts,
         ISymbol RenamedSymbol,
         IAliasSymbol? AliasSymbol,
         bool ReplacementTextValid);

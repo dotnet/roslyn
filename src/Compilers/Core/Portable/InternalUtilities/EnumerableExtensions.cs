@@ -323,6 +323,15 @@ namespace Roslyn.Utilities
             return builder.ToImmutableAndFree();
         }
 
+        public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, IEnumerable<TResult>> selector)
+        {
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in source)
+                builder.AddRange(selector(item));
+
+            return builder.ToImmutableAndFree();
+        }
+
         /// <summary>
         /// Maps an immutable array through a function that returns ValueTask, returning the new ImmutableArray.
         /// </summary>

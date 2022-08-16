@@ -4,4 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine;
 
-internal record StringAndCommentRenameInfo(RenameLocation RenameLocation, string ReplacementText);
+/// <summary>
+/// Represent the information to replace a sub-location inside a comment or string.
+/// </summary>
+internal record StringAndCommentRenameContext(RenameLocation RenameLocation, string ReplacementText);
