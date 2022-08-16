@@ -22,6 +22,7 @@ Imports Roslyn.Test.Utilities
 Imports CS = Microsoft.CodeAnalysis.CSharp
 Imports Roslyn.Test.Utilities.TestHelpers
 Imports Roslyn.Test.Utilities.TestMetadata
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CompilationAPITests
@@ -29,10 +30,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Private Function WithDiagnosticOptions(
             tree As SyntaxTree,
-            ParamArray options As (string, ReportDiagnostic)()) As VisualBasicCompilationOptions
+            ParamArray options As (String, ReportDiagnostic)()) As VisualBasicCompilationOptions
 
             Return TestOptions.DebugDll.
-                WithSyntaxTreeOptionsProvider(new TestSyntaxTreeOptionsProvider(tree, options))
+                WithSyntaxTreeOptionsProvider(New TestSyntaxTreeOptionsProvider(tree, options))
         End Function
 
         <Fact>
@@ -49,7 +50,7 @@ End Class")
             comp.AssertNoDiagnostics()
 
             options = options.WithSyntaxTreeOptionsProvider(
-                new TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Warn)))
+                New TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Warn)))
             comp = CreateCompilationWithMscorlib45({tree}, options:=options)
             ' Global options override syntax tree options. This is the opposite of C# behavior
             comp.AssertNoDiagnostics()
@@ -113,7 +114,7 @@ End Class")
             comp.AssertNoDiagnostics()
 
             options = options.WithSyntaxTreeOptionsProvider(
-                new TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Error)))
+                New TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Error)))
             Dim comp2 = CreateCompilationWithMscorlib45({tree}, options:=options)
             ' Specific diagnostic options should have precedence over tree options
             comp2.AssertNoDiagnostics()
@@ -1815,8 +1816,36 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
             Assert.Throws(Of ArgumentNullException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, Nothing, intType, isChecked:=False))
             Assert.Throws(Of ArgumentNullException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, Nothing, isChecked:=False))
-        End sub
+        End Sub
 
+        <Fact>
+        Public Sub CreateBuiltinBinaryOperator_CompareToActualSymbols1()
+            Dim Compilation = CreateCompilation("
+class C
+    sub M()
+        dim m = 1 + 1 'BIND:""1 + 1""
+    end sub
+end class")
+            Dim intType = Compilation.GetSpecialType(SpecialType.System_Int32)
+
+            Dim SyntaxTree = Compilation.SyntaxTrees.Single()
+            Dim SemanticModel = Compilation.GetSemanticModel(SyntaxTree)
+
+            Dim expr = FindBindingText(Of BinaryExpressionSyntax)(Compilation)
+            Dim Symbol = SemanticModel.GetSymbolInfo(expr).Symbol
+
+            Assert.NotNull(Symbol)
+
+            Dim addBuiltIn = Compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType, isChecked:=False)
+            Dim addBuiltInChecked = Compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType, isChecked:=True)
+            Dim subtractBuiltIn = Compilation.CreateBuiltinOperator(WellKnownMemberNames.SubtractionOperatorName, intType, intType, intType, isChecked:=False)
+            Dim subtractBuiltInChecked = Compilation.CreateBuiltinOperator(WellKnownMemberNames.SubtractionOperatorName, intType, intType, intType, isChecked:=True)
+
+            Assert.NotEqual(addBuiltIn, Symbol)
+            Assert.Equal(addBuiltInChecked, Symbol)
+            Assert.NotEqual(subtractBuiltIn, Symbol)
+            Assert.NotEqual(subtractBuiltInChecked, Symbol)
+        End Sub
 
         <Fact()>
         <WorkItem(36046, "https://github.com/dotnet/roslyn/issues/36046")>
