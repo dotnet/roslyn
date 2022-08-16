@@ -640,6 +640,8 @@ namespace N
         [Fact]
         public async Task TestMovePropertiesAndKeepSimpleEqualsWithConstFields()
         {
+            // we only want users to compare all instance fields of the type and no more
+            // comparing a static/const value, although it's always true, is unexpected here
             var initialMarkup = @"
 namespace N
 {
@@ -1489,7 +1491,7 @@ using System;
 
 namespace N
 {
-    public record C(int P, bool B) : IEquatable<C>;
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -1525,7 +1527,7 @@ using System;
 
 namespace N
 {
-    public record C(int P, bool B) : IEquatable<C>;
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -1571,7 +1573,7 @@ using System;
 
 namespace N
 {
-    public record C(int P, bool B) : IEquatable<C>;
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);

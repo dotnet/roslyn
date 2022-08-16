@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 {
-    internal static class ConvertToRecordOperationHelpers
+    internal static class ConvertToRecordHelpers
     {
         public static bool IsSimpleEqualsMethod(
             Compilation compilation,
@@ -238,14 +238,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     result.right.Equals(UnwrapPropertyToField(result.left))) &&
                 !assignedValues.HasDuplicates(SymbolEqualityComparer.Default) &&
                 assignedValues.SetEquals(fields);
-        }
-
-        public static INamedTypeSymbol? GetIEquatableType(Compilation compilation, INamedTypeSymbol containingType)
-        {
-            // can't use nameof since it's generic and we need the type parameter
-            var equatableMetadataName = compilation.GetBestTypeByMetadataName("System.IEquatable`1")?.MetadataName;
-            return containingType.Interfaces.FirstOrDefault(
-                    iface => iface.MetadataName == equatableMetadataName);
         }
 
         private static ImmutableArray<(ISymbol left, T right)> GetAssignmentValuesForConstructor<T>(
@@ -898,6 +890,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             }
 
             return false;
+        }
+
+        private static INamedTypeSymbol? GetIEquatableType(Compilation compilation, INamedTypeSymbol containingType)
+        {
+            // can't use nameof since it's generic and we need the type parameter
+            var equatableMetadataName = compilation.GetBestTypeByMetadataName("System.IEquatable`1")?.MetadataName;
+            return containingType.Interfaces.FirstOrDefault(
+                    iface => iface.MetadataName == equatableMetadataName);
         }
 
         private static IBlockOperation? GetBlockOfMethodBody(IMethodBodyBaseOperation body)

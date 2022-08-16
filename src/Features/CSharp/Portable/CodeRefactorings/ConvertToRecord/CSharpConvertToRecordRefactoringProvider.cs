@@ -145,6 +145,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 semicolon = default;
             }
 
+            // delete IEquatable if it's explicit because it is implicit on records
+            var baseList = originalDeclarationNode.BaseList;
+            if (baseList != null)
+            {
+                var typeList = baseList.Types.Where(baseItem =>
+                {
+                    var iEquatableTypeNode = (baseItem.Type as GenericNameSyntax) ??
+                        (baseItem.Type as QualifiedNameSyntax)?.Right as GenericNameSyntax;
+                    return iEquatableTypeNode == null || iEquatableTypeNode.Identifier.ValueText != "IEquatable";
+                });
+
+                if (typeList.IsEmpty())
+                {
+                    baseList = null;
+                }
+                else
+                {
+                    baseList = baseList.WithTypes(SyntaxFactory.SeparatedList(typeList));
+                }
+            }
+
             var changedTypeDeclaration = SyntaxFactory.RecordDeclaration(
                     originalType.TypeKind == TypeKind.Class
                         ? SyntaxKind.RecordDeclaration
@@ -160,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     originalDeclarationNode.TypeParameterList?.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
                     SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(propertiesToAddAsParams))
                         .WithAppendedTrailingTrivia(constructorTrivia),
-                    originalDeclarationNode.BaseList,
+                    baseList,
                     originalDeclarationNode.ConstraintClauses,
                     openBrace,
                     SyntaxFactory.List(membersToKeep),
@@ -255,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 if (constructorParamTypes.SequenceEqual(positionalParamTypes))
                 {
                     // found a primary constructor override, now check if we are pretty sure we can remove it safely
-                    if (ConvertToRecordOperationHelpers.IsSimplePrimaryConstructor(constructorOperation,
+                    if (ConvertToRecordHelpers.IsSimplePrimaryConstructor(constructorOperation,
                         propertiesToMove.SelectAsArray(result => result.Symbol),
                         constructorSymbol.Parameters))
                     {
@@ -273,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 else if (constructorSymbol.Parameters.IsSingle() &&
                     constructorSymbol.Parameters.First().Type.Equals(type))
                 {
-                    if (ConvertToRecordOperationHelpers.IsSimpleCopyConstructor(constructorOperation,
+                    if (ConvertToRecordHelpers.IsSimpleCopyConstructor(constructorOperation,
                         expectedFields,
                         constructorSymbol.Parameters.First()))
                     {
@@ -306,8 +327,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     .GetRequiredOperation(equalsOp, cancellationToken);
                 var notEqualsBodyOperation = (IMethodBodyOperation)semanticModel
                     .GetRequiredOperation(notEqualsOp, cancellationToken);
-                if (ConvertToRecordOperationHelpers.IsDefaultEqualsOperator(equalsBodyOperation) &&
-                    ConvertToRecordOperationHelpers.IsDefaultNotEqualsOperator(notEqualsBodyOperation))
+                if (ConvertToRecordHelpers.IsDefaultEqualsOperator(equalsBodyOperation) &&
+                    ConvertToRecordHelpers.IsDefaultNotEqualsOperator(notEqualsBodyOperation))
                 {
                     // they both evaluate to what would be the generated implementation
                     modifiedMembers.Remove(equalsOp);
@@ -327,12 +348,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     // remove clone method as clone is a reserved method name in records
                     modifiedMembers.Remove(method);
                 }
-                else if (ConvertToRecordOperationHelpers.IsSimpleHashCodeMethod(
+                else if (ConvertToRecordHelpers.IsSimpleHashCodeMethod(
                     semanticModel.Compilation, methodSymbol, operation, expectedFields))
                 {
                     modifiedMembers.Remove(method);
                 }
-                else if (ConvertToRecordOperationHelpers.IsSimpleEqualsMethod(
+                else if (ConvertToRecordHelpers.IsSimpleEqualsMethod(
                     semanticModel.Compilation, methodSymbol, operation, expectedFields))
                 {
                     // the Equals method implementation is fundamentally equivalent to the generated one
