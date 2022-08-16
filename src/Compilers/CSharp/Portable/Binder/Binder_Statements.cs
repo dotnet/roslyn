@@ -2169,6 +2169,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var lambdaSymbol = anonymousFunction.TemporaryLambdaSymbol;
                 Debug.Assert(lambdaSymbol is not null);
 
+                // The lambda symbol may have diagnostics from
+                // binding default parameters, so copy these to the current diagnostic bag
                 lambdaSymbol.GetDeclarationDiagnostics(diagnostics);
 
                 for (int i = 0; i < anonymousFunction.ParameterCount; i++)
@@ -2180,10 +2182,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (lambdaParamDefaultVal is not null && delegateParamDefaultVal is not null && lambdaParamDefaultVal != delegateParamDefaultVal)
                     {
-                        // Parameter {0} has default value '{0}' in lambda and default value '{2}' in delegate
-                        Error(diagnostics, ErrorCode.ERR_OptionalParamValueMismatch, lambdaParameterLocation, i + 1,
-                                lambdaParamDefaultVal.GetValueToDisplay() ?? "null",
-                                delegateParamDefaultVal.GetValueToDisplay() ?? "null");
+                        // Parameter {0} has default value which does not match in delegate type '{1}'.
+                        Error(diagnostics, ErrorCode.ERR_OptionalParamValueMismatch, lambdaParameterLocation, i + 1, targetType.Name);
                     }
                 }
                 return;
@@ -2203,8 +2203,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
                     if (!delegateParameters[i].HasExplicitDefaultValue && lambdaSymbol.Parameters[i].HasExplicitDefaultValue)
                     {
-                        // Parameter {0} is optional in lambda but required in delegate
-                        Error(diagnostics, ErrorCode.WRN_OptionalRequiredParamMismatch, lambdaParameterLocation, i + 1);
+                        // Parameter {0} is optional in lambda but required in delegate {1}
+                        Error(diagnostics, ErrorCode.WRN_OptionalRequiredParamMismatch, lambdaParameterLocation, i + 1, targetType.Name);
                     }
                 }
                 return;
