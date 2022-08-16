@@ -2,21 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
-
-namespace Microsoft.CodeAnalysis.CSharp.Features
+namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 {
-    internal static class CSharpOperationAnalysisHelpers
+    internal static class ConvertToRecordHelpers
     {
         public static bool IsSimpleEqualsMethod(
             Compilation compilation,
@@ -34,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                 {
                     if (equatableType != null &&
                         methodSymbol.Parameters.First().Type.SpecialType == SpecialType.System_Object &&
-                        (GetBlockOfMethodBody(methodBodyOperation)) is IBlockOperation
+                        GetBlockOfMethodBody(methodBodyOperation) is IBlockOperation
                         {
                             Operations: [IReturnOperation
                             {
@@ -55,12 +43,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
 
                     // otherwise we check to see which fields are compared (either by themselves or through properties)
                     var actualFields = GetEqualizedFields(methodBodyOperation, methodSymbol);
-                    return !actualFields.HasDuplicates(SymbolEqualityComparer.Default) &&
-                            actualFields.SetEquals(expectedComparedFields);
+                    return actualFields.SetEquals(expectedComparedFields);
                 }
             }
 
             return false;
+        }
+
+        public static INamedTypeSymbol? GetIEquatableType(Compilation compilation, INamedTypeSymbol containingType)
+        {
+            // can't use nameof since it's generic and we need the type parameter
+            var equatableMetadataName = compilation.GetBestTypeByMetadataName("System.IEquatable`1")?.MetadataName;
+            return containingType.Interfaces.FirstOrDefault(
+                    iface => iface.MetadataName == equatableMetadataName);
         }
 
         public static bool IsSimpleHashCodeMethod(
@@ -71,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
         {
             if (methodSymbol.Name == nameof(GetHashCode) &&
                 methodSymbol.Parameters.IsEmpty &&
-                UseSystemHashCode.Analyzer.TryGetAnalyzer(compilation, out var analyzer))
+                HashCodeAnalyzer.TryGetAnalyzer(compilation, out var analyzer))
             {
                 // Hash Code method, see if it would be a default implementation that we can remove
                 var (_, members, _) = analyzer.GetHashedMembers(
@@ -84,8 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                     var actualMembers = members
                         .SelectAsArray(UnwrapPropertyToField).WhereNotNull().AsImmutable();
 
-                    return !actualMembers.HasDuplicates(SymbolEqualityComparer.Default) &&
-                            actualMembers.SetEquals(expectedHashedFields);
+                    return actualMembers.SetEquals(expectedHashedFields);
                 }
             }
             return false;
@@ -778,56 +772,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
             ISymbol otherC,
             INamedTypeSymbol type,
             ArrayBuilder<IFieldSymbol> builder)
-        {
-            while (!statementsToCheck.IsEmpty())
+            => statementsToCheck.FirstOrDefault() switch
             {
-                // iterate. We don't use a for loop because we could potentially
-                // be changing this list based on what statements we see
-                var statement = statementsToCheck.First();
-                statementsToCheck = statementsToCheck.Skip(1);
-                switch (statement)
+                IReturnOperation
                 {
-                    case IReturnOperation
+                    ReturnedValue: ILiteralOperation
                     {
-                        ReturnedValue: ILiteralOperation
-                        {
-                            ConstantValue.HasValue: true,
-                            ConstantValue.Value: true,
-                        }
-                    }:
-                        // we are done with the comparison, the final statment does no checks
-                        // but there should be no more statements
-                        return true;
-                    case IReturnOperation { ReturnedValue: IOperation value }:
-                        return TryAddEqualizedFieldsForCondition(value, successRequirement: true, currentObject: type, otherObject: otherC, builder: builder);
-                    case IConditionalOperation
-                    {
-                        Condition: IOperation condition,
-                        WhenTrue: IOperation whenTrue,
-                        WhenFalse: var whenFalse,
-                    }:
-                        // 1. Check structure of if statment, get success requirement
-                        // and any potential statments in the non failure block
-                        // 2. Check condition for compared members
-                        if (!TryGetSuccessCondition(
-                            whenTrue, whenFalse, statementsToCheck.AsImmutable(), out var successRequirement, out var remainingStatements) ||
-                            !TryAddEqualizedFieldsForCondition(
-                                condition, successRequirement, type, otherC, builder))
-                        {
-                            return false;
-                        }
-
-                        // the statements to check are now all the statements from the branch that doesn't return false
-                        statementsToCheck = remainingStatements;
-                        break;
-                    default:
-                        return false;
+                        ConstantValue.HasValue: true,
+                        ConstantValue.Value: true,
+                    }
                 }
-            }
-
-            // pattern not matched, we should see a return statement before the end of the statements
-            return false;
-        }
+                    // we are done with the comparison, the final statment does no checks
+                    => true,
+                IReturnOperation { ReturnedValue: IOperation value } => TryAddEqualizedFieldsForCondition(
+                    value, successRequirement: true, currentObject: type, otherObject: otherC, builder: builder),
+                IConditionalOperation
+                {
+                    Condition: IOperation condition,
+                    WhenTrue: IOperation whenTrue,
+                    WhenFalse: var whenFalse,
+                }
+                    // 1. Check structure of if statment, get success requirement
+                    // and any potential statments in the non failure block
+                    // 2. Check condition for compared members
+                    // 3. Check remaining members in non failure block
+                    => TryGetSuccessCondition(whenTrue, whenFalse, statementsToCheck.Skip(1).AsImmutable(),
+                        out var successRequirement, out var remainingStatements) &&
+                    TryAddEqualizedFieldsForCondition(
+                            condition, successRequirement, type, otherC, builder) &&
+                    TryAddEqualizedFieldsForStatements(remainingStatements, otherC, type, builder),
+                _ => false
+            };
 
         private static bool TryAddFieldFromComparison(
             IMemberReferenceOperation memberReference1,
@@ -1024,21 +999,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
             while (equals != null)
             {
                 if (Equals(objectEquals, equals))
-                {
                     return true;
-                }
                 equals = equals.OverriddenMethod;
             }
 
             return false;
-        }
-
-        private static INamedTypeSymbol? GetIEquatableType(Compilation compilation, INamedTypeSymbol containingType)
-        {
-            // can't use nameof since it's generic and we need the type parameter
-            var equatableMetadataName = compilation.GetBestTypeByMetadataName("System.IEquatable`1")?.MetadataName;
-            return containingType.Interfaces.FirstOrDefault(
-                    iface => iface.MetadataName == equatableMetadataName);
         }
 
         private static IBlockOperation? GetBlockOfMethodBody(IMethodBodyBaseOperation body)

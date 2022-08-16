@@ -2,25 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Composition;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Features;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
-
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToRecord), Shared]
@@ -150,6 +131,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 semicolon = default;
             }
 
+            // delete IEquatable if it's explicit because it is implicit on records
+            var iEquatable = ConvertToRecordHelpers.GetIEquatableType(semanticModel.Compilation, originalType);
+            var baseList = originalDeclarationNode.BaseList;
+            if (baseList != null && iEquatable != null)
+            {
+                var typeList = baseList.Types.Where(baseItem
+                    => iEquatable.Equals(semanticModel.GetSymbolInfo(baseItem, cancellationToken).Symbol));
+
+                if (typeList.IsEmpty())
+                {
+                    baseList = null;
+                }
+                else
+                {
+                    baseList = baseList.WithTypes(SyntaxFactory.SeparatedList(typeList));
+                }
+            }
+
             var changedTypeDeclaration = SyntaxFactory.RecordDeclaration(
                     originalType.TypeKind == TypeKind.Class
                         ? SyntaxKind.RecordDeclaration
@@ -165,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     originalDeclarationNode.TypeParameterList?.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
                     SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(propertiesToAddAsParams))
                         .WithAppendedTrailingTrivia(constructorTrivia),
-                    originalDeclarationNode.BaseList,
+                    baseList,
                     originalDeclarationNode.ConstraintClauses,
                     openBrace,
                     SyntaxFactory.List(membersToKeep),
@@ -348,8 +347,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     .GetRequiredOperation(equalsOp, cancellationToken);
                 var notEqualsBodyOperation = (IMethodBodyOperation)semanticModel
                     .GetRequiredOperation(notEqualsOp, cancellationToken);
-                if (CSharpOperationAnalysisHelpers.IsDefaultEqualsOperator(equalsBodyOperation) &&
-                    CSharpOperationAnalysisHelpers.IsDefaultNotEqualsOperator(notEqualsBodyOperation))
+                if (ConvertToRecordHelpers.IsDefaultEqualsOperator(equalsBodyOperation) &&
+                    ConvertToRecordHelpers.IsDefaultNotEqualsOperator(notEqualsBodyOperation))
                 {
                     // they both evaluate to what would be the generated implementation
                     modifiedMembers.Remove(equalsOp);
@@ -369,17 +368,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     // remove clone method as clone is a reserved method name in records
                     modifiedMembers.Remove(method);
                 }
-                else if (CSharpOperationAnalysisHelpers.IsSimpleHashCodeMethod(
+                else if (ConvertToRecordHelpers.IsSimpleHashCodeMethod(
                     semanticModel.Compilation, methodSymbol, operation, expectedFields))
                 {
                     modifiedMembers.Remove(method);
                 }
-                else if (CSharpOperationAnalysisHelpers.IsSimpleEqualsMethod(
+                else if (ConvertToRecordHelpers.IsSimpleEqualsMethod(
                     semanticModel.Compilation, methodSymbol, operation, expectedFields))
                 {
                     // the Equals method implementation is fundamentally equivalent to the generated one
                     modifiedMembers.Remove(method);
                 }
+            }
+
+            if (!modifiedMembers.IsEmpty())
+            {
+                // remove any potential leading blank lines right after the class declaration, as we could have
+                // something like a method which was spaced out from the previous properties, but now shouldn't
+                // have that leading space
+                modifiedMembers[0] = modifiedMembers[0].GetNodeWithoutLeadingBlankLines();
             }
 
             return modifiedMembers.ToImmutable();

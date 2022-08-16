@@ -4,15 +4,14 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.UseSystemHashCode
+namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
-    internal partial struct Analyzer
+    internal partial struct HashCodeAnalyzer
     {
         /// <summary>
         /// Breaks down complex <see cref="IOperation"/> trees, looking for particular
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         /// </summary>
         private struct OperationDeconstructor : IDisposable
         {
-            private readonly Analyzer _analyzer;
+            private readonly HashCodeAnalyzer _analyzer;
             private readonly IMethodSymbol _method;
             private readonly ILocalSymbol? _hashCodeVariable;
 
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             private bool _accessesBase;
 
             public OperationDeconstructor(
-                Analyzer analyzer, IMethodSymbol method, ILocalSymbol? hashCodeVariable)
+                HashCodeAnalyzer analyzer, IMethodSymbol method, ILocalSymbol? hashCodeVariable)
             {
                 _analyzer = analyzer;
                 _method = method;
