@@ -12241,7 +12241,9 @@ class Program
     }
 }
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net60, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped);
+            CompileAndVerify(source, targetFramework: TargetFramework.Net60,
+                                     verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped,
+                                     expectedOutput: ExecutionConditionUtil.IsCoreClr ? "callerArgExpression" : null);
         }
     }
 }
