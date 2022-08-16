@@ -367,14 +367,16 @@ class C
     static ref readonly int Helper()
         => ref (new int[1])[0];
 }");
-            verifier.VerifyIL("C.M()", @"
+            verifier.VerifyIL("C.M()", """
 {
-  // Code size        7 (0x7)
+  // Code size        8 (0x8)
   .maxstack  1
-  IL_0000:  call       ""ref readonly int C.Helper()""
-  IL_0005:  pop
-  IL_0006:  ret
-}");
+  IL_0000:  call       "ref readonly int C.Helper()"
+  IL_0005:  ldind.i4
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
         }
 
         [Fact]
@@ -392,14 +394,16 @@ class C
     static ref int Helper()
         => ref (new int[1])[0];
 }");
-            verifier.VerifyIL("C.M()", @"
+            verifier.VerifyIL("C.M()", """
 {
-  // Code size        7 (0x7)
+  // Code size        8 (0x8)
   .maxstack  1
-  IL_0000:  call       ""ref int C.Helper()""
-  IL_0005:  pop
-  IL_0006:  ret
-}");
+  IL_0000:  call       "ref int C.Helper()"
+  IL_0005:  ldind.i4
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
         }
 
 

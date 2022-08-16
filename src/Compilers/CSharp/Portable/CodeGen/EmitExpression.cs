@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1274,14 +1274,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitLocalLoad(BoundLocal local, bool used)
         {
+            bool isRefLocal = local.LocalSymbol.RefKind != RefKind.None;
             if (IsStackLocal(local.LocalSymbol))
             {
                 // local must be already on the stack
-                EmitPopIfUnused(used);
+                EmitPopIfUnused(used || isRefLocal);
             }
             else
             {
-                if (used)
+                if (used || isRefLocal)
                 {
                     LocalDefinition definition = GetLocal(local);
                     _builder.EmitLocalLoad(definition);
@@ -1293,9 +1294,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
             }
 
-            if (used && local.LocalSymbol.RefKind != RefKind.None)
+            if (isRefLocal)
             {
                 EmitLoadIndirect(local.LocalSymbol.Type, local.Syntax);
+                EmitPopIfUnused(used);
             }
         }
 
