@@ -60,6 +60,22 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 _symbolToReplacementTextValid = symbolToReplacementTextValid;
             }
 
+            public static async Task<Session> CreateAsync(
+                Solution solution,
+                ImmutableArray<(SymbolicRenameLocations locations, string replacementText)> symbolRenameInfo,
+                CancellationToken cancellationToken)
+            {
+                using var _1 = PooledHashSet<DocumentId>.GetInstance(out var documentsIdsToBeCheckedForConflictBuilder);
+                using var _2 = PooledDictionary<DocumentId, DocumentRenameInfo>.GetInstance()
+                foreach (var (locations, replacementText) in symbolRenameInfo)
+                {
+                    var (documentsIdsToBeCheckedForConflict, possibleNameConflicts) =
+                        await FindDocumentsAndPossibleNameConflictsAsync(locations, replacementText, locations.Symbol.Name, cancellationToken).ConfigureAwait(false);
+                    documentsIdsToBeCheckedForConflictBuilder.AddRange(documentsIdsToBeCheckedForConflict);
+
+                }
+            }
+
             private async Task<(Solution partiallyRenamedSolution, ImmutableHashSet<DocumentId> unchangedDocuments)> AnnotateAndRename_WorkerAsync(
                 Solution originalSolution,
                 Solution partiallyRenamedSolution,
@@ -160,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             protected abstract bool HasConflictForMetadataReference(RenameDeclarationLocationReference renameDeclarationLocationReference, ISymbol newReferencedSymbol);
 
             // The method which performs rename, resolves the conflict locations and returns the result of the rename operation
-            protected async Task<MutableConflictResolution> ResolveConflictsCoreAsync()
+            public async Task<MutableConflictResolution> ResolveConflictsAsync()
             {
                 try
                 {

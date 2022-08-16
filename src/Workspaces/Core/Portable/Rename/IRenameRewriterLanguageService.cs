@@ -250,15 +250,12 @@ namespace Microsoft.CodeAnalysis.Rename
         /// }
         /// </summary>
         internal static ImmutableSortedDictionary<TextSpan, string> CreateSubSpanToReplacementTextDictionary(
-            MultiDictionary<TextSpan, LocationRenameContext>.ValueSet locationRenameContexts)
+            MultiDictionary<TextSpan, StringAndCommentRenameInfo>.ValueSet locationRenameContexts)
         {
             var subSpanToReplacementTextBuilder = ImmutableSortedDictionary.CreateBuilder<TextSpan, string>();
-            foreach (var context in locationRenameContexts)
+            foreach (var (renameLocation, replacementText) in locationRenameContexts)
             {
-                var renameLocation = context.RenameLocation;
                 var location = renameLocation.Location;
-                var replacementText = context.ReplacementText;
-                var originalText = context.OriginalText;
                 RoslynDebug.Assert(location.IsInSource);
                 RoslynDebug.Assert(renameLocation.IsRenameInStringOrComment);
                 var sourceSpan = location.SourceSpan;
@@ -272,18 +269,18 @@ namespace Microsoft.CodeAnalysis.Rename
                     sourceSpan.Start - renameLocation.ContainingLocationForStringOrComment.Start,
                     sourceSpan.Length);
 
-                if (!subSpanToReplacementTextBuilder.TryGetValue(subSpan, out var existingReplacemenText))
+                if (!subSpanToReplacementTextBuilder.TryGetValue(subSpan, out var existingReplacementText))
                 {
                     subSpanToReplacementTextBuilder[subSpan] = replacementText;
                 }
-                else if (existingReplacemenText != replacementText)
+                else if (existingReplacementText != replacementText)
                 {
                     // Two symbols try to rename a same subspan,
                     // Example:
                     //      // Comment Hello
                     // class Hello
                     // {
-                    //    
+                    //
                     // }
                     // class World
                     // {

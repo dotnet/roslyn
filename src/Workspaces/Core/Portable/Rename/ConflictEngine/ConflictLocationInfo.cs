@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         public ConflictLocationInfo(RelatedLocation location)
         {
-            Debug.Assert(location.ComplexifiedTargetSpan.Contains(location.ConflictCheckSpan) || location.Type == RelatedLocationType.UnresolvableConflict);
+            Debug.Assert(location.ComplexifiedTargetSpan.Contains(location.ConflictCheckSpan) || location.Type is RelatedLocationType.UnresolvableConflict);
             this.ComplexifiedSpan = location.ComplexifiedTargetSpan;
             this.DocumentId = location.DocumentId;
             this.OriginalIdentifierSpan = location.ConflictCheckSpan;

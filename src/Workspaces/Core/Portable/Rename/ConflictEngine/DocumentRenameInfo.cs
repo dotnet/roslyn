@@ -14,7 +14,41 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine;
 internal record DocumentRenameInfo(
     ImmutableDictionary<TextSpan, LocationRenameContext> TextSpanToLocationContexts,
     ImmutableDictionary<SymbolKey, RenamedSymbolContext> RenamedSymbolContexts,
-    MultiDictionary<TextSpan, LocationRenameContext> TextSpanToStringAndCommentRenameContexts,
+    MultiDictionary<TextSpan, StringAndCommentRenameInfo> TextSpanToStringAndCommentRenameContexts,
     ImmutableHashSet<string> AllReplacementTexts,
     ImmutableHashSet<string> AllOriginalText,
-    ImmutableHashSet<string> AllPossibleConflictNames);
+    ImmutableHashSet<string> AllPossibleConflictNames)
+{
+    public (DocumentRenameInfo newDocumentRenameInfo, bool isOverlappingLocation) WithLocationRenameContext(LocationRenameContext locationRenameContext)
+    {
+        RoslynDebug.Assert(!locationRenameContext.RenameLocation.IsRenameInStringOrComment);
+        var textSpan = locationRenameContext.RenameLocation.Location.SourceSpan;
+        if (TextSpanToLocationContexts.TryGetValue(textSpan, out var existingLocationContext))
+        {
+            return (this, !locationRenameContext.Equals(existingLocationContext));
+        }
+        else
+        {
+            return (this with { TextSpanToLocationContexts = TextSpanToLocationContexts.Add(textSpan, locationRenameContext ) }, false );
+        }
+    }
+
+    public (DocumentRenameInfo newDocumentRenameInfo, bool isOverlappingLocation) WithStringAndCommentRenameContext(LocationRenameContext locationRenameContext)
+    {
+        RoslynDebug.Assert(locationRenameContext.RenameLocation.IsRenameInStringOrComment);
+        var containingLocationSpan = locationRenameContext.RenameLocation.ContainingLocationForStringOrComment;
+        if (TextSpanToStringAndCommentRenameContexts.TryGetValue(containingLocationSpan, out var replacementLocations))
+        {
+            if (replacementLocations.Contains(locationRenameContext))
+            {
+                return (this, true);
+            }
+
+        }
+        else
+        {
+
+        }
+
+    }
+}
