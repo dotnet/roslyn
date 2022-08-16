@@ -2149,6 +2149,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Initializer, "Initializer");
         }
 
+        public override void VisitAttribute(IAttributeOperation operation)
+        {
+            LogString(nameof(IAttributeOperation));
+            LogCommonPropertiesAndNewLine(operation);
+            Visit(operation.Operation);
+        }
+
         #endregion
     }
 }
