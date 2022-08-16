@@ -156,4 +156,127 @@
   <data name="Sort_Usings" xml:space="preserve">
     <value>&amp;Sort Usings</value>
   </data>
+  <data name="Allow_bank_line_after_colon_in_constructor_initializer" xml:space="preserve">
+    <value>Allow blank line after colon in constructor initializer</value>
+  </data>
+  <data name="Allow_blank_lines_between_consecutive_braces" xml:space="preserve">
+    <value>Allow blank lines between consecutive braces</value>
+  </data>
+  <data name="Allow_embedded_statements_on_same_line" xml:space="preserve">
+    <value>Allow embedded statements on same line</value>
+  </data>
+  <data name="Avoid_expression_statements_that_implicitly_ignore_value" xml:space="preserve">
+    <value>Avoid expression statements that implicitly ignore value</value>
+  </data>
+  <data name="Avoid_unused_value_assignments" xml:space="preserve">
+    <value>Avoid unused value assignments</value>
+  </data>
+  <data name="Elsewhere" xml:space="preserve">
+    <value>Elsewhere</value>
+  </data>
+  <data name="For_built_in_types" xml:space="preserve">
+    <value>For built-in types</value>
+  </data>
+  <data name="Namespace_declarations" xml:space="preserve">
+    <value>Namespace declarations</value>
+  </data>
+  <data name="Preferred_using_directive_placement" xml:space="preserve">
+    <value>Preferred 'using' directive placement</value>
+  </data>
+  <data name="Prefer_braces" xml:space="preserve">
+    <value>Prefer braces</value>
+  </data>
+  <data name="Prefer_conditional_delegate_call" xml:space="preserve">
+    <value>Prefer conditional delegate call</value>
+  </data>
+  <data name="Prefer_deconstructed_variable_declaration" xml:space="preserve">
+    <value>Prefer deconstructed variable declaration</value>
+  </data>
+  <data name="Prefer_extended_property_pattern" xml:space="preserve">
+    <value>Prefer extended property pattern</value>
+  </data>
+  <data name="Prefer_implicit_object_creation_when_type_is_apparent" xml:space="preserve">
+    <value>Prefer implicit object creation when type is apparent</value>
+  </data>
+  <data name="Prefer_index_operator" xml:space="preserve">
+    <value>Prefer index operator</value>
+  </data>
+  <data name="Prefer_inlined_variable_declaration" xml:space="preserve">
+    <value>Prefer inlined variable declaration</value>
+  </data>
+  <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
+    <value>Prefer local function over anonymous function</value>
+  </data>
+  <data name="Prefer_method_group_conversion" xml:space="preserve">
+    <value>Prefer method group conversion</value>
+  </data>
+  <data name="Prefer_null_check_over_type_check" xml:space="preserve">
+    <value>Prefer 'null' check over type check</value>
+  </data>
+  <data name="Prefer_pattern_matching" xml:space="preserve">
+    <value>Prefer pattern matching</value>
+  </data>
+  <data name="Prefer_pattern_matching_over_as_with_null_check" xml:space="preserve">
+    <value>Prefer pattern matching over 'as' with 'null' check</value>
+  </data>
+  <data name="Prefer_pattern_matching_over_is_with_cast_check" xml:space="preserve">
+    <value>Prefer pattern matching over 'is' with 'cast' check</value>
+  </data>
+  <data name="Prefer_pattern_matching_over_mixed_type_check" xml:space="preserve">
+    <value>Prefer pattern matching over mixed type check</value>
+  </data>
+  <data name="Prefer_range_operator" xml:space="preserve">
+    <value>Prefer range operator</value>
+  </data>
+  <data name="Prefer_simple_default_expression" xml:space="preserve">
+    <value>Prefer simple 'default' expression</value>
+  </data>
+  <data name="Prefer_simple_using_statement" xml:space="preserve">
+    <value>Prefer simple 'using' statement</value>
+  </data>
+  <data name="Prefer_static_local_functions" xml:space="preserve">
+    <value>Prefer static local functions</value>
+  </data>
+  <data name="Prefer_switch_expression" xml:space="preserve">
+    <value>Prefer switch expression</value>
+  </data>
+  <data name="Prefer_throw_expression" xml:space="preserve">
+    <value>Prefer throw-expression</value>
+  </data>
+  <data name="Prefer_top_level_statements" xml:space="preserve">
+    <value>Prefer top-level statements</value>
+  </data>
+  <data name="Prefer_tuple_swap" xml:space="preserve">
+    <value>Prefer tuple swap</value>
+  </data>
+  <data name="Prefer_Utf8_string_literals" xml:space="preserve">
+    <value>Prefer UTF-8 string literals</value>
+  </data>
+  <data name="Use_expression_body_for_accessors" xml:space="preserve">
+    <value>Use expression body for accessors</value>
+  </data>
+  <data name="Use_expression_body_for_constructors" xml:space="preserve">
+    <value>Use expression body for constructors</value>
+  </data>
+  <data name="Use_expression_body_for_indexers" xml:space="preserve">
+    <value>Use expression body for indexers</value>
+  </data>
+  <data name="Use_expression_body_for_lambdas" xml:space="preserve">
+    <value>Use expression body for lambdas</value>
+  </data>
+  <data name="Use_expression_body_for_local_functions" xml:space="preserve">
+    <value>Use expression body for local functions</value>
+  </data>
+  <data name="Use_expression_body_for_methods" xml:space="preserve">
+    <value>Use expression body for methods</value>
+  </data>
+  <data name="Use_expression_body_for_operators" xml:space="preserve">
+    <value>Use expression body for operators</value>
+  </data>
+  <data name="Use_expression_body_for_properties" xml:space="preserve">
+    <value>Use expression body for properties</value>
+  </data>
+  <data name="When_variable_type_is_apparent" xml:space="preserve">
+    <value>When variable type is apparent</value>
+  </data>
 </root>

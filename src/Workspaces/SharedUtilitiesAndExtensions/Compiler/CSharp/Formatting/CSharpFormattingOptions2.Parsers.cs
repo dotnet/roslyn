@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var value = optionSet.GetOption(kvp.Key);
                 if (value)
                 {
+                    //DA.NEwLine.GEtStringFromValue(kvp.Value)
                     Debug.Assert(s_newLineOptionsEditorConfigMap.ContainsValue(kvp.Value));
                     editorConfigStringBuilder.Add(s_newLineOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value)!);
                 }

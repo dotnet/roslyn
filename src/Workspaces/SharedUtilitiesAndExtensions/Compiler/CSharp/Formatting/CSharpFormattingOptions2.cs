@@ -275,6 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static Option2<bool> IndentBlock { get; } = CreateOption(
             CSharpFormattingOptionGroups.Indentation, nameof(IndentBlock),
             CSharpSyntaxFormattingOptions.IndentationDefault.HasFlag(IndentationPlacement.BlockContents),
+            //new EditorConfigStorageLocation<bool>(EditorConfigSettingsValueHolder.IndentBlock.NAme, ),
             EditorConfigStorageLocation.ForBoolOption("csharp_indent_block_contents"),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.IndentBlock"));
 

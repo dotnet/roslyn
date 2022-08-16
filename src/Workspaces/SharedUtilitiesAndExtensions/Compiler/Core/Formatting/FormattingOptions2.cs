@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 
 #if CODE_STYLE
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
@@ -41,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(UseTabs), LineFormattingOptions.Default.UseTabs,
             storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
                 new EditorConfigStorageLocation<bool>("indent_style", s => s == "tab", isSet => isSet ? "tab" : "space"),
+                //new EditorConfigStorageLocation<bool>(EditorConfigSettingsValueHolder.UseTabs.GetSettingName(), EditorConfigSettingsValueHolder.UseTabs.GetValueFromEditorConfigString, EditorConfigSettingsValueHolder.UseTabs.GetEditorConfigStringFromValue),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Insert Tabs")));
 
         public static PerLanguageOption2<int> TabSize =

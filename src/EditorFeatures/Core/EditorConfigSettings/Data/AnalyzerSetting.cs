@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.EditorConfig;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 using Microsoft.CodeAnalysis.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Options;
 
@@ -23,11 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         private readonly DiagnosticDescriptor _descriptor;
         private readonly AnalyzerSettingsUpdater _settingsUpdater;
 
+        public IEditorConfigData EditorConfigData;
+
         public AnalyzerSetting(DiagnosticDescriptor descriptor,
                                ReportDiagnostic effectiveSeverity,
                                AnalyzerSettingsUpdater settingsUpdater,
                                Language language,
-                               SettingLocation location)
+                               SettingLocation location,
+                               IEditorConfigData editorConfigData)
         {
             _descriptor = descriptor;
             _settingsUpdater = settingsUpdater;
@@ -47,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             Language = language;
             IsNotConfigurable = descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.NotConfigurable);
             Location = location;
+            EditorConfigData = editorConfigData;
         }
 
         public string Id => _descriptor.Id;
@@ -70,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
         public string GetSettingName()
         {
-            return $"dotnet_diagnostic.{Id}.severity";
+            return EditorConfigData.GetSettingName().Replace("Id", Id);
         }
 
         public string GetDocumentation()
@@ -80,7 +85,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
         public ImmutableArray<string>? GetSettingValues(OptionSet _)
         {
-            return ImmutableArray.Create(new string[] { "none", "silent", "suggestion", "warning", "error" });
+            return EditorConfigData.GetAllSettingValues();
         }
+
+        public bool AllowsMultipleValues() => false;
     }
 }

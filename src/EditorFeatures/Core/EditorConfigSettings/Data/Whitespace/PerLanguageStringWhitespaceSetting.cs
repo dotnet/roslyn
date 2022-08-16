@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditorConfigSettings.Data.Whitespace
 {
@@ -20,15 +17,10 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings.Data.Whitespace
                                     AnalyzerConfigOptions editorConfigOptions,
                                     OptionSet visualStudioOptions,
                                     OptionUpdater updater,
-                                    SettingLocation fileName)
-            : base(option, description, editorConfigOptions, visualStudioOptions, updater, fileName)
+                                    SettingLocation fileName,
+                                    IEditorConfigData editorConfigData)
+            : base(option, description, editorConfigOptions, visualStudioOptions, updater, fileName, editorConfigData)
         {
-        }
-
-        public override ImmutableArray<string>? GetSettingValues(OptionSet _)
-        {
-            var storageLocation = GetEditorConfigStorageLocation();
-            return GetStringSettingValuesHelper(storageLocation);
         }
     }
 }

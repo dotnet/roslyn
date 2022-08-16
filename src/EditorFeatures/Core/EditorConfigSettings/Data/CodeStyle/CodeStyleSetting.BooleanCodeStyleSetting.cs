@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.OLE.Interop;
 
@@ -20,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             private readonly AnalyzerConfigOptions _editorConfigOptions;
             private readonly OptionSet _visualStudioOptions;
 
+            public IEditorConfigData? EditorConfigData;
+
             public BooleanCodeStyleSetting(Option2<CodeStyleOption2<bool>> option,
                                            string description,
                                            string? trueValueDescription,
@@ -27,13 +30,15 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                            AnalyzerConfigOptions editorConfigOptions,
                                            OptionSet visualStudioOptions,
                                            OptionUpdater updater,
-                                           string fileName)
+                                           string fileName,
+                                           IEditorConfigData? editorConfigData)
                 : base(description, option.Group.Description, trueValueDescription, falseValueDescription, updater)
             {
                 _option = option;
                 _editorConfigOptions = editorConfigOptions;
                 _visualStudioOptions = visualStudioOptions;
                 Location = new SettingLocation(IsDefinedInEditorConfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, fileName);
+                EditorConfigData = editorConfigData;
             }
 
             public override bool IsDefinedInEditorConfig => _editorConfigOptions.TryGetEditorConfigOption<CodeStyleOption2<bool>>(_option, out _);
@@ -62,8 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
             public override string? GetSettingName()
             {
-                var storageLocation = GetEditorConfigStorageLocation(_option);
-                return storageLocation?.KeyName;
+                return EditorConfigData?.GetSettingName();
             }
 
             public override string GetDocumentation()
@@ -73,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
             public override ImmutableArray<string>? GetSettingValues(OptionSet _)
             {
-                return ImmutableArray.Create(new string[] { "true", "false" });
+                return EditorConfigData?.GetAllSettingValues();
             }
         }
     }

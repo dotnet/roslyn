@@ -585,4 +585,223 @@
   <data name="Failed_to_resolve_rename_conflicts" xml:space="preserve">
     <value>Failed to resolve rename conflicts</value>
   </data>
+  <data name="Ignore_spaces_in_declaration_statements" xml:space="preserve">
+    <value>Ignore spaces in declaration statements</value>
+  </data>
+  <data name="Indentation_Size" xml:space="preserve">
+    <value>Indentation Size</value>
+  </data>
+  <data name="Indent_block_contents" xml:space="preserve">
+    <value>Indent block contents</value>
+  </data>
+  <data name="Indent_case_contents" xml:space="preserve">
+    <value>Indent case contents</value>
+  </data>
+  <data name="Indent_case_contents_when_block" xml:space="preserve">
+    <value>Indent case contents (when block)</value>
+  </data>
+  <data name="Indent_case_labels" xml:space="preserve">
+    <value>Indent case labels</value>
+  </data>
+  <data name="Indent_open_and_close_braces" xml:space="preserve">
+    <value>Indent open and close braces</value>
+  </data>
+  <data name="Insert_Final_Newline" xml:space="preserve">
+    <value>Insert Final Newline</value>
+  </data>
+  <data name="Insert_spaces_within_square_brackets" xml:space="preserve">
+    <value>Insert spaces within square brackets</value>
+  </data>
+  <data name="Insert_space_after_cast" xml:space="preserve">
+    <value>Insert space after cast</value>
+  </data>
+  <data name="Insert_space_after_colon_for_base_or_interface_in_type_declaration" xml:space="preserve">
+    <value>Insert space after colon for base or interface in type declaration</value>
+  </data>
+  <data name="Insert_space_after_comma" xml:space="preserve">
+    <value>Insert space after comma</value>
+  </data>
+  <data name="Insert_space_after_dot" xml:space="preserve">
+    <value>Insert space after dot</value>
+  </data>
+  <data name="Insert_space_after_keywords_in_control_flow_statements" xml:space="preserve">
+    <value>Insert space after keywords in control flow statements</value>
+  </data>
+  <data name="Insert_space_after_semicolon_in_for_statement" xml:space="preserve">
+    <value>Insert space after semicolon in "for" statement</value>
+  </data>
+  <data name="Insert_space_before_colon_for_base_or_interface_in_type_declaration" xml:space="preserve">
+    <value>Insert space before colon for base or interface in type declaration</value>
+  </data>
+  <data name="Insert_space_before_comma" xml:space="preserve">
+    <value>Insert space before comma</value>
+  </data>
+  <data name="Insert_space_before_dot" xml:space="preserve">
+    <value>Insert space before dot</value>
+  </data>
+  <data name="Insert_space_before_open_square_bracket" xml:space="preserve">
+    <value>Insert space before open square bracket</value>
+  </data>
+  <data name="Insert_space_before_semicolon_in_for_statement" xml:space="preserve">
+    <value>Insert space before semicolon in "for" statement</value>
+  </data>
+  <data name="Insert_space_between_method_name_and_its_opening_parenthesis1" xml:space="preserve">
+    <value>Insert space between method name and its opening parenthesis</value>
+  </data>
+  <data name="Insert_space_between_method_name_and_its_opening_parenthesis2" xml:space="preserve">
+    <value>Insert space between method name and its opening parenthesis</value>
+  </data>
+  <data name="Insert_space_within_argument_list_parentheses" xml:space="preserve">
+    <value>Insert space within argument list parentheses</value>
+  </data>
+  <data name="Insert_space_within_empty_argument_list_parentheses" xml:space="preserve">
+    <value>Insert space within empty argument list parentheses</value>
+  </data>
+  <data name="Insert_space_within_empty_parameter_list_parentheses" xml:space="preserve">
+    <value>Insert space within empty parameter list parentheses</value>
+  </data>
+  <data name="Insert_space_within_empty_square_brackets" xml:space="preserve">
+    <value>Insert space within empty square brackets</value>
+  </data>
+  <data name="Insert_space_within_parameter_list_parentheses" xml:space="preserve">
+    <value>Insert space within parameter list parentheses</value>
+  </data>
+  <data name="Insert_space_within_parentheses" xml:space="preserve">
+    <value>Insert space within parentheses</value>
+  </data>
+  <data name="Label_Indentation" xml:space="preserve">
+    <value>Label Indentation</value>
+  </data>
+  <data name="Leave_block_on_single_line" xml:space="preserve">
+    <value>Leave block on single line</value>
+  </data>
+  <data name="Leave_statements_and_member_declarations_on_the_same_line" xml:space="preserve">
+    <value>Leave statements and member declarations on the same line</value>
+  </data>
+  <data name="New_Line" xml:space="preserve">
+    <value>New Line</value>
+  </data>
+  <data name="Operator_placement_when_wrapping" xml:space="preserve">
+    <value>Operator placement when wrapping</value>
+  </data>
+  <data name="Place_catch_on_new_line" xml:space="preserve">
+    <value>Place "catch" on new line</value>
+  </data>
+  <data name="Place_else_on_new_line" xml:space="preserve">
+    <value>Place "else" on new line</value>
+  </data>
+  <data name="Place_finally_on_new_line" xml:space="preserve">
+    <value>Place "finally" on new line</value>
+  </data>
+  <data name="Place_members_in_anonymous_types_on_new_line" xml:space="preserve">
+    <value>Place members in anonymous types on new line</value>
+  </data>
+  <data name="Place_members_in_object_initializers_on_new_line" xml:space="preserve">
+    <value>Place members in object initializers on new line</value>
+  </data>
+  <data name="Place_open_brace_on_new_line" xml:space="preserve">
+    <value>Place open brace on new line</value>
+  </data>
+  <data name="Place_query_expression_clauses_on_new_line" xml:space="preserve">
+    <value>Place query expression clauses on new line</value>
+  </data>
+  <data name="Set_spacing_for_operators" xml:space="preserve">
+    <value>Set spacing for operators</value>
+  </data>
+  <data name="Tab_Size" xml:space="preserve">
+    <value>Tab Size</value>
+  </data>
+  <data name="Use_Tabs" xml:space="preserve">
+    <value>Use Tabs</value>
+  </data>
+  <data name="Allow_multiple_blank_lines" xml:space="preserve">
+    <value>Allow multiple blank lines</value>
+  </data>
+  <data name="Allow_statement_immediately_after_block" xml:space="preserve">
+    <value>Allow statement immediately after block</value>
+  </data>
+  <data name="Analyzer_Prefer_auto_properties" xml:space="preserve">
+    <value>Prefer auto properties</value>
+  </data>
+  <data name="Avoid_unused_parameters" xml:space="preserve">
+    <value>Avoid unused parameters</value>
+  </data>
+  <data name="For_locals_parameters_and_members" xml:space="preserve">
+    <value>For locals, parameters and members</value>
+  </data>
+  <data name="For_member_access_expressions" xml:space="preserve">
+    <value>For member access expressions</value>
+  </data>
+  <data name="In_arithmetic_binary_operators" xml:space="preserve">
+    <value>In arithmetic operators</value>
+  </data>
+  <data name="In_other_binary_operators" xml:space="preserve">
+    <value>In other binary operators</value>
+  </data>
+  <data name="In_other_operators" xml:space="preserve">
+    <value>In other operators</value>
+  </data>
+  <data name="In_relational_binary_operators" xml:space="preserve">
+    <value>In relational operators</value>
+  </data>
+  <data name="Prefer_coalesce_expression" xml:space="preserve">
+    <value>Prefer coalesce expression</value>
+  </data>
+  <data name="Prefer_collection_initializer" xml:space="preserve">
+    <value>Prefer collection initializer</value>
+  </data>
+  <data name="Prefer_compound_assignments" xml:space="preserve">
+    <value>Prefer compound assignments</value>
+  </data>
+  <data name="Prefer_conditional_expression_over_if_with_assignments" xml:space="preserve">
+    <value>Prefer conditional expression over 'if' with assignments</value>
+  </data>
+  <data name="Prefer_conditional_expression_over_if_with_returns" xml:space="preserve">
+    <value>Prefer conditional expression over 'if' with returns</value>
+  </data>
+  <data name="Prefer_explicit_tuple_name" xml:space="preserve">
+    <value>Prefer explicit tuple name</value>
+  </data>
+  <data name="Prefer_inferred_anonymous_type_member_names" xml:space="preserve">
+    <value>Prefer inferred anonymous type member names</value>
+  </data>
+  <data name="Prefer_inferred_tuple_names" xml:space="preserve">
+    <value>Prefer inferred tuple element names</value>
+  </data>
+  <data name="Prefer_is_null_for_reference_equality_checks" xml:space="preserve">
+    <value>Prefer 'is null' for reference equality checks</value>
+  </data>
+  <data name="Prefer_namespace_and_folder_match_structure" xml:space="preserve">
+    <value>Prefer namespace and folder match structure</value>
+  </data>
+  <data name="Prefer_null_propagation" xml:space="preserve">
+    <value>Prefer null propagation</value>
+  </data>
+  <data name="Prefer_object_initializer" xml:space="preserve">
+    <value>Prefer object initializer</value>
+  </data>
+  <data name="Prefer_readonly_fields" xml:space="preserve">
+    <value>Prefer readonly fields</value>
+  </data>
+  <data name="Prefer_simplified_boolean_expressions" xml:space="preserve">
+    <value>Prefer simplified boolean expressions</value>
+  </data>
+  <data name="Prefer_simplified_interpolation" xml:space="preserve">
+    <value>Prefer simplified interpolation</value>
+  </data>
+  <data name="Qualify_event_access_with_this_or_Me" xml:space="preserve">
+    <value>Qualify event access with 'this' or 'Me'</value>
+  </data>
+  <data name="Qualify_field_access_with_this_or_Me" xml:space="preserve">
+    <value>Qualify field access with 'this' or 'Me'</value>
+  </data>
+  <data name="Qualify_method_access_with_this_or_Me" xml:space="preserve">
+    <value>Qualify method access with 'this' or 'Me'</value>
+  </data>
+  <data name="Qualify_property_access_with_this_or_Me" xml:space="preserve">
+    <value>Qualify property access with 'this' or 'Me'</value>
+  </data>
+  <data name="Require_accessibility_modifiers" xml:space="preserve">
+    <value>Require accessibility modifiers</value>
+  </data>
 </root>

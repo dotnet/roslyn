@@ -12,9 +12,29 @@
         <target state="translated">Das Hinzufügen von Konfigurationsdokumenten des Analysetools wird nicht unterstützt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_multiple_blank_lines">
+        <source>Allow multiple blank lines</source>
+        <target state="new">Allow multiple blank lines</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_statement_immediately_after_block">
+        <source>Allow statement immediately after block</source>
+        <target state="new">Allow statement immediately after block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
         <source>An error occurred while reading the specified configuration file: {0}</source>
         <target state="translated">Beim Lesen der angegebenen Konfigurationsdatei ist ein Fehler aufgetreten: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_Prefer_auto_properties">
+        <source>Prefer auto properties</source>
+        <target state="new">Prefer auto properties</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_parameters">
+        <source>Avoid unused parameters</source>
+        <target state="new">Avoid unused parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_files">
@@ -82,9 +102,199 @@
         <target state="translated">"FixAllScope.Custom" wird mit dieser API nicht unterstützt</target>
         <note />
       </trans-unit>
+      <trans-unit id="For_locals_parameters_and_members">
+        <source>For locals, parameters and members</source>
+        <target state="new">For locals, parameters and members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="For_member_access_expressions">
+        <source>For member access expressions</source>
+        <target state="new">For member access expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ignore_spaces_in_declaration_statements">
+        <source>Ignore spaces in declaration statements</source>
+        <target state="new">Ignore spaces in declaration statements</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic operators</source>
+        <target state="new">In arithmetic operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators</source>
+        <target state="new">In other binary operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_operators">
+        <source>In other operators</source>
+        <target state="new">In other operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_relational_binary_operators">
+        <source>In relational operators</source>
+        <target state="new">In relational operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_block_contents">
+        <source>Indent block contents</source>
+        <target state="new">Indent block contents</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_case_contents">
+        <source>Indent case contents</source>
+        <target state="new">Indent case contents</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_case_contents_when_block">
+        <source>Indent case contents (when block)</source>
+        <target state="new">Indent case contents (when block)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_case_labels">
+        <source>Indent case labels</source>
+        <target state="new">Indent case labels</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_open_and_close_braces">
+        <source>Indent open and close braces</source>
+        <target state="new">Indent open and close braces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_Size">
+        <source>Indentation Size</source>
+        <target state="new">Indentation Size</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
         <target state="translated">Einzüge und Abstände</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_Final_Newline">
+        <source>Insert Final Newline</source>
+        <target state="new">Insert Final Newline</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_after_cast">
+        <source>Insert space after cast</source>
+        <target state="new">Insert space after cast</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_after_colon_for_base_or_interface_in_type_declaration">
+        <source>Insert space after colon for base or interface in type declaration</source>
+        <target state="new">Insert space after colon for base or interface in type declaration</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_after_comma">
+        <source>Insert space after comma</source>
+        <target state="new">Insert space after comma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_after_dot">
+        <source>Insert space after dot</source>
+        <target state="new">Insert space after dot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_after_keywords_in_control_flow_statements">
+        <source>Insert space after keywords in control flow statements</source>
+        <target state="new">Insert space after keywords in control flow statements</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_after_semicolon_in_for_statement">
+        <source>Insert space after semicolon in "for" statement</source>
+        <target state="new">Insert space after semicolon in "for" statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_before_colon_for_base_or_interface_in_type_declaration">
+        <source>Insert space before colon for base or interface in type declaration</source>
+        <target state="new">Insert space before colon for base or interface in type declaration</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_before_comma">
+        <source>Insert space before comma</source>
+        <target state="new">Insert space before comma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_before_dot">
+        <source>Insert space before dot</source>
+        <target state="new">Insert space before dot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_before_open_square_bracket">
+        <source>Insert space before open square bracket</source>
+        <target state="new">Insert space before open square bracket</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_before_semicolon_in_for_statement">
+        <source>Insert space before semicolon in "for" statement</source>
+        <target state="new">Insert space before semicolon in "for" statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
+        <source>Insert space between method name and its opening parenthesis</source>
+        <target state="new">Insert space between method name and its opening parenthesis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
+        <source>Insert space between method name and its opening parenthesis</source>
+        <target state="new">Insert space between method name and its opening parenthesis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_argument_list_parentheses">
+        <source>Insert space within argument list parentheses</source>
+        <target state="new">Insert space within argument list parentheses</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_empty_argument_list_parentheses">
+        <source>Insert space within empty argument list parentheses</source>
+        <target state="new">Insert space within empty argument list parentheses</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
+        <source>Insert space within empty parameter list parentheses</source>
+        <target state="new">Insert space within empty parameter list parentheses</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_empty_square_brackets">
+        <source>Insert space within empty square brackets</source>
+        <target state="new">Insert space within empty square brackets</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_parameter_list_parentheses">
+        <source>Insert space within parameter list parentheses</source>
+        <target state="new">Insert space within parameter list parentheses</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_parentheses">
+        <source>Insert space within parentheses</source>
+        <target state="new">Insert space within parentheses</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_spaces_within_square_brackets">
+        <source>Insert spaces within square brackets</source>
+        <target state="new">Insert spaces within square brackets</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Label_Indentation">
+        <source>Label Indentation</source>
+        <target state="new">Label Indentation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Leave_block_on_single_line">
+        <source>Leave block on single line</source>
+        <target state="new">Leave block on single line</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Leave_statements_and_member_declarations_on_the_same_line">
+        <source>Leave statements and member declarations on the same line</source>
+        <target state="new">Leave statements and member declarations on the same line</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_Line">
+        <source>New Line</source>
+        <target state="new">New Line</target>
         <note />
       </trans-unit>
       <trans-unit id="New_line_preferences">
@@ -97,9 +307,49 @@
         <target state="translated">Nur ein Übermittlungsprojekt kann auf Übermittlungsprojekte verweisen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Operator_placement_when_wrapping">
+        <source>Operator placement when wrapping</source>
+        <target state="new">Operator placement when wrapping</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Options_did_not_come_from_specified_Solution">
         <source>Options did not come from specified Solution</source>
         <target state="translated">Optionen stammen nicht aus der angegebenen Projektmappe.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_catch_on_new_line">
+        <source>Place "catch" on new line</source>
+        <target state="new">Place "catch" on new line</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_else_on_new_line">
+        <source>Place "else" on new line</source>
+        <target state="new">Place "else" on new line</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_finally_on_new_line">
+        <source>Place "finally" on new line</source>
+        <target state="new">Place "finally" on new line</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_members_in_anonymous_types_on_new_line">
+        <source>Place members in anonymous types on new line</source>
+        <target state="new">Place members in anonymous types on new line</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_members_in_object_initializers_on_new_line">
+        <source>Place members in object initializers on new line</source>
+        <target state="new">Place members in object initializers on new line</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line">
+        <source>Place open brace on new line</source>
+        <target state="new">Place open brace on new line</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_query_expression_clauses_on_new_line">
+        <source>Place query expression clauses on new line</source>
+        <target state="new">Place query expression clauses on new line</target>
         <note />
       </trans-unit>
       <trans-unit id="Predefined_conversion_from_0_to_1">
@@ -107,9 +357,104 @@
         <target state="translated">Vordefinierte Konvertierung von "{0}" in "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_coalesce_expression">
+        <source>Prefer coalesce expression</source>
+        <target state="new">Prefer coalesce expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_collection_initializer">
+        <source>Prefer collection initializer</source>
+        <target state="new">Prefer collection initializer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_compound_assignments">
+        <source>Prefer compound assignments</source>
+        <target state="new">Prefer compound assignments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
+        <source>Prefer conditional expression over 'if' with assignments</source>
+        <target state="new">Prefer conditional expression over 'if' with assignments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
+        <source>Prefer conditional expression over 'if' with returns</source>
+        <target state="new">Prefer conditional expression over 'if' with returns</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_explicit_tuple_name">
+        <source>Prefer explicit tuple name</source>
+        <target state="new">Prefer explicit tuple name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_inferred_anonymous_type_member_names">
+        <source>Prefer inferred anonymous type member names</source>
+        <target state="new">Prefer inferred anonymous type member names</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_inferred_tuple_names">
+        <source>Prefer inferred tuple element names</source>
+        <target state="new">Prefer inferred tuple element names</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="new">Prefer 'is null' for reference equality checks</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_namespace_and_folder_match_structure">
+        <source>Prefer namespace and folder match structure</source>
+        <target state="new">Prefer namespace and folder match structure</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_null_propagation">
+        <source>Prefer null propagation</source>
+        <target state="new">Prefer null propagation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_object_initializer">
+        <source>Prefer object initializer</source>
+        <target state="new">Prefer object initializer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly_fields">
+        <source>Prefer readonly fields</source>
+        <target state="new">Prefer readonly fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simplified_boolean_expressions">
+        <source>Prefer simplified boolean expressions</source>
+        <target state="new">Prefer simplified boolean expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simplified_interpolation">
+        <source>Prefer simplified interpolation</source>
+        <target state="new">Prefer simplified interpolation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Project_does_not_contain_specified_reference">
         <source>Project does not contain specified reference</source>
         <target state="translated">Der angegebene Verweis ist im Projekt nicht enthalten.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_event_access_with_this_or_Me">
+        <source>Qualify event access with 'this' or 'Me'</source>
+        <target state="new">Qualify event access with 'this' or 'Me'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_field_access_with_this_or_Me">
+        <source>Qualify field access with 'this' or 'Me'</source>
+        <target state="new">Qualify field access with 'this' or 'Me'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_method_access_with_this_or_Me">
+        <source>Qualify method access with 'this' or 'Me'</source>
+        <target state="new">Qualify method access with 'this' or 'Me'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_property_access_with_this_or_Me">
+        <source>Qualify property access with 'this' or 'Me'</source>
+        <target state="new">Qualify property access with 'this' or 'Me'</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -130,6 +475,16 @@
       <trans-unit id="Rename_0_to_1">
         <source>Rename '{0}' to '{1}'</source>
         <target state="translated">"{0}" in "{1}" umbenennen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Require_accessibility_modifiers">
+        <source>Require accessibility modifiers</source>
+        <target state="new">Require accessibility modifiers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_spacing_for_operators">
+        <source>Set spacing for operators</source>
+        <target state="new">Set spacing for operators</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
@@ -222,6 +577,11 @@
         <target state="translated">Namespace mit Ordnerstruktur synchronisieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="Tab_Size">
+        <source>Tab Size</source>
+        <target state="new">Tab Size</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed">
         <source>The contents of a SourceGeneratedDocument may not be changed.</source>
         <target state="translated">Der Inhalt eines SourceGeneratedDocument kann nicht geändert werden.</target>
@@ -240,6 +600,11 @@
       <trans-unit id="Unknown">
         <source>Unknown</source>
         <target state="translated">Unbekannt</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Tabs">
+        <source>Use Tabs</source>
+        <target state="new">Use Tabs</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">

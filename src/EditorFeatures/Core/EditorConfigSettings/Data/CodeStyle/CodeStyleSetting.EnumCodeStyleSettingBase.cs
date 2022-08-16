@@ -46,26 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             public override DiagnosticSeverity Severity => GetOption().Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden;
             public override string[] GetValues() => _valueDescriptions;
             protected abstract CodeStyleOption2<T> GetOption();
-            protected static ImmutableArray<string>? GetSettingValuesHelper(IEditorConfigStorageLocation2? storageLocation, OptionSet optionSet)
-            {
-                var type = typeof(T);
-                var strings = new List<string>();
-                var enumValues = type.GetEnumValues();
-
-                foreach (var enumValue in enumValues)
-                {
-                    var codeStyleSetting = new CodeStyleOption2<T>((T)enumValue!, NotificationOption2.Silent);
-                    var option = storageLocation?.GetEditorConfigStringValue(codeStyleSetting, optionSet);
-                    if (option != null)
-                    {
-                        // TODO: Switch to EditorConfig value holder: https://github.com/dotnet/roslyn/issues/63329
-                        option = option.Contains(':') ? option.Split(':').First() : option;
-                        strings.Add(option);
-                    }
-                }
-
-                return strings.ToImmutableArray();
-            }
         }
     }
 }

@@ -113,14 +113,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                 return null;
             }
             var documentation = setting.GetDocumentation();
-            var commitCharacters = _settingNameCommitCharacters;
 
-            return CreateCompletionItem(name, name, CompletionItemKind.Property, documentation, commitCharacters);
+            return CreateCompletionItem(name, name, CompletionItemKind.Property, documentation, _settingNameCommitCharacters);
         }
 
-        private static CompletionItem[]? GenerateSettingValuesCompletionItem(IEditorConfigSettingInfo setting, bool additional, OptionSet optionSet, bool allowsMultipleValues = false)
+        private static CompletionItem[]? GenerateSettingValuesCompletionItem(IEditorConfigSettingInfo setting, bool additional, OptionSet optionSet)
         {
             var values = new List<CompletionItem>();
+            var allowsMultipleValues = setting.AllowsMultipleValues();
 
             // User may type a ',' but not in a setting that allows multiple values
             if (additional && (!allowsMultipleValues))
@@ -162,9 +162,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             var foundSetting = settingsSnapshot.Where(sett => sett.GetSettingName() == settingName);
             if (foundSetting.Any())
             {
-                // TODO: Switch to EditorConfig value holder: https://github.com/dotnet/roslyn/issues/63329
-                var allowsMultipleValues = settingName == "csharp_new_line_before_open_brace" || settingName == "csharp_space_between_parentheses";
-                return GenerateSettingValuesCompletionItem(foundSetting.First(), multipleValues, optionSet, allowsMultipleValues: allowsMultipleValues);
+                return GenerateSettingValuesCompletionItem(foundSetting.First(), multipleValues, optionSet);
             }
 
             return null;

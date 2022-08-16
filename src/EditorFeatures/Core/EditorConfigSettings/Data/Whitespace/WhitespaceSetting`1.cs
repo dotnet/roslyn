@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                 return _visualStudioOptions.GetOption(_option);
             }
         }
+        public IEditorConfigData EditorConfigData;
 
         public override Type Type => typeof(T);
         public override string Category => _option.Group.Description;
@@ -59,12 +61,14 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                  AnalyzerConfigOptions options,
                                  OptionSet visualStudioOptions,
                                  OptionUpdater updater,
-                                 SettingLocation location)
+                                 SettingLocation location,
+                                 IEditorConfigData editorConfigData)
             : base(description, updater, location)
         {
             _option = option;
             _options = options;
             _visualStudioOptions = visualStudioOptions;
+            EditorConfigData = editorConfigData;
         }
 
         public override void SetValue(object value)
@@ -75,5 +79,25 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         }
 
         public override object? GetValue() => Value;
+
+        public override string? GetSettingName()
+        {
+            return EditorConfigData.GetSettingName();
+        }
+
+        public override string GetDocumentation()
+        {
+            return Description;
+        }
+
+        public override ImmutableArray<string>? GetSettingValues(OptionSet _)
+        {
+            return EditorConfigData.GetAllSettingValues();
+        }
+
+        public override bool AllowsMultipleValues()
+        {
+            return EditorConfigData.GetAllowsMultipleValues();
+        }
     }
 }

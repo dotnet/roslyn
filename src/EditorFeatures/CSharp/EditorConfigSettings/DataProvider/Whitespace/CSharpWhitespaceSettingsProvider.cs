@@ -4,8 +4,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.EditorConfigSettings;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp;
@@ -38,68 +38,68 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
 
         private IEnumerable<WhitespaceSetting> GetSpacingOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)
         {
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName, CSharpEditorResources.Insert_space_between_method_name_and_its_opening_parenthesis2, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceWithinMethodDeclarationParenthesis, CSharpEditorResources.Insert_space_within_parameter_list_parentheses, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBetweenEmptyMethodDeclarationParentheses, CSharpEditorResources.Insert_space_within_empty_parameter_list_parentheses, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceAfterMethodCallName, CSharpEditorResources.Insert_space_between_method_name_and_its_opening_parenthesis1, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceWithinMethodCallParentheses, CSharpEditorResources.Insert_space_within_argument_list_parentheses, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses, CSharpEditorResources.Insert_space_within_empty_argument_list_parentheses, editorConfigOptions, visualStudioOptions, updaterService, FileName);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpacingAfterMethodDeclarationName);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceWithinMethodDeclarationParenthesis, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceWithinMethodDeclarationParenthesis);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBetweenEmptyMethodDeclarationParentheses, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceBetweenEmptyMethodDeclarationParentheses);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceAfterMethodCallName, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceAfterMethodCallName);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceWithinMethodCallParentheses, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceWithinMethodCallParentheses);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceBetweenEmptyMethodCallParentheses);
 
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceAfterControlFlowStatementKeyword, CSharpEditorResources.Insert_space_after_keywords_in_control_flow_statements, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceWithinExpressionParentheses, CSharpEditorResources.Insert_space_within_parentheses_of_expressions, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceWithinCastParentheses, CSharpEditorResources.Insert_space_within_parentheses_of_type_casts, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceWithinOtherParentheses, CSharpEditorResources.Insert_spaces_within_parentheses_of_control_flow_statements, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceAfterCast, CSharpEditorResources.Insert_space_after_cast, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, CSharpEditorResources.Ignore_spaces_in_declaration_statements, editorConfigOptions, visualStudioOptions, updaterService, FileName);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceAfterControlFlowStatementKeyword, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceAfterControlFlowStatementKeyword);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceWithinExpressionParentheses, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceBetweenParentheses, description: CSharpEditorResources.Insert_space_within_parentheses_of_expressions);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceWithinCastParentheses, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceBetweenParentheses, description: CSharpEditorResources.Insert_space_within_parentheses_of_type_casts);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceWithinOtherParentheses, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceBetweenParentheses, description: CSharpEditorResources.Insert_spaces_within_parentheses_of_control_flow_statements);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceAfterCast, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceAfterCast);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpacesIgnoreAroundVariableDeclaration);
 
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBeforeOpenSquareBracket, CSharpEditorResources.Insert_space_before_open_square_bracket, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBetweenEmptySquareBrackets, CSharpEditorResources.Insert_space_within_empty_square_brackets, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceWithinSquareBrackets, CSharpEditorResources.Insert_spaces_within_square_brackets, editorConfigOptions, visualStudioOptions, updaterService, FileName);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBeforeOpenSquareBracket, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceBeforeOpenSquareBracket);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBetweenEmptySquareBrackets, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceBetweenEmptySquareBrackets);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceWithinSquareBrackets, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceWithinSquareBrackets);
 
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceAfterColonInBaseTypeDeclaration, CSharpEditorResources.Insert_space_after_colon_for_base_or_interface_in_type_declaration, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceAfterComma, CSharpEditorResources.Insert_space_after_comma, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceAfterDot, CSharpEditorResources.Insert_space_after_dot, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceAfterSemicolonsInForStatement, CSharpEditorResources.Insert_space_after_semicolon_in_for_statement, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBeforeColonInBaseTypeDeclaration, CSharpEditorResources.Insert_space_before_colon_for_base_or_interface_in_type_declaration, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBeforeComma, CSharpEditorResources.Insert_space_before_comma, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBeforeDot, CSharpEditorResources.Insert_space_before_dot, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement, CSharpEditorResources.Insert_space_before_semicolon_in_for_statement, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpacingAroundBinaryOperator, CSharpEditorResources.Set_spacing_for_operators, editorConfigOptions, visualStudioOptions, updaterService, FileName);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceAfterColonInBaseTypeDeclaration, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceAfterColonInBaseTypeDeclaration);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceAfterComma, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceAfterComma);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceAfterDot, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceAfterDot);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceAfterSemicolonsInForStatement, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceAfterSemicolonsInForStatement);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBeforeColonInBaseTypeDeclaration, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceBeforeColonInBaseTypeDeclaration);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBeforeComma, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceBeforeComma);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBeforeDot, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceBeforeDot);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpaceBeforeSemicolonsInForStatement);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.SpacingAroundBinaryOperator, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.SpacingAroundBinaryOperator);
         }
 
         private IEnumerable<WhitespaceSetting> GetNewLineOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)
         {
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLinesForBracesInTypes, CSharpEditorResources.Place_open_brace_on_new_line_for_types, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLinesForBracesInMethods, CSharpEditorResources.Place_open_brace_on_new_line_for_methods_local_functions, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLinesForBracesInProperties, CSharpEditorResources.Place_open_brace_on_new_line_for_properties_indexers_and_events, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLinesForBracesInAccessors, CSharpEditorResources.Place_open_brace_on_new_line_for_property_indexer_and_event_accessors, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods, CSharpEditorResources.Place_open_brace_on_new_line_for_anonymous_methods, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, CSharpEditorResources.Place_open_brace_on_new_line_for_control_blocks, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes, CSharpEditorResources.Place_open_brace_on_new_line_for_anonymous_types, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, CSharpEditorResources.Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLinesForBracesInLambdaExpressionBody, CSharpEditorResources.Place_open_brace_on_new_line_for_lambda_expression, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLineForElse, CSharpEditorResources.Place_else_on_new_line, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLineForCatch, CSharpEditorResources.Place_catch_on_new_line, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLineForFinally, CSharpEditorResources.Place_finally_on_new_line, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLineForMembersInObjectInit, CSharpEditorResources.Place_members_in_object_initializers_on_new_line, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLineForMembersInAnonymousTypes, CSharpEditorResources.Place_members_in_anonymous_types_on_new_line, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLineForClausesInQuery, CSharpEditorResources.Place_query_expression_clauses_on_new_line, editorConfigOptions, visualStudioOptions, updaterService, FileName);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLinesForBracesInTypes, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.NewLineBeforeOpenBrace, description: CSharpEditorResources.Place_open_brace_on_new_line_for_types);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLinesForBracesInMethods, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.NewLineBeforeOpenBrace, description: CSharpEditorResources.Place_open_brace_on_new_line_for_methods_local_functions);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLinesForBracesInProperties, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.NewLineBeforeOpenBrace, description: CSharpEditorResources.Place_open_brace_on_new_line_for_properties_indexers_and_events);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLinesForBracesInAccessors, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.NewLineBeforeOpenBrace, description: CSharpEditorResources.Place_open_brace_on_new_line_for_property_indexer_and_event_accessors);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.NewLineBeforeOpenBrace, description: CSharpEditorResources.Place_open_brace_on_new_line_for_anonymous_methods);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.NewLineBeforeOpenBrace, description: CSharpEditorResources.Place_open_brace_on_new_line_for_control_blocks);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.NewLineBeforeOpenBrace, description: CSharpEditorResources.Place_open_brace_on_new_line_for_anonymous_types);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.NewLineBeforeOpenBrace, description: CSharpEditorResources.Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLinesForBracesInLambdaExpressionBody, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.NewLineBeforeOpenBrace, description: CSharpEditorResources.Place_open_brace_on_new_line_for_lambda_expression);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLineForElse, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.NewLineForElse);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLineForCatch, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.NewLineForCatch);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLineForFinally, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.NewLineForFinally);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLineForMembersInObjectInit, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.NewLineForMembersInObjectInit);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLineForMembersInAnonymousTypes, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.NewLineForMembersInAnonymousTypes);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.NewLineForClausesInQuery, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.NewLineForClausesInQuery);
         }
 
         private IEnumerable<WhitespaceSetting> GetIndentationOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)
         {
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.IndentBlock, CSharpEditorResources.Indent_block_contents, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.IndentBraces, CSharpEditorResources.Indent_open_and_close_braces, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.IndentSwitchCaseSection, CSharpEditorResources.Indent_case_contents, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock, CSharpEditorResources.Indent_case_contents_when_block, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.IndentSwitchSection, CSharpEditorResources.Indent_case_labels, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.LabelPositioning, CSharpEditorResources.Label_Indentation, editorConfigOptions, visualStudioOptions, updaterService, FileName);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.IndentBlock, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.IndentBlock);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.IndentBraces, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.IndentBraces);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.IndentSwitchCaseSection, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.IndentSwitchCaseSection);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.IndentSwitchCaseSectionWhenBlock);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.IndentSwitchSection, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.IndentSwitchSection);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.LabelPositioning, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.LabelPositioning);
         }
 
         private IEnumerable<WhitespaceSetting> GetWrappingOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)
         {
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.WrappingPreserveSingleLine, CSharpEditorResources.Leave_block_on_single_line, editorConfigOptions, visualStudioOptions, updaterService, FileName);
-            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine, CSharpEditorResources.Leave_statements_and_member_declarations_on_the_same_line, editorConfigOptions, visualStudioOptions, updaterService, FileName);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.WrappingPreserveSingleLine, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.WrappingPreserveSingleLine);
+            yield return WhitespaceSetting.Create(CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine, editorConfigOptions, visualStudioOptions, updaterService, FileName, CSharpEditorConfigSettingsValueHolder.WrappingKeepStatementsOnSingleLine);
         }
     }
 }
