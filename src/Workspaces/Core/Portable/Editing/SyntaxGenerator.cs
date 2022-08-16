@@ -205,6 +205,7 @@ namespace Microsoft.CodeAnalysis.Editing
         private protected virtual SyntaxNode OperatorDeclaration(
             int syntaxKind,
             bool isChecked,
+            bool isImplicitConversion,
             IEnumerable<SyntaxNode>? parameters = null,
             SyntaxNode? returnType = null,
             Accessibility accessibility = Accessibility.NotApplicable,
@@ -221,13 +222,19 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             if (method.MethodKind != MethodKind.UserDefinedOperator)
             {
-                throw new ArgumentException("Method is not an operator.");
+                throw new ArgumentException($"Method kind '{method.MethodKind}' is not an operator.");
             }
+
+            // This method currently supports MethodKind.UserDefinedOperator, but not MethodKind.Conversion.
+            // If we supported conversion, we'll delete these asserts and correctly pass isImplicitConversion below.
+            Debug.Assert(!method.Name.Equals(WellKnownMemberNames.ImplicitConversionName, StringComparison.OrdinalIgnoreCase));
+            Debug.Assert(!method.Name.Equals(WellKnownMemberNames.ExplicitConversionName, StringComparison.OrdinalIgnoreCase));
 
             var kind = GetOperatorSyntaxKind(method, out var isChecked);
             var decl = OperatorDeclaration(
                 kind,
                 isChecked,
+                isImplicitConversion: false,
                 parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
                 returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType),
                 accessibility: method.DeclaredAccessibility,

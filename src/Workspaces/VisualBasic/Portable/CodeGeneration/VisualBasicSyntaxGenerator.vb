@@ -806,15 +806,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                       Optional modifiers As DeclarationModifiers = Nothing,
                                                       Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
 
+            Return OperatorDeclaration(DirectCast(GetTokenKind(kind), UShort), isChecked:=False, isImplicitConversion:=kind = OperatorKind.ImplicitConversion, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Private Protected Overrides Function OperatorDeclaration(syntaxKindInt As Integer, isChecked As Boolean, isImplicitConversion As Boolean, Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
             Dim statement As OperatorStatementSyntax
             Dim asClause = If(returnType IsNot Nothing, SyntaxFactory.SimpleAsClause(DirectCast(returnType, TypeSyntax)), Nothing)
             Dim parameterList = GetParameterList(parameters)
-            Dim operatorToken = SyntaxFactory.Token(GetTokenKind(kind))
+            Dim vbSyntaxKind As SyntaxKind = DirectCast(Convert.ToUInt16(syntaxKindInt), SyntaxKind)
+            Dim operatorToken = SyntaxFactory.Token(vbSyntaxKind)
             Dim modifierList As SyntaxTokenList = GetModifierList(accessibility, modifiers And s_methodModifiers, declaration:=Nothing, DeclarationKind.Operator)
 
-            If kind = OperatorKind.ImplicitConversion OrElse kind = OperatorKind.ExplicitConversion Then
+            If vbSyntaxKind = SyntaxKind.CTypeKeyword Then
                 modifierList = modifierList.Add(SyntaxFactory.Token(
-                    If(kind = OperatorKind.ImplicitConversion, SyntaxKind.WideningKeyword, SyntaxKind.NarrowingKeyword)))
+                    If(isImplicitConversion, SyntaxKind.WideningKeyword, SyntaxKind.NarrowingKeyword)))
                 statement = SyntaxFactory.OperatorStatement(
                     attributeLists:=Nothing, modifiers:=modifierList, operatorToken:=operatorToken,
                     parameterList:=parameterList, asClause:=asClause)
@@ -833,6 +838,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     statements:=GetStatementList(statements),
                     endOperatorStatement:=SyntaxFactory.EndOperatorStatement())
             End If
+        End Function
+
+        Private Protected Overrides Function GetOperatorSyntaxKind(method As IMethodSymbol, ByRef isChecked As Boolean) As Integer
+            isChecked = False
+            Return DirectCast(VisualBasic.SyntaxFacts.GetOperatorKind(method.Name), UShort)
         End Function
 
         Private Shared Function GetTokenKind(kind As OperatorKind) As SyntaxKind
