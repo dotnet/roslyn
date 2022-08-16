@@ -4063,7 +4063,7 @@ public static class Test
         throw null!;
     }
 
-    public static IEnumerable<int> Foo() {
+    public static IEnumerable<int> Iterator() {
         // Verify that the ref struct is usable
         using var handle = RentArray<int>(200, out var array);
   
