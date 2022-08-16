@@ -228,6 +228,15 @@ namespace RunTests
                 }
                 else
                 {
+                    // Downloaded files will sometimes be blocked by windows for loading in certain versions of .net framework
+                    // with an exception similar to:
+                    //     "System.NotSupportedException : An attempt was made to load an assembly from a network location which would have caused the assembly to be sandboxed in previous versions of the .NET Framework
+                    //     This release of the .NET Framework does not enable CAS policy by default, so this load may be dangerous.
+                    //     If this load is not intended to sandbox the assembly, please enable the loadFromRemoteSources switch."
+                    //
+                    // We put these files here, so we just tell windows to unblock them.
+                    command.AppendLine("powershell.exe \"dir -Recurse | Unblock-File\"");
+
                     // Windows cmd doesn't have an easy way to set the output of a command to a variable.
                     // So send the output of the command to a file, then set the variable based on the file.
                     command.AppendLine("where /r %DOTNET_ROOT% vstest.console.dll > temp.txt");
