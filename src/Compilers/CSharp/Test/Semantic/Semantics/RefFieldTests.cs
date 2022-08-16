@@ -12986,7 +12986,7 @@ ref struct Item
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
-            verifier.VerifyIL("C.M", @"
+            verifier.VerifyIL("C.Main", @"
 {
   // Code size       42 (0x2a)
   .maxstack  2
