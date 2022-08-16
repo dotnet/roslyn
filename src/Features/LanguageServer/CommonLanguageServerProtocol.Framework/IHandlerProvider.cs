@@ -3,13 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using StreamJsonRpc;
 
 namespace CommonLanguageServerProtocol.Framework;
 
-// TODO: Seems like we might not need it? I thought it would be useful for creating your own LanguageServer but if we provide useful virtuals that shouldn't happen.
-public interface ILanguageServer : IAsyncDisposable
+/// <summary>
+/// Manages handler discovery and distribution.
+/// </summary>
+public interface IHandlerProvider
 {
+    ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods();
+
+    IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType);
 }

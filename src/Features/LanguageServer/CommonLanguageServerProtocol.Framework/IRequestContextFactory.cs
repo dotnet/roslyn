@@ -5,11 +5,19 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-#nullable enable
-
 namespace CommonLanguageServerProtocol.Framework;
 
+/// <summary>
+/// A factory for creating <typeparamref name="TRequestContext"/> objects from <see cref="IQueueItem{RequestContextType}"/>'s.
+/// </summary>
+/// <typeparam name="TRequestContext">The type of the RequestContext to be used by the handler.</typeparam>
 public interface IRequestContextFactory<TRequestContext>
 {
-    Task<TRequestContext?> CreateRequestContextAsync(IQueueItem<TRequestContext> queueItem, CancellationToken queueCancellationToken, CancellationToken requestCancellationToken);
+    /// <summary>
+    /// Create a <typeparamref name="TRequestContext"/> object from the given <see cref="IQueueItem{RequestContextType}"/>.
+    /// </summary>
+    /// <param name="queueItem">The <see cref="IQueueItem{RequestContextType}"/> from which to create a request.</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<TRequestContext> CreateRequestContextAsync(IQueueItem<TRequestContext> queueItem, CancellationToken cancellationToken);
 }

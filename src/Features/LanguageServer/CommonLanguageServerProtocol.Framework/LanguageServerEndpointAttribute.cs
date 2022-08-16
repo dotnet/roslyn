@@ -7,16 +7,19 @@ using CommonLanguageServerProtocol.Framework;
 
 namespace CommonLanguageServerProtocol.Framework;
 
+/// <summary>
+/// An attribute which identifies the method which an <see cref="IMethodHandler"/> implements.
+/// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
 public class LanguageServerEndpointAttribute : Attribute
 {
     /// <summary>
-    /// Contains the method that this <see cref="IRequestHandler{RequestContextType}"/> implements.
+    /// Contains the method that this <see cref="IMethodHandler"/> implements.
     /// </summary>
     public string Method { get; }
 
     public LanguageServerEndpointAttribute(string method)
     {
-        throw new NotImplementedException();
+        Method = method;
     }
 }

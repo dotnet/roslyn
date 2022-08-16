@@ -6,43 +6,20 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-#nullable enable
-
 namespace CommonLanguageServerProtocol.Framework;
 
-/// <summary>
-/// Top level type for LSP request handler.
-/// </summary>
-public interface IRequestHandler
+public interface IRequestHandler<TRequestType, TResponseType, TRequestContextType> : IMethodHandler
 {
     /// <summary>
-    /// Whether or not the solution state on the server is modified
-    /// as a part of handling this request.
+    /// Gets the identifier of the document from the request, if the request provides one.
     /// </summary>
-    bool MutatesSolutionState { get; }
-
-    /// <summary>
-    /// Whether or not the handler execution queue should build a solution that represents the LSP
-    /// state of the world. If this property is not set <see cref="RequestContext.Solution"/> will be <see langword="null"/>
-    /// and <see cref="RequestContext.Document"/> will be <see langword="null"/>, even if <see cref="IRequestHandler{RequestType, ResponseType, RequestContextType}.GetTextDocumentUri(RequestType)"/>
-    /// doesn't return null. Handlers should still provide text document information if possible to
-    /// ensure the correct workspace is found and validated.
-    /// </summary>
-    bool RequiresLSPSolution { get; }
-}
-
-public interface IRequestHandler<RequestType, ResponseType, RequestContextType> : IRequestHandler
-{
-    /// <summary>
-    /// Gets the identifier of the document from the request, if the request provides one. Can be Uri, TextDocumentIdentifier, or anything else your RequestContextFactory can handle.
-    /// </summary>
-    object? GetTextDocumentUri(RequestType request);
+    object? GetTextDocumentIdentifier(TRequestType request);
 
     /// <summary>
     /// Handles an LSP request in the context of the supplied document and/or solutuion.
     /// </summary>
-    /// <param name="context">The LSP request context, which should have been filled in with document information from <see cref="GetTextDocumentUri(RequestType)"/> if applicable.</param>
+    /// <param name="context">The LSP request context, which should have been filled in with document information from <see cref="GetTextDocumentIdentifier(TRequestType)"/> if applicable.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the request processing.</param>
     /// <returns>The LSP response.</returns>
-    Task<ResponseType> HandleRequestAsync(RequestType request, RequestContextType context, CancellationToken cancellationToken);
+    Task<TResponseType> HandleRequestAsync(TRequestType request, TRequestContextType context, CancellationToken cancellationToken);
 }

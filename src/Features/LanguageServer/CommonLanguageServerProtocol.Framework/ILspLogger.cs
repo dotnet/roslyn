@@ -3,16 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading.Tasks;
 
 namespace CommonLanguageServerProtocol.Framework;
 
-// Open to suggestions about changes here, gut feeling is that these are the wrong abstractions.
 public interface ILspLogger
 {
-    void TraceInformation(string message);
-    void TraceWarning(string message);
-    void TraceError(string message);
-    void TraceException(Exception exception);
-    void TraceStart(string message);
-    void TraceStop(string message);
+    Task LogStartContextAsync(string message, params object[] @params);
+    Task LogEndContextAsync(string message, params object[] @params);
+    Task LogInformationAsync(string message, params object[] @params);
+    Task LogWarningAsync(string message, params object[] @params);
+    Task LogErrorAsync(string message, params object[] @params);
+    Task LogExceptionAsync(Exception exception, string? message = null, params object[] @params);
 }

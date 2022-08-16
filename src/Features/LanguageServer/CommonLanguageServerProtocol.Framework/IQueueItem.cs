@@ -8,27 +8,31 @@ using System.Threading.Tasks;
 
 namespace CommonLanguageServerProtocol.Framework;
 
-#nullable enable
-
+/// <summary>
+/// An item to be queued for execution.
+/// </summary>
+/// <typeparam name="RequestContextType">The type of the request context to be passed along to the handler.</typeparam>
 public interface IQueueItem<RequestContextType>
 {
     /// <summary>
     /// Begins executing the work specified by this queue item.
     /// </summary>
-    Task CallbackAsync(RequestContextType? context, CancellationToken cancellationToken);
+    Task StartRequestAsync(RequestContextType context, CancellationToken cancellationToken);
 
-    /// <inheritdoc cref="IRequestHandler.RequiresLSPSolution" />
-    bool RequiresLSPSolution { get; }
+    /// <summary>
+    /// Indicates that this request may mutate the document state, so that the queue may handle its execution appropriatly.
+    /// </summary>
+    bool MutatesDocumentState { get; }
 
-    /// <inheritdoc cref="IRequestHandler.MutatesSolutionState" />
-    bool MutatesSolutionState { get; }
-
+    /// <summary>
+    /// The method being executed.
+    /// </summary>
     string MethodName { get; }
 
     /// <summary>
-    /// The document identifier that will be used to find the solution and document for this request. This comes from the TextDocumentIdentifier returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType, TResponseContextType}.GetTextDocumentUri(RequestType)"/>.
+    /// The document identifier that will be used to find the solution and document for this request.
+    /// This comes from the TextDocumentIdentifier returned from the handler itself via a call to 
+    /// <see cref="IRequestHandler{RequestType, ResponseType, TResponseContextType}.GetTextDocumentIdentifier(RequestType)"/>.
     /// </summary>
     object? TextDocument { get; }
-
-    void OnExecutionStart();
 }

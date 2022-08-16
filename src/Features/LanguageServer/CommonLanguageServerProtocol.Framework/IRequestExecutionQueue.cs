@@ -6,21 +6,43 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-#nullable enable
-
 namespace CommonLanguageServerProtocol.Framework;
 
-public interface IRequestExecutionQueue<RequestContextType>
+/// <summary>
+/// Queue's requests to be Executed in the proper order.
+/// </summary>
+/// <typeparam name="RequestContextType">The type of the RequestContext to be used by the handler.</typeparam>
+public interface IRequestExecutionQueue<RequestContextType> : IAsyncDisposable
 {
-    Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(bool mutatesSolutionState, bool requiresLSPSolution, IRequestHandler<TRequestType, TResponseType, RequestContextType> handler, TRequestType? request, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
+    ///// <summary>
+    ///// Queue a request for a notifcation with a parameter.
+    ///// </summary>
+    ///// <typeparam name="TRequestType"></typeparam>
+    ///// <returns>A task that completes when the handler execution is done.</returns>
+    //Task ExecuteAsync<TRequestType>(TRequestType? request, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
 
-    Task ExecuteAsync<TRequestType>(bool mutatesSolutionState, bool requiresLSPSolution, INotificationHandler<TRequestType, RequestContextType> handler, TRequestType? request, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
+    ///// <summary>
+    ///// Queue a request for a parameterless notification.
+    ///// </summary>
+    ///// <returns>A task that completes when the handler execution is done.</returns>
+    //Task ExecuteAsync(string methodName, ILspServices lspServices, CancellationToken cancellationToken);
 
-    Task ExecuteAsync(bool mutatesSolutionState, bool requiresLSPSolution, INotificationHandler<RequestContextType> handler, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
+    /// <summary>
+    /// Queue a request.
+    /// </summary>
+    /// <returns>A task that completes when the handler execution is done.</returns>
+    Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(TRequestType request, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Start the queue accepting requests once any event handlers have been attached.
+    /// </summary>
+    /// <param name="lspServices"><see cref="ILspServices"/> used by the queue.</param>
     void Start(ILspServices lspServices);
 
-    void Shutdown();
-
+    /// <summary>
+    /// Raised when the execution queue has failed, or the solution state its tracking is in an unknown state
+    /// and so the only course of action is to shutdown the server so that the client re-connects and we can
+    /// start over again.
+    /// </summary>
     event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 }

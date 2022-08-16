@@ -4,16 +4,22 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace CommonLanguageServerProtocol.Framework;
 
-// TODO: Does this need a GetRequiredServices<T> or is that too specific to some implementations?
 public interface ILspServices : IDisposable
 {
-    T GetRequiredService<T>();
+    T GetRequiredService<T>() where T : notnull;
 
-    bool TryGetService(Type @type, out object service);
+    object? TryGetService(Type @type);
+
+    IEnumerable<T> GetRequiredServices<T>();
 
     ImmutableArray<Type> GetRegisteredServices();
+
+    bool SupportsGetRegisteredServices();
+
+    bool SupportsGetRequiredServices();
 }

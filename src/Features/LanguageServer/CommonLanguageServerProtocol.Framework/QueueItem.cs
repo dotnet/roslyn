@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -13,11 +11,17 @@ using Microsoft.VisualStudio.Threading;
 
 namespace CommonLanguageServerProtocol.Framework;
 
-public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueueItem<RequestContextType>
+/// <summary>
+/// A placeholder type to help handle Notification messages.
+/// </summary>
+internal record VoidReturn
 {
-    public bool RequiresLSPSolution { get; }
+    public static VoidReturn Instance = new();
+}
 
-    public bool MutatesSolutionState { get; }
+internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueueItem<RequestContextType>
+{
+    public bool MutatesDocumentState { get; }
 
     public string MethodName { get; }
 
@@ -25,28 +29,24 @@ public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueue
 
     public QueueItem(
         bool mutatesSolutionState,
-        bool requiresLSPSolution,
         string methodName,
         object? textDocument,
         TRequestType request,
-        IRequestHandler handler,
+        IMethodHandler handler,
         ILspLogger logger,
         CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
     }
 
     public static (IQueueItem<RequestContextType>, Task<TResponseType>) Create(
         bool mutatesSolutionState,
-        bool requiresLSPSolution,
         string methodName,
         object? textDocument,
         TRequestType request,
-        IRequestHandler handler,
+        IMethodHandler handler,
         ILspLogger logger,
         CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
     }
 
     /// <summary>
@@ -54,13 +54,10 @@ public class QueueItem<TRequestType, TResponseType, RequestContextType> : IQueue
     /// representing the task that the client is waiting for, then re-thrown so that
     /// the queue can correctly handle them depending on the type of request.
     /// </summary>
-    public async Task CallbackAsync(RequestContextType? context, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    //TODO: Should we delete this?
-    public virtual void OnExecutionStart()
+    /// <param name="context">The context for the request. If null the request will return emediatly. The context may be null when for example document context could not be resolved.</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>The result of the request.</returns>
+    public async Task StartRequestAsync(RequestContextType? context, CancellationToken cancellationToken)
     {
     }
 }
