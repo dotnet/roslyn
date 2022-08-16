@@ -289,7 +289,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return (int)operatorKind;
         }
 
-
         private static SyntaxKind GetTokenKind(OperatorKind kind)
             => kind switch
             {
