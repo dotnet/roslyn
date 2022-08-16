@@ -63,6 +63,7 @@ static class Utils
         private static readonly string s_expressionOfTDelegate1ArgTypeName = ExecutionConditionUtil.IsDesktop ?
             "System.Linq.Expressions.Expression`1" :
             "System.Linq.Expressions.Expression1`1";
+        private static readonly string s_libPrefix = ExecutionConditionUtil.IsDesktop ? "mscorlib" : "netstandard";
 
         [Fact]
         public void LanguageVersion()
@@ -11493,6 +11494,756 @@ class Program
   .maxstack  0
   IL_0000:  ret
 }");
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameter()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    static void Report(object d) => Console.WriteLine(d.GetType());
+    public static void Main()
+    {   
+        var lam = (int x = 30) => x;
+        Console.WriteLine(lam() + " " + lam(10));
+        Report(lam);
+    } 
+}
+""";
+
+            var expectAnonymousDelegateIL =
+$@"
+.class private auto ansi sealed '<>f__AnonymousDelegate0'
+	extends [{s_libPrefix}]System.MulticastDelegate
+{{
+	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			object 'object',
+			native int 'method'
+		) runtime managed 
+	{{
+	}} // end of method '<>f__AnonymousDelegate0'::.ctor
+	.method public hidebysig newslot virtual 
+		instance int32 Invoke (
+			[opt] int32 ''
+		) runtime managed 
+	{{
+		.param [1] = int32(30)
+	}} // end of method '<>f__AnonymousDelegate0'::Invoke
+}} // end of class <>f__AnonymousDelegate0
+";
+
+            var expectLoweredClosureContainerIL =
+$@"
+    .class nested private auto ansi sealed serializable beforefieldinit '<>c'
+    extends [{s_libPrefix}]System.Object
+{{
+    .custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Fields
+    .field public static initonly class Program/'<>c' '<>9'
+    .field public static class '<>f__AnonymousDelegate0' '<>9__1_0'
+    // Methods
+    .method private hidebysig specialname rtspecialname static 
+        void .cctor () cil managed 
+    {{
+        // Method begins at RVA 0x20ca
+        // Code size 11 (0xb)
+        .maxstack 8
+        IL_0000: newobj instance void Program/'<>c'::.ctor()
+        IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+        IL_000a: ret
+    }} // end of method '<>c'::.cctor
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {{
+        // Method begins at RVA 0x20c2
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [{s_libPrefix}]System.Object::.ctor()
+        IL_0006: ret
+    }} // end of method '<>c'::.ctor
+    .method assembly hidebysig 
+        instance int32 '<Main>b__1_0' (
+            [opt] int32 x
+        ) cil managed 
+    {{
+        .param [1] = int32(30)
+        // Method begins at RVA 0x20d6
+        // Code size 2 (0x2)
+        .maxstack 8
+        IL_0000: ldarg.1
+        IL_0001: ret
+    }} // end of method '<>c'::'<Main>b__1_0'
+}} // end of class <>c
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"30 10
+<>f__AnonymousDelegate0");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", expectAnonymousDelegateIL);
+            verifier.VerifyTypeIL("<>c", expectLoweredClosureContainerIL);
+        }
+
+        [Fact]
+        public void LambdaWithMultipleDefaultParameters()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static string Report(object obj) => obj.GetType().ToString();
+    public static void Main()
+    {
+        var lam = (int a = 1, int b = 2, int c = 3) => a + b + c;
+        Console.WriteLine(lam(2) + " " + Report(lam));
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, expectedOutput: "7 <>f__AnonymousDelegate0");
+        }
+
+        [Fact]
+        public void LambdaWithOptionalAndDefaultParameters()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static string Report(object obj) => obj.GetType().ToString();
+    public static void Main()
+    {
+        var lam = (string s1, string s2 = "b", string s3 = "c") => s1 + s2 + s3;
+        Console.WriteLine(lam("a") + " " + Report(lam));
+    }
+}
+""";
+            var expectAnonymousDelegateIL =
+$@"
+.class private auto ansi sealed '<>f__AnonymousDelegate0'
+	extends [{s_libPrefix}]System.MulticastDelegate
+{{
+	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			object 'object',
+			native int 'method'
+		) runtime managed 
+	{{
+	}} // end of method '<>f__AnonymousDelegate0'::.ctor
+	.method public hidebysig newslot virtual 
+		instance string Invoke (
+			string '',
+			[opt] string '',
+			[opt] string ''
+		) runtime managed 
+	{{
+		.param [2] = ""b""
+		.param [3] = ""c""
+	}} // end of method '<>f__AnonymousDelegate0'::Invoke
+}} // end of class <>f__AnonymousDelegate0
+";
+
+            var expectLoweredClosureContainerIL =
+$@"
+    .class nested private auto ansi sealed serializable beforefieldinit '<>c'
+	extends [{s_libPrefix}]System.Object
+{{
+	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public static initonly class Program/'<>c' '<>9'
+	.field public static class '<>f__AnonymousDelegate0' '<>9__1_0'
+	// Methods
+	.method private hidebysig specialname rtspecialname static 
+		void .cctor () cil managed 
+	{{
+		// Method begins at RVA 0x20bf
+		// Code size 11 (0xb)
+		.maxstack 8
+		IL_0000: newobj instance void Program/'<>c'::.ctor()
+		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+		IL_000a: ret
+	}} // end of method '<>c'::.cctor
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{{
+		// Method begins at RVA 0x20b7
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [{s_libPrefix}]System.Object::.ctor()
+		IL_0006: ret
+	}} // end of method '<>c'::.ctor
+	.method assembly hidebysig 
+		instance string '<Main>b__1_0' (
+			string s1,
+			[opt] string s2,
+			[opt] string s3
+		) cil managed 
+	{{
+		.param [2] = ""b""
+		.param [3] = ""c""
+		// Method begins at RVA 0x20cb
+		// Code size 9 (0x9)
+		.maxstack 8
+		IL_0000: ldarg.1
+		IL_0001: ldarg.2
+		IL_0002: ldarg.3
+		IL_0003: call string [{s_libPrefix}]System.String::Concat(string, string, string)
+		IL_0008: ret
+	}} // end of method '<>c'::'<Main>b__1_0'
+}} // end of class <>c
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput: "abc <>f__AnonymousDelegate0");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", expectAnonymousDelegateIL);
+            verifier.VerifyTypeIL("<>c", expectLoweredClosureContainerIL);
+        }
+
+        [Fact]
+        public void LambdaWithIdenticalSignatureDifferentDefaultValue()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object obj) => Console.WriteLine(obj.GetType()); 
+    public static void Main()
+    {
+        var lam1 = (int x = 10) => x + x;
+        var lam2 = (int x = 20) => x + x;
+        Report(lam1);
+        Report(lam2);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
+");
+        }
+
+        [Fact]
+        public void LambdaWithIdenticalSignatureIdenticalDefaultValue()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object obj) => Console.WriteLine(obj.GetType()); 
+    public static void Main()
+    {
+        var lam1 = (int x = 10) => x + x;
+        var lam2 = (int x = 10) => x + 1;
+        Report(lam1);
+        Report(lam2);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+ @"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate0");
+        }
+
+        [Fact]
+        public void LambdaWithIdenticalSignatureOptionalMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object obj) => Console.WriteLine(obj.GetType()); 
+    public static void Main()
+    {
+        var lam1 = (int x = 10) => x + x;
+        var lam2 = (int x) => x + 1;
+        Report(lam1);
+        Report(lam2);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0
+System.Func`2[System.Int32,System.Int32]
+");
+
+        }
+
+        [Fact]
+        public void LambdaIdenticalArityIdenticalDefaultParamDifferentRequiredParams()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object obj) => Console.WriteLine(obj.GetType()); 
+    public static void Main()
+    {
+        var lam1 = (double d, int x = 10) => { };
+        var lam2 = (string s, int x = 10) => { };
+        Report(lam1);
+        Report(lam2);
+    }
+}
+""";
+
+            // PROTOTYPE: these two delegate types could be unified into a single anonymous delegate class that has a type parameter
+            // for the first argument, so the invoke would look like `<>f__AnonymousDelegate0<T>::Invoke(T arg1, int arg2 = 10)`.
+            // Do we want to change the behavior here to avoid generating too many anonymous delegates?
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1");
+        }
+
+        [Fact]
+        public void LambdaConversionDefaultParameterValueMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object obj) => Console.WriteLine(obj.GetType()); 
+    public static void Main()
+    {
+        var lam1 = (int x = 10) => x + x;
+        var lam2 = (int x = 20) => x + 1;
+        lam1 = lam2;
+        lam1();
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,16): error CS0029: Cannot implicitly convert type '<anonymous delegate>' to '<anonymous delegate>'
+                //         lam1 = lam2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "lam2").WithArguments("<anonymous delegate>", "<anonymous delegate>").WithLocation(10, 16));
+        }
+
+        [Fact]
+        public void LambdaDefaultParameterNameMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object obj) => Console.WriteLine(obj.GetType()); 
+    public static void Main()
+    {
+        var lam1 = (int x = 10) => x + x;
+        var lam2 = (int a = 10) => a + a;
+        lam1 = lam2;
+        Console.WriteLine(lam1());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "20");
+        }
+
+        [Fact]
+        public void LambdaWithDefaultNamedDelegateConversion_DefaultValueMatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate int D(int x = 1);
+    public static void Main()
+    {
+        D d = (int x = 1) => x + x;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "2");
+        }
+
+        [Fact]
+        public void LambdaWithDefaultNamedDelegateConversion_DefaultValueMismatch()
+        {
+
+            var source = """
+using System;
+
+class Program
+{
+    delegate int D(int x = 1);
+    public static void Main()
+    {
+        D d = (int x = 1000) => x + x;
+        Console.WriteLine(d());
+    }
+}
+""";
+
+            // PROTOTYPE: we want to have a warning here, because the default value when calling the named delegate will come from the delegate
+            // itself and not the underlying lambda which could be confusing.
+            CompileAndVerify(source, expectedOutput: "2");
+        }
+
+        [Fact]
+        public void LambdaWithDefaultNamedDelegateConversion_RequiredOptionalMismatch()
+        {
+            var source = """
+class Program
+{
+    // Named delegate has required parameter x
+    delegate int D(int x);
+    public static void Main()
+    {
+        // lambda has optional parameter x
+        D d = (int x = 1000) => x + x;
+        d();
+    }
+}
+""";
+            // PROTOTYPE: we want to add a warning here, since we have an implicit target-type conversion from a lambda WITH an optional parameter
+            // to a named delegate WITHOUT one, so the default value was useless to specify in code.
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Program.D'
+                    //         d();
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("x", "Program.D").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void LambdaOptionalBeforeRequiredBadConversion()
+        {
+
+            var source = """
+class Program
+{
+    public static void Main()
+    {
+        // lambda has optional parameter x
+        var lam1 = (int x, int y = 10, int z) => x * x + y * y + z * z;
+        var lam2 = (int x, int y, int z) => x * x + y * y + z * z;
+
+        lam2 = lam1;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,45): error CS1737: Optional parameters must appear after all required parameters
+                //         var lam1 = (int x, int y = 10, int z) => x * x + y * y + z * z;
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(6, 45),
+                // (9,16): error CS0029: Cannot implicitly convert type '<anonymous delegate>' to 'System.Func<int, int, int, int>'
+                //         lam2 = lam1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "lam1").WithArguments("<anonymous delegate>", "System.Func<int, int, int, int>").WithLocation(9, 16));
+        }
+
+        [Fact]
+        public void LambdaRequiredBetweenOptionalsParameters()
+        {
+            var source = """
+    class Program
+    {
+        public static void Main()
+        {
+            var lam = (string s1 = null, string s2, string s3, string s4, string s5 = "") => s5;
+        }
+    }
+    """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,47): error CS1737: Optional parameters must appear after all required parameters
+                //         var lam = (string s1 = null, string s2, string s3, string s4, string s5 = "") => s5;
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ",").WithLocation(5, 47),
+                // (5,58): error CS1737: Optional parameters must appear after all required parameters
+                //         var lam = (string s1 = null, string s2, string s3, string s4, string s5 = "") => s5;
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ",").WithLocation(5, 58),
+                // (5,69): error CS1737: Optional parameters must appear after all required parameters
+                //         var lam = (string s1 = null, string s2, string s3, string s4, string s5 = "") => s5;
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ",").WithLocation(5, 69));
+        }
+
+        [Fact]
+        public void LambdaWithDefaultInvalidTargetTypeConversion_01()
+        {
+            var source = """
+    class Program
+    {
+        delegate double D(int x, int d = 3);
+        public static void Main()
+        {
+            D d = (int x, double d = 3.0) => x + d;
+        }
+    }
+    """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,15): error CS1661: Cannot convert lambda expression to type 'Program.D' because the parameter types do not match the delegate parameter types
+                //         D d = (int x, double d = 3.0) => x + d;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(int x, double d = 3.0) => x + d").WithArguments("lambda expression", "Program.D").WithLocation(6, 15),
+                // (6,30): error CS1678: Parameter 2 is declared as type 'double' but should be 'int'
+                //         D d = (int x, double d = 3.0) => x + d;
+                Diagnostic(ErrorCode.ERR_BadParamType, "d").WithArguments("2", "", "double", "", "int").WithLocation(6, 30));
+        }
+
+        [Fact]
+        public void LambdaWithInvalidDefaultValidTargetTypeConversion_02()
+        {
+            var source = """
+    class A
+    { }
+
+    class B : A
+    { }
+
+    class Program
+    {
+        delegate double D(int x, B b = null);
+        public static void Main()
+        {
+            D d = (int x, A a = null) => { };
+        }
+    }
+    """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,15): error CS1661: Cannot convert lambda expression to type 'Program.D' because the parameter types do not match the delegate parameter types
+                //         D d = (int x, A a = null) => { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(int x, A a = null) => { }").WithArguments("lambda expression", "Program.D").WithLocation(12, 15),
+                // (12,25): error CS1678: Parameter 2 is declared as type 'A' but should be 'B'
+                //         D d = (int x, A a = null) => { };
+                Diagnostic(ErrorCode.ERR_BadParamType, "a").WithArguments("2", "", "A", "", "B").WithLocation(12, 25));
+        }
+
+        [Fact]
+        public void LambdaWithDefaultsAndRefParameters()
+        {
+
+            var source = """
+    using System;
+
+    class Program
+    {
+        static void Report(object d) => Console.WriteLine(d.GetType());
+        public static void Main()
+        {
+            int x = 9;
+            var lam = (ref int x, out int y, int z = 3) => { y = x + z; };
+            lam(ref x, out var y);
+            lam(ref x, out var w, 20);
+
+            Console.WriteLine(y);
+            Console.WriteLine(w);
+            Report(lam);
+        }
+    }
+    """;
+            var expectAnonymousDelegateIL =
+$@"
+    .class private auto ansi sealed '<>f__AnonymousDelegate0'
+	extends [{s_libPrefix}]System.MulticastDelegate
+{{
+	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			object 'object',
+			native int 'method'
+		) runtime managed 
+	{{
+	}} // end of method '<>f__AnonymousDelegate0'::.ctor
+	.method public hidebysig newslot virtual 
+		instance void Invoke (
+			int32& '',
+			[out] int32& '',
+			[opt] int32 ''
+		) runtime managed 
+	{{
+		.param [3] = int32(3)
+	}} // end of method '<>f__AnonymousDelegate0'::Invoke
+}} // end of class <>f__AnonymousDelegate0
+";
+
+            var expectLoweredClosureContainerIL =
+$@"
+.class nested private auto ansi sealed serializable beforefieldinit '<>c'
+	extends [{s_libPrefix}]System.Object
+{{
+	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field public static initonly class Program/'<>c' '<>9'
+	.field public static class '<>f__AnonymousDelegate0' '<>9__1_0'
+	// Methods
+	.method private hidebysig specialname rtspecialname static 
+		void .cctor () cil managed 
+	{{
+		// Method begins at RVA 0x20bf
+		// Code size 11 (0xb)
+		.maxstack 8
+		IL_0000: newobj instance void Program/'<>c'::.ctor()
+		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
+		IL_000a: ret
+	}} // end of method '<>c'::.cctor
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{{
+		// Method begins at RVA 0x20b7
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [{s_libPrefix}]System.Object::.ctor()
+		IL_0006: ret
+	}} // end of method '<>c'::.ctor
+	.method assembly hidebysig 
+		instance void '<Main>b__1_0' (
+			int32& x,
+			[out] int32& y,
+			[opt] int32 z
+		) cil managed 
+	{{
+		.param [3] = int32(3)
+		// Method begins at RVA 0x20cb
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.2
+		IL_0001: ldarg.1
+		IL_0002: ldind.i4
+		IL_0003: ldarg.3
+		IL_0004: add
+		IL_0005: stind.i4
+		IL_0006: ret
+	}} // end of method '<>c'::'<Main>b__1_0'
+}} // end of class <>c
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput:
+ @"12
+29
+<>f__AnonymousDelegate0");
+            verifier.VerifyTypeIL("<>f__AnonymousDelegate0", expectAnonymousDelegateIL);
+            verifier.VerifyTypeIL("<>c", expectLoweredClosureContainerIL);
+        }
+
+        [Fact]
+        public void LambdaOutOfOrderParameterInvocation_AllParametersSpecified()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Main()
+    {
+        var lam = (string a, string b, string c = "c") => $"{a}{b}{c}";
+        Console.WriteLine(lam(b: "b", c: "a", a: "c"));
+    }
+ }
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,31): error CS1746: The delegate '<anonymous delegate>' does not have a parameter named 'b'
+                //         Console.WriteLine(lam(b: "b", c: "a", a: "c"));
+                Diagnostic(ErrorCode.ERR_BadNamedArgumentForDelegateInvoke, "b").WithArguments("<anonymous delegate>", "b").WithLocation(8, 31));
+        }
+
+        [Fact]
+        public void LambdaOutOfOrderParameterInvocation_MissingOptionalParameter()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Main()
+    {
+        var lam = (string a, string b, string c = "c") => $"{a}{b}{c}";
+        Console.WriteLine(lam(b: "a", a: "b"));
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,31): error CS1746: The delegate '<anonymous delegate>' does not have a parameter named 'b'
+                //         Console.WriteLine(lam(b: "a", a: "b"));
+                Diagnostic(ErrorCode.ERR_BadNamedArgumentForDelegateInvoke, "b").WithArguments("<anonymous delegate>", "b").WithLocation(8, 31));
+        }
+
+        [Fact]
+        public void LambdaOptionalParameterDecimalExpression()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Main()
+    {
+        var lam = (decimal dec =  Decimal.One / (decimal) 3) => dec; 
+        Console.WriteLine(lam());
+    }
+
+}
+""";
+            CompileAndVerify(source, expectedOutput: "0.3333333333333333333333333333");
+        }
+
+
+        // PROTOTYPE: Do we want to allow [Caller{MemberName, LineNumber, FilePath, ArgumentExpression}] attributes for lambdas since
+        // we now have default parameters? The current behavior is to ignore these attributes so that the provided
+        // default would always be used in these cases.
+
+        [Fact]
+        public void CallerAttributesOnLambdaWithDefaultParam()
+        {
+            var source = """
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        var lam = ([CallerMemberName] string member = "member", [CallerFilePath] string filePath = "file", [CallerLineNumber] int lineNumber = 0) => Console.WriteLine($"{filePath}::{member}:{lineNumber}");
+        lam();
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "file::member:0");
+        }
+
+
+        [Fact]
+        public void CallerArgumentExpressionAttributeOnLambdaWithDefaultParam()
+        {
+            var source = """
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        var lam = (int arg, [CallerArgumentExpression("arg")] string argExpression = "callerArgExpression") => Console.WriteLine($"{argExpression}");
+        lam(3);
+    }
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net60,
+                                     verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped,
+                                     expectedOutput: ExecutionConditionUtil.IsCoreClr ? "callerArgExpression" : null);
         }
     }
 }

@@ -264,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static bool isValidTypeArgument(AnonymousTypeField field)
             {
                 return hasDefaultScope(field) &&
+                    field.DefaultValue is null &&
                     field.Type is { } type &&
                     !type.IsPointerOrFunctionPointer() &&
                     !type.IsRestrictedType();

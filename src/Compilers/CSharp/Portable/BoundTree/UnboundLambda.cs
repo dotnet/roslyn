@@ -651,16 +651,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var param = lambdaSymbol.Parameters[i];
                 var constVal = param.ExplicitDefaultConstantValue;
-                if (constVal != null)
+                if (constVal != null && parameterDefaultValueBuilder == null)
                 {
-                    if (parameterDefaultValueBuilder == null)
-                    {
-                        parameterDefaultValueBuilder = ArrayBuilder<ConstantValue?>.GetInstance(ParameterCount);
+                    parameterDefaultValueBuilder = ArrayBuilder<ConstantValue?>.GetInstance(ParameterCount);
+                    parameterDefaultValueBuilder.AddMany(null, i);
+                }
 
-                        // front fill the array with nulls because all the parameters before this one must have been non-default.
-                        parameterDefaultValueBuilder.AddMany(null, i);
-                    }
-
+                if (parameterDefaultValueBuilder != null)
+                {
                     parameterDefaultValueBuilder.Add(constVal);
                 }
             }
@@ -702,7 +700,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnType,
                 parameterRefKinds,
                 parameterScopes,
-                parameterTypes);
+                parameterTypes,
+                parameterDefaultValues);
         }
 
         private BoundLambda ReallyBind(NamedTypeSymbol delegateType, bool inExpressionTree)
