@@ -77,7 +77,7 @@ namespace AnalyzerRunner
                 switch (incrementalAnalyzerName)
                 {
                     case nameof(SymbolTreeInfoIncrementalAnalyzerProvider):
-                        var symbolTreeInfoCacheService = _workspace.Services.GetRequiredService<ISymbolTreeInfoCacheService>();
+                        var symbolTreeInfoCacheService = _workspace.Services.GetRequiredService<SymbolTreeInfoCacheService>();
                         var symbolTreeInfo = await symbolTreeInfoCacheService.TryGetSourceSymbolTreeInfoAsync(_workspace.CurrentSolution.Projects.First(), cancellationToken).ConfigureAwait(false);
                         if (symbolTreeInfo is null)
                         {

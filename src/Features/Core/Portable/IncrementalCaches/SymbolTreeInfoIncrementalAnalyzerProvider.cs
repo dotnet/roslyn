@@ -40,6 +40,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new SymbolTreeInfoIncrementalAnalyzer(workspace.Services.SolutionServices.GetRequiredService<ISymbolTreeInfoCacheService>());
+            => new SymbolTreeInfoIncrementalAnalyzer(workspace.Services.SolutionServices.GetRequiredService<SymbolTreeInfoCacheService>());
     }
 }
