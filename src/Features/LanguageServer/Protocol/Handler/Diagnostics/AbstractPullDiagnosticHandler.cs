@@ -292,7 +292,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             if (!diagnosticData.TryGetUnnecessaryDataLocations(out var unnecessaryLocations))
             {
                 // There are no specific fading locations, just mark the whole diagnostic span as unnecessary.
-                diagnostic.Tags = diagnostic.Tags?.Append(DiagnosticTag.Unnecessary);
+                // We should always have at least one tag (build or intellisense error).
+                Contract.ThrowIfNull(diagnostic.Tags, $"diagnostic {diagnostic.Identifier} was missing tags");
+                diagnostic.Tags = diagnostic.Tags.Append(DiagnosticTag.Unnecessary);
                 return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
             }
 
@@ -303,6 +305,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             foreach (var location in unnecessaryLocations)
             {
                 var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, capabilities);
+                additionalDiagnostic.Severity = LSP.DiagnosticSeverity.Hint;
                 additionalDiagnostic.Range = GetRange(location);
                 additionalDiagnostic.Tags = new DiagnosticTag[] { DiagnosticTag.Unnecessary, VSDiagnosticTags.HiddenInEditor, VSDiagnosticTags.HiddenInErrorList, VSDiagnosticTags.SuppressEditorToolTip };
                 diagnosticsBuilder.Add(additionalDiagnostic);
@@ -423,8 +426,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedFadingOption(diagnosticData.Id, out var fadingOption))
             {
-                return diagnosticData.Language != null
-                    && GlobalOptions.GetOption(fadingOption, diagnosticData.Language);
+                Contract.ThrowIfNull(diagnosticData.Language, $"diagnostic {diagnosticData.Id} is missing a language");
+                return GlobalOptions.GetOption(fadingOption, diagnosticData.Language);
             }
 
             return true;
