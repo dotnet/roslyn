@@ -240,6 +240,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 assignedValues.SetEquals(fields);
         }
 
+        public static INamedTypeSymbol? GetIEquatableType(Compilation compilation, INamedTypeSymbol containingType)
+        {
+            // can't use nameof since it's generic and we need the type parameter
+            var equatableMetadataName = compilation.GetBestTypeByMetadataName("System.IEquatable`1")?.MetadataName;
+            return containingType.Interfaces.FirstOrDefault(
+                    iface => iface.MetadataName == equatableMetadataName);
+        }
+
         private static ImmutableArray<(ISymbol left, T right)> GetAssignmentValuesForConstructor<T>(
             ImmutableArray<IOperation> operations,
             Func<IOperation, T?> captureAssignedSymbol)
@@ -890,14 +898,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             }
 
             return false;
-        }
-
-        private static INamedTypeSymbol? GetIEquatableType(Compilation compilation, INamedTypeSymbol containingType)
-        {
-            // can't use nameof since it's generic and we need the type parameter
-            var equatableMetadataName = compilation.GetBestTypeByMetadataName("System.IEquatable`1")?.MetadataName;
-            return containingType.Interfaces.FirstOrDefault(
-                    iface => iface.MetadataName == equatableMetadataName);
         }
 
         private static IBlockOperation? GetBlockOfMethodBody(IMethodBodyBaseOperation body)
