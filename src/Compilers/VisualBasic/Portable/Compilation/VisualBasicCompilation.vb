@@ -2920,31 +2920,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim vbLeftType = leftType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(leftType))
             Dim vbRightType = returnType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(rightType))
 
-            Select Case name
-                Case WellKnownMemberNames.AdditionOperatorName,
-                     WellKnownMemberNames.ConcatenateOperatorName,
-                     WellKnownMemberNames.LikeOperatorName,
-                     WellKnownMemberNames.EqualityOperatorName,
-                     WellKnownMemberNames.InequalityOperatorName,
-                     WellKnownMemberNames.LessThanOrEqualOperatorName,
-                     WellKnownMemberNames.GreaterThanOrEqualOperatorName,
-                     WellKnownMemberNames.LessThanOperatorName,
-                     WellKnownMemberNames.GreaterThanOperatorName,
-                     WellKnownMemberNames.SubtractionOperatorName,
-                     WellKnownMemberNames.MultiplyOperatorName,
-                     WellKnownMemberNames.ExponentOperatorName,
-                     WellKnownMemberNames.DivisionOperatorName,
-                     WellKnownMemberNames.ModulusOperatorName,
-                     WellKnownMemberNames.IntegerDivisionOperatorName,
-                     WellKnownMemberNames.LeftShiftOperatorName,
-                     WellKnownMemberNames.RightShiftOperatorName,
-                     WellKnownMemberNames.ExclusiveOrOperatorName,
-                     WellKnownMemberNames.BitwiseOrOperatorName,
-                     WellKnownMemberNames.BitwiseAndOperatorName
-                    Exit Select
-                Case Else
-                    Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
-            End Select
+            Dim opInfo = OverloadResolution.GetOperatorInfo(name)
+            If Not opInfo.IsBinary Then
+                Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
+            End If
 
             Return New SynthesizedIntrinsicOperatorSymbol(
                 vbLeftType, name, vbRightType, vbReturnType, isChecked)
@@ -2959,18 +2938,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim vbReturnType = returnType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(returnType))
             Dim vbValueType = returnType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(valueType))
 
-            Select Case name
-                Case WellKnownMemberNames.UnaryPlusOperatorName,
-                     WellKnownMemberNames.UnaryNegationOperatorName,
-                     WellKnownMemberNames.OnesComplementOperatorName,
-                     WellKnownMemberNames.ImplicitConversionName,
-                     WellKnownMemberNames.ExplicitConversionName,
-                     WellKnownMemberNames.TrueOperatorName,
-                     WellKnownMemberNames.FalseOperatorName
-                    Exit Select
-                Case Else
-                    Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
-            End Select
+            Dim opInfo = OverloadResolution.GetOperatorInfo(name)
+            If Not opInfo.IsUnary Then
+                Throw New ArgumentException($"Illegal operator name '{name}'", NameOf(name))
+            End If
 
             Return New SynthesizedIntrinsicOperatorSymbol(
                 vbValueType, name, vbReturnType, isChecked)
