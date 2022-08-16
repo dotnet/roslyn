@@ -7,15 +7,15 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Features
+namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 {
-    internal static class CSharpOperationAnalysisHelpers
+    internal static class ConvertToRecordOperationHelpers
     {
         public static bool IsSimpleEqualsMethod(
             Compilation compilation,
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
                 {
                     if (equatableType != null &&
                         methodSymbol.Parameters.First().Type.SpecialType == SpecialType.System_Object &&
-                        (GetBlockOfMethodBody(methodBodyOperation)) is IBlockOperation
+                        GetBlockOfMethodBody(methodBodyOperation) is IBlockOperation
                         {
                             Operations: [IReturnOperation
                             {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
         {
             if (methodSymbol.Name == nameof(GetHashCode) &&
                 methodSymbol.Parameters.IsEmpty &&
-                UseSystemHashCode.Analyzer.TryGetAnalyzer(compilation, out var analyzer))
+                HashCodeAnalyzer.TryGetAnalyzer(compilation, out var analyzer))
             {
                 // Hash Code method, see if it would be a default implementation that we can remove
                 var (_, members, _) = analyzer.GetHashedMembers(
@@ -180,11 +180,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
             // We expect the constructor to have exactly one statement per parameter,
             // where the statement is a simple assignment from the parameter to the property
             if (body == null || body.Operations.Length != parameters.Length)
-            {
                 return false;
-            }
 
-            var assignmentValues = GetAssignmentValuesForConstructor(body.Operations,
+            var assignmentValues = GetAssignmentValuesForConstructor<IParameterSymbol>(body.Operations,
                 assignment => (assignment as IParameterReferenceOperation)?.Parameter);
 
             var assignedProperties = assignmentValues.SelectAsArray(value => value.left);
@@ -213,11 +211,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
             // We expect the constructor to have exactly one statement per property,
             // where the statement is a simple assignment from the parameter's property to the property
             if (body == null || body.Operations.Length != fields.Length)
-            {
                 return false;
-            }
 
-            var assignmentValues = GetAssignmentValuesForConstructor(body.Operations,
+            var assignmentValues = GetAssignmentValuesForConstructor<IFieldSymbol>(body.Operations,
                 assignment => assignment switch
                 {
                     IPropertyReferenceOperation
@@ -910,9 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features
             while (equals != null)
             {
                 if (Equals(objectEquals, equals))
-                {
                     return true;
-                }
                 equals = equals.OverriddenMethod;
             }
 

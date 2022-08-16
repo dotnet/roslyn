@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Features;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -256,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 if (constructorParamTypes.SequenceEqual(positionalParamTypes))
                 {
                     // found a primary constructor override, now check if we are pretty sure we can remove it safely
-                    if (CSharpOperationAnalysisHelpers.IsSimplePrimaryConstructor(constructorOperation,
+                    if (ConvertToRecordOperationHelpers.IsSimplePrimaryConstructor(constructorOperation,
                         propertiesToMove.SelectAsArray(result => result.Symbol),
                         constructorSymbol.Parameters))
                     {
@@ -274,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 else if (constructorSymbol.Parameters.IsSingle() &&
                     constructorSymbol.Parameters.First().Type.Equals(type))
                 {
-                    if (CSharpOperationAnalysisHelpers.IsSimpleCopyConstructor(constructorOperation,
+                    if (ConvertToRecordOperationHelpers.IsSimpleCopyConstructor(constructorOperation,
                         expectedFields,
                         constructorSymbol.Parameters.First()))
                     {
@@ -307,8 +306,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     .GetRequiredOperation(equalsOp, cancellationToken);
                 var notEqualsBodyOperation = (IMethodBodyOperation)semanticModel
                     .GetRequiredOperation(notEqualsOp, cancellationToken);
-                if (CSharpOperationAnalysisHelpers.IsDefaultEqualsOperator(equalsBodyOperation) &&
-                    CSharpOperationAnalysisHelpers.IsDefaultNotEqualsOperator(notEqualsBodyOperation))
+                if (ConvertToRecordOperationHelpers.IsDefaultEqualsOperator(equalsBodyOperation) &&
+                    ConvertToRecordOperationHelpers.IsDefaultNotEqualsOperator(notEqualsBodyOperation))
                 {
                     // they both evaluate to what would be the generated implementation
                     modifiedMembers.Remove(equalsOp);
@@ -328,12 +327,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     // remove clone method as clone is a reserved method name in records
                     modifiedMembers.Remove(method);
                 }
-                else if (CSharpOperationAnalysisHelpers.IsSimpleHashCodeMethod(
+                else if (ConvertToRecordOperationHelpers.IsSimpleHashCodeMethod(
                     semanticModel.Compilation, methodSymbol, operation, expectedFields))
                 {
                     modifiedMembers.Remove(method);
                 }
-                else if (CSharpOperationAnalysisHelpers.IsSimpleEqualsMethod(
+                else if (ConvertToRecordOperationHelpers.IsSimpleEqualsMethod(
                     semanticModel.Compilation, methodSymbol, operation, expectedFields))
                 {
                     // the Equals method implementation is fundamentally equivalent to the generated one
