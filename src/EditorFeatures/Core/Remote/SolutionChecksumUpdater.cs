@@ -127,8 +127,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _synchronizeWorkspaceQueue.AddWork();
         }
 
-        private async ValueTask SynchronizePrimaryWorkspaceAsync(
-            CancellationToken cancellationToken)
+        private async ValueTask SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
         {
             var solution = _workspace.CurrentSolution;
             if (solution.BranchId != _workspace.PrimaryBranchId)
