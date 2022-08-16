@@ -3890,7 +3890,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or WellKnownMemberNames.DecrementOperatorName
                 or WellKnownMemberNames.TrueOperatorName
                 or WellKnownMemberNames.FalseOperatorName;
-
             if (!nameOk)
                 throw new ArgumentException($"Illegal operator name '{name}'", nameof(name));
 
