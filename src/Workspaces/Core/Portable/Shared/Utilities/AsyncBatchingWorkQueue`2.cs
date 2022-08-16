@@ -47,6 +47,14 @@ namespace Roslyn.Utilities
         /// at all.
         /// </summary>
         private readonly CancellationToken _entireQueueCancellationToken;
+
+        /// <summary>
+        /// Cancellation series we use so we can cancel individual batches of work if requested.  The client of the
+        /// queue can cancel existing work by either calling <see cref="CancelExistingWork"/> directly, or passing <see
+        /// langword="true"/> to <see cref="AddWork(TItem, bool)"/>.  Work in the queue that has not started will be
+        /// immediately discarded. The cancellation token passed to <see cref="_processBatchAsync"/> will be triggered
+        /// allowing the client callback to cooperatively cancel the current batch of work it is performing.
+        /// </summary>
         private readonly CancellationSeries _cancellationSeries;
 
         #region protected by lock
