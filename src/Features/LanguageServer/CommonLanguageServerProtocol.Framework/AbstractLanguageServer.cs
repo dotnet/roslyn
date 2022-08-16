@@ -72,25 +72,6 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
         return handlerProvider;
     }
 
-    //protected virtual IRequestDispatcher<RequestContextType> ConstructDispatcher()
-    //{
-    //    var lspServices = GetLspServices();
-    //    var dispatcher = new RequestDispatcher<RequestContextType>(lspServices);
-    //    SetupRequestDispatcher(dispatcher);
-
-    //    return dispatcher;
-    //}
-
-    //protected IRequestDispatcher<RequestContextType> GetRequestDispatcher()
-    //{
-    //    if (_requestDispatcher is null)
-    //    {
-    //        _requestDispatcher = ConstructDispatcher();
-    //    }
-
-    //    return _requestDispatcher;
-    //}
-
     protected virtual void SetupRequestDispatcher(IHandlerProvider handlerProvider)
     {
         var entryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.EntryPointAsync));
@@ -139,8 +120,11 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
             {
                 throw new NotImplementedException($"An unrecognized {nameof(RequestHandlerMetadata)} situation has occured");
             }
-
-            _jsonRpc.AddLocalRpcMethod(genericEntryPointMethod, delegatingEntryPoint, new JsonRpcMethodAttribute(metadata.MethodName) { UseSingleObjectParameterDeserialization = true });
+            var methodAttribute = new JsonRpcMethodAttribute(metadata.MethodName)
+            {
+                UseSingleObjectParameterDeserialization = true,
+            };
+            _jsonRpc.AddLocalRpcMethod(genericEntryPointMethod, delegatingEntryPoint, methodAttribute);
         }
     }
 
@@ -273,8 +257,12 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
 
         RequestExecutionQueueErroredInternal(e.Message);
 
-        await ShutdownAsync();
-        await ExitAsync();
+        var lspServices = GetLspServices();
+
+        // We want to sue the LifecycleManager to ensure we fire the events
+        var lifeCycleManager = lspServices.GetRequiredService<LifeCycleManager<RequestContextType>>();
+        await lifeCycleManager.ShutdownAsync(e.Message);
+        await lifeCycleManager.ExitAsync();
     }
 
     /// <summary>
@@ -287,11 +275,14 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
             // We're already in the normal shutdown -> exit path, no need to do anything.
             return;
         }
+        var message = $"Encountered unexpected jsonrpc disconnect, Reason={e.Reason}, Description={e.Description}, Exception={e.Exception}";
+        await _logger.LogWarningAsync(message);
 
-        await _logger.LogWarningAsync($"Encountered unexpected jsonrpc disconnect, Reason={e.Reason}, Description={e.Description}, Exception={e.Exception}");
+        var lspServices = GetLspServices();
+        var lifeCycleManager = lspServices.GetRequiredService<LifeCycleManager<RequestContextType>>();
 
-        await ShutdownAsync();
-        await ExitAsync();
+        await lifeCycleManager.ShutdownAsync(message);
+        await lifeCycleManager.ExitAsync();
     }
 
     /// <summary>
@@ -305,8 +296,11 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
             disposableLogger.Dispose();
         }
 
-        await ShutdownAsync();
-        await ExitAsync();
+        var lspServices = GetLspServices();
+        var lifeCycleManager = lspServices.GetRequiredService<LifeCycleManager<RequestContextType>>();
+
+        await lifeCycleManager.ShutdownAsync("Disposing");
+        await lifeCycleManager.ExitAsync();
     }
 
     internal TestAccessor GetTestAccessor()

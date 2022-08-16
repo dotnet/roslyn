@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace CommonLanguageServerProtocol.Framework;
-
+using System;
 using System.Threading.Tasks;
+
+namespace CommonLanguageServerProtocol.Framework;
 
 /// <summary>
 /// Enables the managment of the server lifecycle from outside of the AbstractlanguageServer object.
@@ -31,8 +32,11 @@ public class LifeCycleManager<RequestContextType>
     /// <summary>
     /// Begin shutting down the Language Server, as when <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#shutdown">shutdown</see> is called.
     /// </summary>
-    public Task ShutdownAsync()
+    public async Task ShutdownAsync(string message = "Shutting down")
     {
-        return _target.ShutdownAsync();
+        await _target.ShutdownAsync();
+        OnShutdown?.Invoke(this, new RequestShutdownEventArgs(message));
     }
+
+    public event EventHandler<RequestShutdownEventArgs> OnShutdown;
 }
