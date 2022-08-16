@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 if (x.IsTupleType != y.IsTupleType)
                     return false;
 
-                if (x.IsNativeIntegerType != y.IsNativeIntegerType)
+                if (IsNativeIntegerType(x) != IsNativeIntegerType(y))
                     return false;
 
                 if (x.IsTupleType)
@@ -400,6 +400,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     IsConstructedFromSelf(x) ||
                     x.IsUnboundGenericType ||
                     TypeArgumentsAreEquivalent(x.TypeArguments, y.TypeArguments, equivalentTypesWithDifferingAssemblies);
+            }
+
+            /// <summary>
+            /// When comparing types we consider <see langword="nint" /> and <see cref="System.IntPtr"/> to be equivalent
+            /// but depending on the semantics of the compilations involved, the symbol maybe not represent that
+            /// </summary>
+            private static bool IsNativeIntegerType(INamedTypeSymbol x)
+            {
+                return x.IsNativeIntegerType || x.SpecialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr;
             }
 
             private bool HandleTupleTypes(INamedTypeSymbol x, INamedTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
