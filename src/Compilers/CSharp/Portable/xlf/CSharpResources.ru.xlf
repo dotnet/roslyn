@@ -1132,6 +1132,11 @@
         <target state="translated">Невозможно объявить определяемый пользователем оператор "{0}" как проверенный</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OptionalParamValueMismatch">
+        <source>Parameter {0} has default value '{1}' in lambda and default value '{2}' in delegate.</source>
+        <target state="new">Parameter {0} has default value '{1}' in lambda and default value '{2}' in delegate.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">Выходная переменная не может быть объявлена как локальная переменная ref</target>
@@ -1960,6 +1965,11 @@
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired_Title">
         <source>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</source>
         <target state="translated">Элементы с атрибутом "ObsoleteAttribute" не должны быть обязательными, если содержащий тип или все конструкторы не являются устаревшими.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OptionalRequiredParamMismatch">
+        <source>Parameter {0} is optional in lambda but required in delegate.</source>
+        <target state="new">Parameter {0} is optional in lambda but required in delegate.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">

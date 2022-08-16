@@ -6781,63 +6781,54 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefFieldInNonRefStruct" xml:space="preserve">
     <value>A ref field can only be declared in a ref struct.</value>
   </data>
-
   <data name="WRN_UseDefViolationPropertySupportedVersion" xml:space="preserve">
     <value>Auto-implemented property '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
   <data name="WRN_UseDefViolationPropertySupportedVersion_Title" xml:space="preserve">
     <value>Auto-implemented property is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
-
   <data name="WRN_UseDefViolationFieldSupportedVersion" xml:space="preserve">
     <value>Field '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
   <data name="WRN_UseDefViolationFieldSupportedVersion_Title" xml:space="preserve">
     <value>Field is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
-
   <data name="WRN_UseDefViolationThisSupportedVersion" xml:space="preserve">
     <value>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</value>
   </data>
   <data name="WRN_UseDefViolationThisSupportedVersion_Title" xml:space="preserve">
     <value>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</value>
   </data>
-
   <data name="WRN_UnassignedThisAutoPropertySupportedVersion" xml:space="preserve">
     <value>Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
   <data name="WRN_UnassignedThisAutoPropertySupportedVersion_Title" xml:space="preserve">
     <value>Control is returned to caller before auto-implemented property is explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
-
   <data name="WRN_UnassignedThisSupportedVersion" xml:space="preserve">
     <value>Control is returned to caller before field '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
   <data name="WRN_UnassignedThisSupportedVersion_Title" xml:space="preserve">
     <value>Control is returned to caller before field is explicitly assigned, causing a preceding implicit assignment of 'default'.</value>
   </data>
-
   <data name="ERR_UseDefViolationFieldUnsupportedVersion" xml:space="preserve">
     <value>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</value>
   </data>
   <data name="ERR_UseDefViolationPropertyUnsupportedVersion" xml:space="preserve">
     <value>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</value>
   </data>
-
   <data name="WRN_UseDefViolationFieldUnsupportedVersion" xml:space="preserve">
     <value>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</value>
   </data>
   <data name="WRN_UseDefViolationFieldUnsupportedVersion_Title" xml:space="preserve">
     <value>Use of possibly unassigned field. Consider updating the language version to auto-default the field.</value>
   </data>
-
   <data name="WRN_UseDefViolationPropertyUnsupportedVersion" xml:space="preserve">
     <value>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</value>
   </data>
   <data name="WRN_UseDefViolationPropertyUnsupportedVersion_Title" xml:space="preserve">
     <value>Use of possibly unassigned auto-implemented property. Consider updating the language version to auto-default the property.</value>
   </data>
-
   <data name="ERR_UnsupportedTypeForSlicePattern" xml:space="preserve">
     <value>Slice patterns may not be used for a value of type '{0}'.</value>
   </data>
@@ -7189,6 +7180,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ImplicitlyTypedDefaultParameter" xml:space="preserve">
     <value>Implicitly typed lambda parameter '{0}' cannot have a default value.</value>
+  </data>
+  <data name="ERR_OptionalParamValueMismatch" xml:space="preserve">
+    <value>Parameter {0} has default value '{1}' in lambda and default value '{2}' in delegate.</value>
+  </data>
+  <data name="WRN_OptionalRequiredParamMismatch" xml:space="preserve">
+    <value>Parameter {0} is optional in lambda but required in delegate.</value>
   </data>
   <data name="IDS_FeatureFileTypes" xml:space="preserve">
     <value>file types</value>

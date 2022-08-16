@@ -443,6 +443,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundLambda SuppressIfNeeded(BoundLambda lambda)
             => this.IsSuppressed ? (BoundLambda)lambda.WithSuppression() : lambda;
 
+        public LambdaSymbol? TemporaryLambdaSymbol => Data.LazyInProgressLambdaSymbol;
+
         public bool HasSignature { get { return Data.HasSignature; } }
         public bool HasExplicitReturnType(out RefKind refKind, out TypeWithAnnotations returnType)
             => Data.HasExplicitReturnType(out refKind, out returnType);
@@ -606,15 +608,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return invokeMethod.ReturnTypeWithAnnotations;
         }
 
-        internal NamedTypeSymbol? InferDelegateType()
+        internal (ImmutableArray<RefKind>, ImmutableArray<DeclarationScope>, ImmutableArray<TypeWithAnnotations>) CollectParameterProperties()
         {
-            Debug.Assert(Binder.ContainingMemberOrLambda is { });
-
-            if (!HasExplicitlyTypedParameterList)
-            {
-                return null;
-            }
-
             var parameterRefKindsBuilder = ArrayBuilder<RefKind>.GetInstance(ParameterCount);
             var parameterScopesBuilder = ArrayBuilder<DeclarationScope>.GetInstance(ParameterCount);
             var parameterTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(ParameterCount);
@@ -636,6 +631,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterScopes = parameterScopesBuilder.ToImmutableAndFree();
             var parameterTypes = parameterTypesBuilder.ToImmutableAndFree();
 
+            return (parameterRefKinds, parameterScopes, parameterTypes);
+        }
+
+        internal NamedTypeSymbol? InferDelegateType()
+        {
+            Debug.Assert(Binder.ContainingMemberOrLambda is { });
+
+            if (!HasExplicitlyTypedParameterList)
+            {
+                return null;
+            }
+
+            var (parameterRefKinds, parameterScopes, parameterTypes) = CollectParameterProperties();
             var lambdaSymbol = new LambdaSymbol(
                 Binder,
                 Binder.Compilation,
@@ -825,6 +833,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterRefKinds,
                 refKind,
                 returnType);
+
+        private LambdaSymbol? _lazyLambdaSymbol = null;
+
+        internal LambdaSymbol? LazyInProgressLambdaSymbol
+        {
+            get
+            {
+                Interlocked.CompareExchange(ref _lazyLambdaSymbol, CreateTemporaryLambdaSymbol(), null);
+                return _lazyLambdaSymbol;
+            }
+        }
+
+        internal LambdaSymbol? CreateTemporaryLambdaSymbol()
+        {
+            Debug.Assert(Binder.ContainingMemberOrLambda is { });
+
+            if (!HasExplicitlyTypedParameterList)
+            {
+                return null;
+            }
+
+            var (parameterRefKinds, _, parameterTypes) = CollectParameterProperties();
+            var lambdaSymbol = new LambdaSymbol(
+                Binder,
+                Binder.Compilation,
+                Binder.ContainingMemberOrLambda,
+                _unboundLambda,
+                parameterTypes,
+                parameterRefKinds,
+                refKind: default,
+                returnType: default);
+
+            return lambdaSymbol;
+        }
 
         internal LambdaSymbol CreateLambdaSymbol(NamedTypeSymbol delegateType, Symbol containingSymbol)
         {

@@ -11869,7 +11869,7 @@ using System;
 class Program
 {
     delegate int D(int x = 1);
-    public static void Main()
+    public static void Main()ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped
     {
         D d = (int x = 1) => x + x;
         Console.WriteLine(d());
@@ -11897,9 +11897,41 @@ class Program
 }
 """;
 
-            // PROTOTYPE: we want to have a warning here, because the default value when calling the named delegate will come from the delegate
+            // PROTOTYPE: we want to have an error here, because the default value when calling the named delegate will come from the delegate
             // itself and not the underlying lambda which could be confusing.
-            CompileAndVerify(source, expectedOutput: "2");
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (8,20): error CS9066: Parameter 1 has default value '1000' in lambda and default value '1' in delegate.
+                    //         D d = (int x = 1000) => x + x;
+                    Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "x").WithArguments("1", "1000", "1").WithLocation(8, 20));
+        }
+
+        [Fact]
+        public void LambdaWithDefaultNamedDelegateConversion_DefaultValueMismatchNonConstant()
+        {
+
+            var source = """
+using System;
+
+class Program
+{
+    delegate int D(int x = 1);
+
+    static int f(int x) => 2 * x;
+
+    public static void Main()
+    {
+        D d = (int x = f(1)) => x + x;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (11,20): error CS9066: Parameter 1 has default value 'bad' in lambda and default value '1' in delegate.
+                    //         D d = (int x = f(1)) => x + x;
+                    Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "x").WithArguments("1", "bad", "1").WithLocation(11, 20),
+                    // (11,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                    //         D d = (int x = f(1)) => x + x;
+                    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1)").WithArguments("x").WithLocation(11, 24));
         }
 
         [Fact]
@@ -11914,16 +11946,42 @@ class Program
     {
         // lambda has optional parameter x
         D d = (int x = 1000) => x + x;
-        d();
     }
 }
 """;
             // PROTOTYPE: we want to add a warning here, since we have an implicit target-type conversion from a lambda WITH an optional parameter
             // to a named delegate WITHOUT one, so the default value was useless to specify in code.
             CreateCompilation(source).VerifyDiagnostics(
-                    // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Program.D'
-                    //         d();
-                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("x", "Program.D").WithLocation(9, 9));
+                    // (8,20): warning CS9067: Parameter 1 is optional in lambda but required in delegate.
+                    //         D d = (int x = 1000) => x + x;
+                    Diagnostic(ErrorCode.WRN_OptionalRequiredParamMismatch, "x").WithArguments("1").WithLocation(8, 20));
+        }
+
+        [Fact]
+        public void LambdaWithDefaultNamedDelegateConversion_RequiredOptionalMismatch_WithParameterError()
+        {
+            var source = """
+class Program
+{
+    // Named delegate has required parameter x
+    delegate int D(int x);
+    public static int f(int x) => 2 * x;
+    public static void Main()
+    {
+        // lambda has optional parameter x
+        D d = (int x = f(1000)) => x + x;
+    }
+}
+""";
+            // PROTOTYPE: we want to add a warning here, since we have an implicit target-type conversion from a lambda WITH an optional parameter
+            // to a named delegate WITHOUT one, so the default value was useless to specify in code.
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (9,20): warning CS9067: Parameter 1 is optional in lambda but required in delegate.
+                    //         D d = (int x = f(1000)) => x + x;
+                    Diagnostic(ErrorCode.WRN_OptionalRequiredParamMismatch, "x").WithArguments("1").WithLocation(9, 20),
+                    // (9,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                    //         D d = (int x = f(1000)) => x + x;
+                    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1000)").WithArguments("x").WithLocation(9, 24));
         }
 
         [Fact]

@@ -1969,7 +1969,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // CONSIDER: Instead of computing this again, cache the reason why the conversion failed in
             // CONSIDER: the Conversion result, and simply report that.
-
             var reason = Conversions.IsAnonymousFunctionCompatibleWithType(anonymousFunction, targetType);
 
             // It is possible that the conversion from lambda to delegate is just fine, and
@@ -2158,6 +2157,54 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Parameter {0} must be declared with the '{1}' keyword
                             Error(diagnostics, ErrorCode.ERR_BadParamRef, lambdaParameterLocation, i + 1, delegateRefKind.ToParameterDisplayString());
                         }
+                    }
+                }
+                return;
+            }
+
+            if (reason == LambdaConversionResult.MismatchedParameterDefaultValue)
+            {
+                Debug.Assert(anonymousFunction.ParameterCount == delegateParameters.Length);
+
+                var lambdaSymbol = anonymousFunction.TemporaryLambdaSymbol;
+                Debug.Assert(lambdaSymbol is not null);
+
+                lambdaSymbol.GetDeclarationDiagnostics(diagnostics);
+
+                for (int i = 0; i < anonymousFunction.ParameterCount; i++)
+                {
+
+                    var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
+                    var lambdaParamDefaultVal = lambdaSymbol.Parameters[i].ExplicitDefaultConstantValue;
+                    var delegateParamDefaultVal = delegateParameters[i].ExplicitDefaultConstantValue;
+
+                    if (lambdaParamDefaultVal is not null && delegateParamDefaultVal is not null && lambdaParamDefaultVal != delegateParamDefaultVal)
+                    {
+                        // Parameter {0} has default value '{0}' in lambda and default value '{2}' in delegate
+                        Error(diagnostics, ErrorCode.ERR_OptionalParamValueMismatch, lambdaParameterLocation, i + 1,
+                                lambdaParamDefaultVal.GetValueToDisplay() ?? "null",
+                                delegateParamDefaultVal.GetValueToDisplay() ?? "null");
+                    }
+                }
+                return;
+            }
+
+            if (reason == LambdaConversionResult.TargetMissingDefaultValue)
+            {
+                Debug.Assert(anonymousFunction.ParameterCount == delegateParameters.Length);
+
+                var lambdaSymbol = anonymousFunction.TemporaryLambdaSymbol;
+                Debug.Assert(lambdaSymbol is not null);
+
+                lambdaSymbol.GetDeclarationDiagnostics(diagnostics);
+
+                for (int i = 0; i < anonymousFunction.ParameterCount; i++)
+                {
+                    var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
+                    if (!delegateParameters[i].HasExplicitDefaultValue && lambdaSymbol.Parameters[i].HasExplicitDefaultValue)
+                    {
+                        // Parameter {0} is optional in lambda but required in delegate
+                        Error(diagnostics, ErrorCode.WRN_OptionalRequiredParamMismatch, lambdaParameterLocation, i + 1);
                     }
                 }
                 return;

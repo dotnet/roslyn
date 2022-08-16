@@ -1132,6 +1132,11 @@
         <target state="translated">사용자 정의 연산자 '{0}'은(는) 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OptionalParamValueMismatch">
+        <source>Parameter {0} has default value '{1}' in lambda and default value '{2}' in delegate.</source>
+        <target state="new">Parameter {0} has default value '{1}' in lambda and default value '{2}' in delegate.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">출력 변수는 참조 로컬로 선언할 수 없습니다.</target>
@@ -1960,6 +1965,11 @@
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired_Title">
         <source>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</source>
         <target state="translated">포함하는 형식이 더 이상 사용되지 않거나 모든 생성자가 사용되지 않는 경우가 아니면 'ObsoleteAttribute' 특성을 가진 구성원이 필요하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OptionalRequiredParamMismatch">
+        <source>Parameter {0} is optional in lambda but required in delegate.</source>
+        <target state="new">Parameter {0} is optional in lambda but required in delegate.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">

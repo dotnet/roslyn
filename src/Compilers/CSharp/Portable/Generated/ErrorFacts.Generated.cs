@@ -289,6 +289,7 @@
                 case ErrorCode.WRN_UnassignedThisSupportedVersion:
                 case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
                 case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
+                case ErrorCode.WRN_OptionalRequiredParamMismatch:
                     return true;
                 default:
                     return false;
