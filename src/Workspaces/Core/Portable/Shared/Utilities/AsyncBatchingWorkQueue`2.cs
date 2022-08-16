@@ -251,14 +251,8 @@ namespace Roslyn.Utilities
 
                     // we have an uncanceled item.  The cancellation-token controlling it better be the same as any
                     // cancellation-tokens controlling the other items in this batch.
-                    if (itemCancellationToken == null)
-                    {
-                        itemCancellationToken = cancellationToken;
-                    }
-                    else
-                    {
-                        Contract.ThrowIfFalse(cancellationToken.Equals(itemCancellationToken.Value));
-                    }
+                    itemCancellationToken ??= cancellationToken;
+                    Contract.ThrowIfFalse(cancellationToken.Equals(itemCancellationToken.Value));
                 }
 
                 // mark there being no existing update task so that the next OOP notification will
