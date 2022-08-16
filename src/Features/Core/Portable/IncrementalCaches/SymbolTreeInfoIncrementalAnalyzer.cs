@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 if (!SupportAnalysis(document.Project))
                     return Task.CompletedTask;
 
-                return _cacheService.AnalyzeDocumentAsync(document, bodyOpt, cancellationToken);
+                return _cacheService.AnalyzeDocumentAsync(document, isMethodBodyEdit: bodyOpt != null, cancellationToken);
             }
 
             public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
