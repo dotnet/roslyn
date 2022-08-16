@@ -6,7 +6,7 @@ using System.Collections;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             isUnnecessary: true);
 
         protected AbstractUseCollectionInitializerDiagnosticAnalyzer()
-            : base(ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption>.Empty
+            : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
                     .Add(s_descriptor, CodeStyleOptions2.PreferCollectionInitializer)
                     .Add(s_unnecessaryCodeDescriptor, CodeStyleOptions2.PreferCollectionInitializer))
         {

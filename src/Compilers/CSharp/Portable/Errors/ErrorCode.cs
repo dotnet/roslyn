@@ -1523,7 +1523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeReserved = 8336,
         ERR_RefExtensionMustBeValueTypeOrConstrainedToOne = 8337,
         ERR_InExtensionMustBeValueType = 8338,
-        // ERR_BadParameterModifiersOrder = 8339, // Modifier ordering is relaxed
+        ERR_BadParameterModifiersOrder = 8339,
 
         ERR_FieldsInRoStruct = 8340,
         ERR_AutoPropsInRoStruct = 8341,
@@ -2108,11 +2108,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_AnalyzerReferencesNewerCompiler = 9057,
         ERR_FeatureNotAvailableInVersion11 = 9058,
         ERR_RefFieldInNonRefStruct = 9059,
+        ERR_CannotMatchOnINumberBase = 9060,
+        ERR_MisplacedScoped = 9061,
+        ERR_ScopedTypeNameDisallowed = 9062,
+        ERR_UnscopedRefAttributeUnsupportedTarget = 9063,
+        ERR_RuntimeDoesNotSupportRefFields = 9064,
+        ERR_ExplicitScopedRef = 9065,
 
         #endregion
 
-        // Note: you will need to do the following after adding warnings:
+        // Note: you will need to do the following after adding any code:
+        //  1) Update ErrorFacts.IsBuildOnlyDiagnostic to handle the new error code.
+        // Additionally, after adding a new warning you will need to do the following:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
-        //  2) Update ErrorFacts.IsBuildOnlyDiagnostic to handle the new error code.
     }
 }

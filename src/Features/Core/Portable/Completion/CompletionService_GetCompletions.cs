@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -158,9 +158,9 @@ namespace Microsoft.CodeAnalysis.Completion
                     case CompletionTriggerKind.Insertion:
                     case CompletionTriggerKind.Deletion:
 
-                        if (ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, caretPosition, trigger, options, passThroughOptions, roles))
+                        if (ShouldTriggerCompletion(document.Project, document.Project.Services, text, caretPosition, trigger, options, passThroughOptions, roles))
                         {
-                            var triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(document.Project.LanguageServices, text, caretPosition, trigger, options, passThroughOptions)).ToImmutableArrayOrEmpty();
+                            var triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(document.Project.Services, text, caretPosition, trigger, options, passThroughOptions)).ToImmutableArrayOrEmpty();
 
                             Debug.Assert(ValidatePossibleTriggerCharacterSet(trigger.Kind, triggeredProviders, document, text, caretPosition, options));
                             return triggeredProviders.IsEmpty ? providers.ToImmutableArray() : triggeredProviders;
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Completion
         protected virtual bool ItemsMatch(CompletionItem item, CompletionItem existingItem)
         {
             return item.Span == existingItem.Span
-                && item.SortText == existingItem.SortText;
+                && item.SortText == existingItem.SortText && item.InlineDescription == existingItem.InlineDescription;
         }
 
         /// <summary>

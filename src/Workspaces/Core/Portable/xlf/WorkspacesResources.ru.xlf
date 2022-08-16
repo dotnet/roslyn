@@ -452,11 +452,6 @@
         <target state="translated">Указанный путь должен быть абсолютным.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified.</source>
-        <target state="translated">Имя может быть упрощено.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_identifier">
         <source>Unknown identifier.</source>
         <target state="translated">Неизвестный идентификатор.</target>

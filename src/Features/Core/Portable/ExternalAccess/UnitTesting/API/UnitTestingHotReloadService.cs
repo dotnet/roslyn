@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         private readonly IEditAndContinueWorkspaceService _encService;
         private DebuggingSessionId _sessionId;
 
-        public UnitTestingHotReloadService(HostWorkspaceServices services)
+        public UnitTestingHotReloadService(SolutionServices services)
             => _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>();
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                 .EmitSolutionUpdateAsync(sessionId, solution, s_solutionActiveStatementSpanProvider, cancellationToken)
                 .ConfigureAwait(false);
 
-            if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
+            if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
             {
                 if (commitUpdates)
                 {

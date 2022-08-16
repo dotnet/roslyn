@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         private DebuggingSessionId _sessionId;
         private readonly ImmutableArray<string> _capabilities;
 
-        public WatchHotReloadService(HostWorkspaceServices services, ImmutableArray<string> capabilities)
+        public WatchHotReloadService(SolutionServices services, ImmutableArray<string> capabilities)
             => (_encService, _capabilities) = (services.GetRequiredService<IEditAndContinueWorkspaceService>(), capabilities);
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
 
             var results = await _encService.EmitSolutionUpdateAsync(sessionId, solution, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
-            if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
+            if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
             {
                 _encService.CommitSolutionUpdate(sessionId, out _);
             }

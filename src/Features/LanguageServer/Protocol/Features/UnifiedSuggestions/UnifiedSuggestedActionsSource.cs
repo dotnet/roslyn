@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                     var set = new UnifiedSuggestedActionSet(
                         originalSolution,
                         categoryName: null,
-                        actions: unifiedNestedActions.ToImmutable(),
+                        actions: unifiedNestedActions.ToImmutableAndClear(),
                         title: null,
                         priority: GetUnifiedSuggestedActionSetPriority(action.Priority),
                         applicableToSpan: fix.PrimaryDiagnostic.Location.SourceSpan);
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 orderedRefactorings.Add(orderedRefactoring);
             }
 
-            return orderedRefactorings.ToImmutable();
+            return orderedRefactorings.ToImmutableAndClear();
         }
 
         private static ImmutableArray<CodeRefactoring> FilterOnAnyThread(
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                     var set = new UnifiedSuggestedActionSet(
                         originalSolution,
                         categoryName: null,
-                        actions: nestedActions.ToImmutable(),
+                        actions: nestedActions.ToImmutableAndClear(),
                         title: null,
                         priority: GetUnifiedSuggestedActionSetPriority(codeAction.Priority),
                         applicableToSpan: applicableToSpan);

@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 return;
             }
 
-            var optionsService = _optionsService ?? context.Document.Project.Solution.Workspace.Services.GetService<IExtractClassOptionsService>();
+            var optionsService = _optionsService ?? context.Document.Project.Solution.Services.GetService<IExtractClassOptionsService>();
             if (optionsService is null)
             {
                 return;

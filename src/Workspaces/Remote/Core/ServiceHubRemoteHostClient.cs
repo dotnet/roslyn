@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
     {
-        private readonly HostWorkspaceServices _services;
+        private readonly SolutionServices _services;
         private readonly SolutionAssetStorage _assetStorage;
         private readonly HubClient _hubClient;
         private readonly ServiceBrokerClient _serviceBrokerClient;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public readonly RemoteProcessConfiguration Configuration;
 
         private ServiceHubRemoteHostClient(
-            HostWorkspaceServices services,
+            SolutionServices services,
             RemoteProcessConfiguration configuration,
             ServiceBrokerClient serviceBrokerClient,
             HubClient hubClient,
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public static async Task<RemoteHostClient> CreateAsync(
-            HostWorkspaceServices services,
+            SolutionServices services,
             RemoteProcessConfiguration configuration,
             AsynchronousOperationListenerProvider listenerProvider,
             IServiceBroker serviceBroker,

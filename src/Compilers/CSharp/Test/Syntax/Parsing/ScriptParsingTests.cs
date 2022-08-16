@@ -1040,12 +1040,16 @@ new partial class C { }
         [Fact]
         public void NewModifier_ClassWithMisplacedModifiers1()
         {
-            var tree = UsingTree(@"
-new partial public class C { }
-",
-                // (2,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // new partial public class C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 5));
+            var source = "new partial public class C { }";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (1,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                    // new partial public class C { }
+                    Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 5),
+                    // (1,26): error CS0106: The modifier 'new' is not valid for this item
+                    // new partial public class C { }
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 26)
+                );
+            var tree = UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -1065,12 +1069,15 @@ new partial public class C { }
         [Fact]
         public void NewModifier_ClassWithMisplacedModifiers2()
         {
-            var tree = UsingTree(@"
-new static partial public class C { }
-",
-                // (2,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+            var source = "new static partial public class C { }";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // new static partial public class C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 12));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 12),
+                // (1,33): error CS0106: The modifier 'new' is not valid for this item
+                // new static partial public class C { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("new").WithLocation(1, 33));
+            var tree = UsingTree(source);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1971,9 +1978,6 @@ partial void Goo(){};
 partial enum @en {};
 ";
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // partial enum @en {};
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
                 // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum @en {};
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "@en").WithLocation(2, 14));

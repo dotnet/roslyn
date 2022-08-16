@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal static class IdeAnalyzerOptionsStorage
 {
     public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, Project project)
-        => GetIdeAnalyzerOptions(globalOptions, project.LanguageServices);
+        => GetIdeAnalyzerOptions(globalOptions, project.Services);
 
-    public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
+    public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
     {
         var language = languageServices.Language;
         var supportsLanguageSpecificOptions = languageServices.GetService<ISyntaxFormattingOptionsStorage>() != null;

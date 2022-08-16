@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// <remarks>This method is optional and only should be implemented by languages that support
         /// syntax.  If the language does not support syntax, callers should use
         /// <see cref="AddSyntacticClassificationsAsync"/> instead.</remarks>
-        void AddSyntacticClassifications(Workspace workspace, SyntaxNode root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
+        void AddSyntacticClassifications(SolutionServices services, SyntaxNode root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// Produce the classifications for the span of text specified.  The syntax of the document 
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// syntax.  If the language does not support syntax, callers should use
         /// <see cref="ComputeSyntacticChangeRangeAsync"/> instead.</remarks>
         TextChangeRange? ComputeSyntacticChangeRange(
-            Workspace workspace, SyntaxNode oldRoot, SyntaxNode newRoot,
+            SolutionServices workspace, SyntaxNode oldRoot, SyntaxNode newRoot,
             TimeSpan timeout, CancellationToken cancellationToken);
     }
 }

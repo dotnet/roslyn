@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _storages = storages;
             }
 
-            public IEnumerable<ITemporaryStreamStorage> GetStorages()
+            public IEnumerable<ITemporaryStreamStorageInternal> GetStorages()
                 => _storages;
 
             public override bool TryGetValue(out Optional<AssemblyMetadata> value)

@@ -7,7 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     compilation, property, accessibility, generateAbstractly, useExplicitInterfaceSymbol,
                     propertyGenerationBehavior, attributesToRemove);
 
-                var syntaxFacts = Document.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+                var syntaxFacts = Document.Project.Services.GetRequiredService<ISyntaxFactsService>();
 
                 var parameterNames = NameGenerator.EnsureUniqueness(
                     property.Parameters.SelectAsArray(p => p.Name),
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 if (generateAbstractly)
                     return default;
 
-                var generator = Document.Project.LanguageServices.GetRequiredService<SyntaxGenerator>();
+                var generator = Document.Project.Services.GetRequiredService<SyntaxGenerator>();
                 return generator.GetGetAccessorStatements(compilation, property, ThroughMember,
                     propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties);
             }

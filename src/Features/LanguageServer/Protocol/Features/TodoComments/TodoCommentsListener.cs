@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
     {
         private readonly CancellationToken _disposalToken;
         private readonly IGlobalOptionService _globalOptions;
-        private readonly HostWorkspaceServices _services;
+        private readonly SolutionServices _services;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly Action<DocumentId, ImmutableArray<TodoCommentData>, ImmutableArray<TodoCommentData>> _onTodoCommentsUpdated;
         private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>> _documentToInfos = new();
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         public TodoCommentsListener(
             IGlobalOptionService globalOptions,
-            HostWorkspaceServices services,
+            SolutionServices services,
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
             Action<DocumentId, ImmutableArray<TodoCommentData>, ImmutableArray<TodoCommentData>> onTodoCommentsUpdated,
             CancellationToken disposalToken)

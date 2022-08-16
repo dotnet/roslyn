@@ -23,11 +23,10 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         private static DiagnosticDescriptor CreateDescriptorForFileHeader(LocalizableString title, LocalizableString message)
             => CreateDescriptorWithId(IDEDiagnosticIds.FileHeaderMismatch, EnforceOnBuildValues.FileHeaderMismatch, title, message);
 
-        protected AbstractFileHeaderDiagnosticAnalyzer(string language)
-            : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
+        protected AbstractFileHeaderDiagnosticAnalyzer()
+            : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
                     .Add(s_invalidHeaderDescriptor, CodeStyleOptions2.FileHeaderTemplate)
-                    .Add(s_missingHeaderDescriptor, CodeStyleOptions2.FileHeaderTemplate),
-                 language)
+                    .Add(s_missingHeaderDescriptor, CodeStyleOptions2.FileHeaderTemplate))
         {
         }
 

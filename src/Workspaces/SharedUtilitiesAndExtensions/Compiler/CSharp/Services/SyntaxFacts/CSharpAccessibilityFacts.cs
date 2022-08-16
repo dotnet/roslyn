@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using System.Diagnostics.CodeAnalysis;
 
@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Internal.Editing;
 using Microsoft.CodeAnalysis.Editing;
 #endif
 
-namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
+namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 {
     internal class CSharpAccessibilityFacts : IAccessibilityFacts
     {
@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     SyntaxKind.VolatileKeyword => DeclarationModifiers.Volatile,
                     SyntaxKind.ExternKeyword => DeclarationModifiers.Extern,
                     SyntaxKind.FileKeyword => DeclarationModifiers.File,
+                    SyntaxKind.RequiredKeyword => DeclarationModifiers.Required,
                     _ => DeclarationModifiers.None,
                 };
 

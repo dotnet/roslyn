@@ -94,6 +94,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private bool _hasUnscopedRefAttribute;
+        public bool HasUnscopedRefAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasUnscopedRefAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasUnscopedRefAttribute = value;
+                SetDataStored();
+            }
+        }
+
         private ImmutableArray<string> _memberNotNullAttributeData = ImmutableArray<string>.Empty;
 
         public void AddNotNullMember(string memberName)

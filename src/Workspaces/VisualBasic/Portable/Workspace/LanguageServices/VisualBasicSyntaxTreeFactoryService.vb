@@ -26,14 +26,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicSyntaxTreeFactoryService(provider)
+            Return New VisualBasicSyntaxTreeFactoryService(provider.LanguageServices.SolutionServices)
         End Function
 
         Partial Friend Class VisualBasicSyntaxTreeFactoryService
             Inherits AbstractSyntaxTreeFactoryService
 
-            Public Sub New(languageServices As HostLanguageServices)
-                MyBase.New(languageServices)
+            Public Sub New(services As SolutionServices)
+                MyBase.New(services)
             End Sub
 
             Public Overloads Overrides Function GetDefaultParseOptions() As ParseOptions
