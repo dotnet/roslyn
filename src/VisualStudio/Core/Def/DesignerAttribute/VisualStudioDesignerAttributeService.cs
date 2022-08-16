@@ -52,13 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         /// </summary>
         private IVSMDDesignerService? _legacyDesignerService;
 
-        /// <summary>
-        /// Cancellation series controlling the individual pieces of work added to <see cref="_workQueue"/>.  Every time
-        /// we add a new item, we cancel the prior item so that batch can stop as soon as possible and move onto the
-        /// next batch.
-        /// </summary>
-        private readonly CancellationSeries _cancellationSeries = new();
-        private readonly AsyncBatchingWorkQueue<CancellationToken> _workQueue;
+        private readonly AsyncBatchingWorkQueue _workQueue;
 
         // We'll get notifications from the OOP server about new attribute arguments. Collect those notifications and
         // deliver them to VS in batches to prevent flooding the UI thread.
@@ -78,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             var listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
 
-            _workQueue = new AsyncBatchingWorkQueue<CancellationToken>(
+            _workQueue = new AsyncBatchingWorkQueue(
                 TimeSpan.FromSeconds(1),
                 this.ProcessWorkspaceChangeAsync,
                 listener,
@@ -94,7 +88,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         public void Dispose()
         {
             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-            _cancellationSeries.Dispose();
         }
 
         void IEventListener<object>.StartListening(Workspace workspace, object _)
@@ -103,28 +96,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
 
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
-            _workQueue.AddWork(_cancellationSeries.CreateNext());
+            _workQueue.AddWork(cancelExistingWork: true);
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
-            _workQueue.AddWork(_cancellationSeries.CreateNext());
-        }
-
-        private async ValueTask ProcessWorkspaceChangeAsync(ImmutableSegmentedList<CancellationToken> cancellationTokens, CancellationToken disposalToken)
-        {
-            // Because we always cancel the previous token prior to queuing new work, there can only be at most one
-            // actual real cancellation token that is not already canceled.
-            var cancellationToken = cancellationTokens.SingleOrNull(ct => !ct.IsCancellationRequested);
-
-            // if we didn't get an actual non-canceled token back, then this batch was entirely canceled and we have
-            // nothing to do.
-            if (cancellationToken is null)
-                return;
-
-            using var source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken.Value, disposalToken);
-
-            await ProcessWorkspaceChangeAsync(source.Token).ConfigureAwait(false);
+            _workQueue.AddWork(cancelExistingWork: true);
         }
 
         private async ValueTask ProcessWorkspaceChangeAsync(CancellationToken cancellationToken)
