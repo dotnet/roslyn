@@ -66,27 +66,20 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 ImmutableArray<(SymbolicRenameLocations locations, string replacementText)> symbolRenameInfo,
                 CancellationToken cancellationToken)
             {
-                using var _1 = PooledDictionary<ISymbol, ImmutableHashSet<DocumentId>>.GetInstance(out var symbolToDocumentsIdsToBeCheckedForConflict);
-                using var _2 = PooledDictionary<ISymbol, ImmutableArray<string>>.GetInstance(out var symbolToPossibleNamingConflicts);
-                using var _3 = PooledDictionary<DocumentId, DocumentRenameInfo.Builder>.GetInstance(out var documentIdToRenameInfoBuilder);
+                using var _1 = PooledDictionary<DocumentId, DocumentRenameInfo.Builder>.GetInstance(out var documentIdToRenameInfoBuilder);
+                using var _2 = PooledHashSet<RenameLocation>.GetInstance(out var overlappingConflictLocations);
                 foreach (var (symbolicRenameLocations, replacementText) in symbolRenameInfo)
                 {
                     var renamedSymbol = symbolicRenameLocations.Symbol;
                     var renameLocations = symbolicRenameLocations.Locations;
+
                     var documentIdToRenameLocations = renameLocations
                         .GroupBy(location => location.DocumentId)
                         .ToDictionary(grouping => grouping.Key);
 
                     var (documentsIdsToBeCheckedForConflict, possibleNameConflicts) =
                         await FindDocumentsAndPossibleNameConflictsAsync(symbolicRenameLocations, replacementText, symbolicRenameLocations.Symbol.Name, cancellationToken).ConfigureAwait(false);
-
                     var replacementTextValid = IsIdentifierValid_Worker(solution, replacementText, documentsIdsToBeCheckedForConflict.Select(doc => doc.ProjectId));
-                    var symbolContext = new RenamedSymbolContext(
-                        replacementText,
-                        renamedSymbol.Name,
-                        renamedSymbol,
-                        renamedSymbol as IAliasSymbol,
-                        replacementTextValid);
 
                     foreach (var documentId in documentsIdsToBeCheckedForConflict)
                     {
@@ -98,41 +91,53 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                         // Conflict checking documents is a superset of the rename locations. In case this document is not a documents of rename locations,
                         // just passing an empty rename information to check for conflicts.
-                        var locationsInDocument = documentIdToRenameLocations.ContainsKey(documentId)
-                            ? documentIdToRenameLocations[documentId]
-                            : SpecializedCollections.EmptyEnumerable<RenameLocation>();
+                        var renameLocationsInDocument = documentIdToRenameLocations.ContainsKey(documentId)
+                            ? documentIdToRenameLocations[documentId].ToImmutableArray()
+                            : ImmutableArray<RenameLocation>.Empty;
 
-                        // Get all rename locations for the current document.
-                        var locationRenameContexts = locationsInDocument
-                            .Where(location => RenameUtilities.ShouldIncludeLocation(renameLocations, location))
-                            .SelectAsArray(location => new LocationRenameContext(location, symbolContext));
-
-                        // All textspan in the document documentId, that requires rename in String or Comment
-                        var stringAndCommentTextSpanContexts = locationsInDocument
-                            .Where(l => l.IsRenameInStringOrComment)
-                            .SelectAsArray(location => new LocationRenameContext(location, symbolContext));
-
-                        // TODO: Create a symbol visitor to get all the symbols in FQN and intersect with the input symbols
-                        documentRenameInfoBuilder.AddRenamedSymbol(renamedSymbol, replacementText, replacementTextValid);
-                        documentRenameInfoBuilder.AddLocationRenameContext(locationRenameContexts);
-                        documentRenameInfoBuilder.AddStringAndCommentRenameContext(stringAndCommentTextSpanContexts);
-
+                        BuildDocumentRenameInfo(
+                            renamedSymbol,
+                            replacementText,
+                            replacementTextValid,
+                            renameLocations,
+                            renameLocationsInDocument,
+                            documentRenameInfoBuilder,
+                            overlappingConflictLocations);
                     }
+                }
+            }
 
-                    symbolToDocumentsIdsToBeCheckedForConflict[renamedSymbol] = documentsIdsToBeCheckedForConflict;
-                    symbolToPossibleNamingConflicts[renamedSymbol] = possibleNameConflicts;
+            private static void BuildDocumentRenameInfo(
+                ISymbol renamedSymbol,
+                string replacementText,
+                bool replacementTextValid,
+                ImmutableArray<RenameLocation> renameLocations,
+                ImmutableArray<RenameLocation> renameLocationsInDocument,
+                DocumentRenameInfo.Builder documentRenameInfoBuilder,
+                PooledHashSet<RenameLocation> overlappingConflictLocations)
+            {
+                // Get all rename locations for the current document.
+                var locationRenameContexts = renameLocationsInDocument
+                    .WhereAsArray(location => RenameUtilities.ShouldIncludeLocation(renameLocations, location))
+                    .SelectAsArray(location => new LocationRenameContext(location, replacementTextValid, replacementText, renamedSymbol.Name));
 
+                // All textspan in the document documentId, that requires rename in String or Comment
+                var stringAndCommentContexts = renameLocationsInDocument
+                    .WhereAsArray(l => l.IsRenameInStringOrComment)
+                    .SelectAsArray(location => new StringAndCommentRenameContext(location, replacementText));
+
+                // TODO: Create a symbol visitor to get all the symbols in FQN and intersect with the input symbols
+                documentRenameInfoBuilder.AddRenamedSymbol(renamedSymbol, replacementText, replacementTextValid);
+                foreach (var locationRenameContext in locationRenameContexts)
+                {
+                    if (documentRenameInfoBuilder.AddLocationRenameContext(locationRenameContext))
+                        overlappingConflictLocations.Add(locationRenameContext.RenameLocation);
                 }
 
-                var allDocumentsIdsToBeCheckedForConflict = symbolToDocumentsIdsToBeCheckedForConflict
-                    .SelectManyAsArray(pair => pair.Value).Distinct();
-                foreach (var documentId in allDocumentsIdsToBeCheckedForConflict)
+                foreach (var stringAndCommentContext in stringAndCommentContexts)
                 {
-                    var builder = new DocumentRenameInfo.Builder();
-                    foreach (var (symbolicRenameLocations, replacementText) in symbolRenameInfo)
-                    {
-                        var symbol = symbolicRenameLocations.Symbol;
-                    }
+                    if (documentRenameInfoBuilder.AddStringAndCommentRenameContext(stringAndCommentContext))
+                        overlappingConflictLocations.Add(stringAndCommentContext.RenameLocation);
                 }
             }
 
@@ -147,11 +152,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 try
                 {
                     using var _ = PooledHashSet<DocumentId>.GetInstance(out var unchangedDocumentIds);
-
-                    // var documentIdToRenameLocations = renameLocations
-                    //     .GroupBy(location => location.DocumentId)
-                    //     .ToDictionary(grouping => grouping.Key);
-                    //
                     foreach (var documentId in documentIdsToRename)
                     {
                         CancellationToken.ThrowIfCancellationRequested();
@@ -160,23 +160,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken).ConfigureAwait(false);
                         var originalSyntaxRoot = await semanticModel.SyntaxTree.GetRootAsync(CancellationToken).ConfigureAwait(false);
                         var documentRenameInfo = _documentIdToRenameInfo[documentId];
-
-                        // Conflict checking documents is a superset of the rename locations. In case this document is not a documents of rename locations,
-                        // just passing an empty rename information to check for conflicts.
-                        // var locationsInDocument = documentIdToRenameLocations.ContainsKey(documentId)
-                        //     ? documentIdToRenameLocations[documentId]
-                        //     : SpecializedCollections.EmptyEnumerable<RenameLocation>();
-
-                        // // Get all rename locations for the current document.
-                        // var textSpanRenameContexts = locationsInDocument
-                        //     .Where(location => RenameUtilities.ShouldIncludeLocation(renameLocations, location))
-                        //     .SelectAsArray(location => new LocationRenameContext(location, symbolContext));
-                        //
-                        // // All textspan in the document documentId, that requires rename in String or Comment
-                        // var stringAndCommentTextSpanContexts = locationsInDocument
-                        //     .Where(l => l.IsRenameInStringOrComment)
-                        //     .SelectAsArray(location => new LocationRenameContext(location, symbolContext));
-
                         var conflictLocationSpans = conflictLocations
                                                     .Where(t => t.DocumentId == documentId)
                                                     .Select(t => t.ComplexifiedSpan).ToSet();

@@ -16,12 +16,14 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public LocationRenameContext(
             RenameLocation renameLocation,
-            RenamedSymbolContext symbolContext)
+            bool replacementTextValid,
+            string replacementText,
+            string originalText)
         {
             RenameLocation = renameLocation;
-            ReplacementTextValid = symbolContext.ReplacementTextValid;
-            ReplacementText = symbolContext.ReplacementText;
-            OriginalText = symbolContext.OriginalText;
+            ReplacementTextValid = replacementTextValid;
+            ReplacementText = replacementText;
+            OriginalText = originalText;
         }
     }
 }
