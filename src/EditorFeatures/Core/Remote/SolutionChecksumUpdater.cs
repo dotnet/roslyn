@@ -104,8 +104,8 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             lock (_gate)
             {
-                _synchronizeWorkspaceQueue.AddWork();
                 _isPaused = false;
+                _synchronizeWorkspaceQueue.AddWork();
             }
         }
 
