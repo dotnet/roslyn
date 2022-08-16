@@ -132,8 +132,12 @@ namespace Roslyn.Utilities
 
             lock (_gate)
             {
+                // if we were asked to cancel the prior set of items, do so now.
+                if (cancelExistingWork)
+                    CancelExistingWork();
+
                 // add our work to the set we'll process in the next batch.
-                AddItemsToBatch(items, cancelExistingWork);
+                AddItemsToBatch(items);
 
                 if (!_taskInFlight)
                 {
@@ -147,12 +151,8 @@ namespace Roslyn.Utilities
 
             return;
 
-            void AddItemsToBatch(IEnumerable<TItem> items, bool cancelExistingWork)
+            void AddItemsToBatch(IEnumerable<TItem> items)
             {
-                // if we were asked to cancel the prior set of items, do so now.
-                if (cancelExistingWork)
-                    CancelExistingWork();
-
                 // no equality comparer.  We want to process all items.
                 if (_equalityComparer == null)
                 {
