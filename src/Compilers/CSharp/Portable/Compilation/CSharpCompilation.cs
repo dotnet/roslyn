@@ -3861,20 +3861,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(csharpReturnType is not null);
             Debug.Assert(csharpValueType is not null);
 
-            var nameOk = name
-                is WellKnownMemberNames.UnaryPlusOperatorName
-                or WellKnownMemberNames.CheckedUnaryNegationOperatorName
-                or WellKnownMemberNames.UnaryNegationOperatorName
-                or WellKnownMemberNames.OnesComplementOperatorName
-                or WellKnownMemberNames.LogicalNotOperatorName
-                or WellKnownMemberNames.CheckedIncrementOperatorName
-                or WellKnownMemberNames.IncrementOperatorName
-                or WellKnownMemberNames.CheckedDecrementOperatorName
-                or WellKnownMemberNames.DecrementOperatorName
-                or WellKnownMemberNames.TrueOperatorName
-                or WellKnownMemberNames.FalseOperatorName;
-            if (!nameOk)
+            var syntaxKind = SyntaxFacts.GetOperatorKind(name);
+            if (syntaxKind == SyntaxKind.None)
                 throw new ArgumentException($"Illegal operator name '{name}'", nameof(name));
+
+            var unaryOperatorName = OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(syntaxKind, isChecked);
+            if (unaryOperatorName != name)
+                throw new ArgumentException($"'{name}' was not a valid unary operator name along with isChecked={isChecked}", nameof(name));
 
             return new SynthesizedIntrinsicOperatorSymbol(csharpValueType, name, csharpReturnType, isChecked).GetPublicSymbol();
         }

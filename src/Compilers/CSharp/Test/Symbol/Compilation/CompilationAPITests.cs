@@ -2904,7 +2904,7 @@ class C
         {
             var compilation = CreateCompilation("");
             var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
-            var op = compilation.CreateBuiltinOperator(name, intType, intType, isChecked: false);
+            var op = compilation.CreateBuiltinOperator(name, intType, intType, SyntaxFacts.IsCheckedOperator(name));
             var result = op.ToDisplayString();
             AssertEx.Equal(display, result);
         }
@@ -2918,6 +2918,14 @@ class C
             // Binary operator name
             Assert.Throws<ArgumentException>(() =>
                 compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, isChecked: false));
+
+            // Mismatched checks
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryNegationOperatorName, intType, intType, isChecked: true));
+
+            // Mismatched checks
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedUnaryNegationOperatorName, intType, intType, isChecked: false));
         }
 
         [Fact]
