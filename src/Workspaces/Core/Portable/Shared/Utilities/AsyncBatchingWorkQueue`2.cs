@@ -176,15 +176,14 @@ namespace Roslyn.Utilities
                 if (_equalityComparer == null)
                 {
                     _nextBatch.AddRange(items);
+                    return;
                 }
-                else
+
+                // We're deduping items.  Only add the item if it's the first time we've seen it.
+                foreach (var item in items)
                 {
-                    // We're deduping items.  Only add the item if it's the first time we've seen it.
-                    foreach (var item in items)
-                    {
-                        if (_uniqueItems.Add(item))
-                            _nextBatch.Add(item);
-                    }
+                    if (_uniqueItems.Add(item))
+                        _nextBatch.Add(item);
                 }
             }
 
