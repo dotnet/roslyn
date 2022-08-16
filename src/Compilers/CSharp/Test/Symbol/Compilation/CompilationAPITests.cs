@@ -2780,6 +2780,73 @@ public class C { public static FrameworkName Goo() { return null; }}";
                 WellKnownMemberNames.AdditionOperatorName, intType, intType, null, isChecked: false));
         }
 
+        [Fact]
+        public void CreateBuiltinBinaryOperator_CompareToActualSymbols1()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        var m = /*<bind>*/1 + 1/*</bind>*/;
+    }
+}");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+
+            var syntaxTree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(syntaxTree);
+
+            var expr = GetSyntaxNodeOfTypeForBinding<BinaryExpressionSyntax>(GetSyntaxNodeList(syntaxTree));
+            var symbol = semanticModel.GetSymbolInfo(expr).Symbol;
+
+            Assert.NotNull(symbol);
+
+            var addBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType, isChecked: false);
+            var addBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, intType, isChecked: true);
+            var subtractBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.SubtractionOperatorName, intType, intType, intType, isChecked: false);
+            var subtractBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedSubtractionOperatorName, intType, intType, intType, isChecked: true);
+
+            Assert.Equal(addBuiltIn, symbol);
+            Assert.NotEqual(addBuiltInChecked, symbol);
+            Assert.NotEqual(subtractBuiltIn, symbol);
+            Assert.NotEqual(subtractBuiltInChecked, symbol);
+        }
+
+        [Fact]
+        public void CreateBuiltinBinaryOperator_CompareToActualSymbols2()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        checked
+        {
+            var m = /*<bind>*/1 + 1/*</bind>*/;
+        }
+    }
+}");
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+
+            var syntaxTree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(syntaxTree);
+
+            var expr = GetSyntaxNodeOfTypeForBinding<BinaryExpressionSyntax>(GetSyntaxNodeList(syntaxTree));
+            var symbol = semanticModel.GetSymbolInfo(expr).Symbol;
+
+            Assert.NotNull(symbol);
+
+            var addBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType, isChecked: false);
+            var addBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, intType, isChecked: true);
+            var subtractBuiltIn = compilation.CreateBuiltinOperator(WellKnownMemberNames.SubtractionOperatorName, intType, intType, intType, isChecked: false);
+            var subtractBuiltInChecked = compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedSubtractionOperatorName, intType, intType, intType, isChecked: true);
+
+            Assert.NotEqual(addBuiltIn, symbol);
+            Assert.Equal(addBuiltInChecked, symbol);
+            Assert.NotEqual(subtractBuiltIn, symbol);
+            Assert.NotEqual(subtractBuiltInChecked, symbol);
+        }
+
         [Theory]
         [InlineData(WellKnownMemberNames.UnaryPlusOperatorName, "int.operator +(int)")]
         [InlineData(WellKnownMemberNames.CheckedUnaryNegationOperatorName, "int.operator checked -(int)")]
