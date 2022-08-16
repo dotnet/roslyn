@@ -2,14 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Concurrent;
 using System.Composition;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
@@ -29,8 +23,9 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     /// This means that as the project is being indexed, partial results may be returned.  However
     /// once it is fully indexed, then total results will be returned.
     /// </summary>
-    [Shared]
-    [ExportIncrementalAnalyzerProvider(nameof(SymbolTreeInfoIncrementalAnalyzerProvider), new[] { WorkspaceKind.RemoteWorkspace })]
+    [ExportIncrementalAnalyzerProvider(
+        highPriorityForActiveFile: false, name: nameof(SymbolTreeInfoIncrementalAnalyzerProvider),
+        workspaceKinds: new[] { WorkspaceKind.Host }), Shared]
     internal partial class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
         [ImportingConstructor]
@@ -40,6 +35,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new SymbolTreeInfoIncrementalAnalyzer(workspace.Services.SolutionServices.GetRequiredService<SymbolTreeInfoCacheService>());
+            => new SymbolTreeInfoIncrementalAnalyzer(workspace);
     }
 }

@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
@@ -22,37 +22,45 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     {
         private class SymbolTreeInfoIncrementalAnalyzer : IncrementalAnalyzerBase
         {
-            private readonly SymbolTreeInfoCacheService _cacheService;
+            private readonly Workspace _workspace;
 
-            public SymbolTreeInfoIncrementalAnalyzer(SymbolTreeInfoCacheService cacheService)
+            public SymbolTreeInfoIncrementalAnalyzer(Workspace workspace)
+                => _workspace = workspace;
+
+            public override async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                _cacheService = cacheService;
+                var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                if (client is null)
+                    return;
+
+                var isMethodBodyEdit = bodyOpt != null;
+                await client.TryInvokeAsync<IRemoteSymbolTreeInfoIncrementalAnalyzer>(
+                    document.Project, (service, checksum, cancellationToken) =>
+                        service.AnalyzeDocumentAsync(checksum, document.Id, isMethodBodyEdit, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
             }
 
-            private static bool SupportAnalysis(Project project)
-                => project.SupportsCompilation;
-
-            public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                if (!SupportAnalysis(document.Project))
-                    return Task.CompletedTask;
+                var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+                if (client is null)
+                    return;
 
-                return _cacheService.AnalyzeDocumentAsync(document, isMethodBodyEdit: bodyOpt != null, cancellationToken);
+                await client.TryInvokeAsync<IRemoteSymbolTreeInfoIncrementalAnalyzer>(
+                    project, (service, checksum, cancellationToken) =>
+                        service.AnalyzeProjectAsync(checksum, project.Id, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
             }
 
-            public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
+            public override async Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
-                if (!SupportAnalysis(project))
-                    return Task.CompletedTask;
+                var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+                if (client is null)
+                    return;
 
-                return _cacheService.UpdateSymbolTreeInfoAsync(project, cancellationToken);
-            }
-
-            public override Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
-            {
-                _cacheService.RemoveProject(projectId);
-
-                return Task.CompletedTask;
+                await client.TryInvokeAsync<IRemoteSymbolTreeInfoIncrementalAnalyzer>(
+                    (service, cancellationToken) => service.RemoveProjectAsync(projectId, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
             }
         }
     }
