@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
                     // otherwise we check to see which fields are compared (either by themselves or through properties)
                     var actualFields = GetEqualizedFields(methodBodyOperation, methodSymbol);
-                    return !actualFields.HasDuplicates(SymbolEqualityComparer.Default) &&
-                            actualFields.SetEquals(expectedComparedFields);
+                    return actualFields.SetEquals(expectedComparedFields);
                 }
             }
 
@@ -83,8 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     var actualMembers = members
                         .SelectAsArray(UnwrapPropertyToField).WhereNotNull().AsImmutable();
 
-                    return !actualMembers.HasDuplicates(SymbolEqualityComparer.Default) &&
-                            actualMembers.SetEquals(expectedHashedFields);
+                    return actualMembers.SetEquals(expectedHashedFields);
                 }
             }
             return false;

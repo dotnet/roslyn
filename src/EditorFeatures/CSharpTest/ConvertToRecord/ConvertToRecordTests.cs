@@ -763,8 +763,9 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndKeepEqualsDoubleComparison()
+        public async Task TestMovePropertiesAndDeleteEqualsDoubleComparison()
         {
+            // comparing the same thing twice shouldn't matter
             var initialMarkup = @"
 namespace N
 {
@@ -783,14 +784,7 @@ namespace N
             var changedMarkup = @"
 namespace N
 {
-    public record C(int P, bool B)
-    {
-
-        public override bool {|CS0111:Equals|}(object? other)
-        {
-            return other is C otherC && otherC.P == P && otherC.B == B && otherC.P == P;
-        }
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
