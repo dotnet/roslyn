@@ -361,6 +361,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 }
             }
 
+            if (!modifiedMembers.IsEmpty())
+            {
+                // remove any potential leading blank lines right after the class declaration, as we could have
+                // something like a method which was spaced out from the previous properties, but now shouldn't
+                // have that leading space
+                modifiedMembers[0] = modifiedMembers[0].GetNodeWithoutLeadingBlankLines();
+            }
+
             return modifiedMembers.ToImmutable();
         }
 

@@ -331,7 +331,6 @@ namespace N
 
     public record C(int P) : IInterface
     {
-
         public int Foo()
         {
             return P;
@@ -815,7 +814,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public override bool {|CS0111:Equals|}(object? other)
         {
             return other is C otherC && otherC.P == P;
@@ -849,7 +847,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public override bool {|CS0111:Equals|}(object? other)
         {
             return other is C otherC && this.P == P && otherC.B == B;
@@ -883,7 +880,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public override bool {|CS0111:Equals|}(object? other)
         {
             return other is C otherC && otherC.P == otherC.P && otherC.B == B;
@@ -922,7 +918,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public override bool {|CS0111:Equals|}(object? other)
         {
             Console.WriteLine(""testing equals..."");
@@ -957,7 +952,6 @@ namespace N
 {
     public record C(int P, int B)
     {
-
         public override bool {|CS0111:Equals|}(object? other)
         {
             return other is C otherC && otherC.P == B && otherC.B == P;
@@ -991,7 +985,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public override bool {|CS0111:Equals|}(object? other)
         {
             return !(other is C otherC && otherC.P == P && otherC.B == B);
@@ -1030,7 +1023,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public override bool {|CS0111:Equals|}(object? other)
         {
             if (other is C otherC)
@@ -1171,7 +1163,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public override bool {|CS0111:Equals|}(object? other)
         {
             if (other is C)
@@ -1426,7 +1417,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public override bool {|CS0111:Equals|}(object? other)
         {
             var otherC = other as C;
@@ -1676,7 +1666,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public override int GetHashCode()
         {
             var hashCode = 339610899;
@@ -1932,7 +1921,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public static bool operator ==(C c1, object? c2)
         {
             Console.WriteLine(""checking equality"");
@@ -1982,7 +1970,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public static bool operator ==(C c1, object? c2)
         {
             return c1.Equals(c2);
@@ -2031,7 +2018,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public static bool operator ==(C c1, object? c2)
         {
             return c1.Equals(c1);
@@ -2079,7 +2065,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public static bool operator ==(C c1, object? c2)
         {
             return c1.Equals(c2);
@@ -2338,7 +2323,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public {|CS0111:{|CS8862:C|}|}(int p, bool b)
         {
             Console.WriteLine(""Constructing C..."");
@@ -2379,7 +2363,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public {|CS0111:{|CS8862:C|}|}(int p, bool b)
         {
             P = p + 1;
@@ -2418,7 +2401,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public {|CS0111:{|CS8862:C|}|}(int p, bool b)
         {
             B = b;
@@ -2792,7 +2774,6 @@ namespace N
     /// </summary>
     public class [|C|]
     {
-
         public int P { get; init; }
 
         /// <summary>
@@ -3063,7 +3044,6 @@ namespace N
 {
     public record C(int P)
     {
-
         public int Foo()
         {
             return 0;
