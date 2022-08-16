@@ -406,6 +406,50 @@ class C
 """);
         }
 
+        [Fact]
+        public void RefReturnAssign3()
+        {
+            var verifier = CompileAndVerify(@"
+try
+{
+    C.M();
+}
+catch (System.NullReferenceException)
+{
+    System.Console.WriteLine(""NullReferenceException"");
+}
+
+class C
+{
+    public static void M()
+    {
+        ref readonly int x = ref Helper();
+        ref readonly int y = ref Helper();
+        _ = x + y;
+    }
+
+    static unsafe ref int Helper()
+        => ref *(int*)0;
+}", options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: "NullReferenceException");
+
+            verifier.VerifyIL("C.M()", """
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  .locals init (int& V_0) //y
+  IL_0000:  call       "ref int C.Helper()"
+  IL_0005:  call       "ref int C.Helper()"
+  IL_000a:  stloc.0
+  IL_000b:  ldind.i4
+  IL_000c:  pop
+  IL_000d:  ldloc.0
+  IL_000e:  ldind.i4
+  IL_000f:  pop
+  IL_0010:  ret
+}
+""");
+        }
+
 
         [Fact]
         public void RefReturnArrayAccess()
