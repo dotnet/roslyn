@@ -146,15 +146,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             }
 
             // delete IEquatable if it's explicit because it is implicit on records
+            var iEquatable = ConvertToRecordHelpers.GetIEquatableType(semanticModel.Compilation, originalType);
             var baseList = originalDeclarationNode.BaseList;
-            if (baseList != null)
+            if (baseList != null && iEquatable != null)
             {
-                var typeList = baseList.Types.Where(baseItem =>
-                {
-                    var iEquatableTypeNode = (baseItem.Type as GenericNameSyntax) ??
-                        (baseItem.Type as QualifiedNameSyntax)?.Right as GenericNameSyntax;
-                    return iEquatableTypeNode == null || iEquatableTypeNode.Identifier.ValueText != "IEquatable";
-                });
+                var typeList = baseList.Types.Where(baseItem
+                    => iEquatable.Equals(semanticModel.GetSymbolInfo(baseItem, cancellationToken).Symbol));
 
                 if (typeList.IsEmpty())
                 {
