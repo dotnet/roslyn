@@ -164,8 +164,8 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
 
             Dim generatedTrees = compilerInvocation.Compilation.SyntaxTrees
 
-            Assert.Single(generatedTrees, Function(t) t.FilePath.EndsWith(TestSourceGenerator.HelloWorldGenerator.GeneratedEnglishClassName + ".cs"))
-            Assert.Single(generatedTrees, Function(t) t.FilePath.EndsWith(TestSourceGenerator.HelloWorldGenerator.GeneratedSpanishClassName + ".cs"))
+            Assert.Single(generatedTrees, Function(t) t.FilePath.EndsWith(TestSourceGenerator.Constants.GeneratedEnglishClassName + ".cs"))
+            Assert.Single(generatedTrees, Function(t) t.FilePath.EndsWith(TestSourceGenerator.Constants.GeneratedSpanishClassName + ".cs"))
         End Function
     End Class
 End Namespace
