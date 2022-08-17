@@ -7,7 +7,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
-namespace Microsoft.CodeAnalysis.IncrementalCaches
+namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 {
     /// <summary>
     /// Features like add-using want to be able to quickly search symbol indices for projects and

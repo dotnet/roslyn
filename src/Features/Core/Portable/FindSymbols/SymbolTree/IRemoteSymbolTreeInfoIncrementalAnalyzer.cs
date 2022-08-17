@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.IncrementalCaches
+namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 {
     internal interface IRemoteSymbolTreeInfoIncrementalAnalyzer
     {

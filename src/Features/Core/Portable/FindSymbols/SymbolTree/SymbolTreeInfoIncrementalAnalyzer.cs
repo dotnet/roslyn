@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.IncrementalCaches
+namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 {
     internal partial class SymbolTreeInfoIncrementalAnalyzerProvider
     {

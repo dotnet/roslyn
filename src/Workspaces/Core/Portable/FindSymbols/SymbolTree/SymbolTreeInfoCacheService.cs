@@ -92,10 +92,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                 return;
             }
 
-            await UpdateSymbolTreeInfoAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            await AnalyzeProjectAsync(document.Project, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task UpdateSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
+        public async Task AnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
             Debug.Assert(project.SupportsCompilation);
 
