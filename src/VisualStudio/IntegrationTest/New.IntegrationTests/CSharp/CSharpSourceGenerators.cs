@@ -51,14 +51,14 @@ internal static class Program
 {
     public static void Main()
     {
-        Console.WriteLine(" + HelloWorldGenerator.GeneratedEnglishClassName + @".GetMessage());
+        Console.WriteLine(" + Constants.GeneratedEnglishClassName + @".GetMessage());
     }
 }", HangMitigatingCancellationToken);
 
-            await TestServices.Editor.PlaceCaretAsync(HelloWorldGenerator.GeneratedEnglishClassName, charsOffset: 0, HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync(Constants.GeneratedEnglishClassName, charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-            Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
-            Assert.Equal(HelloWorldGenerator.GeneratedEnglishClassName, await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));
+            Assert.Equal($"{Constants.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal(Constants.GeneratedEnglishClassName, await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));
         }
 
         [IdeTheory, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
@@ -70,11 +70,11 @@ internal static class Program
 {
     public static void Main()
     {
-        Console.WriteLine(" + HelloWorldGenerator.GeneratedEnglishClassName + @".GetMessage());
+        Console.WriteLine(" + Constants.GeneratedEnglishClassName + @".GetMessage());
     }
 }", HangMitigatingCancellationToken);
 
-            await TestServices.Editor.PlaceCaretAsync(HelloWorldGenerator.GeneratedEnglishClassName, charsOffset: 0, HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync(Constants.GeneratedEnglishClassName, charsOffset: 0, HangMitigatingCancellationToken);
 
             if (invokeFromSourceGeneratedFile)
             {
@@ -88,7 +88,7 @@ internal static class Program
                 globalOptions.SetGlobalOption(new OptionKey(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace, language: null), true);
 
                 await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-                Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+                Assert.Equal($"{Constants.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             }
 
             await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT));
@@ -113,7 +113,7 @@ internal static class Program
                     },
                     reference =>
                     {
-                        Assert.Equal(expected: "Console.WriteLine(" + HelloWorldGenerator.GeneratedEnglishClassName + ".GetMessage());", actual: reference.GetText());
+                        Assert.Equal(expected: "Console.WriteLine(" + Constants.GeneratedEnglishClassName + ".GetMessage());", actual: reference.GetText());
                         Assert.Equal(expected: 5, actual: reference.GetLine());
                         Assert.Equal(expected: 26, actual: reference.GetColumn());
                     },
@@ -128,11 +128,11 @@ internal static class Program
 {
     public static void Main()
     {
-        Console.WriteLine(" + HelloWorldGenerator.GeneratedEnglishClassName + @".GetMessage());
+        Console.WriteLine(" + Constants.GeneratedEnglishClassName + @".GetMessage());
     }
 }", HangMitigatingCancellationToken);
 
-            await TestServices.Editor.PlaceCaretAsync(HelloWorldGenerator.GeneratedEnglishClassName, charsOffset: 0, HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync(Constants.GeneratedEnglishClassName, charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT));
 
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
@@ -140,7 +140,7 @@ internal static class Program
             await TestServices.FindReferencesWindow.NavigateToAsync(referenceInGeneratedFile, isPreview: isPreview, shouldActivate: true, HangMitigatingCancellationToken);
 
             // Assert we are in the right file now
-            Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal($"{Constants.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             Assert.Equal(isPreview, await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
@@ -149,10 +149,10 @@ internal static class Program
         {
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd12CmdID.NavigateTo, HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendToNavigateToAsync(HelloWorldGenerator.GeneratedEnglishClassName, VirtualKeyCode.RETURN);
+            await TestServices.Input.SendToNavigateToAsync(Constants.GeneratedEnglishClassName, VirtualKeyCode.RETURN);
             await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
 
-            Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs [generated]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal($"{Constants.GeneratedEnglishClassName}.cs [generated]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             Assert.Equal("HelloWorld", await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));
         }
     }

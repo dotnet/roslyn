@@ -114,6 +114,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             ((VSProject3)project.Object).AnalyzerReferences.Add(filePath);
         }
 
+        public async Task AddDllReferenceAsync(string projectName, string filePath, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            ((VSProject3)project.Object).References.Add(filePath);
+        }
+
         private async Task CreateSolutionAsync(string solutionPath, string solutionName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

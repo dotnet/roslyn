@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.TestSourceGenerator;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
@@ -166,6 +167,43 @@ class C
 
             Assert.Equal(32, actual.Length);
             Assert.Equal(1, actual.Count(s => s.Collapsed));
+        }
+
+        [IdeFact]
+        public async Task GoToDefinitionFromMetadataSecondHop()
+        {
+            await TestServices.SolutionExplorer.AddDllReferenceAsync(ProjectName, typeof(HelloWorldGenerator).Assembly.Location, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "C.cs", HangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync(
+@"using System;
+
+class C
+{
+    public void Test()
+    {
+        var generator = new HelloWorldGenerator();
+    }
+}", HangMitigatingCancellationToken);
+
+            await TestServices.Editor.PlaceCaretAsync("HelloWorldGenerator", charsOffset: -1, HangMitigatingCancellationToken);
+            await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
+            Assert.Equal("HelloWorldGenerator.cs [embedded] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+
+            await TestServices.Editor.PlaceCaretAsync("Constants.", charsOffset: -1, HangMitigatingCancellationToken);
+            await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
+            Assert.Equal("Constants.cs [embedded] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+
+            // Close the file and try again. If symbol mapping isn't working, the second GTD to Constants.cs will fail
+            await TestServices.SolutionExplorer.CloseCodeFileAsync(ProjectName, "Constants.cs", saveFile: false, HangMitigatingCancellationToken);
+
+            await TestServices.Editor.PlaceCaretAsync("HelloWorldGenerator", charsOffset: -1, HangMitigatingCancellationToken);
+            await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
+            Assert.Equal("HelloWorldGenerator.cs [embedded] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+
+            await TestServices.Editor.PlaceCaretAsync("Constants.", charsOffset: -1, HangMitigatingCancellationToken);
+            await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
+            Assert.Equal("Constants.cs [embedded] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
         }
     }
 }
