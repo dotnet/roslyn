@@ -132,11 +132,6 @@
         <target state="translated">Búsqueda de símbolos</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_SymbolTreeInfoIncrementalAnalyzer">
-        <source>Symbol tree info analysis</source>
-        <target state="new">Symbol tree info analysis</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_TodoCommentsDiscovery">
         <source>TODO comments discovery</source>
         <target state="translated">Detección de comentarios TODO</target>
