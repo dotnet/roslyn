@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 {
     internal sealed partial class SymbolTreeInfoCacheService
     {
-        public readonly struct MetadataInfo
+        private readonly struct MetadataInfo
         {
             /// <summary>
             /// Can't be null.  Even if we weren't able to read in metadata, we'll still create an empty
