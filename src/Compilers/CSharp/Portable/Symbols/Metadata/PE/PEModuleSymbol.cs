@@ -102,6 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NullableMemberMetadata _lazyNullableMemberMetadata;
 
+        private ThreeState _lazyUseUpdatedEscapeRules;
+
 #nullable enable
         private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
 #nullable disable
@@ -429,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <param name="token"></param>
         /// <param name="foundExtension">True if we found an extension method, false otherwise.</param>
         /// <returns>The attributes on the token, minus any ExtensionAttributes.</returns>
-        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesFilterCompilerAttributes(EntityHandle token, out bool foundExtension, out bool foundReadOnly)
+        private ImmutableArray<CSharpAttributeData> GetCustomAttributesFilterCompilerAttributes(EntityHandle token, out bool foundExtension, out bool foundReadOnly)
         {
             var result = GetCustomAttributesForToken(
                 token,
@@ -777,5 +779,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override bool HasUnsupportedMetadata
             => GetCompilerFeatureRequiredDiagnostic()?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature || base.HasUnsupportedMetadata;
+
+        internal override bool UseUpdatedEscapeRules
+        {
+            get
+            {
+                if (_lazyUseUpdatedEscapeRules == ThreeState.Unknown)
+                {
+                    bool value = _module.HasRefSafetyRulesAttribute(Token, out int version) && version == 11;
+                    _lazyUseUpdatedEscapeRules = value.ToThreeState();
+                }
+                return _lazyUseUpdatedEscapeRules == ThreeState.True;
+            }
+        }
     }
 }

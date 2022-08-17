@@ -2857,6 +2857,15 @@ class Program
     public struct Boolean { }
     public struct Int32 { }
     public struct IntPtr { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }";
             var sourceB =
 @"class Program

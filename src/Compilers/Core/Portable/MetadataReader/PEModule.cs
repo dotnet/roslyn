@@ -1097,6 +1097,22 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, AttributeDescription.UnscopedRefAttribute).HasValue;
         }
 
+        internal bool HasRefSafetyRulesAttribute(EntityHandle token, out int version)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.RefSafetyRulesAttribute);
+            if (info.HasValue)
+            {
+                Debug.Assert(info.SignatureIndex == 0);
+                if (TryExtractValueFromAttribute(info.Handle, out int value, s_attributeIntValueExtractor))
+                {
+                    version = value;
+                    return true;
+                }
+            }
+            version = 0;
+            return false;
+        }
+
         internal bool HasTupleElementNamesAttribute(EntityHandle token, out ImmutableArray<string> tupleElementNames)
         {
             var info = FindTargetAttribute(token, AttributeDescription.TupleElementNamesAttribute);

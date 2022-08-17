@@ -436,6 +436,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool HasUnscopedRefAttribute => false;
 
+        internal override bool UseUpdatedEscapeRules => false;
+
         internal ResultProperties ResultProperties
         {
             get { return _lazyResultProperties; }

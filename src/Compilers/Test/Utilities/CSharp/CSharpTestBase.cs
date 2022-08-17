@@ -640,6 +640,19 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
+        protected const string RefSafetyRulesAttributeDefinition =
+@"namespace System.Runtime.CompilerServices
+{
+    public sealed class RefSafetyRulesAttribute : Attribute
+    {
+        public RefSafetyRulesAttribute(int version) { Version = version; }
+        public int Version;
+    }
+}";
+
+        protected static readonly MetadataReference RefSafetyRulesAttributeLib =
+            CreateCompilation(RefSafetyRulesAttributeDefinition).EmitToImageReference();
+
         protected const string RequiredMemberAttribute = @"
 namespace System.Runtime.CompilerServices
 {
@@ -973,6 +986,7 @@ namespace System.Diagnostics.CodeAnalysis
                 source,
                 (s, _) =>
                 {
+                    if (s == "Version") return null;
                     Assert.True(expectedBlobs.ContainsKey(s), "Expecting marshalling blob for " + (isField ? "field " : "parameter ") + s);
                     return expectedBlobs[s];
                 },
