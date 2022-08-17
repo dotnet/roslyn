@@ -12420,6 +12420,252 @@ class Program
         }
 
         [Fact]
+        public void SimpleMethodGroupInference_DefaultParameter()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object d) => Console.WriteLine(d.GetType());
+
+    public static int M(int arg = 1)
+    {
+        return arg;
+    }
+
+    public static void Main()
+    {
+        var f = M;
+        int x = f();
+        Console.WriteLine(x);
+        Report(f);
+    }
+}
+""";
+
+            CompileAndVerify(source, expectedOutput:
+@"1
+<>f__AnonymousDelegate0");
+        }
+
+        [Fact]
+        public void InstanceMethodGroupInference_DefaultParameter()
+        {
+
+            var source = """
+using System;
+
+class C
+{
+    public int Z;
+    public void SetZ(int x = 10)
+    {
+        this.Z = x;
+    }
+}
+
+class Program
+{
+    
+    public static void Main()
+    {
+        C c = new C();
+        var setZ = c.SetZ;
+        setZ();
+        Console.WriteLine(c.Z);
+        setZ(7);
+        Console.WriteLine(c.Z);
+    }
+}
+""";
+
+            CompileAndVerify(source, expectedOutput:
+@"10
+7");
+        }
+
+        [Fact]
+        public void MethodGroupInferenceMatchingSignaturesAndDefaultParameterValues()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object d) => Console.WriteLine(d.GetType());
+
+    public static int M(int x = 3)
+    {
+        return x;
+    }
+
+    public static int N(int y = 3)
+    {
+        return y * 100;
+    }
+
+    public static void Main()
+    {
+        var m = M;
+        var n = N;
+
+        Report(m);
+        Report(n);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate0");
+        }
+
+        [Fact]
+        public void MethodGroupInference_SignaturesMatchDefaultParameterMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static void Report(object d) => Console.WriteLine(d.GetType());
+
+    public static int M(int x = 3)
+    {
+        return x;
+    }
+
+    public static int N(int y = 4)
+    {
+        return y * 100;
+    }
+
+    public static void Main()
+    {
+        var m = M;
+        var n = N;
+
+        Report(m);
+        Report(n);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1");
+        }
+
+        [Fact]
+        public void MethodGroupTargetConversion_DefaultValueMatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate string D(string s = "defaultstring");
+
+    public static string M(string s = "defaultstring")
+    {
+        return s;
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        Console.WriteLine(d());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "defaultstring");
+        }
+
+        [Fact]
+        public void MethodGroupTargetConversion_DefaultValueMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate string D(string s = "string1");
+
+    public static string M(string s = "string2")
+    {
+        return s;
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        Console.WriteLine(d());
+    }
+}
+""";
+            // PROTOTYPE: want to raise an error here for invalid target-type conversion
+            CompileAndVerify(source, expectedOutput: "string1");
+        }
+
+        [Fact]
+        public void MethodGroupTargetConversion_DefaultRequiredMismatch()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate string D(string s);
+
+    public static string M(string s = "a string")
+    {
+        return s;
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        Console.WriteLine(d());
+    }
+}
+""";
+            // PROTOTYPE: want to raise a warning here because parameter is optional for method group but required for delegate type D.
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (15,27): error CS7036: There is no argument given that corresponds to the required formal parameter 's' of 'Program.D'
+                    //         Console.WriteLine(d());
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("s", "Program.D").WithLocation(15, 27)
+                );
+        }
+
+        [Fact]
+        public void MethodGroupInferenceCompatBreak()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    public static int Fun(int arg = 10) => arg + 1;
+
+    public static void PrintFunResult<T>(Func<T, T> f, T input)
+    {
+        Console.WriteLine(f(input));
+    }
+
+    public static void Main()
+    {
+        var f = Fun;
+        PrintFunResult(f, 3);
+    }
+
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (15,24): error CS1503: Argument 1: cannot convert from '<anonymous delegate>' to 'System.Func<int, int>'
+                    //         PrintFunResult(f, 3);
+                    Diagnostic(ErrorCode.ERR_BadArgType, "f").WithArguments("1", "<anonymous delegate>", "System.Func<int, int>").WithLocation(15, 24));
+        }
+
+        [Fact]
         public void LambdaDefaultDiscardParameter_DelegateConversion_OptionalRequiredMismatch()
         {
             var source = """

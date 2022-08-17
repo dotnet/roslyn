@@ -8856,9 +8856,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterScopes = parameters.Any(p => p.EffectiveScope != DeclarationScope.Unscoped) ?
                 parameters.SelectAsArray(p => p.EffectiveScope) :
                 default;
+            var parameterDefaultValues = parameters.Any(p => p.HasExplicitDefaultValue) ?
+                parameters.SelectAsArray(p => p.ExplicitDefaultConstantValue) :
+                default;
 
             // PROTOTYPE: bind default values and pass them through here to allow support for default parameters in method groups
-            return GetMethodGroupOrLambdaDelegateType(node.Syntax, method.RefKind, method.ReturnTypeWithAnnotations, method.ParameterRefKinds, parameterScopes, method.ParameterTypesWithAnnotations, parameterDefaultValues: default);
+            return GetMethodGroupOrLambdaDelegateType(node.Syntax, method.RefKind, method.ReturnTypeWithAnnotations, method.ParameterRefKinds, parameterScopes, method.ParameterTypesWithAnnotations, parameterDefaultValues: parameterDefaultValues);
         }
 
         /// <summary>
