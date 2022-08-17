@@ -965,11 +965,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Wstaw środwierszowo i zachowaj metodę „{0}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_an_if_statement">
-        <source>Insert an 'if' statement</source>
-        <target state="new">Insert an 'if' statement</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">Zbyt mało cyfr szesnastkowych</target>
@@ -2990,11 +2985,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Zawijanie</target>
         <note />
       </trans-unit>
-      <trans-unit id="Write_to_the_console">
-        <source>Write to the console</source>
-        <target state="new">Write to the console</target>
-        <note />
-      </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
         <source>You can use the navigation bar to switch contexts.</source>
         <target state="translated">Za pomocą paska nawigacyjnego można przełączać konteksty.</target>
@@ -3346,6 +3336,11 @@ Jeśli specyfikator formatu „H” zostanie użyty bez innych indywidualnych sp
         <target state="translated">kod</target>
         <note />
       </trans-unit>
+      <trans-unit id="console_writeline">
+        <source>Console.WriteLine</source>
+        <target state="new">Console.WriteLine</target>
+        <note />
+      </trans-unit>
       <trans-unit id="date_separator">
         <source>date separator</source>
         <target state="translated">separator daty</target>
@@ -3480,6 +3475,11 @@ Standardowy specyfikator formatu „f” reprezentuje połączenie wzorców dłu
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">przeciążenia ogólne</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="if_statement">
+        <source>if statement</source>
+        <target state="new">if statement</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_1_2">
@@ -3998,16 +3998,6 @@ Czy chcesz kontynuować?</target>
 '{1}'.</source>
         <target state="translated">Analizator „{0}” zgłosił następujący wyjątek:
 „{1}”.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Names">
-        <source>Simplify Names</source>
-        <target state="translated">Uprość nazwy</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Member_Access">
-        <source>Simplify Member Access</source>
-        <target state="translated">Uprość dostęp do składowej</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_qualification">

@@ -4,11 +4,11 @@
 
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Precedence
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 Imports Microsoft.CodeAnalysis.Precedence
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses

@@ -25,7 +25,7 @@ internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, S
 {
     public SyntaxTree SyntaxTree => Root.SyntaxTree;
 
-    public Host.LanguageServices LanguageServices => HostLanguageServices.LanguageServices;
+    public LanguageServices LanguageServices => HostLanguageServices.LanguageServices;
     public SolutionServices SolutionServices => LanguageServices.SolutionServices;
 
     public static async ValueTask<ParsedDocument> CreateAsync(Document document, CancellationToken cancellationToken)
