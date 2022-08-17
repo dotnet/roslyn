@@ -8,6 +8,22 @@ Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsFile.get -> bool
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsFile(bool isFile) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.Host.HostWorkspaceServices services) -> void
 *REMOVED*static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
+Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.Host.SolutionServices services) -> void
+Microsoft.CodeAnalysis.Host.HostLanguageServices.LanguageServices.get -> Microsoft.CodeAnalysis.Host.LanguageServices
+Microsoft.CodeAnalysis.Host.LanguageServices
+Microsoft.CodeAnalysis.Host.LanguageServices.GetRequiredService<TLanguageService>() -> TLanguageService
+Microsoft.CodeAnalysis.Host.LanguageServices.GetService<TLanguageService>() -> TLanguageService
+Microsoft.CodeAnalysis.Host.LanguageServices.Language.get -> string
+Microsoft.CodeAnalysis.Host.LanguageServices.SolutionServices.get -> Microsoft.CodeAnalysis.Host.SolutionServices
+Microsoft.CodeAnalysis.Host.SolutionServices
+Microsoft.CodeAnalysis.Host.SolutionServices.GetLanguageServices(string languageName) -> Microsoft.CodeAnalysis.Host.LanguageServices
+Microsoft.CodeAnalysis.Host.SolutionServices.GetRequiredLanguageService<TLanguageService>(string language) -> TLanguageService
+Microsoft.CodeAnalysis.Host.SolutionServices.GetRequiredService<TWorkspaceService>() -> TWorkspaceService
+Microsoft.CodeAnalysis.Host.SolutionServices.GetService<TWorkspaceService>() -> TWorkspaceService
+Microsoft.CodeAnalysis.Host.SolutionServices.IsSupported(string languageName) -> bool
+Microsoft.CodeAnalysis.Host.SolutionServices.SupportedLanguages.get -> System.Collections.Generic.IEnumerable<string>
+Microsoft.CodeAnalysis.Project.Services.get -> Microsoft.CodeAnalysis.Host.LanguageServices
+Microsoft.CodeAnalysis.Solution.Services.get -> Microsoft.CodeAnalysis.Host.SolutionServices
 Microsoft.CodeAnalysis.TextDocumentEventArgs
 Microsoft.CodeAnalysis.TextDocumentEventArgs.Document.get -> Microsoft.CodeAnalysis.TextDocument
 Microsoft.CodeAnalysis.TextDocumentEventArgs.TextDocumentEventArgs(Microsoft.CodeAnalysis.TextDocument document) -> void

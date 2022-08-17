@@ -3930,6 +3930,46 @@ public struct S
         }
 
         [Fact]
+        public void ImplicitlyInitializedField_Pointer()
+        {
+            var source = """
+using System;
+
+_ = new R();
+
+unsafe struct R
+{
+    public int* field;
+
+    public R()
+    {
+        Console.WriteLine("explicit ctor");
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe);
+            comp.VerifyDiagnostics(
+                // (7,17): warning CS0649: Field 'R.field' is never assigned to, and will always have its default value
+                //     public int* field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("R.field", "").WithLocation(7, 17)
+                );
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "explicit ctor");
+            verifier.VerifyIL("R..ctor()", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     ""int* R.field""
+  IL_0007:  initobj    ""int*""
+  IL_000d:  ldstr      ""explicit ctor""
+  IL_0012:  call       ""void System.Console.WriteLine(string)""
+  IL_0017:  nop
+  IL_0018:  ret
+}");
+        }
+
+        [Fact]
         public void ImplicitlyInitializedField_NotOtherStruct()
         {
             var source = @"

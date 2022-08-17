@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
                 Return False
             End If
 
-            Dim newDocument = TryGetNewDocument(document, _globalOptions.GetImplementTypeGenerationOptions(document.Project.LanguageServices), identifier, cancellationToken)
+            Dim newDocument = TryGetNewDocument(document, _globalOptions.GetImplementTypeGenerationOptions(document.Project.Services), identifier, cancellationToken)
 
             If newDocument Is Nothing Then
                 Return False

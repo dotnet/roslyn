@@ -317,6 +317,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         isBad = true;
                     }
                 }
+                else if (ParameterHelpers.IsRefScopedByDefault(refKind, typeWithAnnotations))
+                {
+                    scope = DeclarationScope.RefScoped;
+                }
             }
 
             _typeWithAnnotations = typeWithAnnotations;

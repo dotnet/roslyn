@@ -12,7 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -328,9 +328,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 foreach (var documentsGroupedByLanguage in RenameUtilities.GetDocumentsAffectedByRename(originalSymbol, solution, renameLocations).GroupBy(d => d.Project.Language))
                 {
                     var languageName = documentsGroupedByLanguage.Key;
-                    var syntaxFactsLanguageService = solution.Services.GetProjectServices(languageName).GetRequiredService<ISyntaxFactsService>();
-                    var renameRewriterLanguageService = solution.Services.GetProjectServices(languageName).GetRequiredService<IRenameRewriterLanguageService>();
-
+                    var syntaxFactsLanguageService = solution.Services.GetLanguageServices(languageName).GetRequiredService<ISyntaxFactsService>();
+                    var renameRewriterLanguageService = solution.Services.GetLanguageServices(languageName).GetRequiredService<IRenameRewriterLanguageService>();
                     foreach (var document in documentsGroupedByLanguage)
                     {
                         await AddStringAndCommentLocationsAsync(
