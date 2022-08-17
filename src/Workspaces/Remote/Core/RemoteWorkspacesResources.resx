@@ -213,4 +213,7 @@
   <data name="FeatureName_StackTraceExplorer" xml:space="preserve">
     <value>Stack Trace Explorer</value>
   </data>
+  <data name="FeatureName_SymbolTreeInfoIncrementalAnalyzer" xml:space="preserve">
+    <value>Symbol tree info analysis</value>
+  </data>
 </root>
