@@ -414,7 +414,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var symbolTreeInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                 project.Solution, reference, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            // This will always be non-null since we pass loadOnly: false above.
             Contract.ThrowIfNull(symbolTreeInfo);
 
             // For each type we care about, see if we can find any derived types
