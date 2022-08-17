@@ -764,6 +764,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 Accessibility acc;
                 DeclarationModifiers modifiers;
 
+                // return any nested member "as is" without any additional changes
+                if (member is BaseTypeDeclarationSyntax)
+                    return member;
+
                 switch (member.Kind())
                 {
                     case SyntaxKind.MethodDeclaration:
