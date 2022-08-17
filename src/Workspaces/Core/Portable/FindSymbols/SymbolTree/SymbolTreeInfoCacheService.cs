@@ -33,6 +33,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
         {
         }
 
+        /// <summary>
+        /// Gets the latest computed <see cref="SymbolTreeInfo"/> for the requested <paramref name="reference"/>.  This
+        /// may return an index corresponding to a prior version of the refernce if it has since changed.  Another
+        /// system is responsible for bringing these indices up to date in the background.
+        /// </summary>
         public async ValueTask<SymbolTreeInfo?> TryGetMetadataSymbolTreeInfoAsync(
             Solution solution,
             PortableExecutableReference reference,
@@ -45,49 +50,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
             var checksum = SymbolTreeInfo.GetMetadataChecksum(solution, reference, cancellationToken);
 
             // See if the last value produced exactly matches what the caller is asking for.  If so, return that.
-            if (_metadataIdToInfo.TryGetValue(metadataId, out var metadataInfo) &&
-                metadataInfo.SymbolTreeInfo.Checksum == checksum)
-            {
+            if (_metadataIdToInfo.TryGetValue(metadataId, out var metadataInfo))
                 return metadataInfo.SymbolTreeInfo;
-            }
 
             // If we didn't have it in our cache, see if we can load it from disk. Note: pass 'loadOnly' so we only
             // attempt to load from disk, not to actually try to create the metadata.
             var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                 solution, reference, checksum, loadOnly: true, cancellationToken).ConfigureAwait(false);
-            if (info != null)
-                return info;
-
-            // Finally, just return whatever info we last computed.  That way we can still offer info that, while
-            // potentially stale, could still be very relevant.  Note: SymbolTreeInfo is basically just a tree of names
-            // that are believed to in a particular PEReference/Project.  There is still a *graceful* resolution step
-            // that will try to find a symbols for those name-paths, and which is if no symbol can be resolved.
-            return metadataInfo.SymbolTreeInfo;
+            return info;
         }
 
         public async Task<SymbolTreeInfo?> TryGetSourceSymbolTreeInfoAsync(
             Project project, CancellationToken cancellationToken)
         {
             // See if the last value produced exactly matches what the caller is asking for.  If so, return that.
-            var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
-            if (_projectIdToInfo.TryGetValue(project.Id, out var projectInfo) &&
-                projectInfo.Checksum == checksum)
-            {
+            if (_projectIdToInfo.TryGetValue(project.Id, out var projectInfo))
                 return projectInfo;
-            }
 
             // If we didn't have it in our cache, see if we can load it from disk. Note: pass 'loadOnly' so we only
             // attempt to load from disk, not to actually try to create the index.
+            var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
             var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
                 project, checksum, loadOnly: true, cancellationToken).ConfigureAwait(false);
-            if (info != null)
-                return info;
 
-            // Finally, just return whatever info we last computed.  That way we can still offer info that, while
-            // potentially stale, could still be very relevant.  Note: SymbolTreeInfo is basically just a tree of names
-            // that are believed to in a particular PEReference/Project.  There is still a *graceful* resolution step
-            // that will try to find a symbols for those name-paths, and which is if no symbol can be resolved.
-            return projectInfo;
+            // attempt to add this item to the map.  But defer to whatever is in the map now if something else beat us
+            // to this.
+            return _projectIdToInfo.GetOrAdd(project.Id, info);
         }
 
         public async Task AnalyzeDocumentAsync(Document document, bool isMethodBodyEdit, CancellationToken cancellationToken)
