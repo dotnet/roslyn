@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 throw new ArgumentException("Unknown operator kind.");
             }
 
-            isChecked = method.Name.StartsWith("op_Checked");
+            isChecked = CSharp.SyntaxFacts.IsCheckedOperator(method.Name);
             return (int)operatorKind;
         }
 
