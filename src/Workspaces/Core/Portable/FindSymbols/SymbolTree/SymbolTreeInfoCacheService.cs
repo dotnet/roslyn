@@ -47,16 +47,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
             if (metadataId == null)
                 return null;
 
-            var checksum = SymbolTreeInfo.GetMetadataChecksum(solution, reference, cancellationToken);
-
             // See if the last value produced exactly matches what the caller is asking for.  If so, return that.
             if (_metadataIdToInfo.TryGetValue(metadataId, out var metadataInfo))
                 return metadataInfo.SymbolTreeInfo;
 
             // If we didn't have it in our cache, see if we can load it from disk. Note: pass 'loadOnly' so we only
             // attempt to load from disk, not to actually try to create the metadata.
-            var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                solution, reference, checksum, loadOnly: true, cancellationToken).ConfigureAwait(false);
+            var info = await SymbolTreeInfo.LoadInfoForMetadataReferenceAsync(solution, reference, cancellationToken).ConfigureAwait(false);
             return info;
         }
 
@@ -67,11 +64,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
             if (_projectIdToInfo.TryGetValue(project.Id, out var projectInfo))
                 return projectInfo;
 
-            // If we didn't have it in our cache, see if we can load it from disk. Note: pass 'loadOnly' so we only
-            // attempt to load from disk, not to actually try to create the index.
-            var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
-            var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
-                project, checksum, loadOnly: true, cancellationToken).ConfigureAwait(false);
+            // If we didn't have it in our cache, see if we can load some version of it from disk.
+            var info = await SymbolTreeInfo.LoadInfoForSourceAssemblyAsync(project, cancellationToken).ConfigureAwait(false);
 
             // attempt to add this item to the map.  But defer to whatever is in the map now if something else beat us
             // to this.
@@ -117,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                 projectInfo.Checksum != checksum)
             {
                 projectInfo = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
-                    project, checksum, loadOnly: false, cancellationToken).ConfigureAwait(false);
+                    project, checksum, cancellationToken).ConfigureAwait(false);
 
                 Contract.ThrowIfNull(projectInfo);
                 Contract.ThrowIfTrue(projectInfo.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
@@ -177,7 +171,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                     metadataInfo.SymbolTreeInfo.Checksum != checksum)
                 {
                     var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                        project.Solution, reference, checksum, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        project.Solution, reference, checksum, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     Contract.ThrowIfNull(info);
                     Contract.ThrowIfTrue(info.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");

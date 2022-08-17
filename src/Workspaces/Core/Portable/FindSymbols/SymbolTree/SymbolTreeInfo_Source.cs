@@ -29,25 +29,58 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             s_symbolMapPool.Free(symbolMap);
         }
 
-        public static Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
-            Project project, Checksum checksum, bool loadOnly, CancellationToken cancellationToken)
+        private static string GetSourceKeySuffix(Project project)
+            => "_Source_" + project.FilePath;
+
+        private static async Task<Func<ObjectReader, SymbolTreeInfo>> GetSourceInfoReaderAsync(
+            Project project, CancellationToken cancellationToken)
         {
+            var checksum = await GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+
             var solution = project.Solution;
             var services = solution.Services;
             var solutionKey = SolutionKey.ToSolutionKey(solution);
             var projectFilePath = project.FilePath ?? "";
 
-            var result = TryLoadOrCreateAsync(
+            return reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(services, solutionKey, checksum, projectFilePath, nodes));
+        }
+
+        public static async Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
+            Project project, CancellationToken cancellationToken)
+        {
+            var solution = project.Solution;
+            var services = solution.Services;
+            var solutionKey = SolutionKey.ToSolutionKey(solution);
+            var checksum = await GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+            var tryReadObject = await GetSourceInfoReaderAsync(project, cancellationToken).ConfigureAwait(false);
+
+            return await LoadOrCreateAsync(
                 services,
                 solutionKey,
                 checksum,
-                loadOnly,
                 createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
-                keySuffix: "_Source_" + project.FilePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(services, solutionKey, checksum, projectFilePath, nodes)),
-                cancellationToken: cancellationToken);
-            Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
-            return result;
+                keySuffix: GetSourceKeySuffix(project),
+                tryReadObject,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        public static async Task<SymbolTreeInfo?> LoadInfoForSourceAssemblyAsync(
+            Project project, CancellationToken cancellationToken)
+        {
+            var tryReadObject = await GetSourceInfoReaderAsync(project, cancellationToken).ConfigureAwait(false);
+
+            // Ok, we can use persistence.  First try to load from the persistence service.
+            var persistentStorageService = services.GetPersistentStorageService();
+
+            var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
+            await using var _ = storage.ConfigureAwait(false);
+
+            return LoadAsync<SymbolTreeInfo>(
+                storage,
+                checksumOpt: null,
+                GetSourceKeySuffix(project),
+                tryReadObject,
+                cancellationToken);
         }
 
         /// <summary>

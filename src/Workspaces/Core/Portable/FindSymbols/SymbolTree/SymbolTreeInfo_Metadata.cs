@@ -66,14 +66,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public static ValueTask<SymbolTreeInfo?> GetInfoForMetadataReferenceAsync(
-            Solution solution, PortableExecutableReference reference,
-            bool loadOnly, CancellationToken cancellationToken)
+        public static ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+            Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             var checksum = GetMetadataChecksum(solution, reference, cancellationToken);
-            return GetInfoForMetadataReferenceAsync(
-                solution, reference, checksum,
-                loadOnly, cancellationToken);
+            return GetInfoForMetadataReferenceAsync(solution, reference, checksum, cancellationToken);
         }
 
         /// <summary>
@@ -81,11 +78,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Note:  will never return null;
         /// </summary>
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
-        public static async ValueTask<SymbolTreeInfo?> GetInfoForMetadataReferenceAsync(
+        public static async ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
             Checksum checksum,
-            bool loadOnly,
             CancellationToken cancellationToken)
         {
             var metadataId = GetMetadataIdNoThrow(reference);
@@ -102,12 +98,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var metadata = GetMetadataNoThrow(reference);
             if (metadata == null)
                 return CreateEmpty(checksum);
-
-            // If the data isn't in the table, and the client only wants the data if already loaded, then bail out as we
-            // have no results to give.  The data will eventually populate in memory due to
-            // SymbolTreeInfoIncrementalAnalyzer eventually getting around to loading it.
-            if (loadOnly)
-                return null;
 
             return await GetInfoForMetadataReferenceSlowAsync(
                 solution.Services, SolutionKey.ToSolutionKey(solution), reference, checksum, metadata, cancellationToken).ConfigureAwait(false);
@@ -183,17 +173,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var filePath = reference.FilePath ?? "";
 
-            var result = TryLoadOrCreateAsync(
+            return LoadOrCreateAsync(
                 services,
                 solutionKey,
                 checksum,
-                loadOnly: false,
                 createAsync: () => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, checksum, reference),
                 keySuffix: "_Metadata_" + filePath,
                 tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(services, solutionKey, checksum, filePath, nodes)),
-                cancellationToken: cancellationToken);
-            Contract.ThrowIfNull(result);
-            return result;
+                cancellationToken);
         }
 
         private static Task<SymbolTreeInfo> CreateMetadataSymbolTreeInfoAsync(
