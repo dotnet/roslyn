@@ -77,7 +77,6 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteProcessTelemetryService), null),
             (typeof(IRemoteCompilationAvailableService), null),
             (typeof(IRemoteStackTraceExplorerService), null),
-            (typeof(IRemoteSymbolTreeInfoIncrementalAnalyzer), null),
         });
 
         internal readonly RemoteSerializationOptions Options;

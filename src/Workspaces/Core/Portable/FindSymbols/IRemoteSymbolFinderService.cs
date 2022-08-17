@@ -48,5 +48,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
             Checksum solutionChecksum, ProjectId projectId, string pattern, SymbolFilter criteria, CancellationToken cancellationToken);
+
+        ValueTask AnalyzeDocumentAsync(Checksum solutionChecksum, DocumentId documentId, bool isMethodBodyEdit, CancellationToken cancellationToken);
+        ValueTask AnalyzeProjectAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
+        ValueTask RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken);
     }
 }

@@ -213,7 +213,6 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteUnusedReferenceAnalysisService.Factory());
                 RegisterRemoteBrokeredService(new RemoteCompilationAvailableService.Factory());
                 RegisterRemoteBrokeredService(new RemoteStackTraceExplorerService.Factory());
-                RegisterRemoteBrokeredService(new RemoteSymbolTreeInfoIncrementalAnalyzer.Factory());
             }
 
             public void Dispose()
