@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Text;
@@ -59,19 +60,22 @@ internal partial record DocumentRenameInfo
             }
         }
 
-        public void AddRenamedSymbol(ISymbol symbol, string replacementText, bool replacementTextValid)
+        public void AddRenamedSymbol(ISymbol symbol, string replacementText, bool replacementTextValid, ImmutableArray<string> possibleNamingConflict)
         {
             var symbolKey = symbol.GetSymbolKey();
             if (!_renameSymbolContexts.ContainsKey(symbolKey))
             {
                 var symbolContext = new RenamedSymbolContext(replacementText, symbol.Name, symbol, symbol as IAliasSymbol, replacementTextValid);
                 _renameSymbolContexts[symbolKey] = symbolContext;
+                _allReplacementTexts.Add(replacementText);
+                _allOriginalTexts.Add(symbol.Name);
+                _allPossibleConflictNames.AddRange(possibleNamingConflict);
             }
         }
 
         public bool AddStringAndCommentRenameContext(StringAndCommentRenameContext stringAndCommentRenameContext)
         {
-            RoslynDebug.Assert(!stringAndCommentRenameContext.RenameLocation.IsRenameInStringOrComment);
+            RoslynDebug.Assert(stringAndCommentRenameContext.RenameLocation.IsRenameInStringOrComment);
             var containLocation = stringAndCommentRenameContext.RenameLocation.ContainingLocationForStringOrComment;
             if (_textSpanToStringAndCommentContexts.TryGetValue(containLocation, out var subLocationSet))
             {
@@ -96,7 +100,33 @@ internal partial record DocumentRenameInfo
 
         public DocumentRenameInfo ToRenameInfo()
         {
+            var textSpanToLocationContexts = _textSpanToLocationContexts.ToImmutableDictionary();
+            var renamedSymbolContexts = _renameSymbolContexts.ToImmutableDictionary();
 
+            var textSpanToStringAndCommentRenameContexts = ToImmutable(_textSpanToStringAndCommentContexts);
+
+            var allReplacementTexts = _allReplacementTexts.ToImmutableHashSet();
+            var allOriginalTexts = _allOriginalTexts.ToImmutableHashSet();
+            var allPossibleConflictNames = _allPossibleConflictNames.ToImmutableHashSet();
+            return new DocumentRenameInfo(
+                textSpanToLocationContexts,
+                renamedSymbolContexts,
+                textSpanToStringAndCommentRenameContexts,
+                allReplacementTexts,
+                allOriginalTexts,
+                allPossibleConflictNames);
+
+            static ImmutableDictionary<TextSpan, ImmutableHashSet<StringAndCommentRenameContext>> ToImmutable(
+                PooledDictionary<TextSpan, HashSet<StringAndCommentRenameContext>> builder)
+            {
+                var dictionaryBuilder = ImmutableDictionary.CreateBuilder<TextSpan, ImmutableHashSet<StringAndCommentRenameContext>>();
+                foreach (var pair in builder)
+                {
+                    dictionaryBuilder[pair.Key] = pair.Value.ToImmutableHashSet();
+                }
+
+                return dictionaryBuilder.ToImmutableDictionary();
+            }
         }
 
         public void Dispose()

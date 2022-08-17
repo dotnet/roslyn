@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         RoslynDebug.Assert(!overlap);
                     }
 
-                    documentRenameInfoBuilder.AddRenamedSymbol(symbol, replacementText, replacementTextValid);
+                    documentRenameInfoBuilder.AddRenamedSymbol(symbol, replacementText, replacementTextValid, possibleNameConflicts);
                     documentIdToRenameInfoBuilder[documentId] = documentRenameInfoBuilder.ToRenameInfo();
                 }
 

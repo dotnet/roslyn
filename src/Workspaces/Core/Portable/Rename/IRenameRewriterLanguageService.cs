@@ -159,18 +159,6 @@ namespace Microsoft.CodeAnalysis.Rename
             }
         }
 
-        protected static ImmutableDictionary<SymbolKey, RenamedSymbolContext> CreateSymbolKeyToRenamedSymbolContextMap(
-            ImmutableArray<RenamedSymbolContext> symbolContexts, IEqualityComparer<SymbolKey> comparer)
-        {
-            using var _ = PooledDictionary<SymbolKey, RenamedSymbolContext>.GetInstance(out var builder);
-            foreach (var context in symbolContexts)
-            {
-                builder[context.RenamedSymbol.GetSymbolKey()] = context;
-            }
-
-            return builder.ToImmutableDictionary(comparer);
-        }
-
         protected static ImmutableDictionary<TextSpan, LocationRenameContext> CreateTextSpanToLocationContextMap(
             ImmutableArray<LocationRenameContext> locationRenameContexts)
         {
@@ -194,40 +182,6 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             return builder.ToImmutableDictionary();
-        }
-
-        protected static ImmutableDictionary<TextSpan, ImmutableHashSet<LocationRenameContext>> GroupStringAndCommentsTextSpanRenameContexts(
-            ImmutableArray<LocationRenameContext> renameSymbolContexts)
-        {
-            using var _ = PooledDictionary<TextSpan, ImmutableHashSet<LocationRenameContext>.Builder>.GetInstance(out var builder);
-            foreach (var context in renameSymbolContexts)
-            {
-                var containingSpan = context.RenameLocation.ContainingLocationForStringOrComment;
-                if (builder.TryGetValue(containingSpan, out var existingContexts))
-                {
-                    existingContexts.Add(context);
-                }
-                else
-                {
-                    var setBuilder = ImmutableHashSet.CreateBuilder<LocationRenameContext>();
-                    setBuilder.Add(context);
-                    builder[containingSpan] = setBuilder;
-                }
-            }
-
-            return ToImmutable(builder);
-
-            static ImmutableDictionary<TextSpan, ImmutableHashSet<LocationRenameContext>> ToImmutable(
-                PooledDictionary<TextSpan, ImmutableHashSet<LocationRenameContext>.Builder> builder)
-            {
-                var dictionaryBuilder = ImmutableDictionary.CreateBuilder<TextSpan, ImmutableHashSet<LocationRenameContext>>();
-                foreach (var pair in builder)
-                {
-                    dictionaryBuilder[pair.Key] = pair.Value.ToImmutableHashSet();
-                }
-
-                return dictionaryBuilder.ToImmutableDictionary();
-            }
         }
 
         /// <summary>

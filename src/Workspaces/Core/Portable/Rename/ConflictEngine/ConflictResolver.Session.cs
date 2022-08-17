@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             private async Task<ImmutableHashSet<ISymbol>> GetNonConflictSymbolsAsync(Project currentProject)
             {
-                if (_nonConflictSymbolKeys.IsEmpty)
+                if (_nonConflictSymbolKeys.IsDefaultOrEmpty)
                     return ImmutableHashSet<ISymbol>.Empty;
 
                 var compilation = await currentProject.GetRequiredCompilationAsync(CancellationToken).ConfigureAwait(false);
@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         // fixed them because of rename).  Also, don't bother checking if a custom
                         // callback was provided.  The caller might be ok with a rename that introduces
                         // errors.
-                        if (!documentIdErrorStateLookup[documentId] && _nonConflictSymbolKeys.IsEmpty)
+                        if (!documentIdErrorStateLookup[documentId] && _nonConflictSymbolKeys.IsDefaultOrEmpty)
                         {
                             await conflictResolution.CurrentSolution.GetRequiredDocument(documentId).VerifyNoErrorsAsync("Rename introduced errors in error-free code", CancellationToken, ignoreErrorCodes).ConfigureAwait(false);
                         }
