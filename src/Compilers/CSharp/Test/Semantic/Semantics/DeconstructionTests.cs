@@ -6551,7 +6551,7 @@ class C
             var deconstructionInfo = model.GetDeconstructionInfo(assignment);
             var nestedConversions = deconstructionInfo.Nested;
             Assert.Equal(2, nestedConversions.Length);
-            Assert.All(nestedConversions,  n => Assert.Empty(n.Nested));
+            Assert.All(nestedConversions, n => Assert.Empty(n.Nested));
         }
     }
 }
