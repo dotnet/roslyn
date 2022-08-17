@@ -82,7 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
                         // Break out of the 'for' loop, which effectively continues the containing 'while' loop
                         break;
                     }
-                    else if (child.IsKind(SyntaxKind.MultiLineRawStringLiteralToken))
+                    else if (child.IsKind(SyntaxKind.MultiLineRawStringLiteralToken) ||
+                             child.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken))
                     {
                         ProcessMultiLineRawStringLiteralToken(text, child.AsToken(), result, cancellationToken);
                     }
