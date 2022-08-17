@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     throw new StringOrCommentReplacementTextConflictException(
                         sourceSpan,
                         renameLocation.DocumentId,
-                        existingReplacemenText,
+                        existingReplacementText,
                         replacementText);
                 }
             }

@@ -33,10 +33,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private readonly DocumentId _documentIdOfRenameSymbolDeclaration;
             private readonly string _originalText;
             private readonly string _replacementText;
-            private readonly ImmutableHashSet<DocumentId> _documentsIdsToBeCheckedForConflict;
-
-            // Contains Strings like Bar -> BarAttribute ; Property Bar -> Bar , get_Bar, set_Bar
-            private readonly ImmutableArray<string> _possibleNameConflicts;
             private readonly bool _replacementTextValid;
 
             public static async Task<SingleSymbolRenameSession> CreateAsync(
@@ -48,6 +44,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 CancellationToken cancellationToken)
             {
                 var originalText = renameLocationSet.Symbol.Name;
+                var renameLocations = renameLocationSet.Locations;
+                var symbol = renameLocationSet.Symbol;
+
+                using var _1 = PooledDictionary<DocumentId, DocumentRenameInfo>.GetInstance(out var documentIdToRenameInfoBuilder);
                 var (documentsIdsToBeCheckedForConflict, possibleNameConflicts) = await FindDocumentsAndPossibleNameConflictsAsync(
                     renameLocationSet,
                     replacementText,
@@ -59,15 +59,56 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     replacementText,
                     documentsIdsToBeCheckedForConflict.Select(documentId => documentId.ProjectId).Distinct());
 
+                var documentIdToRenameLocations = renameLocations
+                    .GroupBy(location => location.DocumentId)
+                    .ToDictionary(grouping => grouping.Key);
+                foreach (var documentId in documentsIdsToBeCheckedForConflict)
+                {
+                    using var documentRenameInfoBuilder = new DocumentRenameInfo.Builder();
+
+                    // Conflict checking documents is a superset of the rename locations. In case this document is not a documents of rename locations,
+                    // just passing an empty rename information to check for conflicts.
+                    var renameLocationsInDocument = documentIdToRenameLocations.ContainsKey(documentId)
+                        ? documentIdToRenameLocations[documentId].ToImmutableArray()
+                        : ImmutableArray<RenameLocation>.Empty;
+
+                    var locationRenameContexts = renameLocationsInDocument
+                        .WhereAsArray(location => RenameUtilities.ShouldIncludeLocation(renameLocations, location))
+                        .SelectAsArray(location => new LocationRenameContext(location, replacementTextValid, replacementText, originalText));
+                    foreach (var locationRenameContext in locationRenameContexts)
+                    {
+                        var overlap = documentRenameInfoBuilder.AddLocationRenameContext(locationRenameContext);
+                        // Here only one symbol is renamed, so each rename text span should never overlap.
+                        RoslynDebug.Assert(!overlap);
+                    }
+
+                    // All textspan in the document documentId, that requires rename in String or Comment
+                    var stringAndCommentContexts = renameLocationsInDocument
+                        .WhereAsArray(l => l.IsRenameInStringOrComment)
+                        .SelectAsArray(location => new StringAndCommentRenameContext(location, replacementText));
+                    foreach (var stringAndCommentContext in stringAndCommentContexts)
+                    {
+                        var overlap = documentRenameInfoBuilder.AddStringAndCommentRenameContext(stringAndCommentContext);
+                        // Here only one symbol is renamed, so each sub text span in string/comment should never overlap.
+                        RoslynDebug.Assert(!overlap);
+                    }
+
+                    documentRenameInfoBuilder.AddRenamedSymbol(symbol, replacementText, replacementTextValid);
+                    documentIdToRenameInfoBuilder[documentId] = documentRenameInfoBuilder.ToRenameInfo();
+                }
+
+                var symbolToReplacementText = ImmutableDictionary<ISymbol, string>.Empty.Add(symbol, replacementText);
+                var symbolToReplacementTextValid = ImmutableDictionary<ISymbol, bool>.Empty.Add(symbol, replacementTextValid);
                 return new SingleSymbolRenameSession(
                     renameLocationSet,
                     renameSymbolDeclarationLocation,
                     originalText,
                     replacementText,
-                    nonConflictSymbolKeys,
-                    possibleNameConflicts,
-                    documentsIdsToBeCheckedForConflict,
                     replacementTextValid,
+                    nonConflictSymbolKeys,
+                    documentIdToRenameInfoBuilder.ToImmutableDictionary(),
+                    symbolToReplacementText,
+                    symbolToReplacementTextValid,
                     fallbackOptions,
                     cancellationToken);
             }
@@ -77,14 +118,20 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 Location renameSymbolDeclarationLocation,
                 string originalText,
                 string replacementText,
-                ImmutableArray<SymbolKey> nonConflictSymbolKeys,
-                ImmutableArray<string> possibleNameConflicts,
-                ImmutableHashSet<DocumentId> documentsIdsToBeCheckedForConflict,
                 bool replacementTextValid,
+                ImmutableArray<SymbolKey> nonConflictSymbolKeys,
+                ImmutableDictionary<DocumentId, DocumentRenameInfo> documentIdToDocumentRenameInfo,
+                ImmutableDictionary<ISymbol, string> symbolToReplacementText,
+                ImmutableDictionary<ISymbol, bool> symbolToReplacementTextValid,
                 CodeCleanupOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken) : base(
-                    renameLocationSet.Solution, nonConflictSymbolKeys, fallbackOptions, cancellationToken)
-
+                    solution: renameLocationSet.Solution,
+                    nonConflictSymbolKeys,
+                    documentIdToDocumentRenameInfo,
+                    symbolToReplacementText,
+                    symbolToReplacementTextValid,
+                    fallbackOptions,
+                    cancellationToken)
             {
                 _renameLocationSet = renameLocationSet;
                 _renameSymbolDeclarationLocation = renameSymbolDeclarationLocation;
@@ -93,9 +140,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                 _originalText = originalText;
                 _replacementText = replacementText;
-                _possibleNameConflicts = possibleNameConflicts;
-
-                _documentsIdsToBeCheckedForConflict = documentsIdsToBeCheckedForConflict;
                 _replacementTextValid = replacementTextValid;
             }
 

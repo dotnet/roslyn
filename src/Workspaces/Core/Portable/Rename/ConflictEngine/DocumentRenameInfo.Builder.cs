@@ -94,6 +94,11 @@ internal partial record DocumentRenameInfo
             }
         }
 
+        public DocumentRenameInfo ToRenameInfo()
+        {
+
+        }
+
         public void Dispose()
         {
             _textSpanToLocationContexts.Free();
