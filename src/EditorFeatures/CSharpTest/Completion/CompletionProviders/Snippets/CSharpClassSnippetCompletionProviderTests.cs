@@ -67,6 +67,15 @@ class MyClass
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertClassTopLevelSnippetTest()
+        {
+            var markupBeforeCommit =
+@"System.Console.WriteLine();
+$$";
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsertClassSnippetInClassTest()
         {
             var markupBeforeCommit =
