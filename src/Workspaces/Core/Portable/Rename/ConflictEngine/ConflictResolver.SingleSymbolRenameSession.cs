@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 var renameLocations = renameLocationSet.Locations;
                 var symbol = renameLocationSet.Symbol;
 
-                using var _1 = PooledDictionary<DocumentId, DocumentRenameInfo>.GetInstance(out var documentIdToRenameInfoBuilder);
+                using var _ = PooledDictionary<DocumentId, DocumentRenameInfo>.GetInstance(out var documentIdToRenameInfoBuilder);
                 var (documentsIdsToBeCheckedForConflict, possibleNameConflicts) = await FindDocumentsAndPossibleNameConflictsAsync(
                     renameLocationSet,
                     replacementText,
@@ -97,8 +97,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     documentIdToRenameInfoBuilder[documentId] = documentRenameInfoBuilder.ToRenameInfo();
                 }
 
-                var symbolToReplacementText = ImmutableDictionary<ISymbol, string>.Empty.Add(symbol, replacementText);
-                var symbolToReplacementTextValid = ImmutableDictionary<ISymbol, bool>.Empty.Add(symbol, replacementTextValid);
                 return new SingleSymbolRenameSession(
                     renameLocationSet,
                     renameSymbolDeclarationLocation,
@@ -107,8 +105,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     replacementTextValid,
                     nonConflictSymbolKeys,
                     documentIdToRenameInfoBuilder.ToImmutableDictionary(),
-                    symbolToReplacementText,
-                    symbolToReplacementTextValid,
                     fallbackOptions,
                     cancellationToken);
             }
@@ -121,16 +117,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 bool replacementTextValid,
                 ImmutableArray<SymbolKey> nonConflictSymbolKeys,
                 ImmutableDictionary<DocumentId, DocumentRenameInfo> documentIdToDocumentRenameInfo,
-                ImmutableDictionary<ISymbol, string> symbolToReplacementText,
-                ImmutableDictionary<ISymbol, bool> symbolToReplacementTextValid,
                 CodeCleanupOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken) : base(
                     solution: renameLocationSet.Solution,
                     nonConflictSymbolKeys,
-                    documentIdToDocumentRenameInfo,
-                    symbolToReplacementText,
-                    symbolToReplacementTextValid,
-                    fallbackOptions,
+                    documentIdToRenameInfo: documentIdToDocumentRenameInfo,
+                    symbolToReplacementText: ImmutableDictionary<ISymbol, string>.Empty.Add(renameLocationSet.Symbol, replacementText),
+                    symbolToReplacementTextValid: ImmutableDictionary<ISymbol, bool>.Empty.Add(renameLocationSet.Symbol, replacementTextValid),
+                    fallBackOptions: fallbackOptions,
                     cancellationToken)
             {
                 _renameLocationSet = renameLocationSet;

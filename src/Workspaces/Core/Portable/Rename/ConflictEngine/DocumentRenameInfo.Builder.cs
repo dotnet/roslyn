@@ -50,7 +50,7 @@ internal partial record DocumentRenameInfo
             if (_textSpanToLocationContexts.TryGetValue(textSpan, out var existingLocationContext)
                 && !existingLocationContext.Equals(locationRenameContext))
             {
-                // We are trying to rename a location with different rename context.
+                // We are trying to rename a same location with different rename context.
                 return true;
             }
             else
@@ -73,6 +73,13 @@ internal partial record DocumentRenameInfo
             }
         }
 
+        /// <summary>
+        /// Add StringAndCommentContext to the builder.
+        /// </summary>
+        /// <returns>
+        /// Return true if the given textSpan of <param name="stringAndCommentRenameContext"/> already exists in the builder.
+        /// And the existing context is not same as the input context. Otherwise, false.
+        /// </returns>
         public bool AddStringAndCommentRenameContext(StringAndCommentRenameContext stringAndCommentRenameContext)
         {
             RoslynDebug.Assert(stringAndCommentRenameContext.RenameLocation.IsRenameInStringOrComment);
@@ -81,7 +88,7 @@ internal partial record DocumentRenameInfo
             {
                 if (subLocationSet.Contains(stringAndCommentRenameContext))
                 {
-                    // We are tyring to rename a location with different rename context.
+                    // We are tyring to rename a same location with different rename context.
                     return true;
                 }
                 else

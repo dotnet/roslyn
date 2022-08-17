@@ -17,4 +17,5 @@ internal partial record DocumentRenameInfo(
     ImmutableDictionary<TextSpan, ImmutableHashSet<StringAndCommentRenameContext>> TextSpanToStringAndCommentRenameContexts,
     ImmutableHashSet<string> AllReplacementTexts,
     ImmutableHashSet<string> AllOriginalText,
+    // Contains Strings like Bar -> BarAttribute ; Property Bar -> Bar , get_Bar, set_Bar
     ImmutableHashSet<string> AllPossibleConflictNames);
