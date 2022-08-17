@@ -64,10 +64,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             public static async Task<Session> CreateAsync(
                 Solution solution,
                 ImmutableArray<(SymbolicRenameLocations locations, string replacementText)> symbolRenameInfo,
+                ImmutableArray<SymbolKey> nonConflictSymbolKeys,
+                CodeCleanupOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 using var _1 = PooledDictionary<DocumentId, DocumentRenameInfo.Builder>.GetInstance(out var documentIdToRenameInfoBuilder);
                 using var _2 = PooledHashSet<RenameLocation>.GetInstance(out var overlappingConflictLocations);
+                using var _3 = PooledDictionary<ISymbol, bool>.GetInstance(out var symbolToReplacementTextValidBuilder);
+                using var _4 = PooledDictionary<ISymbol, string>.GetInstance(out var symbolToReplacementTextBuilder);
                 foreach (var (symbolicRenameLocations, replacementText) in symbolRenameInfo)
                 {
                     var renamedSymbol = symbolicRenameLocations.Symbol;
@@ -80,6 +84,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var (documentsIdsToBeCheckedForConflict, possibleNameConflicts) =
                         await FindDocumentsAndPossibleNameConflictsAsync(symbolicRenameLocations, replacementText, symbolicRenameLocations.Symbol.Name, cancellationToken).ConfigureAwait(false);
                     var replacementTextValid = IsIdentifierValid_Worker(solution, replacementText, documentsIdsToBeCheckedForConflict.Select(doc => doc.ProjectId));
+                    symbolToReplacementTextValidBuilder[renamedSymbol] = replacementTextValid;
+                    symbolToReplacementTextBuilder[renamedSymbol] = replacementText;
 
                     foreach (var documentId in documentsIdsToBeCheckedForConflict)
                     {
@@ -105,6 +111,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             overlappingConflictLocations);
                     }
                 }
+
+                return 
             }
 
             private static void BuildDocumentRenameInfo(
