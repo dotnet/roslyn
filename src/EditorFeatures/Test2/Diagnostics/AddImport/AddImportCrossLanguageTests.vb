@@ -401,7 +401,7 @@ End Namespace
         Private Sub WaitForSolutionCrawler(workspace As TestWorkspace)
             Dim solutionCrawler = DirectCast(workspace.Services.GetService(Of ISolutionCrawlerRegistrationService), SolutionCrawlerRegistrationService)
             solutionCrawler.Register(workspace)
-            Dim provider = DirectCast(workspace.ExportProvider.GetExports(Of IWorkspaceServiceFactory).First(
+            Dim provider = DirectCast(workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider).First(
                         Function(f) TypeOf f.Value Is SymbolTreeInfoIncrementalAnalyzerProvider).Value, SymbolTreeInfoIncrementalAnalyzerProvider)
             Dim analyzer = provider.CreateIncrementalAnalyzer(workspace)
             solutionCrawler.GetTestAccessor().WaitUntilCompletion(workspace, ImmutableArray.Create(analyzer))
