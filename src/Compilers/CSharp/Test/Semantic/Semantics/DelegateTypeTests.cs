@@ -11882,7 +11882,6 @@ class Program
         [Fact]
         public void LambdaWithDefaultNamedDelegateConversion_DefaultValueMismatch()
         {
-
             var source = """
 using System;
 
@@ -11906,7 +11905,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaWithDefaultNamedDelegateConversion_DefaultValueMismatchNonConstant()
+        public void LambdaWithDefaultNamedDelegateConversion_DefaultValueMismatch_WithParameterError()
         {
 
             var source = """
@@ -11915,7 +11914,6 @@ using System;
 class Program
 {
     delegate int D(int x = 1);
-
     static int f(int x) => 2 * x;
 
     public static void Main()
@@ -12305,7 +12303,6 @@ class Program
         [Fact]
         public void LambdaDefaultParameterMatchesDelegateAfterBinding()
         {
-
             var source = """
 using System;
 
@@ -12327,7 +12324,6 @@ class Program
         [Fact]
         public void ImplicitLambdaDefaultParameter_NamedDelegateConversion()
         {
-
             var source = """
 using System;
 
@@ -12341,7 +12337,6 @@ class Program
     }
 }
 """;
-
             CreateCompilation(source).VerifyDiagnostics(
                     // (8,16): error CS9065: Implicitly typed lambda parameter 'x' cannot have a default value.
                     //         D d = (x = 3) => x;
