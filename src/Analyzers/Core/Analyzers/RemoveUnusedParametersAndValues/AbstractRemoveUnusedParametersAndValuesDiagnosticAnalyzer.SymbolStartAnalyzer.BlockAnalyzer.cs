@@ -402,9 +402,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 {
                     switch (operationBlock.Kind)
                     {
-                        case OperationKind.None:
+                        case OperationKind.Attribute:
                         case OperationKind.ParameterInitializer:
-                            // Skip blocks from attributes (which have OperationKind.None) and parameter initializers.
+                            // Skip blocks from attributes and parameter initializers.
                             // We don't have any unused values in such operation blocks.
                             return false;
 

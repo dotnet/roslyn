@@ -137,6 +137,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return CreateCore(initializer, nameof(initializer), cancellationToken);
         }
 
+        /// <summary>
+        /// Creates a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="attribute"/>.
+        /// </summary>
+        /// <param name="attribute">Root attribute operation, which must have a null parent.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        public static ControlFlowGraph Create(Operations.IAttributeOperation attribute, CancellationToken cancellationToken = default)
+        {
+            return CreateCore(attribute, nameof(attribute), cancellationToken);
+        }
 
         /// <summary>
         /// Creates a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="constructorBody"/>.
