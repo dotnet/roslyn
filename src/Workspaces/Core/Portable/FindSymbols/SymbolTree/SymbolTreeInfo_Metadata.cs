@@ -177,17 +177,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 services,
                 solutionKey,
                 checksum,
-                createAsync: () => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, checksum, reference),
+                createAsync: () => Task.FromResult(CreateMetadataSymbolTreeInfo(checksum, reference)),
                 keySuffix: "_Metadata_" + filePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(services, solutionKey, checksum, filePath, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum),
                 cancellationToken);
         }
 
-        private static Task<SymbolTreeInfo> CreateMetadataSymbolTreeInfoAsync(
-            SolutionServices services, SolutionKey solutionKey, Checksum checksum, PortableExecutableReference reference)
+        private static SymbolTreeInfo CreateMetadataSymbolTreeInfo(
+            Checksum checksum, PortableExecutableReference reference)
         {
-            var creator = new MetadataInfoCreator(services, solutionKey, checksum, reference);
-            return Task.FromResult(creator.Create());
+            var creator = new MetadataInfoCreator(checksum, reference);
+            return creator.Create();
         }
 
         private struct MetadataInfoCreator : IDisposable
@@ -195,8 +195,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private static readonly Predicate<string> s_isNotNullOrEmpty = s => !string.IsNullOrEmpty(s);
             private static readonly ObjectPool<List<string>> s_stringListPool = SharedPools.Default<List<string>>();
 
-            private readonly SolutionServices _services;
-            private readonly SolutionKey _solutionKey;
             private readonly Checksum _checksum;
             private readonly PortableExecutableReference _reference;
 
@@ -218,10 +216,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private bool _containsExtensionsMethod;
 
             public MetadataInfoCreator(
-                SolutionServices services, SolutionKey solutionKey, Checksum checksum, PortableExecutableReference reference)
+                Checksum checksum, PortableExecutableReference reference)
             {
-                _services = services;
-                _solutionKey = solutionKey;
                 _checksum = checksum;
                 _reference = reference;
                 _containsExtensionsMethod = false;
@@ -286,7 +282,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var unsortedNodes = GenerateUnsortedNodes(receiverTypeNameToExtensionMethodMap);
 
                 return CreateSymbolTreeInfo(
-                    _services, _solutionKey, _checksum, _reference.FilePath ?? "", unsortedNodes, _inheritanceMap, receiverTypeNameToExtensionMethodMap);
+                    _checksum, unsortedNodes, _inheritanceMap, receiverTypeNameToExtensionMethodMap);
             }
 
             public void Dispose()

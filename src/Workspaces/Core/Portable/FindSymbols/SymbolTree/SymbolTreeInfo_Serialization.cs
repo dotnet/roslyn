@@ -23,32 +23,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixMetadataSymbolTreeInfo = "<SymbolTreeInfo>";
-        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("22");
+        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("23");
 
         /// <summary>
-        /// Loads the SpellChecker for a given assembly symbol (metadata or project).  If the
-        /// info can't be loaded, it will be created (and persisted if possible).
-        /// </summary>
-        private static Task<SpellChecker> LoadOrCreateSpellCheckerAsync(
-            SolutionServices services,
-            SolutionKey solutionKey,
-            Checksum checksum,
-            string filePath,
-            ImmutableArray<Node> sortedNodes)
-        {
-            return LoadOrCreateAsync(
-                services,
-                solutionKey,
-                checksum,
-                createAsync: () => CreateSpellCheckerAsync(checksum, sortedNodes),
-                keySuffix: "_SpellChecker_" + filePath,
-                tryReadObject: SpellChecker.TryReadFrom,
-                cancellationToken: CancellationToken.None);
-        }
-
-        /// <summary>
-        /// Generalized function for loading/creating/persisting data.  Used as the common core
-        /// code for serialization of SymbolTreeInfos and SpellCheckers.
+        /// Generalized function for loading/creating/persisting data.  Used as the common core code for serialization
+        /// of source and metadata SymbolTreeInfos.
         /// </summary>
         private static async Task<T> LoadOrCreateAsync<T>(
             SolutionServices services,
@@ -182,6 +161,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
+            _spellChecker.WriteTo(writer);
+            return;
+
             // sortedNodes is an array of Node instances which is often sorted by Node.Name by the caller. This method
             // produces a sequence of spans within sortedNodes for Node instances that all have the same Name, allowing
             // serialization to record the string once followed by the remaining properties for the nodes in the group.
@@ -208,8 +190,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static SymbolTreeInfo TryReadSymbolTreeInfo(
             ObjectReader reader,
-            Checksum checksum,
-            Func<ImmutableArray<Node>, Task<SpellChecker>> createSpellCheckerTask)
+            Checksum checksum)
         {
             try
             {
@@ -267,9 +248,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 var nodeArray = nodes.ToImmutableAndFree();
-                var spellCheckerTask = createSpellCheckerTask(nodeArray);
+                var spellChecker = SpellChecker.TryReadFrom(reader);
+                if (spellChecker is null)
+                    return null;
+
                 return new SymbolTreeInfo(
-                    checksum, nodeArray, spellCheckerTask, inheritanceMap,
+                    checksum, nodeArray, spellChecker, inheritanceMap,
                     receiverTypeNameToExtensionMethodMap);
             }
             catch
@@ -285,8 +269,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             internal static SymbolTreeInfo ReadSymbolTreeInfo(
                 ObjectReader reader, Checksum checksum)
             {
-                return TryReadSymbolTreeInfo(reader, checksum,
-                    nodes => Task.FromResult(new SpellChecker(checksum, nodes.Select(n => n.Name.AsMemory()))));
+                return TryReadSymbolTreeInfo(reader, checksum);
             }
         }
     }

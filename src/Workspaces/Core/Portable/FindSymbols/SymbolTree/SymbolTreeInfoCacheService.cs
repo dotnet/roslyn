@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                 projectInfo.Checksum != checksum)
             {
                 projectInfo = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
-                    project, checksum, cancellationToken).ConfigureAwait(false);
+                    project, cancellationToken).ConfigureAwait(false);
 
                 Contract.ThrowIfNull(projectInfo);
                 Contract.ThrowIfTrue(projectInfo.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");

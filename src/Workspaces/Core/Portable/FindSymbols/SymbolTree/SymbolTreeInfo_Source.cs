@@ -36,13 +36,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Project project, CancellationToken cancellationToken)
         {
             var checksum = await GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
-
-            var solution = project.Solution;
-            var services = solution.Services;
-            var solutionKey = SolutionKey.ToSolutionKey(solution);
-            var projectFilePath = project.FilePath ?? "";
-
-            return reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(services, solutionKey, checksum, projectFilePath, nodes));
+            return reader => TryReadSymbolTreeInfo(reader, checksum);
         }
 
         public static async Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
@@ -150,12 +144,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, s_getMembersNoPrivate);
 
-            var solution = project.Solution;
-            var services = solution.Services;
-            var solutionKey = SolutionKey.ToSolutionKey(solution);
-
             return CreateSymbolTreeInfo(
-                services, solutionKey, checksum, project.FilePath ?? "", unsortedNodes.ToImmutableAndFree(),
+                checksum,
+                unsortedNodes.ToImmutableAndFree(),
                 inheritanceMap: new OrderPreservingMultiDictionary<string, string>(),
                 receiverTypeNameToExtensionMethodMap: null);
         }
