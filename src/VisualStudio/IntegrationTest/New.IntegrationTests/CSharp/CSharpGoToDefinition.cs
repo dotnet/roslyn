@@ -177,6 +177,7 @@ class C
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "C.cs", HangMitigatingCancellationToken);
             await TestServices.Editor.SetTextAsync(
 @"using System;
+using Microsoft.CodeAnalysis.TestSourceGenerator;
 
 class C
 {
