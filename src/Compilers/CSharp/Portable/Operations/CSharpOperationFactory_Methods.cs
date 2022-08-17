@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             // put argument syntax to argument operation
             IOperation value = Create(expression);
-            (SyntaxNode syntax, bool isImplicit) = expression.Syntax is { Parent: ArgumentSyntax parent } ? (parent, expression.WasCompilerGenerated) : (value.Syntax, true);
+            (SyntaxNode syntax, bool isImplicit) = expression.Syntax is { Parent: ArgumentSyntax or AttributeArgumentSyntax } ? (expression.Syntax.Parent, expression.WasCompilerGenerated) : (value.Syntax, true);
             return new ArgumentOperation(
                 kind,
                 parameter,
@@ -238,6 +238,15 @@ namespace Microsoft.CodeAnalysis.Operations
                                                objectCreation.Expanded,
                                                objectCreation.Syntax);
                     }
+                case BoundKind.Attribute:
+                    var attribute = (BoundAttribute)containingExpression;
+                    Debug.Assert(attribute.Constructor is not null);
+                    return DeriveArguments(attribute.Constructor,
+                                           attribute.ConstructorArguments,
+                                           attribute.ConstructorArgumentsToParamsOpt,
+                                           attribute.ConstructorDefaultArguments,
+                                           attribute.ConstructorExpanded,
+                                           attribute.Syntax);
                 case BoundKind.Call:
                     {
                         var boundCall = (BoundCall)containingExpression;

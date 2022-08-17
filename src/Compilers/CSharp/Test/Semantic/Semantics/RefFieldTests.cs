@@ -231,7 +231,7 @@ class Program
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref T S<T>.F", RefKind.Ref, new string[0]);
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular11);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
@@ -311,7 +311,7 @@ class Program
 
             VerifyFieldSymbol(comp.GetMember<FieldSymbol>("S.F"), "ref readonly T S<T>.F", RefKind.RefReadOnly, new string[0]);
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular11);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithRefFields }, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
@@ -588,7 +588,7 @@ ref struct R
     }
 }
 """;
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
             verifier.VerifyIL("R..ctor()", @"
@@ -627,7 +627,7 @@ ref struct R
     }
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
             verifier.VerifyIL("R..ctor()", @"
@@ -663,7 +663,7 @@ ref struct R
     }
 }
 """;
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
@@ -699,7 +699,7 @@ ref struct R
     }
 }
 """;
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (7,29): warning CS0649: Field 'R.field' is never assigned to, and will always have its default value 0
                 //     public readonly ref int field;
@@ -742,7 +742,7 @@ ref struct R
     }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
             verifier.VerifyIL("R..ctor()", @"
@@ -4042,7 +4042,7 @@ class Program
         Console.WriteLine(s.F);
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
@@ -4447,7 +4447,7 @@ class Program
         Console.WriteLine(s.F);
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
@@ -4857,7 +4857,7 @@ class Program
         Console.WriteLine(s.F);
     }
 }";
-            comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"1
 4
@@ -5013,7 +5013,7 @@ class Program
         Console.WriteLine(s.F);
     }
 }";
-            comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"1
 1
@@ -6054,7 +6054,7 @@ class Program
         r.S = new S<T>();
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"42
 42
@@ -6100,7 +6100,7 @@ class Program
         s.F = value;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"42
 42
@@ -6255,7 +6255,7 @@ class Program
         _ = s.F;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("NullReferenceException"));
             verifier.VerifyIL("Program.ReadAndDiscard1<T>", """
 {
@@ -6319,7 +6319,7 @@ class Program
     static ref T RefReturn<T>(S<T> s) => ref s.F;
     static ref readonly T RefReadonlyReturn<T>(S<T> s) => ref s.F;
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
             var expectedIL =
 @"{
@@ -6356,7 +6356,7 @@ class Program
     static ref T RefReturn<T>(ref S<T> s) => ref s.F;
     static ref readonly T RefReadonlyReturn<T>(ref S<T> s) => ref s.F;
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
             var expectedIL =
 @"{
@@ -6393,7 +6393,7 @@ class Program
     static ref T RefReturn<T>(in S<T> s) => ref s.F;
     static ref readonly T RefReadonlyReturn<T>(in S<T> s) => ref s.F;
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
             var expectedIL =
 @"{
@@ -6438,7 +6438,7 @@ class Program
         return ref s.F;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("2"));
             var expectedIL =
 @"{
@@ -6488,7 +6488,7 @@ class Program
         s.F -= offset;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"43
 43
@@ -6557,7 +6557,7 @@ class Program
         Console.WriteLine(x);
     }}
 }}";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"43
 43
@@ -6628,7 +6628,7 @@ class Program
         return ref b ? ref sx.F : ref sy.F;
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"1
 2
@@ -6691,7 +6691,7 @@ class Program
         return s.F?.ToString();
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"1
 2
@@ -6830,7 +6830,7 @@ class Program
         Console.WriteLine(y);
     }
 }";
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"1
 2
@@ -7152,7 +7152,7 @@ class Program
         Console.WriteLine(s.t);
     }
 }";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
 @"2
 2
@@ -12254,7 +12254,7 @@ ref struct R
     }
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
             verifier.VerifyIL("C.Main",
@@ -12993,7 +12993,7 @@ class C
             var source = @"
 class C
 {
-    void M()
+    static void Main()
     {
         int x = 42;
         var r = new Container { item = { field = ref x } };
@@ -13009,10 +13009,10 @@ ref struct Item
     public ref int field;
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
-            verifier.VerifyIL("C.M", @"
+            verifier.VerifyIL("C.Main", @"
 {
   // Code size       42 (0x2a)
   .maxstack  2
@@ -13062,7 +13062,7 @@ ref struct R<T>
     public ref S<T> field;
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (8,33): warning CS8619: Nullability of reference types in value of type 'S<object?>' doesn't match target type 'S<object>'.
                 // _ = new R<object> { field = ref x2 }; // 1
@@ -13095,7 +13095,7 @@ ref struct R
     public ref S field;
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (2,5): warning CS0219: The variable 'x' is assigned but its value is never used
                 // int x = 42;
@@ -13644,7 +13644,7 @@ ref struct R
     }
 }
 ";
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42"));
             verifier.VerifyIL("C.Main",
