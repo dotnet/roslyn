@@ -11,10 +11,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 {
-    internal record PropertyAnalysisResult(PropertyDeclarationSyntax Syntax, IPropertySymbol Symbol, bool KeepAsOverride)
+    internal record PositionalParameterInfo(PropertyDeclarationSyntax Declaration, IPropertySymbol Symbol, bool KeepAsOverride)
     {
-
-        public static ImmutableArray<PropertyAnalysisResult> AnalyzeProperties(
+        public static ImmutableArray<PositionalParameterInfo> GetPropertiesForPositionalParameters(
             ImmutableArray<PropertyDeclarationSyntax> properties,
             INamedTypeSymbol type,
             SemanticModel semanticModel,
@@ -33,27 +32,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 => ShouldConvertProperty(syntax, symbol, type) switch
                 {
                     ConvertStatus.DoNotConvert => null,
-                    ConvertStatus.Override => new PropertyAnalysisResult(syntax, symbol, true),
+                    ConvertStatus.Override => new PositionalParameterInfo(syntax, symbol, true),
                     ConvertStatus.OverrideIfConvertingSetToInit
-                        => new PropertyAnalysisResult(syntax, symbol, !allowSetToInitConversion),
-                    ConvertStatus.AlwaysConvert => new PropertyAnalysisResult(syntax, symbol, false),
+                        => new PositionalParameterInfo(syntax, symbol, !allowSetToInitConversion),
+                    ConvertStatus.AlwaysConvert => new PositionalParameterInfo(syntax, symbol, false),
                     _ => throw ExceptionUtilities.Unreachable,
                 }).WhereNotNull().AsImmutable();
         }
 
-        // for each property, say whether we can convert
-        // to primary constructor parameter or not (and whether it would imply changes)
+        /// <summary>
+        /// for each property, say whether we can convert
+        /// to primary constructor parameter or not (and whether it would imply changes)
+        /// </summary>
         private enum ConvertStatus
         {
-            // no way we can convert this
+            /// <summary>
+            /// no way we can convert this
+            /// </summary>
             DoNotConvert,
-            // we can convert this because we feel it would be used in a primary constructor,
-            // but some accessibility is non-default and we want to override
+            /// <summary>
+            /// we can convert this because we feel it would be used in a primary constructor,
+            /// but some accessibility is non-default and we want to override
+            /// </summary>
             Override,
-            // we can convert this if we see that the user only ever uses set (not init)
-            // otherwise we should give an override
+            /// <summary>
+            /// we can convert this if we see that the user only ever uses set (not init)
+            /// otherwise we should give an override
+            /// </summary>
             OverrideIfConvertingSetToInit,
-            // we can convert this without changing the meaning 
+            /// <summary>
+            /// we can convert this without changing the meaning 
+            /// </summary>
             AlwaysConvert
         }
 
@@ -62,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             IPropertySymbol propertySymbol,
             INamedTypeSymbol containingType)
         {
-            // properties with identifiers or expression bodies are too complex to move
-            // unimplemented or static properties shouldn't be in a constructor
+            // properties with identifiers or expression bodies are too complex to move.
+            // unimplemented or static properties shouldn't be in a constructor.
             if (property.Initializer != null ||
                 property.ExpressionBody != null ||
                 propertySymbol.IsAbstract ||
@@ -72,11 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return ConvertStatus.DoNotConvert;
             }
 
-            var propAccessibility = propertySymbol.DeclaredAccessibility;
             // more restrictive than internal (protected, private, private protected, or unspecified (private by default)).
             // We allow internal props to be converted to public auto-generated ones
             // because it's still as accessible as a constructor would be from outside the class.
-            if (propAccessibility < Accessibility.Internal)
+            if (propertySymbol.DeclaredAccessibility < Accessibility.Internal)
             {
                 return ConvertStatus.DoNotConvert;
             }
@@ -116,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // but if the user specifically declares a more restrictive accessibility
             // it would indicate they want to keep it safer than the rest of the property
             // and we should respect that
-            if (getAccessor.DeclaredAccessibility < propAccessibility)
+            if (getAccessor.DeclaredAccessibility < propertySymbol.DeclaredAccessibility)
             {
                 return ConvertStatus.Override;
             }
@@ -125,13 +133,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             {
                 // in a struct, our default is to have a public set
                 // but anything else we can still convert and override
-                if (setAccessor == null ||
-                    // if the user had their property as internal then we are fine with completely moving
-                    // an internal (by default) set method, but if they explicitly mark the set as internal
-                    // while the property is public we want to keep that behavior
-                    (setAccessor.DeclaredAccessibility != Accessibility.Public &&
-                        setAccessor.DeclaredAccessibility != propAccessibility) ||
-                    setAccessor.IsInitOnly)
+                if (setAccessor == null)
+                {
+                    return ConvertStatus.Override;
+                }
+
+                // if the user had their property as internal then we are fine with completely moving
+                // an internal (by default) set method, but if they explicitly mark the set as internal
+                // while the property is public we want to keep that behavior
+                if (setAccessor.DeclaredAccessibility != Accessibility.Public &&
+                        setAccessor.DeclaredAccessibility != propertySymbol.DeclaredAccessibility)
+                {
+                    return ConvertStatus.Override;
+                }
+
+                if (setAccessor.IsInitOnly)
                 {
                     return ConvertStatus.Override;
                 }
@@ -142,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 if (setAccessor != null)
                 {
                     if (setAccessor.DeclaredAccessibility != Accessibility.Public &&
-                        setAccessor.DeclaredAccessibility != propAccessibility)
+                        setAccessor.DeclaredAccessibility != propertySymbol.DeclaredAccessibility)
                     {
                         return ConvertStatus.Override;
                     }

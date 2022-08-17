@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                                 ReturnedValue: IInvocationOperation
                                 {
                                     Instance: IInstanceReferenceOperation,
+                                    TargetMethod: IMethodSymbol { Name: nameof(Equals) },
                                     Arguments: [IArgumentOperation { Value: IOperation arg }]
                                 }
                             }]
@@ -64,9 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         public static INamedTypeSymbol? GetIEquatableType(Compilation compilation, INamedTypeSymbol containingType)
         {
             // can't use nameof since it's generic and we need the type parameter
-            var equatableMetadataName = compilation.GetBestTypeByMetadataName("System.IEquatable`1")?.MetadataName;
-            return containingType.Interfaces.FirstOrDefault(
-                    iface => iface.MetadataName == equatableMetadataName);
+            var equatable = compilation.GetBestTypeByMetadataName("System.IEquatable`1")?.ConstructUnboundGenericType();
+            return containingType.Interfaces.FirstOrDefault(iface
+                => iface.IsGenericType && iface.ConstructUnboundGenericType().Equals(equatable));
         }
 
         public static bool IsSimpleHashCodeMethod(
@@ -193,8 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             var assignedProperties = assignmentValues.SelectAsArray(value => value.left);
 
-            return !assignedProperties.HasDuplicates(SymbolEqualityComparer.Default) &&
-                assignedProperties.SetEquals(properties) &&
+            return assignedProperties.SetEquals(properties) &&
                 assignmentValues.All(value =>
                     value != default &&
                     value.left is IPropertySymbol property &&
@@ -414,9 +414,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             };
         }
 
-        // matches form
-        // c1.Equals(c2)
-        // where c1 and c2 are parameter references
+        /// <summary>
+        /// matches form:
+        /// c1.Equals(c2)
+        /// where c1 and c2 are parameter references
+        /// </summary>
         private static bool IsDotEqualsInvocation(IOperation operation)
         {
             // must be called on one of the parameters
@@ -437,49 +439,59 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             return param != null && invokedOn != null && !invokedOn.Equals(param);
         }
 
-        // checks for binary expressions of the type otherC == null or null == otherC
-        // or a pattern against null like otherC is (not) null
-        // and "otherC" is a reference to otherObject
-        // takes successRequirement so that if we're in a constext where the operation evaluating to true
-        // would end up being false within the equals method, we look for != instead
+        /// <summary>
+        /// checks for binary expressions of the type otherC == null or null == otherC
+        /// or a pattern against null like otherC is (not) null
+        /// and "otherC" is a reference to otherObject.
+        /// </summary>
+        /// <param name="operation">Operation to check for</param>
+        /// <param name="successRequirement">if we're in a context where the operation evaluating to true
+        /// would end up being false within the equals method, we look for != instead</param>
+        /// <param name="otherObject">Object to be compared to null</param>
         private static bool IsNullCheck(
             IOperation operation,
             bool successRequirement,
             ISymbol otherObject)
         {
-            return operation switch
+            if (operation is IBinaryOperation binOp)
             {
-                IBinaryOperation
-                {
-                    LeftOperand: IOperation leftOperation,
-                    RightOperand: IOperation rightOperation,
-                } binaryOperation
-                    // if success would return true, then we want the checked object to not be null
-                    // so we expect a notEquals operator
-                    => binaryOperation.OperatorKind == (successRequirement
-                        ? BinaryOperatorKind.NotEquals
-                        : BinaryOperatorKind.Equals) &&
+                // if success would return true, then we want the checked object to not be null
+                // so we expect a notEquals operator
+                var expectedKind = successRequirement
+                    ? BinaryOperatorKind.NotEquals
+                    : BinaryOperatorKind.Equals;
+
+                return binOp.OperatorKind == expectedKind &&
                     // one of the objects must be a reference to the "otherObject"
                     // and the other must be a constant null literal
-                    (otherObject.Equals(GetReferencedSymbolObject(leftOperation)) &&
-                            rightOperation.WalkDownConversion().IsNullLiteral() ||
-                        otherObject.Equals(GetReferencedSymbolObject(rightOperation)) &&
-                            leftOperation.WalkDownConversion().IsNullLiteral()),
-                // matches: otherC is not null
-                // equality must fail if this is false so we ensure successRequirement is true
-                IIsPatternOperation
+                    (otherObject.Equals(GetReferencedSymbolObject(binOp.LeftOperand)) &&
+                            binOp.RightOperand.WalkDownConversion().IsNullLiteral() ||
+                        otherObject.Equals(GetReferencedSymbolObject(binOp.RightOperand)) &&
+                            binOp.LeftOperand.WalkDownConversion().IsNullLiteral());
+            }
+            else if (operation is IIsPatternOperation patternOp)
+            {
+                // matches: otherC is null
+                // or: otherC is not null
+                // based on successRequirement
+                IConstantPatternOperation? constantPattern;
+                if (successRequirement)
                 {
-                    Value: IOperation patternValue, Pattern: IPatternOperation pattern
-                } => otherObject.Equals(GetReferencedSymbolObject(patternValue)) &&
-                        // if condition success => return false, then we expect "is null"
-                        !successRequirement &&
-                        pattern is IConstantPatternOperation constantPattern1 &&
-                        constantPattern1.Value.WalkDownConversion().IsNullLiteral() ||
-                        successRequirement &&
-                        pattern is INegatedPatternOperation { Pattern: IConstantPatternOperation constantPattern2 } &&
-                        constantPattern2.Value.WalkDownConversion().IsNullLiteral(),
-                _ => false,
-            };
+                    constantPattern = (patternOp.Pattern as INegatedPatternOperation)?.
+                        Pattern as IConstantPatternOperation;
+                }
+                else
+                {
+                    constantPattern = patternOp.Pattern as IConstantPatternOperation;
+                }
+
+                return constantPattern != null &&
+                    otherObject.Equals(GetReferencedSymbolObject(patternOp.Value)) &&
+                    constantPattern.Value.WalkDownConversion().IsNullLiteral();
+            }
+
+            // neither of the expected forms
+            return false;
         }
 
         private static bool ReturnsFalseImmediately(ImmutableArray<IOperation> operation)

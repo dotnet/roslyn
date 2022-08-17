@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return;
             }
 
-            var propertyAnalysisResults = PropertyAnalysisResult.AnalyzeProperties(
+            var propertyAnalysisResults = PositionalParameterInfo.GetPropertiesForPositionalParameters(
                 typeDeclaration.Members
                     .Where(member => member is PropertyDeclarationSyntax)
                     .Cast<PropertyDeclarationSyntax>()
@@ -88,13 +88,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         private static async Task<Document> ConvertToPositionalRecordAsync(
             Document document,
             INamedTypeSymbol originalType,
-            ImmutableArray<PropertyAnalysisResult> propertyAnalysisResults,
+            ImmutableArray<PositionalParameterInfo> propertyAnalysisResults,
             TypeDeclarationSyntax originalDeclarationNode,
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             // properties to be added to primary constructor parameters
-            var propertiesToMove = propertyAnalysisResults.SelectAsArray(result => result.Syntax);
+            var propertiesToMove = propertyAnalysisResults.SelectAsArray(result => result.Declaration);
 
             var lineFormattingOptions = await document
                 .GetLineFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             if (baseList != null && iEquatable != null)
             {
                 var typeList = baseList.Types.Where(baseItem
-                    => iEquatable.Equals(semanticModel.GetSymbolInfo(baseItem, cancellationToken).Symbol));
+                    => !iEquatable.Equals(semanticModel.GetTypeInfo(baseItem.Type, cancellationToken).Type));
 
                 if (typeList.IsEmpty())
                 {
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             TypeDeclarationSyntax typeDeclaration,
             INamedTypeSymbol type,
             SemanticModel semanticModel,
-            ImmutableArray<PropertyAnalysisResult> propertiesToMove,
+            ImmutableArray<PositionalParameterInfo> propertiesToMove,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<MemberDeclarationSyntax>.GetInstance(out var modifiedMembers);
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // or keep them as overrides and link the positional param to the original property
             foreach (var result in propertiesToMove)
             {
-                var property = result.Syntax;
+                var property = result.Declaration;
                 if (result.KeepAsOverride)
                 {
                     // add an initializer that links the property to the primary constructor parameter
