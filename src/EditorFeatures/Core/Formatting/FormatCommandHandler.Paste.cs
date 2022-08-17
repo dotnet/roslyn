@@ -56,6 +56,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var subjectBuffer = args.SubjectBuffer;
+            if (!subjectBuffer.TryGetWorkspace(out var workspace) ||
+                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
+            {
+                return;
+            }
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
@@ -69,11 +74,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var solution = document.Project.Solution;
-            if (!solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-            {
-                return;
-            }
-
             var services = solution.Services;
             var formattingRuleService = services.GetService<IHostDependentFormattingRuleFactoryService>();
             if (formattingRuleService != null && formattingRuleService.ShouldNotFormatOrCommitOnPaste(document.Id))

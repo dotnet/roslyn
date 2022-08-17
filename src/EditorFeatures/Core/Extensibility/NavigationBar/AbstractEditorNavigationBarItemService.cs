@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, bool forceFrozenPartialSemanticsForCrossProcessOperations, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<CodeAnalysis.NavigationBar.INavigationBarItemService>();
-            var workspaceSupportsDocumentChanges = document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument);
+            var workspaceSupportsDocumentChanges = document.Project.Solution.CanApplyChange(ApplyChangesKind.ChangeDocument);
             var items = await service.GetItemsAsync(document, workspaceSupportsDocumentChanges, forceFrozenPartialSemanticsForCrossProcessOperations, cancellationToken).ConfigureAwait(false);
             return items.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(textVersion, v));
         }
