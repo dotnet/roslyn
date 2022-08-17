@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                     return;
 
                 var isMethodBodyEdit = bodyOpt != null;
-                await client.TryInvokeAsync<IRemoteSymbolTreeInfoIncrementalAnalyzer>(
+                await client.TryInvokeAsync<IRemoteSymbolFinderService>(
                     document.Project, (service, checksum, cancellationToken) =>
                         service.AnalyzeDocumentAsync(checksum, document.Id, isMethodBodyEdit, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                 if (client is null)
                     return;
 
-                await client.TryInvokeAsync<IRemoteSymbolTreeInfoIncrementalAnalyzer>(
+                await client.TryInvokeAsync<IRemoteSymbolFinderService>(
                     project, (service, checksum, cancellationToken) =>
                         service.AnalyzeProjectAsync(checksum, project.Id, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                 if (client is null)
                     return;
 
-                await client.TryInvokeAsync<IRemoteSymbolTreeInfoIncrementalAnalyzer>(
+                await client.TryInvokeAsync<IRemoteSymbolFinderService>(
                     (service, cancellationToken) => service.RemoveProjectAsync(projectId, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
