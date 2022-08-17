@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
             Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
         {
-            var checksum = GetMetadataChecksum(solution, reference, cancellationToken);
+            var checksum = GetMetadataChecksum(solution.Services, reference, cancellationToken);
             return GetInfoForMetadataReferenceAsync(solution, reference, checksum, cancellationToken);
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Note:  will never return null;
         /// </summary>
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
-        public static async ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+        private static async ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
             Checksum checksum,
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return CreateEmpty(checksum);
 
             return await GetInfoForMetadataReferenceSlowAsync(
-                solution.Services, SolutionKey.ToSolutionKey(solution), reference, checksum, metadata, cancellationToken).ConfigureAwait(false);
+                solution.Services, SolutionKey.ToSolutionKey(solution), reference, metadata, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<SymbolTreeInfo?> TryGetCachedInfoForMetadataReferenceIgnoreChecksumAsync(PortableExecutableReference reference, CancellationToken cancellationToken)
@@ -116,7 +116,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SolutionServices services,
             SolutionKey solutionKey,
             PortableExecutableReference reference,
-            Checksum checksum,
             Metadata metadata,
             CancellationToken cancellationToken)
         {
@@ -128,7 +127,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var asyncLazy = s_metadataIdToInfo.GetValue(
                 metadata.Id,
                 id => new AsyncLazy<SymbolTreeInfo>(
-                    c => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, reference, checksum, c),
+                    c => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, reference, c),
                     cacheResult: true));
 
             return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -136,7 +135,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/33131", AllowCaptures = false)]
         public static Checksum GetMetadataChecksum(
-            Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
+            SolutionServices services, PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             // We can reuse the index for any given reference as long as it hasn't changed.
             // So our checksum is just the checksum for the PEReference itself.
@@ -147,14 +146,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             // Break things up to the fast path above and this slow path where we allocate a closure.
-            return GetMetadataChecksumSlow(solution, reference, cancellationToken);
+            return GetMetadataChecksumSlow(services, reference, cancellationToken);
         }
 
-        private static Checksum GetMetadataChecksumSlow(Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
+        private static Checksum GetMetadataChecksumSlow(SolutionServices services, PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             return ChecksumCache.GetOrCreate(reference, _ =>
             {
-                var serializer = solution.Services.GetRequiredService<ISerializerService>();
+                var serializer = services.GetRequiredService<ISerializerService>();
                 var checksum = serializer.CreateChecksum(reference, cancellationToken);
 
                 // Include serialization format version in our checksum.  That way if the 
@@ -171,9 +170,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SolutionServices services,
             SolutionKey solutionKey,
             PortableExecutableReference reference,
-            Checksum checksum,
             CancellationToken cancellationToken)
         {
+            var checksum = GetMetadataChecksum(services, reference, cancellationToken);
+
             return LoadOrCreateAsync(
                 services,
                 solutionKey,
@@ -189,15 +189,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             PortableExecutableReference reference,
             CancellationToken cancellationToken)
         {
-            var filePath = reference.FilePath ?? "";
-
             return LoadAsync(
-                services,
-                solutionKey,
-                checksum,
-                createAsync: () => Task.FromResult(CreateMetadataSymbolTreeInfo(checksum, reference)),
-                keySuffix: "_Metadata_" + filePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum),
+                solution.Services,
+                SolutionKey.ToSolutionKey(solution),
+                checksumOpt: null,
+                keySuffix: GetMetadataKeySuffix(reference),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, GetMetadataChecksum(solution.Services, reference, cancellationToken)),
                 cancellationToken);
         }
 

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // Ok, we can use persistence.  First try to load from the persistence service.
 
-                var read = await LoadAsync(storage, checksum, keySuffix, tryReadObject, cancellationToken).ConfigureAwait(false);
+                var read = await LoadAsync(services, solutionKey, checksum, keySuffix, tryReadObject, cancellationToken).ConfigureAwait(false);
                 if (read != null)
                 {
                     // If we were able to read something in, it's checksum better

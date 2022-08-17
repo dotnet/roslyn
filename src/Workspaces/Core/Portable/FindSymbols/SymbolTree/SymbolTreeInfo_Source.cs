@@ -63,12 +63,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var tryReadObject = await GetSourceInfoReaderAsync(project, cancellationToken).ConfigureAwait(false);
 
-            return LoadAsync<SymbolTreeInfo>(
-                storage,
+            return await LoadAsync(
+                project.Solution.Services,
+                SolutionKey.ToSolutionKey(project.Solution),
                 checksumOpt: null,
                 GetSourceKeySuffix(project),
                 tryReadObject,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _solution.Services.GetService<SymbolTreeInfoCacheService>();
-                var info = await service.TryGetMetadataSymbolTreeInfoAsync(_solution, _metadataReference, CancellationToken).ConfigureAwait(false);
+                var info = await service.TryGetPotentiallyStaleMetadataSymbolTreeInfoAsync(_solution, _metadataReference, CancellationToken).ConfigureAwait(false);
                 if (info == null)
                     return ImmutableArray<ISymbol>.Empty;
 
