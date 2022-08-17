@@ -358,6 +358,14 @@
            AlwaysCreate="true"
            Condition="'@(ReferencesCopiedInThisBuild)' != ''"/>
   </Target>
+
+  <!-- Workaround for https://github.com/dotnet/roslyn/issues/63189 -->
+  <Target Name="DisableJsonGenerator"
+           AfterTargets="ResolvePackageAssets">
+    <ItemGroup>
+      <ResolvedAnalyzers Remove="@(ResolvedAnalyzers)" Condition="'%(NuGetPackageId)' == 'System.Text.Json'" />
+    </ItemGroup>
+  </Target>
   
   <Import Project="DoNotDeployToSymStore_Workaround.targets" Condition="'$(UsingToolPdbConverter)' == 'false'" />
   <Import Project="DoNotGenerateSatelliteAssemblies_Workaround.targets" Condition="'$(GenerateSatelliteAssemblies)' == 'false'" />

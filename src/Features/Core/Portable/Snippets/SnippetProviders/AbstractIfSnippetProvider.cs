@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.Snippets
     {
         public override string SnippetIdentifier => "if";
 
-        public override string SnippetDisplayName => FeaturesResources.Insert_an_if_statement;
+        public override string SnippetDescription => FeaturesResources.if_statement;
+
+        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("statement");
 
         protected abstract void GetIfStatementConditionAndCursorPosition(SyntaxNode node, out SyntaxNode condition, out int cursorPositionNode);
 

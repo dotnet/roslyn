@@ -16,10 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class AttributeSemanticModel : MemberSemanticModel
     {
         private readonly AliasSymbol _aliasOpt;
+        private readonly Symbol? _attributeTarget;
 
         private AttributeSemanticModel(
             AttributeSyntax syntax,
             NamedTypeSymbol attributeType,
+            Symbol? attributeTarget,
             AliasSymbol aliasOpt,
             Binder rootBinder,
             SyntaxTreeSemanticModel? containingSemanticModelOpt = null,
@@ -30,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(syntax != null);
             _aliasOpt = aliasOpt;
+            _attributeTarget = attributeTarget;
         }
 
         /// <summary>
@@ -38,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AttributeSemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Symbol? attributeTarget, Binder rootBinder, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt)
         {
             rootBinder = attributeTarget is null ? rootBinder : new ContextualAttributeBinder(rootBinder, attributeTarget);
-            return new AttributeSemanticModel(syntax, attributeType, aliasOpt, rootBinder, containingSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt);
+            return new AttributeSemanticModel(syntax, attributeType, attributeTarget, aliasOpt, rootBinder, containingSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt);
         }
 
         /// <summary>
@@ -49,7 +52,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(parentSemanticModel != null);
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
-            return new AttributeSemanticModel(syntax, attributeType, aliasOpt, rootBinder, parentSemanticModelOpt: parentSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt, speculatedPosition: position);
+
+            var attributeTarget = GetAttributeTargetFromPosition(position, parentSemanticModel);
+            return new AttributeSemanticModel(syntax, attributeType, attributeTarget, aliasOpt, rootBinder, parentSemanticModelOpt: parentSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt, speculatedPosition: position);
+        }
+
+        private static Symbol? GetAttributeTargetFromPosition(int position, SemanticModel model)
+        {
+            var attributedNode = model.SyntaxTree.GetRoot().FindToken(position).Parent;
+            attributedNode = attributedNode?.FirstAncestorOrSelf<AttributeListSyntax>()?.Parent;
+
+            if (attributedNode is not null)
+            {
+                return model.GetDeclaredSymbolForNode(attributedNode).GetSymbol();
+            }
+
+            return null;
         }
 
         private NamedTypeSymbol AttributeType
@@ -89,8 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Kind() == SyntaxKind.Attribute)
             {
                 var attribute = (AttributeSyntax)node;
-                // note: we should find the attributed member before binding the attribute as part of https://github.com/dotnet/roslyn/issues/53618
-                return binder.BindAttribute(attribute, AttributeType, attributedMember: null, diagnostics);
+                return binder.BindAttribute(attribute, AttributeType, attributedMember: ContextualAttributeBinder.GetAttributedMember(_attributeTarget), diagnostics);
             }
             else if (SyntaxFacts.IsAttributeName(node))
             {

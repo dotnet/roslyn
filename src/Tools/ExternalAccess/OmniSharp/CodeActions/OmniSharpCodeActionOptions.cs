@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
         OmniSharpImplementTypeOptions ImplementTypeOptions,
         OmniSharpLineFormattingOptions LineFormattingOptions)
     {
-        internal CodeActionOptions GetCodeActionOptions(Host.LanguageServices languageServices)
+        internal CodeActionOptions GetCodeActionOptions(LanguageServices languageServices)
         {
             var defaultOptions = CodeActionOptions.GetDefault(languageServices);
             return defaultOptions with

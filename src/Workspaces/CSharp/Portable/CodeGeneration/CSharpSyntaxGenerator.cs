@@ -11,7 +11,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -763,6 +763,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 Accessibility acc;
                 DeclarationModifiers modifiers;
+
+                // return any nested member "as is" without any additional changes
+                if (member is BaseTypeDeclarationSyntax)
+                    return member;
 
                 switch (member.Kind())
                 {

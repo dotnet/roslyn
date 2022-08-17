@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using EnvDTE;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;

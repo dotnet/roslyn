@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Text;
@@ -121,9 +122,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         {
             if (textTypedSoFar.Length > 0)
             {
+                using var _ = PooledDelegates.GetPooledFunction(static (filterText, pattern) => filterText.StartsWith(pattern, StringComparison.CurrentCultureIgnoreCase), textTypedSoFar, out Func<string, bool> isPrefixMatch);
+
                 // Note that StartsWith ignores \0 at the end of textTypedSoFar on VS Mac and Mono.
                 return item.DisplayText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase) ||
-                       item.FilterText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase);
+                       item.HasDifferentFilterText && item.FilterText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase) ||
+                       item.HasAdditionalFilterTexts && item.AdditionalFilterTexts.Any(isPrefixMatch);
             }
 
             return false;
