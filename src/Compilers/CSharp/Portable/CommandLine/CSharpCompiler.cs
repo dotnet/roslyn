@@ -422,12 +422,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // <Metalama>
 
-     
-
-   
-
         private protected override TransformersResult RunTransformers(
-            Compilation inputCompilation, IServiceProvider serviceProvider,  ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
+            Compilation inputCompilation, IServiceProvider serviceProvider, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
             ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, TransformerOptions transformerOptions, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             // If there are no transformers, don't do anything, not even annotate.
@@ -435,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return TransformersResult.Empty(inputCompilation, analyzerConfigProvider);
             }
-            
+
             // Enforce licensing.
             var licenseManager = serviceProvider.GetService<ILicenseConsumptionManager>();
             if (licenseManager != null)
@@ -454,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (shouldDebugTransformedCode)
                 {
-                    if (!licenseManager.CanConsumeFeatures(LicensedFeatures.Metalama, consumerNamespace))
+                    if (!licenseManager.CanConsumeFeatures(LicensedFeatures.MetalamaDebugTransformedCode, consumerNamespace))
                     {
                         diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
                             (int)MetalamaErrorCode.ERR_InvalidLicenseForProducingTransformedOutput));
