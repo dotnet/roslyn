@@ -196,7 +196,7 @@ class C
             Assert.Equal("Constants.cs [embedded] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
 
             // Close the file and try again. If symbol mapping isn't working, the second GTD to Constants.cs will fail
-            await TestServices.SolutionExplorer.CloseCodeFileAsync(ProjectName, "Constants.cs", saveFile: false, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.CloseActiveWindow(HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync("HelloWorldGenerator", charsOffset: -1, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
