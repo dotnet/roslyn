@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editing
             throw new NotImplementedException();
         }
 
-        private protected virtual SyntaxNode OperatorDeclaration(
+        private protected abstract SyntaxNode OperatorDeclaration(
             int syntaxKind,
             bool isChecked,
             bool isImplicitConversion,
@@ -210,10 +210,7 @@ namespace Microsoft.CodeAnalysis.Editing
             SyntaxNode? returnType = null,
             Accessibility accessibility = Accessibility.NotApplicable,
             DeclarationModifiers modifiers = default,
-            IEnumerable<SyntaxNode>? statements = null)
-        {
-            throw new NotImplementedException();
-        }
+            IEnumerable<SyntaxNode>? statements = null);
 
         /// <summary>
         /// Creates a method declaration matching an existing method symbol.
@@ -244,10 +241,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return decl;
         }
 
-        private protected virtual int GetOperatorSyntaxKind(IMethodSymbol method, out bool isChecked)
-        {
-            throw new NotImplementedException();
-        }
+        private protected abstract int GetOperatorSyntaxKind(IMethodSymbol method, out bool isChecked);
 
         /// <summary>
         /// Creates a parameter declaration.
