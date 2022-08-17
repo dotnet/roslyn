@@ -99,12 +99,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             if (method.ParameterList.Parameters.Count == 1 && method.ParameterList.Parameters[0].Type is ArrayTypeSyntax arrayType)
                 method = method.ReplaceNode(arrayType.ElementType, PredefinedType(Token(SyntaxKind.StringKeyword)));
 
-            ClassDeclarationSyntax? newClassDeclaration = null;
-
             if (oldClassDeclaration is null)
             {
                 // If we dodn't have any suitable class declaration in the same file then generate it
-                newClassDeclaration = FixupComments((ClassDeclarationSyntax)generator.ClassDeclaration(
+                return FixupComments((ClassDeclarationSyntax)generator.ClassDeclaration(
                     WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
                     accessibility: useDeclaredAccessibity ? programType.DeclaredAccessibility : Accessibility.NotApplicable,
                     modifiers: hasExistingPart ? DeclarationModifiers.Partial : DeclarationModifiers.None,
@@ -114,14 +112,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             {
                 // Otherwise just add new member and process leading trivia
 
-                // Old class declaration is below top-level statements and is probably separated from them with a blank line.
-                // We want to remove this line to make class declaration begin from the first line of the file in the end
+                // Old class declaration is below top-level statements and is probably separated from them with a blank line (or several ones).
+                // So we want to remove all leading line to make class declaration begin from the first line of the file after applying refactoring
                 var oldTriviaWithoutBlankLines = oldClassDeclaration.GetLeadingTrivia().WithoutLeadingBlankLines();
-                newClassDeclaration = oldClassDeclaration.WithMembers(oldClassDeclaration.Members.Add(method))
+                return oldClassDeclaration.WithMembers(oldClassDeclaration.Members.Add(method))
                                                          .WithLeadingTrivia(oldTriviaWithoutBlankLines.Union(leadingTrivia));
             }
-
-            return newClassDeclaration;
         }
 
         private static ImmutableArray<StatementSyntax> GenerateProgramMainStatements(
