@@ -150,5 +150,25 @@ namespace Microsoft.CodeAnalysis.Snippets
             var symbol = compilation.GetBestTypeByMetadataName(typeof(Console).FullName!);
             return symbol;
         }
+
+        protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> IsCorrectContainer)
+        {
+            var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
+            var nearestExpressionStatement = closestNode.FirstAncestorOrSelf<SyntaxNode>(IsCorrectContainer);
+            if (nearestExpressionStatement is null)
+            {
+                return null;
+            }
+
+            // Checking to see if that expression statement that we found is
+            // starting at the same position as the position we inserted
+            // the Console WriteLine expression statement.
+            if (nearestExpressionStatement.SpanStart != position)
+            {
+                return null;
+            }
+
+            return nearestExpressionStatement;
+        }
     }
 }
