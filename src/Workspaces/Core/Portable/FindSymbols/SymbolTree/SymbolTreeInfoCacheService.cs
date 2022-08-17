@@ -76,6 +76,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 
         public async Task AnalyzeDocumentAsync(Document document, bool isMethodBodyEdit, CancellationToken cancellationToken)
         {
+            if (!document.Project.SupportsCompilation)
+                return;
+
             // This was a method body edit.  We can reuse the existing SymbolTreeInfo if we have one.  We can't just
             // bail out here as the change in the document means we'll have a new checksum.  We need to get that new
             // checksum so that our cached information is valid.
@@ -95,7 +98,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 
         public async Task AnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
-            Debug.Assert(project.SupportsCompilation);
+            if (!project.SupportsCompilation)
+                return;
 
             // Produce the indices for the source and metadata symbols in parallel.
             using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
