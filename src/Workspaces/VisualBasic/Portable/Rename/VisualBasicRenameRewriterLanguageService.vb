@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             ''' <summary>
             ''' Mapping from the symbolKey to all the possible symbols might be renamed in the document.
             ''' </summary>
-            Private ReadOnly _stringAndCommentRenameContexts As MultiDictionary(Of TextSpan, StringAndCommentRenameContext)
+            Private ReadOnly _stringAndCommentRenameContexts As ImmutableDictionary(Of TextSpan, ImmutableHashSet(Of StringAndCommentRenameContext))
 
             ''' <summary>
             ''' Mapping from the containgSpan of a common trivia/string identifier to a set of Locations needs to rename inside it.
@@ -402,7 +402,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
                 Dim newTrivia = MyBase.VisitTrivia(trivia)
 
-                Dim textSpanRenameContexts As MultiDictionary(Of TextSpan, StringAndCommentRenameContext).ValueSet = Nothing
+                Dim textSpanRenameContexts As ImmutableHashSet(Of StringAndCommentRenameContext) = Nothing
                 If Not trivia.HasStructure AndAlso _stringAndCommentRenameContexts.TryGetValue(trivia.Span, textSpanRenameContexts) Then
                     Dim subSpanToReplacementText = CreateSubSpanToReplacementTextDictionary(textSpanRenameContexts)
                     Return RenameInCommentTrivia(trivia, newTrivia, subSpanToReplacementText)
@@ -707,7 +707,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             End Function
 
             Private Function RenameWithinToken(token As SyntaxToken, newToken As SyntaxToken) As SyntaxToken
-                Dim locationSymbolContexts As MultiDictionary(Of TextSpan, LocationRenameContext).ValueSet = Nothing
+                Dim locationSymbolContexts As ImmutableHashSet(Of StringAndCommentRenameContext) = Nothing
                 If _isProcessingComplexifiedSpans OrElse Not _stringAndCommentRenameContexts.TryGetValue(token.Span, locationSymbolContexts) OrElse locationSymbolContexts.Count = 0 Then
                     Return newToken
                 End If

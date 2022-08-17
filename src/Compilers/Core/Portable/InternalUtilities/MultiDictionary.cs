@@ -283,18 +283,6 @@ namespace Roslyn.Utilities
             return _dictionary.ContainsKey(k);
         }
 
-        public bool TryGetValue(K key, out ValueSet value)
-        {
-            if (ContainsKey(key))
-            {
-                value = _dictionary[key];
-                return true;
-            }
-
-            value = default;
-            return false;
-        }
-
         internal void Clear()
         {
             _dictionary.Clear();

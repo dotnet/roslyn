@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             /// Mapping from the containgSpan of a common trivia/string identifier to a set of Locations needs to rename inside it.
             /// It is created by using a regex in to find the matched text when renaming inside a string/identifier.
             /// </summary>
-            private readonly MultiDictionary<TextSpan, StringAndCommentRenameContext> _stringAndCommentRenameContexts;
+            private readonly ImmutableDictionary<TextSpan, ImmutableHashSet<StringAndCommentRenameContext>> _stringAndCommentRenameContexts;
 
             private readonly ImmutableHashSet<string> _replacementTexts;
             private readonly ImmutableHashSet<string> _originalTexts;

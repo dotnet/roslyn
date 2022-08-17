@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// }
         /// </summary>
         internal static ImmutableSortedDictionary<TextSpan, string> CreateSubSpanToReplacementTextDictionary(
-            MultiDictionary<TextSpan, StringAndCommentRenameContext>.ValueSet locationRenameContexts)
+            ImmutableHashSet<StringAndCommentRenameContext> locationRenameContexts)
         {
             var subSpanToReplacementTextBuilder = ImmutableSortedDictionary.CreateBuilder<TextSpan, string>();
             foreach (var (renameLocation, replacementText) in locationRenameContexts)

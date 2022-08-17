@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine;
 internal partial record DocumentRenameInfo(
     ImmutableDictionary<TextSpan, LocationRenameContext> TextSpanToLocationContexts,
     ImmutableDictionary<SymbolKey, RenamedSymbolContext> RenamedSymbolContexts,
-    MultiDictionary<TextSpan, StringAndCommentRenameContext> TextSpanToStringAndCommentRenameContexts,
+    ImmutableDictionary<TextSpan, ImmutableHashSet<StringAndCommentRenameContext>> TextSpanToStringAndCommentRenameContexts,
     ImmutableHashSet<string> AllReplacementTexts,
     ImmutableHashSet<string> AllOriginalText,
     ImmutableHashSet<string> AllPossibleConflictNames);
