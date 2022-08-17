@@ -12,8 +12,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 {
+    /// <summary>
+    /// Represents a property that should be added as a positional parameter
+    /// </summary>
+    /// <param name="Syntax">Original declaration, if within this class.
+    /// Null iff <see cref="IsInherited"/> is true</param>
+    /// <param name="Symbol">Symbol of the property</param>
+    /// <param name="KeepAsOverride">Whether we should keep the original declaration present</param>
+    /// <param name="IsInherited">Whether this property is inherited from another base record</param>
     internal record PropertyAnalysisResult(
-        SyntaxNode Syntax,
+        PropertyDeclarationSyntax? Syntax,
         IPropertySymbol Symbol,
         bool KeepAsOverride,
         bool IsInherited)
@@ -52,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             return declaredResults.Concat(
                 inheritedProperties.SelectAsArray(property
                     => new PropertyAnalysisResult(
-                        property.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax(),
+                        Syntax: null,
                         property,
                         KeepAsOverride: false,
                         IsInherited: true)));

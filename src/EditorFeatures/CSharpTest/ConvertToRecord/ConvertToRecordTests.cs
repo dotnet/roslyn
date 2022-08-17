@@ -2719,7 +2719,6 @@ namespace N
 {
     public record C(bool B, int? P)
     {
-
         public C(bool b1, bool b2) : this(default, null)
         {
             var b = !b2 || b2;
