@@ -63,12 +63,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var tryReadObject = await GetSourceInfoReaderAsync(project, cancellationToken).ConfigureAwait(false);
 
-            // Ok, we can use persistence.  First try to load from the persistence service.
-            var persistentStorageService = services.GetPersistentStorageService();
-
-            var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-            await using var _ = storage.ConfigureAwait(false);
-
             return LoadAsync<SymbolTreeInfo>(
                 storage,
                 checksumOpt: null,

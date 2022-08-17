@@ -164,6 +164,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             });
         }
 
+        private static string GetMetadataKeySuffix(PortableExecutableReference reference)
+            => "_Metadata_" + reference.FilePath;
+
         private static Task<SymbolTreeInfo> CreateMetadataSymbolTreeInfoAsync(
             SolutionServices services,
             SolutionKey solutionKey,
@@ -171,9 +174,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Checksum checksum,
             CancellationToken cancellationToken)
         {
+            return LoadOrCreateAsync(
+                services,
+                solutionKey,
+                checksum,
+                createAsync: () => Task.FromResult(CreateMetadataSymbolTreeInfo(checksum, reference)),
+                keySuffix: GetMetadataKeySuffix(reference),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum),
+                cancellationToken);
+        }
+
+        public static Task<SymbolTreeInfo> LoadInfoForMetadataReferenceAsync(
+            Solution solution,
+            PortableExecutableReference reference,
+            CancellationToken cancellationToken)
+        {
             var filePath = reference.FilePath ?? "";
 
-            return LoadOrCreateAsync(
+            return LoadAsync(
                 services,
                 solutionKey,
                 checksum,

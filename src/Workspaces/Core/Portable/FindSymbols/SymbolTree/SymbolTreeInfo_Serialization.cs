@@ -44,10 +44,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return await CreateWithLoggingAsync().ConfigureAwait(false);
 
                 // Ok, we can use persistence.  First try to load from the persistence service.
-                var persistentStorageService = services.GetPersistentStorageService();
-
-                var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-                await using var _ = storage.ConfigureAwait(false);
 
                 var read = await LoadAsync(storage, checksum, keySuffix, tryReadObject, cancellationToken).ConfigureAwait(false);
                 if (read != null)
@@ -63,6 +59,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Now, try to create a new instance and write it to the persistence service.
                 var result = await CreateWithLoggingAsync().ConfigureAwait(false);
                 Contract.ThrowIfNull(result);
+
+                var persistentStorageService = services.GetPersistentStorageService();
+
+                var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
+                await using var _ = storage.ConfigureAwait(false);
 
                 using (var stream = SerializableBytes.CreateWritableStream())
                 {
@@ -90,12 +91,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<T> LoadAsync<T>(
-            IChecksummedPersistentStorage storage,
+            SolutionServices services,
+            SolutionKey solutionKey,
             Checksum checksumOpt,
             string keySuffix,
             Func<ObjectReader, T> tryReadObject,
             CancellationToken cancellationToken) where T : class
         {
+            // Ok, we can use persistence.  First try to load from the persistence service.
+            var persistentStorageService = services.GetPersistentStorageService();
+
+            var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
+            await using var _ = storage.ConfigureAwait(false);
+
             // Get the unique key to identify our data.
             var key = PrefixMetadataSymbolTreeInfo + keySuffix;
             using var stream = await storage.ReadStreamAsync(key, checksumOpt, cancellationToken).ConfigureAwait(false);
