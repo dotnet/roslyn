@@ -55,10 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 using (Logger.LogBlock(FunctionId.Completion_SnippetCompletionProvider_GetItemsWorker_CSharp, cancellationToken))
                 {
                     // TODO (https://github.com/dotnet/roslyn/issues/5107): Enable in Interactive.
-                    var workspace = document.Project.Solution.Workspace;
+                    var solution = document.Project.Solution;
+                    var workspace = solution.Workspace;
                     if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
-                         workspace.Kind == WorkspaceKind.Debugger ||
-                         workspace.Kind == WorkspaceKind.Interactive)
+                         solution.WorkspaceKind == WorkspaceKind.Debugger ||
+                         solution.WorkspaceKind == WorkspaceKind.Interactive)
                     {
                         return;
                     }
