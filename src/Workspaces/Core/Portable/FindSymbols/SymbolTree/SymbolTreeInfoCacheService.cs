@@ -17,6 +17,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 {
+    /// <summary>
+    /// Computes and caches <see cref="SymbolTreeInfo"/> indices for the source symbols in <see cref="Project"/>s and
+    /// for metadata symbols in <see cref="PortableExecutableReference"/>s.
+    /// </summary>
     [ExportWorkspaceService(typeof(SymbolTreeInfoCacheService)), Shared]
     internal sealed partial class SymbolTreeInfoCacheService : IWorkspaceService
     {

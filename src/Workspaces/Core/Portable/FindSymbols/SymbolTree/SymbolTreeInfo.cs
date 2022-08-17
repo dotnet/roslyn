@@ -20,6 +20,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    /// <summary>
+    /// Represents a tree of names of the namespaces, types (and members within those types) within a <see
+    /// cref="Project"/> or <see cref="PortableExecutableReference"/>.  This tree can be used to quickly determine if
+    /// there is a name match, and can provide the named path to that named entity.  This path can then be used to
+    /// produce a corresponding <see cref="ISymbol"/> that can be used by a feature.  The primary purpose of this index
+    /// is to allow features to quickly determine that there is <em>no</em> name match, so that acquiring symbols is not
+    /// necessary.  The secondary purpose is to generate a minimal set of symbols when there is a match, though that
+    /// will still incur a heavy cost (for example, getting the <see cref="IAssemblySymbol"/> root symbol for a
+    /// particular project).
+    /// </summary>
     internal partial class SymbolTreeInfo : IChecksummedObject
     {
         public Checksum Checksum { get; }
