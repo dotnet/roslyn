@@ -40,25 +40,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 
             var checksum = SymbolTreeInfo.GetMetadataChecksum(solution, reference, cancellationToken);
 
-            // See if the last value produced matches what the caller is asking for.  If so, return that.
+            // See if the last value produced exactly matches what the caller is asking for.  If so, return that.
             if (_metadataIdToInfo.TryGetValue(metadataId, out var metadataInfo) &&
                 metadataInfo.SymbolTreeInfo.Checksum == checksum)
             {
                 return metadataInfo.SymbolTreeInfo;
             }
 
-            // If we didn't have it in our cache, see if we can load it from disk.
-            // Note: pass 'loadOnly' so we only attempt to load from disk, not to actually
-            // try to create the metadata.
+            // If we didn't have it in our cache, see if we can load it from disk. Note: pass 'loadOnly' so we only
+            // attempt to load from disk, not to actually try to create the metadata.
             var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                 solution, reference, checksum, loadOnly: true, cancellationToken).ConfigureAwait(false);
-            return info;
+            if (info != null)
+                return info;
+
+            // Finally, just return whatever info we last computed.  That way we can still offer info that, while
+            // potentially stale, could still be very relevant.  Note: SymbolTreeInfo is basically just a tree of names
+            // that are believed to in a particular PEReference/Project.  There is still a *graceful* resolution step
+            // that will try to find a symbols for those name-paths, and which is if no symbol can be resolved.
+            return metadataInfo.SymbolTreeInfo;
         }
 
         public async Task<SymbolTreeInfo?> TryGetSourceSymbolTreeInfoAsync(
             Project project, CancellationToken cancellationToken)
         {
-            // See if the last value produced matches what the caller is asking for.  If so, return that.
+            // See if the last value produced exactly matches what the caller is asking for.  If so, return that.
             var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
             if (_projectIdToInfo.TryGetValue(project.Id, out var projectInfo) &&
                 projectInfo.Checksum == checksum)
@@ -66,12 +72,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                 return projectInfo;
             }
 
-            // If we didn't have it in our cache, see if we can load it from disk.
-            // Note: pass 'loadOnly' so we only attempt to load from disk, not to actually
-            // try to create the index.
+            // If we didn't have it in our cache, see if we can load it from disk. Note: pass 'loadOnly' so we only
+            // attempt to load from disk, not to actually try to create the index.
             var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
                 project, checksum, loadOnly: true, cancellationToken).ConfigureAwait(false);
-            return info;
+            if (info != null)
+                return info;
+
+            // Finally, just return whatever info we last computed.  That way we can still offer info that, while
+            // potentially stale, could still be very relevant.  Note: SymbolTreeInfo is basically just a tree of names
+            // that are believed to in a particular PEReference/Project.  There is still a *graceful* resolution step
+            // that will try to find a symbols for those name-paths, and which is if no symbol can be resolved.
+            return projectInfo;
         }
 
         public async Task AnalyzeDocumentAsync(Document document, bool isMethodBodyEdit, CancellationToken cancellationToken)
