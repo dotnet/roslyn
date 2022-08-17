@@ -26,7 +26,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shared Function Create(containingSemanticModel As SyntaxTreeSemanticModel, binder As AttributeBinder, Optional ignoreAccessibility As Boolean = False) As AttributeSemanticModel
             Debug.Assert(containingSemanticModel IsNot Nothing)
-            Return New AttributeSemanticModel(binder.Root, binder, containingSemanticModel, ignoreAccessibility:=ignoreAccessibility)
+            Dim owner As Symbol = GetAttributeTarget(containingSemanticModel, binder)
+            Dim wrappedBinder As Binder = binder
+            If owner IsNot Nothing Then
+                wrappedBinder = New LocationSpecificBinder(BindingLocation.Attribute, owner, binder)
+            End If
+
+            Return New AttributeSemanticModel(binder.Root, wrappedBinder, containingSemanticModel, ignoreAccessibility:=ignoreAccessibility)
+        End Function
+
+        Private Shared Function GetAttributeTarget(model As SyntaxTreeSemanticModel, binder As AttributeBinder) As Symbol
+            Debug.Assert(TypeOf binder.Root Is AttributeSyntax)
+            If TypeOf binder.Root.Parent Is AttributeListSyntax Then
+                Return DirectCast(model.GetDeclaredSymbolForNode(binder.Root.Parent.Parent), Symbol)
+            End If
+
+            Return Nothing
         End Function
 
         ''' <summary>
