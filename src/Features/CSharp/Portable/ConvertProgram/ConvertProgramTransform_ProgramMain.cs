@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 // So we want to remove all leading line to make class declaration begin from the first line of the file after applying refactoring
                 var oldTriviaWithoutBlankLines = oldClassDeclaration.GetLeadingTrivia().WithoutLeadingBlankLines();
                 return oldClassDeclaration.WithMembers(oldClassDeclaration.Members.Add(method))
-                                                         .WithLeadingTrivia(oldTriviaWithoutBlankLines.Union(leadingTrivia));
+                                           .WithLeadingTrivia(oldTriviaWithoutBlankLines.Union(leadingTrivia));
             }
         }
 
