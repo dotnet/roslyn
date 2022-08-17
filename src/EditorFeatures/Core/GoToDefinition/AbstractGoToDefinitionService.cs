@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             }
 
             // Try to compute the referenced symbol and attempt to go to definition for the symbol.
-            var (symbol, _) = await symbolService.GetSymbolAndBoundSpanAsync(
+            var (symbol, project, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
                 document, position, includeType: true, cancellationToken).ConfigureAwait(false);
             if (symbol is null)
                 return null;
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             // if the symbol only has a single source location, and we're already on it,
             // try to see if there's a better symbol we could navigate to.
             var remappedLocation = await GetAlternativeLocationIfAlreadyOnDefinitionAsync(
-                document, position, symbol, cancellationToken).ConfigureAwait(false);
+                document, project, position, symbol, cancellationToken).ConfigureAwait(false);
             if (remappedLocation != null)
                 return remappedLocation;
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
 
             return await GoToDefinitionHelpers.GetDefinitionLocationAsync(
                 symbol,
-                document.Project.Solution,
+                project.Solution,
                 _threadingContext,
                 _streamingPresenter,
                 thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
@@ -79,9 +79,8 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
         }
 
         private async Task<INavigableLocation?> GetAlternativeLocationIfAlreadyOnDefinitionAsync(
-            Document document, int position, ISymbol symbol, CancellationToken cancellationToken)
+            Document document, Project project, int position, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var project = document.Project;
             var solution = project.Solution;
 
             var sourceLocations = symbol.Locations.WhereAsArray(loc => loc.IsInSource);
