@@ -4,6 +4,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <DebugType>embedded</DebugType>
+    <EmbedAllSources>true</EmbedAllSources>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
