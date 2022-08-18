@@ -51,12 +51,11 @@ namespace Microsoft.CodeAnalysis.ForEachCast
                 var ienumerableType = compilation.IEnumerableType();
                 var ienumerableOfTType = compilation.IEnumerableOfTType();
                 if (ienumerableType != null && ienumerableOfTType != null)
-                    context.RegisterSyntaxNodeAction(context => AnalyzeSyntax(context, ienumerableType, ienumerableOfTType), GetSyntaxKinds());
+                    context.RegisterSyntaxNodeAction(context => AnalyzeSyntax(context), GetSyntaxKinds());
             });
         }
 
-        protected void AnalyzeSyntax(
-            SyntaxNodeAnalysisContext context, INamedTypeSymbol ienumerableType, INamedTypeSymbol ienumerableOfTType)
+        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
@@ -137,7 +136,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             // So, to detect if we're in a legacy situation, we look for iterations that are returning an object-type
             // where the collection itself didn't implement `IEnumerable<T>` in some way.
             if (option.Value == ForEachExplicitCastInSourcePreference.WhenStronglyTyped &&
-                !IsStronglyTyped(ienumerableOfTType, collectionType, collectionElementType))
+                !IsStronglyTyped(collectionType, collectionElementType))
             {
                 return;
             }
@@ -147,7 +146,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
 
             // We can only fix this issue if the collection type implemented ienumerable and we have
             // System.Linq.Enumerable available.  Then we can add a .Cast call to their collection explicitly.
-            var isFixable = collectionType.Equals(ienumerableType) || collectionType.AllInterfaces.Any(static (i, ienumerableType) => i.Equals(ienumerableType), ienumerableType) &&
+            var isFixable = collectionType.SpecialType == SpecialType.System_Collections_IEnumerable || collectionType.AllInterfaces.Any(static i => i.SpecialType == SpecialType.System_Collections_IEnumerable) &&
                 semanticModel.Compilation.GetBestTypeByMetadataName(typeof(Enumerable).FullName!) != null;
 
             var options = semanticModel.Compilation.Options;
@@ -162,9 +161,9 @@ namespace Microsoft.CodeAnalysis.ForEachCast
                 iterationType.ToDisplayString()));
         }
 
-        private static bool IsStronglyTyped(INamedTypeSymbol ienumerableOfTType, ITypeSymbol collectionType, ITypeSymbol collectionElementType)
+        private static bool IsStronglyTyped(ITypeSymbol collectionType, ITypeSymbol collectionElementType)
             => collectionElementType.SpecialType != SpecialType.System_Object ||
-               collectionType.OriginalDefinition.Equals(ienumerableOfTType) ||
-               collectionType.AllInterfaces.Any(static (i, ienumerableOfTType) => i.OriginalDefinition.Equals(ienumerableOfTType), ienumerableOfTType);
+               collectionType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T ||
+               collectionType.AllInterfaces.Any(static i => i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
     }
 }
