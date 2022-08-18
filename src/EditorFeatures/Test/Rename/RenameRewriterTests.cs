@@ -193,39 +193,6 @@ public class Apple2
         }
 
         [Fact]
-        public async Task TestRenameFailed()
-        {
-            using var verifier = new Verifier(@"
-                   <Workspace>
-                       <Project Language=""C#"" CommonReferences=""true"">
-                           <Document FilePath=""test1.cs"">
-interface IBar
-{
-    void {|Rename1:Hello|}();
-}
-
-class Bar : IBar
-{
-    public void {|Rename2:Hello|}();
-}
-
-                           </Document>
-                    </Project>
-                </Workspace>
-");
-
-            var renameOption = new SymbolRenameOptions();
-            await Assert.ThrowsAsync<LocationRenameContextOverlappingException>(() =>
-                verifier.RenameAndAnnotatedDocumentAsync(
-                    documentFilePath: "test1.cs",
-                    renameTagsToReplacementInfo: new()
-                    {
-                        { "Rename1", ("Hello1", renameOption) },
-                        { "Rename2", ("Hello2", renameOption) },
-                    }));
-        }
-
-        [Fact]
         public async Task TestRenameCommentsFail()
         {
             using var verifier = new Verifier(@"
