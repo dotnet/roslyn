@@ -1091,11 +1091,11 @@ namespace Roslyn.Diagnostics.Analyzers
                 var returnedValue = operation.ReturnedValue;
                 if (returnedValue is not null && Acquire(returnedValue) != RefKind.None)
                 {
-                    if (returnedValue is ILocalReferenceOperation { Local: { IsRef: false } })
+                    if (returnedValue is ILocalReferenceOperation { Local.IsRef: false })
                     {
                         // Returning a by-value local is allowed
                     }
-                    else if (returnedValue is IParameterReferenceOperation { Parameter: { RefKind: RefKind.None } })
+                    else if (returnedValue is IParameterReferenceOperation { Parameter.RefKind: RefKind.None })
                     {
                         // Returning a by-value parameter is allowed
                     }

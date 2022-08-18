@@ -45,7 +45,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
                 var semanticModel = context.GetSemanticModel(tree);
                 var operation = semanticModel.GetOperation(node, context.CancellationToken);
-                if (operation is IPropertyReferenceOperation { Property: { Name: nameof(Type.FullName) }, Instance: ITypeOfOperation { } })
+                if (operation is IPropertyReferenceOperation { Property.Name: nameof(Type.FullName), Instance: ITypeOfOperation { } })
                 {
                     context.ReportSuppression(Suppression.Create(GetDescriptor(diagnostic), diagnostic));
                 }
