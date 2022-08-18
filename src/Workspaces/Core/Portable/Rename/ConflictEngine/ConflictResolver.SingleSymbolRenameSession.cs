@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 var newMetadataName = newReferencedSymbol.ToDisplayString(s_metadataSymbolDisplayFormat);
                 var oldMetadataName = renameDeclarationLocationReference.Name;
+                // This is based on the assumption we only rename one symbol in the solution.
                 return !HeuristicMetadataNameEquivalenceCheck(oldMetadataName, newMetadataName, _originalText, _replacementText);
             }
         }

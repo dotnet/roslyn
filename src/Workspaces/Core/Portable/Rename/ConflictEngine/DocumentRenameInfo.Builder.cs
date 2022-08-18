@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -40,8 +39,8 @@ internal partial record DocumentRenameInfo
         /// Add locationRenameContext to the builder.
         /// </summary>
         /// <returns>
-        /// Return true if the given textSpan of <param name="locationRenameContext"/> already exists in the builder.
-        /// And the existing context is not same as the input context. Otherwise, false.
+        /// Return true if the given textSpan of <param name="locationRenameContext"/> already exists in the builder
+        /// and the existing context is not same as the input context. Otherwise, false.
         /// </returns>
         public bool AddLocationRenameContext(LocationRenameContext locationRenameContext)
         {
@@ -77,8 +76,8 @@ internal partial record DocumentRenameInfo
         /// Add StringAndCommentContext to the builder.
         /// </summary>
         /// <returns>
-        /// Return true if the given textSpan of <param name="stringAndCommentRenameContext"/> already exists in the builder.
-        /// And the existing context is not same as the input context. Otherwise, false.
+        /// Return true if the given textSpan of <param name="stringAndCommentRenameContext"/> already exists in the builder
+        /// and the existing context is not same as the input context. Otherwise, false.
         /// </returns>
         public bool AddStringAndCommentRenameContext(StringAndCommentRenameContext stringAndCommentRenameContext)
         {
