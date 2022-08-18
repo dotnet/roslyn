@@ -2,24 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Composition;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
-
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToRecord), Shared]
@@ -57,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return;
             }
 
-            var propertyAnalysisResults = PropertyAnalysisResult.AnalyzeProperties(
+            var propertyAnalysisResults = PositionalParameterInfo.GetPropertiesForPositionalParameters(
                 typeDeclaration.Members
                     .Where(member => member is PropertyDeclarationSyntax)
                     .Cast<PropertyDeclarationSyntax>()
@@ -88,11 +70,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         private static async Task<Document> ConvertToPositionalRecordAsync(
             Document document,
             INamedTypeSymbol originalType,
-            ImmutableArray<PropertyAnalysisResult> propertyAnalysisResults,
+            ImmutableArray<PositionalParameterInfo> propertyAnalysisResults,
             TypeDeclarationSyntax originalDeclarationNode,
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            // properties to be added to primary constructor parameters
+            var propertiesToMove = propertyAnalysisResults.SelectAsArray(result => result.Declaration);
 
             // remove converted properties and reformat other methods
             var membersToKeep = GetModifiedMembersForPositionalRecord(
@@ -166,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             if (baseList != null && iEquatable != null)
             {
                 var typeList = baseList.Types.Where(baseItem
-                    => iEquatable.Equals(semanticModel.GetSymbolInfo(baseItem, cancellationToken).Symbol));
+                    => !iEquatable.Equals(semanticModel.GetTypeInfo(baseItem.Type, cancellationToken).Type));
 
                 if (typeList.IsEmpty())
                 {
@@ -250,8 +234,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             TypeDeclarationSyntax typeDeclaration,
             INamedTypeSymbol type,
             SemanticModel semanticModel,
-            ImmutableArray<PropertyAnalysisResult> propertiesToMove,
-            out ImmutableArray<(PropertyAnalysisResult property, EqualsValueClauseSyntax? @default)> defaults,
+            ImmutableArray<PositionalParameterInfo> propertiesToMove,
+            out ImmutableArray<(PositionalParameterInfo property, EqualsValueClauseSyntax? @default)> defaults,
             CancellationToken cancellationToken)
         {
             // without any knowledge of a constructor, we don't provide defaults
@@ -277,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // or keep them as overrides and link the positional param to the original property
             foreach (var result in propertiesToMove.Where(prop => !prop.IsInherited))
             {
-                var property = result.Syntax!;
+                var property = result.Declaration!;
                 if (result.KeepAsOverride)
                 {
                     // add an initializer that links the property to the primary constructor parameter

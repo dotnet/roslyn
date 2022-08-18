@@ -2,18 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
-
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 {
     internal static class ConvertToRecordHelpers
@@ -41,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                                 ReturnedValue: IInvocationOperation
                                 {
                                     Instance: IInstanceReferenceOperation,
+                                    TargetMethod: IMethodSymbol { Name: nameof(Equals) },
                                     Arguments: [IArgumentOperation { Value: IOperation arg }]
                                 }
                             }]
@@ -65,9 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         public static INamedTypeSymbol? GetIEquatableType(Compilation compilation, INamedTypeSymbol containingType)
         {
             // can't use nameof since it's generic and we need the type parameter
-            var equatableMetadataName = compilation.GetBestTypeByMetadataName("System.IEquatable`1")?.MetadataName;
-            return containingType.Interfaces.FirstOrDefault(
-                    iface => iface.MetadataName == equatableMetadataName);
+            var equatable = compilation.GetBestTypeByMetadataName("System.IEquatable`1")?.Construct(containingType);
+            return containingType.Interfaces.FirstOrDefault(iface => iface.Equals(equatable));
         }
 
         public static bool IsSimpleHashCodeMethod(
@@ -445,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
                 // check for single return operation which binds the variable as the first condition in a sequence
                 if (bodyOps is [IReturnOperation { ReturnedValue: IOperation value }] &&
-                    TryAddEqualizedFieldsForConditionWithoutBinding(
+                    TryAddEqualizedFieldsForConditionWithoutTypedVariable(
                         value, successRequirement: true, type, fields, out var _2))
                 {
                     // we're done, no more statements to check
@@ -534,9 +522,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             };
         }
 
-        // matches form
-        // c1.Equals(c2)
-        // where c1 and c2 are parameter references
+        /// <summary>
+        /// matches form:
+        /// c1.Equals(c2)
+        /// where c1 and c2 are parameter references
+        /// </summary>
         private static bool IsDotEqualsInvocation(IOperation operation)
         {
             // must be called on one of the parameters
@@ -557,52 +547,61 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             return param != null && invokedOn != null && !invokedOn.Equals(param);
         }
 
-        // checks for binary expressions of the type otherC == null or null == otherC
-        // or a pattern against null like otherC is (not) null
-        // and "otherC" is a reference to otherObject
-        // takes successRequirement so that if we're in a constext where the operation evaluating to true
-        // would end up being false within the equals method, we look for != instead
+        /// <summary>
+        /// checks for binary expressions of the type otherC == null or null == otherC
+        /// or a pattern against null like otherC is (not) null
+        /// and "otherC" is a reference to otherObject.
+        /// </summary>
+        /// <param name="operation">Operation to check for</param>
+        /// <param name="successRequirement">if we're in a context where the operation evaluating to true
+        /// would end up being false within the equals method, we look for != instead</param>
+        /// <param name="otherObject">Object to be compared to null</param>
         private static bool IsNullCheck(
             IOperation operation,
             bool successRequirement,
             ISymbol otherObject)
         {
-            return operation switch
+            if (operation is IBinaryOperation binOp)
             {
-                IBinaryOperation
-                {
-                    LeftOperand: IOperation leftOperation,
-                    RightOperand: IOperation rightOperation,
-                } binaryOperation
-                    // if success would return true, then we want the checked object to not be null
-                    // so we expect a notEquals operator
-                    => binaryOperation.OperatorKind == (successRequirement
-                        ? BinaryOperatorKind.NotEquals
-                        : BinaryOperatorKind.Equals) &&
+                // if success would return true, then we want the checked object to not be null
+                // so we expect a notEquals operator
+                var expectedKind = successRequirement
+                    ? BinaryOperatorKind.NotEquals
+                    : BinaryOperatorKind.Equals;
+
+                return binOp.OperatorKind == expectedKind &&
                     // one of the objects must be a reference to the "otherObject"
                     // and the other must be a constant null literal
-                    (otherObject.Equals(GetReferencedSymbolObject(leftOperation)) &&
-                            rightOperation.WalkDownConversion().IsNullLiteral() ||
-                        otherObject.Equals(GetReferencedSymbolObject(rightOperation)) &&
-                            leftOperation.WalkDownConversion().IsNullLiteral()),
-                // matches: otherC is not null
-                // equality must fail if this is false so we ensure successRequirement is true
-                IIsPatternOperation
+                    AreConditionsSatisfiedEitherOrder(binOp.LeftOperand, binOp.RightOperand,
+                        op => op.WalkDownConversion().IsNullLiteral(),
+                        op => otherObject.Equals(GetReferencedSymbolObject(op)));
+            }
+            else if (operation is IIsPatternOperation patternOp)
+            {
+                // matches: otherC is null
+                // or: otherC is not null
+                // based on successRequirement
+                IConstantPatternOperation? constantPattern;
+                if (successRequirement)
                 {
-                    Value: IOperation patternValue, Pattern: IPatternOperation pattern
-                } => otherObject.Equals(GetReferencedSymbolObject(patternValue)) &&
-                        // if condition success => return false, then we expect "is null"
-                        !successRequirement &&
-                        pattern is IConstantPatternOperation constantPattern1 &&
-                        constantPattern1.Value.WalkDownConversion().IsNullLiteral() ||
-                        successRequirement &&
-                        pattern is INegatedPatternOperation { Pattern: IConstantPatternOperation constantPattern2 } &&
-                        constantPattern2.Value.WalkDownConversion().IsNullLiteral(),
-                _ => false,
-            };
+                    constantPattern = (patternOp.Pattern as INegatedPatternOperation)?.
+                        Pattern as IConstantPatternOperation;
+                }
+                else
+                {
+                    constantPattern = patternOp.Pattern as IConstantPatternOperation;
+                }
+
+                return constantPattern != null &&
+                    otherObject.Equals(GetReferencedSymbolObject(patternOp.Value)) &&
+                    constantPattern.Value.WalkDownConversion().IsNullLiteral();
+            }
+
+            // neither of the expected forms
+            return false;
         }
 
-        private static bool ReturnsFalseImmediately(ImmutableArray<IOperation> operation)
+        private static bool ReturnsFalseImmediately(IEnumerable<IOperation> operation)
         {
             return operation.FirstOrDefault() is IReturnOperation
             {
@@ -682,10 +681,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
         /// <summary>
         /// Same as <see cref="TryAddEqualizedFieldsForCondition"/> but we're looking for
-        /// a binding through an "is" pattern first/>
+        /// a variable binding through an "is" pattern first/>
         /// </summary>
         /// <returns>the cast parameter symbol if found, null if not</returns>
-        private static bool TryAddEqualizedFieldsForConditionWithoutBinding(
+        private static bool TryAddEqualizedFieldsForConditionWithoutTypedVariable(
             IOperation condition,
             bool successRequirement,
             ISymbol currentObject,
@@ -698,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             return (successRequirement, condition) switch
             {
                 (_, IUnaryOperation { OperatorKind: UnaryOperatorKind.Not, Operand: IOperation newCondition })
-                    => TryAddEqualizedFieldsForConditionWithoutBinding(
+                    => TryAddEqualizedFieldsForConditionWithoutTypedVariable(
                         newCondition,
                         !successRequirement,
                         currentObject,
@@ -710,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     OperatorKind: BinaryOperatorKind.ConditionalAnd,
                     LeftOperand: IOperation leftOperation,
                     RightOperand: IOperation rightOperation,
-                }) => TryAddEqualizedFieldsForConditionWithoutBinding(
+                }) => TryAddEqualizedFieldsForConditionWithoutTypedVariable(
                         leftOperation,
                         successRequirement,
                         currentObject,
@@ -722,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     OperatorKind: BinaryOperatorKind.ConditionalOr,
                     LeftOperand: IOperation leftOperation,
                     RightOperand: IOperation rightOperation,
-                }) => TryAddEqualizedFieldsForConditionWithoutBinding(
+                }) => TryAddEqualizedFieldsForConditionWithoutTypedVariable(
                     leftOperation,
                     successRequirement,
                     currentObject,
@@ -810,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     // and any potential statments in the non failure block
                     // 2. Check condition for compared members
                     // 3. Check remaining members in non failure block
-                    => TryGetSuccessCondition(whenTrue, whenFalse, statementsToCheck.Skip(1).AsImmutable(),
+                    => TryGetSuccessCondition(whenTrue, whenFalse, statementsToCheck.Skip(1),
                         out var successRequirement, out var remainingStatements) &&
                     TryAddEqualizedFieldsForCondition(
                             condition, successRequirement, type, otherC, builder) &&
@@ -831,8 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 leftObject != null &&
                 rightObject != null &&
                 !leftObject.Equals(rightObject) &&
-                (leftObject.Equals(currentObject) || leftObject.Equals(otherObject)) &&
-                (rightObject.Equals(currentObject) || rightObject.Equals(otherObject)))
+                AreConditionsSatisfiedEitherOrder(leftObject, rightObject, currentObject.Equals, otherObject.Equals))
             {
                 var field = UnwrapPropertyToField(memberReference1.Member);
                 if (field == null)
@@ -891,31 +889,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             // if we have no else block, we could get no remaining statements, in that case we take all the
             // statments after the if condition operation
-            statementsToCheck = !remainingStatments.IsEmpty ? remainingStatments : bodyOps.Skip(1);
+            statementsToCheck = !remainingStatments.IsEmpty() ? remainingStatments : bodyOps.Skip(1);
 
             // checks for simple "is" or "is not" statement without a variable binding
-            if (condition is IIsTypeOperation
+            ITypeSymbol testType = null;
+            IParameterSymbol referencedParameter = null;
+            if (successRequirement)
+            {
+                if (condition is IIsTypeOperation typeCondition)
                 {
-                    TypeOperand: ITypeSymbol testType1,
-                    ValueOperand: IParameterReferenceOperation { Parameter: IParameterSymbol referencedParameter1 }
-                } &&
-                    successRequirement &&
-                    testType1.Equals(type) &&
-                    referencedParameter1.Equals(parameter) ||
-                condition is IIsPatternOperation
-                {
-                    Value: IParameterReferenceOperation { Parameter: IParameterSymbol referencedParameter2 },
-                    Pattern: INegatedPatternOperation
+                    testType = typeCondition.TypeOperand;
+                    referencedParameter = (typeCondition.ValueOperand as IParameterReferenceOperation)?.Parameter;
+                }
+            }
+            else
+            {
+                if (condition is IIsPatternOperation
                     {
-                        Pattern: ITypePatternOperation
+                        Value: IParameterReferenceOperation parameterReference,
+                        Pattern: INegatedPatternOperation
                         {
-                            MatchedType: INamedTypeSymbol testType2
+                            Pattern: ITypePatternOperation typePattern
                         }
-                    }
-                } &&
-                    !successRequirement &&
-                    testType2.Equals(type) &&
-                    referencedParameter2.Equals(parameter))
+                    })
+                {
+                    testType = typePattern.MatchedType;
+                    referencedParameter = parameterReference.Parameter;
+                }
+            }
+
+            if (testType != null && referencedParameter != null &&
+                testType.Equals(type) && referencedParameter.Equals(parameter))
             {
                 // found correct pattern/type check, so we know we have something equivalent to
                 // if (other is C) { ... } else return false;
@@ -932,7 +936,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             }
             // look for the condition to also contain a binding to a variable and optionally additional
             // checks based on that assigned variable
-            return TryAddEqualizedFieldsForConditionWithoutBinding(
+            return TryAddEqualizedFieldsForConditionWithoutTypedVariable(
                 condition, successRequirement, type, builder, out otherC);
         }
 
@@ -950,14 +954,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         private static bool TryGetSuccessCondition(
             IOperation whenTrue,
             IOperation? whenFalse,
-            ImmutableArray<IOperation> otherOps,
+            IEnumerable<IOperation> otherOps,
             out bool successRequirement,
-            out ImmutableArray<IOperation> remainingStatements)
+            out IEnumerable<IOperation> remainingStatements)
         {
             // this will be changed if we successfully match the pattern
             successRequirement = default;
             // this could be empty even if we match, if there is no else block
-            remainingStatements = default;
+            remainingStatements = Enumerable.Empty<IOperation>();
 
             // all the operations that would happen after the condition is true or false
             // branches can either be block bodies or single statements
@@ -967,7 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             var falseOps = ((whenFalse as IBlockOperation)?.Operations ??
                 (whenFalse != null
                     ? ImmutableArray.Create(whenFalse)
-                    : ImmutableArray.Create<IOperation>()))
+                    : ImmutableArray<IOperation>.Empty))
                 .Concat(otherOps);
 
             // We expect one of the true or false branch to have exactly one statement: return false.
@@ -991,30 +995,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // so for equality the condition should not succeed
             successRequirement = !ReturnsFalseImmediately(trueOps);
             remainingStatements = successRequirement ? trueOps : falseOps;
-            remainingStatements.Concat(otherOps);
             return true;
         }
 
         /// <summary>
         /// Whether the equals method overrides object or IEquatable Equals method
         /// </summary>
-        private static bool OverridesEquals(Compilation compilation, IMethodSymbol? equals, INamedTypeSymbol? equatableType)
+        private static bool OverridesEquals(Compilation compilation, IMethodSymbol equals, INamedTypeSymbol? equatableType)
         {
-            var objectType = compilation.GetSpecialType(SpecialType.System_Object);
-            var objectEquals = objectType?.GetMembers(nameof(Equals)).FirstOrDefault() as IMethodSymbol;
-
             if (equatableType != null && equals != null &&
                 equatableType.GetMembers(nameof(Equals)).FirstOrDefault() is IMethodSymbol equatableEquals &&
-                Equals(equals.ContainingType.FindImplementationForInterfaceMember(equatableEquals), equals))
+                equals.Equals(equals.ContainingType.FindImplementationForInterfaceMember(equatableEquals)))
             {
                 return true;
             }
 
-            while (equals != null)
+            var objectType = compilation.GetSpecialType(SpecialType.System_Object);
+            var objectEquals = objectType?.GetMembers(nameof(Equals)).FirstOrDefault() as IMethodSymbol;
+            var curr = equals;
+            while (curr != null)
             {
-                if (Equals(objectEquals, equals))
+                if (objectEquals.Equals(curr))
                     return true;
-                equals = equals.OverriddenMethod;
+                curr = curr.OverriddenMethod;
             }
 
             return false;
@@ -1030,5 +1033,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 IFieldSymbol field => field,
                 _ => null
             };
+
+        private static bool AreConditionsSatisfiedEitherOrder<T>(T firstItem, T secondItem,
+            Func<T, bool> firstCondition, Func<T, bool> secondCondition)
+        {
+            return (firstCondition(firstItem) && secondCondition(secondItem))
+                || (firstCondition(secondItem) && secondCondition(firstItem));
+        }
     }
 }
