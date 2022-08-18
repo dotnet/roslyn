@@ -768,7 +768,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             private bool CanTypeBeExtendedPublicly(ITypeSymbol type)
             {
-                return _typeCanBeExtendedCache.GetOrAdd(type, t => CanTypeBeExtendedPubliclyImpl(t));
+                return _typeCanBeExtendedCache.GetOrAdd(type, CanTypeBeExtendedPubliclyImpl);
             }
 
             private static bool CanTypeBeExtendedPubliclyImpl(ITypeSymbol type)

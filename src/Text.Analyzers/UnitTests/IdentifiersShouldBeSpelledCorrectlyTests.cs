@@ -157,7 +157,7 @@ namespace Text.Analyzers.UnitTests
                 },
                 SolutionTransforms =
                 {
-                    (solution, projectId) => RenameProjectAssembly(solution, projectId),
+                    RenameProjectAssembly,
                 },
                 ExpectedDiagnostics =
                 {
@@ -187,7 +187,7 @@ namespace Text.Analyzers.UnitTests
                 },
                 SolutionTransforms =
                 {
-                    (solution, projectId) => RenameProjectAssembly(solution, projectId),
+                    RenameProjectAssembly,
                 },
                 ExpectedDiagnostics =
                 {

@@ -2332,7 +2332,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     // For regular invocation cases, we reset instance analysis data and argument data.
                     // Note that arguments are reset later by processing '_pendingArgumentsToReset'.
                     ResetInstanceAnalysisData(instanceReceiver);
-                    Debug.Assert(arguments.All(arg => _pendingArgumentsToReset.Contains(arg)));
+                    Debug.Assert(arguments.All(_pendingArgumentsToReset.Contains));
                 }
             }
 

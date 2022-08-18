@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         internal void AssertNoFlowCaptureEntitiesTracked()
         {
             AssertNoFlowCaptureEntitiesTracked(CoreAnalysisData);
-            AssertValidPredicatedAnalysisData(map => AssertNoFlowCaptureEntitiesTracked(map));
+            AssertValidPredicatedAnalysisData(AssertNoFlowCaptureEntitiesTracked);
 
         }
 
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         internal void AssertValidPointsToAnalysisData()
         {
             AssertValidPointsToAnalysisData(CoreAnalysisData);
-            AssertValidPredicatedAnalysisData(map => AssertValidPointsToAnalysisData(map));
+            AssertValidPredicatedAnalysisData(AssertValidPointsToAnalysisData);
         }
 
         [Conditional("DEBUG")]

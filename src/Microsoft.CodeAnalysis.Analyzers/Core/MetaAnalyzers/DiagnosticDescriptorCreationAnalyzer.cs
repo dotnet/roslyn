@@ -1141,7 +1141,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return false;
             }
 
-            if (!ruleId[2..].All(c => char.IsDigit(c)))
+            if (!ruleId[2..].All(char.IsDigit))
             {
                 return false;
             }

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
         internal CopyAbstractValue WithEntitiesRemoved(IEnumerable<AnalysisEntity> entitiesToRemove)
         {
-            Debug.Assert(entitiesToRemove.All(entityToRemove => AnalysisEntities.Contains(entityToRemove)));
+            Debug.Assert(entitiesToRemove.All(AnalysisEntities.Contains));
             Debug.Assert(AnalysisEntities.Count > 1);
             Debug.Assert(Kind.IsKnown());
 

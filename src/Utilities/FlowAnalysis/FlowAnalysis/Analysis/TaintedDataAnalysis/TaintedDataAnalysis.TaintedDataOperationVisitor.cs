@@ -487,7 +487,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 IEnumerable<TaintedDataAbstractValue> taintedAbstractValues =
                     operation.ElementValues
-                        .Select<IOperation, TaintedDataAbstractValue>(e => this.GetCachedAbstractValue(e))
+                        .Select<IOperation, TaintedDataAbstractValue>(this.GetCachedAbstractValue)
                         .Where(v => v.Kind == TaintedDataAbstractValueKind.Tainted);
                 if (baseAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted)
                 {
