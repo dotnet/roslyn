@@ -621,14 +621,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 var indexOfParamsList = apiLineText.IndexOf('(');
                 if (indexOfParamsList > 0)
                 {
-                    apiLineText = apiLineText.Substring(0, indexOfParamsList);
+                    apiLineText = apiLineText[..indexOfParamsList];
                 }
                 else
                 {
                     var indexOfReturnType = apiLineText.IndexOf("->", StringComparison.Ordinal);
                     if (indexOfReturnType > 0)
                     {
-                        apiLineText = apiLineText.Substring(0, indexOfReturnType);
+                        apiLineText = apiLineText[..indexOfReturnType];
                     }
                 }
 

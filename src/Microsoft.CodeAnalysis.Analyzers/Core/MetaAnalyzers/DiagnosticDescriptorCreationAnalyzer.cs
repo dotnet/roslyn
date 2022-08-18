@@ -828,7 +828,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             Debug.Assert(IsMultiSentences(s));
             var index = s.IndexOf(MultiSentenceSeparator, StringComparison.OrdinalIgnoreCase);
-            return s.Substring(0, index);
+            return s[..index];
         }
 
         private static bool EndsWithPeriod(string s)

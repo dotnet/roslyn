@@ -43,7 +43,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
                     continue;
                 }
 
-                var newName = variableSymbol.Name.Substring(0, variableSymbol.Name.Length - CSharpAvoidOptSuffixForNullableEnableCode.OptSuffix.Length);
+                var newName = variableSymbol.Name[..^CSharpAvoidOptSuffixForNullableEnableCode.OptSuffix.Length];
 
                 // There is no symbol matching the new name so we can register the codefix
                 if (semanticModel.LookupSymbols(diagnostic.Location.SourceSpan.Start, variableSymbol.ContainingType, newName).IsEmpty)
