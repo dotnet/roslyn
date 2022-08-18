@@ -414,8 +414,6 @@ class MyAnalyzer : DiagnosticAnalyzer
 #endif
                         // Test0.cs(10,36): error CS0246: The type or namespace name 'DiagnosticDescriptor' could not be found (are you missing a using directive or an assembly reference?)
                         DiagnosticResult.CompilerError("CS0246").WithSpan(10, 36, 10, 56).WithArguments("DiagnosticDescriptor"),
-                        // Test0.cs(10,58): error CS0115: 'MyAnalyzer.SupportedDiagnostics': no suitable method found to override
-                        DiagnosticResult.CompilerError("CS0115").WithSpan(10, 58, 10, 78).WithArguments("MyAnalyzer.SupportedDiagnostics"),
                         // Test0.cs(18,37): error CS0246: The type or namespace name 'AnalysisContext' could not be found (are you missing a using directive or an assembly reference?)
                         DiagnosticResult.CompilerError("CS0246").WithSpan(18, 37, 18, 52).WithArguments("AnalysisContext"),
                         // Test0.cs(39,42): error CS0246: The type or namespace name 'OperationAnalysisContext' could not be found (are you missing a using directive or an assembly reference?)
