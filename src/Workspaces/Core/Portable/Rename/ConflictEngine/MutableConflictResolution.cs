@@ -154,7 +154,15 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
             });
 
-            RenamedDocuments.Add(document.Id, newName);
+            if (!RenamedDocuments.TryGetValue(document.Id, out var existingNewName))
+            {
+                RenamedDocuments.Add(document.Id, newName);
+            }
+            else
+            {
+                // One document should not be renamed twice.
+                RoslynDebug.Assert(newName == existingNewName);
+            }
         }
 
         public int GetAdjustedTokenStartingPosition(int startingPosition, DocumentId documentId)

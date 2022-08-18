@@ -35,11 +35,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// </summary>
         UnresolvableConflict = 0x8,
 
-        /// <summary>
-        /// A conflict caused by using different replacement string to rename the same TextSpan.
-        /// </summary>
-        OverlappingReplacementConflict = 0x10,
-
         UnresolvedConflict = PossiblyResolvableConflict | UnresolvableConflict
     }
 }
