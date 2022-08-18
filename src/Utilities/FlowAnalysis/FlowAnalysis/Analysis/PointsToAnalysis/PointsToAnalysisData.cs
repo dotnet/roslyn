@@ -80,8 +80,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         internal void AssertNoFlowCaptureEntitiesTracked()
         {
             AssertNoFlowCaptureEntitiesTracked(CoreAnalysisData);
-            AssertValidPredicatedAnalysisData(AssertNoFlowCaptureEntitiesTracked);
-
+#pragma warning disable IDE0200 // Remove unnecessary lambda expression - https://github.com/dotnet/roslyn/issues/63464
+            AssertValidPredicatedAnalysisData(map => AssertNoFlowCaptureEntitiesTracked(map));
+#pragma warning restore IDE0200 // Remove unnecessary lambda expression
         }
 
         [Conditional("DEBUG")]
@@ -97,7 +98,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         internal void AssertValidPointsToAnalysisData()
         {
             AssertValidPointsToAnalysisData(CoreAnalysisData);
-            AssertValidPredicatedAnalysisData(AssertValidPointsToAnalysisData);
+#pragma warning disable IDE0200 // Remove unnecessary lambda expression - https://github.com/dotnet/roslyn/issues/63464
+            AssertValidPredicatedAnalysisData(map => AssertValidPointsToAnalysisData(map));
+#pragma warning restore IDE0200 // Remove unnecessary lambda expression
         }
 
         [Conditional("DEBUG")]
