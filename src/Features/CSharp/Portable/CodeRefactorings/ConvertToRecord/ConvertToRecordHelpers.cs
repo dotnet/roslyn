@@ -783,8 +783,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             statementsToCheck = !remainingStatments.IsEmpty() ? remainingStatments : bodyOps.Skip(1);
 
             // checks for simple "is" or "is not" statement without a variable binding
-            ITypeSymbol testType = null;
-            IParameterSymbol referencedParameter = null;
+            ITypeSymbol? testType = null;
+            IParameterSymbol? referencedParameter = null;
             if (successRequirement)
             {
                 if (condition is IIsTypeOperation typeCondition)
@@ -906,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             var curr = equals;
             while (curr != null)
             {
-                if (objectEquals.Equals(curr))
+                if (curr.Equals(objectEquals))
                     return true;
                 curr = curr.OverriddenMethod;
             }
