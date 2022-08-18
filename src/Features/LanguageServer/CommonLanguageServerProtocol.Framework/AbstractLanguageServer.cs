@@ -18,7 +18,6 @@ namespace CommonLanguageServerProtocol.Framework;
 public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposable
 {
     private readonly JsonRpc _jsonRpc;
-    //private IRequestDispatcher<RequestContextType>? _requestDispatcher;
     private IRequestExecutionQueue<RequestContextType>? _queue;
     protected readonly ILspLogger _logger;
     private ILspServices? _lspServices;
@@ -211,11 +210,6 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
 
     public virtual async Task ShutdownAsync()
     {
-        if (_shuttingDown is true)
-        {
-            throw new InvalidOperationException("Shutdown has already been called.");
-        }
-
         _shuttingDown = true;
 
         await ShutdownRequestExecutionQueueAsync();

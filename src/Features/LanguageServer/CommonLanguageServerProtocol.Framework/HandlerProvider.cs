@@ -35,7 +35,11 @@ internal class HandlerProvider : IHandlerProvider
         var requestHandlerMetadata = new RequestHandlerMetadata(method, requestType, responseType);
 
         var requestHandlers = GetRequestHandlers();
-        var handler = requestHandlers[requestHandlerMetadata].Value;
+        if (!requestHandlers.TryGetValue(requestHandlerMetadata, out var lazyHandler))
+        {
+            throw new InvalidOperationException($"Missing handler for {requestHandlerMetadata.MethodName}");
+        }
+        var handler = lazyHandler.Value;
 
         return handler;
     }
@@ -110,7 +114,7 @@ internal class HandlerProvider : IHandlerProvider
             var methodAttribute = GetMethodAttribute(handlerType);
             if (methodAttribute is null)
             {
-                throw new InvalidOperationException($"{handlerType.FullName} is missing Method attribute");
+                throw new InvalidOperationException($"{handlerType.FullName} is missing {nameof(LanguageServerEndpointAttribute)}");
             }
             return methodAttribute.Method;
 

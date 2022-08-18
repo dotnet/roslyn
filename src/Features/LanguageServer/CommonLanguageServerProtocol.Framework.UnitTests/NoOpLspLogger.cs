@@ -18,7 +18,7 @@ namespace CommonLanguageServerProtocol.Framework.UnitTests
 
         public Task LogExceptionAsync(Exception exception, string? message = null, params object[] @params)
         {
-            throw exception;
+            return Task.CompletedTask;
         }
 
         public Task LogInformationAsync(string message, params object[] @params)
