@@ -2,49 +2,9 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../CSharpWorkspaceResources.resx">
     <body>
-      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
-        <source>Allow blank line after colon in constructor initializer</source>
-        <target state="new">Allow blank line after colon in constructor initializer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Allow_blank_lines_between_consecutive_braces">
-        <source>Allow blank lines between consecutive braces</source>
-        <target state="new">Allow blank lines between consecutive braces</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Allow_embedded_statements_on_same_line">
-        <source>Allow embedded statements on same line</source>
-        <target state="new">Allow embedded statements on same line</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
-        <source>Avoid expression statements that implicitly ignore value</source>
-        <target state="new">Avoid expression statements that implicitly ignore value</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Avoid_unused_value_assignments">
-        <source>Avoid unused value assignments</source>
-        <target state="new">Avoid unused value assignments</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Elsewhere">
-        <source>Elsewhere</source>
-        <target state="new">Elsewhere</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="For_built_in_types">
-        <source>For built-in types</source>
-        <target state="new">For built-in types</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Indentation_preferences">
         <source>Indentation preferences</source>
         <target state="translated">Předvolby odsazení</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Namespace_declarations">
-        <source>Namespace declarations</source>
-        <target state="new">Namespace declarations</target>
         <note />
       </trans-unit>
       <trans-unit id="No_available_location_found_to_add_statements_to">
@@ -65,126 +25,6 @@
       <trans-unit id="Node_not_in_parent_s_child_list">
         <source>Node not in parent's child list</source>
         <target state="translated">Uzel není v seznamu podřízených položek u nadřazené položky.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_Utf8_string_literals">
-        <source>Prefer UTF-8 string literals</source>
-        <target state="new">Prefer UTF-8 string literals</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_braces">
-        <source>Prefer braces</source>
-        <target state="new">Prefer braces</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_conditional_delegate_call">
-        <source>Prefer conditional delegate call</source>
-        <target state="new">Prefer conditional delegate call</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_deconstructed_variable_declaration">
-        <source>Prefer deconstructed variable declaration</source>
-        <target state="new">Prefer deconstructed variable declaration</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_extended_property_pattern">
-        <source>Prefer extended property pattern</source>
-        <target state="new">Prefer extended property pattern</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
-        <source>Prefer implicit object creation when type is apparent</source>
-        <target state="new">Prefer implicit object creation when type is apparent</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_index_operator">
-        <source>Prefer index operator</source>
-        <target state="new">Prefer index operator</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_inlined_variable_declaration">
-        <source>Prefer inlined variable declaration</source>
-        <target state="new">Prefer inlined variable declaration</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefer local function over anonymous function</source>
-        <target state="new">Prefer local function over anonymous function</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_method_group_conversion">
-        <source>Prefer method group conversion</source>
-        <target state="new">Prefer method group conversion</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_null_check_over_type_check">
-        <source>Prefer 'null' check over type check</source>
-        <target state="new">Prefer 'null' check over type check</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_pattern_matching">
-        <source>Prefer pattern matching</source>
-        <target state="new">Prefer pattern matching</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_pattern_matching_over_as_with_null_check">
-        <source>Prefer pattern matching over 'as' with 'null' check</source>
-        <target state="new">Prefer pattern matching over 'as' with 'null' check</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_pattern_matching_over_is_with_cast_check">
-        <source>Prefer pattern matching over 'is' with 'cast' check</source>
-        <target state="new">Prefer pattern matching over 'is' with 'cast' check</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_pattern_matching_over_mixed_type_check">
-        <source>Prefer pattern matching over mixed type check</source>
-        <target state="new">Prefer pattern matching over mixed type check</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_range_operator">
-        <source>Prefer range operator</source>
-        <target state="new">Prefer range operator</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_simple_default_expression">
-        <source>Prefer simple 'default' expression</source>
-        <target state="new">Prefer simple 'default' expression</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_simple_using_statement">
-        <source>Prefer simple 'using' statement</source>
-        <target state="new">Prefer simple 'using' statement</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_static_local_functions">
-        <source>Prefer static local functions</source>
-        <target state="new">Prefer static local functions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_switch_expression">
-        <source>Prefer switch expression</source>
-        <target state="new">Prefer switch expression</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_throw_expression">
-        <source>Prefer throw-expression</source>
-        <target state="new">Prefer throw-expression</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_top_level_statements">
-        <source>Prefer top-level statements</source>
-        <target state="new">Prefer top-level statements</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_tuple_swap">
-        <source>Prefer tuple swap</source>
-        <target state="new">Prefer tuple swap</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Preferred_using_directive_placement">
-        <source>Preferred 'using' directive placement</source>
-        <target state="new">Preferred 'using' directive placement</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_and_Sort_Usings">
@@ -220,51 +60,6 @@
       <trans-unit id="Implement_Interface">
         <source>Implement Interface</source>
         <target state="translated">Implementujte rozhraní.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_accessors">
-        <source>Use expression body for accessors</source>
-        <target state="new">Use expression body for accessors</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_constructors">
-        <source>Use expression body for constructors</source>
-        <target state="new">Use expression body for constructors</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_indexers">
-        <source>Use expression body for indexers</source>
-        <target state="new">Use expression body for indexers</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_lambdas">
-        <source>Use expression body for lambdas</source>
-        <target state="new">Use expression body for lambdas</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_local_functions">
-        <source>Use expression body for local functions</source>
-        <target state="new">Use expression body for local functions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_methods">
-        <source>Use expression body for methods</source>
-        <target state="new">Use expression body for methods</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_operators">
-        <source>Use expression body for operators</source>
-        <target state="new">Use expression body for operators</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_properties">
-        <source>Use expression body for properties</source>
-        <target state="new">Use expression body for properties</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="When_variable_type_is_apparent">
-        <source>When variable type is apparent</source>
-        <target state="new">When variable type is apparent</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrapping_preferences">

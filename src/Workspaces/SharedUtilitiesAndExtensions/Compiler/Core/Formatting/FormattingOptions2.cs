@@ -41,44 +41,38 @@ namespace Microsoft.CodeAnalysis.Formatting
         public static PerLanguageOption2<bool> UseTabs =
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(UseTabs), LineFormattingOptions.Default.UseTabs,
             storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
-                new EditorConfigStorageLocation<bool>("indent_style", s => s == "tab", isSet => isSet ? "tab" : "space"),
-                //new EditorConfigStorageLocation<bool>(EditorConfigSettingsValueHolder.UseTabs.GetSettingName(), EditorConfigSettingsValueHolder.UseTabs.GetValueFromEditorConfigString, EditorConfigSettingsValueHolder.UseTabs.GetEditorConfigStringFromValue),
+                new EditorConfigStorageLocation<bool>(EditorConfigSettingsValueHolder.UseTabs.GetSettingName(),
+                                                      EditorConfigSettingsValueHolder.UseTabs.GetValueFromEditorConfigString,
+                                                      EditorConfigSettingsValueHolder.UseTabs.GetEditorConfigStringFromValue),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Insert Tabs")));
 
         public static PerLanguageOption2<int> TabSize =
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(TabSize), LineFormattingOptions.Default.TabSize,
             storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
-                EditorConfigStorageLocation.ForInt32Option("tab_width"),
+                new EditorConfigStorageLocation<int>(EditorConfigSettingsValueHolder.TabSize.GetSettingName(),
+                                                     EditorConfigSettingsValueHolder.TabSize.GetValueFromEditorConfigString,
+                                                     EditorConfigSettingsValueHolder.TabSize.GetEditorConfigStringFromValue),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Tab Size")));
 
         public static PerLanguageOption2<int> IndentationSize =
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(IndentationSize), LineFormattingOptions.Default.IndentationSize,
             storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
-                EditorConfigStorageLocation.ForInt32Option("indent_size"),
+                new EditorConfigStorageLocation<int>(EditorConfigSettingsValueHolder.IndentationSize.GetSettingName(),
+                                                     EditorConfigSettingsValueHolder.IndentationSize.GetValueFromEditorConfigString,
+                                                     EditorConfigSettingsValueHolder.IndentationSize.GetEditorConfigStringFromValue),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Indent Size")));
 
         public static PerLanguageOption2<string> NewLine =
             new(FeatureName, FormattingOptionGroups.NewLine, nameof(NewLine), LineFormattingOptions.Default.NewLine,
-            storageLocation: new EditorConfigStorageLocation<string>(
-                "end_of_line",
-                parseValue: value => value.Trim() switch
-                {
-                    "lf" => "\n",
-                    "cr" => "\r",
-                    "crlf" => "\r\n",
-                    _ => Environment.NewLine
-                },
-                getEditorConfigStringForValue: option => option switch
-                {
-                    "\n" => "lf",
-                    "\r" => "cr",
-                    "\r\n" => "crlf",
-                    _ => "unset"
-                }));
+            storageLocation: new EditorConfigStorageLocation<string>(EditorConfigSettingsValueHolder.NewLine.GetSettingName(),
+                                                                     EditorConfigSettingsValueHolder.NewLine.GetValueFromEditorConfigString,
+                                                                     EditorConfigSettingsValueHolder.NewLine.GetEditorConfigStringFromValue));
 
         internal static Option2<bool> InsertFinalNewLine =
             new(FeatureName, FormattingOptionGroups.NewLine, nameof(InsertFinalNewLine), DocumentFormattingOptions.Default.InsertFinalNewLine,
-            storageLocation: EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
+            storageLocation: new EditorConfigStorageLocation<bool>(EditorConfigSettingsValueHolder.InsertFinalNewLine.GetSettingName(),
+                                                                   EditorConfigSettingsValueHolder.InsertFinalNewLine.GetValueFromEditorConfigString,
+                                                                   EditorConfigSettingsValueHolder.InsertFinalNewLine.GetEditorConfigStringFromValue));
 
         public static PerLanguageOption2<FormattingOptions2.IndentStyle> SmartIndent { get; } =
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent), defaultValue: IndentationOptions.DefaultIndentStyle);

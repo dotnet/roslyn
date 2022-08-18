@@ -16,6 +16,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\PreferBracesPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\TypeStyle\TypeStyleHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\TypeStyle\UseVarPreference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\CSharpCodeStyleEditorConfigSettingsValueHolder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\CSharpWhitespaceEditorConfigSettingsValueHolder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\CSharpVirtualCharService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\RuneExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArgumentSyntaxExtensions.cs" />

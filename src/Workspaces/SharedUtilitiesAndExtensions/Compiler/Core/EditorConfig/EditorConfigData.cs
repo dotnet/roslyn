@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
 
         public abstract ImmutableArray<string> GetAllSettingValues();
         public abstract string? GetSettingValueDocumentation(string key);
-        public abstract string? GetEditorConfigStringFromValue(T value);
+        public abstract string GetEditorConfigStringFromValue(T value);
         public abstract Optional<T> GetValueFromEditorConfigString(string key);
     }
 
@@ -73,27 +73,26 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
             throw new NotImplementedException();
         }
 
-        public override string? GetEditorConfigStringFromValue(bool value)
+        public override string GetEditorConfigStringFromValue(bool value)
         {
-            if (ValueToSettingName == null)
+            if (ValueToSettingName != null)
             {
-                return value.ToString()!.ToLowerInvariant();
-
+                ValueToSettingName.TryGetKey(value, out var key);
+                return key!;
             }
 
-            ValueToSettingName.TryGetKey(value, out var key);
-            return key;
+            return value.ToString().ToLowerInvariant();
         }
 
         public override Optional<bool> GetValueFromEditorConfigString(string key)
         {
-            if (ValueToSettingName == null)
+            if (ValueToSettingName != null)
             {
-                return bool.TryParse(key, out var result) ? result : new Optional<bool>();
+                ValueToSettingName.TryGetValue(key, out var value);
+                return value;
             }
 
-            ValueToSettingName.TryGetValue(key, out var value);
-            return value;
+            return bool.TryParse(key, out var result) ? result : new Optional<bool>();
         }
     }
 
@@ -101,11 +100,19 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
     {
         private readonly BidirectionalMap<string, T> ValueToSettingName;
         //private readonly ImmutableDictionary<string, string>? ValueToValueDocumentation;
+        private readonly T? DefaultValue;
 
         public EnumEditorConfigData(string settingName, string settingNameDocumentation, BidirectionalMap<string, T> valueToSettingName, bool allowsMultipleValues = false)
             : base(settingName, settingNameDocumentation, allowsMultipleValues)
         {
             ValueToSettingName = valueToSettingName;
+        }
+
+        public EnumEditorConfigData(string settingName, string settingNameDocumentation, BidirectionalMap<string, T> valueToSettingName, T defaultValue, bool allowsMultipleValues = false)
+            : base(settingName, settingNameDocumentation, allowsMultipleValues)
+        {
+            ValueToSettingName = valueToSettingName;
+            DefaultValue = defaultValue;
         }
 
         public override string GetSettingName() => SettingName;
@@ -124,16 +131,14 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
             throw new NotImplementedException();
         }
 
-        public override string? GetEditorConfigStringFromValue(T value)
+        public override string GetEditorConfigStringFromValue(T value)
         {
-            ValueToSettingName.TryGetKey(value, out var key);
-            return key;
+            return ValueToSettingName.TryGetKey(value, out var key) ? key : "";
         }
 
         public override Optional<T> GetValueFromEditorConfigString(string key)
         {
-            ValueToSettingName.TryGetValue(key, out var value);
-            return value ?? new Optional<T>();
+            return ValueToSettingName.TryGetValue(key, out var value) ? value : DefaultValue ?? default!;
         }
     }
 
@@ -160,7 +165,7 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
             throw new NotImplementedException();
         }
 
-        public override string? GetEditorConfigStringFromValue(int value)
+        public override string GetEditorConfigStringFromValue(int value)
         {
             return value.ToString().ToLowerInvariant();
         }
@@ -175,11 +180,15 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
     {
         private readonly BidirectionalMap<string, string> ValueToSettingName;
         //private readonly ImmutableDictionary<string, string>? ValueToValueDocumentation;
+        private readonly string DefaultEditorConfigString;
+        private readonly string DefaultValue;
 
-        public StringEditorConfigData(string settingName, string settingNameDocumentation, BidirectionalMap<string, string> valueToSettingName)
+        public StringEditorConfigData(string settingName, string settingNameDocumentation, BidirectionalMap<string, string> valueToSettingName, string defaultEditorConfigString, string defaultValue)
             : base(settingName, settingNameDocumentation)
         {
             ValueToSettingName = valueToSettingName;
+            DefaultEditorConfigString = defaultEditorConfigString;
+            DefaultValue = defaultValue;
         }
 
         public override string GetSettingName() => SettingName;
@@ -198,16 +207,14 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
             throw new NotImplementedException();
         }
 
-        public override string? GetEditorConfigStringFromValue(string value)
+        public override string GetEditorConfigStringFromValue(string value)
         {
-            ValueToSettingName.TryGetKey(value, out var key);
-            return key;
+            return ValueToSettingName.TryGetKey(value, out var key) ? key : DefaultEditorConfigString;
         }
 
         public override Optional<string> GetValueFromEditorConfigString(string key)
         {
-            ValueToSettingName.TryGetValue(key, out var value);
-            return value ?? new Optional<string>();
+            return ValueToSettingName.TryGetValue(key, out var value) ? value : DefaultValue;
         }
     }
 
@@ -238,10 +245,10 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
             throw new NotImplementedException();
         }
 
-        public override string? GetEditorConfigStringFromValue(DiagnosticSeverity value)
+        public override string GetEditorConfigStringFromValue(DiagnosticSeverity value)
         {
             ValueToSettingName.TryGetKey(value, out var key);
-            return key;
+            return key ?? "";
         }
 
         public override Optional<DiagnosticSeverity> GetValueFromEditorConfigString(string key)
