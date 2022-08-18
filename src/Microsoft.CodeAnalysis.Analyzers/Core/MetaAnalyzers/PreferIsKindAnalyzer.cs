@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class PreferIsKindAnalyzer : DiagnosticAnalyzer
     {
-        internal static readonly DiagnosticDescriptor Rule = new(
+        internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticIds.PreferIsKindRuleId,
             CreateLocalizableResourceString(nameof(PreferIsKindTitle)),
             CreateLocalizableResourceString(nameof(PreferIsKindMessage)),

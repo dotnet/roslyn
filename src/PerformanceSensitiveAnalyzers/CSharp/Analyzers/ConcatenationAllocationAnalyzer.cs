@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         public const string StringConcatenationAllocationRuleId = "HAA0201";
         public const string ValueTypeToReferenceTypeInAStringConcatenationRuleId = "HAA0202";
 
-        internal static readonly DiagnosticDescriptor StringConcatenationAllocationRule = new(
+        internal static readonly DiagnosticDescriptor StringConcatenationAllocationRule = new DiagnosticDescriptor(
             StringConcatenationAllocationRuleId,
             CreateLocalizableResourceString(nameof(StringConcatenationAllocationRuleTitle)),
             CreateLocalizableResourceString(nameof(StringConcatenationAllocationRuleMessage)),
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             isEnabledByDefault: true,
             helpLinkUri: "http://msdn.microsoft.com/en-us/library/2839d5h5(v=vs.110).aspx");
 
-        internal static readonly DiagnosticDescriptor ValueTypeToReferenceTypeInAStringConcatenationRule = new(
+        internal static readonly DiagnosticDescriptor ValueTypeToReferenceTypeInAStringConcatenationRule = new DiagnosticDescriptor(
             ValueTypeToReferenceTypeInAStringConcatenationRuleId,
             CreateLocalizableResourceString(nameof(ValueTypeToReferenceTypeInAStringConcatenationRuleTitle)),
             CreateLocalizableResourceString(nameof(ValueTypeToReferenceTypeInAStringConcatenationRuleMessage)),

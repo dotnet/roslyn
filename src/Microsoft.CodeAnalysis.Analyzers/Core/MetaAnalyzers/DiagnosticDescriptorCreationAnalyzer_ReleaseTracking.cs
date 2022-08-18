@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         internal const string EntryToAddPropertyName = nameof(EntryToAddPropertyName);
         internal const string EntryToUpdatePropertyName = nameof(EntryToUpdatePropertyName);
 
-        internal static readonly DiagnosticDescriptor DeclareDiagnosticIdInAnalyzerReleaseRule = new(
+        internal static readonly DiagnosticDescriptor DeclareDiagnosticIdInAnalyzerReleaseRule = new DiagnosticDescriptor(
             id: DiagnosticIds.DeclareDiagnosticIdInAnalyzerReleaseRuleId,
             title: CreateLocalizableResourceString(nameof(DeclareDiagnosticIdInAnalyzerReleaseTitle)),
             messageFormat: CreateLocalizableResourceString(nameof(DeclareDiagnosticIdInAnalyzerReleaseMessage)),
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        internal static readonly DiagnosticDescriptor UpdateDiagnosticIdInAnalyzerReleaseRule = new(
+        internal static readonly DiagnosticDescriptor UpdateDiagnosticIdInAnalyzerReleaseRule = new DiagnosticDescriptor(
             id: DiagnosticIds.UpdateDiagnosticIdInAnalyzerReleaseRuleId,
             title: CreateLocalizableResourceString(nameof(UpdateDiagnosticIdInAnalyzerReleaseTitle)),
             messageFormat: CreateLocalizableResourceString(nameof(UpdateDiagnosticIdInAnalyzerReleaseMessage)),
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        internal static readonly DiagnosticDescriptor RemoveUnshippedDeletedDiagnosticIdRule = new(
+        internal static readonly DiagnosticDescriptor RemoveUnshippedDeletedDiagnosticIdRule = new DiagnosticDescriptor(
             id: DiagnosticIds.RemoveUnshippedDeletedDiagnosticIdRuleId,
             title: CreateLocalizableResourceString(nameof(RemoveUnshippedDeletedDiagnosticIdTitle)),
             messageFormat: CreateLocalizableResourceString(nameof(RemoveUnshippedDeletedDiagnosticIdMessage)),
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor RemoveShippedDeletedDiagnosticIdRule = new(
+        internal static readonly DiagnosticDescriptor RemoveShippedDeletedDiagnosticIdRule = new DiagnosticDescriptor(
             id: DiagnosticIds.RemoveShippedDeletedDiagnosticIdRuleId,
             title: CreateLocalizableResourceString(nameof(RemoveShippedDeletedDiagnosticIdTitle)),
             messageFormat: CreateLocalizableResourceString(nameof(RemoveShippedDeletedDiagnosticIdMessage)),
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdRule = new(
+        internal static readonly DiagnosticDescriptor UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdRule = new DiagnosticDescriptor(
             id: DiagnosticIds.UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdRuleId,
             title: CreateLocalizableResourceString(nameof(UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle)),
             messageFormat: CreateLocalizableResourceString(nameof(UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage)),
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        internal static readonly DiagnosticDescriptor RemoveDuplicateEntriesForAnalyzerReleaseRule = new(
+        internal static readonly DiagnosticDescriptor RemoveDuplicateEntriesForAnalyzerReleaseRule = new DiagnosticDescriptor(
             id: DiagnosticIds.RemoveDuplicateEntriesForAnalyzerReleaseRuleId,
             title: CreateLocalizableResourceString(nameof(RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle)),
             messageFormat: CreateLocalizableResourceString(nameof(RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage)),
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor RemoveDuplicateEntriesBetweenAnalyzerReleasesRule = new(
+        internal static readonly DiagnosticDescriptor RemoveDuplicateEntriesBetweenAnalyzerReleasesRule = new DiagnosticDescriptor(
             id: DiagnosticIds.RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleId,
             title: CreateLocalizableResourceString(nameof(RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle)),
             messageFormat: CreateLocalizableResourceString(nameof(RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage)),
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor InvalidEntryInAnalyzerReleasesFileRule = new(
+        internal static readonly DiagnosticDescriptor InvalidEntryInAnalyzerReleasesFileRule = new DiagnosticDescriptor(
             id: DiagnosticIds.InvalidEntryInAnalyzerReleasesFileRuleId,
             title: CreateLocalizableResourceString(nameof(InvalidEntryInAnalyzerReleasesFileRuleTitle)),
             messageFormat: CreateLocalizableResourceString(nameof(InvalidEntryInAnalyzerReleasesFileRuleMessage)),
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor InvalidHeaderInAnalyzerReleasesFileRule = new(
+        internal static readonly DiagnosticDescriptor InvalidHeaderInAnalyzerReleasesFileRule = new DiagnosticDescriptor(
             id: DiagnosticIds.InvalidEntryInAnalyzerReleasesFileRuleId,
             title: CreateLocalizableResourceString(nameof(InvalidEntryInAnalyzerReleasesFileRuleTitle)),
             messageFormat: CreateLocalizableResourceString(nameof(InvalidHeaderInAnalyzerReleasesFileRuleMessage)),
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor InvalidUndetectedEntryInAnalyzerReleasesFileRule = new(
+        internal static readonly DiagnosticDescriptor InvalidUndetectedEntryInAnalyzerReleasesFileRule = new DiagnosticDescriptor(
             id: DiagnosticIds.InvalidEntryInAnalyzerReleasesFileRuleId,
             title: CreateLocalizableResourceString(nameof(InvalidEntryInAnalyzerReleasesFileRuleTitle)),
             messageFormat: CreateLocalizableResourceString(nameof(InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage)),
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule = new(
+        internal static readonly DiagnosticDescriptor InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule = new DiagnosticDescriptor(
             id: DiagnosticIds.InvalidEntryInAnalyzerReleasesFileRuleId,
             title: CreateLocalizableResourceString(nameof(InvalidEntryInAnalyzerReleasesFileRuleTitle)),
             messageFormat: CreateLocalizableResourceString(nameof(InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage)),
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor EnableAnalyzerReleaseTrackingRule = new(
+        internal static readonly DiagnosticDescriptor EnableAnalyzerReleaseTrackingRule = new DiagnosticDescriptor(
             id: DiagnosticIds.EnableAnalyzerReleaseTrackingRuleId,
             title: CreateLocalizableResourceString(nameof(EnableAnalyzerReleaseTrackingRuleTitle)),
             messageFormat: CreateLocalizableResourceString(nameof(EnableAnalyzerReleaseTrackingRuleMessage)),

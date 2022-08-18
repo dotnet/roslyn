@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private const string s_HashCodeCombineName = "Combine";
         public const string SymbolEqualityComparerName = "Microsoft.CodeAnalysis.SymbolEqualityComparer";
 
-        public static readonly DiagnosticDescriptor EqualityRule = new(
+        public static readonly DiagnosticDescriptor EqualityRule = new DiagnosticDescriptor(
             DiagnosticIds.CompareSymbolsCorrectlyRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDescription,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public static readonly DiagnosticDescriptor GetHashCodeRule = new(
+        public static readonly DiagnosticDescriptor GetHashCodeRule = new DiagnosticDescriptor(
             DiagnosticIds.CompareSymbolsCorrectlyRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: CreateLocalizableResourceString(nameof(CompareSymbolsCorrectlyDescriptionGetHashCode)),
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public static readonly DiagnosticDescriptor CollectionRule = new(
+        public static readonly DiagnosticDescriptor CollectionRule = new DiagnosticDescriptor(
             DiagnosticIds.CompareSymbolsCorrectlyRuleId,
             s_localizableTitle,
             s_localizableMessage,

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class EnableConcurrentExecutionAnalyzer : DiagnosticAnalyzerCorrectnessAnalyzer
     {
-        public static readonly DiagnosticDescriptor Rule = new(
+        public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticIds.EnableConcurrentExecutionRuleId,
             CreateLocalizableResourceString(nameof(EnableConcurrentExecutionTitle)),
             CreateLocalizableResourceString(nameof(EnableConcurrentExecutionMessage)),

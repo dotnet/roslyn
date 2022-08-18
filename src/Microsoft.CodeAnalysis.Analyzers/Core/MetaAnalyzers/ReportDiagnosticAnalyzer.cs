@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         where TIdentifierNameSyntax : SyntaxNode
         where TVariableDeclaratorSyntax : SyntaxNode
     {
-        public static readonly DiagnosticDescriptor InvalidReportDiagnosticRule = new(
+        public static readonly DiagnosticDescriptor InvalidReportDiagnosticRule = new DiagnosticDescriptor(
             DiagnosticIds.InvalidReportDiagnosticRuleId,
             CreateLocalizableResourceString(nameof(InvalidReportDiagnosticTitle)),
             CreateLocalizableResourceString(nameof(InvalidReportDiagnosticMessage)),

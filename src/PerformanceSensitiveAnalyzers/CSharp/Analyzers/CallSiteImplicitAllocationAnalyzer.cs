@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         public const string ParamsParameterRuleId = "HAA0101";
         public const string ValueTypeNonOverridenCallRuleId = "HAA0102";
 
-        internal static readonly DiagnosticDescriptor ParamsParameterRule = new(
+        internal static readonly DiagnosticDescriptor ParamsParameterRule = new DiagnosticDescriptor(
             ParamsParameterRuleId,
             CreateLocalizableResourceString(nameof(ParamsParameterRuleTitle)),
             CreateLocalizableResourceString(nameof(ParamsParameterRuleMessage)),
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static readonly DiagnosticDescriptor ValueTypeNonOverridenCallRule = new(
+        internal static readonly DiagnosticDescriptor ValueTypeNonOverridenCallRule = new DiagnosticDescriptor(
             ValueTypeNonOverridenCallRuleId,
             CreateLocalizableResourceString(nameof(ValueTypeNonOverridenCallRuleTitle)),
             CreateLocalizableResourceString(nameof(ValueTypeNonOverridenCallRuleMessage)),

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
         where TNameSyntax : SyntaxNode
         where TSyntaxKind : struct
     {
-        public static readonly DiagnosticDescriptor Rule = new(
+        public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             id: DiagnosticIds.RestrictedInternalsVisibleToRuleId,
             title: CreateLocalizableResourceString(nameof(RestrictedInternalsVisibleToTitle)),
             messageFormat: CreateLocalizableResourceString(nameof(RestrictedInternalsVisibleToMessage)),

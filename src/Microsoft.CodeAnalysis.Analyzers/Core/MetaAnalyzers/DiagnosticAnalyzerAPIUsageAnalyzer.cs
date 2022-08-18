@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             "Microsoft.CodeAnalysis.CSharp.Workspaces",
             "Microsoft.CodeAnalysis.VisualBasic.Workspaces");
 
-        public static readonly DiagnosticDescriptor DoNotUseTypesFromAssemblyDirectRule = new(
+        public static readonly DiagnosticDescriptor DoNotUseTypesFromAssemblyDirectRule = new DiagnosticDescriptor(
             DiagnosticIds.DoNotUseTypesFromAssemblyRuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(DoNotUseTypesFromAssemblyRuleDirectMessage)),
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDescription,
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        public static readonly DiagnosticDescriptor DoNotUseTypesFromAssemblyIndirectRule = new(
+        public static readonly DiagnosticDescriptor DoNotUseTypesFromAssemblyIndirectRule = new DiagnosticDescriptor(
             DiagnosticIds.DoNotUseTypesFromAssemblyRuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(DoNotUseTypesFromAssemblyRuleIndirectMessage)),

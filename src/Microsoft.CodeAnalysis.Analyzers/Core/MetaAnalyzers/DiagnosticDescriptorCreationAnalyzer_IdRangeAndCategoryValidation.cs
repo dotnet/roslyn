@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1018 (<inheritdoc cref="DiagnosticIdMustBeInSpecifiedFormatTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor DiagnosticIdMustBeInSpecifiedFormatRule = new(
+        public static readonly DiagnosticDescriptor DiagnosticIdMustBeInSpecifiedFormatRule = new DiagnosticDescriptor(
             DiagnosticIds.DiagnosticIdMustBeInSpecifiedFormatRuleId,
             CreateLocalizableResourceString(nameof(DiagnosticIdMustBeInSpecifiedFormatTitle)),
             CreateLocalizableResourceString(nameof(DiagnosticIdMustBeInSpecifiedFormatMessage)),
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1020 (<inheritdoc cref="UseCategoriesFromSpecifiedRangeTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor UseCategoriesFromSpecifiedRangeRule = new(
+        public static readonly DiagnosticDescriptor UseCategoriesFromSpecifiedRangeRule = new DiagnosticDescriptor(
             DiagnosticIds.UseCategoriesFromSpecifiedRangeRuleId,
             CreateLocalizableResourceString(nameof(UseCategoriesFromSpecifiedRangeTitle)),
             CreateLocalizableResourceString(nameof(UseCategoriesFromSpecifiedRangeMessage)),
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1021 (<inheritdoc cref="AnalyzerCategoryAndIdRangeFileInvalidTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor AnalyzerCategoryAndIdRangeFileInvalidRule = new(
+        public static readonly DiagnosticDescriptor AnalyzerCategoryAndIdRangeFileInvalidRule = new DiagnosticDescriptor(
             DiagnosticIds.AnalyzerCategoryAndIdRangeFileInvalidRuleId,
             CreateLocalizableResourceString(nameof(AnalyzerCategoryAndIdRangeFileInvalidTitle)),
             CreateLocalizableResourceString(nameof(AnalyzerCategoryAndIdRangeFileInvalidMessage)),

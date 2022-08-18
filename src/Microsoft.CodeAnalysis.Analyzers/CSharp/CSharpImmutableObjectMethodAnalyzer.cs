@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpImmutableObjectMethodAnalyzer : DiagnosticAnalyzer
     {
-        public static readonly DiagnosticDescriptor DoNotIgnoreReturnValueDiagnosticRule = new(
+        public static readonly DiagnosticDescriptor DoNotIgnoreReturnValueDiagnosticRule = new DiagnosticDescriptor(
             DiagnosticIds.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocation,
             CreateLocalizableResourceString(nameof(DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle)),
             CreateLocalizableResourceString(nameof(DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage)),

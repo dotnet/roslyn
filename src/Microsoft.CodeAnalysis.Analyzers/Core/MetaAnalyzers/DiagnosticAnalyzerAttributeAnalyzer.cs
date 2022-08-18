@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class DiagnosticAnalyzerAttributeAnalyzer : DiagnosticAnalyzerCorrectnessAnalyzer
     {
-        public static readonly DiagnosticDescriptor MissingDiagnosticAnalyzerAttributeRule = new(
+        public static readonly DiagnosticDescriptor MissingDiagnosticAnalyzerAttributeRule = new DiagnosticDescriptor(
             DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId,
             CreateLocalizableResourceString(nameof(MissingDiagnosticAnalyzerAttributeTitle)),
             CreateLocalizableResourceString(nameof(MissingAttributeMessage), WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute),
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: CreateLocalizableResourceString(nameof(MissingDiagnosticAnalyzerAttributeDescription)),
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public static readonly DiagnosticDescriptor AddLanguageSupportToAnalyzerRule = new(
+        public static readonly DiagnosticDescriptor AddLanguageSupportToAnalyzerRule = new DiagnosticDescriptor(
             DiagnosticIds.AddLanguageSupportToAnalyzerRuleId,
             CreateLocalizableResourceString(nameof(AddLanguageSupportToAnalyzerTitle)),
             CreateLocalizableResourceString(nameof(AddLanguageSupportToAnalyzerMessage)),

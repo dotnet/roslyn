@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
     {
         public const string ReferenceTypeEnumeratorRuleId = "HAA0401";
 
-        internal static readonly DiagnosticDescriptor ReferenceTypeEnumeratorRule = new(
+        internal static readonly DiagnosticDescriptor ReferenceTypeEnumeratorRule = new DiagnosticDescriptor(
             ReferenceTypeEnumeratorRuleId,
             CreateLocalizableResourceString(nameof(ReferenceTypeEnumeratorRuleTitle)),
             CreateLocalizableResourceString(nameof(ReferenceTypeEnumeratorRuleMessage)),

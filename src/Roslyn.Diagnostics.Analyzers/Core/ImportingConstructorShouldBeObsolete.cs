@@ -24,7 +24,7 @@ namespace Roslyn.Diagnostics.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class ImportingConstructorShouldBeObsolete : DiagnosticAnalyzer
     {
-        internal static readonly DiagnosticDescriptor Rule = new(
+        internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.ImportingConstructorShouldBeObsoleteRuleId,
             CreateLocalizableResourceString(nameof(ImportingConstructorShouldBeObsoleteTitle)),
             CreateLocalizableResourceString(nameof(ImportingConstructorShouldBeObsoleteMessage)),
