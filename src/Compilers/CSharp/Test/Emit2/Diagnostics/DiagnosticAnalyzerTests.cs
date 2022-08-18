@@ -13,6 +13,7 @@ using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.Decompiler.TypeSystem;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -3633,6 +3634,88 @@ class B
                 // (11,13): warning CS0219: The variable 'local2' is assigned but its value is never used
                 //         int local2 = 1;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local2").WithArguments("local2").WithLocation(11, 13));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(63466, "https://github.com/dotnet/roslyn/issues/63466")]
+        public async Task TestAnalyzerWithActionsRegisteredAtDifferentScopesAsync(bool testSyntaxNodeAction)
+        {
+            string source = @"
+public class C
+{
+    void M()
+    {
+        System.Console.WriteLine(1 + 1);
+    }
+}
+";
+            var compilation = CreateCompilation(source)
+                .VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var analyzer = new ActionsRegisteredAtDifferentScopesAnalyzer(testSyntaxNodeAction);
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
+            var analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(
+                semanticModel,
+                filterSpan: null,
+                CancellationToken.None);
+
+            var diagnostics1 = analysisResult.SemanticDiagnostics[tree][analyzer];
+            diagnostics1.Verify(
+                Diagnostic("MyDiagnostic", "System.Console.WriteLine(1 + 1)").WithLocation(6, 9),
+                Diagnostic("MyDiagnostic", "1 + 1").WithLocation(6, 34));
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public class ActionsRegisteredAtDifferentScopesAnalyzer : DiagnosticAnalyzer
+        {
+            public const string DiagnosticId = "MyDiagnostic";
+            internal const string Title = "MyDiagnostic";
+            internal const string MessageFormat = "MyDiagnostic";
+            internal const string Category = "Category";
+
+            private readonly bool _testSyntaxNodeAction;
+
+            public ActionsRegisteredAtDifferentScopesAnalyzer(bool testSyntaxNodeAction)
+            {
+                _testSyntaxNodeAction = testSyntaxNodeAction;
+            }
+
+            internal static DiagnosticDescriptor Rule = new(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                if (_testSyntaxNodeAction)
+                {
+                    context.RegisterSyntaxNodeAction(
+                        context => context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Rule, context.Node.GetLocation())),
+                        SyntaxKind.InvocationExpression);
+
+                    context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
+                    {
+                        context.RegisterSyntaxNodeAction(
+                            context => context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Rule, context.Node.GetLocation())),
+                            SyntaxKind.AddExpression);
+                    });
+                }
+                else
+                {
+                    context.RegisterOperationAction(
+                        context => context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Rule, context.Operation.Syntax.GetLocation())),
+                        OperationKind.Invocation);
+
+                    context.RegisterOperationBlockStartAction(context =>
+                    {
+                        context.RegisterOperationAction(
+                            context => context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Rule, context.Operation.Syntax.GetLocation())),
+                            OperationKind.Binary);
+                    });
+                }
+            }
         }
 
         [Theory, CombinatorialData]
