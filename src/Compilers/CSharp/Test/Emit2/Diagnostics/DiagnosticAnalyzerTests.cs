@@ -1618,6 +1618,17 @@ class TypeInGeneratedFile { }
                 expected: Diagnostic("GeneratedCodeAnalyzer2Warning", "TypeInUserFile").WithArguments("TypeInUserFile", "2").WithLocation(2, 7));
         }
 
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        internal sealed class GeneratedCodeAnalyzer : AbstractGeneratedCodeAnalyzer<SyntaxKind>
+        {
+            public GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlags, bool testIsGeneratedCodeInCallbacks = false)
+                : base(generatedCodeAnalysisFlags, testIsGeneratedCodeInCallbacks)
+            {
+            }
+
+            protected override SyntaxKind ClassDeclarationSyntaxKind => SyntaxKind.ClassDeclaration;
+        }
+
         internal class OwningSymbolTestAnalyzer : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor ExpressionDescriptor = new DiagnosticDescriptor(

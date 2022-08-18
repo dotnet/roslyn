@@ -1313,8 +1313,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-        public class GeneratedCodeAnalyzer : DiagnosticAnalyzer
+        public abstract class AbstractGeneratedCodeAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
+            where TSyntaxKind : struct
         {
             private readonly GeneratedCodeAnalysisFlags? _generatedCodeAnalysisFlagsOpt;
             private readonly bool _testIsGeneratedCodeInCallbacks;
@@ -1351,11 +1351,13 @@ namespace Microsoft.CodeAnalysis
                 DiagnosticSeverity.Warning,
                 true);
 
-            public GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt, bool testIsGeneratedCodeInCallbacks = false)
+            protected AbstractGeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt, bool testIsGeneratedCodeInCallbacks)
             {
                 _generatedCodeAnalysisFlagsOpt = generatedCodeAnalysisFlagsOpt;
                 _testIsGeneratedCodeInCallbacks = testIsGeneratedCodeInCallbacks;
             }
+
+            protected abstract TSyntaxKind ClassDeclarationSyntaxKind { get; }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Warning, Error, Summary, Summary2);
             public override void Initialize(AnalysisContext context)
@@ -1399,9 +1401,9 @@ namespace Microsoft.CodeAnalysis
                 if (_testIsGeneratedCodeInCallbacks)
                 {
                     // Test all remaining analysis contexts that expose "IsGeneratdCode" flag
-                    context.RegisterSyntaxNodeAction<SyntaxKind>(context =>
+                    context.RegisterSyntaxNodeAction(context =>
                         sortedCallbackSyntaxNodeNames.Add($"{context.ContainingSymbol.Name}(IsGeneratedCode:{context.IsGeneratedCode})"),
-                        SyntaxKind.ClassDeclaration);
+                        ImmutableArray.Create(ClassDeclarationSyntaxKind));
 
                     context.RegisterSemanticModelAction(context =>
                         sortedCallbackSemanticModelPaths.Add($"{context.SemanticModel.SyntaxTree.FilePath}(IsGeneratedCode:{context.IsGeneratedCode})"));
@@ -1443,7 +1445,7 @@ namespace Microsoft.CodeAnalysis
                             sortedCallbackSymbolEndNames.Add($"{context.Symbol.Name}(IsGeneratedCode:{context.IsGeneratedCode})"));
                     }, SymbolKind.NamedType);
 
-                    context.RegisterCodeBlockStartAction<SyntaxKind>(context =>
+                    context.RegisterCodeBlockStartAction<TSyntaxKind>(context =>
                     {
                         if (context.OwningSymbol.Kind != SymbolKind.Method)
                         {
