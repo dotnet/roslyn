@@ -2,6 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
+
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 {
     internal static class ConvertToRecordHelpers
@@ -177,8 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             var assignedParameters = assignmentValues.SelectAsArray(value => value.right);
 
             if (assignmentValues.All(value => value != default && value.left is IPropertySymbol) &&
-                !assignedProperties.HasDuplicates(SymbolEqualityComparer.Default) &&
-                !assignedParameters.HasDuplicates(SymbolEqualityComparer.Default) &&
+                assignmentValues.Length == assignedProperties.Length &&
                 assignedProperties.SetEquals(properties) &&
                 assignedParameters.SetEquals(parameters))
             {
@@ -272,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     // don't need to remove argument syntaxes as the base initializer will already get removed
                     if (assignmentValue.right.Parent is not ArgumentSyntax)
                     {
-                        removalBuilder.Add(assignmentValue.right.Parent!);
+                        removalBuilder.Add(assignmentValue.right.GetAncestor<ExpressionStatementSyntax>()!);
                     }
                 }
             }
@@ -892,8 +903,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             statementsToCheck = !remainingStatments.IsEmpty() ? remainingStatments : bodyOps.Skip(1);
 
             // checks for simple "is" or "is not" statement without a variable binding
-            ITypeSymbol testType = null;
-            IParameterSymbol referencedParameter = null;
+            ITypeSymbol? testType = null;
+            IParameterSymbol? referencedParameter = null;
             if (successRequirement)
             {
                 if (condition is IIsTypeOperation typeCondition)
@@ -1015,7 +1026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             var curr = equals;
             while (curr != null)
             {
-                if (objectEquals.Equals(curr))
+                if (curr.Equals(objectEquals))
                     return true;
                 curr = curr.OverriddenMethod;
             }

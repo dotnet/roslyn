@@ -2,6 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
+
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToRecord), Shared]
@@ -98,10 +116,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 // if inherited we generate nodes and tokens for the type and identifier
                 var type = result.IsInherited
                     ? result.Symbol.Type.GenerateTypeSyntax()
-                    : result.Syntax.Type;
+                    : result.Declaration!.Type;
                 var identifier = result.IsInherited
                     ? SyntaxFactory.Identifier(result.Symbol.Name)
-                    : result.Syntax.Identifier;
+                    : result.Declaration!.Identifier;
 
                 return SyntaxFactory.Parameter(
                     GetModifiedAttributeListsForProperty(result),
@@ -192,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             return changedDocument;
         }
 
-        private static SyntaxList<AttributeListSyntax> GetModifiedAttributeListsForProperty(PropertyAnalysisResult result)
+        private static SyntaxList<AttributeListSyntax> GetModifiedAttributeListsForProperty(PositionalParameterInfo result)
         {
             if (result.IsInherited || result.KeepAsOverride)
             {
@@ -200,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return SyntaxFactory.List<AttributeListSyntax>();
             }
 
-            return SyntaxFactory.List(result.Syntax!.AttributeLists.SelectAsArray(attributeList =>
+            return SyntaxFactory.List(result.Declaration!.AttributeLists.SelectAsArray(attributeList =>
                     {
                         if (attributeList.Target == null)
                         {
@@ -241,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // without any knowledge of a constructor, we don't provide defaults
             // and we maintain the order we saw the properties
             defaults = propertiesToMove.SelectAsArray
-                <PropertyAnalysisResult, (PropertyAnalysisResult, EqualsValueClauseSyntax?)>
+                <PositionalParameterInfo, (PositionalParameterInfo, EqualsValueClauseSyntax?)>
                 (result => (result, null));
             using var _ = ArrayBuilder<MemberDeclarationSyntax>.GetInstance(out var modifiedMembers);
             modifiedMembers.AddRange(typeDeclaration.Members);
@@ -419,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         // 4. Property summary documentation (as param)
         // 5. Rest of class documentation comments
         private static SyntaxTriviaList GetModifiedClassTrivia(
-            ImmutableArray<PropertyAnalysisResult> propertyResults,
+            ImmutableArray<PositionalParameterInfo> propertyResults,
             TypeDeclarationSyntax typeDeclaration,
             LineFormattingOptions lineFormattingOptions)
         {
@@ -433,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                         return ImmutableArray<SyntaxTrivia>.Empty;
                     }
 
-                    var p = result.Syntax;
+                    var p = result.Declaration!;
                     var leadingPropTrivia = p.GetLeadingTrivia()
                         .Where(trivia => !trivia.IsDocComment() && !trivia.IsWhitespace());
                     // since we remove attributes and reformat, we want to take any comments
@@ -455,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // this variable doubles as a flag to see if we need to generate doc comments at all, as
             // if it is still null, we found no meaningful doc comments anywhere
             var exteriorTrivia = GetExteriorTrivia(typeDeclaration) ??
-                propertyResults.SelectAsArray(result => GetExteriorTrivia(result.Syntax)).
+                propertyResults.SelectAsArray(result => GetExteriorTrivia(result.Declaration)).
                     FirstOrDefault(t => t != null);
 
             if (exteriorTrivia == null)
@@ -487,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 // we must have had at least one property with a doc comment
                 if (propertyResults
                         .SelectAsArray(result => !result.IsInherited,
-                            result => result.Syntax.GetLeadingTrivia().FirstOrNull(trivia => trivia.IsDocComment()))
+                            result => result.Declaration!.GetLeadingTrivia().FirstOrNull(trivia => trivia.IsDocComment()))
                         .Where(t => t != null)
                         .First()?.GetStructure() is DocumentationCommentTriviaSyntax propDoc &&
                     propDoc.IsMultilineDocComment())
@@ -601,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         }
 
         private static IEnumerable<XmlNodeSyntax> CreateParamComments(
-            ImmutableArray<PropertyAnalysisResult> propertyResults,
+            ImmutableArray<PositionalParameterInfo> propertyResults,
             SyntaxTriviaList exteriorTrivia,
             LineFormattingOptions lineFormattingOptions)
         {
@@ -632,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 else
                 {
                     // get the documentation comment
-                    var potentialDocComment = result.Syntax!.GetLeadingTrivia().FirstOrNull(trivia => trivia.IsDocComment());
+                    var potentialDocComment = result.Declaration!.GetLeadingTrivia().FirstOrNull(trivia => trivia.IsDocComment());
                     var paramContent = ImmutableArray<XmlNodeSyntax>.Empty;
                     if (potentialDocComment?.GetStructure() is DocumentationCommentTriviaSyntax docComment)
                     {
@@ -684,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                         }
                     }
 
-                    yield return SyntaxFactory.XmlParamElement(result.Syntax!.Identifier.ValueText, paramContent.AsArray());
+                    yield return SyntaxFactory.XmlParamElement(result.Declaration!.Identifier.ValueText, paramContent.AsArray());
                 }
             }
         }

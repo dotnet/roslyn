@@ -2,12 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
+
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 {
     /// <summary>
     /// Represents a property that should be added as a positional parameter
     /// </summary>
-    /// <param name="Syntax">Original declaration, if within this class.
+    /// <param name="Declaration">Original declaration, null iff IsInherited is true
     /// Null iff <see cref="IsInherited"/> is true</param>
     /// <param name="Symbol">Symbol of the property</param>
     /// <param name="KeepAsOverride">Whether we should keep the original declaration present</param>
@@ -50,8 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             var inheritedProperties = GetInheritedPositionalParams(type, cancellationToken);
             return declaredResults.Concat(
                 inheritedProperties.SelectAsArray(property
-                    => new PropertyAnalysisResult(
-                        Syntax: null,
+                    => new PositionalParameterInfo(
+                        Declaration: null,
                         property,
                         KeepAsOverride: false,
                         IsInherited: true)));
