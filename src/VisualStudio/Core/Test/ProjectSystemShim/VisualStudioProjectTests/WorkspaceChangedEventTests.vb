@@ -108,7 +108,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         End Function
 
         <WpfFact>
-        <CombinatorialData>
         Public Async Function AddingAndRemovingOnlyProjectTriggersSolutionAddedAndSolutionRemoved() As Task
             Using environment = New TestEnvironment()
                 Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
