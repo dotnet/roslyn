@@ -165,17 +165,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // delete IEquatable if it's explicit because it is implicit on records
             var iEquatable = ConvertToRecordHelpers.GetIEquatableType(semanticModel.Compilation, originalType);
             var baseList = originalDeclarationNode.BaseList;
-            if (baseList != null && iEquatable != null)
+            if (baseList != null)
             {
-                var typeList = baseList.Types.Where(baseItem
-                    => !iEquatable.Equals(semanticModel.GetTypeInfo(baseItem.Type, cancellationToken).Type));
+                var typeList = baseList.Types.AsImmutable();
 
-                if (typeList.IsEmpty())
+                if (iEquatable != null)
+                {
+                    typeList = typeList.WhereAsArray(baseItem
+                        => !iEquatable.Equals(semanticModel.GetTypeInfo(baseItem.Type, cancellationToken).Type));
+                }
+
+                if (typeList.IsEmpty)
                 {
                     baseList = null;
                 }
                 else
                 {
+                    var inheritedPositionalParams = propertyAnalysisResults.SelectAsArray(
+                        result => result.IsInherited,
+                        result => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(result.Symbol.Name)));
+                    if (inheritedPositionalParams.Any())
+                    {
+                        // replace first element (base record) with one that uses primary constructor params
+                        // Move trailing trivia to end of arg list
+                        var baseRecord = typeList.First();
+                        var baseTrailingTrivia = baseRecord.Type.GetTrailingTrivia();
+                        typeList = typeList.Replace(baseRecord,
+                            SyntaxFactory.PrimaryConstructorBaseType(baseRecord.Type.WithoutTrailingTrivia(),
+                                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(inheritedPositionalParams))
+                                .WithTrailingTrivia(baseTrailingTrivia)));
+                    }
+
                     baseList = baseList.WithTypes(SyntaxFactory.SeparatedList(typeList));
                 }
             }

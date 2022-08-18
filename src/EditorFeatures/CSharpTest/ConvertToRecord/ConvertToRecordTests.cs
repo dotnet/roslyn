@@ -300,6 +300,62 @@ namespace N
         }
 
         [Fact]
+        public async Task TestMovePropertySimpleRecordInheritance()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public record B
+    {
+        public int Foo { get; init; }
+    }
+
+    public class [|C|] : {|CS8865:B|}
+    {
+        public int P { get; init; }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record B
+    {
+        public int Foo { get; init; }
+    }
+
+    public record C(int P) : B;
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertyPositionalParameterRecordInheritance()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public record B(int Foo, int Bar);
+
+    public class [|{|CS1729:C|}|] : {|CS8865:B|}
+    {
+        public int P { get; init; }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record B(int Foo, int Bar);
+
+    public record C(int Foo, int Bar, int P) : B(Foo, Bar);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestMovePropertySimpleInterfaceInheritance()
         {
             var initialMarkup = @"

@@ -36,12 +36,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             var symbols = properties
                 .SelectAsArray(p => (IPropertySymbol)semanticModel.GetRequiredDeclaredSymbol(p, cancellationToken));
 
+            // add inherited properties from a potential base record first
+            var inheritedProperties = GetInheritedPositionalParams(type, cancellationToken);
+            var results = inheritedProperties.SelectAsArray(property => new PositionalParameterInfo(
+                Declaration: null,
+                property,
+                KeepAsOverride: false,
+                IsInherited: true));
+
             // The user may not know about init or be converting code from before init was introduced.
             // In this case we can convert set properties to init ones
             var allowSetToInitConversion = !symbols
                 .Any(symbol => symbol.SetMethod is IMethodSymbol { IsInitOnly: true });
 
-            var declaredResults = properties.ZipAsArray(symbols, (syntax, symbol)
+            results = results.Concat(properties.ZipAsArray(symbols, (syntax, symbol)
                 => ShouldConvertProperty(syntax, symbol, type) switch
                 {
                     ConvertStatus.DoNotConvert => null,
@@ -52,17 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     ConvertStatus.AlwaysConvert
                         => new PositionalParameterInfo(syntax, symbol, KeepAsOverride: false, IsInherited: false),
                     _ => throw ExceptionUtilities.Unreachable,
-                }).WhereNotNull().AsImmutable();
+                }).WhereNotNull().AsImmutable());
 
-            // add inherited properties from a potential base record
-            var inheritedProperties = GetInheritedPositionalParams(type, cancellationToken);
-            return declaredResults.Concat(
-                inheritedProperties.SelectAsArray(property
-                    => new PositionalParameterInfo(
-                        Declaration: null,
-                        property,
-                        KeepAsOverride: false,
-                        IsInherited: true)));
+            return results;
         }
 
         private static ImmutableArray<IPropertySymbol> GetInheritedPositionalParams(
