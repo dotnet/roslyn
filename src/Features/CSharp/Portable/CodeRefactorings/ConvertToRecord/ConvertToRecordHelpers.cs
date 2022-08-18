@@ -65,9 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         public static INamedTypeSymbol? GetIEquatableType(Compilation compilation, INamedTypeSymbol containingType)
         {
             // can't use nameof since it's generic and we need the type parameter
-            var equatable = compilation.GetBestTypeByMetadataName("System.IEquatable`1")?.ConstructUnboundGenericType();
-            return containingType.Interfaces.FirstOrDefault(iface
-                => iface.IsGenericType && iface.ConstructUnboundGenericType().Equals(equatable));
+            var equatable = compilation.GetBestTypeByMetadataName("System.IEquatable`1")?.Construct(containingType);
+            return containingType.Interfaces.FirstOrDefault(iface => iface.Equals(equatable));
         }
 
         public static bool IsSimpleHashCodeMethod(
