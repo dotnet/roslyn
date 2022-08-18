@@ -881,12 +881,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             return lastChar.Equals('.') || lastChar.Equals('!') || lastChar.Equals('?');
         }
 
-        private static string RemoveTrailingPunctuation(string s)
-        {
-            Debug.Assert(EndsWithPunctuation(s));
-            return s[0..^1];
-        }
-
         private static bool HasLeadingOrTrailingWhitespaces(string s)
             => s.Trim().Length != s.Length;
 
