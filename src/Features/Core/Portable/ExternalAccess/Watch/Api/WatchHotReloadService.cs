@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         private DebuggingSessionId _sessionId;
         private readonly ImmutableArray<string> _capabilities;
 
-        public WatchHotReloadService(SolutionServices services, ImmutableArray<string> capabilities)
+        public WatchHotReloadService(HostWorkspaceServices services, ImmutableArray<string> capabilities)
             => (_encService, _capabilities) = (services.GetRequiredService<IEditAndContinueWorkspaceService>(), capabilities);
 
         /// <summary>
