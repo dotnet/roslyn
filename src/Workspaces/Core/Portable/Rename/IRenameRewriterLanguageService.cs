@@ -159,31 +159,6 @@ namespace Microsoft.CodeAnalysis.Rename
             }
         }
 
-        protected static ImmutableDictionary<TextSpan, LocationRenameContext> CreateTextSpanToLocationContextMap(
-            ImmutableArray<LocationRenameContext> locationRenameContexts)
-        {
-            using var _ = PooledDictionary<TextSpan, LocationRenameContext>.GetInstance(out var builder);
-            foreach (var context in locationRenameContexts)
-            {
-                var textSpan = context.RenameLocation.Location.SourceSpan;
-                if (!builder.TryGetValue(textSpan, out var existingRenameContext))
-                {
-                    builder[textSpan] = context;
-                }
-                else if (!existingRenameContext.Equals(context))
-                {
-                    // A textSpan is being renamed with different rename location info.
-                    throw new LocationRenameContextOverlappingException(
-                        textSpan,
-                        context.RenameLocation.DocumentId,
-                        existingRenameContext,
-                        context);
-                }
-            }
-
-            return builder.ToImmutableDictionary();
-        }
-
         /// <summary>
         /// Given a set of renameLocations, create a sorted dictionary, maps the renameLocation to its replacementText.
         /// The map is later used when rename inside a comment/string.

@@ -159,6 +159,22 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return isConflict;
         }
 
+        private static bool IsIdentifierValid_Worker(Solution solution, string replacementText, IEnumerable<ProjectId> projectIds)
+        {
+            foreach (var language in projectIds.Select(p => solution.GetRequiredProject(p).Language).Distinct())
+            {
+                var languageServices = solution.Services.GetProjectServices(language);
+                var renameRewriterLanguageService = languageServices.GetRequiredService<IRenameRewriterLanguageService>();
+                var syntaxFactsLanguageService = languageServices.GetRequiredService<ISyntaxFactsService>();
+                if (!renameRewriterLanguageService.IsIdentifierValid(replacementText, syntaxFactsLanguageService))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         private static async Task AddImplicitConflictsAsync(
             ISymbol renamedSymbol,
             ISymbol originalSymbol,
@@ -307,22 +323,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                 throw ExceptionUtilities.Unreachable;
             }
-        }
-
-        private static bool IsIdentifierValid_Worker(Solution solution, string replacementText, IEnumerable<ProjectId> projectIds)
-        {
-            foreach (var language in projectIds.Select(p => solution.GetRequiredProject(p).Language).Distinct())
-            {
-                var languageServices = solution.Services.GetProjectServices(language);
-                var renameRewriterLanguageService = languageServices.GetRequiredService<IRenameRewriterLanguageService>();
-                var syntaxFactsLanguageService = languageServices.GetRequiredService<ISyntaxFactsService>();
-                if (!renameRewriterLanguageService.IsIdentifierValid(replacementText, syntaxFactsLanguageService))
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         private static void AddConflictingSymbolLocations(IEnumerable<ISymbol> conflictingSymbols, MutableConflictResolution conflictResolution, IDictionary<Location, Location> reverseMappedLocations)
@@ -514,14 +514,5 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         private static bool IsIdentifierSeparator(char element)
             => s_metadataNameSeparators.IndexOf(element) != -1;
-
-        private static bool HashOneDeclarationDocument(Solution solution, ISymbol symbol)
-        {
-            var definitionLocations = symbol.Locations;
-            var definitionDocuments = definitionLocations
-                .Select(l => solution.GetRequiredDocument(l.SourceTree!))
-                .Distinct();
-            return definitionDocuments.Count() == 1;
-        }
     }
 }
