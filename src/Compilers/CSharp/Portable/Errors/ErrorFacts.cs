@@ -2223,6 +2223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_RuntimeDoesNotSupportRefFields:
                 case ErrorCode.ERR_OptionalParamValueMismatch:
                 case ErrorCode.WRN_OptionalRequiredParamMismatch:
+                case ErrorCode.ERR_ExplicitScopedRef:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

@@ -82,14 +82,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options
                 _lineFormattingOptionsProvider = lineFormattingOptionsProvider;
             }
 
-            public override ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+            public override ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
             {
                 var lineFormattingOptions = _lineFormattingOptionsProvider.GetLineFormattingOptions();
-                var codeGenerationOptions = CleanCodeGenerationOptions.GetDefault(languageServices.LanguageServices) with
+                var codeGenerationOptions = CleanCodeGenerationOptions.GetDefault(languageServices) with
                 {
-                    CleanupOptions = CodeCleanupOptions.GetDefault(languageServices.LanguageServices) with
+                    CleanupOptions = CodeCleanupOptions.GetDefault(languageServices) with
                     {
-                        FormattingOptions = SyntaxFormattingOptions.GetDefault(languageServices.LanguageServices).With(new LineFormattingOptions
+                        FormattingOptions = SyntaxFormattingOptions.GetDefault(languageServices).With(new LineFormattingOptions
                         {
                             IndentationSize = lineFormattingOptions.IndentationSize,
                             TabSize = lineFormattingOptions.TabSize,

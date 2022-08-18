@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
     internal class CompilerInvocation
     {
         public Compilation Compilation { get; }
-        public Host.LanguageServices LanguageServices { get; }
+        public LanguageServices LanguageServices { get; }
         public string ProjectFilePath { get; }
         public GeneratorOptions Options { get; }
 
-        public CompilerInvocation(Compilation compilation, Host.LanguageServices languageServices, string projectFilePath, GeneratorOptions options)
+        public CompilerInvocation(Compilation compilation, LanguageServices languageServices, string projectFilePath, GeneratorOptions options)
         {
             Compilation = compilation;
             LanguageServices = languageServices;

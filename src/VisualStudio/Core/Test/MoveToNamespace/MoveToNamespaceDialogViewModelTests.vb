@@ -4,7 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CSharp.LanguageServices
+Imports Microsoft.CodeAnalysis.CSharp.LanguageService
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace

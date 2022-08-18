@@ -2887,7 +2887,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         var containingSymbolKey = SymbolKey.Create(newContainingType, cancellationToken);
                                         oldContainingType = containingSymbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol as INamedTypeSymbol;
 
-                                        if (oldContainingType != null && !CanAddNewMember(newSymbol, capabilities))
+                                        if (oldContainingType != null && !CanAddNewMember(newSymbol, capabilities, cancellationToken))
                                         {
                                             diagnostics.Add(new RudeEditDiagnostic(
                                                 RudeEditKind.InsertNotSupportedByRuntime,
@@ -3071,7 +3071,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             // we also check that the old symbol can't be resolved in the new compilation
                             if (oldSymbol.Name != newSymbol.Name &&
                                 AllowsDeletion(oldSymbol) &&
-                                CanAddNewMember(oldSymbol, capabilities) &&
+                                CanAddNewMember(oldSymbol, capabilities, cancellationToken) &&
                                 SymbolKey.Create(oldSymbol, cancellationToken).Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol is null)
                             {
                                 Contract.ThrowIfNull(oldDeclaration);
@@ -3260,7 +3260,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <param name="otherModel">The semantic model from the old compilation, for parameter inserts, or new compilation, for deletes</param>
         /// <param name="notSupportedByRuntime">Whether the edit should be rejected because the runtime doesn't support inserting new methods. Otherwise a normal rude edit is appropriate.</param>
         /// <returns>Returns whether semantic edits were added, or if not then a rude edit should be created</returns>
-        private static bool TryAddParameterInsertOrDeleteEdits(ArrayBuilder<SemanticEditInfo> semanticEdits, ISymbol containingSymbol, SemanticModel? otherModel, EditAndContinueCapabilitiesGrantor capabilities, Func<SyntaxNode, SyntaxNode?>? syntaxMap, EditScript<SyntaxNode> editScript, CancellationToken cancellationToken, out bool notSupportedByRuntime)
+        private bool TryAddParameterInsertOrDeleteEdits(ArrayBuilder<SemanticEditInfo> semanticEdits, ISymbol containingSymbol, SemanticModel? otherModel, EditAndContinueCapabilitiesGrantor capabilities, Func<SyntaxNode, SyntaxNode?>? syntaxMap, EditScript<SyntaxNode> editScript, CancellationToken cancellationToken, out bool notSupportedByRuntime)
         {
             Debug.Assert(containingSymbol is IPropertySymbol or IMethodSymbol);
 
@@ -3316,7 +3316,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var oldSymbol = (otherContainingNode == oldNode) ? otherContainingSymbol : containingSymbol;
             var newSymbol = (otherContainingNode == oldNode) ? containingSymbol : otherContainingSymbol;
 
-            if (!CanAddNewMember(oldSymbol, capabilities))
+            if (!CanAddNewMember(oldSymbol, capabilities, cancellationToken))
             {
                 notSupportedByRuntime = true;
                 return false;
@@ -3589,7 +3589,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         rudeEdit = RudeEditKind.Renamed;
                     }
-                    else if (!CanAddNewMember(oldSymbol, capabilities))
+                    else if (!CanAddNewMember(oldSymbol, capabilities, cancellationToken))
                     {
                         rudeEdit = RudeEditKind.RenamingNotSupportedByRuntime;
                     }
@@ -3605,7 +3605,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         rudeEdit = RudeEditKind.Renamed;
                     }
-                    else if (!CanAddNewMember(oldSymbol, capabilities))
+                    else if (!CanAddNewMember(oldSymbol, capabilities, cancellationToken))
                     {
                         rudeEdit = RudeEditKind.RenamingNotSupportedByRuntime;
                     }
@@ -3621,7 +3621,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         rudeEdit = RudeEditKind.Renamed;
                     }
-                    else if (!CanAddNewMember(oldSymbol, capabilities))
+                    else if (!CanAddNewMember(oldSymbol, capabilities, cancellationToken))
                     {
                         rudeEdit = RudeEditKind.RenamingNotSupportedByRuntime;
                     }
@@ -3793,7 +3793,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 else
                 {
-                    AnalyzeParameterType(oldParameter, newParameter, capabilities, ref rudeEdit, ref hasGeneratedAttributeChange, ref hasParameterTypeChange);
+                    AnalyzeParameterType(oldParameter, newParameter, capabilities, ref rudeEdit, ref hasGeneratedAttributeChange, ref hasParameterTypeChange, cancellationToken);
 
                     if (!hasParameterTypeChange && oldParameter.Name != newParameter.Name)
                     {
@@ -3873,7 +3873,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static void AnalyzeParameterType(IParameterSymbol oldParameter, IParameterSymbol newParameter, EditAndContinueCapabilitiesGrantor capabilities, ref RudeEditKind rudeEdit, ref bool hasGeneratedAttributeChange, ref bool hasParameterTypeChange)
+        private void AnalyzeParameterType(
+            IParameterSymbol oldParameter,
+            IParameterSymbol newParameter,
+            EditAndContinueCapabilitiesGrantor capabilities,
+            ref RudeEditKind rudeEdit,
+            ref bool hasGeneratedAttributeChange,
+            ref bool hasParameterTypeChange,
+            CancellationToken cancellationToken)
         {
             if (!ParameterTypesEquivalent(oldParameter, newParameter, exact: true))
             {
@@ -3888,7 +3895,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 else if (AllowsDeletion(newParameter.ContainingSymbol))
                 {
-                    if (CanAddNewMember(newParameter.ContainingSymbol, capabilities))
+                    if (CanAddNewMember(newParameter.ContainingSymbol, capabilities, cancellationToken))
                     {
                         hasParameterTypeChange = true;
                     }
@@ -4281,23 +4288,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static bool CanAddNewMember(ISymbol newSymbol, EditAndContinueCapabilitiesGrantor capabilities)
+        private bool CanAddNewMember(ISymbol newSymbol, EditAndContinueCapabilitiesGrantor capabilities, CancellationToken cancellationToken)
         {
-            if (newSymbol is IMethodSymbol or IPropertySymbol or IEventSymbol) // Properties are just get_ and set_ methods
-            {
-                return capabilities.Grant(EditAndContinueCapabilities.AddMethodToExistingType);
-            }
-            else if (newSymbol is IFieldSymbol field)
-            {
-                if (field.IsStatic)
-                {
-                    return capabilities.Grant(EditAndContinueCapabilities.AddStaticFieldToExistingType);
-                }
+            var requiredCapabilities = EditAndContinueCapabilities.None;
 
-                return capabilities.Grant(EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+            if (newSymbol is IMethodSymbol or IEventSymbol or IPropertySymbol)
+            {
+                requiredCapabilities |= EditAndContinueCapabilities.AddMethodToExistingType;
             }
 
-            return true;
+            if (newSymbol is IFieldSymbol || newSymbol is IPropertySymbol { DeclaringSyntaxReferences: [var syntaxRef] } && HasBackingField(syntaxRef.GetSyntax(cancellationToken)))
+            {
+                requiredCapabilities |= newSymbol.IsStatic ? EditAndContinueCapabilities.AddStaticFieldToExistingType : EditAndContinueCapabilities.AddInstanceFieldToExistingType;
+            }
+
+            return capabilities.Grant(requiredCapabilities);
         }
 
         private static void AddEditsForSynthesizedRecordMembers(Compilation compilation, INamedTypeSymbol recordType, ArrayBuilder<SemanticEditInfo> semanticEdits, CancellationToken cancellationToken)
