@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal class StringEditorConfigData : EditorConfigData<string>
     {
-        private readonly BidirectionalMap<string, string> ValueToSettingName;
+        private readonly BidirectionalMap<string, string>? ValueToSettingName;
         //private readonly ImmutableDictionary<string, string>? ValueToValueDocumentation;
         private readonly string DefaultEditorConfigString;
         private readonly string DefaultValue;
 
-        public StringEditorConfigData(string settingName, string settingNameDocumentation, BidirectionalMap<string, string> valueToSettingName, string defaultEditorConfigString, string defaultValue)
+        public StringEditorConfigData(string settingName, string settingNameDocumentation, string defaultEditorConfigString, string defaultValue, BidirectionalMap<string, string>? valueToSettingName = null)
             : base(settingName, settingNameDocumentation)
         {
             ValueToSettingName = valueToSettingName;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
 
         public override ImmutableArray<string> GetAllSettingValues()
         {
-            return ValueToSettingName.Keys.ToImmutableArray();
+            return ValueToSettingName != null ? ValueToSettingName.Keys.ToImmutableArray() : ImmutableArray<string>.Empty;
         }
 
         public override string? GetSettingValueDocumentation(string key)
@@ -43,12 +43,28 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
 
         public override string GetEditorConfigStringFromValue(string value)
         {
-            return ValueToSettingName.TryGetKey(value, out var key) ? key : DefaultEditorConfigString;
+            if (ValueToSettingName != null)
+            {
+                return ValueToSettingName.TryGetKey(value, out var key) ? key : DefaultEditorConfigString;
+            }
+
+            return string.IsNullOrEmpty(value) ? DefaultEditorConfigString : value.ToString().Replace("\r", "\\r").Replace("\n", "\\n");
         }
 
         public override Optional<string> GetValueFromEditorConfigString(string key)
         {
-            return ValueToSettingName.TryGetValue(key, out var value) ? value : DefaultValue;
+            if (ValueToSettingName != null)
+            {
+                return ValueToSettingName.TryGetValue(key, out var value) ? value : DefaultValue;
+            }
+
+            if (key == DefaultEditorConfigString)
+            {
+                return default;
+            }
+
+            key ??= "";
+            return key.Replace("\\r", "\r").Replace("\\n", "\n");
         }
     }
 }

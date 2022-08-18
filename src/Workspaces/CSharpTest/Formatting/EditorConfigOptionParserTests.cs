@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.EditorConfigSettings;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Xunit;
 using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions2;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("before_and_after", BinaryOperatorSpacingOptions.Single)]
         public void TestParseEditorConfigSpacingAroundBinaryOperatorTrue(string value, BinaryOperatorSpacingOptions expectedResult)
         {
-            Assert.True(ParseEditorConfigSpacingAroundBinaryOperator(value) == expectedResult,
+            Assert.True(CSharpEditorConfigSettingsValueHolder.SpacingAroundBinaryOperator.GetValueFromEditorConfigString(value).Value == expectedResult,
                         $"Expected option {value} to be parsed as set.");
         }
 
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("before_and_after,ignore")]
         public void TestParseEditorConfigSpacingAroundBinaryOperatorFalse(string value)
         {
-            Assert.True(ParseEditorConfigSpacingAroundBinaryOperator(value) == BinaryOperatorSpacingOptions.Single,
+            Assert.True(CSharpEditorConfigSettingsValueHolder.SpacingAroundBinaryOperator.GetValueFromEditorConfigString(value).Value == BinaryOperatorSpacingOptions.Single,
                         $"Expected option {value} to be parsed as default option.");
         }
 
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("one_less_than_current", LabelPositionOptions.OneLess)]
         public void TestParseEditorConfigLabelPositioningTrue(string value, LabelPositionOptions expectedValue)
         {
-            Assert.True(ParseEditorConfigLabelPositioning(value) == expectedValue,
+            Assert.True(CSharpEditorConfigSettingsValueHolder.LabelPositioning.GetValueFromEditorConfigString(value).Value == expectedValue,
                         $"Expected option {value} to be parsed as set.");
         }
 
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("one_less_thancurrent")]
         public void TestParseEditorConfigLabelPositioningFalse(string value)
         {
-            Assert.True(ParseEditorConfigLabelPositioning(value) == LabelPositionOptions.NoIndent,
+            Assert.True(CSharpEditorConfigSettingsValueHolder.LabelPositioning.GetValueFromEditorConfigString(value).Value == LabelPositionOptions.NoIndent,
                         $"Expected option {value} to be parsed default");
         }
 

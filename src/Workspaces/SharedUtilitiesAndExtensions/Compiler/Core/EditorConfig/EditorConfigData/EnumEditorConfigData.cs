@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
 
         public override Optional<T> GetValueFromEditorConfigString(string key)
         {
-            return ValueToSettingName.TryGetValue(key, out var value) ? value : DefaultValue ?? default!;
+            return ValueToSettingName.TryGetValue(key, out var value) ? value : DefaultValue ?? ValueToSettingName.GetValueOrDefault(key)!;
         }
     }
 }

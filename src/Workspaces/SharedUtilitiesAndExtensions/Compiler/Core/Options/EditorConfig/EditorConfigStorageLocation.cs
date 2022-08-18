@@ -12,9 +12,6 @@ namespace Microsoft.CodeAnalysis.Options
         public static EditorConfigStorageLocation<bool> ForBoolOption(string keyName)
             => new(keyName, s_parseBool, s_getBoolEditorConfigStringForValue);
 
-        public static EditorConfigStorageLocation<int> ForInt32Option(string keyName)
-            => new(keyName, s_parseInt32, s_getInt32EditorConfigStringForValue);
-
         public static EditorConfigStorageLocation<string> ForStringOption(string keyName, string emptyStringRepresentation)
             => new(keyName, s_parseString, (string value) => string.IsNullOrEmpty(value) ? emptyStringRepresentation : s_getStringEditorConfigStringForValue(value));
 
@@ -30,10 +27,6 @@ namespace Microsoft.CodeAnalysis.Options
         private static readonly Func<bool, string> s_getBoolEditorConfigStringForValue = GetBoolEditorConfigStringForValue;
         private static string GetBoolEditorConfigStringForValue(bool value) => value.ToString().ToLowerInvariant();
 
-        private static readonly Func<string, Optional<int>> s_parseInt32 = ParseInt32;
-        private static Optional<int> ParseInt32(string str)
-            => int.TryParse(str, out var result) ? result : new Optional<int>();
-
         private static readonly Func<string, Optional<string>> s_parseString = ParseString;
         private static Optional<string> ParseString(string str)
         {
@@ -45,9 +38,6 @@ namespace Microsoft.CodeAnalysis.Options
             str ??= "";
             return str.Replace("\\r", "\r").Replace("\\n", "\n");
         }
-
-        private static readonly Func<int, string> s_getInt32EditorConfigStringForValue = GetInt32EditorConfigStringForValue;
-        private static string GetInt32EditorConfigStringForValue(int value) => value.ToString().ToLowerInvariant();
 
         private static readonly Func<string, string> s_getStringEditorConfigStringForValue = GetStringEditorConfigStringForValue;
         private static string GetStringEditorConfigStringForValue(string value) => value.ToString().Replace("\r", "\\r").Replace("\n", "\\n");

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.CSharp.EditorConfigSettings;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 
 #if CODE_STYLE
 using CSharpWorkspaceResources = Microsoft.CodeAnalysis.CSharp.CSharpCodeStyleResources;
@@ -34,20 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 KeyValuePairUtil.Create("type_casts", SpacingWithinParenthesesOption.TypeCasts),
                 KeyValuePairUtil.Create("control_flow_statements", SpacingWithinParenthesesOption.ControlFlowStatements),
             });
-        private static readonly BidirectionalMap<string, BinaryOperatorSpacingOptions> s_binaryOperatorSpacingOptionsEditorConfigMap =
-            new(new[]
-            {
-                KeyValuePairUtil.Create("ignore", BinaryOperatorSpacingOptions.Ignore),
-                KeyValuePairUtil.Create("none", BinaryOperatorSpacingOptions.Remove),
-                KeyValuePairUtil.Create("before_and_after", BinaryOperatorSpacingOptions.Single),
-            });
-        private static readonly BidirectionalMap<string, LabelPositionOptions> s_labelPositionOptionsEditorConfigMap =
-            new(new[]
-            {
-                KeyValuePairUtil.Create("flush_left", LabelPositionOptions.LeftMost),
-                KeyValuePairUtil.Create("no_change", LabelPositionOptions.NoIndent),
-                KeyValuePairUtil.Create("one_less_than_current", LabelPositionOptions.OneLess),
-            });
+
         private static readonly BidirectionalMap<string, NewLineOption> s_legacyNewLineOptionsEditorConfigMap =
             new(new[]
             {
@@ -95,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 CSharpFormattingOptionGroups.Spacing, name,
                 defaultValue,
                 new EditorConfigStorageLocation<bool>(
-                    "csharp_space_between_parentheses",
+                    CSharpEditorConfigSettingsValueHolder.SpaceBetweenParentheses.GetSettingName(),
                     s => DetermineIfSpaceOptionIsSet(s, parenthesesOption),
                     GetSpacingWithParenthesesEditorConfigString),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{name}"));
@@ -112,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 CSharpFormattingOptionGroups.NewLine, name,
                 defaultValue,
                 new EditorConfigStorageLocation<bool>(
-                    "csharp_new_line_before_open_brace",
+                    CSharpEditorConfigSettingsValueHolder.NewLineBeforeOpenBrace.GetSettingName(),
                     value => DetermineIfNewLineOptionIsSet(value, newLineOption),
                     GetNewLineOptionEditorConfigString),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{name}"));
