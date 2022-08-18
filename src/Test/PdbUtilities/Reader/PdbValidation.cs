@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerLineNumber] int expectedValueSourceLine = 0,
             [CallerFilePath] string expectedValueSourcePath = null)
         {
-            VerifyPdb(compilation, "", expectedPdb, embeddedTexts, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
+            VerifyPdb(compilation, qualifiedMethodName: null, expectedPdb, embeddedTexts, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
         }
 
         public static void VerifyPdb(
@@ -265,6 +265,29 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     VerifyConvertedPdbMatchesExpectedXml(peStream, pdbStream, qualifiedMethodName, expectedPdb, pdbToXmlOptions, expectedIsXmlLiteral, isPortable);
                 }
             }
+        }
+
+        public static void VerifyPdb(
+            Stream peStream,
+            Stream pdbStream,
+            string expectedPdb,
+            PdbValidationOptions options = PdbValidationOptions.Default,
+            [CallerLineNumber] int expectedValueSourceLine = 0,
+            [CallerFilePath] string expectedValueSourcePath = null)
+        {
+            pdbStream.Position = 0;
+            var isPortable = pdbStream.ReadByte() == 'B' && pdbStream.ReadByte() == 'S' && pdbStream.ReadByte() == 'J' && pdbStream.ReadByte() == 'B';
+
+            VerifyPdbMatchesExpectedXml(
+                peStream,
+                pdbStream,
+                qualifiedMethodName: null,
+                options.ToPdbToXmlOptions(),
+                expectedPdb.ToString(),
+                expectedValueSourceLine,
+                expectedValueSourcePath,
+                expectedIsXmlLiteral: false,
+                isPortable);
         }
 
         private static void VerifyPdbMatchesExpectedXml(

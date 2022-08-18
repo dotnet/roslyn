@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // Calling PopulateWithData ensures the underlying session will call SuggestedActionsUpdated at least once
             // with the latest data computed.  This is needed so that if the lightbulb computation is already complete
             // that we hear about the results.
-            asyncSession.PopulateWithData(overrideRequestedActionCategories: null, operationContext: null);
+            await asyncSession.PopulateWithDataAsync(overrideRequestedActionCategories: null, operationContext: null).ConfigureAwait(false);
 
             try
             {
