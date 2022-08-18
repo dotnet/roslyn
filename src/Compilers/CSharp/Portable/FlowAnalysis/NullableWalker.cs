@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static class PooledDictionaryWithCustomBoundDefaultExpressionComparison
+        private static class PooledDictionaryWithCustomBoundDefaultComparison
         {
             private sealed class CustomEqualityComparer : IEqualityComparer<object>
             {
@@ -150,20 +150,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public new bool Equals([AllowNull] object x, [AllowNull] object y)
                 {
-                    if (x is BoundDefaultExpression boundDefaultExpression1 &&
-                        y is BoundDefaultExpression boundDefaultExpression2)
+                    if (TryGetType(x, out var type1) && TryGetType(y, out var type2))
                     {
-                        return boundDefaultExpression1.Type.Equals(boundDefaultExpression2.Type, TypeCompareKind.ConsiderEverything);
+                        return type1.Equals(type2, TypeCompareKind.ConsiderEverything);
                     }
 
                     return EqualityComparer<object>.Default.Equals(x, y);
                 }
 
+                private static bool TryGetType(object? x, [NotNullWhen(true)] out TypeSymbol? type)
+                {
+                    type = (x as BoundDefaultExpression)?.Type ?? (x as BoundDefaultLiteral)?.Type;
+                    return type is not null;
+                }
+
                 public int GetHashCode([DisallowNull] object obj)
                 {
-                    if (obj is BoundDefaultExpression boundDefault)
+                    if (TryGetType(obj, out var type))
                     {
-                        return boundDefault.Type.GetHashCode();
+                        return type.GetHashCode();
                     }
 
                     return EqualityComparer<object>.Default.GetHashCode(obj);
@@ -3974,7 +3979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private int GetOrCreatePlaceholderSlot(object identifier, TypeWithAnnotations type)
         {
-            _placeholderLocalsOpt ??= PooledDictionaryWithCustomBoundDefaultExpressionComparison.GetInstance();
+            _placeholderLocalsOpt ??= PooledDictionaryWithCustomBoundDefaultComparison.GetInstance();
             if (!_placeholderLocalsOpt.TryGetValue(identifier, out var placeholder))
             {
                 placeholder = new PlaceholderLocal(CurrentSymbol, identifier, type);
@@ -8040,7 +8045,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         canConvertNestedNullability = conversion.Exists;
                     }
 
-                    resultState = conversion.IsReference ? getReferenceConversionResultState(targetTypeWithNullability, operandType) : operandType.State;
+                    resultState = conversion.IsReference
+                        ? getReferenceConversionResultState(targetTypeWithNullability, operandType)
+                        : (operandType.State == NullableFlowState.MaybeDefault && GetPlaceholderStateOrMaybeDefault(conversionOperand) == NullableFlowState.NotNull ? NullableFlowState.NotNull : operandType.State);
                     break;
 
                 case ConversionKind.ImplicitNullable:
@@ -8235,11 +8242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (state == NullableFlowState.MaybeDefault)
                 {
-                    var slot = GetPlaceholderSlot(conversionOperand);
-                    if (this.State.HasValue(slot))
-                    {
-                        return this.State[slot];
-                    }
+                    return GetPlaceholderStateOrMaybeDefault(conversionOperand);
                 }
 
                 return state;
@@ -10430,6 +10433,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
         }
 
+        private NullableFlowState GetPlaceholderStateOrMaybeDefault(BoundExpression node)
+        {
+            var slot = GetPlaceholderSlot(node);
+            if (State.HasValue(slot))
+            {
+                return State[slot];
+            }
+
+            return NullableFlowState.MaybeDefault;
+        }
+
         public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)
         {
             var result = base.VisitAwaitExpression(node);
@@ -10486,6 +10500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Can occur in error scenarios and lambda scenarios
             var result = base.VisitDefaultLiteral(node);
+            // SetResultType(node, TypeWithState.Create(node.Type, GetPlaceholderStateOrMaybeDefault(node))); // PROTOTYPE
             SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.MaybeDefault));
             return result;
         }
@@ -10508,6 +10523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // https://github.com/dotnet/roslyn/issues/33344: this fails to produce an updated tuple type for a default expression
             // (should produce nullable element types for those elements that are of reference types)
+            //SetResultType(node, TypeWithState.Create(type, GetPlaceholderStateOrMaybeDefault(node))); // PROTOTYPE
             SetResultType(node, TypeWithState.ForType(type));
             return result;
         }
