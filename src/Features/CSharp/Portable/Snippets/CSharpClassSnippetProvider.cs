@@ -52,9 +52,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-
             var syntaxContext = (CSharpSyntaxContext)document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            return syntaxContext.IsTypeDeclarationContext(validModifiers: s_validModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, cancellationToken: cancellationToken);
+            var syntaxTree = syntaxContext.SyntaxTree;
+
+            return
+                syntaxContext.IsGlobalStatementContext ||
+                syntaxContext.IsTypeDeclarationContext(
+                    validModifiers: s_validModifiers,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                    canBePartial: true,
+                    cancellationToken: cancellationToken);
         }
 
         protected override void GetClassDeclaration(SyntaxNode node, out SyntaxToken identifier, out int cursorPosition)

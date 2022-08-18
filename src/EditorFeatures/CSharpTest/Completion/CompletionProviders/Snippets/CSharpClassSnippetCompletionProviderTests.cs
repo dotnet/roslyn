@@ -72,7 +72,14 @@ class MyClass
             var markupBeforeCommit =
 @"System.Console.WriteLine();
 $$";
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+
+            var expectedCodeAfterCommit =
+@"System.Console.WriteLine();
+
+class MyClass
+{$$
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
