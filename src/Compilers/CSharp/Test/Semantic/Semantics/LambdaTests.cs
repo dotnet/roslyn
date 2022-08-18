@@ -4850,7 +4850,10 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,68): warning CS9067: Parameter 1 is optional in lambda but the corresponding parameter in delegate type 'Action' is required.
+                //         Action<int> a1 = ([Optional, DefaultParameterValue(2)] int i) => { };
+                Diagnostic(ErrorCode.WRN_OptionalRequiredParamMismatch, "i").WithArguments("1", "Action").WithLocation(7, 68));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);

@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isArrayIndex,
                 UserDefinedConversionResult conversionResult,
                 MethodSymbol? conversionMethod,
-                ImmutableArray<Conversion> nestedConversions)
+                ImmutableArray<Conversion> nestedConversions,
+                bool hasWarning = false)
             {
                 _conversionMethod = conversionMethod;
                 _conversionResult = conversionResult;
@@ -40,6 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (isArrayIndex)
                 {
                     _flags |= IsArrayIndexMask;
+                }
+
+                if (hasWarning)
+                {
+                    _flags |= HasWarningMask;
                 }
             }
 
@@ -54,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private const byte IsExtensionMethodMask = 1 << 0;
             private const byte IsArrayIndexMask = 1 << 1;
+            private const byte HasWarningMask = 1 << 2;
             private readonly byte _flags;
 
             internal bool IsExtensionMethod
@@ -70,6 +77,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 get
                 {
                     return (_flags & IsArrayIndexMask) != 0;
+                }
+            }
+
+            internal bool HasWarning
+            {
+                get
+                {
+                    return (_flags & HasWarningMask) != 0;
                 }
             }
         }
@@ -99,6 +114,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Conversion(ConversionKind kind)
             : this(kind, null)
         {
+        }
+
+        private Conversion(ConversionKind kind, bool hasWarning)
+        {
+            _kind = kind;
+            _uncommonData = new UncommonData(
+                isExtensionMethod: false,
+                isArrayIndex: false,
+                conversionResult: default,
+                conversionMethod: null,
+                nestedConversions: default,
+                hasWarning: hasWarning);
         }
 
         internal Conversion(UserDefinedConversionResult conversionResult, bool isImplicit)
@@ -232,6 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitThrow => new Conversion(ConversionKind.ImplicitThrow);
         internal static Conversion ObjectCreation => new Conversion(ConversionKind.ObjectCreation);
         internal static Conversion AnonymousFunction => new Conversion(ConversionKind.AnonymousFunction);
+        internal static Conversion AnonymousFunctionWithWarning => new Conversion(ConversionKind.AnonymousFunction, true);
         internal static Conversion Boxing => new Conversion(ConversionKind.Boxing);
         internal static Conversion NullLiteral => new Conversion(ConversionKind.NullLiteral);
         internal static Conversion DefaultLiteral => new Conversion(ConversionKind.DefaultLiteral);
@@ -349,6 +377,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return _uncommonData?.IsArrayIndex == true;
+            }
+        }
+
+        internal bool HasWarning
+        {
+            get
+            {
+                return _uncommonData?.HasWarning == true;
             }
         }
 

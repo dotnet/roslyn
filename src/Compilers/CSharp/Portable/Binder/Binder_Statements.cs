@@ -2196,8 +2196,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var lambdaSymbol = anonymousFunction.TemporaryLambdaSymbol;
                 Debug.Assert(lambdaSymbol is not null);
 
-                lambdaSymbol.GetDeclarationDiagnostics(diagnostics);
-
                 for (int i = 0; i < anonymousFunction.ParameterCount; i++)
                 {
                     var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
