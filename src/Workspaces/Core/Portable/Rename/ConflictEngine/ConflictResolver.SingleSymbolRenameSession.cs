@@ -2,15 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -19,15 +15,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
     internal static partial class ConflictResolver
     {
-        /// <summary>
-        /// Helper class to track the state necessary for finding/resolving conflicts in a 
-        /// rename session.
-        /// </summary>
         private class SingleSymbolRenameSession : Session
         {
             private readonly string _originalText;
             private readonly string _replacementText;
-            private readonly bool _replacementTextValid;
 
             public static async Task<SingleSymbolRenameSession> CreateAsync(
                 SymbolicRenameLocations renameLocationSet,
@@ -79,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         RoslynDebug.Assert(!overlap);
                     }
 
-                    // All textspan in the document documentId, that requires rename in String or Comment
+                    // All textSpan in the document documentId, that requires rename in String or Comment
                     var stringAndCommentContexts = renameLocationsInDocument
                         .WhereAsArray(l => l.IsRenameInStringOrComment)
                         .SelectAsArray(location => new StringAndCommentRenameContext(location, replacementText));
@@ -131,7 +122,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 _originalText = originalText;
                 _replacementText = replacementText;
-                _replacementTextValid = replacementTextValid;
             }
 
             protected override bool HasConflictForMetadataReference(
@@ -141,9 +131,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 var oldMetadataName = renameDeclarationLocationReference.Name;
                 return !HeuristicMetadataNameEquivalenceCheck(oldMetadataName, newMetadataName, _originalText, _replacementText);
             }
-
-            protected override bool ShouldSimplifyTheProject(ProjectId projectId)
-                => _replacementTextValid;
         }
     }
 }

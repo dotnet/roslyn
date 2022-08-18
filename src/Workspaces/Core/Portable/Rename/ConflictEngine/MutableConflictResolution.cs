@@ -45,11 +45,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         public readonly ImmutableDictionary<ISymbol, string> SymbolToReplacementText;
 
         /// <summary>
-        /// All changed documents during renaming.
-        /// </summary>
-        private readonly HashSet<DocumentId> ChangedDocuments = new();
-
-        /// <summary>
         /// The solution snapshot as it is being updated with specific rename steps.
         /// </summary>
         public Solution CurrentSolution { get; private set; }
@@ -79,14 +74,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             _renamedSpansTracker.ClearDocuments(conflictLocationDocumentIds);
         }
 
-        internal void DocumentsChanged(HashSet<DocumentId> changedDocuments)
-            => ChangedDocuments.AddRange(changedDocuments);
-
-        internal void ResetChangedDocuments()
-            => ChangedDocuments.Clear();
-
-        internal bool HasDocumentChanged(DocumentId documentId)
-            => ChangedDocuments.Contains(documentId);
+        internal bool IsDocumentChanged(DocumentId documentId)
+            => _renamedSpansTracker.IsDocumentChanged(documentId);
 
         internal void UpdateCurrentSolution(Solution solution)
             => CurrentSolution = solution;
