@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     return null;
 
                 var locations = await SymbolicRenameLocations.TryRehydrateAsync(
-                    symbol, solution, GetClientOptionsProvider(callbackId), serializableLocations, cancellationToken).ConfigureAwait(false);
+                    symbol, solution, serializableLocations, cancellationToken).ConfigureAwait(false);
 
                 if (locations is null)
                     return null;
