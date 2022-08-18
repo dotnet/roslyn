@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         /// </summary>
         private static bool OverridesEquals(Compilation compilation, IMethodSymbol equals, INamedTypeSymbol? equatableType)
         {
-            if (equatableType != null && equals != null &&
+            if (equatableType != null &&
                 equatableType.GetMembers(nameof(Equals)).FirstOrDefault() is IMethodSymbol equatableEquals &&
                 equals.Equals(equals.ContainingType.FindImplementationForInterfaceMember(equatableEquals)))
             {
