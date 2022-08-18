@@ -919,6 +919,31 @@ class MyAnalyzer : DiagnosticAnalyzer
 }";
             await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
+
+        [Fact, WorkItem(5828, "https://github.com/dotnet/roslyn-analyzers/issues/5828")]
+        public async Task TestTargetTypedNew()
+        {
+            var source = @"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    private static readonly DiagnosticDescriptor descriptor1 =
+        new(""Id1"", ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+    public override void Initialize(AnalysisContext context) { }
+}";
+
+            var shippedText = @"";
+            var unshippedText = $@"{DefaultUnshippedHeader}Id1 | Category1 | Warning |";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
         #region Helpers
 
         private const string DefaultUnshippedHeader = ReleaseTrackingHelper.TableTitleNewRules + BlankLine + BlankLine +
