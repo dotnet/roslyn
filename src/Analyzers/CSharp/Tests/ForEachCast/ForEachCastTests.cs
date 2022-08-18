@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.ForEachCast;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.ForEachCast;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
@@ -26,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
                 EditorConfig = @"
 [*]
 dotnet_style_prefer_foreach_explicit_cast_in_source=" + optionValue,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             }.RunAsync();
         }
 
@@ -1040,6 +1043,136 @@ public static class Program
     }
 }";
 
+            await TestAlwaysAsync(test, code);
+            await TestWhenStronglyTypedAsync(test, code);
+        }
+
+        [Fact, WorkItem(63470, "https://github.com/dotnet/roslyn/issues/63470")]
+        public async Task TestRegex_GoodCast()
+        {
+            var test = @"
+using System.Text.RegularExpressions;
+
+public static class Program
+{   
+    public static void M(Regex regex, string text)
+    {
+        foreach (Match m in regex.Matches(text))
+        {
+        }
+    }
+}
+";
+            await TestAlwaysAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
+        }
+
+        [Fact, WorkItem(63470, "https://github.com/dotnet/roslyn/issues/63470")]
+        public async Task TestRegex_BadCast()
+        {
+            var test = @"
+using System.Text.RegularExpressions;
+
+public static class Program
+{   
+    public static void M(Regex regex, string text)
+    {
+        [|foreach|] (string m in regex.Matches(text))
+        {
+        }
+    }
+}
+";
+            var code = @"
+using System.Linq;
+using System.Text.RegularExpressions;
+
+public static class Program
+{   
+    public static void M(Regex regex, string text)
+    {
+        foreach (string m in regex.Matches(text).Cast<string>())
+        {
+        }
+    }
+}
+";
+            await TestAlwaysAsync(test, code);
+            await TestWhenStronglyTypedAsync(test, code);
+        }
+
+        [Fact, WorkItem(63470, "https://github.com/dotnet/roslyn/issues/63470")]
+        public async Task WeaklyTypedGetEnumeratorWithIEnumerableOfT()
+        {
+            var test = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+
+public class C : IEnumerable<Match>
+{
+    public IEnumerator GetEnumerator() => new Enumerator(); // compiler picks this for the foreach loop.
+
+    IEnumerator<Match> IEnumerable<Match>.GetEnumerator() => null; // compiler doesn't use this.
+
+    public static void M(C c)
+    {
+        [|foreach|] (Match x in c)
+        {
+        }
+    }
+
+    private class Enumerator : IEnumerator
+    {
+        public object Current => ""String"";
+
+        public bool MoveNext()
+        {
+            return true;
+        }
+
+        public void Reset()
+        {
+        }
+    }
+}
+";
+            var code = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+
+public class C : IEnumerable<Match>
+{
+    public IEnumerator GetEnumerator() => new Enumerator(); // compiler picks this for the foreach loop.
+
+    IEnumerator<Match> IEnumerable<Match>.GetEnumerator() => null; // compiler doesn't use this.
+
+    public static void M(C c)
+    {
+        foreach (Match x in c.Cast<Match>())
+        {
+        }
+    }
+
+    private class Enumerator : IEnumerator
+    {
+        public object Current => ""String"";
+
+        public bool MoveNext()
+        {
+            return true;
+        }
+
+        public void Reset()
+        {
+        }
+    }
+}
+";
             await TestAlwaysAsync(test, code);
             await TestWhenStronglyTypedAsync(test, code);
         }
