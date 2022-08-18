@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 #endif
 
             /// <summary>
-            /// Find conflicts in the new solution
+            /// Find conflicts in the new solution 
             /// </summary>
             private async Task<bool> IdentifyConflictsAsync(
                 HashSet<DocumentId> documentIdsForConflictResolution,
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var validRenamedSymbolsMapInNewSolution = await GetValidRenamedSymbolsMapInCurrentSolutionAsync(conflictResolution).ConfigureAwait(false);
 
                     // if the text replacement is invalid, we just did a simple token replacement.
-                    // Therefore we don't need more mapping information and can skip the rest of
+                    // Therefore we don't need more mapping information and can skip the rest of 
                     // the loop body.
                     if (validRenamedSymbolsMapInNewSolution.IsEmpty)
                     {
@@ -701,6 +701,28 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 return newReferencedSymbols;
             }
 
+            private async Task<ISymbol> GetRenamedSymbolInCurrentSolutionAsync(
+                MutableConflictResolution conflictResolution,
+                DocumentId documentIdOfRenameSymbolDeclaration,
+                Location renameSymbolDeclarationLocation)
+            {
+                try
+                {
+                    // get the renamed symbol in complexified new solution
+                    var start = conflictResolution.IsDocumentChanged(documentIdOfRenameSymbolDeclaration)
+                        ? conflictResolution.GetAdjustedTokenStartingPosition(renameSymbolDeclarationLocation.SourceSpan.Start, documentIdOfRenameSymbolDeclaration)
+                        : renameSymbolDeclarationLocation.SourceSpan.Start;
+
+                    var document = conflictResolution.CurrentSolution.GetRequiredDocument(documentIdOfRenameSymbolDeclaration);
+                    var newSymbol = await SymbolFinder.FindSymbolAtPositionAsync(document, start, cancellationToken: _cancellationToken).ConfigureAwait(false);
+                    return newSymbol;
+                }
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+            }
+
             /// <summary>
             /// The method determines the set of documents that need to be processed for Rename and also determines
             ///  the possible set of names that need to be checked for conflicts.
@@ -848,28 +870,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     return (partiallyRenamedSolution, unchangedDocumentIds.ToImmutableHashSet());
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
-            }
-
-            private async Task<ISymbol> GetRenamedSymbolInCurrentSolutionAsync(
-                MutableConflictResolution conflictResolution,
-                DocumentId documentIdOfRenameSymbolDeclaration,
-                Location renameSymbolDeclarationLocation)
-            {
-                try
-                {
-                    // get the renamed symbol in complexified new solution
-                    var start = conflictResolution.IsDocumentChanged(documentIdOfRenameSymbolDeclaration)
-                        ? conflictResolution.GetAdjustedTokenStartingPosition(renameSymbolDeclarationLocation.SourceSpan.Start, documentIdOfRenameSymbolDeclaration)
-                        : renameSymbolDeclarationLocation.SourceSpan.Start;
-
-                    var document = conflictResolution.CurrentSolution.GetRequiredDocument(documentIdOfRenameSymbolDeclaration);
-                    var newSymbol = await SymbolFinder.FindSymbolAtPositionAsync(document, start, cancellationToken: _cancellationToken).ConfigureAwait(false);
-                    return newSymbol;
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
