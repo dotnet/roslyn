@@ -32,7 +32,7 @@ internal class TestLspServices : ILspServices
         var types = new List<Type>();
         foreach (var service in _services)
         {
-            types.Add(service.GetType());
+            types.Add(service.Item2.GetType());
         }
 
         return types.ToImmutableArray();
@@ -67,7 +67,7 @@ internal class TestLspServices : ILspServices
 
     public object? TryGetService(Type type)
     {
-        var service = _services.FirstOrDefault(s => s.Item1 ==type);
+        var service = _services.FirstOrDefault(s => (_supportsRequiredServices ? s.Item1 : s.Item2.GetType()) == type);
 
         return service.Item2;
     }
