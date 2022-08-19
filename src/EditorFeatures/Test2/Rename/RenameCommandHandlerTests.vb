@@ -329,7 +329,7 @@ class [|$$Goo|] // comment
                 commandHandler.ExecuteCommand(New WordDeleteToEndCommandArgs(view, view.TextBuffer),
                                               Sub() AssertEx.Fail("Command should not have been passed to the editor."),
                                               Utilities.TestCommandExecutionContext.Create())
-                Await VerifyTagsAreCorrect(workspace, "")
+                Await VerifyTagsAreCorrect(workspace)
 
                 editorOperations.InsertText("this")
                 Await WaitForRename(workspace)
@@ -342,7 +342,7 @@ class [|$$Goo|] // comment
                 commandHandler.ExecuteCommand(New WordDeleteToStartCommandArgs(view, view.TextBuffer),
                                               Sub() AssertEx.Fail("Command should not have been passed to the editor."),
                                               Utilities.TestCommandExecutionContext.Create())
-                Await VerifyTagsAreCorrect(workspace, "s")
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 
@@ -472,7 +472,7 @@ Goo f;
                                               Sub() editorOperations.InsertText("$"),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "Goo")
+                Await VerifyTagsAreCorrect(workspace)
 
                 session.Cancel()
             End Using
@@ -518,7 +518,7 @@ Goo f;
                                               Sub() editorOperations.InsertText("Z"),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BGoo")
+                Await VerifyTagsAreCorrect(workspace)
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -559,7 +559,7 @@ Goo f;
                                               Sub() editorOperations.Delete(),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "oo")
+                Await VerifyTagsAreCorrect(workspace)
                 Assert.NotNull(workspace.GetService(Of IInlineRenameService).ActiveSession)
 
                 session.Cancel()
@@ -597,7 +597,7 @@ Goo f;
                                               Sub() editorOperations.Backspace(),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "Go")
+                Await VerifyTagsAreCorrect(workspace)
                 Assert.NotNull(workspace.GetService(Of IInlineRenameService).ActiveSession)
 
                 session.Cancel()
@@ -644,7 +644,7 @@ Goo f;
                                               Sub() editorOperations.Delete(),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BGoo")
+                Await VerifyTagsAreCorrect(workspace)
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -698,7 +698,7 @@ Goo f;
                                               Sub() editorOperations.InsertText("Z"),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BGoo")
+                Await VerifyTagsAreCorrect(workspace)
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -763,7 +763,7 @@ Goo f;
                                               Sub() editorOperations.InsertText("Z"),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BB")
+                Await VerifyTagsAreCorrect(workspace)
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -804,7 +804,7 @@ class Program
                 commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "Z"c), Sub() editorOperations.InsertText("Z"), Utilities.TestCommandExecutionContext.Create())
                 commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() Exit Sub, Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "Z")
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 
@@ -845,7 +845,7 @@ partial class [|Program|]
                                               Sub() editorOperations.InsertText("Z"),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "Z")
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 
@@ -1064,7 +1064,7 @@ partial class [|Program|]
                 ' Now save the document, which should commit Rename
                 commandHandler.ExecuteCommand(New SaveCommandArgs(view, view.TextBuffer), Sub() Exit Sub, Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BGoo")
+                Await VerifyTagsAreCorrect(workspace)
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -1247,7 +1247,7 @@ class [|C$$|]
 
                 ' Verify rename session is still active
                 Assert.NotNull(workspace.GetService(Of IInlineRenameService).ActiveSession)
-                Await VerifyTagsAreCorrect(workspace, commandInvokedString)
+                Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
 

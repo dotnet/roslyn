@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Assert.NotNull(result.LocalizedErrorMessage)
         End Sub
 
-        Public Async Function VerifyTagsAreCorrect(workspace As TestWorkspace, newIdentifierName As String) As Task
+        Public Async Function VerifyTagsAreCorrect(workspace As TestWorkspace) As Task
             Await WaitForRename(workspace)
             For Each document In workspace.Documents
                 For Each annotations In document.AnnotatedSpans
