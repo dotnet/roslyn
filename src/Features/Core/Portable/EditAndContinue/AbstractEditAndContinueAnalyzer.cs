@@ -3525,7 +3525,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             private static readonly IEqualityComparer<SymbolKey> s_symbolKeyComparer = SymbolKey.GetComparer();
 
             public bool Equals([AllowNull] SemanticEditInfo x, [AllowNull] SemanticEditInfo y)
-                => s_symbolKeyComparer.Equals(x.Symbol, y.Symbol);
+            {
+                // When we delete a symbol, it might have the same symbol key as the matching insert
+                // edit that corresponds to it, for example if only the return type has changed, because
+                // symbol key does not consider return types. To ensure that this doesn't break us
+                // by incorrectly de-duping our two edits, we treat edits as equal only if their
+                // deleted symbol containers are both null, or both not null.
+                if (x.DeletedSymbolContainer is null != y.DeletedSymbolContainer is null)
+                {
+                    return false;
+                }
+
+                return s_symbolKeyComparer.Equals(x.Symbol, y.Symbol);
+            }
 
             public int GetHashCode([DisallowNull] SemanticEditInfo obj)
                 => obj.Symbol.GetHashCode();
@@ -3542,6 +3554,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             out bool hasGeneratedReturnTypeAttributeChange,
             out bool hasParameterRename,
             out bool hasParameterTypeChange,
+            out bool hasReturnTypeChange,
             CancellationToken cancellationToken)
         {
             var rudeEdit = RudeEditKind.None;
@@ -3550,6 +3563,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             hasGeneratedReturnTypeAttributeChange = false;
             hasParameterRename = false;
             hasParameterTypeChange = false;
+            hasReturnTypeChange = false;
 
             if (oldSymbol.Kind != newSymbol.Kind)
             {
@@ -3734,7 +3748,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Check return type - do not report for accessors, their containing symbol will report the rude edits and attribute updates.
                 if (rudeEdit == RudeEditKind.None && oldMethod.AssociatedSymbol == null && newMethod.AssociatedSymbol == null)
                 {
-                    AnalyzeReturnType(oldMethod, newMethod, ref rudeEdit, ref hasGeneratedReturnTypeAttributeChange);
+                    AnalyzeReturnType(oldMethod, newMethod, capabilities, ref rudeEdit, ref hasGeneratedReturnTypeAttributeChange, ref hasReturnTypeChange, cancellationToken);
                 }
             }
             else if (oldSymbol is INamedTypeSymbol oldType && newSymbol is INamedTypeSymbol newType)
@@ -3757,7 +3771,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (oldType.DelegateInvokeMethod != null)
                     {
                         Contract.ThrowIfNull(newType.DelegateInvokeMethod);
-                        AnalyzeReturnType(oldType.DelegateInvokeMethod, newType.DelegateInvokeMethod, ref rudeEdit, ref hasGeneratedReturnTypeAttributeChange);
+                        AnalyzeReturnType(oldType.DelegateInvokeMethod, newType.DelegateInvokeMethod, capabilities, ref rudeEdit, ref hasGeneratedReturnTypeAttributeChange, ref hasReturnTypeChange, cancellationToken);
                     }
                 }
             }
@@ -3926,7 +3940,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static void AnalyzeReturnType(IMethodSymbol oldMethod, IMethodSymbol newMethod, ref RudeEditKind rudeEdit, ref bool hasGeneratedReturnTypeAttributeChange)
+        private void AnalyzeReturnType(IMethodSymbol oldMethod, IMethodSymbol newMethod, EditAndContinueCapabilitiesGrantor capabilities, ref RudeEditKind rudeEdit, ref bool hasGeneratedReturnTypeAttributeChange, ref bool hasReturnTypeChange, CancellationToken cancellationToken)
         {
             if (!ReturnTypesEquivalent(oldMethod, newMethod, exact: true))
             {
@@ -3937,6 +3951,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 else if (IsGlobalMain(oldMethod) || IsGlobalMain(newMethod))
                 {
                     rudeEdit = RudeEditKind.ChangeImplicitMainReturnType;
+                }
+                else if (oldMethod.ContainingType.IsDelegateType())
+                {
+                    rudeEdit = RudeEditKind.TypeUpdate;
+                }
+                else if (AllowsDeletion(newMethod))
+                {
+                    if (CanAddNewMember(newMethod, capabilities, cancellationToken))
+                    {
+                        hasReturnTypeChange = true;
+                    }
+                    else
+                    {
+                        rudeEdit = RudeEditKind.ChangingTypeNotSupportedByRuntime;
+                    }
                 }
                 else
                 {
@@ -3995,7 +4024,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             ReportCustomAttributeRudeEdits(diagnostics, oldSymbol, newSymbol, newNode, newCompilation, capabilities, out var hasAttributeChange, out var hasReturnTypeAttributeChange, cancellationToken);
 
-            ReportUpdatedSymbolDeclarationRudeEdits(diagnostics, oldSymbol, newSymbol, newNode, newCompilation, capabilities, out var hasGeneratedAttributeChange, out var hasGeneratedReturnTypeAttributeChange, out var hasParameterRename, out var hasParameterTypeChange, cancellationToken);
+            ReportUpdatedSymbolDeclarationRudeEdits(diagnostics, oldSymbol, newSymbol, newNode, newCompilation, capabilities, out var hasGeneratedAttributeChange, out var hasGeneratedReturnTypeAttributeChange, out var hasParameterRename, out var hasParameterTypeChange, out var hasReturnTypeChange, cancellationToken);
             hasAttributeChange |= hasGeneratedAttributeChange;
             hasReturnTypeAttributeChange |= hasGeneratedReturnTypeAttributeChange;
 
@@ -4003,6 +4032,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 Debug.Assert(newSymbol is IParameterSymbol);
                 AddParameterUpdateSemanticEdit(semanticEdits, (IParameterSymbol)oldSymbol, (IParameterSymbol)newSymbol, syntaxMap, reportDeleteAndInsertEdits: hasParameterTypeChange, cancellationToken);
+            }
+            else if (hasReturnTypeChange)
+            {
+                var containingSymbolKey = SymbolKey.Create(oldSymbol.ContainingSymbol, cancellationToken);
+                AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Delete, oldSymbol, containingSymbolKey, syntaxMap, partialType: null, cancellationToken);
+                AddMemberOrAssociatedMemberSemanticEdits(semanticEdits, SemanticEditKind.Insert, newSymbol, containingSymbolKey: null, syntaxMap, partialType: null, cancellationToken);
             }
             else if (hasAttributeChange || hasReturnTypeAttributeChange)
             {

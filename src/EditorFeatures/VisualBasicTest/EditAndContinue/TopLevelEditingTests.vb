@@ -4382,7 +4382,11 @@ End Structure
                 "Update [Sub Goo()]@8 -> [Function Goo()]@8")
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "Function Goo()", FeaturesResources.method))
+                diagnostics:=
+                {
+                    Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "Function Goo()", FeaturesResources.method)
+                },
+                capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
 
         <Fact>
@@ -10966,7 +10970,7 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 {Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Public Function M()", FeaturesResources.method),
-                 Diagnostic(RudeEditKind.TypeUpdate, "Public Function M()", FeaturesResources.method)},
+                 Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "Public Function M()", FeaturesResources.method)},
                 capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
 
@@ -10981,7 +10985,7 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 {Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Public Function M()", FeaturesResources.method),
-                 Diagnostic(RudeEditKind.TypeUpdate, "Public Function M()", FeaturesResources.method)},
+                 Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "Public Function M()", FeaturesResources.method)},
                 capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
 
@@ -10994,8 +10998,17 @@ End Class
             edits.VerifyEdits(
                 "Update [Public Function M() As Integer]@11 -> [Public Function M() As Object]@11")
 
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.M"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.M"))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
+
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "Public Function M()", FeaturesResources.method))
+                {Diagnostic(RudeEditKind.ChangingTypeNotSupportedByRuntime, "Public Function M()", FeaturesResources.method)},
+                capabilities:=EditAndContinueCapabilities.Baseline)
         End Sub
 
 #End Region
