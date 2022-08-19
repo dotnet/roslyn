@@ -1756,11 +1756,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<IOperation> children = SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.Initializer);
             AssertEx.Equal(children, operation.ChildOperations);
         }
-
-        public override void VisitAttribute(IAttributeOperation operation)
-        {
-            Assert.Equal(OperationKind.Attribute, operation.Kind);
-            Assert.False(operation.ConstantValue.HasValue);
-        }
     }
 }
