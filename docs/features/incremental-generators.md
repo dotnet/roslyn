@@ -36,7 +36,7 @@ public class Generator : IIncrementalGenerator
         IncrementalValuesProvider<(string name, string content)> namesAndContents = textFiles.Select((text, cancellationToken) => (name: Path.GetFileNameWithoutExtension(text.Path), content: text.GetText(cancellationToken)!.ToString()));
 
         // generate a class that contains their values as const strings
-        context.RegisterSourceOutput(namesAndContents, (spc, nameAndContent) =>
+        initContext.RegisterSourceOutput(namesAndContents, (spc, nameAndContent) =>
         {
             spc.AddSource($"ConstStrings.{nameAndContent.name}", $@"
     public static partial class ConstStrings
