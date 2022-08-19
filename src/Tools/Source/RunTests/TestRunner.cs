@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -43,7 +42,7 @@ namespace RunTests
             _options = options;
         }
 
-        internal async Task<RunAllResult> RunAllOnHelixAsync(IEnumerable<AssemblyInfo> assemblyInfoList, CancellationToken cancellationToken)
+        internal async Task<RunAllResult> RunAllOnHelixAsync(ImmutableArray<WorkItemInfo> workItems, Options options, CancellationToken cancellationToken)
         {
             var sourceBranch = Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCH");
             if (sourceBranch is null)
@@ -59,10 +58,10 @@ namespace RunTests
                 throw new IOException($@"Malformed ArtifactsDirectory in options: ""{_options.ArtifactsDirectory}""");
             }
 
-            var isAzureDevOpsRun = Environment.GetEnvironmentVariable("SYSTEM_ACCESSTOKEN") is not null;
+            var isAzureDevOpsRun = Environment.GetEnvironmentVariable("BUILD_BUILDID") is not null;
             if (!isAzureDevOpsRun)
             {
-                ConsoleUtil.WriteLine("SYSTEM_ACCESSTOKEN environment variable was not set, so test results will not be published.");
+                ConsoleUtil.WriteLine("BUILD_BUILDID environment variable was not set, will not publish test results for a local run.");
                 // in a local run we assume the user runs using the root test.sh and that the test payload is nested in the artifacts directory.
                 msbuildTestPayloadRoot = Path.Combine(msbuildTestPayloadRoot, "artifacts/testPayload");
             }
@@ -95,7 +94,7 @@ namespace RunTests
                 Environment.SetEnvironmentVariable("BUILD_REASON", "pr");
 
             var buildNumber = Environment.GetEnvironmentVariable("BUILD_BUILDNUMBER") ?? "0";
-            var workItems = assemblyInfoList.Select(ai => makeHelixWorkItemProject(ai));
+            var helixWorkItems = workItems.Select(workItem => MakeHelixWorkItemProject(workItem));
 
             var globalJson = JsonConvert.DeserializeAnonymousType(File.ReadAllText(getGlobalJsonPath()), new { sdk = new { version = "" } })
                 ?? throw new InvalidOperationException("Failed to deserialize global.json.");
@@ -116,7 +115,7 @@ namespace RunTests
     </PropertyGroup>
 
     <ItemGroup>
-        " + correlationPayload + string.Join("", workItems) + @"
+        " + correlationPayload + string.Join("", helixWorkItems) + @"
     </ItemGroup>
 </Project>
 ";
@@ -148,23 +147,46 @@ namespace RunTests
                 throw new IOException($@"Could not find global.json by walking up from ""{AppContext.BaseDirectory}"".");
             }
 
-            string makeHelixWorkItemProject(AssemblyInfo assemblyInfo)
+            static void AddRehydrateTestFoldersCommand(StringBuilder commandBuilder, WorkItemInfo workItemInfo, bool isUnix)
+            {
+                // Rehydrate assemblies that we need to run as part of this work item.
+                foreach (var testAssembly in workItemInfo.Filters.Keys)
+                {
+                    var directoryName = Path.GetDirectoryName(testAssembly.AssemblyPath);
+                    if (isUnix)
+                    {
+                        // If we're on unix make sure we have permissions to run the rehydrate script.
+                        commandBuilder.AppendLine($"chmod +x {directoryName}/rehydrate.sh");
+                    }
+
+                    commandBuilder.AppendLine(isUnix ? $"./{directoryName}/rehydrate.sh" : $@"call {directoryName}\rehydrate.cmd");
+                    commandBuilder.AppendLine(isUnix ? $"ls -l {directoryName}" : $"dir {directoryName}");
+                }
+            }
+
+            static string GetHelixRelativeAssemblyPath(string assemblyPath)
+            {
+                var tfmDir = Path.GetDirectoryName(assemblyPath)!;
+                var configurationDir = Path.GetDirectoryName(tfmDir)!;
+                var projectDir = Path.GetDirectoryName(configurationDir)!;
+
+                var assemblyRelativePath = Path.Combine(Path.GetFileName(projectDir), Path.GetFileName(configurationDir), Path.GetFileName(tfmDir), Path.GetFileName(assemblyPath));
+                return assemblyRelativePath;
+            }
+
+            string MakeHelixWorkItemProject(WorkItemInfo workItemInfo)
             {
                 // Currently, it's required for the client machine to use the same OS family as the target Helix queue.
                 // We could relax this and allow for example Linux clients to kick off Windows jobs, but we'd have to
                 // figure out solutions for issues such as creating file paths in the correct format for the target machine.
                 var isUnix = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-                var commandLineArguments = _testExecutor.GetCommandLineArguments(assemblyInfo, useSingleQuotes: isUnix, isHelix: true);
-                commandLineArguments = SecurityElement.Escape(commandLineArguments);
                 var setEnvironmentVariable = isUnix ? "export" : "set";
 
                 var command = new StringBuilder();
-                command.AppendLine(isUnix ? "ls -l" : "dir");
-                command.AppendLine(isUnix ? $"./rehydrate.sh" : $@"call .\rehydrate.cmd");
-                command.AppendLine(isUnix ? "ls -l" : "dir");
                 command.AppendLine($"{setEnvironmentVariable} DOTNET_ROLL_FORWARD=LatestMajor");
                 command.AppendLine($"{setEnvironmentVariable} DOTNET_ROLL_FORWARD_TO_PRERELEASE=1");
+                command.AppendLine(isUnix ? $"ls -l" : $"dir");
                 command.AppendLine("dotnet --info");
 
                 var knownEnvironmentVariables = new[] { "ROSLYN_TEST_IOPERATION", "ROSLYN_TEST_USEDASSEMBLIES" };
@@ -176,15 +198,52 @@ namespace RunTests
                     }
                 }
 
-                command.AppendLine($"dotnet {commandLineArguments}");
+                // Create a payload directory that contains all the assemblies in the work item in separate folders.
+                var payloadDirectory = Path.Combine(msbuildTestPayloadRoot, "artifacts", "bin");
+
+                // Update the assembly groups to test with the assembly paths in the context of the helix work item.
+                workItemInfo = workItemInfo with { Filters = workItemInfo.Filters.ToImmutableSortedDictionary(kvp => kvp.Key with { AssemblyPath = GetHelixRelativeAssemblyPath(kvp.Key.AssemblyPath) }, kvp => kvp.Value) };
+
+                AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);
+
+                // Build an rsp file to send to dotnet test that contains all the assemblies and tests to run.
+                // This gets around command line length limitations and avoids weird escaping issues.
+                // See https://docs.microsoft.com/en-us/dotnet/standard/commandline/syntax#response-files
+                var rspFileContents = ProcessTestExecutor.BuildRspFileContents(workItemInfo, options);
+                var rspFileName = $"vstest_{workItemInfo.PartitionIndex}.rsp";
+                File.WriteAllText(Path.Combine(payloadDirectory, rspFileName), rspFileContents);
+
+                // Build the command to run the rsp file.
+                // dotnet test does not pass rsp files correctly the vs test console, so we have to manually invoke vs test console.
+                // See https://github.com/microsoft/vstest/issues/3513
+                // The dotnet sdk includes the vstest.console.dll executable in the sdk folder in the installed version, so we look it up using the
+                // DOTNET_ROOT environment variable set by helix.
+                if (isUnix)
+                {
+                    // $ is a special character in msbuild so we replace it with %24 in the helix project.
+                    // https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild-special-characters?view=vs-2022
+                    command.AppendLine("vstestConsolePath=%24(find %24{DOTNET_ROOT} -name \"vstest.console.dll\")");
+                    command.AppendLine("echo %24{vstestConsolePath}");
+                    command.AppendLine($"dotnet exec \"%24{{vstestConsolePath}}\" @{rspFileName}");
+                }
+                else
+                {
+                    // Windows cmd doesn't have an easy way to set the output of a command to a variable.
+                    // So send the output of the command to a file, then set the variable based on the file.
+                    command.AppendLine("where /r %DOTNET_ROOT% vstest.console.dll > temp.txt");
+                    command.AppendLine("set /p vstestConsolePath=<temp.txt");
+                    command.AppendLine("echo %vstestConsolePath%");
+                    command.AppendLine($"dotnet exec \"%vstestConsolePath%\" @{rspFileName}");
+                }
+
+                // The command string contains characters like % which are not valid XML to pass into the helix csproj.
+                var escapedCommand = SecurityElement.Escape(command.ToString());
 
                 // We want to collect any dumps during the post command step here; these commands are ran after the
                 // return value of the main command is captured; a Helix Job is considered to fail if the main command returns a
                 // non-zero error code, and we don't want the cleanup steps to interefere with that. PostCommands exist
                 // precisely to address this problem.
                 var postCommands = new StringBuilder();
-
-                var payloadDirectory = Path.Combine(msbuildTestPayloadRoot, Path.GetDirectoryName(assemblyInfo.AssemblyPath)!);
 
                 if (isUnix)
                 {
@@ -199,10 +258,10 @@ namespace RunTests
                 }
 
                 var workItem = $@"
-        <HelixWorkItem Include=""{assemblyInfo.DisplayName}"">
+        <HelixWorkItem Include=""{workItemInfo.DisplayName}"">
             <PayloadDirectory>{payloadDirectory}</PayloadDirectory>
             <Command>
-                {command}
+                {escapedCommand}
             </Command>
             <PostCommands>
                 {postCommands}
@@ -214,13 +273,13 @@ namespace RunTests
             }
         }
 
-        internal async Task<RunAllResult> RunAllAsync(IEnumerable<AssemblyInfo> assemblyInfoList, CancellationToken cancellationToken)
+        internal async Task<RunAllResult> RunAllAsync(ImmutableArray<WorkItemInfo> workItems, CancellationToken cancellationToken)
         {
             // Use 1.5 times the number of processors for unit tests, but only 1 processor for the open integration tests
             // since they perform actual UI operations (such as mouse clicks and sending keystrokes) and we don't want two
             // tests to conflict with one-another.
             var max = _options.Sequential ? 1 : (int)(Environment.ProcessorCount * 1.5);
-            var waiting = new Stack<AssemblyInfo>(assemblyInfoList);
+            var waiting = new Stack<WorkItemInfo>(workItems);
             var running = new List<Task<TestResult>>();
             var completed = new List<TestResult>();
             var failures = 0;
@@ -275,7 +334,7 @@ namespace RunTests
 
                 while (running.Count < max && waiting.Count > 0)
                 {
-                    var task = _testExecutor.RunTestAsync(waiting.Pop(), cancellationToken);
+                    var task = _testExecutor.RunTestAsync(waiting.Pop(), _options, cancellationToken);
                     running.Add(task);
                 }
 
@@ -343,7 +402,7 @@ namespace RunTests
             // Save out the error output for easy artifact inspecting
             var outputLogPath = Path.Combine(_options.LogFilesDirectory, $"xUnitFailure-{testResult.DisplayName}.log");
 
-            ConsoleUtil.WriteLine($"Errors {testResult.AssemblyName}");
+            ConsoleUtil.WriteLine($"Errors {testResult.DisplayName}");
             ConsoleUtil.WriteLine(testResult.ErrorOutput);
 
             // TODO: Put this in the log and take it off the ConsoleUtil output to keep it simple?

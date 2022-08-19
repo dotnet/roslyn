@@ -625,6 +625,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Para eliminar {0} es necesario reiniciar la aplicación.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
+        <source>Deleting {0} requires restarting the application because is not supported by the runtime.</source>
+        <target state="new">Deleting {0} requires restarting the application because is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
         <source>Deleting captured variable '{0}' requires restarting the application.</source>
         <target state="translated">Para eliminar la variable capturada "{0}" se requiere reiniciar la aplicación.</target>
@@ -958,11 +963,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
         <target state="translated">Alinear y mantener "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_an_if_statement">
-        <source>Insert an 'if' statement</source>
-        <target state="new">Insert an 'if' statement</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -2985,11 +2985,6 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">Ajuste</target>
         <note />
       </trans-unit>
-      <trans-unit id="Write_to_the_console">
-        <source>Write to the console</source>
-        <target state="new">Write to the console</target>
-        <note />
-      </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
         <source>You can use the navigation bar to switch contexts.</source>
         <target state="translated">Puede usar la barra de navegación para cambiar contextos.</target>
@@ -3341,6 +3336,11 @@ Si el especificador de formato "H" se usa sin otros especificadores de formato p
         <target state="translated">código</target>
         <note />
       </trans-unit>
+      <trans-unit id="console_writeline">
+        <source>Console.WriteLine</source>
+        <target state="new">Console.WriteLine</target>
+        <note />
+      </trans-unit>
       <trans-unit id="date_separator">
         <source>date separator</source>
         <target state="translated">separador de fecha</target>
@@ -3475,6 +3475,11 @@ El especificador de formato estándar "f" representa una combinación de los pat
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">sobrecargas genéricas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="if_statement">
+        <source>if statement</source>
+        <target state="new">if statement</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_1_2">
@@ -3993,16 +3998,6 @@ Do you want to continue?</source>
 '{1}'.</source>
         <target state="translated">El analizador '{0}' inició la siguiente excepción:
 '{1}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Names">
-        <source>Simplify Names</source>
-        <target state="translated">Simplificar nombres</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Member_Access">
-        <source>Simplify Member Access</source>
-        <target state="translated">Simplificar acceso de miembros</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_qualification">

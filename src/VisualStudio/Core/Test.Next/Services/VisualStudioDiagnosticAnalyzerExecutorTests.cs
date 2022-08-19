@@ -56,7 +56,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var workspace = CreateWorkspace(LanguageNames.CSharp, code);
             var analyzerType = typeof(CSharpUseExplicitTypeDiagnosticAnalyzer);
             var analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType,
-                IdeAnalyzerOptions.GetDefault(workspace.Services.SolutionServices.GetProjectServices(LanguageNames.CSharp)));
+                IdeAnalyzerOptions.GetDefault(workspace.Services.SolutionServices.GetLanguageServices(LanguageNames.CSharp)));
 
             var diagnostics = analyzerResult.GetDocumentDiagnostics(analyzerResult.DocumentIds.First(), AnalysisKind.Semantic);
             Assert.Equal(IDEDiagnosticIds.UseExplicitTypeDiagnosticId, diagnostics[0].Id);
@@ -93,7 +93,7 @@ End Class";
 
             using (var workspace = CreateWorkspace(LanguageNames.VisualBasic, code))
             {
-                var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(workspace.Services.SolutionServices.GetProjectServices(LanguageNames.VisualBasic));
+                var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(workspace.Services.SolutionServices.GetLanguageServices(LanguageNames.VisualBasic));
 
                 ideAnalyzerOptions = ideAnalyzerOptions with
                 {
@@ -131,7 +131,7 @@ End Class";
             var code = @"class Test { void Method() { } }";
 
             using var workspace = CreateWorkspace(LanguageNames.CSharp, code);
-            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(workspace.Services.SolutionServices.GetProjectServices(LanguageNames.CSharp));
+            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(workspace.Services.SolutionServices.GetLanguageServices(LanguageNames.CSharp));
 
             var analyzerType = typeof(MyAnalyzer);
 
@@ -177,7 +177,7 @@ End Class";
             var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
-            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(workspace.Services.SolutionServices.GetProjectServices(LanguageNames.CSharp));
+            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(workspace.Services.SolutionServices.GetLanguageServices(LanguageNames.CSharp));
             workspace.GlobalOptions.SetGlobalOption(new OptionKey(CSharpCodeStyleOptions.VarWhenTypeIsApparent), new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
 
             // run analysis
