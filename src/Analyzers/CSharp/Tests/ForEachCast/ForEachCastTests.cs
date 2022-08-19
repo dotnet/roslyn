@@ -1118,7 +1118,11 @@ public class C : IEnumerable<Match>
 
     public static void M(C c)
     {
-        [|foreach|] (Match x in c)
+        // The compiler adds a cast here from 'object' to 'Match',
+        // and it will fail at runtime because GetEnumerator().Current will return a string.
+        // This is due to badly implemented type 'C', and is rare enough. So, we don't report here
+        // to reduce false positives.
+        foreach (Match x in c)
         {
         }
     }
@@ -1138,43 +1142,8 @@ public class C : IEnumerable<Match>
     }
 }
 ";
-            var code = @"
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-
-public class C : IEnumerable<Match>
-{
-    public IEnumerator GetEnumerator() => new Enumerator(); // compiler picks this for the foreach loop.
-
-    IEnumerator<Match> IEnumerable<Match>.GetEnumerator() => null; // compiler doesn't use this.
-
-    public static void M(C c)
-    {
-        foreach (Match x in c.Cast<Match>())
-        {
-        }
-    }
-
-    private class Enumerator : IEnumerator
-    {
-        public object Current => ""String"";
-
-        public bool MoveNext()
-        {
-            return true;
-        }
-
-        public void Reset()
-        {
-        }
-    }
-}
-";
-            await TestAlwaysAsync(test, code);
-            await TestWhenStronglyTypedAsync(test, code);
+            await TestAlwaysAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
         }
     }
 }

@@ -97,13 +97,10 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             // }
 
             // This collection have GetEnumerator method that returns non-strongly-typed IEnumerator, but also implements strongly-typed IEnumerable<T> explicitly.
-            // In this case, the compiler considers the non-strongly-typed GetEnumerator and adds explicit cast for `foreach (Match m in new C())`.
+            // In this case, the compiler chooses the non-strongly-typed GetEnumerator and adds explicit cast for `foreach (Match m in new C())`.
             // This cast can fail if the collection is badly implemented such that the strongly-typed and non-strongly-typed GetEnumerator implemetations return different types.
-            // So, we want to consider the collectionElementType as System.Object (that's what the compiler returns).
-            // However, we trust CorLib, so we adjust collectionElementType for the case above to be `Match` instead of object if the type comes from CorLib.
-            if (collectionElementType.SpecialType == SpecialType.System_Object &&
-                collectionType.ContainingAssembly is { } collectionTypeContainingAssembly &&
-                collectionTypeContainingAssembly.Identity.PublicKey.SequenceEqual(context.Compilation.GetSpecialType(SpecialType.System_Object).ContainingAssembly?.Identity.PublicKey))
+            // Given it's very rare that implementation can be bad, and to reduce false positives, we adjust collectionElementType for the case above to be `Match` instead of object.
+            if (collectionElementType.SpecialType == SpecialType.System_Object)
             {
                 var ienumerableOfT = collectionType.AllInterfaces.SingleOrDefault(i => i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
                 if (ienumerableOfT is not null)
