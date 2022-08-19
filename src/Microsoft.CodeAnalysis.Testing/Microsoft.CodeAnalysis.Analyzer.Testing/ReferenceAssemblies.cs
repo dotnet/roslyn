@@ -987,7 +987,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net7.0",
                         new PackageIdentity(
                             "Microsoft.NETCore.App.Ref",
-                            "7.0.0-preview.3.22175.4"),
+                            "7.0.0-preview.7.22375.6"),
                         Path.Combine("ref", "net7.0"));
                 });
 
@@ -995,7 +995,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 new Lazy<ReferenceAssemblies>(() =>
                     Net70.AddPackages(
                         ImmutableArray.Create(
-                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "7.0.0-preview.3.22177.1"))));
+                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "7.0.0-preview.7.22377.1"))));
 
             public static ReferenceAssemblies Net50 => _lazyNet50.Value;
 
