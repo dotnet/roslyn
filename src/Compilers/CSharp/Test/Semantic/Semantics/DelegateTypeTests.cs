@@ -12602,8 +12602,11 @@ class Program
     }
 }
 """;
-            // PROTOTYPE: want to raise an error here for invalid target-type conversion
-            CompileAndVerify(source, expectedOutput: "string1");
+            // PROTOTYPE: want to raise an warning here about invalid target-type conversion
+            CompileAndVerify(source, expectedOutput: "string1").VerifyDiagnostics(
+                // (14,15): warning CS9068: Parameter 1 has default value which does not match corresponding parameter in delegate type 'Program.D'.
+                //         D d = M;
+                Diagnostic(ErrorCode.WRN_OptionalParamValueMismatch, "M").WithArguments("1", "Program.D").WithLocation(14, 15));
         }
 
         [Fact]
@@ -12624,16 +12627,36 @@ class Program
     public static void Main()
     {
         D d = M;
+        Console.WriteLine(d("my string"));
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "my string").VerifyDiagnostics(
+                // (14,15): warning CS9069: Parameter 1 is optional in lambda or method group but the corresponding parameter in delegate type 'Program.D' is required.
+                //         D d = M;
+                Diagnostic(ErrorCode.WRN_OptionalRequiredParamMismatch, "M").WithArguments("1", "Program.D").WithLocation(14, 15));
+        }
+
+        [Fact]
+        public void MethodGroupTargetConversion_ParameterOptionalInDelegateOnly()
+        {
+            var source = """
+using System;
+
+class Program
+{
+    delegate string D(string s = "string1");
+
+    public static string M(string s) => s;
+
+    public static void Main()
+    {
+        D d = M;
         Console.WriteLine(d());
     }
 }
 """;
-            // PROTOTYPE: want to raise a warning here because parameter is optional for method group but required for delegate type D.
-            CreateCompilation(source).VerifyDiagnostics(
-                    // (15,27): error CS7036: There is no argument given that corresponds to the required formal parameter 's' of 'Program.D'
-                    //         Console.WriteLine(d());
-                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("s", "Program.D").WithLocation(15, 27)
-                );
+            CompileAndVerify(source, expectedOutput: "string1").VerifyDiagnostics();
         }
 
         [Fact]

@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // For the method group, lambda and anonymous method conversions
-        internal Conversion(ConversionKind kind, MethodSymbol conversionMethod, bool isExtensionMethod)
+        internal Conversion(ConversionKind kind, MethodSymbol conversionMethod, bool isExtensionMethod, bool hasWarning = false)
         {
             this._kind = kind;
             _uncommonData = new UncommonData(
@@ -124,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isArrayIndex: false,
                 conversionResult: default,
                 conversionMethod: conversionMethod,
+                hasWarning: hasWarning,
                 nestedConversions: default);
         }
 

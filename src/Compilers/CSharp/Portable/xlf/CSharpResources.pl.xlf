@@ -1982,6 +1982,16 @@
         <target state="translated">Składowe z atrybutem „ObsoleteAttribute” nie powinny być wymagane, chyba że typ zawierający jest przestarzały lub wszystkie konstruktory są przestarzałe.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch">
+        <source>Parameter {0} has default value which does not match corresponding parameter in delegate type '{1}'.</source>
+        <target state="new">Parameter {0} has default value which does not match corresponding parameter in delegate type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OptionalRequiredParamMismatch">
+        <source>Parameter {0} is optional in lambda or method group but the corresponding parameter in delegate type '{1}' is required.</source>
+        <target state="new">Parameter {0} is optional in lambda or method group but the corresponding parameter in delegate type '{1}' is required.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">Parametr „{0}” musi mieć wartość inną niż null podczas kończenia działania, ponieważ parametr „{1}” ma wartość inną niż null.</target>

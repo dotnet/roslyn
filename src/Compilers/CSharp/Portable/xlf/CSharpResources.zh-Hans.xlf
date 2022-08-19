@@ -1982,6 +1982,16 @@
         <target state="translated">不应要求使用 'ObsoleteAttribute' 特性化的成员，除非包含类型已过时或所有构造函数已过时。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch">
+        <source>Parameter {0} has default value which does not match corresponding parameter in delegate type '{1}'.</source>
+        <target state="new">Parameter {0} has default value which does not match corresponding parameter in delegate type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OptionalRequiredParamMismatch">
+        <source>Parameter {0} is optional in lambda or method group but the corresponding parameter in delegate type '{1}' is required.</source>
+        <target state="new">Parameter {0} is optional in lambda or method group but the corresponding parameter in delegate type '{1}' is required.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">退出时参数“{0}”必须具有非 null 值，因为参数“{1}”是非 null。</target>

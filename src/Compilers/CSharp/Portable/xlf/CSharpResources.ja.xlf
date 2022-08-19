@@ -1982,6 +1982,16 @@
         <target state="translated">'ObsoleteAttribute' 属性を持つメンバーは、包含する型が古い形式であるか、すべてのコンストラクターが古い形式でない限り、必要ありません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_OptionalParamValueMismatch">
+        <source>Parameter {0} has default value which does not match corresponding parameter in delegate type '{1}'.</source>
+        <target state="new">Parameter {0} has default value which does not match corresponding parameter in delegate type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OptionalRequiredParamMismatch">
+        <source>Parameter {0} is optional in lambda or method group but the corresponding parameter in delegate type '{1}' is required.</source>
+        <target state="new">Parameter {0} is optional in lambda or method group but the corresponding parameter in delegate type '{1}' is required.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">パラメーター '{1}' が null 以外であるため、パラメーター '{0}' には、終了時に null 以外の値が含まれている必要があります。</target>

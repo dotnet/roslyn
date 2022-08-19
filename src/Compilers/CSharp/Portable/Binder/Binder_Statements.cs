@@ -1947,6 +1947,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Suppress any additional diagnostics
                 diagnostics = BindingDiagnosticBag.Discarded;
             }
+            else if (conversion.HasWarning)
+            {
+                GenerateImplicitConversionError(diagnostics, expression.Syntax, conversion, expression, targetType);
+            }
 
             return CreateConversion(expression.Syntax, expression, conversion, isCast: false, conversionGroupOpt: null, targetType, diagnostics);
         }
