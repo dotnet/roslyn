@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ImplementType
               PropertyGenerationBehavior = globalOptions.GetOption(PropertyGenerationBehavior, language)
           };
 
-        public static ImplementTypeGenerationOptions GetImplementTypeGenerationOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
+        public static ImplementTypeGenerationOptions GetImplementTypeGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
           => new(globalOptions.GetImplementTypeOptions(languageServices.Language),
                  globalOptions.CreateProvider());
 

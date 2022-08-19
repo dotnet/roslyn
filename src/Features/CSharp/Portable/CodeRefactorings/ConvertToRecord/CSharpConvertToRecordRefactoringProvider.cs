@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return;
             }
 
-            var PositionalParameterInfos = PositionalParameterInfo.GetPropertiesForPositionalParameters(
+            var positionalParameterInfos = PositionalParameterInfo.GetPropertiesForPositionalParameters(
                 typeDeclaration.Members
                     .Where(member => member is PropertyDeclarationSyntax)
                     .Cast<PropertyDeclarationSyntax>()
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 type,
                 semanticModel,
                 cancellationToken);
-            if (PositionalParameterInfos.IsEmpty)
+            if (positionalParameterInfos.IsEmpty)
             {
                 return;
             }
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 cancellationToken => ConvertToPositionalRecordAsync(
                     document,
                     type,
-                    PositionalParameterInfos,
+                    positionalParameterInfos,
                     typeDeclaration,
                     cancellationToken),
                 nameof(CSharpFeaturesResources.Convert_to_positional_record));
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         private static async Task<Document> ConvertToPositionalRecordAsync(
             Document document,
             INamedTypeSymbol originalType,
-            ImmutableArray<PositionalParameterInfo> PositionalParameterInfos,
+            ImmutableArray<PositionalParameterInfo> positionalParameterInfos,
             TypeDeclarationSyntax originalDeclarationNode,
             CancellationToken cancellationToken)
         {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 originalDeclarationNode,
                 originalType,
                 semanticModel,
-                PositionalParameterInfos,
+                positionalParameterInfos,
                 out var propertiesAndDefaults, cancellationToken);
 
             var lineFormattingOptions = await document

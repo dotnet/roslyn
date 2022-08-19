@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
             var (formattingChanges, finalCurlyBraceEnd) = FormatTrackingSpan(
                 context.Document,
-                context.Document.LanguageServices.ProjectServices,
                 context.OpeningPoint,
                 context.ClosingPoint,
                 // We're not trying to format the indented block here, so no need to pass in additional rules.
@@ -131,7 +130,6 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // Format the text that contains the newly inserted line.
             var (formattingChanges, newClosingPoint) = FormatTrackingSpan(
                 documentToFormat,
-                document.LanguageServices.ProjectServices,
                 openingPoint,
                 closingPoint,
                 braceFormattingIndentationRules: GetBraceFormattingIndentationRulesAfterReturn(options),
@@ -163,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
             static LinePosition GetIndentedLinePosition(ParsedDocument document, SourceText sourceText, int lineNumber, IndentationOptions options, CancellationToken cancellationToken)
             {
-                var indentationService = document.ProjectServices.GetRequiredService<IIndentationService>();
+                var indentationService = document.LanguageServices.GetRequiredService<IIndentationService>();
                 var indentation = indentationService.GetIndentation(document, lineNumber, options, cancellationToken);
 
                 var baseLinePosition = sourceText.Lines.GetLinePosition(indentation.BasePosition);
@@ -207,7 +205,6 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         /// </summary>
         private (ImmutableArray<TextChange> textChanges, int finalBraceEnd) FormatTrackingSpan(
             ParsedDocument document,
-            HostProjectServices languageServices,
             int openingPoint,
             int closingPoint,
             ImmutableArray<AbstractFormattingRule> braceFormattingIndentationRules,
@@ -236,13 +233,13 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             }
 
             var spanToFormat = TextSpan.FromBounds(Math.Max(startPoint, 0), endPoint);
-            var rules = FormattingRuleUtilities.GetFormattingRules(document, languageServices, spanToFormat, braceFormattingIndentationRules);
+            var rules = FormattingRuleUtilities.GetFormattingRules(document, spanToFormat, braceFormattingIndentationRules);
 
             // Annotate the original closing brace so we can find it after formatting.
             var annotatedRoot = GetSyntaxRootWithAnnotatedClosingBrace(document.Root, closingPoint);
 
             var result = Formatter.GetFormattingResult(
-                annotatedRoot, SpecializedCollections.SingletonEnumerable(spanToFormat), languageServices.SolutionServices, options.FormattingOptions, rules, cancellationToken);
+                annotatedRoot, SpecializedCollections.SingletonEnumerable(spanToFormat), document.SolutionServices, options.FormattingOptions, rules, cancellationToken);
 
             if (result == null)
             {

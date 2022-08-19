@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -55,6 +55,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public DocumentAnalysisScope AnalysisScope { get; }
+
+        public DocumentAnalysisExecutor With(DocumentAnalysisScope analysisScope)
+            => new(analysisScope, _compilationWithAnalyzers, _diagnosticAnalyzerRunner, _logPerformanceInfo, _onAnalysisException);
 
         /// <summary>
         /// Return all local diagnostics (syntax, semantic) that belong to given document for the given analyzer by calculating them.
@@ -153,10 +156,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Remap diagnostic locations, if required.
             diagnostics = await RemapDiagnosticLocationsIfRequiredAsync(textDocument, diagnostics, cancellationToken).ConfigureAwait(false);
 
+            if (span.HasValue)
+            {
+                diagnostics = diagnostics.WhereAsArray(d => !d.HasTextSpan || span.Value.IntersectsWith(d.GetTextSpan()));
+            }
+
 #if DEBUG
             var diags = await diagnostics.ToDiagnosticsAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
             Debug.Assert(diags.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diags, _compilationWithAnalyzers.Compilation).Count());
-            //Debug.Assert(diagnostics.Length == diags.ConvertToLocalDiagnostics(textDocument, span).Count());
+            Debug.Assert(diagnostics.Length == ConvertToLocalDiagnostics(diags, textDocument, span).Count());
 #endif
 
             return diagnostics;
