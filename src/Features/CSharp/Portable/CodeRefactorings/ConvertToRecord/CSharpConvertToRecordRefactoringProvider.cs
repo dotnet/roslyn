@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return;
             }
 
-            var propertyAnalysisResults = PositionalParameterInfo.GetPropertiesForPositionalParameters(
+            var PositionalParameterInfos = PositionalParameterInfo.GetPropertiesForPositionalParameters(
                 typeDeclaration.Members
                     .Where(member => member is PropertyDeclarationSyntax)
                     .Cast<PropertyDeclarationSyntax>()
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 type,
                 semanticModel,
                 cancellationToken);
-            if (propertyAnalysisResults.IsEmpty)
+            if (PositionalParameterInfos.IsEmpty)
             {
                 return;
             }
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 cancellationToken => ConvertToPositionalRecordAsync(
                     document,
                     type,
-                    propertyAnalysisResults,
+                    PositionalParameterInfos,
                     typeDeclaration,
                     cancellationToken),
                 nameof(CSharpFeaturesResources.Convert_to_positional_record));
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         private static async Task<Document> ConvertToPositionalRecordAsync(
             Document document,
             INamedTypeSymbol originalType,
-            ImmutableArray<PositionalParameterInfo> propertyAnalysisResults,
+            ImmutableArray<PositionalParameterInfo> PositionalParameterInfos,
             TypeDeclarationSyntax originalDeclarationNode,
             CancellationToken cancellationToken)
         {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 originalDeclarationNode,
                 originalType,
                 semanticModel,
-                propertyAnalysisResults,
+                PositionalParameterInfos,
                 out var propertiesAndDefaults, cancellationToken);
 
             var lineFormattingOptions = await document
@@ -230,15 +230,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             TypeDeclarationSyntax typeDeclaration,
             INamedTypeSymbol type,
             SemanticModel semanticModel,
-            ImmutableArray<PropertyAnalysisResult> propertiesToMove,
+            ImmutableArray<PositionalParameterInfo> propertiesToMove,
             out ImmutableArray<(PropertyDeclarationSyntax property, EqualsValueClauseSyntax? @default)> defaults,
             CancellationToken cancellationToken)
         {
             // without any knowledge of a constructor, we don't provide defaults
             // and we maintain the order we saw the properties
             defaults = propertiesToMove.SelectAsArray
-                <PropertyAnalysisResult, (PropertyDeclarationSyntax, EqualsValueClauseSyntax?)>
-                (result => (result.Syntax, null));
+                <PositionalParameterInfo, (PropertyDeclarationSyntax, EqualsValueClauseSyntax?)>
+                (result => (result.Declaration!, null));
             using var _ = ArrayBuilder<MemberDeclarationSyntax>.GetInstance(out var modifiedMembers);
             modifiedMembers.AddRange(typeDeclaration.Members);
 
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                         SymbolEqualityComparer.Default));
 
             // need to get primary constructor first because it can re-order the initializer list for other constructors
-            if (primaryIndex != -1 && CSharpOperationAnalysisHelpers.IsSimplePrimaryConstructor(
+            if (primaryIndex != -1 && ConvertToRecordHelpers.IsSimplePrimaryConstructor(
                     constructorOperations[primaryIndex],
                     ref positionalParams,
                     constructorSymbols[primaryIndex].Parameters))
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     {
                         // positional params (properties) should be re-ordered in order of constructor parameter list
                         var propertyDeclaration = propertiesToMove.First(
-                            value => value.Symbol.Equals(positionalParams[i])).Syntax;
+                            value => value.Symbol.Equals(positionalParams[i])).Declaration;
                         return (propertyDeclaration, param.Default);
                     })
                     .AsImmutable();
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     if (constructorSymbol.Parameters.Length == 1 &&
                         constructorSymbol.Parameters[0].Type.Equals(type))
                     {
-                        if (CSharpOperationAnalysisHelpers.IsSimpleCopyConstructor(constructorOperation,
+                        if (ConvertToRecordHelpers.IsSimpleCopyConstructor(constructorOperation,
                             expectedFields,
                             constructorSymbol.Parameters.First()))
                         {
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     {
                         // non-primary, non-copy constructor, add ": this(...)" initializers to each
                         // and try to use assignments in the body to determine the values, otw default or null
-                        var (thisArgs, statementsToRemove) = CSharpOperationAnalysisHelpers
+                        var (thisArgs, statementsToRemove) = ConvertToRecordHelpers
                             .GetInitializerValuesForNonPrimaryConstructor(constructorOperation, positionalParams);
 
                         var removalOptions = SyntaxRemoveOptions.KeepExteriorTrivia |

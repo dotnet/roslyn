@@ -2535,7 +2535,6 @@ namespace N
 {
     public record C(bool B, int P)
     {
-
         public C(bool b1, bool b2, bool b3) : this(!b2 == b3, b1 ? 1 : 0)
         {
         }
@@ -2595,7 +2594,6 @@ namespace N
 
     public record C(bool B, int P)
     {
-
         public C(R r) : this(r.IsBarNum(r.Foo), r.field)
         {
         }
@@ -2655,7 +2653,6 @@ namespace N
 
     public record C(bool? B, int P)
     {
-
         public C(R? r, int backup) : this(r?.IsBarNum(backup), r?.Foo ?? 10)
         {
         }
@@ -2695,7 +2692,6 @@ namespace N
 {
     public record C(bool B, int P)
     {
-
         public C(object b1, bool b2, object b3) : this(!b2 && b3 is C { P: 10 }, b1 is int ? 1 : 0)
         {
         }
@@ -2740,7 +2736,6 @@ namespace N
 {
     public record C(bool B, int P)
     {
-
         public C(int f1, bool b2, bool b3) : this(!b2 && b3, f1 switch
         {
             1 => 0,
@@ -2790,7 +2785,6 @@ namespace N
 {
     public record C(bool B, int P)
     {
-
         public C(bool b1, bool b2) : this(!b2, b1 ? 1 : 0)
         {
             Console.WriteLine(""Side effect"");
@@ -2832,7 +2826,6 @@ namespace N
 {
     public record C(bool B, int P)
     {
-
         public C(bool b1, bool b2) : this(default, b1 ? 1 : 0)
         {
             var b = !b2;
@@ -2874,7 +2867,6 @@ namespace N
 {
     public record C(bool B, int? P)
     {
-
         public C(bool b1, bool b2) : this(default, null)
         {
             var b = !b2 || b2;
