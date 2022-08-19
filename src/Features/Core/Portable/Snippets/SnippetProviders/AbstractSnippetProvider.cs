@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
@@ -101,13 +102,16 @@ namespace Microsoft.CodeAnalysis.Snippets
             // Goes through and calls upon the formatting engines that the previous step annotated.
             var reformattedDocument = await CleanupDocumentAsync(formatAnnotatedSnippetDocument, cancellationToken).ConfigureAwait(false);
 
-            var reformattedRoot = await reformattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            // Finds the added snippet and adds identation where necessary (braces).
+            var documentWithIndentation = await AddIndentationToDocumentAsync(reformattedDocument, position, syntaxFacts, cancellationToken).ConfigureAwait(false);
+
+            var reformattedRoot = await documentWithIndentation.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).FirstOrDefault();
             var mainChangeNode = reformattedRoot.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
 
             // All the TextChanges from the original document. Will include any imports (if necessary) and all snippet associated
             // changes after having been formatted.
-            var changes = await reformattedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+            var changes = await documentWithIndentation.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
 
             // Gets a listing of the identifiers that need to be found in the snippet TextChange
             // and their associated TextSpan so they can later be converted into an LSP snippet format.
@@ -203,6 +207,16 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
             var annotatedSnippetRoot = await AnnotateNodesToReformatAsync(document, _findSnippetAnnotation, _cursorAnnotation, position, cancellationToken).ConfigureAwait(false);
             document = document.WithSyntaxRoot(annotatedSnippetRoot);
+            return document;
+        }
+
+        protected virtual string? GetIndentation(Document document, SyntaxNode node, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
+        {
+            return null;
+        }
+
+        protected async virtual Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        {
             return document;
         }
     }

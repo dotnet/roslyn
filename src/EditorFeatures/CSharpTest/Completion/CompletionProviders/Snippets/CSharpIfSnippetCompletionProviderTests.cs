@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     public void Method()
     {
         if (true)
-        {$$
+        {
+            $$
         }
     }
 }";
