@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConvertToAsync
                 return null;
             }
 
-            if (!(semanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol is IMethodSymbol methodSymbol))
+            if (semanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol is not IMethodSymbol methodSymbol)
             {
                 return null;
             }
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConvertToAsync
                 return null;
             }
 
-            if (!((await methodReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false)) is MethodDeclarationSyntax methodDeclaration))
+            if ((await methodReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false)) is not MethodDeclarationSyntax methodDeclaration)
             {
                 return null;
             }

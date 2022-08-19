@@ -9,6 +9,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Extensions;
 
 #if !COCOA
 using System.Linq;
@@ -83,6 +86,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             catch (ArgumentOutOfRangeException)
             {
                 return null;
+            }
+        }
+
+        protected override void Commit(InlineRenameSession activeSession, ITextView textView)
+        {
+            try
+            {
+                base.Commit(activeSession, textView);
+            }
+            catch (NotSupportedException ex)
+            {
+                // Session.Commit can throw if it can't commit
+                // rename operation.
+                // handle that case gracefully
+                var notificationService = activeSession.Workspace.Services.GetService<INotificationService>();
+                notificationService?.SendNotification(ex.Message, title: EditorFeaturesResources.Rename, severity: NotificationSeverity.Error);
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
+                // Show a nice error to the user via an info bar
+                var errorReportingService = activeSession.Workspace.Services.GetService<IErrorReportingService>();
+                if (errorReportingService is null)
+                {
+                    return;
+                }
+
+                errorReportingService.ShowGlobalErrorInfo(
+                    string.Format(EditorFeaturesWpfResources.Error_performing_rename_0, ex.Message),
+                    ex,
+                    new InfoBarUI(
+                        WorkspacesResources.Show_Stack_Trace,
+                        InfoBarUI.UIKind.HyperLink,
+                        () => errorReportingService.ShowDetailedErrorInfo(ex), closeAfterAction: true));
             }
         }
 #else

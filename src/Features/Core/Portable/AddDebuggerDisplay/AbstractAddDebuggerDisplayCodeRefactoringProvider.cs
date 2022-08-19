@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
             context.RegisterRefactoring(new MyCodeAction(
                 priority,
-                FeaturesResources.Add_DebuggerDisplay_attribute,
                 c => ApplyAsync(document, type, debuggerAttributeTypeSymbol, c)));
         }
 
@@ -102,7 +101,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             => methodSymbol is { Name: DebuggerDisplayMethodName, Arity: 0, Parameters: { IsEmpty: true } };
 
         private static bool IsClassOrStruct(ITypeSymbol typeSymbol)
-            => typeSymbol.TypeKind == TypeKind.Class || typeSymbol.TypeKind == TypeKind.Struct;
+            => typeSymbol.TypeKind is TypeKind.Class or TypeKind.Struct;
 
         private static bool HasDebuggerDisplayAttribute(ITypeSymbol typeSymbol, Compilation compilation)
             => typeSymbol.GetAttributes()
@@ -180,8 +179,8 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
         {
             internal override CodeActionPriority Priority { get; }
 
-            public MyCodeAction(CodeActionPriority priority, string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Add_DebuggerDisplay_attribute, createChangedDocument, nameof(FeaturesResources.Add_DebuggerDisplay_attribute))
             {
                 Priority = priority;
             }

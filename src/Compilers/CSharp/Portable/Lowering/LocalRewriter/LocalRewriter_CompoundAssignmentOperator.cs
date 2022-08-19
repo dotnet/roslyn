@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenType: node.Operator.LeftType,
                     @checked: isChecked);
 
-                BoundExpression operand = MakeBinaryOperator(syntax, node.Operator.Kind, opLHS, loweredRight, node.Operator.ReturnType, node.Operator.Method, isCompoundAssignment: true);
+                BoundExpression operand = MakeBinaryOperator(syntax, node.Operator.Kind, opLHS, loweredRight, node.Operator.ReturnType, node.Operator.Method, node.Operator.ConstrainedToTypeOpt, isCompoundAssignment: true);
 
                 Debug.Assert(node.Left.Type is { });
                 BoundExpression opFinal = MakeConversionNode(
@@ -294,13 +294,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             // tempy = Y()
             // tempc[tempx, tempy, 123] = tempc[tempx, tempy, 123] + 1;
 
-            ImmutableArray<BoundExpression> rewrittenArguments = VisitList(indexerAccess.Arguments);
-
             SyntaxNode syntax = indexerAccess.Syntax;
             PropertySymbol indexer = indexerAccess.Indexer;
-            ImmutableArray<RefKind> argumentRefKinds = indexerAccess.ArgumentRefKindsOpt;
-            bool expanded = indexerAccess.Expanded;
             ImmutableArray<int> argsToParamsOpt = indexerAccess.ArgsToParamsOpt;
+            ImmutableArray<RefKind> argumentRefKinds = indexerAccess.ArgumentRefKindsOpt;
+
+            ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+                indexerAccess.Arguments,
+                indexer,
+                argsToParamsOpt,
+                argumentRefKinds,
+                ref transformedReceiver!,
+                out ArrayBuilder<LocalSymbol>? argumentTemps);
+
+            if (argumentTemps != null)
+            {
+                temps.AddRange(argumentTemps);
+                argumentTemps.Free();
+            }
+
+            if (transformedReceiver is BoundSequence receiverSequence)
+            {
+                // The receiver is a store/evaluate sequence because it was used as an argument to an interpolated
+                // string handler conversion.
+                // Pick apart the sequence, add the side effects to the containing list of stores, and set the
+                // receiver to just be the final temp to ensure we don't double-evaluate the sequence.
+
+                temps.AddRange(receiverSequence.Locals);
+                stores.AddRange(receiverSequence.SideEffects);
+                transformedReceiver = receiverSequence.Value;
+            }
+
+            bool expanded = indexerAccess.Expanded;
 
             ImmutableArray<ParameterSymbol> parameters = indexer.Parameters;
             BoundExpression[] actualArguments = new BoundExpression[parameters.Length]; // The actual arguments that will be passed; one actual argument per formal parameter.

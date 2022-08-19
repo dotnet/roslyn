@@ -2600,16 +2600,16 @@ class C(int X, int Y)
         {
             var text = "record struct(int X, int Y);";
             UsingTree(text, options: TestOptions.Regular9,
-                // (1,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record struct(int X, int Y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(1, 8),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(1, 8),
                 // (1,14): error CS1001: Identifier expected
                 // record struct(int X, int Y);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14)
                 );
             verify();
 
-            UsingTree(text, options: TestOptions.RegularPreview,
+            UsingTree(text, options: TestOptions.Regular10,
                 // (1,14): error CS1001: Identifier expected
                 // record struct(int X, int Y);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14)
@@ -2659,14 +2659,14 @@ class C(int X, int Y)
         public void RecordStructParsing()
         {
             var text = "record struct C(int X, int Y);";
-            UsingTree(text, options: TestOptions.RegularPreview);
+            UsingTree(text, options: TestOptions.Regular10);
 
             verifyParsedAsRecord();
 
             UsingTree(text, options: TestOptions.Regular9,
-                 // (1,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                 // record struct C(int X, int Y);
-                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(1, 8)
+                // (1,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // record struct C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(1, 8)
                  );
 
             verifyParsedAsRecord();
@@ -2793,7 +2793,7 @@ class C(int X, int Y)
         public void RecordStructParsing_WithBody()
         {
             var text = "record struct C(int X, int Y) { }";
-            UsingTree(text, options: TestOptions.RegularPreview);
+            UsingTree(text, options: TestOptions.Regular10);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2836,14 +2836,14 @@ class C(int X, int Y)
         public void RecordClassParsing()
         {
             var text = "record class C(int X, int Y);";
-            UsingTree(text, options: TestOptions.RegularPreview);
+            UsingTree(text, options: TestOptions.Regular10);
 
             verifyParsedAsRecord();
 
             UsingTree(text, options: TestOptions.Regular9,
-                // (1,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "class").WithArguments("record structs").WithLocation(1, 8)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "class").WithArguments("record structs", "10.0").WithLocation(1, 8)
                 );
 
             verifyParsedAsRecord();
@@ -3727,9 +3727,9 @@ class C(int X, int Y)
             EOF();
 
             UsingTree(text, options: TestOptions.Regular9,
-                // (1,12): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // ref record struct S;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(1, 12)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(1, 12)
                 );
 
             verifyParsedAsRecord();

@@ -257,9 +257,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion classifyConversion(bool fromExpression, TypeSymbol targetInterface, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
-                return fromExpression ?
-                    originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, targetInterface, ref useSiteInfo) :
-                    originalBinder.Conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, targetInterface, ref useSiteInfo);
+                var conversions = originalBinder.Conversions;
+                if (fromExpression)
+                {
+                    Debug.Assert(expressionOpt is { });
+                    return conversions.ClassifyImplicitConversionFromExpression(expressionOpt, targetInterface, ref useSiteInfo);
+                }
+                else
+                {
+                    Debug.Assert(declarationTypeOpt is { });
+                    return conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, targetInterface, ref useSiteInfo);
+                }
             }
 
             TypeSymbol getDisposableInterface(bool isAsync)

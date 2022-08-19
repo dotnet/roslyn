@@ -964,9 +964,15 @@ End Class"
                 Next
             End Function
 
-            Public Overrides ReadOnly Property CurrentGenerationOrdinal As Integer
+            Public Overrides ReadOnly Property EncSymbolChanges As SymbolChanges
                 Get
-                    Return _builder.CurrentGenerationOrdinal
+                    Return _builder.EncSymbolChanges
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property PreviousGeneration As EmitBaseline
+                Get
+                    Return Nothing
                 End Get
             End Property
 

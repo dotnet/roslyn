@@ -3255,6 +3255,40 @@ End Class
             Assert.True(DirectCast(cs, INamedTypeSymbol).IsSerializable)
         End Sub
 
+        <Fact>
+        Public Sub ExplicitInterfaceImplementationRetargetingGenericType()
+            Dim source1 = "
+Public Class C1(Of T)
+    Public Interface I1
+        Sub M(x As T)
+    End Interface
+End Class
+"
+            Dim ref1 = CreateEmptyCompilation("").ToMetadataReference()
+            Dim compilation1 = CreateCompilation(source1, references:={ref1})
+
+            Dim source2 = "
+Public Class C2(Of U) 
+    Implements C1(Of U).I1
+
+    Sub M(x As U) Implements C1(Of U).I1.M
+    End Sub
+End Class
+"
+            Dim compilation2 = CreateCompilation(source2, references:={compilation1.ToMetadataReference(), ref1, CreateEmptyCompilation("").ToMetadataReference()})
+
+            Dim compilation3 = CreateCompilation("", references:={compilation1.ToMetadataReference(), compilation2.ToMetadataReference()})
+
+            Assert.NotSame(compilation2.GetTypeByMetadataName("C1`1"), compilation3.GetTypeByMetadataName("C1`1"))
+
+            Dim c2 = compilation3.GetTypeByMetadataName("C2`1")
+            Assert.IsType(Of RetargetingNamedTypeSymbol)(c2)
+
+            Dim m = c2.GetMethod("M")
+
+            Assert.Equal(c2.Interfaces().Single().GetMethod("M"), m.ExplicitInterfaceImplementations.Single())
+        End Sub
+
     End Class
 #End If
 

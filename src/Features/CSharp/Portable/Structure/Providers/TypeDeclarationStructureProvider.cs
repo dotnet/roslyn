@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class TypeDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<TypeDeclarationSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             TypeDeclarationSyntax typeDeclaration,
             ref TemporaryArray<BlockSpan> spans,
             BlockStructureOptionProvider optionProvider,

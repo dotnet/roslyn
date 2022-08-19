@@ -1184,6 +1184,7 @@ namespace Microsoft.CodeAnalysis
                 // If solution did not originate from this workspace then fail
                 if (newSolution.Workspace != this)
                 {
+                    Logger.Log(FunctionId.Workspace_ApplyChanges, "Apply Failed: workspaces do not match");
                     return false;
                 }
 
@@ -1192,6 +1193,7 @@ namespace Microsoft.CodeAnalysis
                 // If the workspace has already accepted an update, then fail
                 if (newSolution.WorkspaceVersion != oldSolution.WorkspaceVersion)
                 {
+                    Logger.Log(FunctionId.Workspace_ApplyChanges, "Apply Failed: Workspace has already been updated");
                     return false;
                 }
 

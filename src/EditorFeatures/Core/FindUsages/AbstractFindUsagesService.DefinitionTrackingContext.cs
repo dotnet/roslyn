@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -20,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// Forwards <see cref="IFindUsagesContext"/> notifications to an underlying <see cref="IFindUsagesContext"/>
         /// while also keeping track of the <see cref="DefinitionItem"/> definitions reported.
         /// 
-        /// These can then be used by <see cref="GetThirdPartyDefinitions"/> to report the
+        /// These can then be used by <see cref="GetThirdPartyDefinitionsAsync"/> to report the
         /// definitions found to third parties in case they want to add any additional definitions
         /// to the results we present.
         /// </summary>
@@ -33,33 +30,26 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             public DefinitionTrackingContext(IFindUsagesContext underlyingContext)
                 => _underlyingContext = underlyingContext;
 
-            public CancellationToken CancellationToken
-                => _underlyingContext.CancellationToken;
-
             public IStreamingProgressTracker ProgressTracker
                 => _underlyingContext.ProgressTracker;
 
-            public ValueTask ReportMessageAsync(string message)
-                => _underlyingContext.ReportMessageAsync(message);
+            public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
+                => _underlyingContext.ReportMessageAsync(message, cancellationToken);
 
-            public ValueTask SetSearchTitleAsync(string title)
-                => _underlyingContext.SetSearchTitleAsync(title);
+            public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
+                => _underlyingContext.SetSearchTitleAsync(title, cancellationToken);
 
-            public ValueTask OnReferenceFoundAsync(SourceReferenceItem reference)
-                => _underlyingContext.OnReferenceFoundAsync(reference);
+            public ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+                => _underlyingContext.OnReferenceFoundAsync(reference, cancellationToken);
 
-            [Obsolete("Use ProgressTracker instead", error: false)]
-            public ValueTask ReportProgressAsync(int current, int maximum)
-                => _underlyingContext.ReportProgressAsync(current, maximum);
-
-            public ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
+            public ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {
                 lock (_gate)
                 {
                     _definitions.Add(definition);
                 }
 
-                return _underlyingContext.OnDefinitionFoundAsync(definition);
+                return _underlyingContext.OnDefinitionFoundAsync(definition, cancellationToken);
             }
 
             public ImmutableArray<DefinitionItem> GetDefinitions()

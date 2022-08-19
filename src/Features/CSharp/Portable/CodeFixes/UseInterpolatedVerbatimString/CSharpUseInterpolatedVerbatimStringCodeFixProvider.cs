@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedVerbatimString
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Use_interpolated_verbatim_string, createChangedDocument)
+                : base(FeaturesResources.Use_interpolated_verbatim_string, createChangedDocument, nameof(FeaturesResources.Use_interpolated_verbatim_string))
             {
             }
         }

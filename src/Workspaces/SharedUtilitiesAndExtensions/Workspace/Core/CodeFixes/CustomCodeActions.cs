@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             public SimpleCodeAction(
                 string title,
-                string? equivalenceKey = null)
+                string? equivalenceKey)
             {
                 Title = title;
                 EquivalenceKey = equivalenceKey;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             public DocumentChangeAction(
                 string title,
                 Func<CancellationToken, Task<Document>> createChangedDocument,
-                string? equivalenceKey = null)
+                string? equivalenceKey)
                 : base(title, equivalenceKey)
             {
                 _createChangedDocument = createChangedDocument;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             public SolutionChangeAction(
                 string title,
                 Func<CancellationToken, Task<Solution>> createChangedSolution,
-                string? equivalenceKey = null)
+                string? equivalenceKey)
                 : base(title, equivalenceKey)
             {
                 _createChangedSolution = createChangedSolution;

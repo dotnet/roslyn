@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
             if (token.IsKind(SyntaxKind.GreaterThanToken))
             {
-                if (!(token.Parent is XmlElementStartTagSyntax parentStartTag))
+                if (token.Parent is not XmlElementStartTagSyntax parentStartTag)
                 {
                     return;
                 }
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
                 return false;
             }
 
-            if (!(parentStartTag.Parent is XmlElementSyntax parentElement))
+            if (parentStartTag.Parent is not XmlElementSyntax parentElement)
             {
                 return false;
             }

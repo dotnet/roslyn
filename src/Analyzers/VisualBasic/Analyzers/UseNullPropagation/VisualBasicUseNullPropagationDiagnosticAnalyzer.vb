@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             ConditionalAccessExpressionSyntax,
             InvocationExpressionSyntax)
 
-        Protected Overrides Function ShouldAnalyze(options As ParseOptions) As Boolean
-            Return DirectCast(options, VisualBasicParseOptions).LanguageVersion >= LanguageVersion.VisualBasic14
+        Protected Overrides Function ShouldAnalyze(compilation As Compilation) As Boolean
+            Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic14
         End Function
 
         Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts

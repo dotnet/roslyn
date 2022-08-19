@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static bool ReportException(Exception e)
         {
             // If we got a PathTooLongException there's really nothing we can do about it; we will fail to read the file later which is fine
-            if (!(e is PathTooLongException))
+            if (e is not PathTooLongException)
             {
                 return FatalError.ReportAndCatch(e);
             }

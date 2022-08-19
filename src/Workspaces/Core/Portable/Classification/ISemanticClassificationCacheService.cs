@@ -9,8 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PersistentStorage;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -28,10 +26,8 @@ namespace Microsoft.CodeAnalysis.Classification
         /// name="textSpan"/>.  Will return a <c>default</c> array not able to.  An empty array indicates that there
         /// were cached classifications, but none that intersected the provided <paramref name="textSpan"/>.
         /// </summary>
-        /// <param name="checksum">Pass in <see cref="DocumentStateChecksums.Text"/>.  This will ensure that the cached
-        /// classifications are only returned if they match the content the file currently has.</param>
         Task<ImmutableArray<ClassifiedSpan>> GetCachedSemanticClassificationsAsync(
-            DocumentKey documentKey, TextSpan textSpan, Checksum checksum, CancellationToken cancellationToken);
+            Document document, TextSpan textSpan, CancellationToken cancellationToken);
     }
 
     [ExportWorkspaceService(typeof(ISemanticClassificationCacheService)), Shared]
@@ -43,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Classification
         {
         }
 
-        public Task<ImmutableArray<ClassifiedSpan>> GetCachedSemanticClassificationsAsync(DocumentKey documentKey, TextSpan textSpan, Checksum checksum, CancellationToken cancellationToken)
+        public Task<ImmutableArray<ClassifiedSpan>> GetCachedSemanticClassificationsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
             => SpecializedTasks.Default<ImmutableArray<ClassifiedSpan>>();
     }
 }

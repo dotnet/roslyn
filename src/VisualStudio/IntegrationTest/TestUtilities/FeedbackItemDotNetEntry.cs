@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics.Eventing.Reader;
 using System.Linq;
@@ -45,7 +43,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public FeedbackItemDotNetEntry(EventRecord eventLogRecord)
         {
-            EventTime = eventLogRecord.TimeCreated.Value.ToUniversalTime();
+            EventTime = eventLogRecord.TimeCreated?.ToUniversalTime() ?? DateTime.MinValue;
             EventId = eventLogRecord.Id;
             Data = string.Join(";", eventLogRecord.Properties.Select(pr => pr.Value ?? string.Empty));
         }

@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
 
-                var workspace = document.Project.Solution.Workspace;
-                var context = CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
+                var context = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
 
                 var index = GetElementIndex(context);
                 if (index == null)

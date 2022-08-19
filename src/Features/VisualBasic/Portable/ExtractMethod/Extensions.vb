@@ -296,6 +296,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         End Function
 
         <Extension()>
+        Public Function ContainedInValidType(node As SyntaxNode) As Boolean
+            Contract.ThrowIfNull(node)
+            For Each ancestor In node.AncestorsAndSelf
+                If TryCast(ancestor, TypeBlockSyntax) IsNot Nothing Then
+                    Return True
+                End If
+
+                If TryCast(ancestor, NamespaceBlockSyntax) IsNot Nothing Then
+                    Return False
+                End If
+            Next
+
+            Return True
+        End Function
+
+        <Extension()>
         Public Function ContainsInMethodBlockBody(block As MethodBlockBaseSyntax, textSpan As TextSpan) As Boolean
             If block Is Nothing Then
                 Return False
@@ -360,6 +376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 If tuple.Item2.Kind = SyntaxKind.None Then
                     Exit For
                 End If
+
                 list.Add(tuple.Item2)
             Next
 

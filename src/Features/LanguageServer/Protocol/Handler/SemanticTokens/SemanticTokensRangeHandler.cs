@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             _tokensCache = tokensCache;
         }
 
-        public string Method => LSP.SemanticTokensMethods.TextDocumentSemanticTokensRangeName;
+        public string Method => LSP.Methods.TextDocumentSemanticTokensRangeName;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
@@ -52,10 +52,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // partial token results. In addition, a range request is only ever called with a whole
             // document request, so caching range results is unnecessary since the whole document
             // handler will cache the results anyway.
-            var tokensData = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+            var (tokensData, isFinalized) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 context.Document, SemanticTokensCache.TokenTypeToIndex,
                 request.Range, cancellationToken).ConfigureAwait(false);
-            return new LSP.SemanticTokens { ResultId = resultId, Data = tokensData };
+
+            return new RoslynSemanticTokens { ResultId = resultId, Data = tokensData, IsFinalized = isFinalized };
         }
     }
 }

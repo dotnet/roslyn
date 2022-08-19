@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 _definition = definition;
             }
 
-            public async ValueTask OnReferenceFoundAsync(Document document, TextSpan span)
+            public async ValueTask OnReferenceFoundAsync(Document document, TextSpan span, CancellationToken cancellationToken)
             {
                 var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
-                    document, span, _context.CancellationToken).ConfigureAwait(false);
-                await _context.OnReferenceFoundAsync(new SourceReferenceItem(
-                    _definition, documentSpan, SymbolUsageInfo.None)).ConfigureAwait(false);
+                    document, span, cancellationToken).ConfigureAwait(false);
+                await _context.OnReferenceFoundAsync(
+                    new SourceReferenceItem(_definition, documentSpan, SymbolUsageInfo.None), cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -83,18 +83,17 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             // Do nothing functions.  The streaming far service doesn't care about
             // any of these.
-            public ValueTask OnStartedAsync() => default;
-            public ValueTask OnCompletedAsync() => default;
-            public ValueTask OnFindInDocumentStartedAsync(Document document) => default;
-            public ValueTask OnFindInDocumentCompletedAsync(Document document) => default;
+            public ValueTask OnStartedAsync(CancellationToken cancellationToken) => default;
+            public ValueTask OnCompletedAsync(CancellationToken cancellationToken) => default;
+            public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken) => default;
+            public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken) => default;
 
             // More complicated forwarding functions.  These need to map from the symbols
             // used by the FAR engine to the INavigableItems used by the streaming FAR 
             // feature.
 
-            private async ValueTask<DefinitionItem> GetDefinitionItemAsync(SymbolGroup group)
+            private async ValueTask<DefinitionItem> GetDefinitionItemAsync(SymbolGroup group, CancellationToken cancellationToken)
             {
-                var cancellationToken = _context.CancellationToken;
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     if (!_definitionToItem.TryGetValue(group, out var definitionItem))
@@ -104,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                             isPrimary: _definitionToItem.Count == 0,
                             includeHiddenLocations: false,
                             _options,
-                            _context.CancellationToken).ConfigureAwait(false);
+                            cancellationToken).ConfigureAwait(false);
 
                         _definitionToItem[group] = definitionItem;
                     }
@@ -113,21 +112,21 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 }
             }
 
-            public async ValueTask OnDefinitionFoundAsync(SymbolGroup group)
+            public async ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
             {
-                var definitionItem = await GetDefinitionItemAsync(group).ConfigureAwait(false);
-                await _context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
+                var definitionItem = await GetDefinitionItemAsync(group, cancellationToken).ConfigureAwait(false);
+                await _context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
             }
 
-            public async ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol definition, ReferenceLocation location)
+            public async ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol definition, ReferenceLocation location, CancellationToken cancellationToken)
             {
-                var definitionItem = await GetDefinitionItemAsync(group).ConfigureAwait(false);
+                var definitionItem = await GetDefinitionItemAsync(group, cancellationToken).ConfigureAwait(false);
                 var referenceItem = await location.TryCreateSourceReferenceItemAsync(
                     definitionItem, includeHiddenLocations: false,
-                    cancellationToken: _context.CancellationToken).ConfigureAwait(false);
+                    cancellationToken).ConfigureAwait(false);
 
                 if (referenceItem != null)
-                    await _context.OnReferenceFoundAsync(referenceItem).ConfigureAwait(false);
+                    await _context.OnReferenceFoundAsync(referenceItem, cancellationToken).ConfigureAwait(false);
             }
         }
     }

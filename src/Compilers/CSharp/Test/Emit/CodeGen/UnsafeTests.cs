@@ -9564,7 +9564,7 @@ True
 False
 False", verify: Verification.Skipped);
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__test|0_0<T>(S<T>*)", @"
+            verifier.VerifyIL("Program.<<Main>$>g__test|0_0<T>(S<T>*)", @"
 {
   // Code size       21 (0x15)
   .maxstack  2
@@ -9606,7 +9606,7 @@ True
 False
 False", verify: Verification.Skipped);
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__test|0_0<T>(T*)", @"
+            verifier.VerifyIL("Program.<<Main>$>g__test|0_0<T>(T*)", @"
 {
   // Code size       21 (0x15)
   .maxstack  2

@@ -159,6 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             {
                 _remoteLanguageServiceWorkspace.OnProjectRemoved(projectId);
             }
+
             _loadedProjects = _loadedProjects.Clear();
             _loadedProjectInfo = _loadedProjectInfo.Clear();
         }

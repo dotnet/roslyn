@@ -71,9 +71,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                       Await workspace.CurrentSolution.GetSourceGeneratedDocumentAsync(cursorDocument.Id, CancellationToken.None))
                     Assert.NotNull(startDocument)
 
-                    Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess)
+                    Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
                     Dim context = New TestContext()
-                    Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context)
+                    Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context, CancellationToken.None)
 
                     Dim expectedDefinitions =
                         workspace.Documents.Where(Function(d) d.AnnotatedSpans.ContainsKey(DefinitionKey) AndAlso d.AnnotatedSpans(DefinitionKey).Any()).
@@ -169,6 +169,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     propertyValues = New HashSet(Of String)()
                     additionalPropertiesMap.Add(propertyName, propertyValues)
                 End If
+
                 propertyValues.Add(propertyValue)
             Next
 
@@ -231,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return definition.DisplayIfNoReferences
             End Function
 
-            Public Overrides Function OnDefinitionFoundAsync(definition As DefinitionItem) As ValueTask
+            Public Overrides Function OnDefinitionFoundAsync(definition As DefinitionItem, cancellationToken As CancellationToken) As ValueTask
                 SyncLock gate
                     Me.Definitions.Add(definition)
                 End SyncLock
@@ -239,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return Nothing
             End Function
 
-            Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem) As ValueTask
+            Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem, cancellationToken As CancellationToken) As ValueTask
                 SyncLock gate
                     References.Add(reference)
                 End SyncLock
@@ -438,6 +439,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 builder.Append(suffix)
                 position = span.End
             Next
+
             builder.Append(text.GetSubText(New TextSpan(position, text.Length - position)))
 
             Return instance.ToStringAndFree()

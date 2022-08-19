@@ -1213,7 +1213,7 @@ class C
                     Assert.Equal("C", classC.Name)
 
                     fileCodeModel.BeginBatch()
-                    Dim newFunction = classC.AddFunction("M", EnvDTE.vsCMFunction.vsCMFunctionFunction, Type:=EnvDTE.vsCMTypeRef.vsCMTypeRefVoid)
+                    Dim newFunction = classC.AddFunction("M", EnvDTE.vsCMFunction.vsCMFunctionFunction, Type:=EnvDTE.vsCMTypeRef.vsCMTypeRefVoid, , EnvDTE.vsCMAccess.vsCMAccessDefault)
                     Dim param1 = newFunction.AddParameter("x", EnvDTE.vsCMTypeRef.vsCMTypeRefInt, Position:=-1)
                     Dim param2 = newFunction.AddParameter("y", EnvDTE.vsCMTypeRef.vsCMTypeRefInt, Position:=-1)
                     fileCodeModel.EndBatch()

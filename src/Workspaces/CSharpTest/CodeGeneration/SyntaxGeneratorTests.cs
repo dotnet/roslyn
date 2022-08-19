@@ -971,7 +971,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 Generator.ConstructorDeclaration("c",
                     parameters: new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) },
                     baseConstructorArguments: new[] { Generator.IdentifierName("p") }),
-                "c(t p): base(p)\r\n{\r\n}");
+                "c(t p) : base(p)\r\n{\r\n}");
         }
 
         [Fact]
@@ -3552,6 +3552,14 @@ public class C : IDisposable
 [|namespace N1
 {
 }|]");
+        }
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestFileScopedNamespaceModifiers()
+        {
+            TestModifiersAsync(DeclarationModifiers.None,
+                @"
+[|namespace N1;|]");
         }
 
         [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]

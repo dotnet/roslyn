@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
@@ -86,7 +87,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             var token = _asyncListener.BeginAsyncOperation(nameof(OnEventSourceChanged));
             var task = Task.Run(async () =>
             {
-                await Task.Delay(500, cancellationToken).ConfigureAwait(false);
+                // Support cancellation without throwing
+                await _asyncListener.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).NoThrowAwaitable(captureContext: false);
+                if (cancellationToken.IsCancellationRequested)
+                    return;
+
                 await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 this.Changed?.Invoke(this, new TaggerEventArgs());
             }, cancellationToken);

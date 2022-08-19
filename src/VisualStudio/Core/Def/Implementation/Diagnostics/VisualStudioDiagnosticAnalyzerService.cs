@@ -12,15 +12,18 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
@@ -68,6 +71,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             {
                 VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, RunCodeAnalysisForSelectedProjectCommandId, VSConstants.VSStd2K, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
                 VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.RunCodeAnalysisForProject, Guids.RoslynGroupId, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
+                VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.AnalysisScopeDefault, Guids.RoslynGroupId, OnSetAnalysisScopeDefault, OnSetAnalysisScopeDefaultStatus);
+                VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.AnalysisScopeCurrentDocument, Guids.RoslynGroupId, OnSetAnalysisScopeCurrentDocument, OnSetAnalysisScopeCurrentDocumentStatus);
+                VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.AnalysisScopeOpenDocuments, Guids.RoslynGroupId, OnSetAnalysisScopeOpenDocuments, OnSetAnalysisScopeOpenDocumentsStatus);
+                VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.AnalysisScopeEntireSolution, Guids.RoslynGroupId, OnSetAnalysisScopeEntireSolution, OnSetAnalysisScopeEntireSolutionStatus);
             }
         }
 
@@ -84,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             // Analyzers are only supported for C# and VB currently.
             var projectsWithHierarchy = currentSolution.Projects
-                .Where(p => p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic)
+                .Where(p => p.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)
                 .Where(p => _workspace.GetHierarchy(p.Id) == hierarchy);
 
             if (projectsWithHierarchy.Count() <= 1)
@@ -129,6 +136,113 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         {
             // unfortunately, we had to do this since ruleset editor and us are set to use this signature
             return map.ToDictionary(kv => kv.Key, kv => (IEnumerable<DiagnosticDescriptor>)kv.Value);
+        }
+
+        private void OnSetAnalysisScopeDefaultStatus(object sender, EventArgs e)
+            => OnSetAnalysisScopeStatus((OleMenuCommand)sender, scope: null);
+
+        private void OnSetAnalysisScopeCurrentDocumentStatus(object sender, EventArgs e)
+            => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.ActiveFile);
+
+        private void OnSetAnalysisScopeOpenDocumentsStatus(object sender, EventArgs e)
+            => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.OpenFilesAndProjects);
+
+        private void OnSetAnalysisScopeEntireSolutionStatus(object sender, EventArgs e)
+            => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.FullSolution);
+
+        private void OnSetAnalysisScopeStatus(OleMenuCommand command, BackgroundAnalysisScope? scope)
+        {
+            // The command is enabled as long as we have a service provider
+            if (_serviceProvider is null)
+            {
+                // Not yet initialized
+                command.Enabled = false;
+                return;
+            }
+
+            command.Enabled = true;
+
+            // The command is checked if RoslynPackage is loaded and the analysis scope for this command matches the
+            // value saved for the solution.
+            var roslynPackage = _threadingContext.JoinableTaskFactory.Run(() =>
+            {
+                return RoslynPackage.GetOrLoadAsync(_threadingContext, (IAsyncServiceProvider)_serviceProvider, _threadingContext.DisposalToken).AsTask();
+            });
+
+            if (roslynPackage is not null)
+            {
+                command.Checked = roslynPackage.AnalysisScope == scope;
+            }
+
+            // For the specific case of the default analysis scope command, update the command text to show the
+            // current effective default in the context of the language(s) used in the solution.
+            if (scope is null)
+            {
+                command.Text = GetBackgroundAnalysisScope(_workspace) switch
+                {
+                    BackgroundAnalysisScope.ActiveFile => ServicesVSResources.Default_Current_Document,
+                    BackgroundAnalysisScope.OpenFilesAndProjects => ServicesVSResources.Default_Open_Documents,
+                    BackgroundAnalysisScope.FullSolution => ServicesVSResources.Default_Entire_Solution,
+                    _ => ServicesVSResources.Default_,
+                };
+            }
+
+            return;
+
+            // Local functions
+            static BackgroundAnalysisScope? GetBackgroundAnalysisScope(Workspace workspace)
+            {
+                var csharpAnalysisScope = SolutionCrawlerOptions.GetDefaultBackgroundAnalysisScopeFromOptions(workspace.CurrentSolution.Options, LanguageNames.CSharp);
+                var visualBasicAnalysisScope = SolutionCrawlerOptions.GetDefaultBackgroundAnalysisScopeFromOptions(workspace.CurrentSolution.Options, LanguageNames.VisualBasic);
+
+                var containsCSharpProject = workspace.CurrentSolution.Projects.Any(static project => project.Language == LanguageNames.CSharp);
+                var containsVisualBasicProject = workspace.CurrentSolution.Projects.Any(static project => project.Language == LanguageNames.VisualBasic);
+                if (containsCSharpProject && containsVisualBasicProject)
+                {
+                    if (csharpAnalysisScope == visualBasicAnalysisScope)
+                        return csharpAnalysisScope;
+                    else
+                        return null;
+                }
+                else if (containsVisualBasicProject)
+                {
+                    return visualBasicAnalysisScope;
+                }
+                else
+                {
+                    return csharpAnalysisScope;
+                }
+            }
+        }
+
+        private void OnSetAnalysisScopeDefault(object sender, EventArgs args)
+            => OnSetAnalysisScope(scope: null);
+
+        private void OnSetAnalysisScopeCurrentDocument(object sender, EventArgs args)
+            => OnSetAnalysisScope(BackgroundAnalysisScope.ActiveFile);
+
+        private void OnSetAnalysisScopeOpenDocuments(object sender, EventArgs args)
+            => OnSetAnalysisScope(BackgroundAnalysisScope.OpenFilesAndProjects);
+
+        private void OnSetAnalysisScopeEntireSolution(object sender, EventArgs args)
+            => OnSetAnalysisScope(BackgroundAnalysisScope.FullSolution);
+
+        private void OnSetAnalysisScope(BackgroundAnalysisScope? scope)
+        {
+            if (_serviceProvider is null
+                || !_serviceProvider.TryGetService<SVsShell, IVsShell>(out var shell))
+            {
+                return;
+            }
+
+            var roslynPackage = _threadingContext.JoinableTaskFactory.Run(() =>
+            {
+                return RoslynPackage.GetOrLoadAsync(_threadingContext, (IAsyncServiceProvider)_serviceProvider, _threadingContext.DisposalToken).AsTask();
+            });
+
+            Assumes.Present(roslynPackage);
+
+            roslynPackage.AnalysisScope = scope;
         }
 
         private void OnRunCodeAnalysisForSelectedProjectStatus(object sender, EventArgs e)

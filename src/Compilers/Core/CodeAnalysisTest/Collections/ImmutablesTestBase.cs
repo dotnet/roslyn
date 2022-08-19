@@ -50,6 +50,26 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
         }
 
+        protected static bool IsSame<T>(IImmutableList<T> first, IImmutableList<T> second)
+        {
+            if (first is ImmutableSegmentedList<T> firstSegmented
+                && second is ImmutableSegmentedList<T> secondSegmented)
+            {
+                return firstSegmented == secondSegmented;
+            }
+            else if (first.GetType() != second.GetType())
+            {
+                // If the instances do not have the same type, they cannot be the same
+                return false;
+            }
+            else if (first.GetType().IsValueType)
+            {
+                throw new NotSupportedException($"Unable to compare '{first.GetType()}' for identity.");
+            }
+
+            return first == second;
+        }
+
         protected static bool IsSame<TKey, TValue>(IImmutableDictionary<TKey, TValue> first, IImmutableDictionary<TKey, TValue> second)
             where TKey : notnull
         {

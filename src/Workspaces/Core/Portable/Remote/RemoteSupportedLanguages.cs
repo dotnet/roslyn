@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public static bool IsSupported(this string language)
         {
-            return language == LanguageNames.CSharp ||
-                   language == LanguageNames.VisualBasic;
+            return language is LanguageNames.CSharp or
+                   LanguageNames.VisualBasic;
         }
     }
 }

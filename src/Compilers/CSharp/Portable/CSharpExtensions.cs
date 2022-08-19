@@ -1318,6 +1318,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Given a namespace declaration syntax node, get the corresponding namespace symbol for
+        /// the declaration assembly.
+        /// </summary>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public static INamespaceSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, FileScopedNamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+        }
+
+        /// <summary>
         /// Given a type declaration, get the corresponding type symbol.
         /// </summary>
         public static INamedTypeSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, BaseTypeDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))

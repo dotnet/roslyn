@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected override string GetWriteQueueKey(string key)
                 => key;
 
-            protected override bool TryGetDatabaseId(SqlConnection connection, string key, out string dataId)
+            protected override bool TryGetDatabaseId(SqlConnection connection, string key, bool allowWrite, out string dataId)
             {
                 // For the SolutionDataTable the key itself acts as the data-id.
                 dataId = key;

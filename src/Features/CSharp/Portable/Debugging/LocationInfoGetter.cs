@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             // field or event field declarations may contain multiple variable declarators. Try finding the correct one.
             // If the position does not point to one, try using the first one.
             VariableDeclaratorSyntax fieldDeclarator = null;
-            if (memberDeclaration.Kind() == SyntaxKind.FieldDeclaration || memberDeclaration.Kind() == SyntaxKind.EventFieldDeclaration)
+            if (memberDeclaration.Kind() is SyntaxKind.FieldDeclaration or SyntaxKind.EventFieldDeclaration)
             {
                 var variableDeclarators = ((BaseFieldDeclarationSyntax)memberDeclaration).Declaration.Variables;
 

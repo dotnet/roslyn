@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis
             return Glyph.None;
         }
 
-        private static Accessibility GetAccessibility(ImmutableArray<string> tags)
+        public static Accessibility GetAccessibility(ImmutableArray<string> tags)
         {
             foreach (var tag in tags)
             {

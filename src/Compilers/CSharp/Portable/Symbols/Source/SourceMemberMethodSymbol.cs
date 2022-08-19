@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // in NamedTypeSymbolAdapter.cs).
             return this.IsOverride ?
                 this.RequiresExplicitOverride(out _) :
-                this.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
+                !this.IsStatic && this.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
         }
 
         // TODO (tomat): sealed?
@@ -447,6 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void EnsureMetadataVirtual()
         {
+            Debug.Assert(!this.IsStatic);
             this.flags.EnsureMetadataVirtual();
         }
 
@@ -969,7 +970,8 @@ done:
         {
             if (_containingType.IsInterface)
             {
-                if (hasBody || IsExplicitInterfaceImplementation)
+                if ((!IsStatic || MethodKind is MethodKind.StaticConstructor) &&
+                    (hasBody || IsExplicitInterfaceImplementation))
                 {
                     Binder.CheckFeatureAvailability(declarationSyntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
                 }
@@ -977,6 +979,11 @@ done:
                 if ((hasBody || IsExplicitInterfaceImplementation || IsExtern) && !ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                 {
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, location);
+                }
+
+                if (!hasBody && IsAbstract && IsStatic && !ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, location);
                 }
             }
         }

@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool CheckParent<T>([NotNullWhen(returnValue: true)] this SyntaxNode? node, Func<T, bool> valueChecker) where T : SyntaxNode
         {
-            if (!(node?.Parent is T parentNode))
+            if (node?.Parent is not T parentNode)
             {
                 return false;
             }

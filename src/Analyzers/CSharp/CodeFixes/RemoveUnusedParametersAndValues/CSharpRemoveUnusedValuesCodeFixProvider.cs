@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             // For example, "return x += MethodCall();" is replaced with "return x + MethodCall();"
             // and "return x ??= MethodCall();" is replaced with "return x ?? MethodCall();"
 
-            if (!(originalCompoundAssignment is AssignmentExpressionSyntax assignmentExpression))
+            if (originalCompoundAssignment is not AssignmentExpressionSyntax assignmentExpression)
             {
                 Debug.Fail($"Unexpected kind for originalCompoundAssignment: {originalCompoundAssignment.Kind()}");
                 return originalCompoundAssignment;

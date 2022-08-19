@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CompletionContext? completionContext, TSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();
-            var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(context.Workspace, context.SemanticModel, position, options, cancellationToken);
+            var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(context.Document, context.SemanticModel, position, options, cancellationToken);
 
             var shouldPreselectInferredTypes = await ShouldPreselectInferredTypesAsync(completionContext, position, options, cancellationToken).ConfigureAwait(false);
             if (!shouldPreselectInferredTypes)
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private static bool IsArgumentListTriggerCharacter(char character)
-            => character == ' ' || character == '(' || character == '[';
+            => character is ' ' or '(' or '[';
 
         private static int ComputeSymbolMatchPriority(ISymbol symbol)
         {
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     if (bestSymbols.Any())
                     {
-                        if (IsTargetTypeCompletionFilterExperimentEnabled(document.Project.Solution.Workspace) &&
+                        if (IsTargetTypeCompletionFilterExperimentEnabled(document.Project.Solution.Options) &&
                             TryFindFirstSymbolMatchesTargetTypes(_ => context, bestSymbols, typeConvertibilityCache, out var index) && index > 0)
                         {
                             // Since the first symbol is used to get the item description by default,

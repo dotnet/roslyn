@@ -1,12 +1,26 @@
+# Branches that trigger a build on commit
 trigger:
 - main
+- main-vs-deps
+- release/*
+- features/*
+- demos/*
+
+# Branches that trigger builds on PR
 pr: none
+# Temporarily disabling richnav job on PRs
+# pr:
+# - main
+# - main-vs-deps
+# - release/*
+# - features/*
+# - demos/*
 
 jobs:
 - job: RichCodeNav_Indexing
   pool:
     name: NetCore1ESPool-Svc-Public
-    demands: ImageOverride -equals Build.Windows.10.Amd64.Open
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   variables:
     EnableRichCodeNavigation: true
   timeoutInMinutes: 200

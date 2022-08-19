@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
@@ -32,13 +33,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         /// </summary>
         public int EnumOriginalCodeBlocks(out IVsEnumCodeBlocks ppEnum)
         {
-            var waitIndicator = ComponentModel.GetService<IWaitIndicator>();
-
             IList<TextSpanAndCookie> result = null;
-            waitIndicator.Wait(
+
+            var uiThreadOperationExecutor = ComponentModel.GetService<IUIThreadOperationExecutor>();
+            uiThreadOperationExecutor.Execute(
                 "Intellisense",
-                allowCancel: false,
-                action: c => result = EnumOriginalCodeBlocksWorker(c.CancellationToken));
+                defaultDescription: "",
+                allowCancellation: false,
+                showProgress: false,
+                action: c => result = EnumOriginalCodeBlocksWorker(c.UserCancellationToken));
 
             ppEnum = new CodeBlockEnumerator(result);
             return VSConstants.S_OK;

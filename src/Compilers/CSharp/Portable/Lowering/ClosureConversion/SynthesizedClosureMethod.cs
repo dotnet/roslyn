@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DebugId topLevelMethodId,
             MethodSymbol originalMethod,
             SyntaxReference blockSyntax,
-            DebugId lambdaId)
+            DebugId lambdaId,
+            TypeCompilationState compilationState)
             : base(containingType,
                    originalMethod,
                    blockSyntax,
@@ -100,9 +101,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AssignTypeMapAndTypeParameters(typeMap, typeParameters);
+            EnsureAttributesExist(compilationState);
 
             // static local functions should be emitted as static.
             Debug.Assert(!(originalMethod is LocalFunctionSymbol) || !originalMethod.IsStatic || IsStatic);
+        }
+
+        private void EnsureAttributesExist(TypeCompilationState compilationState)
+        {
+            var moduleBuilder = compilationState.ModuleBuilderOpt;
+            if (moduleBuilder is null)
+            {
+                return;
+            }
+
+            if (RefKind == RefKind.RefReadOnly)
+            {
+                moduleBuilder.EnsureIsReadOnlyAttributeExists();
+            }
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(moduleBuilder, Parameters);
+
+            if (ReturnType.ContainsNativeInteger())
+            {
+                moduleBuilder.EnsureNativeIntegerAttributeExists();
+            }
+
+            ParameterHelpers.EnsureNativeIntegerAttributeExists(moduleBuilder, Parameters);
+
+            if (compilationState.Compilation.ShouldEmitNullableAttributes(this))
+            {
+                if (ShouldEmitNullableContextValue(out _))
+                {
+                    moduleBuilder.EnsureNullableContextAttributeExists();
+                }
+
+                if (ReturnTypeWithAnnotations.NeedsNullableAttribute())
+                {
+                    moduleBuilder.EnsureNullableAttributeExists();
+                }
+            }
+
+            ParameterHelpers.EnsureNullableAttributeExists(moduleBuilder, this, Parameters);
         }
 
         private static DeclarationModifiers MakeDeclarationModifiers(ClosureKind closureKind, MethodSymbol originalMethod)

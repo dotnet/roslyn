@@ -126,7 +126,7 @@ try {
   Exec-BlockVerbosely {
     & $(Join-Path $PSScriptRoot 'run-sdl.ps1') `
       -GuardianCliLocation $guardianCliLocation `
-      -WorkingDirectory $workingDirectory `
+      -WorkingDirectory $SourceDirectory `
       -UpdateBaseline $UpdateBaseline `
       -GdnFolder $gdnFolder
   }

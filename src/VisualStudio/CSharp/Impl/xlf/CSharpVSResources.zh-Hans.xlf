@@ -37,6 +37,11 @@
         <target state="translated">自动显示参数列表中的补全列表</target>
         <note />
       </trans-unit>
+      <trans-unit id="Block_scoped">
+        <source>Block scoped</source>
+        <target state="translated">块范围限定</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp">
         <source>C#</source>
         <target state="translated">C#</target>
@@ -65,6 +70,11 @@
       <trans-unit id="Edit_color_scheme">
         <source>Edit color scheme</source>
         <target state="translated">编辑配色方案</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_scoped">
+        <source>File scoped</source>
+        <target state="translated">文件范围限定</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -121,6 +131,11 @@
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">引用相等检查偏好 “is null”</target>
         <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="translated">与类型检查相比，首选 Null 检查</target>
+        <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>

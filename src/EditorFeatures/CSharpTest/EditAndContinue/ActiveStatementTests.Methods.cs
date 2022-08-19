@@ -54,7 +54,7 @@ class C
                 {
                     DocumentResults(
                         active,
-                        diagnostics: new[] { Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(int)")) })
+                        diagnostics: new[] { Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(int a)")) })
                 });
         }
 
@@ -62,26 +62,26 @@ class C
         public void Method_Body_Delete1()
         {
             var src1 = "class C { int M() { <AS:0>return 1;</AS:0> } }";
-            var src2 = "class C { <AS:0>int M();</AS:0> }";
+            var src2 = "class C { <AS:0>extern int M();</AS:0> }";
 
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.MethodBodyDelete, "int M()", FeaturesResources.method));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "extern int M()", FeaturesResources.method));
         }
 
         [Fact]
         public void Method_ExpressionBody_Delete1()
         {
             var src1 = "class C { int M() => <AS:0>1</AS:0>; }";
-            var src2 = "class C { <AS:0>int M();</AS:0> }";
+            var src2 = "class C { <AS:0>extern int M();</AS:0> }";
 
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.MethodBodyDelete, "int M()", FeaturesResources.method));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "extern int M()", FeaturesResources.method));
         }
 
         [Fact]
@@ -232,7 +232,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.GenericMethodUpdate, "static void Swap<T>(T lhs, T rhs)", FeaturesResources.method));
+                Diagnostic(RudeEditKind.GenericMethodUpdate, "static void Swap<T>(T lhs, T rhs)"));
         }
 
         // Async
@@ -476,7 +476,7 @@ class C
         public void Constructor_BlockBodyToExpressionBody2()
         {
             var src1 = "class C { int x; <AS:0>C()</AS:0> { x = 1; } }";
-            var src2 = "class C { int x; C() => <AS:0>x = 1</AS:0>; }";
+            var src2 = "class C { int x; <AS:0>C()</AS:0> => x = 1; }";
 
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
@@ -488,7 +488,7 @@ class C
         public void Constructor_BlockBodyToExpressionBody3()
         {
             var src1 = "class C { int x; C() : <AS:0>base()</AS:0> { x = 1; } }";
-            var src2 = "class C { int x; C() => <AS:0>x = 1</AS:0>; }";
+            var src2 = "class C { int x; <AS:0>C()</AS:0> => x = 1; }";
 
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
@@ -661,7 +661,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "int this[int a]", DeletedSymbolDisplay(CSharpFeaturesResources.indexer_setter, "this[int].set")));
+                Diagnostic(RudeEditKind.Delete, "int this[int a]", DeletedSymbolDisplay(CSharpFeaturesResources.indexer_setter, "this[int a].set")));
         }
 
         [Fact]
@@ -711,7 +711,7 @@ class SampleCollection<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "set", CSharpFeaturesResources.indexer_setter));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "set"));
         }
 
         [WorkItem(750244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750244")]
@@ -765,7 +765,7 @@ class SampleCollection<T>
 
             // Rude edits of active statements (AS:1) are not reported if the top-level edits are rude.
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "set", CSharpFeaturesResources.indexer_setter),
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "set"),
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "stringCollection[1] = \"hello\";"));
         }
 
@@ -816,7 +816,7 @@ class SampleCollection<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "get", CSharpFeaturesResources.indexer_getter));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "get"));
         }
 
         [WorkItem(750244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750244")]
@@ -868,7 +868,7 @@ class SampleCollection<T>
 
             // Rude edits of active statements (AS:1) are not reported if the top-level edits are rude.
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "get", CSharpFeaturesResources.indexer_getter),
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "get"),
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(stringCollection[1]);"));
         }
 
@@ -919,7 +919,7 @@ class SampleCollection<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "set", CSharpFeaturesResources.indexer_setter));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "set"));
         }
 
         [Fact]
@@ -1018,7 +1018,7 @@ class SampleCollection<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "get", CSharpFeaturesResources.indexer_getter));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "get"));
         }
 
         [Fact]

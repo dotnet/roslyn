@@ -5,6 +5,7 @@
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <PackageId>Microsoft.CodeAnalysis.Compilers</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <PackageDescription>

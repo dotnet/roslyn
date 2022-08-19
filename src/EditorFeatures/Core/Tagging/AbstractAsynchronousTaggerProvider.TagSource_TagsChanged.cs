@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
             }
 
-            private Task ProcessTagsChangedAsync(
+            private ValueTask ProcessTagsChangedAsync(
                 ImmutableArray<NormalizedSnapshotSpanCollection> snapshotSpans, CancellationToken cancellationToken)
             {
                 var tagsChanged = this.TagsChanged;
                 if (tagsChanged == null)
-                    return Task.CompletedTask;
+                    return ValueTaskFactory.CompletedTask;
 
                 foreach (var collection in snapshotSpans)
                 {
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         tagsChanged(this, new SnapshotSpanEventArgs(span));
                 }
 
-                return Task.CompletedTask;
+                return ValueTaskFactory.CompletedTask;
             }
         }
     }

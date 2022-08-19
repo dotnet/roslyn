@@ -246,7 +246,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim initializer = New BoundFieldInitializer(syntax,
                                                         ImmutableArray.Create(Of FieldSymbol)(fieldSymbol),
                                                         boundFieldAccessExpression,
-                                                        arrayCreation)
+                                                        arrayCreation,
+                                                        binderOpt:=Nothing)
 
             boundInitializers.Add(initializer)
         End Sub
@@ -283,21 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                       firstFieldSymbol.Type)
             fieldAccess.SetWasCompilerGenerated()
 
-            Dim asNewVariablePlaceholder As BoundWithLValueExpressionPlaceholder = Nothing
-            If equalsValueOrAsNewSyntax.Kind = SyntaxKind.AsNewClause Then
-                ' CONSIDER: using a bound field access directly instead of a placeholder for AsNew declarations
-                '           with just one variable
-
-                asNewVariablePlaceholder = New BoundWithLValueExpressionPlaceholder(equalsValueOrAsNewSyntax,
-                                                                                    firstFieldSymbol.Type)
-                asNewVariablePlaceholder.SetWasCompilerGenerated()
-            End If
-
-            Dim boundInitExpression As BoundExpression = BindFieldOrPropertyInitializerExpression(equalsValueOrAsNewSyntax,
-                                                                                                  firstFieldSymbol.Type,
-                                                                                                  asNewVariablePlaceholder,
-                                                                                                  diagnostics)
-
+            Dim boundInitExpression As BoundExpression = BindFieldInitializerExpression(equalsValueOrAsNewSyntax, firstFieldSymbol, diagnostics)
             Dim hasErrors = False
 
             ' In speculative semantic model scenarios equalsValueOrAsNewSyntax might have no parent.
@@ -321,8 +308,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 fieldSymbols,
                 If(fieldSymbols.Length = 1, fieldAccess, Nothing),
                 boundInitExpression,
+                Me,
                 hasErrors))
         End Sub
+
+        Friend Function BindFieldInitializerExpression(equalsValueOrAsNewSyntax As SyntaxNode, fieldSymbol As FieldSymbol, diagnostics As BindingDiagnosticBag) As BoundExpression
+            Dim asNewVariablePlaceholder As BoundWithLValueExpressionPlaceholder = Nothing
+            If equalsValueOrAsNewSyntax.Kind = SyntaxKind.AsNewClause Then
+                ' CONSIDER: using a bound field access directly instead of a placeholder for AsNew declarations
+                '           with just one variable
+
+                asNewVariablePlaceholder = New BoundWithLValueExpressionPlaceholder(equalsValueOrAsNewSyntax,
+                                                                                    fieldSymbol.Type)
+                asNewVariablePlaceholder.SetWasCompilerGenerated()
+            End If
+
+            Dim boundInitExpression As BoundExpression = BindFieldOrPropertyInitializerExpression(equalsValueOrAsNewSyntax,
+                                                                                                  fieldSymbol.Type,
+                                                                                                  asNewVariablePlaceholder,
+                                                                                                  diagnostics)
+            Return boundInitExpression
+        End Function
 
         Friend Sub BindPropertyInitializer(
             propertySymbols As ImmutableArray(Of PropertySymbol),
@@ -367,17 +373,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             boundPropertyOrFieldAccess = AdjustAssignmentTarget(syntaxNode, boundPropertyOrFieldAccess, diagnostics, isError)
             boundPropertyOrFieldAccess.SetWasCompilerGenerated()
 
-            Dim boundInitExpression = BindFieldOrPropertyInitializerExpression(initValueOrAsNewNode,
-                                                                               propertySymbol.Type,
-                                                                               Nothing,
-                                                                               diagnostics)
-
+            Dim boundInitExpression As BoundExpression = BindPropertyInitializerExpression(initValueOrAsNewNode, propertySymbol, diagnostics)
             boundInitializers.Add(New BoundPropertyInitializer(initValueOrAsNewNode,
                                                                propertySymbols,
                                                                If(propertySymbols.Length = 1, boundPropertyOrFieldAccess, Nothing),
-                                                               boundInitExpression))
-
+                                                               boundInitExpression,
+                                                               Me))
         End Sub
+
+        Friend Function BindPropertyInitializerExpression(initValueOrAsNewNode As SyntaxNode, propertySymbol As PropertySymbol, diagnostics As BindingDiagnosticBag) As BoundExpression
+            Return BindFieldOrPropertyInitializerExpression(initValueOrAsNewNode,
+                                                            propertySymbol.Type,
+                                                            Nothing,
+                                                            diagnostics)
+        End Function
 
         Private Function BindFieldOrPropertyInitializerExpression(
             equalsValueOrAsNewSyntax As SyntaxNode,
@@ -468,7 +477,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundInitializers.Add(New BoundFieldInitializer(equalsValueOrAsNewSyntax,
                                                                 ImmutableArray.Create(Of FieldSymbol)(fieldSymbol),
                                                                 boundFieldAccessExpr,
-                                                                boundInitValue))
+                                                                boundInitValue,
+                                                                binderOpt:=Nothing))
             End If
         End Sub
 

@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -242,7 +243,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     project = await UpdateDocumentsAsync(
                         project,
-                        project.State.DocumentStates.States,
+                        newProjectChecksums,
+                        project.State.DocumentStates.States.Values,
                         oldProjectChecksums.Documents,
                         newProjectChecksums.Documents,
                         (solution, documents) => solution.AddDocuments(documents),
@@ -254,7 +256,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     project = await UpdateDocumentsAsync(
                         project,
-                        project.State.AdditionalDocumentStates.States,
+                        newProjectChecksums,
+                        project.State.AdditionalDocumentStates.States.Values,
                         oldProjectChecksums.AdditionalDocuments,
                         newProjectChecksums.AdditionalDocuments,
                         (solution, documents) => solution.AddAdditionalDocuments(documents),
@@ -266,7 +269,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     project = await UpdateDocumentsAsync(
                         project,
-                        project.State.AnalyzerConfigDocumentStates.States,
+                        newProjectChecksums,
+                        project.State.AnalyzerConfigDocumentStates.States.Values,
                         oldProjectChecksums.AnalyzerConfigDocuments,
                         newProjectChecksums.AnalyzerConfigDocuments,
                         (solution, documents) => solution.AddAnalyzerConfigDocuments(documents),
@@ -337,6 +341,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             private async Task<Project> UpdateDocumentsAsync(
                 Project project,
+                ProjectStateChecksums projectChecksums,
                 IEnumerable<TextDocumentState> existingTextDocumentStates,
                 ChecksumCollection oldChecksums,
                 ChecksumCollection newChecksums,
@@ -355,6 +360,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var oldMap = await GetDocumentMapAsync(existingTextDocumentStates, olds.Object).ConfigureAwait(false);
                 var newMap = await GetDocumentMapAsync(_assetProvider, news.Object).ConfigureAwait(false);
+
+                // If more than two documents changed during a single update, perform a bulk synchronization on the
+                // project to avoid large numbers of small synchronization calls during document updates.
+                // 🔗 https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1365014
+                if (newMap.Count > 2)
+                {
+                    await _assetProvider.SynchronizeProjectAssetsAsync(new[] { projectChecksums.Checksum }, _cancellationToken).ConfigureAwait(false);
+                }
 
                 // added document
                 ImmutableArray<DocumentInfo>.Builder? lazyDocumentsToAdd = null;
@@ -467,6 +480,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 foreach (var kv in documentChecksums)
                 {
+                    Debug.Assert(assetProvider.EnsureCacheEntryIfExists(kv.Item2.Info), "Expected the prior call to GetAssetsAsync to obtain all items for this loop.");
+
                     var info = await assetProvider.GetAssetAsync<DocumentInfo.DocumentAttributes>(kv.Item2.Info, _cancellationToken).ConfigureAwait(false);
                     map.Add(info.Id, kv.Item2);
                 }
