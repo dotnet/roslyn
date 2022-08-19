@@ -62,10 +62,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 if (itemService == null)
                     return null;
 
-            // If these are navbars for a file that isn't even visible, then avoid doing any unnecessary computation
-            // work until far in the future (or if visibility changes).  This ensures our non-visible docs do settle
-            // once enough time has passed, while greatly reducing their impact on the system.
-            await _visibilityTracker.DelayWhileNonVisibleAsync(
+                // If these are navbars for a file that isn't even visible, then avoid doing any unnecessary computation
+                // work until far in the future (or if visibility changes).  This ensures our non-visible docs do settle
+                // once enough time has passed, while greatly reducing their impact on the system.
+                await _visibilityTracker.DelayWhileNonVisibleAsync(
                     _threadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
 
                 using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
