@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         public const string ClosureCaptureRuleId = "HAA0302";
         public const string LambaOrAnonymousMethodInGenericMethodRuleId = "HAA0303";
 
-        internal static readonly DiagnosticDescriptor ClosureDriverRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor ClosureDriverRule = new(
             ClosureDriverRuleId,
             CreateLocalizableResourceString(nameof(ClosureDriverRuleTitle)),
             CreateLocalizableResourceString(nameof(ClosureDriverRuleMessage)),
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static readonly DiagnosticDescriptor ClosureCaptureRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor ClosureCaptureRule = new(
             ClosureCaptureRuleId,
             CreateLocalizableResourceString(nameof(ClosureCaptureRuleTitle)),
             CreateLocalizableResourceString(nameof(ClosureCaptureRuleMessage)),
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static readonly DiagnosticDescriptor LambaOrAnonymousMethodInGenericMethodRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor LambaOrAnonymousMethodInGenericMethodRule = new(
             LambaOrAnonymousMethodInGenericMethodRuleId,
             CreateLocalizableResourceString(nameof(LambaOrAnonymousMethodInGenericMethodRuleTitle)),
             CreateLocalizableResourceString(nameof(LambaOrAnonymousMethodInGenericMethodRuleMessage)),

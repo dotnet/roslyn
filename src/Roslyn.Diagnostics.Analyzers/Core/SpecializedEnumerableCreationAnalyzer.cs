@@ -24,7 +24,7 @@ namespace Roslyn.Diagnostics.Analyzers
         internal const string LinqEnumerableMetadataName = "System.Linq.Enumerable";
         internal const string EmptyMethodName = "Empty";
 
-        internal static readonly DiagnosticDescriptor UseEmptyEnumerableRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor UseEmptyEnumerableRule = new(
             RoslynDiagnosticIds.UseEmptyEnumerableRuleId,
             CreateLocalizableResourceString(nameof(UseSpecializedCollectionsEmptyEnumerableTitle)),
             CreateLocalizableResourceString(nameof(UseSpecializedCollectionsEmptyEnumerableMessage)),
@@ -33,7 +33,7 @@ namespace Roslyn.Diagnostics.Analyzers
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        internal static readonly DiagnosticDescriptor UseSingletonEnumerableRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor UseSingletonEnumerableRule = new(
             RoslynDiagnosticIds.UseSingletonEnumerableRuleId,
             CreateLocalizableResourceString(nameof(UseSpecializedCollectionsSingletonEnumerableTitle)),
             CreateLocalizableResourceString(nameof(UseSpecializedCollectionsSingletonEnumerableMessage)),

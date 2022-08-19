@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
         private static readonly LocalizableString s_localizableCodeActionNeedsEquivalenceKeyDescription = CreateLocalizableResourceString(nameof(CodeActionNeedsEquivalenceKeyDescription));
 
-        internal static readonly DiagnosticDescriptor CreateCodeActionEquivalenceKeyRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor CreateCodeActionEquivalenceKeyRule = new(
             DiagnosticIds.CreateCodeActionWithEquivalenceKeyRuleId,
             CreateLocalizableResourceString(nameof(CreateCodeActionWithEquivalenceKeyTitle)),
             CreateLocalizableResourceString(nameof(CreateCodeActionWithEquivalenceKeyMessage)),
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor OverrideCodeActionEquivalenceKeyRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor OverrideCodeActionEquivalenceKeyRule = new(
             DiagnosticIds.OverrideCodeActionEquivalenceKeyRuleId,
             CreateLocalizableResourceString(nameof(OverrideCodeActionEquivalenceKeyTitle)),
             CreateLocalizableResourceString(nameof(OverrideCodeActionEquivalenceKeyMessage)),
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor OverrideGetFixAllProviderRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor OverrideGetFixAllProviderRule = new(
             DiagnosticIds.OverrideGetFixAllProviderRuleId,
             CreateLocalizableResourceString(nameof(OverrideGetFixAllProviderTitle)),
             CreateLocalizableResourceString(nameof(OverrideGetFixAllProviderMessage)),

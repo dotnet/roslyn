@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class DoNotUseCompilationGetSemanticModelAnalyzer : DiagnosticAnalyzer
     {
-        public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor Rule = new(
             DiagnosticIds.DoNotUseCompilationGetSemanticModelRuleId,
             CreateLocalizableResourceString(nameof(DoNotUseCompilationGetSemanticModelTitle)),
             CreateLocalizableResourceString(nameof(DoNotUseCompilationGetSemanticModelMessage)),

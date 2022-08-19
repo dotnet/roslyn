@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class ConfigureGeneratedCodeAnalysisAnalyzer : DiagnosticAnalyzerCorrectnessAnalyzer
     {
-        public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor Rule = new(
             DiagnosticIds.ConfigureGeneratedCodeAnalysisRuleId,
             CreateLocalizableResourceString(nameof(ConfigureGeneratedCodeAnalysisTitle)),
             CreateLocalizableResourceString(nameof(ConfigureGeneratedCodeAnalysisMessage)),

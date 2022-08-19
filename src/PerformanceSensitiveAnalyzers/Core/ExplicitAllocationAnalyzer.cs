@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
         private static readonly LocalizableString s_localizablAnonymousObjectCreationRuleTitleAndMessage = CreateLocalizableResourceString(nameof(AnonymousNewObjectRuleTitleAndMessage));
         private static readonly LocalizableString s_localizableLetCauseRuleTitleAndMessage = CreateLocalizableResourceString(nameof(LetCauseRuleTitleAndMessage));
 
-        internal static readonly DiagnosticDescriptor ArrayCreationRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor ArrayCreationRule = new(
             ArrayCreationRuleId,
             s_localizableArrayCreationRuleTitleAndMessage,
             s_localizableArrayCreationRuleTitleAndMessage,
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Info,
             isEnabledByDefault: true);
 
-        internal static readonly DiagnosticDescriptor ObjectCreationRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor ObjectCreationRule = new(
             ObjectCreationRuleId,
             s_localizableObjectCreationRuleTitleAndMessage,
             s_localizableObjectCreationRuleTitleAndMessage,
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Info,
             isEnabledByDefault: true);
 
-        internal static readonly DiagnosticDescriptor AnonymousObjectCreationRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor AnonymousObjectCreationRule = new(
             AnonymousObjectCreationRuleId,
             s_localizablAnonymousObjectCreationRuleTitleAndMessage,
             s_localizablAnonymousObjectCreationRuleTitleAndMessage,
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
             isEnabledByDefault: true,
             helpLinkUri: "http://msdn.microsoft.com/en-us/library/bb397696.aspx");
 
-        internal static readonly DiagnosticDescriptor LetCauseRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor LetCauseRule = new(
             LetCauseRuleId,
             s_localizableLetCauseRuleTitleAndMessage,
             s_localizableLetCauseRuleTitleAndMessage,

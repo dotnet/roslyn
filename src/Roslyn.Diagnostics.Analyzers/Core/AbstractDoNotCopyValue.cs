@@ -23,7 +23,7 @@ namespace Roslyn.Diagnostics.Analyzers
     {
         private static readonly LocalizableString s_localizableTitle = CreateLocalizableResourceString(nameof(DoNotCopyValueTitle));
 
-        internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.DoNotCopyValueRuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(DoNotCopyValueMessage)),
@@ -34,7 +34,7 @@ namespace Roslyn.Diagnostics.Analyzers
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        internal static readonly DiagnosticDescriptor UnsupportedUseRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor UnsupportedUseRule = new(
             RoslynDiagnosticIds.DoNotCopyValueRuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(DoNotCopyValueUnsupportedUseMessage)),
@@ -45,7 +45,7 @@ namespace Roslyn.Diagnostics.Analyzers
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        internal static readonly DiagnosticDescriptor AvoidNullableWrapperRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor AvoidNullableWrapperRule = new(
             RoslynDiagnosticIds.DoNotCopyValueRuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(DoNotCopyValueAvoidNullableWrapperMessage)),
@@ -56,7 +56,7 @@ namespace Roslyn.Diagnostics.Analyzers
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        internal static readonly DiagnosticDescriptor NoAssignValueFromReferenceRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor NoAssignValueFromReferenceRule = new(
             RoslynDiagnosticIds.DoNotCopyValueRuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(DoNotCopyValueNoAssignValueFromReferenceMessage)),
@@ -67,7 +67,7 @@ namespace Roslyn.Diagnostics.Analyzers
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        internal static readonly DiagnosticDescriptor NoReturnValueFromReferenceRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor NoReturnValueFromReferenceRule = new(
             RoslynDiagnosticIds.DoNotCopyValueRuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(DoNotCopyValueNoReturnValueFromReferenceMessage)),
@@ -78,7 +78,7 @@ namespace Roslyn.Diagnostics.Analyzers
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        internal static readonly DiagnosticDescriptor NoBoxingRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor NoBoxingRule = new(
             RoslynDiagnosticIds.DoNotCopyValueRuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(DoNotCopyValueNoBoxingMessage)),
@@ -89,7 +89,7 @@ namespace Roslyn.Diagnostics.Analyzers
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        internal static readonly DiagnosticDescriptor NoUnboxingRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor NoUnboxingRule = new(
             RoslynDiagnosticIds.DoNotCopyValueRuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(DoNotCopyValueNoUnboxingMessage)),
@@ -100,7 +100,7 @@ namespace Roslyn.Diagnostics.Analyzers
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        internal static readonly DiagnosticDescriptor NoFieldOfCopyableTypeRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor NoFieldOfCopyableTypeRule = new(
             RoslynDiagnosticIds.DoNotCopyValueRuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(DoNotCopyValueNoFieldOfCopyableTypeMessage)),
@@ -111,7 +111,7 @@ namespace Roslyn.Diagnostics.Analyzers
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        internal static readonly DiagnosticDescriptor NoAutoPropertyRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor NoAutoPropertyRule = new(
             RoslynDiagnosticIds.DoNotCopyValueRuleId,
             s_localizableTitle,
             CreateLocalizableResourceString(nameof(DoNotCopyValueNoAutoPropertyMessage)),

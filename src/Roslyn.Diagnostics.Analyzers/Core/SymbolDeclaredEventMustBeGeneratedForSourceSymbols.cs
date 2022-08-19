@@ -21,7 +21,7 @@ namespace Roslyn.Diagnostics.Analyzers
     {
         private static readonly string s_fullNameOfSymbol = typeof(ISymbol).FullName;
 
-        internal static readonly DiagnosticDescriptor SymbolDeclaredEventRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor SymbolDeclaredEventRule = new(
             RoslynDiagnosticIds.SymbolDeclaredEventRuleId,
             CreateLocalizableResourceString(nameof(SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle)),
             CreateLocalizableResourceString(nameof(SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage)),

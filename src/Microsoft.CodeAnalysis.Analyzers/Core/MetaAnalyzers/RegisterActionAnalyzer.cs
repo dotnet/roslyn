@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableTitleMissingKindArgument = CreateLocalizableResourceString(nameof(MissingKindArgumentToRegisterActionTitle));
         private static readonly LocalizableString s_localizableDescriptionMissingKindArgument = CreateLocalizableResourceString(nameof(MissingKindArgumentToRegisterActionDescription));
 
-        public static readonly DiagnosticDescriptor MissingSymbolKindArgumentRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor MissingSymbolKindArgumentRule = new(
             DiagnosticIds.MissingKindArgumentToRegisterActionRuleId,
             s_localizableTitleMissingKindArgument,
             CreateLocalizableResourceString(nameof(MissingSymbolKindArgumentToRegisterActionMessage)),
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDescriptionMissingKindArgument,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public static readonly DiagnosticDescriptor MissingSyntaxKindArgumentRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor MissingSyntaxKindArgumentRule = new(
             DiagnosticIds.MissingKindArgumentToRegisterActionRuleId,
             s_localizableTitleMissingKindArgument,
             CreateLocalizableResourceString(nameof(MissingSyntaxKindArgumentToRegisterActionMessage)),
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDescriptionMissingKindArgument,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public static readonly DiagnosticDescriptor MissingOperationKindArgumentRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor MissingOperationKindArgumentRule = new(
             DiagnosticIds.MissingKindArgumentToRegisterActionRuleId,
             s_localizableTitleMissingKindArgument,
             CreateLocalizableResourceString(nameof(MissingOperationKindArgumentToRegisterActionMessage)),
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDescriptionMissingKindArgument,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public static readonly DiagnosticDescriptor UnsupportedSymbolKindArgumentRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor UnsupportedSymbolKindArgumentRule = new(
             DiagnosticIds.UnsupportedSymbolKindArgumentRuleId,
             CreateLocalizableResourceString(nameof(UnsupportedSymbolKindArgumentToRegisterActionTitle)),
             CreateLocalizableResourceString(nameof(UnsupportedSymbolKindArgumentToRegisterActionMessage)),
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public static readonly DiagnosticDescriptor InvalidSyntaxKindTypeArgumentRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor InvalidSyntaxKindTypeArgumentRule = new(
             DiagnosticIds.InvalidSyntaxKindTypeArgumentRuleId,
             CreateLocalizableResourceString(nameof(InvalidSyntaxKindTypeArgumentTitle)),
             CreateLocalizableResourceString(nameof(InvalidSyntaxKindTypeArgumentMessage)),
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static readonly LocalizableString s_localizableDescriptionStatefulAnalyzerRegisterActionsDescription = CreateLocalizableResourceString(nameof(StatefulAnalyzerRegisterActionsDescription), nameof(DiagnosticWellKnownNames.TLanguageKindEnumName));
 
-        public static readonly DiagnosticDescriptor StartActionWithNoRegisteredActionsRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor StartActionWithNoRegisteredActionsRule = new(
             DiagnosticIds.StartActionWithNoRegisteredActionsRuleId,
             CreateLocalizableResourceString(nameof(StartActionWithNoRegisteredActionsTitle)),
             CreateLocalizableResourceString(nameof(StartActionWithNoRegisteredActionsMessage)),
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDescriptionStatefulAnalyzerRegisterActionsDescription,
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public static readonly DiagnosticDescriptor StartActionWithOnlyEndActionRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor StartActionWithOnlyEndActionRule = new(
             DiagnosticIds.StartActionWithOnlyEndActionRuleId,
             CreateLocalizableResourceString(nameof(StartActionWithOnlyEndActionTitle)),
             CreateLocalizableResourceString(nameof(StartActionWithOnlyEndActionMessage)),

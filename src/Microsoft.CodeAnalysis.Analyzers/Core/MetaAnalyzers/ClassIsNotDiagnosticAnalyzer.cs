@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class ClassIsNotDiagnosticAnalyzer : DiagnosticAnalyzer
     {
-        public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor Rule = new(
             DiagnosticIds.TypeIsNotDiagnosticAnalyzerRuleId,
             CreateLocalizableResourceString(nameof(ClassIsNotDiagnosticAnalyzerTitle)),
             CreateLocalizableResourceString(nameof(ClassIsNotDiagnosticAnalyzerMessage)),

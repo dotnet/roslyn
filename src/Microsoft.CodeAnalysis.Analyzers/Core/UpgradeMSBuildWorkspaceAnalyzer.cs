@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
         private const string MSBuildWorkspaceFullName = "Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace";
         protected const string MSBuildWorkspace = "MSBuildWorkspace";
 
-        public static readonly DiagnosticDescriptor UpgradeMSBuildWorkspaceDiagnosticRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor UpgradeMSBuildWorkspaceDiagnosticRule = new(
             DiagnosticIds.UpgradeMSBuildWorkspaceRuleId,
             CreateLocalizableResourceString(nameof(UpgradeMSBuildWorkspaceTitle)),
             CreateLocalizableResourceString(nameof(UpgradeMSBuildWorkspaceMessage)),

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1007 (<inheritdoc cref="UseLocalizableStringsInDescriptorTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor UseLocalizableStringsInDescriptorRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor UseLocalizableStringsInDescriptorRule = new(
             DiagnosticIds.UseLocalizableStringsInDescriptorRuleId,
             CreateLocalizableResourceString(nameof(UseLocalizableStringsInDescriptorTitle)),
             CreateLocalizableResourceString(nameof(UseLocalizableStringsInDescriptorMessage)),
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1015 (<inheritdoc cref="ProvideHelpUriInDescriptorTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor ProvideHelpUriInDescriptorRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor ProvideHelpUriInDescriptorRule = new(
             DiagnosticIds.ProvideHelpUriInDescriptorRuleId,
             CreateLocalizableResourceString(nameof(ProvideHelpUriInDescriptorTitle)),
             CreateLocalizableResourceString(nameof(ProvideHelpUriInDescriptorMessage)),
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1017 (<inheritdoc cref="DiagnosticIdMustBeAConstantTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor DiagnosticIdMustBeAConstantRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DiagnosticIdMustBeAConstantRule = new(
             DiagnosticIds.DiagnosticIdMustBeAConstantRuleId,
             CreateLocalizableResourceString(nameof(DiagnosticIdMustBeAConstantTitle)),
             CreateLocalizableResourceString(nameof(DiagnosticIdMustBeAConstantMessage)),
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1019 (<inheritdoc cref="UseUniqueDiagnosticIdTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor UseUniqueDiagnosticIdRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor UseUniqueDiagnosticIdRule = new(
             DiagnosticIds.UseUniqueDiagnosticIdRuleId,
             CreateLocalizableResourceString(nameof(UseUniqueDiagnosticIdTitle)),
             CreateLocalizableResourceString(nameof(UseUniqueDiagnosticIdMessage)),
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1028 (<inheritdoc cref="ProvideCustomTagsInDescriptorTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor ProvideCustomTagsInDescriptorRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor ProvideCustomTagsInDescriptorRule = new(
             DiagnosticIds.ProvideCustomTagsInDescriptorRuleId,
             CreateLocalizableResourceString(nameof(ProvideCustomTagsInDescriptorTitle)),
             CreateLocalizableResourceString(nameof(ProvideCustomTagsInDescriptorMessage)),
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1029 (<inheritdoc cref="DoNotUseReservedDiagnosticIdTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor DoNotUseReservedDiagnosticIdRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DoNotUseReservedDiagnosticIdRule = new(
             DiagnosticIds.DoNotUseReservedDiagnosticIdRuleId,
             CreateLocalizableResourceString(nameof(DoNotUseReservedDiagnosticIdTitle)),
             CreateLocalizableResourceString(nameof(DoNotUseReservedDiagnosticIdMessage)),
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1031 (<inheritdoc cref="DefineDiagnosticTitleCorrectlyTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor DefineDiagnosticTitleCorrectlyRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DefineDiagnosticTitleCorrectlyRule = new(
             DiagnosticIds.DefineDiagnosticTitleCorrectlyRuleId,
             CreateLocalizableResourceString(nameof(DefineDiagnosticTitleCorrectlyTitle)),
             CreateLocalizableResourceString(nameof(DefineDiagnosticTitleCorrectlyMessage)),
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1032 (<inheritdoc cref="DefineDiagnosticMessageCorrectlyTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor DefineDiagnosticMessageCorrectlyRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DefineDiagnosticMessageCorrectlyRule = new(
             DiagnosticIds.DefineDiagnosticMessageCorrectlyRuleId,
             CreateLocalizableResourceString(nameof(DefineDiagnosticMessageCorrectlyTitle)),
             CreateLocalizableResourceString(nameof(DefineDiagnosticMessageCorrectlyMessage)),
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1033 (<inheritdoc cref="DefineDiagnosticDescriptionCorrectlyTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor DefineDiagnosticDescriptionCorrectlyRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DefineDiagnosticDescriptionCorrectlyRule = new(
             DiagnosticIds.DefineDiagnosticDescriptionCorrectlyRuleId,
             CreateLocalizableResourceString(nameof(DefineDiagnosticDescriptionCorrectlyTitle)),
             CreateLocalizableResourceString(nameof(DefineDiagnosticDescriptionCorrectlyMessage)),

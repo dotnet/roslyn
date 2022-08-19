@@ -23,7 +23,7 @@ namespace Roslyn.Diagnostics.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class TestExportsShouldNotBeDiscoverable : DiagnosticAnalyzer
     {
-        internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.TestExportsShouldNotBeDiscoverableRuleId,
             CreateLocalizableResourceString(nameof(TestExportsShouldNotBeDiscoverableTitle)),
             CreateLocalizableResourceString(nameof(TestExportsShouldNotBeDiscoverableMessage)),

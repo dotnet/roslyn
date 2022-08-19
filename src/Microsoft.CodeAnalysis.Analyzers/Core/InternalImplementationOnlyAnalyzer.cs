@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
         private const string InternalImplementationOnlyAttributeName = "InternalImplementationOnlyAttribute";
         private const string InternalImplementationOnlyAttributeFullName = "System.Runtime.CompilerServices.InternalImplementationOnlyAttribute";
 
-        public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor Rule = new(
             DiagnosticIds.InternalImplementationOnlyRuleId,
             CreateLocalizableResourceString(nameof(InternalImplementationOnlyTitle)),
             CreateLocalizableResourceString(nameof(InternalImplementationOnlyMessage)),

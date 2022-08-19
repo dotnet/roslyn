@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
     internal static class SymbolIsBannedAnalyzer
     {
-        public static readonly DiagnosticDescriptor SymbolIsBannedRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor SymbolIsBannedRule = new(
             id: DiagnosticIds.SymbolIsBannedRuleId,
             title: CreateLocalizableResourceString(nameof(SymbolIsBannedTitle)),
             messageFormat: CreateLocalizableResourceString(nameof(SymbolIsBannedMessage)),
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public static readonly DiagnosticDescriptor DuplicateBannedSymbolRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DuplicateBannedSymbolRule = new(
             id: DiagnosticIds.DuplicateBannedSymbolRuleId,
             title: CreateLocalizableResourceString(nameof(DuplicateBannedSymbolTitle)),
             messageFormat: CreateLocalizableResourceString(nameof(DuplicateBannedSymbolMessage)),

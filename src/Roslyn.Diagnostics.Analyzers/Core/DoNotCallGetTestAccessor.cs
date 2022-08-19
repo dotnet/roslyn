@@ -15,7 +15,7 @@ namespace Roslyn.Diagnostics.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class DoNotCallGetTestAccessor : DiagnosticAnalyzer
     {
-        internal static readonly DiagnosticDescriptor DoNotCallGetTestAccessorRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor DoNotCallGetTestAccessorRule = new(
             RoslynDiagnosticIds.DoNotCallGetTestAccessorRuleId,
             CreateLocalizableResourceString(nameof(DoNotCallGetTestAccessorTitle)),
             CreateLocalizableResourceString(nameof(DoNotCallGetTestAccessorMessage)),

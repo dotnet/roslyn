@@ -14,7 +14,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class PreferNullLiteral : DiagnosticAnalyzer
     {
-        internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.PreferNullLiteralRuleId,
             CreateLocalizableResourceString(nameof(PreferNullLiteralTitle)),
             CreateLocalizableResourceString(nameof(PreferNullLiteralMessage)),
