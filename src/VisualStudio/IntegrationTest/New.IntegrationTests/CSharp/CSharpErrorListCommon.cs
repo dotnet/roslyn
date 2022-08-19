@@ -133,7 +133,7 @@ class Program2
                 string.Join(Environment.NewLine, actualContents));
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
         public virtual async Task ErrorsAfterClosingFile()
         {
             await TestServices.Editor.SetTextAsync(@"
