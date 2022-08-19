@@ -235,7 +235,7 @@ static R Create()
 }
 ```
 
-## `ref` to `ref struct argument considered unscoped in `__arglist`
+## `ref` to `ref struct` argument considered unscoped in `__arglist`
 
 ***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.4.***
 

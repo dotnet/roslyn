@@ -34,17 +34,11 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Conditional(field)')
-  IObjectCreationOperation (Constructor: System.Diagnostics.ConditionalAttribute..ctor(System.String conditionString)) (OperationKind.ObjectCreation, Type: System.Diagnostics.ConditionalAttribute, IsImplicit) (Syntax: 'Conditional(field)')
-    Arguments(1):
-        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: conditionString) (OperationKind.Argument, Type: null) (Syntax: 'field')
-          IFieldReferenceOperation: System.String C.field (Static) (OperationKind.FieldReference, Type: System.String, Constant: ""field"") (Syntax: 'field')
-            Instance Receiver:
-              null
-          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-    Initializer:
-      null
+IOperation:  (OperationKind.None, Type: System.Diagnostics.ConditionalAttribute) (Syntax: 'Conditional(field)')
+  Children(1):
+      IFieldReferenceOperation: System.String C.field (Static) (OperationKind.FieldReference, Type: System.String, Constant: ""field"") (Syntax: 'field')
+        Instance Receiver: 
+          null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

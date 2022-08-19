@@ -32,12 +32,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             }
 
             var mean = total / values.Count;
-            var median = values[values.Count / 2];
 
             var range = max - min;
             var mode = values.GroupBy(i => i).OrderByDescending(g => g.Count()).FirstOrDefault().Key;
 
-            return new StatisticResult(max, min, median, mean, range, mode, values.Count);
+            return new StatisticResult(max, min, mean, range, mode, values.Count);
         }
 
         /// <summary>
@@ -49,11 +48,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// minimum value
         /// </summary>
         public readonly int Minimum;
-
-        /// <summary>
-        /// middle value of the total data set
-        /// </summary>
-        public readonly int? Median;
 
         /// <summary>
         /// average value of the total data set
@@ -75,11 +69,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// </summary>
         public readonly int Count;
 
-        public StatisticResult(int max, int min, int? median, int mean, int range, int? mode, int count)
+        public StatisticResult(int max, int min, int mean, int range, int? mode, int count)
         {
             this.Maximum = max;
             this.Minimum = min;
-            this.Median = median;
             this.Mean = mean;
             this.Range = range;
             this.Mode = mode;
@@ -100,9 +93,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             properties.Add(prefix + nameof(Mean), Mean);
             properties.Add(prefix + nameof(Range), Range);
             properties.Add(prefix + nameof(Count), Count);
-
-            if (Median.HasValue)
-                properties.Add(prefix + nameof(Median), Median.Value);
 
             if (Mode.HasValue)
                 properties.Add(prefix + nameof(Mode), Mode.Value);
