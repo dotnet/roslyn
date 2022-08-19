@@ -1138,8 +1138,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_OptionalParamValueMismatch">
-        <source>Parameter {0} has default value which does not match corresponding parameter in delegate type '{1}'.</source>
-        <target state="new">Parameter {0} has default value which does not match corresponding parameter in delegate type '{1}'.</target>
+        <source>Parameter {0} has default value '{1}' in lambda and '{2}' in the target delegate type.</source>
+        <target state="new">Parameter {0} has default value '{1}' in lambda and '{2}' in the target delegate type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
@@ -1970,11 +1970,6 @@
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired_Title">
         <source>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</source>
         <target state="translated">Элементы с атрибутом "ObsoleteAttribute" не должны быть обязательными, если содержащий тип или все конструкторы не являются устаревшими.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_OptionalRequiredParamMismatch">
-        <source>Parameter {0} is optional in lambda but the corresponding parameter in delegate type '{1}' is required.</source>
-        <target state="new">Parameter {0} is optional in lambda but the corresponding parameter in delegate type '{1}' is required.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">

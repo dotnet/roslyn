@@ -666,7 +666,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion.Exists &&
                 destination.SpecialType == SpecialType.System_Object;
             BoundExpression expr;
-
             if (!conversion.Exists)
             {
                 GenerateImplicitConversionError(diagnostics, syntax, conversion, source, delegateType);

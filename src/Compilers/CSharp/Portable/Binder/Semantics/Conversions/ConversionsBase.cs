@@ -1051,10 +1051,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.UnboundLambda:
-                    var anonymousFunctionConversion = ClassifyAnonymousFunctionConversion(sourceExpression, destination);
-                    if (anonymousFunctionConversion.Exists)
+                    if (HasAnonymousFunctionConversion(sourceExpression, destination))
                     {
-                        return anonymousFunctionConversion;
+                        return Conversion.AnonymousFunction;
                     }
                     break;
 
@@ -1448,16 +1447,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return LambdaConversionResult.MismatchedParameterType;
                         }
 
-                        if (lambdaSymbol.Parameters[p].HasExplicitDefaultValue)
+                        if (lambdaSymbol.Parameters[p].HasExplicitDefaultValue &&
+                            delegateParameters[p].ExplicitDefaultConstantValue != lambdaSymbol.Parameters[p].ExplicitDefaultConstantValue)
                         {
-                            if (!delegateParameters[p].HasExplicitDefaultValue)
-                            {
-                                return LambdaConversionResult.TargetMissingDefaultValue;
-                            }
-                            else if (delegateParameters[p].ExplicitDefaultConstantValue != lambdaSymbol.Parameters[p].ExplicitDefaultConstantValue)
-                            {
-                                return LambdaConversionResult.MismatchedParameterDefaultValue;
-                            }
+                            return LambdaConversionResult.MismatchedParameterDefaultValue;
                         }
                     }
                 }
@@ -1579,27 +1572,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LambdaConversionResult.BadTargetType;
         }
 
-        private static Conversion ClassifyAnonymousFunctionConversion(BoundExpression source, TypeSymbol destination)
+        private static bool HasAnonymousFunctionConversion(BoundExpression source, TypeSymbol destination)
         {
             Debug.Assert(source != null);
             Debug.Assert((object)destination != null);
 
             if (source.Kind != BoundKind.UnboundLambda)
             {
-                return Conversion.NoConversion;
+                return false;
             }
 
-            var result = IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination);
-            if (result == LambdaConversionResult.Success)
-            {
-                return Conversion.AnonymousFunction;
-            }
-            else if (result == LambdaConversionResult.TargetMissingDefaultValue)
-            {
-                return Conversion.AnonymousFunctionWithWarning;
-            }
-
-            return Conversion.NoConversion;
+            return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination) == LambdaConversionResult.Success;
         }
 #nullable disable
 

@@ -1928,7 +1928,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_DefaultInterfaceImplementationInNoPIAType:
                 case ErrorCode.ERR_AbstractEventHasAccessors:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
-
                 case ErrorCode.ERR_DuplicateNullSuppression:
                 case ErrorCode.ERR_DefaultLiteralNoTargetType:
                 case ErrorCode.ERR_ReAbstractionInNoPIAType:
@@ -2222,7 +2221,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget:
                 case ErrorCode.ERR_RuntimeDoesNotSupportRefFields:
                 case ErrorCode.ERR_OptionalParamValueMismatch:
-                case ErrorCode.WRN_OptionalRequiredParamMismatch:
                 case ErrorCode.ERR_ExplicitScopedRef:
                     return false;
                 default:

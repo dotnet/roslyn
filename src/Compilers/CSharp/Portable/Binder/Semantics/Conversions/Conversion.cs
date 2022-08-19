@@ -259,7 +259,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitThrow => new Conversion(ConversionKind.ImplicitThrow);
         internal static Conversion ObjectCreation => new Conversion(ConversionKind.ObjectCreation);
         internal static Conversion AnonymousFunction => new Conversion(ConversionKind.AnonymousFunction);
-        internal static Conversion AnonymousFunctionWithWarning => new Conversion(ConversionKind.AnonymousFunction, true);
         internal static Conversion Boxing => new Conversion(ConversionKind.Boxing);
         internal static Conversion NullLiteral => new Conversion(ConversionKind.NullLiteral);
         internal static Conversion DefaultLiteral => new Conversion(ConversionKind.DefaultLiteral);

@@ -11918,13 +11918,10 @@ class Program
     }
 }
 """;
-
-            // PROTOTYPE: we want to have an error here, because the default value when calling the named delegate will come from the delegate
-            // itself and not the underlying lambda which could be confusing.
             CreateCompilation(source).VerifyDiagnostics(
-                    // (8,20): error CS9066: Parameter 1 has default value which does not match corresponding parameter in delegate type 'D'.
+                    // (8,20): error CS9067: Parameter 1 has default value '1000' in lambda and '1' in the target delegate type.
                     //         D d = (int x = 1000) => x + x;
-                    Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "x").WithArguments("1", "D").WithLocation(8, 20));
+                    Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "x").WithArguments("1", "1000", "1").WithLocation(8, 20));
         }
 
         [Fact]
@@ -11947,9 +11944,6 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                    // (10,20): error CS9066: Parameter 1 has default value which does not match corresponding parameter in delegate type 'D'.
-                    //         D d = (int x = f(1)) => x + x;
-                    Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "x").WithArguments("1", "D").WithLocation(10, 20),
                     // (10,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
                     //         D d = (int x = f(1)) => x + x;
                     Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1)").WithArguments("x").WithLocation(10, 24));
@@ -11971,9 +11965,9 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                    // (8,20): warning CS9067: Parameter 1 is optional in lambda but the corresponding parameter in delegate type 'D' is required.
+                    // (8,20): error CS9067: Parameter 1 has default value '1000' in lambda and '<missing>' in the target delegate type.
                     //         D d = (int x = 1000) => x + x;
-                    Diagnostic(ErrorCode.WRN_OptionalRequiredParamMismatch, "x").WithArguments("1", "D").WithLocation(8, 20));
+                    Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "x").WithArguments("1", "1000", "<missing>").WithLocation(8, 20));
         }
 
         [Fact]
@@ -11993,9 +11987,6 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                    // (9,20): warning CS9067: Parameter 1 is optional in lambda but the corresponding parameter in delegate type 'D' is required.
-                    //         D d = (int x = f(1000)) => x + x;
-                    Diagnostic(ErrorCode.WRN_OptionalRequiredParamMismatch, "x").WithArguments("1", "D").WithLocation(9, 20),
                     // (9,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
                     //         D d = (int x = f(1000)) => x + x;
                     Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1000)").WithArguments("x").WithLocation(9, 24));
@@ -12381,12 +12372,12 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (8,27): warning CS9067: Parameter 2 is optional in lambda but the corresponding parameter in delegate type 'D' is required.
-                //         D d = (int _, int _ = 3) => 10;
-                Diagnostic(ErrorCode.WRN_OptionalRequiredParamMismatch, "_").WithArguments("2", "D").WithLocation(8, 27),
-                // (9,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Program.D'
-                //         Console.WriteLine(d(4));
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("y", "Program.D").WithLocation(9, 27));
+                    // (8,27): error CS9067: Parameter 2 has default value '3' in lambda and '<missing>' in the target delegate type.
+                    //         D d = (int _, int _ = 3) => 10;
+                    Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "_").WithArguments("2", "3", "<missing>").WithLocation(8, 27),
+                    // (9,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Program.D'
+                    //         Console.WriteLine(d(4));
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("y", "Program.D").WithLocation(9, 27));
         }
 
         [Fact]
@@ -12406,9 +12397,9 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                    // (8,27): error CS9066: Parameter 2 has default value which does not match corresponding parameter in delegate type 'D'.
+                    // (8,27): error CS9067: Parameter 2 has default value '3' in lambda and '7' in the target delegate type.
                     //         D d = (int _, int _ = 3) => 10;
-                    Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "_").WithArguments("2", "D").WithLocation(8, 27));
+                    Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "_").WithArguments("2", "3", "7").WithLocation(8, 27));
         }
 
         [Fact]
@@ -12431,41 +12422,12 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                    // (8,27): warning CS9067: Parameter 2 is optional in lambda but the corresponding parameter in delegate type 'D' is required.
+                    // (8,27): error CS9067: Parameter 2 has default value '4' in lambda and '<missing>' in the target delegate type.
                     //         D d = (int x, int y = 4) => {
-                    Diagnostic(ErrorCode.WRN_OptionalRequiredParamMismatch, "y").WithArguments("2", "D").WithLocation(8, 27),
-                    // (9,24): error CS0029: Cannot implicitly convert type 'int' to 'string'
-                    //             string s = 5;
-                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "5").WithArguments("int", "string").WithLocation(9, 24),
+                    Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "y").WithArguments("2", "4", "<missing>").WithLocation(8, 27),
                     // (12,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Program.D'
                     //         Console.WriteLine(d(4));
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("y", "Program.D").WithLocation(12, 27));
-        }
-
-        [Fact]
-        public void LambdaDefaultParameter_TargetTypeConversionWarning_FullCompilation()
-        {
-
-            var source = """
-using System;
-
-class Program
-{
-    delegate int D(int x, int y);
-    public static void Main()
-    {
-        D d = (int x, int y = 4) => {
-            return x + y;
-        };
-
-        Console.WriteLine(d(3, 4));
-    }
-}
-""";
-            CompileAndVerify(source, expectedOutput: "7").VerifyDiagnostics(
-                    // (8,27): warning CS9067: Parameter 2 is optional in lambda but the corresponding parameter in delegate type 'D' is required.
-                    //         D d = (int x, int y = 4) => {
-                    Diagnostic(ErrorCode.WRN_OptionalRequiredParamMismatch, "y").WithArguments("2", "D").WithLocation(8, 27));
         }
     }
 }
