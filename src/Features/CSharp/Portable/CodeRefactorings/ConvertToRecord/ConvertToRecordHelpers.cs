@@ -340,41 +340,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         /// i.e. Doesn't reference any other created variables but the parameters
         /// </summary>
         private static bool IsSafeAssignment(IOperation operation)
-            => operation.WalkDownConversion() switch
+        {
+            if (operation is ILocalReferenceOperation)
             {
-                // literals don't make references
-                ILiteralOperation or
-                IParameterReferenceOperation or
-                IDefaultValueOperation => true,
-                IMemberReferenceOperation memberReference
-                    => memberReference.Instance == null ||
-                    IsSafeAssignment(memberReference.Instance),
-                IInvocationOperation invocation
-                    => (invocation.Instance == null ||
-                        IsSafeAssignment(invocation.Instance)) &&
-                    invocation.Arguments.All(arg => IsSafeAssignment(arg.Value)),
-                IUnaryOperation unary => IsSafeAssignment(unary.Operand),
-                IBinaryOperation binary
-                    => IsSafeAssignment(binary.LeftOperand) &&
-                    IsSafeAssignment(binary.RightOperand),
-                IConditionalAccessOperation conditionalAccess
-                    => IsSafeAssignment(conditionalAccess.Operation),
-                // ensure that we have a false branch since we're expecting a ternary operator here
-                // like Prop = b ? foo : bar;
-                IConditionalOperation { WhenFalse: IOperation whenFalse } condition
-                    => IsSafeAssignment(condition.Condition) &&
-                    IsSafeAssignment(condition.WhenTrue) &&
-                    IsSafeAssignment(whenFalse),
-                ICoalesceOperation coalesce
-                    => IsSafeAssignment(coalesce.Value) &&
-                    IsSafeAssignment(coalesce.WhenNull),
-                IIsTypeOperation isType => IsSafeAssignment(isType.ValueOperand),
-                IIsPatternOperation isPattern => IsSafeAssignment(isPattern.Value),
-                ISwitchExpressionOperation switchExpression
-                    => IsSafeAssignment(switchExpression.Value) &&
-                    switchExpression.Arms.All(arm => IsSafeAssignment(arm.Value)),
-                _ => false
-            };
+                return false;
+            }
+
+            return operation.ChildOperations.All(IsSafeAssignment);
+        }
 
         /// <summary>
         /// Get all the fields (including implicit fields underlying properties) that this

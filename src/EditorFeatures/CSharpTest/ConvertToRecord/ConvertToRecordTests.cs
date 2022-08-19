@@ -2838,6 +2838,54 @@ namespace N
         }
 
         [Fact]
+        public async Task TestMovePropertiesAndProvideThisInitializerValuesPatternVariable()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(bool b, int p)
+        {
+            P = p;
+            B = b;
+        }
+
+        public C(bool b1, object b2)
+        {
+            P = b1 ? 1 : 0;
+            B = b2 switch
+            {
+                C cb2 => cb2.B,
+                _ => false
+            };
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(bool B, int P)
+    {
+        public C(bool b1, object b2) : this(default, b1 ? 1 : 0)
+        {
+            B = b2 switch
+            {
+                C cb2 => cb2.B,
+                _ => false
+            };
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestMovePropertiesAndProvideThisInitializerDefaultAndNull()
         {
             var initialMarkup = @"
