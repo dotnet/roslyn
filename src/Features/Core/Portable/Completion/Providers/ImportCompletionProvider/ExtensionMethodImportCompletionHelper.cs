@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 cacheEntry.Checksum != checksum ||
                 cacheEntry.Language != project.Language)
             {
-                var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+                var syntaxFacts = project.Services.GetRequiredService<ISyntaxFactsService>();
                 var builder = new ExtensionMethodImportCompletionCacheEntry.Builder(checksum, project.Language, syntaxFacts.StringComparer);
 
                 foreach (var document in project.Documents)

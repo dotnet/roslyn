@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.OrderModifiers
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.OrderModifiers), [Shared]>

@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -203,8 +203,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var annotation = new SyntaxAnnotation();
             newMethod = annotation.AddAnnotationToSymbol(newMethod);
-            var codeModel = targetDocument.Project.LanguageServices.GetRequiredService<ICodeModelNavigationPointService>();
-            var syntaxFacts = targetDocument.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+            var codeModel = targetDocument.Project.Services.GetRequiredService<ICodeModelNavigationPointService>();
+            var syntaxFacts = targetDocument.Project.Services.GetRequiredService<ISyntaxFactsService>();
 
             var targetSyntaxTree = targetDocument.GetSyntaxTreeSynchronously(cancellationToken);
 
@@ -272,7 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return false;
             }
 
-            var codeModel = thisDocument.Project.LanguageServices.GetService<ICodeModelNavigationPointService>();
+            var codeModel = thisDocument.Project.Services.GetService<ICodeModelNavigationPointService>();
             var memberNode = member.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).FirstOrDefault();
             if (memberNode != null)
             {

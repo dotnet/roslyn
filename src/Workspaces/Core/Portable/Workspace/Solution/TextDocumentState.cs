@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, HostWorkspaceServices services)
         {
-            var result = new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage);
+            var result = new RecoverableTextAndVersion(CreateStrongText(text), services.GetRequiredService<ITemporaryStorageServiceInternal>());
 
             // This RecoverableTextAndVersion is created directly from a TextAndVersion instance. In its initial state,
             // the RecoverableTextAndVersion keeps a strong reference to the initial TextAndVersion, and only
@@ -117,10 +117,10 @@ namespace Microsoft.CodeAnalysis
                     asynchronousComputeFunction: cancellationToken => loader.LoadTextAsync(services.Workspace, documentId, cancellationToken),
                     synchronousComputeFunction: cancellationToken => loader.LoadTextSynchronously(services.Workspace, documentId, cancellationToken),
                     cacheResult: false),
-                services.TemporaryStorage);
+                services.GetRequiredService<ITemporaryStorageServiceInternal>());
         }
 
-        public ITemporaryTextStorage? Storage
+        public ITemporaryTextStorageInternal? Storage
         {
             get
             {

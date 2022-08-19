@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             Assert.IsType<PreviewSolutionCrawlerRegistrationServiceFactory.Service>(service);
 
-            var persistentService = previewWorkspace.Services.GetPersistentStorageService();
+            var persistentService = previewWorkspace.Services.SolutionServices.GetPersistentStorageService();
 
             await using var storage = await persistentService.GetStorageAsync(SolutionKey.ToSolutionKey(previewWorkspace.CurrentSolution), CancellationToken.None);
             Assert.IsType<NoOpPersistentStorage>(storage);
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         {
             var analyzerOptions = new AnalyzerOptions(additionalFiles: ImmutableArray<AdditionalText>.Empty);
             var project = previewWorkspace.CurrentSolution.Projects.Single();
-            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.LanguageServices);
+            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
             var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, project.Solution, ideAnalyzerOptions);
             var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false);
             var compilation = project.GetRequiredCompilationAsync(CancellationToken.None).Result;

@@ -2,18 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
-using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -37,6 +33,21 @@ namespace Microsoft.CodeAnalysis.Remote
         private CodeCleanupOptionsProvider GetClientOptionsProvider(RemoteServiceCallbackId callbackId)
             => new ClientCodeCleanupOptionsProvider(
                 (callbackId, language, cancellationToken) => _callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, language, cancellationToken), cancellationToken), callbackId);
+
+        public ValueTask KeepAliveAsync(
+            Checksum solutionChecksum,
+            CancellationToken cancellationToken)
+        {
+            // First get the solution, ensuring that it is currently pinned.
+            return RunServiceAsync(solutionChecksum, async solution =>
+            {
+                // Wait for our caller to tell us to cancel.  That way we can release this solution and allow it
+                // to be collected if not needed anymore.
+                //
+                // This was provided by stoub as an idiomatic way to wait indefinitely until a cancellation token triggers.
+                await Task.Delay(-1, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
+        }
 
         public ValueTask<SerializableConflictResolution?> RenameSymbolAsync(
             Checksum solutionChecksum,
@@ -79,12 +90,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (symbol == null)
                     return null;
 
-                var fallbackOptions = GetClientOptionsProvider(callbackId);
+                var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(
+                    symbol, solution, options, GetClientOptionsProvider(callbackId), cancellationToken).ConfigureAwait(false);
 
-                var result = await LightweightRenameLocations.FindRenameLocationsAsync(
-                    symbol, solution, options, fallbackOptions, cancellationToken).ConfigureAwait(false);
-
-                return result.Dehydrate();
+                return new SerializableRenameLocations(
+                    options,
+                    renameLocations.Locations.SelectAsArray(SerializableRenameLocation.Dehydrate),
+                    renameLocations.ImplicitLocations.SelectAsArray(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)),
+                    renameLocations.ReferencedSymbols.SelectAsArray(sym => SerializableSymbolAndProjectId.Dehydrate(solution, sym, cancellationToken)));
             }, cancellationToken);
         }
 
@@ -103,12 +116,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (symbol is null)
                     return null;
 
-                var locations = await LightweightRenameLocations.TryRehydrateAsync(
-                    solution, GetClientOptionsProvider(callbackId), serializableLocations, cancellationToken).ConfigureAwait(false);
-                if (locations == null)
+                var locations = await SymbolicRenameLocations.TryRehydrateAsync(
+                    symbol, solution, GetClientOptionsProvider(callbackId), serializableLocations, cancellationToken).ConfigureAwait(false);
+                if (locations is null)
                     return null;
 
-                var result = await locations.ResolveConflictsAsync(symbol, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+                var result = await ConflictResolver.ResolveSymbolicLocationConflictsInCurrentProcessAsync(
+                    locations, replacementText, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
                 return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }

@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletio
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -65,8 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.TextView.Options.GlobalOptions.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, False)
             MyBase.TextView.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart)
 
-            Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
-            Dim language = languageServices.Language
+            Dim language = Me.Workspace.CurrentSolution.Projects.First().Language
 
             Me.SessionTestState = GetExportedValue(Of IIntelliSenseTestState)()
 
@@ -126,6 +125,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Overloads Sub SendReturn()
             Dim handler = GetHandler(Of IChainedCommandHandler(Of ReturnKeyCommandArgs))()
             MyBase.SendReturn(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() EditorOperations.InsertNewLine())
+        End Sub
+
+        Public Sub SendBackspaces(count As Integer)
+            For i = 0 To count - 1
+                Me.SendBackspace()
+            Next
         End Sub
 
         Public Overrides Sub SendBackspace()
@@ -531,6 +536,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim computedItems = session.GetComputedItems(CancellationToken.None)
             Return computedItems.SuggestionItem IsNot Nothing
         End Function
+
+        Public Sub AssertSuggestedItemSelected(displayText As String)
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
+            Assert.NotNull(session)
+            Dim computedItems = session.GetComputedItems(CancellationToken.None)
+            Assert.True(computedItems.SuggestionItemSelected)
+            Assert.Equal(computedItems.SuggestionItem.DisplayText, displayText)
+        End Sub
 
         Public Function IsSoftSelected() As Boolean
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)

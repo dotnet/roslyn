@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Xaml;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -29,13 +29,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             }
 
             var codeProject = document.GetCodeProject();
-            var formatter = codeProject.LanguageServices.GetService<IDocumentationCommentFormattingService>();
+            var formatter = codeProject.Services.GetService<IDocumentationCommentFormattingService>();
             if (formatter == null)
             {
                 return Enumerable.Empty<TaggedText>();
             }
 
-            var symbolDisplayService = codeProject.LanguageServices.GetService<ISymbolDisplayService>();
+            var symbolDisplayService = codeProject.Services.GetService<ISymbolDisplayService>();
             if (symbolDisplayService == null)
             {
                 return Enumerable.Empty<TaggedText>();

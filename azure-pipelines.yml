@@ -36,6 +36,8 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     queueName: Build.Windows.Amd64.VS2022.Pre.Open
+    restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+    buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
 - template: eng/pipelines/build-windows-job.yml
   parameters:
@@ -43,6 +45,8 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     queueName: Build.Windows.Amd64.VS2022.Pre.Open
+    restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
+    buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - template: eng/pipelines/test-windows-job.yml
@@ -180,14 +184,68 @@ jobs:
 
 # Build Correctness Jobs
 
+- template: eng/pipelines/evaluate-changed-files.yml
+  parameters:
+    jobName: Determine_Changes
+    vmImageName: ubuntu-latest
+    paths:
+      - subset: compilers
+        include:
+        - src/Compilers/*
+        - src/Dependencies/*
+
+- job: Correctness_Build_Artifacts
+  dependsOn: Determine_Changes
+  pool:
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+  timeoutInMinutes: 90
+  variables:
+    compilerChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+  steps:
+    - template: eng/pipelines/checkout-windows-task.yml
+
+    - task: PowerShell@2
+      displayName: Restore
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -configuration Release -prepareMachine -ci -restore -binaryLog
+
+    - task: PowerShell@2
+      displayName: Build
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLog
+
+    - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.sln
+      displayName: Validate Build Artifacts
+
+    - task: PowerShell@2
+      displayName: Generate Syntax Files
+      inputs:
+        filePath: eng/generate-compiler-code.ps1
+        arguments: -test -configuration Release
+      condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
+      
+    - script: $(Build.SourcesDirectory)\.dotnet\dotnet.exe tool run dotnet-format whitespace  $(Build.SourcesDirectory)\src --folder --include-generated --include $(Build.SourcesDirectory)\src\Compilers\CSharp\Portable\Generated\ $(Build.SourcesDirectory)\src\Compilers\VisualBasic\Portable\Generated\ $(Build.SourcesDirectory)\src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\ --verify-no-changes
+      displayName: Validate Generated Syntax Files
+      condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
+      
+    - template: eng/pipelines/publish-logs.yml
+      parameters:
+        jobName: Correctness_Build_Artifacts
+        configuration: Release
+    
 - job: Correctness_Determinism
+  dependsOn: Determine_Changes
+  condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
   pool:
     name: NetCore1ESPool-Public
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
-
+    
     - script: eng/test-determinism.cmd -configuration Debug
       displayName: Build - Validate determinism
 
@@ -196,7 +254,9 @@ jobs:
         jobName: Correctness_Determinism
         configuration: Debug
 
-- job: Correctness_Build
+- job: Correctness_Bootstrap_Build
+  dependsOn: Determine_Changes
+  condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
   pool:
     name: NetCore1ESPool-Public
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
@@ -209,24 +269,22 @@ jobs:
 
     - template: eng/pipelines/publish-logs.yml
       parameters:
-        jobName: Correctness_Build
+        jobName: Correctness_Bootstrap_Build
         configuration: Release
 
     - task: PublishBuildArtifacts@1
       displayName: Publish Artifact Packages
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
-        ArtifactName: 'Packages - PreRelease'
+        ArtifactName: 'Bootstrap Packages - PreRelease'
         publishLocation: Container
-      condition: succeeded()
 
     - task: PublishBuildArtifacts@1
       displayName: Publish VSIX Packages
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\VSSetup\Release\Installer'
-        ArtifactName: 'VSIX - PreRelease'
+        ArtifactName: 'Bootstrap VSIX - PreRelease'
         publishLocation: Container
-      condition: succeeded()
 
 - job: Correctness_TodoCheck
   pool:
@@ -239,6 +297,8 @@ jobs:
       displayName: Validate TODO/PROTOTYPE comments are not present
 
 - job: Correctness_Rebuild
+  dependsOn: Determine_Changes
+  condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
   pool:
     name: NetCore1ESPool-Public
     demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
@@ -268,3 +328,14 @@ jobs:
       parameters:
         jobName: Correctness_Rebuild
         configuration: Release
+
+- job: Correctness_Analyzers
+  pool:
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
+  timeoutInMinutes: 35
+  steps:
+    - template: eng/pipelines/checkout-unix-task.yml
+      
+    - script: ./eng/build.sh --solution Roslyn.sln --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror /p:RoslynEnforceCodeStyle=true
+      displayName: Build with analyzers

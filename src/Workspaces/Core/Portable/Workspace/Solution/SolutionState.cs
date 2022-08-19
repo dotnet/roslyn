@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal partial class SolutionState
     {
+        private readonly BranchId _primaryBranchId;
+
         // branch id for this solution
         private readonly BranchId _branchId;
 
@@ -73,9 +75,11 @@ namespace Microsoft.CodeAnalysis
         private readonly SourceGeneratedDocumentState? _frozenSourceGeneratedDocumentState;
 
         private SolutionState(
+            BranchId primaryBranchId,
             BranchId branchId,
             string? workspaceKind,
             int workspaceVersion,
+            bool partialSemanticsEnabled,
             HostWorkspaceServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
             IReadOnlyList<ProjectId> projectIds,
@@ -88,9 +92,11 @@ namespace Microsoft.CodeAnalysis
             Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers,
             SourceGeneratedDocumentState? frozenSourceGeneratedDocument)
         {
+            _primaryBranchId = primaryBranchId;
             _branchId = branchId;
             WorkspaceKind = workspaceKind;
             _workspaceVersion = workspaceVersion;
+            PartialSemanticsEnabled = partialSemanticsEnabled;
             _solutionAttributes = solutionAttributes;
             Services = solutionServices;
             ProjectIds = projectIds;
@@ -117,14 +123,17 @@ namespace Microsoft.CodeAnalysis
         public SolutionState(
             BranchId primaryBranchId,
             string? workspaceKind,
+            bool partialSemanticsEnabled,
             HostWorkspaceServices services,
             SolutionInfo.SolutionAttributes solutionAttributes,
             SolutionOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences)
             : this(
                 primaryBranchId,
+                primaryBranchId,
                 workspaceKind,
                 workspaceVersion: 0,
+                partialSemanticsEnabled,
                 services,
                 solutionAttributes,
                 projectIds: SpecializedCollections.EmptyBoxedImmutableArray<ProjectId>(),
@@ -156,6 +165,8 @@ namespace Microsoft.CodeAnalysis
 
         public string? WorkspaceKind { get; }
 
+        public bool PartialSemanticsEnabled { get; }
+
         public int WorkspaceVersion => _workspaceVersion;
 
         public HostWorkspaceServices Services { get; }
@@ -174,6 +185,8 @@ namespace Microsoft.CodeAnalysis
         /// version only has a meaning between primary solution and branched one or between solutions from same branch.
         /// </summary>
         public BranchId BranchId => _branchId;
+
+        public BranchId PrimaryBranchId => _primaryBranchId;
 
         /// <summary>
         /// The Workspace this solution is associated with.
@@ -257,9 +270,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new SolutionState(
+                _primaryBranchId,
                 branchId,
                 WorkspaceKind,
                 _workspaceVersion,
+                PartialSemanticsEnabled,
                 Services,
                 solutionAttributes,
                 projectIds,
@@ -289,8 +304,10 @@ namespace Microsoft.CodeAnalysis
 
             return new SolutionState(
                 branchId,
+                branchId,
                 workspaceKind,
                 workspaceVersion,
+                PartialSemanticsEnabled,
                 services,
                 _solutionAttributes,
                 ProjectIds,
@@ -310,7 +327,7 @@ namespace Microsoft.CodeAnalysis
             // my reasonings are
             // 1. it seems there is no-one who needs sub branches.
             // 2. this lets us to branch without explicit branch API
-            return _branchId == Workspace.PrimaryBranchId ? BranchId.GetNextId() : _branchId;
+            return _branchId == _primaryBranchId ? BranchId.GetNextId() : _branchId;
         }
 
         /// <summary>
@@ -795,7 +812,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            if (Workspace.PartialSemanticsEnabled)
+            if (this.PartialSemanticsEnabled)
             {
                 // don't fork tracker with queued action since access via partial semantics can become inconsistent (throw).
                 // Since changing options is rare event, it is okay to start compilation building from scratch.
@@ -1508,7 +1525,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (forkTracker)
                 {
-                    newTrackerMap = newTrackerMap.Add(projectId, tracker.Fork(Services, newProjectState, translate));
+                    newTrackerMap = newTrackerMap.Add(projectId, tracker.Fork(newProjectState, translate));
                 }
             }
 
@@ -1552,7 +1569,7 @@ namespace Microsoft.CodeAnalysis
             var builder = ImmutableDictionary.CreateBuilder<ProjectId, ICompilationTracker>();
 
             foreach (var (id, tracker) in _projectIdToTrackerMap)
-                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(Services, tracker.ProjectState));
+                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(tracker.ProjectState, translate: null));
 
             return builder.ToImmutable();
 

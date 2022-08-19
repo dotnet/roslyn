@@ -482,11 +482,13 @@ class Program
             );
         }
 
-        [Fact]
-        public void ByrefParam()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void ByrefParam(LanguageVersion languageVersion)
         {
-            var text = @"
-using System;
+            var text = @"using System;
+using System.Diagnostics.CodeAnalysis;
 
 class Program
 {
@@ -516,19 +518,17 @@ class Program
     }
 
     // OK
-    static ref Span<string> M4(ref Span<string> ss) { return ref ss; }
+    static ref Span<string> M4([UnscopedRef] ref Span<string> ss) { return ref ss; }
 
     // OK
-    static ref readonly Span<string> M5(ref Span<string> ss) => ref ss;
+    static ref readonly Span<string> M5([UnscopedRef] ref Span<string> ss) => ref ss;
 
     // Not OK
     // TypedReference baseline
     static ref TypedReference M1(ref TypedReference ss) => ref ss;
 }
 ";
-
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
-
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics(
                 // (39,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
@@ -1448,13 +1448,14 @@ class Program
                 );
         }
 
-        [Fact]
         [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
-        public void PassingSpansToLocals_EscapeScope()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void PassingSpansToLocals_EscapeScope(LanguageVersion languageVersion)
         {
-            CompileAndVerify(
-                CreateCompilationWithMscorlibAndSpan(@"
-using System;
+            var source = @"using System;
+using System.Diagnostics.CodeAnalysis;
 class C
 {
     static void Main()
@@ -1465,18 +1466,19 @@ class C
         Console.WriteLine(M2(ref x).Length);
     }
     
-    static ref Span<int> M1(ref Span<int> x)
+    static ref Span<int> M1([UnscopedRef] ref Span<int> x)
     {
         ref Span<int> q = ref x;
         return ref q;
     }
     
-    static ref Span<int> M2(ref Span<int> x)
+    static ref Span<int> M2([UnscopedRef] ref Span<int> x)
     {
         return ref x;
     }
-}",
-                options: TestOptions.ReleaseExe), verify: Verification.Fails, expectedOutput: @"
+}";
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 10
 10");
         }

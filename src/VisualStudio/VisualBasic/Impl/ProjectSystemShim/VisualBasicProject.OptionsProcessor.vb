@@ -40,7 +40,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             ''' </summary>
             Private Shared ReadOnly s_importsCache As Dictionary(Of String, GlobalImport) = New Dictionary(Of String, GlobalImport)
 
-            Public Sub New(project As VisualStudioProject, workspaceServices As HostWorkspaceServices)
+            Public Sub New(project As VisualStudioProject, workspaceServices As SolutionServices)
                 MyBase.New(project, workspaceServices)
             End Sub
 

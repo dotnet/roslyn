@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
     internal class CompilerInvocation
     {
         public Compilation Compilation { get; }
-        public HostLanguageServices LanguageServices { get; }
+        public LanguageServices LanguageServices { get; }
         public string ProjectFilePath { get; }
         public GeneratorOptions Options { get; }
 
-        public CompilerInvocation(Compilation compilation, HostLanguageServices languageServices, string projectFilePath, GeneratorOptions options)
+        public CompilerInvocation(Compilation compilation, LanguageServices languageServices, string projectFilePath, GeneratorOptions options)
         {
             Compilation = compilation;
             LanguageServices = languageServices;
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var workspace = new AdhocWorkspace();
 
             var languageName = GetLanguageName(invocationInfo);
-            var languageServices = workspace.Services.GetLanguageServices(languageName);
+            var languageServices = workspace.Services.GetLanguageServices(languageName).LanguageServices;
 
             var mapPath = GetPathMapper(invocationInfo);
 

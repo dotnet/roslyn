@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public static readonly PerLanguageOption2<int> WrappingColumn =
             new("FormattingOptions", "WrappingColumn", CodeActionOptions.DefaultWrappingColumn);
 
-        public static CodeActionOptions GetCodeActionOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
+        public static CodeActionOptions GetCodeActionOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
             => new(
                 cleanupOptions: globalOptions.GetCodeCleanupOptions(languageServices),
                 codeGenerationOptions: globalOptions.GetCodeGenerationOptions(languageServices),

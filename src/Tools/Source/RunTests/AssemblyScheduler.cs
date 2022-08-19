@@ -2,359 +2,361 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
-using System.Text;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace RunTests
 {
-    internal readonly struct AssemblyInfo
+    internal record struct WorkItemInfo(ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TestMethodInfo>> Filters, int PartitionIndex)
     {
-        internal PartitionInfo PartitionInfo { get; }
-        internal string TargetFramework { get; }
-        internal string Architecture { get; }
-
-        internal string AssemblyPath => PartitionInfo.AssemblyPath;
-        internal string AssemblyName => Path.GetFileName(PartitionInfo.AssemblyPath);
-        internal string DisplayName => PartitionInfo.DisplayName;
-
-        internal AssemblyInfo(PartitionInfo partitionInfo, string targetFramework, string architecture)
-        {
-            PartitionInfo = partitionInfo;
-            TargetFramework = targetFramework;
-            Architecture = architecture;
-        }
-    }
-
-    internal readonly struct PartitionInfo
-    {
-        internal int? AssemblyPartitionId { get; }
-        internal string AssemblyPath { get; }
-        internal string DisplayName { get; }
-
-        /// <summary>
-        /// Specific set of types to test in the assembly. Will be empty when testing the entire assembly
-        /// </summary>
-        internal readonly ImmutableArray<TypeInfo> TypeInfoList;
-
-        internal PartitionInfo(
-            int assemblyPartitionId,
-            string assemblyPath,
-            string displayName,
-            ImmutableArray<TypeInfo> typeInfoList)
-        {
-            AssemblyPartitionId = assemblyPartitionId;
-            AssemblyPath = assemblyPath;
-            DisplayName = displayName;
-            TypeInfoList = typeInfoList;
-        }
-
-        internal PartitionInfo(string assemblyPath)
-        {
-            AssemblyPartitionId = null;
-            AssemblyPath = assemblyPath;
-            DisplayName = Path.GetFileName(assemblyPath);
-            TypeInfoList = ImmutableArray<TypeInfo>.Empty;
-        }
-
-        public override string ToString() => DisplayName;
-    }
-
-    public readonly struct TypeInfo
-    {
-        internal readonly string FullName;
-        internal readonly int MethodCount;
-
-        internal TypeInfo(string fullName, int methodCount)
-        {
-            FullName = fullName;
-            MethodCount = methodCount;
-        }
+        internal string DisplayName => $"{string.Join("_", Filters.Keys.Select(a => Path.GetFileNameWithoutExtension(a.AssemblyName)))}_{PartitionIndex}";
     }
 
     internal sealed class AssemblyScheduler
     {
         /// <summary>
-        /// This is a test class inserted into assemblies to guard against a .NET desktop bug.  The tests
-        /// inside of it counteract the underlying issue.  If this test is included in any assembly it 
-        /// must be added to every partition to ensure the work around is present
-        /// 
-        /// https://github.com/dotnet/corefx/issues/3793
-        /// https://github.com/dotnet/roslyn/issues/8936
+        /// We attempt to partition our tests into work items that execute in under 2 minutes 30s.  This is a derived limit based on a goal of running all tests
+        /// in under 5 minutes.  However because of overhead in setting up the test run, e.g.
+        ///   1.  Test discovery.
+        ///   2.  Downloading assets to the helix machine.
+        ///   3.  Setting up the test host for each assembly.
+        ///   
+        /// we need to actually build partitions that run in under 5 minutes, hence our limit here of 2m30s.
         /// </summary>
-        private const string EventListenerGuardFullName = "Microsoft.CodeAnalysis.UnitTests.EventListenerGuard";
-
-        private static class AssemblyInfoBuilder
-        {
-            internal static void Build(string assemblyPath, int methodLimit, List<TypeInfo> typeInfoList, out ImmutableArray<PartitionInfo> partitionInfoList)
-            {
-                var list = new List<PartitionInfo>();
-                var hasEventListenerGuard = typeInfoList.Any(x => x.FullName == EventListenerGuardFullName);
-                var currentTypeInfoList = new List<TypeInfo>();
-                var currentClassNameLengthSum = -1;
-                var currentId = 0;
-
-                BeginPartition();
-
-                foreach (var typeInfo in typeInfoList)
-                {
-                    currentTypeInfoList.Add(typeInfo);
-                    currentClassNameLengthSum += typeInfo.FullName.Length;
-                    CheckForPartitionLimit(done: false);
-                }
-
-                CheckForPartitionLimit(done: true);
-
-                partitionInfoList = ImmutableArray.CreateRange(list);
-
-                void BeginPartition()
-                {
-                    currentId++;
-                    currentTypeInfoList.Clear();
-                    currentClassNameLengthSum = 0;
-
-                    // Ensure the EventListenerGuard is in every partition.
-                    if (hasEventListenerGuard)
-                    {
-                        currentClassNameLengthSum += EventListenerGuardFullName.Length;
-                    }
-                }
-
-                void CheckForPartitionLimit(bool done)
-                {
-                    if (done)
-                    {
-                        // The builder is done looking at types.  If there are any TypeInfo that have not
-                        // been added to a partition then do it now.
-                        if (currentTypeInfoList.Count > 0)
-                        {
-                            FinishPartition();
-                        }
-
-                        return;
-                    }
-
-                    // One item we have to consider here is the maximum command line length in 
-                    // Windows which is 32767 characters (XP is smaller but don't care).  Once
-                    // we get close then create a partition and move on. 
-                    if (currentTypeInfoList.Sum(x => x.MethodCount) >= methodLimit ||
-                        currentClassNameLengthSum > 25000)
-                    {
-                        FinishPartition();
-                        BeginPartition();
-                    }
-
-                    void FinishPartition()
-                    {
-                        var partitionInfo = new PartitionInfo(
-                            currentId,
-                            assemblyPath,
-                            $"{Path.GetFileName(assemblyPath)}.{currentId}",
-                            ImmutableArray.CreateRange(currentTypeInfoList));
-                        list.Add(partitionInfo);
-                    }
-                }
-            }
-        }
+        private static readonly TimeSpan s_maxExecutionTime = TimeSpan.FromSeconds(150);
 
         /// <summary>
-        /// Default number of methods to include per partition.
+        /// If we were unable to find the test execution history, we fall back to partitioning by just method count.
         /// </summary>
-        internal const int DefaultMethodLimit = 2000;
-
-        /// <summary>
-        /// Number of methods to include per Helix work item.
-        /// </summary>
-        internal const int HelixMethodLimit = 500;
+        private static readonly int s_maxMethodCount = 500;
 
         private readonly Options _options;
-        private readonly int _methodLimit;
 
         internal AssemblyScheduler(Options options)
         {
             _options = options;
-            _methodLimit = options.UseHelix ? AssemblyScheduler.HelixMethodLimit : AssemblyScheduler.DefaultMethodLimit;
         }
 
-        public ImmutableArray<PartitionInfo> Schedule(string assemblyPath, bool force = false)
+        public async Task<ImmutableArray<WorkItemInfo>> ScheduleAsync(ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
         {
-            if (_options.Sequential)
+            Logger.Log($"Scheduling {assemblies.Length} assemblies");
+
+            if (_options.Sequential || !_options.UseHelix)
             {
-                return ImmutableArray.Create(new PartitionInfo(assemblyPath));
+                Logger.Log("Building work items with one assembly each.");
+                // return individual work items per assembly that contain all the tests in that assembly.
+                return CreateWorkItemsForFullAssemblies(assemblies);
             }
 
-            var typeInfoList = GetTypeInfoList(assemblyPath);
-            AssemblyInfoBuilder.Build(assemblyPath, _methodLimit, typeInfoList, out var partitionList);
+            var orderedTypeInfos = assemblies.ToImmutableSortedDictionary(assembly => assembly, GetTypeInfoList);
 
-            // If the scheduling didn't actually produce multiple partition then send back an unpartitioned
-            // representation.
-            if (partitionList.Length == 1 && !force)
+            ConsoleUtil.WriteLine($"Found {orderedTypeInfos.Values.SelectMany(t => t).SelectMany(t => t.Tests).Count()} tests to run in {orderedTypeInfos.Keys.Count()} assemblies");
+
+            // Retrieve test runtimes from azure devops historical data.
+            var testHistory = await TestHistoryManager.GetTestHistoryAsync(_options, cancellationToken);
+            if (testHistory.IsEmpty)
             {
-                Logger.Log($"Assembly schedule produced a single partition {assemblyPath}");
-                return ImmutableArray.Create(new PartitionInfo(assemblyPath));
+                // We didn't have any test history from azure devops, just partition by test count.
+                ConsoleUtil.WriteLine($"##[warning]Could not look up test history - partitioning based on test count instead");
+                var workItemsByMethodCount = BuildWorkItems<int>(
+                    orderedTypeInfos,
+                    isOverLimitFunc: (accumulatedMethodCount) => accumulatedMethodCount >= s_maxMethodCount,
+                    addFunc: (currentTest, accumulatedMethodCount) => accumulatedMethodCount + 1);
+
+                LogWorkItems(workItemsByMethodCount);
+                return workItemsByMethodCount;
             }
 
-            Logger.Log($"Assembly Schedule: {Path.GetFileName(assemblyPath)}");
-            foreach (var partition in partitionList)
+            // Now for our current set of test methods we got from the assemblies we built, match them to tests from our test run history
+            // so that we can extract an estimate of the test execution time for each test.
+            orderedTypeInfos = UpdateTestsWithExecutionTimes(orderedTypeInfos, testHistory);
+
+            // Create work items by partitioning tests by historical execution time with the goal of running under our time limit.
+            // While we do our best to run tests from the same assembly together (by building work items in assembly order) it is expected
+            // that some work items will run tests from multiple assemblies due to large variances in test execution time.
+            var workItems = BuildWorkItems<TimeSpan>(
+                orderedTypeInfos,
+                isOverLimitFunc: (accumulatedExecutionTime) => accumulatedExecutionTime >= s_maxExecutionTime,
+                addFunc: (currentTest, accumulatedExecutionTime) => currentTest.ExecutionTime + accumulatedExecutionTime);
+            LogWorkItems(workItems);
+            return workItems;
+
+            static ImmutableArray<WorkItemInfo> CreateWorkItemsForFullAssemblies(ImmutableArray<AssemblyInfo> assemblies)
             {
-                var methodCount = partition.TypeInfoList.Sum(x => x.MethodCount);
-                var delta = methodCount - _methodLimit;
-                Logger.Log($"  Partition: {partition.AssemblyPartitionId} method count {methodCount} delta {delta}");
-                foreach (var typeInfo in partition.TypeInfoList)
+                var workItems = new List<WorkItemInfo>();
+                var partitionIndex = 0;
+                foreach (var assembly in assemblies)
                 {
-                    Logger.Log($"    {typeInfo.FullName} {typeInfo.MethodCount}");
+                    var currentWorkItem = ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TestMethodInfo>>.Empty.Add(assembly, ImmutableArray<TestMethodInfo>.Empty);
+                    workItems.Add(new WorkItemInfo(currentWorkItem, partitionIndex++));
+                }
+
+                return workItems.ToImmutableArray();
+            }
+        }
+
+        private static ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> UpdateTestsWithExecutionTimes(
+            ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> assemblyTypes,
+            ImmutableDictionary<string, TimeSpan> testHistory)
+        {
+            // Determine the average execution time so that we can use it for tests that do not have any history.
+            var averageExecutionTime = TimeSpan.FromMilliseconds(testHistory.Values.Average(t => t.TotalMilliseconds));
+
+            // Store the tests we found locally that were missing remote historical data.
+            var unmatchedLocalTests = new HashSet<string>();
+
+            // Store the tests we found in the remote historical data so we can report any we didn't find locally.
+            var matchedRemoteTests = new HashSet<string>();
+
+            var updated = assemblyTypes.ToImmutableSortedDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.Select(WithTypeExecutionTime).ToImmutableArray());
+
+            LogResults();
+            return updated;
+
+            TypeInfo WithTypeExecutionTime(TypeInfo typeInfo)
+            {
+                var tests = typeInfo.Tests.Select(WithTestExecutionTime).ToImmutableArray();
+                return typeInfo with { Tests = tests };
+            }
+
+            TestMethodInfo WithTestExecutionTime(TestMethodInfo methodInfo)
+            {
+                // Match by fully qualified test method name to azure devops historical data.
+                // Note for combinatorial tests, azure devops helpfully groups all sub-runs under a top level method (with combined test run times) with the same fully qualified method name
+                // that we get during test discovery.  Since we only filter by the single method name (and not individual combinatorial runs) we do want the combined execution time.
+                if (testHistory.TryGetValue(methodInfo.FullyQualifiedName, out var executionTime))
+                {
+                    matchedRemoteTests.Add(methodInfo.FullyQualifiedName);
+                    return methodInfo with { ExecutionTime = executionTime };
+                }
+
+                // We didn't find the local type from our assembly in test run historical data.
+                // This usually occurs when tests have been added in between the last passing branch run and this PR.
+                unmatchedLocalTests.Add(methodInfo.FullyQualifiedName);
+                return methodInfo with { ExecutionTime = averageExecutionTime };
+            }
+
+            void LogResults()
+            {
+                foreach (var unmatchedLocalTest in unmatchedLocalTests)
+                {
+                    Logger.Log($"Could not find test execution history for test {unmatchedLocalTest}");
+                }
+
+                var unmatchedRemoteTests = testHistory.Keys.Where(type => !matchedRemoteTests.Contains(type));
+                foreach (var unmatchedRemoteTest in unmatchedRemoteTests)
+                {
+                    Logger.Log($"Found historical data for test {unmatchedRemoteTest} that was not present in local assemblies");
+                }
+
+                var allTests = assemblyTypes.Values.SelectMany(v => v).SelectMany(v => v.Tests).Select(t => t.FullyQualifiedName).ToList();
+
+                var totalExpectedRunTime = TimeSpan.FromMilliseconds(updated.Values.SelectMany(types => types).SelectMany(type => type.Tests).Sum(test => test.ExecutionTime.TotalMilliseconds));
+                ConsoleUtil.WriteLine($"{unmatchedLocalTests.Count} tests were missing historical data.  {unmatchedRemoteTests.Count()} tests were missing in local assemblies.  Estimate of total execution time for tests is {totalExpectedRunTime}.");
+            }
+        }
+
+        private ImmutableArray<WorkItemInfo> BuildWorkItems<TWeight>(
+            ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> typeInfos,
+            Func<TWeight, bool> isOverLimitFunc,
+            Func<TestMethodInfo, TWeight, TWeight> addFunc) where TWeight : struct
+        {
+            var workItems = new List<WorkItemInfo>();
+
+            // Keep track of which work item we are creating - used to identify work items in names.
+            var workItemIndex = 0;
+
+            // Keep track of the limit of the current work item we are adding to.
+            var accumulatedValue = default(TWeight);
+
+            // Keep track of the types we're planning to add to the current work item.
+            var currentFilters = new SortedDictionary<AssemblyInfo, List<TestMethodInfo>>();
+
+            // First find any assemblies we need to run in single assembly work items (due to state sharing concerns).
+            var singlePartitionAssemblies = typeInfos.Where(kvp => ShouldPartitionInSingleWorkItem(kvp.Key.AssemblyPath));
+            typeInfos = typeInfos.RemoveRange(singlePartitionAssemblies.Select(kvp => kvp.Key));
+            foreach (var (assembly, types) in singlePartitionAssemblies)
+            {
+                Logger.Log($"Building single assembly work item {workItemIndex} for {assembly.AssemblyPath}");
+                types.SelectMany(t => t.Tests).ToList().ForEach(test => AddFilter(assembly, test));
+
+                // End the work item so we don't include anything after this assembly.
+                AddCurrentWorkItem();
+            }
+
+            // Iterate through each assembly and type and build up the work items to run.
+            // We add types from assemblies one by one until we hit our limit,
+            // at which point we create a work item with the current types and start a new one.
+            foreach (var (assembly, types) in typeInfos)
+            {
+                foreach (var type in types)
+                {
+                    foreach (var test in type.Tests)
+                    {
+                        // Get a new value representing the value from the test plus the accumulated value in the work item.
+                        var newAccumulatedValue = addFunc(test, accumulatedValue);
+
+                        // If the new accumulated value is greater than the limit
+                        if (isOverLimitFunc(newAccumulatedValue))
+                        {
+                            // Adding this type would put us over the time limit for this partition.
+                            // Add the current work item to our list and start a new one.
+                            AddCurrentWorkItem();
+                        }
+
+                        // Update the current group in the work item with this new type.
+                        AddFilter(assembly, test);
+                    }
                 }
             }
 
-            return partitionList;
+            // Add any remaining tests to the work item.
+            AddCurrentWorkItem();
+            return workItems.ToImmutableArray();
+
+            void AddCurrentWorkItem()
+            {
+                if (currentFilters.Any())
+                {
+                    workItems.Add(new WorkItemInfo(currentFilters.ToImmutableSortedDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableArray()), workItemIndex));
+                    workItemIndex++;
+                }
+
+                currentFilters.Clear();
+                accumulatedValue = default;
+            }
+
+            void AddFilter(AssemblyInfo assembly, TestMethodInfo test)
+            {
+                if (currentFilters.TryGetValue(assembly, out var assemblyFilters))
+                {
+                    assemblyFilters.Add(test);
+                }
+                else
+                {
+                    var filterList = new List<TestMethodInfo>
+                    {
+                        test
+                    };
+                    currentFilters.Add(assembly, filterList);
+                }
+
+                accumulatedValue = addFunc(test, accumulatedValue);
+            }
         }
 
-        private static List<TypeInfo> GetTypeInfoList(string assemblyPath)
+
+        private static void LogWorkItems(ImmutableArray<WorkItemInfo> workItems)
+        {
+            ConsoleUtil.WriteLine($"Built {workItems.Length} work items");
+            Logger.Log("==== Work Item List ====");
+            foreach (var workItem in workItems)
+            {
+                var totalExecutionTime = TimeSpan.FromMilliseconds(workItem.Filters.Values.SelectMany(f => f).Sum(f => f.ExecutionTime.TotalMilliseconds));
+                Logger.Log($"- Work Item {workItem.PartitionIndex} (Execution time {totalExecutionTime})");
+                if (totalExecutionTime > s_maxExecutionTime)
+                {
+                    // Log a warning to the console with work item details when we were not able to partition in under our limit.
+                    // This can happen when a single specific test exceeds our execution time limit.
+                    ConsoleUtil.WriteLine($"##[warning]Work item {workItem.PartitionIndex} estimated execution {totalExecutionTime} time exceeds max execution time {s_maxExecutionTime}.");
+                    LogFilters(workItem, ConsoleUtil.WriteLine);
+                }
+                else
+                {
+                    LogFilters(workItem, Logger.Log);
+                }
+            }
+
+            static void LogFilters(WorkItemInfo workItem, Action<string> logger)
+            {
+                foreach (var assembly in workItem.Filters)
+                {
+                    var assemblyRuntime = TimeSpan.FromMilliseconds(assembly.Value.Sum(f => f.ExecutionTime.TotalMilliseconds));
+                    logger($"    - {assembly.Key.AssemblyName} with execution time {assemblyRuntime}");
+                    var testFilters = assembly.Value;
+                    if (testFilters.Length > 0)
+                    {
+                        logger($"        - {testFilters.Length} tests: {string.Join(",", testFilters.Select(t => t.FullyQualifiedName))}");
+                    }
+                }
+            }
+        }
+
+        private static ImmutableArray<TypeInfo> GetTypeInfoList(AssemblyInfo assemblyInfo)
+        {
+            var assemblyDirectory = Path.GetDirectoryName(assemblyInfo.AssemblyPath);
+            var testListPath = Path.Combine(assemblyDirectory!, "testlist.json");
+            if (!File.Exists(testListPath))
+            {
+                throw new ArgumentException($"{testListPath} does not exist");
+            }
+
+            var deserialized = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(testListPath));
+            if (deserialized == null)
+            {
+                throw new InvalidOperationException($"Could not deserialize {testListPath}");
+            }
+
+            var tests = deserialized.GroupBy(GetTypeName)
+                .Select(group => new TypeInfo(GetName(group.Key), group.Key, group.Select(test => new TestMethodInfo(GetName(test), test, TimeSpan.Zero)).ToImmutableArray()))
+                .ToImmutableArray();
+            return tests;
+
+            static string GetTypeName(string fullyQualifiedTestName)
+            {
+                var periodBeforeMethod = fullyQualifiedTestName.LastIndexOf(".");
+                return fullyQualifiedTestName[..periodBeforeMethod];
+            }
+
+            static string GetName(string fullyQualifiedName)
+            {
+                var lastPeriod = fullyQualifiedName.LastIndexOf(".");
+                return fullyQualifiedName[(lastPeriod + 1)..];
+            }
+        }
+
+        /// <summary>
+        /// Looks for the assembly marker attribute <see cref="RunTestsInSinglePartitionAttribute"/>
+        /// that signifies tests in the assembly must be run separately.
+        /// </summary>
+        private static bool ShouldPartitionInSingleWorkItem(string assemblyPath)
         {
             using (var stream = File.OpenRead(assemblyPath))
             using (var peReader = new PEReader(stream))
             {
                 var metadataReader = peReader.GetMetadataReader();
-                return GetTypeInfoList(metadataReader);
-            }
-        }
-
-        private static List<TypeInfo> GetTypeInfoList(MetadataReader reader)
-        {
-            var list = new List<TypeInfo>();
-            foreach (var handle in reader.TypeDefinitions)
-            {
-                var type = reader.GetTypeDefinition(handle);
-                if (!IsValidIdentifier(reader, type.Name))
+                var attributes = metadataReader.GetAssemblyDefinition().GetCustomAttributes();
+                foreach (var attributeHandle in attributes)
                 {
-                    continue;
-                }
-
-                var methodCount = GetMethodCount(reader, type);
-                if (!ShouldIncludeType(reader, type, methodCount))
-                {
-                    continue;
-                }
-
-                var fullName = GetFullName(reader, type);
-                list.Add(new TypeInfo(fullName, methodCount));
-            }
-
-            // Ensure we get classes back in a deterministic order.
-            list.Sort((x, y) => x.FullName.CompareTo(y.FullName));
-            return list;
-        }
-
-        /// <summary>
-        /// Determine if this type should be one of the <c>class</c> values passed to xunit.  This
-        /// code doesn't actually resolve base types or trace through inherrited Fact attributes
-        /// hence we have to error on the side of including types with no tests vs. excluding them.
-        /// </summary>
-        private static bool ShouldIncludeType(MetadataReader reader, TypeDefinition type, int testMethodCount)
-        {
-            // xunit only handles public, non-abstract classes
-            var isPublic =
-                TypeAttributes.Public == (type.Attributes & TypeAttributes.Public) ||
-                TypeAttributes.NestedPublic == (type.Attributes & TypeAttributes.NestedPublic);
-            if (!isPublic ||
-                TypeAttributes.Abstract == (type.Attributes & TypeAttributes.Abstract) ||
-                TypeAttributes.Class != (type.Attributes & TypeAttributes.Class))
-            {
-                return false;
-            }
-
-            // Compiler generated types / methods have the shape of the heuristic that we are looking
-            // at here.  Filter them out as well.
-            if (!IsValidIdentifier(reader, type.Name))
-            {
-                return false;
-            }
-
-            if (testMethodCount > 0)
-            {
-                return true;
-            }
-
-            // The case we still have to consider at this point is a class with 0 defined methods, 
-            // inheritting from a class with > 0 defined test methods.  That is a completely valid
-            // xunit scenario.  For now we're just going to exclude types that inherit from object
-            // or other built-in base types because they clearly don't fit that category.
-            return !InheritsFromFrameworkBaseType(reader, type);
-        }
-
-        private static int GetMethodCount(MetadataReader reader, TypeDefinition type)
-        {
-            var count = 0;
-            foreach (var handle in type.GetMethods())
-            {
-                var methodDefinition = reader.GetMethodDefinition(handle);
-                if (methodDefinition.GetCustomAttributes().Count == 0 ||
-                    !IsValidIdentifier(reader, methodDefinition.Name))
-                {
-                    continue;
-                }
-
-                count++;
-            }
-
-            return count;
-        }
-
-        private static bool IsValidIdentifier(MetadataReader reader, StringHandle handle)
-        {
-            var name = reader.GetString(handle);
-            for (int i = 0; i < name.Length; i++)
-            {
-                switch (name[i])
-                {
-                    case '<':
-                    case '>':
-                    case '$':
-                        return false;
+                    var attribute = metadataReader.GetCustomAttribute(attributeHandle);
+                    if (attribute.Constructor.Kind is HandleKind.MemberReference)
+                    {
+                        var ctor = metadataReader.GetMemberReference((MemberReferenceHandle)attribute.Constructor);
+                        if (ctor.Parent.Kind is HandleKind.TypeReference)
+                        {
+                            var typeNameHandle = metadataReader.GetTypeReference((TypeReferenceHandle)ctor.Parent).Name;
+                            var typeName = metadataReader.GetString(typeNameHandle);
+                            if (typeName == nameof(RunTestsInSinglePartitionAttribute))
+                            {
+                                return true;
+                            }
+                        }
+                    }
                 }
             }
 
-            return true;
-        }
-
-        private static bool InheritsFromFrameworkBaseType(MetadataReader reader, TypeDefinition type)
-        {
-            if (type.BaseType.Kind != HandleKind.TypeReference)
-            {
-                return false;
-            }
-
-            var typeRef = reader.GetTypeReference((TypeReferenceHandle)type.BaseType);
-            return
-                reader.GetString(typeRef.Namespace) == "System" &&
-                reader.GetString(typeRef.Name) is "Object" or "ValueType" or "Enum";
-        }
-
-        private static string GetFullName(MetadataReader reader, TypeDefinition type)
-        {
-            var typeName = reader.GetString(type.Name);
-
-            if (TypeAttributes.NestedPublic == (type.Attributes & TypeAttributes.NestedPublic))
-            {
-                // Need to take into account the containing type.
-                var declaringType = reader.GetTypeDefinition(type.GetDeclaringType());
-                var declaringTypeFullName = GetFullName(reader, declaringType);
-                return $"{declaringTypeFullName}+{typeName}";
-            }
-
-            var namespaceName = reader.GetString(type.Namespace);
-            if (string.IsNullOrEmpty(namespaceName))
-            {
-                return typeName;
-            }
-
-            return $"{namespaceName}.{typeName}";
+            return false;
         }
     }
 }
