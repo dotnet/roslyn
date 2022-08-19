@@ -3,9 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+Imports Microsoft.CodeAnalysis.Editor.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text
@@ -229,6 +231,11 @@ End Class
                             </Document>
                     </Project>
                 </Workspace>, host)
+
+                ' This test specifically matters for the case where a user is typing in the editor
+                ' and is not intended to test the rename flyout tab behavior
+                Dim optionsService = workspace.GetService(Of IGlobalOptionService)()
+                optionsService.SetGlobalOption(New OptionKey(InlineRenameUIOptions.UseInlineAdornment), False)
 
                 Dim view = workspace.Documents.Single().GetTextView()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
