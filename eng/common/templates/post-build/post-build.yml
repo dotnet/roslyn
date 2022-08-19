@@ -106,7 +106,7 @@ stages:
         # If it's not devdiv, it's dnceng
         ${{ else }}:
           name: NetCore1ESPool-Internal
-          demands: ImageOverride -equals Build.Server.Amd64.VS2019
+          demands: ImageOverride -equals windows.vs2019.amd64
 
       steps:
         - template: setup-maestro-vars.yml
@@ -143,7 +143,7 @@ stages:
         # If it's not devdiv, it's dnceng
         ${{ else }}:
           name: NetCore1ESPool-Internal
-          demands: ImageOverride -equals Build.Server.Amd64.VS2019
+          demands: ImageOverride -equals windows.vs2019.amd64
       steps:
         - template: setup-maestro-vars.yml
           parameters:
@@ -203,7 +203,7 @@ stages:
         # If it's not devdiv, it's dnceng
         ${{ else }}:
           name: NetCore1ESPool-Internal
-          demands: ImageOverride -equals Build.Server.Amd64.VS2019
+          demands: ImageOverride -equals windows.vs2019.amd64
       steps:
         - template: setup-maestro-vars.yml
           parameters:
