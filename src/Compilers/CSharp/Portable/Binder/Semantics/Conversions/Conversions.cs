@@ -41,24 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new Conversions(_binder, currentRecursionDepth, includeNullability, this);
         }
 
-        public bool HasDefaultParameterMismatch(OverloadResolutionResult<MethodSymbol> resolvedMethodGroup, MethodSymbol targetDelegate)
-        {
-            var sourceMethod = resolvedMethodGroup.BestResult.Member;
-            Debug.Assert(sourceMethod.ParameterCount == targetDelegate.ParameterCount);
-
-            for (int i = 0; i < sourceMethod.ParameterCount; i++)
-            {
-                var sourceMethodParamDefault = sourceMethod.Parameters[i].ExplicitDefaultConstantValue;
-                var targetMethodParamDefault = targetDelegate.Parameters[i].ExplicitDefaultConstantValue;
-                if (sourceMethodParamDefault is not null && sourceMethodParamDefault != targetMethodParamDefault)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         public override Conversion GetMethodGroupDelegateConversion(BoundMethodGroup source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Must be a bona fide delegate type, not an expression tree type.
@@ -76,16 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(methodSymbol == ((NamedTypeSymbol)destination).DelegateInvokeMethod);
 
             var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, callingConventionInfo, ref useSiteInfo);
-
-            bool hasWarning = false;
-            if (!resolution.IsEmpty && !resolution.HasAnyErrors)
-            {
-                hasWarning = HasDefaultParameterMismatch(resolution.OverloadResolutionResult, methodSymbol);
-            }
-
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
-                ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, methodSymbol.ParameterCount, hasWarning: hasWarning);
+                ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, methodSymbol);
 
             resolution.Free();
             return conversion;
@@ -102,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref useSiteInfo);
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
-                ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, destination.Signature.ParameterCount);
+                ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, destination.Signature);
             resolution.Free();
             return conversion;
         }
@@ -307,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isMethodGroupConversion: true,
                 returnRefKind: delegateInvokeMethod.RefKind,
                 returnType: delegateInvokeMethod.ReturnType);
-            var conversion = ToConversion(result, methodGroup, delegateType.DelegateInvokeMethod.ParameterCount);
+            var conversion = ToConversion(result, methodGroup, delegateType.DelegateInvokeMethod);
 
             analyzedArguments.Free();
             result.Free();
@@ -337,8 +312,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedArguments.RefKinds.Add(parameter.RefKind);
             }
         }
+        private static bool HasDefaultParameterMismatch(MethodSymbol sourceMethod, MethodSymbol targetDelegate)
+        {
+            for (int i = 0; i < sourceMethod.ParameterCount; i++)
+            {
+                if (sourceMethod.Parameters[i].HasExplicitDefaultValue &&
+                    sourceMethod.Parameters[i].ExplicitDefaultConstantValue != targetDelegate.Parameters[i].ExplicitDefaultConstantValue)
+                {
+                    return true;
+                }
+            }
 
-        private static Conversion ToConversion(OverloadResolutionResult<MethodSymbol> result, MethodGroup methodGroup, int parameterCount, bool hasWarning = false)
+            return false;
+        }
+
+        private static Conversion ToConversion(OverloadResolutionResult<MethodSymbol> result, MethodGroup methodGroup, MethodSymbol target)
         {
             // 6.6 An implicit conversion (6.1) exists from a method group (7.1) to a compatible
             // delegate type. Given a delegate type D and an expression E that is classified as
@@ -390,8 +378,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE: Delegate type compatibility is important, but is not part of the existence check.
 
-            Debug.Assert(method.ParameterCount == parameterCount + (methodGroup.IsExtensionMethodGroup ? 1 : 0));
 
+            Debug.Assert(method.ParameterCount == target.ParameterCount + (methodGroup.IsExtensionMethodGroup ? 1 : 0));
+
+            var hasWarning = HasDefaultParameterMismatch(method, target);
             return new Conversion(ConversionKind.MethodGroup, method, methodGroup.IsExtensionMethodGroup, hasWarning: hasWarning);
         }
 
