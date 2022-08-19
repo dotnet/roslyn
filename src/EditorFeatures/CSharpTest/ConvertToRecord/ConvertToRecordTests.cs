@@ -356,6 +356,38 @@ namespace N
         }
 
         [Fact]
+        public async Task TestMovePropertyAndReorderWithPositionalParameterRecordInheritance()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public record B(int Foo, int Bar);
+
+    public class [|C|] : {|CS8865:B|}
+    {
+        public int P { get; init; }
+
+        public {|CS1729:C|}(int p, int bar, int foo)
+        {
+            P = p;
+            Bar = bar;
+            Foo = foo;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record B(int Foo, int Bar);
+
+    public record C(int P, int Bar, int Foo) : B(Foo, Bar);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestMovePropertySimpleInterfaceInheritance()
         {
             var initialMarkup = @"
