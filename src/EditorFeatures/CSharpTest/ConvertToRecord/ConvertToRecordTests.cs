@@ -331,11 +331,41 @@ namespace N
 
     public record C(int P) : IInterface
     {
-
         public int Foo()
         {
             return P;
         }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMoveMultiplePropertiesWithInterfaceImplementation()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public class [|C|] : IComparable
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public int CompareTo(object? other) => 0;
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+
+namespace N
+{
+    public record C(int P, bool B) : IComparable
+    {
+        public int CompareTo(object? other) => 0;
     }
 }
 ";
@@ -640,6 +670,8 @@ namespace N
         [Fact]
         public async Task TestMovePropertiesAndKeepSimpleEqualsWithConstFields()
         {
+            // we only want users to compare all instance fields of the type and no more
+            // comparing a static/const value, although it's always true, is unexpected here
             var initialMarkup = @"
 namespace N
 {
@@ -763,8 +795,9 @@ namespace N
         }
 
         [Fact]
-        public async Task TestMovePropertiesAndKeepEqualsDoubleComparison()
+        public async Task TestMovePropertiesAndDeleteEqualsDoubleComparison()
         {
+            // comparing the same thing twice shouldn't matter
             var initialMarkup = @"
 namespace N
 {
@@ -783,14 +816,7 @@ namespace N
             var changedMarkup = @"
 namespace N
 {
-    public record C(int P, bool B)
-    {
-
-        public override bool {|CS0111:Equals|}(object? other)
-        {
-            return other is C otherC && otherC.P == P && otherC.B == B && otherC.P == P;
-        }
-    }
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -819,7 +845,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public override bool {|CS0111:Equals|}(object? other)
         {
             return other is C otherC && otherC.P == P;
@@ -853,7 +878,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public override bool {|CS0111:Equals|}(object? other)
         {
             return other is C otherC && this.P == P && otherC.B == B;
@@ -887,7 +911,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public override bool {|CS0111:Equals|}(object? other)
         {
             return other is C otherC && otherC.P == otherC.P && otherC.B == B;
@@ -926,7 +949,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public override bool {|CS0111:Equals|}(object? other)
         {
             Console.WriteLine(""testing equals..."");
@@ -961,7 +983,6 @@ namespace N
 {
     public record C(int P, int B)
     {
-
         public override bool {|CS0111:Equals|}(object? other)
         {
             return other is C otherC && otherC.P == B && otherC.B == P;
@@ -995,7 +1016,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public override bool {|CS0111:Equals|}(object? other)
         {
             return !(other is C otherC && otherC.P == P && otherC.B == B);
@@ -1034,7 +1054,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public override bool {|CS0111:Equals|}(object? other)
         {
             if (other is C otherC)
@@ -1175,7 +1194,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public override bool {|CS0111:Equals|}(object? other)
         {
             if (other is C)
@@ -1430,7 +1448,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public override bool {|CS0111:Equals|}(object? other)
         {
             var otherC = other as C;
@@ -1495,7 +1512,43 @@ using System;
 
 namespace N
 {
-    public record C(int P, bool B) : IEquatable<C>;
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteSimpleTypeEqualsWithAdditionalInterface()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public class [|C|] : IEquatable<C>, IComparable
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public bool Equals(C? otherC)
+        {
+            return {|CS8602:otherC|}.P == P && otherC.B == B;
+        }
+
+        public int CompareTo(object? other) => 0;
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+
+namespace N
+{
+    public record C(int P, bool B) : IComparable
+    {
+        public int CompareTo(object? other) => 0;
+    }
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -1531,7 +1584,7 @@ using System;
 
 namespace N
 {
-    public record C(int P, bool B) : IEquatable<C>;
+    public record C(int P, bool B);
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -1577,7 +1630,95 @@ using System;
 
 namespace N
 {
-    public record C(int P, bool B) : IEquatable<C>;
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDeleteObjectAndTypeEquals()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public class [|C|] : IEquatable<C>
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            return Equals(other as C);
+        }
+
+        public bool Equals(C? otherC)
+        {
+            return otherC is not null && otherC.P == P && otherC.B == B;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndKeepIncorrectObjectAndDeleteCorrectTypeEquals()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace N
+{
+    public class [|C|] : IEquatable<C>
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public override bool Equals(object? other)
+        {
+            return Foo(other as C);
+        }
+
+        public bool Foo(C? c)
+        {
+            return c?.B ?? false;
+        }
+
+        public bool Equals(C? otherC)
+        {
+            return otherC is not null && otherC.P == P && otherC.B == B;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+using System;
+
+namespace N
+{
+    public record C(int P, bool B)
+    {
+        public override bool {|CS0111:Equals|}(object? other)
+        {
+            return Foo(other as C);
+        }
+
+        public bool Foo(C? c)
+        {
+            return c?.B ?? false;
+        }
+    }
 }
 ";
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -1680,7 +1821,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public override int GetHashCode()
         {
             var hashCode = 339610899;
@@ -1936,7 +2076,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public static bool operator ==(C c1, object? c2)
         {
             Console.WriteLine(""checking equality"");
@@ -1986,7 +2125,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public static bool operator ==(C c1, object? c2)
         {
             return c1.Equals(c2);
@@ -2035,7 +2173,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public static bool operator ==(C c1, object? c2)
         {
             return c1.Equals(c1);
@@ -2083,7 +2220,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public static bool operator ==(C c1, object? c2)
         {
             return c1.Equals(c2);
@@ -2779,7 +2915,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public {|CS0111:{|CS8862:C|}|}(int p, bool b)
         {
             Console.WriteLine(""Constructing C..."");
@@ -2820,7 +2955,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public {|CS0111:{|CS8862:C|}|}(int p, bool b)
         {
             P = p + 1;
@@ -2859,7 +2993,6 @@ namespace N
 {
     public record C(int P, bool B)
     {
-
         public {|CS0111:{|CS8862:C|}|}(int p, bool b)
         {
             B = b;
@@ -3233,7 +3366,6 @@ namespace N
     /// </summary>
     public class [|C|]
     {
-
         public int P { get; init; }
 
         /// <summary>
@@ -3504,7 +3636,6 @@ namespace N
 {
     public record C(int P)
     {
-
         public int Foo()
         {
             return 0;

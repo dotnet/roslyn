@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Features;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return;
             }
 
-            var propertyAnalysisResults = PropertyAnalysisResult.AnalyzeProperties(
+            var propertyAnalysisResults = PositionalParameterInfo.GetPropertiesForPositionalParameters(
                 typeDeclaration.Members
                     .Where(member => member is PropertyDeclarationSyntax)
                     .Cast<PropertyDeclarationSyntax>()
@@ -89,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         private static async Task<Document> ConvertToPositionalRecordAsync(
             Document document,
             INamedTypeSymbol originalType,
-            ImmutableArray<PropertyAnalysisResult> propertyAnalysisResults,
+            ImmutableArray<PositionalParameterInfo> propertyAnalysisResults,
             TypeDeclarationSyntax originalDeclarationNode,
             CancellationToken cancellationToken)
         {
@@ -149,6 +148,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 semicolon = default;
             }
 
+            // delete IEquatable if it's explicit because it is implicit on records
+            var iEquatable = ConvertToRecordHelpers.GetIEquatableType(semanticModel.Compilation, originalType);
+            var baseList = originalDeclarationNode.BaseList;
+            if (baseList != null && iEquatable != null)
+            {
+                var typeList = baseList.Types.Where(baseItem
+                    => !iEquatable.Equals(semanticModel.GetTypeInfo(baseItem.Type, cancellationToken).Type));
+
+                if (typeList.IsEmpty())
+                {
+                    baseList = null;
+                }
+                else
+                {
+                    baseList = baseList.WithTypes(SyntaxFactory.SeparatedList(typeList));
+                }
+            }
+
             var changedTypeDeclaration = SyntaxFactory.RecordDeclaration(
                     originalType.TypeKind == TypeKind.Class
                         ? SyntaxKind.RecordDeclaration
@@ -164,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     originalDeclarationNode.TypeParameterList?.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
                     SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(propertiesToAddAsParams))
                         .WithAppendedTrailingTrivia(constructorTrivia),
-                    originalDeclarationNode.BaseList,
+                    baseList,
                     originalDeclarationNode.ConstraintClauses,
                     openBrace,
                     SyntaxFactory.List(membersToKeep),
@@ -240,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // or keep them as overrides and link the positional param to the original property
             foreach (var result in propertiesToMove)
             {
-                var property = result.Syntax;
+                var property = result.Declaration;
                 if (result.KeepAsOverride)
                 {
                     // add an initializer that links the property to the primary constructor parameter
@@ -345,8 +362,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     .GetRequiredOperation(equalsOp, cancellationToken);
                 var notEqualsBodyOperation = (IMethodBodyOperation)semanticModel
                     .GetRequiredOperation(notEqualsOp, cancellationToken);
-                if (CSharpOperationAnalysisHelpers.IsDefaultEqualsOperator(equalsBodyOperation) &&
-                    CSharpOperationAnalysisHelpers.IsDefaultNotEqualsOperator(notEqualsBodyOperation))
+                if (ConvertToRecordHelpers.IsDefaultEqualsOperator(equalsBodyOperation) &&
+                    ConvertToRecordHelpers.IsDefaultNotEqualsOperator(notEqualsBodyOperation))
                 {
                     // they both evaluate to what would be the generated implementation
                     modifiedMembers.Remove(equalsOp);
@@ -366,17 +383,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     // remove clone method as clone is a reserved method name in records
                     modifiedMembers.Remove(method);
                 }
-                else if (CSharpOperationAnalysisHelpers.IsSimpleHashCodeMethod(
+                else if (ConvertToRecordHelpers.IsSimpleHashCodeMethod(
                     semanticModel.Compilation, methodSymbol, operation, expectedFields))
                 {
                     modifiedMembers.Remove(method);
                 }
-                else if (CSharpOperationAnalysisHelpers.IsSimpleEqualsMethod(
+                else if (ConvertToRecordHelpers.IsSimpleEqualsMethod(
                     semanticModel.Compilation, methodSymbol, operation, expectedFields))
                 {
                     // the Equals method implementation is fundamentally equivalent to the generated one
                     modifiedMembers.Remove(method);
                 }
+            }
+
+            if (!modifiedMembers.IsEmpty())
+            {
+                // remove any potential leading blank lines right after the class declaration, as we could have
+                // something like a method which was spaced out from the previous properties, but now shouldn't
+                // have that leading space
+                modifiedMembers[0] = modifiedMembers[0].GetNodeWithoutLeadingBlankLines();
             }
 
             return modifiedMembers.ToImmutable();
