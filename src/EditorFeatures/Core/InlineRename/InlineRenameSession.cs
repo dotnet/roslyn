@@ -177,14 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _baseSolution = _triggerDocument.Project.Solution;
             this.UndoManager = workspace.Services.GetService<IInlineRenameUndoManager>();
 
-            if (_renameInfo is IInlineRenameInfoWithFileRename renameInfoWithFileRename)
-            {
-                FileRenameInfo = renameInfoWithFileRename.GetFileRenameInfo();
-            }
-            else
-            {
-                FileRenameInfo = InlineRenameFileRenameInfo.NotAllowed;
-            }
+            FileRenameInfo = _renameInfo.GetFileRenameInfo();
 
             // Open a session to oop, syncing our solution to it and pinning it there.  The connection will close once
             // _cancellationTokenSource is canceled (which we always do when the session is finally ended).
