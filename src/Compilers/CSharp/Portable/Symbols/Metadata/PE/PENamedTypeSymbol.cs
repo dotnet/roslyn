@@ -680,7 +680,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     IsRefLikeType ? AttributeDescription.IsByRefLikeAttribute : default,
                     out _,
                     // Filter out [CompilerFeatureRequired]
-                    (IsRefLikeType && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default);
+                    (IsRefLikeType && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default,
+                    out _,
+                    // Filter out [RequiredMember]
+                    HasDeclaredRequiredMembers ? AttributeDescription.RequiredMemberAttribute : default);
 
                 ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCustomAttributes, loadedCustomAttributes);
             }
