@@ -4040,6 +4040,45 @@ class C
                 );
         }
 
+        [WorkItem(62973, "https://github.com/dotnet/roslyn/issues/62973")]
+        [Fact]
+        public void RegressionTest62973()
+        {
+            var compilation = CreateCompilation(
+"""
+#nullable enable
+using System.Collections.Generic;
+
+System.Console.WriteLine("");
+
+public class ArrayPool<T> { }
+public readonly ref struct PooledArrayHandle<T>
+{
+    public void Dispose() { }
+}
+
+public static class Test
+{
+    public static PooledArrayHandle<T> RentArray<T>(this int length, out T[] array, ArrayPool<T>? pool = null) {
+        throw null!;
+    }
+
+    public static IEnumerable<int> Iterator() {
+        // Verify that the ref struct is usable
+        using var handle = RentArray<int>(200, out var array);
+  
+        for (int i = 0; i < array.Length; i++) {
+            yield return i;
+        }
+    }
+}
+""");
+            compilation.VerifyEmitDiagnostics(
+                // (20,19): error CS4013: Instance of type 'PooledArrayHandle<int>' cannot be used inside a nested function, query expression, iterator block or async method
+                //         using var handle = RentArray<int>(200, out var array);
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "handle = RentArray<int>(200, out var array)").WithArguments("PooledArrayHandle<int>").WithLocation(20, 19));
+        }
+
         [Theory(Skip = "https://github.com/dotnet/roslyn/issues/40583")]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
