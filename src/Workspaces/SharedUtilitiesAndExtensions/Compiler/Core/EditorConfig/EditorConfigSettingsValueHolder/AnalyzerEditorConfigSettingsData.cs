@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
-    internal partial class EditorConfigSettingsValueHolder
+    internal partial class EditorConfigSettingsData
     {
         private static readonly BidirectionalMap<string, DiagnosticSeverity> AnalyzerSettingMap =
             new(new[]

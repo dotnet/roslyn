@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 using Roslyn.Utilities;
 
 #if CODE_STYLE
@@ -17,19 +18,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal static partial class CSharpFormattingOptions2
     {
-        internal static bool DetermineIfSpaceOptionIsSet(string value, SpacingWithinParenthesesOption parenthesesSpacingOption)
+        internal static bool DetermineIfSpaceOptionIsSet(string value, SpacingWithinParenthesesOption parenthesesSpacingOption, EditorConfigData<SpacingWithinParenthesesOption> editorConfigData)
             => (from v in value.Split(',').Select(v => v.Trim())
-                let option = ConvertToSpacingOption(v)
+                let option = ConvertToSpacingOption(v, editorConfigData)
                 where option.HasValue && option.Value == parenthesesSpacingOption
                 select option)
                 .Any();
 
-        private static SpacingWithinParenthesesOption? ConvertToSpacingOption(string value)
-            => s_spacingWithinParenthesisOptionsEditorConfigMap.TryGetValue(value, out var option)
-               ? option
-               : null;
+        private static SpacingWithinParenthesesOption? ConvertToSpacingOption(string value, EditorConfigData<SpacingWithinParenthesesOption> editorConfigData)
+            => editorConfigData.GetValueFromEditorConfigString(value).Value;
 
-        private static string GetSpacingWithParenthesesEditorConfigString(OptionSet optionSet)
+        private static string GetSpacingWithParenthesesEditorConfigString(OptionSet optionSet, EditorConfigData<SpacingWithinParenthesesOption> editorConfigData)
         {
             var editorConfigStringBuilder = new List<string>();
             foreach (var kvp in SpacingWithinParenthesisOptionsMap)
@@ -37,8 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var value = optionSet.GetOption(kvp.Key);
                 if (value)
                 {
-                    Debug.Assert(s_spacingWithinParenthesisOptionsEditorConfigMap.ContainsValue(kvp.Value));
-                    editorConfigStringBuilder.Add(s_spacingWithinParenthesisOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value)!);
+                    var editorConfigString = editorConfigData.GetEditorConfigStringFromValue(kvp.Value);
+                    Debug.Assert(editorConfigString != null);
+                    editorConfigStringBuilder.Add(editorConfigString!);
                 }
             }
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        internal static bool DetermineIfNewLineOptionIsSet(string value, NewLineOption optionName)
+        internal static bool DetermineIfNewLineOptionIsSet(string value, NewLineOption optionName, EditorConfigData<NewLineOption> editorConfigData)
         {
             var values = value.Split(',').Select(v => v.Trim());
 
@@ -68,28 +68,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             return (from v in values
-                    let option = ConvertToNewLineOption(v)
+                    let option = ConvertToNewLineOption(v, editorConfigData)
                     where option.HasValue && option.Value == optionName
                     select option)
                     .Any();
         }
 
-        private static NewLineOption? ConvertToNewLineOption(string value)
+        private static NewLineOption? ConvertToNewLineOption(string value, EditorConfigData<NewLineOption> editorConfigData)
         {
-            if (s_newLineOptionsEditorConfigMap.TryGetValue(value, out var option))
-            {
-                return option;
-            }
-
             if (s_legacyNewLineOptionsEditorConfigMap.TryGetValue(value, out var legacyOption))
             {
                 return legacyOption;
             }
 
-            return null;
+            return editorConfigData.GetValueFromEditorConfigString(value).Value;
         }
 
-        private static string GetNewLineOptionEditorConfigString(OptionSet optionSet)
+        private static string GetNewLineOptionEditorConfigString(OptionSet optionSet, EditorConfigData<NewLineOption> editorConfigData)
         {
             var editorConfigStringBuilder = new List<string>(NewLineOptionsMap.Count);
             foreach (var kvp in NewLineOptionsMap)
@@ -97,9 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var value = optionSet.GetOption(kvp.Key);
                 if (value)
                 {
-                    //DA.NEwLine.GEtStringFromValue(kvp.Value)
-                    Debug.Assert(s_newLineOptionsEditorConfigMap.ContainsValue(kvp.Value));
-                    editorConfigStringBuilder.Add(s_newLineOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value)!);
+                    var editorConfigString = editorConfigData.GetEditorConfigStringFromValue(kvp.Value);
+                    Debug.Assert(editorConfigString != null);
+                    editorConfigStringBuilder.Add(editorConfigString!);
                 }
             }
 

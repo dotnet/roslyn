@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public abstract SettingLocation Location { get; protected set; }
         public abstract string? GetSettingName();
         public abstract string GetDocumentation();
-        public abstract ImmutableArray<string>? GetSettingValues(OptionSet optionSet);
+        public abstract ImmutableArray<string>? GetSettingValues();
 
         public CodeStyleSetting(string description, OptionUpdater updater)
         {
@@ -62,12 +62,12 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                                 OptionSet visualStudioOptions,
                                                 OptionUpdater updater,
                                                 string fileName,
-                                                IEditorConfigData? editorConfigData = null,
+                                                IEditorConfigData editorConfigData,
                                                 string? trueValueDescription = null,
                                                 string? falseValueDescription = null,
                                                 string description = "")
         {
-            description = editorConfigData == null ? description : editorConfigData.GetSettingNameDocumentation();
+            description = description == "" ? editorConfigData.GetSettingNameDocumentation() : description;
             return new BooleanCodeStyleSetting(option, description, trueValueDescription, falseValueDescription, editorConfigOptions, visualStudioOptions, updater, fileName, editorConfigData);
         }
 
@@ -76,12 +76,12 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                                 OptionSet visualStudioOptions,
                                                 OptionUpdater updater,
                                                 string fileName,
-                                                IEditorConfigData? editorConfigData = null,
+                                                IEditorConfigData editorConfigData,
                                                 string? trueValueDescription = null,
                                                 string? falseValueDescription = null,
                                                 string description = "")
         {
-            description = editorConfigData == null ? description : editorConfigData.GetSettingNameDocumentation();
+            description = description == "" ? editorConfigData.GetSettingNameDocumentation() : description;
             return new PerLanguageBooleanCodeStyleSetting(option, description, trueValueDescription, falseValueDescription, editorConfigOptions, visualStudioOptions, updater, fileName, editorConfigData);
         }
 
@@ -92,11 +92,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                                    OptionSet visualStudioOptions,
                                                    OptionUpdater updater,
                                                    string fileName,
-                                                   IEditorConfigData? editorConfigData = null,
+                                                   IEditorConfigData editorConfigData,
                                                    string description = "")
             where T : Enum
         {
-            description = editorConfigData == null ? description : editorConfigData.GetSettingNameDocumentation();
+            description = description == "" ? editorConfigData.GetSettingNameDocumentation() : description;
             return new EnumCodeStyleSetting<T>(option, description, enumValues, valueDescriptions, editorConfigOptions, visualStudioOptions, updater, fileName, editorConfigData);
         }
 
@@ -107,11 +107,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                                    OptionSet visualStudioOptions,
                                                    OptionUpdater updater,
                                                    string fileName,
-                                                   IEditorConfigData? editorConfigData = null,
+                                                   IEditorConfigData editorConfigData,
                                                    string description = "")
             where T : Enum
         {
-            description = editorConfigData == null ? description : editorConfigData.GetSettingNameDocumentation();
+            description = description == "" ? editorConfigData.GetSettingNameDocumentation() : description;
             return new PerLanguageEnumCodeStyleSetting<T>(option, description, enumValues, valueDescriptions, editorConfigOptions, visualStudioOptions, updater, fileName, editorConfigData);
         }
 

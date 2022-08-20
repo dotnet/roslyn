@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
     internal class AnalyzerEditorConfigData : EditorConfigData<DiagnosticSeverity>
     {
         private readonly BidirectionalMap<string, DiagnosticSeverity> ValueToSettingName;
-        //private readonly ImmutableDictionary<string, string>? ValueToValueDocumentation;
 
         public AnalyzerEditorConfigData(string settingName, BidirectionalMap<string, DiagnosticSeverity> valueToSettingName, bool allowsMultipleValues = false)
             : base(settingName, "", allowsMultipleValues)

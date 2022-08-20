@@ -257,11 +257,6 @@
         <target state="translated">Śledzenie wklejania</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
-        <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
-        <target state="new">Prefer 'System.HashCode' in 'GetHashCode'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_framework_type">
         <source>Prefer framework type</source>
         <target state="new">Prefer framework type</target>

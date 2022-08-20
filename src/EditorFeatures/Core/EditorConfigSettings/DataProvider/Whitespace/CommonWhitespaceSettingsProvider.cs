@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whites
         private IEnumerable<WhitespaceSetting> GetDefaultOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updater)
         {
             // Don't pass the editorfeatureresources string
-            yield return WhitespaceSetting.Create(FormattingOptions2.UseTabs, editorConfigOptions, visualStudioOptions, updater, FileName, EditorConfigSettingsValueHolder.UseTabs);
-            yield return WhitespaceSetting.Create(FormattingOptions2.TabSize, editorConfigOptions, visualStudioOptions, updater, FileName, EditorConfigSettingsValueHolder.TabSize);
-            yield return WhitespaceSetting.Create(FormattingOptions2.IndentationSize, editorConfigOptions, visualStudioOptions, updater, FileName, EditorConfigSettingsValueHolder.IndentationSize);
-            yield return WhitespaceSetting.Create(FormattingOptions2.NewLine, editorConfigOptions, visualStudioOptions, updater, FileName, EditorConfigSettingsValueHolder.NewLine);
-            yield return WhitespaceSetting.Create(FormattingOptions2.InsertFinalNewLine, editorConfigOptions, visualStudioOptions, updater, FileName, EditorConfigSettingsValueHolder.InsertFinalNewLine);
-            yield return WhitespaceSetting.Create(CodeStyleOptions2.OperatorPlacementWhenWrapping, editorConfigOptions, visualStudioOptions, updater, FileName, EditorConfigSettingsValueHolder.OperatorPlacementWhenWrapping);
+            yield return WhitespaceSetting.Create(FormattingOptions2.UseTabs, editorConfigOptions, visualStudioOptions, updater, FileName, EditorConfigSettingsData.UseTabs);
+            yield return WhitespaceSetting.Create(FormattingOptions2.TabSize, editorConfigOptions, visualStudioOptions, updater, FileName, EditorConfigSettingsData.TabSize);
+            yield return WhitespaceSetting.Create(FormattingOptions2.IndentationSize, editorConfigOptions, visualStudioOptions, updater, FileName, EditorConfigSettingsData.IndentationSize);
+            yield return WhitespaceSetting.Create(FormattingOptions2.NewLine, editorConfigOptions, visualStudioOptions, updater, FileName, EditorConfigSettingsData.NewLine);
+            yield return WhitespaceSetting.Create(FormattingOptions2.InsertFinalNewLine, editorConfigOptions, visualStudioOptions, updater, FileName, EditorConfigSettingsData.InsertFinalNewLine);
+            yield return WhitespaceSetting.Create(CodeStyleOptions2.OperatorPlacementWhenWrapping, editorConfigOptions, visualStudioOptions, updater, FileName, EditorConfigSettingsData.OperatorPlacementWhenWrapping);
         }
     }
 }

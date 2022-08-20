@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
         public string? GetSettingValueDocumentation(string key);
     }
 
-    internal abstract class EditorConfigData<T> : IEditorConfigData where T : notnull
+    internal abstract class EditorConfigData<T> : IEditorConfigData
     {
         public string SettingName { get; }
         public string SettingNameDocumentation { get; }

@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
     internal class BooleanEditorConfigData : EditorConfigData<bool>
     {
         private readonly BidirectionalMap<string, bool>? ValueToSettingName;
-        //private readonly ImmutableDictionary<string, string>? ValueToValueDocumentation;
 
         public BooleanEditorConfigData(string settingName, string settingNameDocumentation, BidirectionalMap<string, bool>? valueToSettingName = null)
             : base(settingName, settingNameDocumentation)

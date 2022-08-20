@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             _settingsUpdater.QueueUpdate(this, severity);
         }
 
-        public string GetSettingName()
+        public string? GetSettingName()
         {
             return EditorConfigData.GetSettingName().Replace("Id", Id);
         }
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             return Description;
         }
 
-        public ImmutableArray<string>? GetSettingValues(OptionSet _)
+        public ImmutableArray<string>? GetSettingValues()
         {
             return EditorConfigData.GetAllSettingValues();
         }

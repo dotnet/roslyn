@@ -201,8 +201,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\StructuredAnalyzerConfigOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IdeAnalyzerOptions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\EditorConfigSettingsValueHolder\AnalyzerEditorConfigSettingsValueHolder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\EditorConfigSettingsValueHolder\CodeStyleEditorConfigSettingsValueHolder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\EditorConfigSettingsValueHolder\AnalyzerEditorConfigSettingsData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\EditorConfigSettingsValueHolder\CodeStyleEditorConfigSettingsData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\EditorConfigData\AnalyzerEditorConfigData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\EditorConfigData\EditorConfigData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\EditorConfigData\BooleanEditorConfigData.cs" />
@@ -227,7 +227,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\Sections\SectionMatcher.Lexer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\Sections\SectionMatcher_TryParseSection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Parsing\Sections\SectionMatchExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\EditorConfigSettingsValueHolder\WhitespaceEditorConfigSettigsValueHolder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\EditorConfigSettingsValueHolder\WhitespaceEditorConfigSettigsData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedDiagnostic.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedSeparatedSyntaxNodeList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedSyntaxHelpers.cs" />

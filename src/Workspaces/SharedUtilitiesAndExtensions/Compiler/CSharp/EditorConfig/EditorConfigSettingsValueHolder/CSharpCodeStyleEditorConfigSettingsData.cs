@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.EditorConfigSettings
 
 {
-    internal partial class CSharpEditorConfigSettingsValueHolder
+    internal partial class CSharpEditorConfigSettingsData
     {
         private static readonly BidirectionalMap<string, AddImportPlacement> AddImportPlacementMap =
             new(new[]
@@ -94,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditorConfigSettings
         public static EditorConfigData<bool> PreferDeconstructedVariableDeclaration = new BooleanEditorConfigData("csharp_style_deconstructed_variable_declaration", CSharpCompilerExtensionsResources.Prefer_deconstructed_variable_declaration);
 
         // Expression Body Options
+        public static EditorConfigData<ExpressionBodyPreference> PreferExpressionBodiedTest = new EnumEditorConfigData<ExpressionBodyPreference>("BodyExpressionTest", "Use expression body test", ExpressionBodyPreferenceMap);
         public static EditorConfigData<ExpressionBodyPreference> PreferExpressionBodiedMethods = new EnumEditorConfigData<ExpressionBodyPreference>("csharp_style_expression_bodied_methods", CSharpCompilerExtensionsResources.Use_expression_body_for_methods, ExpressionBodyPreferenceMap);
         public static EditorConfigData<ExpressionBodyPreference> PreferExpressionBodiedConstructors = new EnumEditorConfigData<ExpressionBodyPreference>("csharp_style_expression_bodied_constructors", CSharpCompilerExtensionsResources.Use_expression_body_for_constructors, ExpressionBodyPreferenceMap);
         public static EditorConfigData<ExpressionBodyPreference> PreferExpressionBodiedOperators = new EnumEditorConfigData<ExpressionBodyPreference>("csharp_style_expression_bodied_operators", CSharpCompilerExtensionsResources.Use_expression_body_for_operators, ExpressionBodyPreferenceMap);

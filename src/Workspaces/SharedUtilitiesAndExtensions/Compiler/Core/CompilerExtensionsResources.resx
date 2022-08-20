@@ -387,4 +387,10 @@
   <data name="Require_accessibility_modifiers" xml:space="preserve">
     <value>Require accessibility modifiers</value>
   </data>
+  <data name="Test_Description" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Prefer_System_HashCode_in_GetHashCode" xml:space="preserve">
+    <value>Prefer 'System.HashCode' in 'GetHashCode'</value>
+  </data>
 </root>

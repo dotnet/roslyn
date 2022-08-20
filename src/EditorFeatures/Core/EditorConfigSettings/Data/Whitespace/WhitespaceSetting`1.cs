@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             return Description;
         }
 
-        public override ImmutableArray<string>? GetSettingValues(OptionSet _)
+        public override ImmutableArray<string>? GetSettingValues()
         {
             return EditorConfigData.GetAllSettingValues();
         }

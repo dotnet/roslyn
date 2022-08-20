@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             private readonly AnalyzerConfigOptions _editorConfigOptions;
             private readonly OptionSet _visualStudioOptions;
 
-            public IEditorConfigData? EditorConfigData;
+            public IEditorConfigData EditorConfigData;
 
             public EnumCodeStyleSetting(Option2<CodeStyleOption2<T>> option,
                                         string description,
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                         OptionSet visualStudioOptions,
                                         OptionUpdater updater,
                                         string fileName,
-                                        IEditorConfigData? editorConfigData)
+                                        IEditorConfigData editorConfigData)
                 : base(description, enumValues, valueDescriptions, option.Group.Description, updater)
             {
                 _option = option;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
             public override string? GetSettingName()
             {
-                return EditorConfigData?.GetSettingName();
+                return EditorConfigData.GetSettingName();
             }
 
             public override string GetDocumentation()
@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                 return Description;
             }
 
-            public override ImmutableArray<string>? GetSettingValues(OptionSet optionSet)
+            public override ImmutableArray<string>? GetSettingValues()
             {
-                return EditorConfigData?.GetAllSettingValues();
+                return EditorConfigData.GetAllSettingValues();
             }
         }
     }

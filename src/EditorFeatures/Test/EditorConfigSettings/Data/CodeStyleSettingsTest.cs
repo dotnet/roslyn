@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 using WORKSPACES::Microsoft.CodeAnalysis.Options;
 using Xunit;
 
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             var option = CreateBoolOption(defaultValue);
             var editorConfigOptions = new TestAnalyzerConfigOptions();
             var visualStudioOptions = new TestOptionSet<bool>(option.DefaultValue);
-            var setting = CodeStyleSetting.Create(option, description: "TestDesciption", editorConfigOptions, visualStudioOptions, updater: null!, fileName: null!);
+            var setting = CodeStyleSetting.Create(option, editorConfigOptions, visualStudioOptions, updater: null!, fileName: null!, editorConfigData: EditorConfigSettingsValueHolder.BoolCodeStyleTest);
             Assert.Equal(string.Empty, setting.Category);
             Assert.Equal("TestDesciption", setting.Description);
             Assert.False(setting.IsDefinedInEditorConfig);
@@ -42,13 +43,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             var editorConfigOptions = new TestAnalyzerConfigOptions();
             var visualStudioOptions = new TestOptionSet<DayOfWeek>(option.DefaultValue);
             var setting = CodeStyleSetting.Create(option,
-                                                  description: "TestDesciption",
                                                   enumValues: (DayOfWeek[])Enum.GetValues(typeof(DayOfWeek)),
                                                   valueDescriptions: Enum.GetNames(typeof(DayOfWeek)),
                                                   editorConfigOptions,
                                                   visualStudioOptions,
                                                   updater: null!,
-                                                  fileName: null!);
+                                                  fileName: null!,
+                                                  editorConfigData: EditorConfigSettingsValueHolder.DayOfWeekCodeStyleTest);
             Assert.Equal(string.Empty, setting.Category);
             Assert.Equal("TestDesciption", setting.Description);
             Assert.False(setting.IsDefinedInEditorConfig);

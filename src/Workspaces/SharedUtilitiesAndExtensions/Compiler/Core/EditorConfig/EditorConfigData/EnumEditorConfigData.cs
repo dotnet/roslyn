@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
     internal class EnumEditorConfigData<T> : EditorConfigData<T> where T : Enum
     {
         private readonly BidirectionalMap<string, T> ValueToSettingName;
-        //private readonly ImmutableDictionary<string, string>? ValueToValueDocumentation;
         private readonly T? DefaultValue;
 
         public EnumEditorConfigData(string settingName, string settingNameDocumentation, BidirectionalMap<string, T> valueToSettingName, bool allowsMultipleValues = false)

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public abstract bool IsDefinedInEditorConfig { get; }
         public abstract string? GetSettingName();
         public abstract string GetDocumentation();
-        public abstract ImmutableArray<string>? GetSettingValues(OptionSet optionSet);
+        public abstract ImmutableArray<string>? GetSettingValues();
         public abstract bool AllowsMultipleValues();
 
         public SettingLocation Location { get; protected set; }

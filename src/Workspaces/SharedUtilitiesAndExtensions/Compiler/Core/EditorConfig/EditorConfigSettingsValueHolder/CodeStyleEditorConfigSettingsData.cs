@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
-    internal partial class EditorConfigSettingsValueHolder
+    internal partial class EditorConfigSettingsData
     {
         private static readonly BidirectionalMap<string, AccessibilityModifiersRequired> AccessibilityModifiersRequiredMap =
             new(new[]
@@ -32,6 +33,32 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
                 KeyValuePairUtil.Create("all", UnusedParametersPreference.AllMethods),
             });
 
+        private static readonly BidirectionalMap<string, DayOfWeek> DayOfWeekMap =
+            new(new[]
+            {
+                KeyValuePairUtil.Create("Monday", DayOfWeek.Monday),
+                KeyValuePairUtil.Create("Tuesday", DayOfWeek.Tuesday),
+                KeyValuePairUtil.Create("Wednesday", DayOfWeek.Wednesday),
+                KeyValuePairUtil.Create("Thursday", DayOfWeek.Thursday),
+                KeyValuePairUtil.Create("Friday", DayOfWeek.Friday),
+                KeyValuePairUtil.Create("Saturday", DayOfWeek.Saturday),
+                KeyValuePairUtil.Create("Sunday", DayOfWeek.Sunday),
+            });
+
+        private static readonly BidirectionalMap<string, ForEachExplicitCastInSourcePreference> ForEachExplicitCastInSourcePreferencePreferenceMap =
+            new(new[]
+            {
+                KeyValuePairUtil.Create("always", ForEachExplicitCastInSourcePreference.Always),
+                KeyValuePairUtil.Create("when_strongly_typed", ForEachExplicitCastInSourcePreference.WhenStronglyTyped),
+            });
+
+        private static readonly BidirectionalMap<string, UnusedValuePreference> UnusedExpressionAssignmentPreferenceMap =
+            new(new[]
+            {
+                KeyValuePairUtil.Create("discard_variable", UnusedValuePreference.DiscardVariable),
+                KeyValuePairUtil.Create("unused_local_variable", UnusedValuePreference.UnusedLocalVariable),
+            });
+
         // Qualify Options
         public static EditorConfigData<bool> QualifyFieldAccess = new BooleanEditorConfigData("dotnet_style_qualification_for_field", CompilerExtensionsResources.Qualify_field_access_with_this_or_Me);
         public static EditorConfigData<bool> QualifyPropertyAccess = new BooleanEditorConfigData("dotnet_style_qualification_for_property", CompilerExtensionsResources.Qualify_property_access_with_this_or_Me);
@@ -53,6 +80,7 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
 
         // Code Block Options
         public static EditorConfigData<bool> PreferAutoProperties = new BooleanEditorConfigData("dotnet_style_prefer_auto_properties", CompilerExtensionsResources.Analyzer_Prefer_auto_properties);
+        public static EditorConfigData<bool> PreferSystemHashCode = new BooleanEditorConfigData("", CompilerExtensionsResources.Prefer_System_HashCode_in_GetHashCode);
 
         // Expression Options
         public static EditorConfigData<bool> PreferObjectInitializer = new BooleanEditorConfigData("dotnet_style_object_initializer", CompilerExtensionsResources.Prefer_object_initializer);
@@ -79,5 +107,25 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
         public static EditorConfigData<bool> PreferNamespaceAndFolderMatchStructure = new BooleanEditorConfigData("dotnet_style_namespace_match_folder", CompilerExtensionsResources.Prefer_namespace_and_folder_match_structure);
         public static EditorConfigData<bool> AllowMultipleBlankLines = new BooleanEditorConfigData("dotnet_style_allow_multiple_blank_lines_experimental", CompilerExtensionsResources.Allow_multiple_blank_lines);
         public static EditorConfigData<bool> AllowStatementImmediatelyAfterBlock = new BooleanEditorConfigData("dotnet_style_allow_statement_immediately_after_block_experimental", CompilerExtensionsResources.Allow_statement_immediately_after_block);
+
+        // Visual Basic
+        public static EditorConfigData<bool> PreferIsNotExpression = new BooleanEditorConfigData("visual_basic_style_prefer_isnot_expression", "");
+        public static EditorConfigData<bool> PreferSimplifiedObjectCreation = new BooleanEditorConfigData("visual_basic_style_prefer_simplified_object_creation", "");
+        public static EditorConfigData<string> VBPreferredModifierOrder = new StringEditorConfigData("visual_basic_preferred_modifier_order", "", "", "");
+        public static EditorConfigData<UnusedValuePreference> VBUnusedValueExpressionStatement = new EnumEditorConfigData<UnusedValuePreference>("visual_basic_style_unused_value_expression_statement_preference", CompilerExtensionsResources.In_other_operators, UnusedExpressionAssignmentPreferenceMap);
+        public static EditorConfigData<UnusedValuePreference> VBUnusedValueAssignment = new EnumEditorConfigData<UnusedValuePreference>("visual_basic_style_unused_value_assignment_preference", CompilerExtensionsResources.In_other_operators, UnusedExpressionAssignmentPreferenceMap);
+
+        public static EditorConfigData<string> CSPreferredModifierOrder = new StringEditorConfigData("csharp_preferred_modifier_order", "", "", "");
+        public static EditorConfigData<UnusedValuePreference> CSUnusedValueExpressionStatement = new EnumEditorConfigData<UnusedValuePreference>("csharp_style_unused_value_expression_statement_preference", CompilerExtensionsResources.In_other_operators, UnusedExpressionAssignmentPreferenceMap);
+        public static EditorConfigData<UnusedValuePreference> CSUnusedValueAssignment = new EnumEditorConfigData<UnusedValuePreference>("csharp_style_unused_value_assignment_preference", CompilerExtensionsResources.In_other_operators, UnusedExpressionAssignmentPreferenceMap);
+        public static EditorConfigData<string> FileHeaderTemplate = new StringEditorConfigData("file_header_template", "", "unset", "");
+        public static EditorConfigData<string> RemoveUnnecessarySuppressionExclusions = new StringEditorConfigData("dotnet_remove_unnecessary_suppression_exclusions", "", "none", "");
+        public static EditorConfigData<ForEachExplicitCastInSourcePreference> ForEachExplicitCastInSource = new EnumEditorConfigData<ForEachExplicitCastInSourcePreference>("dotnet_style_prefer_foreach_explicit_cast_in_source", "", ForEachExplicitCastInSourcePreferencePreferenceMap);
+        public static EditorConfigData<bool> PlaceSystemNamespaceFirst = new BooleanEditorConfigData("dotnet_sort_system_directives_first", "");
+        public static EditorConfigData<bool> SeparateImportDirectiveGroups = new BooleanEditorConfigData("dotnet_separate_import_directive_groups", "");
+
+        // Test
+        public static EditorConfigData<bool> BoolCodeStyleTest = new BooleanEditorConfigData("BoolCodeStyleTest", "TestDescription");
+        public static EditorConfigData<DayOfWeek> DayOfWeekCodeStyleTest = new EnumEditorConfigData<DayOfWeek>("DayOfWeekCodeStyleTest", "TestDescription", DayOfWeekMap);
     }
 }

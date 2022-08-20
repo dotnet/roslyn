@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             return CreateCompletionItem(name, name, CompletionItemKind.Property, documentation, _settingNameCommitCharacters);
         }
 
-        private static CompletionItem[]? GenerateSettingValuesCompletionItem(IEditorConfigSettingInfo setting, bool additional, OptionSet optionSet)
+        private static CompletionItem[]? GenerateSettingValuesCompletionItem(IEditorConfigSettingInfo setting, bool additional)
         {
             var values = new List<CompletionItem>();
             var allowsMultipleValues = setting.AllowsMultipleValues();
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             }
 
             // Create normal values list
-            var settingValues = setting.GetSettingValues(optionSet);
+            var settingValues = setting.GetSettingValues();
             if (settingValues == null)
             {
                 return null;
@@ -157,12 +157,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             return item;
         }
 
-        private static CompletionItem[]? GetSettingValues(string settingName, ImmutableArray<IEditorConfigSettingInfo> settingsSnapshot, OptionSet optionSet, bool multipleValues = false)
+        private static CompletionItem[]? GetSettingValues(string settingName, ImmutableArray<IEditorConfigSettingInfo> settingsSnapshot, bool multipleValues = false)
         {
             var foundSetting = settingsSnapshot.Where(sett => sett.GetSettingName() == settingName);
             if (foundSetting.Any())
             {
-                return GenerateSettingValuesCompletionItem(foundSetting.First(), multipleValues, optionSet);
+                return GenerateSettingValuesCompletionItem(foundSetting.First(), multipleValues);
             }
 
             return null;
@@ -171,7 +171,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
         private static CompletionList? CreateCompletionList(TextDocument document, string textInLine, bool showValueList = true, bool allowsMultipleValues = false)
         {
             var workspace = document.Project.Solution.Workspace;
-            var optionSet = workspace.Options;
             var filePath = document.FilePath;
             Contract.ThrowIfNull(filePath);
 
@@ -180,7 +179,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 
             if (showValueList)
             {
-                var values = GetSettingValues(settingName, settingsSnapshots, optionSet, multipleValues: allowsMultipleValues);
+                var values = GetSettingValues(settingName, settingsSnapshots, multipleValues: allowsMultipleValues);
                 return values == null ? null : new CompletionList { Items = values };
             }
 

@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 using Roslyn.Utilities;
 
 #if CODE_STYLE
@@ -27,6 +28,15 @@ namespace Microsoft.CodeAnalysis.Options
 
         private readonly Func<string, Type, Optional<T>> _parseValue;
         private readonly Func<T, OptionSet, string?> _getEditorConfigStringForValue;
+
+        public EditorConfigStorageLocation(EditorConfigData<T> editorConfigData)
+            : this(editorConfigData.GetSettingName(), editorConfigData.GetValueFromEditorConfigString, editorConfigData.GetEditorConfigStringFromValue)
+        {
+            if (editorConfigData.GetEditorConfigStringFromValue == null)
+            {
+                throw new ArgumentNullException(nameof(editorConfigData.GetEditorConfigStringFromValue));
+            }
+        }
 
         public EditorConfigStorageLocation(string keyName, Func<string, Optional<T>> parseValue, Func<T, string> getEditorConfigStringForValue)
             : this(keyName, parseValue, (value, optionSet) => getEditorConfigStringForValue(value))

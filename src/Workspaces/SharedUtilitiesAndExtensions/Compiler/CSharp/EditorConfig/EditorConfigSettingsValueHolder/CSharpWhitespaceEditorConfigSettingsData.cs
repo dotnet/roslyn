@@ -10,7 +10,7 @@ using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions2;
 namespace Microsoft.CodeAnalysis.CSharp.EditorConfigSettings
 
 {
-    internal partial class CSharpEditorConfigSettingsValueHolder
+    internal partial class CSharpEditorConfigSettingsData
     {
         private static readonly BidirectionalMap<string, bool> SpacesIgnoreAroundVariableDeclarationMap =
            new(new[]

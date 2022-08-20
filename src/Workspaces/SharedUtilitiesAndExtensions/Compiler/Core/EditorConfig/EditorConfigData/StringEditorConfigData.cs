@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
     internal class StringEditorConfigData : EditorConfigData<string>
     {
         private readonly BidirectionalMap<string, string>? ValueToSettingName;
-        //private readonly ImmutableDictionary<string, string>? ValueToValueDocumentation;
         private readonly string DefaultEditorConfigString;
         private readonly string DefaultValue;
 

@@ -1064,9 +1064,6 @@ Do you want to proceed?</value>
   <data name="Prefer_predefined_type" xml:space="preserve">
     <value>Prefer predefined type</value>
   </data>
-  <data name="Prefer_System_HashCode_in_GetHashCode" xml:space="preserve">
-    <value>Prefer 'System.HashCode' in 'GetHashCode'</value>
-  </data>
   <data name="Value" xml:space="preserve">
     <value>Value</value>
   </data>

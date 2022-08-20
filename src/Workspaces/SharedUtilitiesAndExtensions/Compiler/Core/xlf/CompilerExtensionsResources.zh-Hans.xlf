@@ -197,6 +197,11 @@
         <target state="translated">帕斯卡拼写法</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
+        <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
+        <target state="new">Prefer 'System.HashCode' in 'GetHashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_coalesce_expression">
         <source>Prefer coalesce expression</source>
         <target state="new">Prefer coalesce expression</target>

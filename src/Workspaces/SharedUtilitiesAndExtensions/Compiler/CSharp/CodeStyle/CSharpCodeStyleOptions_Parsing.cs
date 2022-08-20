@@ -5,6 +5,7 @@
 using System;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
@@ -12,84 +13,84 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
     internal static partial class CSharpCodeStyleOptions
     {
         public static CodeStyleOption2<ExpressionBodyPreference> ParseExpressionBodyPreference(
-            string optionString, CodeStyleOption2<ExpressionBodyPreference> @default, Func<string, Optional<ExpressionBodyPreference>> editorConfigDataParse)
+            string optionString, CodeStyleOption2<ExpressionBodyPreference> @default, EditorConfigData<ExpressionBodyPreference> editorConfigData)
         {
             // optionString must be similar to true:error or when_on_single_line:suggestion.
             if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(optionString,
                     @default.Notification, out var value, out var notification))
             {
-                var expressionBodyPreference = editorConfigDataParse(value).Value;
+                var expressionBodyPreference = editorConfigData.GetValueFromEditorConfigString(value).Value;
                 return new CodeStyleOption2<ExpressionBodyPreference>(expressionBodyPreference, notification);
             }
 
             return @default;
         }
 
-        private static string GetExpressionBodyPreferenceEditorConfigString(CodeStyleOption2<ExpressionBodyPreference> value, CodeStyleOption2<ExpressionBodyPreference> defaultValue, Func<ExpressionBodyPreference, string> editorConfigDataParse)
+        private static string GetExpressionBodyPreferenceEditorConfigString(CodeStyleOption2<ExpressionBodyPreference> value, CodeStyleOption2<ExpressionBodyPreference> defaultValue, EditorConfigData<ExpressionBodyPreference> editorConfigData)
         {
             var notificationString = CodeStyleHelpers.GetEditorConfigStringNotificationPart(value, defaultValue);
-            var editorConfigString = editorConfigDataParse(value.Value);
+            var editorConfigString = editorConfigData.GetEditorConfigStringFromValue(value.Value);
             return editorConfigString == "" ? throw new NotSupportedException() : $"{editorConfigString}{notificationString}";
         }
 
         public static CodeStyleOption2<AddImportPlacement> ParseUsingDirectivesPlacement(
-            string optionString, CodeStyleOption2<AddImportPlacement> @default, Func<string, Optional<AddImportPlacement>> editorConfigDataParse)
+            string optionString, CodeStyleOption2<AddImportPlacement> @default, EditorConfigData<AddImportPlacement> editorConfigData)
         {
             if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(
                     optionString, @default.Notification, out var value, out var notification))
             {
-                var addImportPlacement = editorConfigDataParse(value).Value;
+                var addImportPlacement = editorConfigData.GetValueFromEditorConfigString(value).Value;
                 return new CodeStyleOption2<AddImportPlacement>(addImportPlacement, notification);
             }
 
             return @default;
         }
 
-        public static string GetUsingDirectivesPlacementEditorConfigString(CodeStyleOption2<AddImportPlacement> value, CodeStyleOption2<AddImportPlacement> defaultValue, Func<AddImportPlacement, string> editorConfigDataParse)
+        public static string GetUsingDirectivesPlacementEditorConfigString(CodeStyleOption2<AddImportPlacement> value, CodeStyleOption2<AddImportPlacement> defaultValue, EditorConfigData<AddImportPlacement> editorConfigData)
         {
             var notificationString = CodeStyleHelpers.GetEditorConfigStringNotificationPart(value, defaultValue);
-            var editorConfigString = editorConfigDataParse(value.Value);
+            var editorConfigString = editorConfigData.GetEditorConfigStringFromValue(value.Value);
             return editorConfigString == "" ? throw new NotSupportedException() : $"{editorConfigString}{notificationString}";
         }
 
         public static CodeStyleOption2<NamespaceDeclarationPreference> ParseNamespaceDeclaration(
-            string optionString, CodeStyleOption2<NamespaceDeclarationPreference> @default, Func<string, Optional<NamespaceDeclarationPreference>> editorConfigDataParse)
+            string optionString, CodeStyleOption2<NamespaceDeclarationPreference> @default, EditorConfigData<NamespaceDeclarationPreference> editorConfigData)
         {
             if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(
                     optionString, @default.Notification, out var value, out var notification))
             {
-                var namespaceDeclarationPreference = editorConfigDataParse(value).Value;
+                var namespaceDeclarationPreference = editorConfigData.GetValueFromEditorConfigString(value).Value;
                 return new CodeStyleOption2<NamespaceDeclarationPreference>(namespaceDeclarationPreference, notification);
             }
 
             return @default;
         }
 
-        public static string GetNamespaceDeclarationEditorConfigString(CodeStyleOption2<NamespaceDeclarationPreference> value, CodeStyleOption2<NamespaceDeclarationPreference> defaultValue, Func<NamespaceDeclarationPreference, string> editorConfigDataParse)
+        public static string GetNamespaceDeclarationEditorConfigString(CodeStyleOption2<NamespaceDeclarationPreference> value, CodeStyleOption2<NamespaceDeclarationPreference> defaultValue, EditorConfigData<NamespaceDeclarationPreference> editorConfigData)
         {
             var notificationString = CodeStyleHelpers.GetEditorConfigStringNotificationPart(value, defaultValue);
-            var editorConfigString = editorConfigDataParse(value.Value);
+            var editorConfigString = editorConfigData.GetEditorConfigStringFromValue(value.Value);
             return editorConfigString == "" ? throw new NotSupportedException() : $"{editorConfigString}{notificationString}";
         }
 
         private static CodeStyleOption2<PreferBracesPreference> ParsePreferBracesPreference(
             string optionString,
-            CodeStyleOption2<PreferBracesPreference> defaultValue, Func<string, Optional<PreferBracesPreference>> editorConfigDataParse)
+            CodeStyleOption2<PreferBracesPreference> defaultValue, EditorConfigData<PreferBracesPreference> editorConfigData)
         {
             if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(optionString,
                     defaultValue.Notification, out var value, out var notification))
             {
-                var oreferBracesPreference = editorConfigDataParse(value).Value;
-                return new CodeStyleOption2<PreferBracesPreference>(oreferBracesPreference, notification);
+                var preferBracesPreference = editorConfigData.GetValueFromEditorConfigString(value).Value;
+                return new CodeStyleOption2<PreferBracesPreference>(preferBracesPreference, notification);
             }
 
             return defaultValue;
         }
 
-        private static string GetPreferBracesPreferenceEditorConfigString(CodeStyleOption2<PreferBracesPreference> value, CodeStyleOption2<PreferBracesPreference> defaultValue, Func<PreferBracesPreference, string> editorConfigDataParse)
+        private static string GetPreferBracesPreferenceEditorConfigString(CodeStyleOption2<PreferBracesPreference> value, CodeStyleOption2<PreferBracesPreference> defaultValue, EditorConfigData<PreferBracesPreference> editorConfigData)
         {
             var notificationString = CodeStyleHelpers.GetEditorConfigStringNotificationPart(value, defaultValue);
-            var editorConfigString = editorConfigDataParse(value.Value);
+            var editorConfigString = editorConfigData.GetEditorConfigStringFromValue(value.Value);
             return editorConfigString == "" ? throw ExceptionUtilities.Unreachable : $"{editorConfigString}{notificationString}";
         }
     }
