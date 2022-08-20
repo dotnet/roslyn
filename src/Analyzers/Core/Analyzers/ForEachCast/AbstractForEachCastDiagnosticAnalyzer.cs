@@ -45,14 +45,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.RegisterCompilationStartAction(context =>
-            {
-                var compilation = context.Compilation;
-                var ienumerableType = compilation.IEnumerableType();
-                var ienumerableOfTType = compilation.IEnumerableOfTType();
-                if (ienumerableType != null && ienumerableOfTType != null)
-                    context.RegisterSyntaxNodeAction(context => AnalyzeSyntax(context), GetSyntaxKinds());
-            });
+            context.RegisterSyntaxNodeAction(context => AnalyzeSyntax(context), GetSyntaxKinds());
         }
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
