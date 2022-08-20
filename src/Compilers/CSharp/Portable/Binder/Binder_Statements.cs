@@ -2209,15 +2209,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                var lambdaDefaultString = lambdaDefault.GetValueToDisplay() ?? "null";
                 if (delegateDefault is null)
                 {
-                    Error(diagnostics, ErrorCode.ERR_OptionalParamValueMismatch, lambdaParameterLocation, paramIdx, lambdaDefaultString, "<missing>");
+                    Error(diagnostics, ErrorCode.ERR_OptionalParamValueMismatch, lambdaParameterLocation, paramIdx, lambdaDefault, "<missing>");
                 }
                 else
                 {
                     var delegateDefaultString = delegateDefault.GetValueToDisplay() ?? "null";
-                    Error(diagnostics, ErrorCode.ERR_OptionalParamValueMismatch, lambdaParameterLocation, paramIdx, lambdaDefaultString, delegateDefaultString);
+                    Error(diagnostics, ErrorCode.ERR_OptionalParamValueMismatch, lambdaParameterLocation, paramIdx, lambdaDefault.Value, delegateDefaultString);
                 }
             }
         }

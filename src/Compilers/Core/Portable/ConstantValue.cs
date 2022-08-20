@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         DateTime,
     }
 
-    internal abstract partial class ConstantValue : IEquatable<ConstantValue?>
+    internal abstract partial class ConstantValue : IEquatable<ConstantValue?>, IFormattable
     {
         public abstract ConstantValueTypeDiscriminator Discriminator { get; }
         internal abstract SpecialType SpecialType { get; }
@@ -119,6 +119,7 @@ namespace Microsoft.CodeAnalysis
 
             return new ConstantValueI16(value);
         }
+
 
         public static ConstantValue Create(sbyte value)
         {
@@ -396,6 +397,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(discriminator != ConstantValueTypeDiscriminator.Bad);
             return Default(discriminator);
         }
+
 
         public static ConstantValue Default(ConstantValueTypeDiscriminator discriminator)
         {
@@ -779,6 +781,8 @@ namespace Microsoft.CodeAnalysis
             string? valueToDisplay = this.GetValueToDisplay();
             return String.Format("{0}({1}: {2})", this.GetType().Name, valueToDisplay, this.Discriminator);
         }
+
+        public abstract string ToString(string? format, IFormatProvider? provider);
 
         internal virtual string? GetValueToDisplay()
         {

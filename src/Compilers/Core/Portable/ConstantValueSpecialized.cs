@@ -58,6 +58,10 @@ namespace Microsoft.CodeAnalysis
             {
                 return "bad";
             }
+            public override string ToString(string? s, IFormatProvider? provider)
+            {
+                return GetValueToDisplay();
+            }
         }
 
         private sealed class ConstantValueNull : ConstantValue
@@ -118,6 +122,11 @@ namespace Microsoft.CodeAnalysis
             internal override string GetValueToDisplay()
             {
                 return ((object)this == (object)Uninitialized) ? "unset" : "null";
+            }
+
+            public override string ToString(string? s, IFormatProvider? provider)
+            {
+                return GetValueToDisplay();
             }
         }
 
@@ -201,6 +210,19 @@ namespace Microsoft.CodeAnalysis
             {
                 return (_value == null) ? "null" : string.Format("\"{0}\"", _value);
             }
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                var stringValue = StringValue;
+                if (format is not null && int.TryParse(format, out var len) &&
+                    (len > 0 && len < stringValue.Length))
+                {
+                    return stringValue[..len];
+                }
+                else
+                {
+                    return stringValue;
+                }
+            }
         }
 
         private sealed class ConstantValueDecimal : ConstantValue
@@ -242,6 +264,11 @@ namespace Microsoft.CodeAnalysis
             {
                 return base.Equals(other) && _value == other.DecimalValue;
             }
+
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                return _value.ToString(provider);
+            }
         }
 
         private sealed class ConstantValueDateTime : ConstantValue
@@ -282,6 +309,15 @@ namespace Microsoft.CodeAnalysis
             public override bool Equals(ConstantValue? other)
             {
                 return base.Equals(other) && _value == other.DateTimeValue;
+            }
+
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                if (format is not null)
+                {
+
+                }
+                return _value.ToString(provider);
             }
         }
 
@@ -349,10 +385,12 @@ namespace Microsoft.CodeAnalysis
                 {
                     return 0;
                 }
+
             }
 
             public override bool BooleanValue
             {
+
                 get
                 {
                     return false;
@@ -402,6 +440,7 @@ namespace Microsoft.CodeAnalysis
             // all instances of this class are singletons
             public override bool Equals(ConstantValue? other)
             {
+
                 return ReferenceEquals(this, other);
             }
 
@@ -413,6 +452,43 @@ namespace Microsoft.CodeAnalysis
             public override bool IsDefaultValue
             {
                 get { return true; }
+            }
+
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                switch (Discriminator)
+                {
+                    case ConstantValueTypeDiscriminator.SByte:
+                        return "default(sbyte)";
+                    case ConstantValueTypeDiscriminator.Byte:
+                        return "default(byte)";
+                    case ConstantValueTypeDiscriminator.Int16:
+                        return "default(short)";
+                    case ConstantValueTypeDiscriminator.UInt16:
+                        return "default(unsigned short)";
+                    case ConstantValueTypeDiscriminator.Int32:
+                        return "default(int)";
+                    case ConstantValueTypeDiscriminator.UInt32:
+                        return "default(uint)";
+                    case ConstantValueTypeDiscriminator.UInt64:
+                        return "default(ulong)";
+                    case ConstantValueTypeDiscriminator.Char:
+                        return "default(char)";
+                    case ConstantValueTypeDiscriminator.Boolean:
+                        return "default(bool)";
+                    case ConstantValueTypeDiscriminator.Single:
+                        return "default(float)";
+                    case ConstantValueTypeDiscriminator.Double:
+                        return "default(double)";
+                    case ConstantValueTypeDiscriminator.String:
+                        return "default(string)";
+                    case ConstantValueTypeDiscriminator.Decimal:
+                        return "default(decimal)";
+                    case ConstantValueTypeDiscriminator.DateTime:
+                        return "default(System.DateTime)";
+                    default:
+                        throw new InvalidOperationException();
+                }
             }
         }
 
@@ -565,6 +641,41 @@ namespace Microsoft.CodeAnalysis
             {
                 return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
             }
+
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                switch (Discriminator)
+                {
+                    case ConstantValueTypeDiscriminator.SByte:
+                        return ((sbyte)1).ToString(provider);
+                    case ConstantValueTypeDiscriminator.Byte:
+                        return ((byte)1).ToString(provider);
+                    case ConstantValueTypeDiscriminator.Int16:
+                        return ((short)1).ToString(provider);
+                    case ConstantValueTypeDiscriminator.UInt16:
+                        return ((short)1).ToString(provider);
+                    case ConstantValueTypeDiscriminator.NInt:
+                    case ConstantValueTypeDiscriminator.Int32:
+                        return ((int)1).ToString(provider);
+                    case ConstantValueTypeDiscriminator.NUInt:
+                    case ConstantValueTypeDiscriminator.UInt32:
+                        return ((int)1).ToString(provider);
+                    case ConstantValueTypeDiscriminator.UInt64:
+                        return ((ulong)1).ToString(provider);
+                    case ConstantValueTypeDiscriminator.Char:
+                        return ((char)1).ToString(provider);
+                    case ConstantValueTypeDiscriminator.Boolean:
+                        return true.ToString(provider);
+                    case ConstantValueTypeDiscriminator.Single:
+                        return ((float)1).ToString(provider);
+                    case ConstantValueTypeDiscriminator.Double:
+                        return ((double)1).ToString(provider);
+                    case ConstantValueTypeDiscriminator.Decimal:
+                        return ((decimal)1).ToString(provider);
+                    default:
+                        throw new InvalidOperationException();
+                }
+            }
         }
 
         private sealed class ConstantValueDecimalOne : ConstantValueOne
@@ -631,6 +742,11 @@ namespace Microsoft.CodeAnalysis
             {
                 return base.Equals(other) && _value == other.ByteValue;
             }
+
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                return _value.ToString(provider);
+            }
         }
 
         private sealed class ConstantValueI16 : ConstantValueDiscriminated
@@ -688,6 +804,11 @@ namespace Microsoft.CodeAnalysis
             {
                 return base.Equals(other) && _value == other.Int16Value;
             }
+
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                return _value.ToString(provider);
+            }
         }
 
         private sealed class ConstantValueI32 : ConstantValueDiscriminated
@@ -731,6 +852,11 @@ namespace Microsoft.CodeAnalysis
             {
                 return base.Equals(other) && _value == other.Int32Value;
             }
+
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                return _value.ToString(provider);
+            }
         }
 
         private sealed class ConstantValueI64 : ConstantValueDiscriminated
@@ -773,6 +899,11 @@ namespace Microsoft.CodeAnalysis
             public override bool Equals(ConstantValue? other)
             {
                 return base.Equals(other) && _value == other.Int64Value;
+            }
+
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                return _value.ToString(provider);
             }
         }
 
@@ -818,6 +949,11 @@ namespace Microsoft.CodeAnalysis
             {
                 return base.Equals(other) && _value == other.Int32Value;
             }
+
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                return _value.ToString(provider);
+            }
         }
 
         private sealed class ConstantValueDouble : ConstantValueDiscriminated
@@ -851,6 +987,11 @@ namespace Microsoft.CodeAnalysis
             public override bool Equals(ConstantValue? other)
             {
                 return base.Equals(other) && _value.Equals(other.DoubleValue);
+            }
+
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                return _value.ToString(provider);
             }
         }
 
@@ -896,6 +1037,11 @@ namespace Microsoft.CodeAnalysis
             public override bool Equals(ConstantValue? other)
             {
                 return base.Equals(other) && _value.Equals(other.DoubleValue);
+            }
+
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                return _value.ToString(provider);
             }
         }
     }
