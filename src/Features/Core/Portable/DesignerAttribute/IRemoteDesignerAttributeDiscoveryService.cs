@@ -20,11 +20,10 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     {
         internal interface ICallback
         {
-            ValueTask OnProjectRemovedAsync(RemoteServiceCallbackId callbackId, ProjectId projectId, CancellationToken cancellationToken);
             ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
         }
 
-        ValueTask StartScanningForDesignerAttributesAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellation);
+        ValueTask DiscoverDesignerAttributesAsync(RemoteServiceCallbackId callbackId, Checksum solutionChecksum, DocumentId? priorityDocument, CancellationToken cancellationToken);
     }
 
     [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteDesignerAttributeDiscoveryService)), Shared]
@@ -36,13 +35,10 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         {
         }
 
-        private IDesignerAttributeListener GetLogService(RemoteServiceCallbackId callbackId)
-            => (IDesignerAttributeListener)GetCallback(callbackId);
-
-        public ValueTask OnProjectRemovedAsync(RemoteServiceCallbackId callbackId, ProjectId projectId, CancellationToken cancellationToken)
-            => GetLogService(callbackId).OnProjectRemovedAsync(projectId, cancellationToken);
+        private new IDesignerAttributeDiscoveryService.ICallback GetCallback(RemoteServiceCallbackId callbackId)
+            => (IDesignerAttributeDiscoveryService.ICallback)base.GetCallback(callbackId);
 
         public ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
-            => GetLogService(callbackId).ReportDesignerAttributeDataAsync(data, cancellationToken);
+            => GetCallback(callbackId).ReportDesignerAttributeDataAsync(data, cancellationToken);
     }
 }

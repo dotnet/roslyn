@@ -1634,7 +1634,7 @@ class C
             {
                 var workspace = new WorkCoordinatorWorkspace(workspaceKind, disablePartialSolutions, incrementalAnalyzer);
 
-                var globalOptions = ((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IGlobalOptionService>();
+                var globalOptions = workspace.Services.SolutionServices.ExportProvider.GetExportedValue<IGlobalOptionService>();
                 globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), analysisScope);
 
                 return workspace;

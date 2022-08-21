@@ -42,7 +42,7 @@ namespace AnalyzerRunner
 
             var usePersistentStorage = _options.UsePersistentStorage;
 
-            var exportProvider = (IMefHostExportProvider)_workspace.Services.HostServices;
+            var exportProvider = _workspace.Services.SolutionServices.ExportProvider;
 
             var globalOptions = exportProvider.GetExports<IGlobalOptionService>().Single().Value;
             globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), _options.AnalysisScope);
@@ -56,7 +56,7 @@ namespace AnalyzerRunner
 
             if (usePersistentStorage)
             {
-                var persistentStorageService = _workspace.Services.GetPersistentStorageService();
+                var persistentStorageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
                 await using var persistentStorage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), cancellationToken).ConfigureAwait(false);
                 if (persistentStorage is NoOpPersistentStorage)
                 {

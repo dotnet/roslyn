@@ -1796,8 +1796,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     PropertySymbol p => p.GetMethod ?? p.SetMethod,
                     _ => throw ExceptionUtilities.UnexpectedValue(symbol)
                 };
-                var thisParameter = method?.ThisParameter;
-                var refKind = thisParameter?.RefKind ?? RefKind.None;
+
+                var refKind = RefKind.None;
+                ParameterSymbol? thisParameter = null;
+                if (method is not null &&
+                    method.TryGetThisParameter(out thisParameter) &&
+                    thisParameter is not null)
+                {
+                    refKind = thisParameter.RefKind;
+                }
+
                 return (thisParameter, receiver, refKind);
             }
 
