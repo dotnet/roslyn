@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// </summary>
         internal static bool IsCompilerDirectiveTriggerCharacter(SourceText text, int characterPosition)
         {
-            while (char.IsWhiteSpace(text[characterPosition]) ||
+            while (text[characterPosition] == ' ' ||
                    char.IsLetter(text[characterPosition]))
             {
                 characterPosition--;
