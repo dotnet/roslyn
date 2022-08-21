@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         public TestDiagnosticAnalyzerDriver(Workspace workspace, bool includeSuppressedDiagnostics = false)
         {
-            var mefServices = (IMefHostExportProvider)workspace.Services.HostServices;
+            var mefServices = workspace.Services.SolutionServices.ExportProvider;
 
             Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(mefServices.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
             _diagnosticAnalyzerService = Assert.IsType<DiagnosticAnalyzerService>(mefServices.GetExportedValue<IDiagnosticAnalyzerService>());
