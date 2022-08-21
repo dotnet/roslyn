@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Roslyn.Test.Utilities
 
@@ -104,6 +105,37 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 Assert.Empty(Await workspaceChangeEvents.GetNewChangeEventsAsync())
                 Assert.Same(startingSolution, environment.Workspace.CurrentSolution)
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function AddingAndRemovingOnlyProjectTriggersSolutionAddedAndSolutionRemoved() As Task
+            Using environment = New TestEnvironment()
+                Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project", LanguageNames.CSharp, CancellationToken.None)
+
+                Assert.Equal(WorkspaceChangeKind.SolutionAdded, Assert.Single(Await workspaceChangeEvents.GetNewChangeEventsAsync()).Kind)
+
+                project.RemoveFromWorkspace()
+
+                Assert.Equal(WorkspaceChangeKind.SolutionRemoved, Assert.Single(Await workspaceChangeEvents.GetNewChangeEventsAsync()).Kind)
+            End Using
+        End Function
+
+        <WpfFact>
+        <WorkItem(1581896, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1581896")>
+        Public Async Function RemovingLastProjectCorrectlyClosesFiles() As Task
+            Using environment = New TestEnvironment()
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project", LanguageNames.CSharp, CancellationToken.None)
+                project.AddSourceTextContainer(SourceText.From("// Test").Container, "Z:\Test.cs")
+
+                Assert.Single(environment.Workspace.GetOpenDocumentIds())
+
+                project.RemoveFromWorkspace()
+
+                Assert.Empty(environment.Workspace.GetOpenDocumentIds())
             End Using
         End Function
     End Class

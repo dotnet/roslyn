@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -103,6 +105,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         && ClassificationHelpers.IsStaticallyDeclared(token))
                     {
                         AddClassification(span, ClassificationTypeNames.StaticSymbol);
+                    }
+                    else if (token.IsKind(SyntaxKind.Utf8StringLiteralToken, SyntaxKind.Utf8SingleLineRawStringLiteralToken, SyntaxKind.Utf8MultiLineRawStringLiteralToken) && token.Text.EndsWith("u8", StringComparison.OrdinalIgnoreCase))
+                    {
+                        AddClassification(new TextSpan(token.Span.End - "u8".Length, "u8".Length), ClassificationTypeNames.Keyword);
                     }
                 }
             }

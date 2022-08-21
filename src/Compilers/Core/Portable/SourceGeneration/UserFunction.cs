@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static Func<TInput, CancellationToken, ImmutableArray<TOutput>> WrapUserFunctionAsImmutableArray<TInput, TOutput>(this Func<TInput, CancellationToken, IEnumerable<TOutput>> userFunction)
         {
-            return (input, token) => userFunction.WrapUserFunction()(input, token).ToImmutableArray();
+            return (input, token) => userFunction.WrapUserFunction()(input, token).ToImmutableArrayOrEmpty();
         }
 
         internal static Action<TInput, CancellationToken> WrapUserAction<TInput>(this Action<TInput> userAction)
