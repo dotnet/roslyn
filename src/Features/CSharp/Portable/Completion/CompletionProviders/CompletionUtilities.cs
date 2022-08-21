@@ -91,6 +91,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
+        /// <summary>
+        /// Tells if we are in positions like this: <c>#nullable $$</c> or <c>#pragma warning $$</c>
+        /// </summary>
+        internal static bool IsCompilerDirectiveTriggerCharacter(SourceText text, int characterPosition)
+        {
+            // First we check if current character is space
+            var ch = text[characterPosition--];
+            if (ch != ' ')
+            {
+                return false;
+            }
+
+            // Then step back while "current" character is letter
+            while (char.IsLetter(text[characterPosition]))
+            {
+                characterPosition--;
+            }
+
+            // Possible case:
+            // #nullable $$
+            // ^ - characterPosition is here
+            if (text[characterPosition] == '#')
+            {
+                return true;
+            }
+
+            // Possible case:
+            // #pragma warning $$
+            //        ^ - characterPosition is here (between words)
+            return IsCompilerDirectiveTriggerCharacter(text, characterPosition);
+        }
+
         internal static ImmutableHashSet<char> CommonTriggerCharacters { get; } = ImmutableHashSet.Create('.', '#', '>', ':');
 
         internal static ImmutableHashSet<char> CommonTriggerCharactersWithArgumentList { get; } = ImmutableHashSet.Create('.', '#', '>', ':', '(', '[', ' ');
