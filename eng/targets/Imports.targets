@@ -367,7 +367,7 @@
     </ItemGroup>
   </Target>
   
-  <!-- TODO: Remove once we consume an SDK with the fix from https://github.com/dotnet/wpf/pull/6799 -->
+  <!-- Workaround for https://github.com/dotnet/wpf/issues/6792 -->
   <Target Name="RemoveDuplicateAnalyzers" BeforeTargets="CoreCompile" Condition="'$(UseWpf)' == 'true'">
     <ItemGroup>
         <FilteredAnalyzer Include="@(Analyzer->Distinct())" />
