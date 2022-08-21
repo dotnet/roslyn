@@ -96,31 +96,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// </summary>
         internal static bool IsCompilerDirectiveTriggerCharacter(SourceText text, int characterPosition)
         {
-            // First we check if current character is space
-            var ch = text[characterPosition--];
-            if (ch != ' ')
-            {
-                return false;
-            }
-
-            // Then step back while "current" character is letter
-            while (char.IsLetter(text[characterPosition]))
+            while (char.IsWhiteSpace(text[characterPosition]) ||
+                   char.IsLetter(text[characterPosition]))
             {
                 characterPosition--;
+
+                if (characterPosition < 0)
+                    return false;
             }
 
-            // Possible case:
-            // #nullable $$
-            // ^ - characterPosition is here
-            if (text[characterPosition] == '#')
-            {
-                return true;
-            }
-
-            // Possible case:
-            // #pragma warning $$
-            //        ^ - characterPosition is here (between words)
-            return IsCompilerDirectiveTriggerCharacter(text, characterPosition);
+            return text[characterPosition] == '#';
         }
 
         internal static ImmutableHashSet<char> CommonTriggerCharacters { get; } = ImmutableHashSet.Create('.', '#', '>', ':');
