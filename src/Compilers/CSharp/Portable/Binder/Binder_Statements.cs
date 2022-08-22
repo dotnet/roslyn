@@ -2215,8 +2215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var delegateDefaultString = delegateDefault.GetValueToDisplay() ?? "null";
-                    Error(diagnostics, ErrorCode.ERR_OptionalParamValueMismatch, lambdaParameterLocation, paramIdx, lambdaDefault.Value, delegateDefaultString);
+                    Error(diagnostics, ErrorCode.ERR_OptionalParamValueMismatch, lambdaParameterLocation, paramIdx, lambdaDefault, delegateDefault);
                 }
             }
         }

@@ -341,12 +341,13 @@ public class C
 }");
 
             comp.VerifyDiagnostics(
-                    // (6,51): error CS7014: Attributes are not valid in this context.
-                    //         System.Func<int, int, long> f1 = delegate([System.Obsolete]int _, int _ = 0) { return 3L; };
-                    Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[System.Obsolete]").WithLocation(6, 51),
-                    // (6,79): warning CS9067: Parameter 2 is optional in lambda but the corresponding parameter in delegate type 'Func' is required.
-                    //         System.Func<int, int, long> f1 = delegate([System.Obsolete]int _, int _ = 0) { return 3L; };
-                    Diagnostic(ErrorCode.WRN_OptionalRequiredParamMismatch, "_").WithArguments("2", "Func").WithLocation(6, 79));
+
+                // (6,51): error CS7014: Attributes are not valid in this context.
+                //         System.Func<int, int, long> f1 = delegate([System.Obsolete]int _, int _ = 0) { return 3L; };
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[System.Obsolete]").WithLocation(6, 51),
+                // (6,79): error CS9067: Parameter 2 has default value 'default(int)' in lambda and '<missing>' in the target delegate type.
+                //         System.Func<int, int, long> f1 = delegate([System.Obsolete]int _, int _ = 0) { return 3L; };
+                Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "_").WithArguments("2", "default(int)", "<missing>").WithLocation(6, 79));
         }
 
         [Fact]

@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis
                 if (format is not null && int.TryParse(format, out var len) &&
                     (len > 0 && len < stringValue.Length))
                 {
-                    return stringValue[..len];
+                    return $@"""{stringValue[..len]}"" ...";
                 }
                 else
                 {
@@ -456,39 +456,7 @@ namespace Microsoft.CodeAnalysis
 
             public override string ToString(string? format, IFormatProvider? provider)
             {
-                switch (Discriminator)
-                {
-                    case ConstantValueTypeDiscriminator.SByte:
-                        return "default(sbyte)";
-                    case ConstantValueTypeDiscriminator.Byte:
-                        return "default(byte)";
-                    case ConstantValueTypeDiscriminator.Int16:
-                        return "default(short)";
-                    case ConstantValueTypeDiscriminator.UInt16:
-                        return "default(unsigned short)";
-                    case ConstantValueTypeDiscriminator.Int32:
-                        return "default(int)";
-                    case ConstantValueTypeDiscriminator.UInt32:
-                        return "default(uint)";
-                    case ConstantValueTypeDiscriminator.UInt64:
-                        return "default(ulong)";
-                    case ConstantValueTypeDiscriminator.Char:
-                        return "default(char)";
-                    case ConstantValueTypeDiscriminator.Boolean:
-                        return "default(bool)";
-                    case ConstantValueTypeDiscriminator.Single:
-                        return "default(float)";
-                    case ConstantValueTypeDiscriminator.Double:
-                        return "default(double)";
-                    case ConstantValueTypeDiscriminator.String:
-                        return "default(string)";
-                    case ConstantValueTypeDiscriminator.Decimal:
-                        return "default(decimal)";
-                    case ConstantValueTypeDiscriminator.DateTime:
-                        return "default(System.DateTime)";
-                    default:
-                        throw new InvalidOperationException();
-                }
+                return $"default({GetPrimitiveTypeName()})";
             }
         }
 
@@ -631,6 +599,54 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            public override int Int32Value
+            {
+                get
+                {
+                    return 1;
+                }
+            }
+
+            public override uint UInt32Value
+            {
+                get
+                {
+                    return 1;
+                }
+            }
+
+            public override long Int64Value
+            {
+                get
+                {
+                    return 1;
+                }
+            }
+
+            public override ulong UInt64Value
+            {
+                get
+                {
+                    return 1;
+                }
+            }
+
+            public override short Int16Value
+            {
+                get
+                {
+                    return 1;
+                }
+            }
+
+            public override ushort UInt16Value
+            {
+                get
+                {
+                    return 1;
+                }
+            }
+
             // all instances of this class are singletons
             public override bool Equals(ConstantValue? other)
             {
@@ -644,37 +660,23 @@ namespace Microsoft.CodeAnalysis
 
             public override string ToString(string? format, IFormatProvider? provider)
             {
-                switch (Discriminator)
+                return Discriminator switch
                 {
-                    case ConstantValueTypeDiscriminator.SByte:
-                        return ((sbyte)1).ToString(provider);
-                    case ConstantValueTypeDiscriminator.Byte:
-                        return ((byte)1).ToString(provider);
-                    case ConstantValueTypeDiscriminator.Int16:
-                        return ((short)1).ToString(provider);
-                    case ConstantValueTypeDiscriminator.UInt16:
-                        return ((short)1).ToString(provider);
-                    case ConstantValueTypeDiscriminator.NInt:
-                    case ConstantValueTypeDiscriminator.Int32:
-                        return ((int)1).ToString(provider);
-                    case ConstantValueTypeDiscriminator.NUInt:
-                    case ConstantValueTypeDiscriminator.UInt32:
-                        return ((int)1).ToString(provider);
-                    case ConstantValueTypeDiscriminator.UInt64:
-                        return ((ulong)1).ToString(provider);
-                    case ConstantValueTypeDiscriminator.Char:
-                        return ((char)1).ToString(provider);
-                    case ConstantValueTypeDiscriminator.Boolean:
-                        return true.ToString(provider);
-                    case ConstantValueTypeDiscriminator.Single:
-                        return ((float)1).ToString(provider);
-                    case ConstantValueTypeDiscriminator.Double:
-                        return ((double)1).ToString(provider);
-                    case ConstantValueTypeDiscriminator.Decimal:
-                        return ((decimal)1).ToString(provider);
-                    default:
-                        throw new InvalidOperationException();
-                }
+                    ConstantValueTypeDiscriminator.SByte => SByteValue.ToString(provider),
+                    ConstantValueTypeDiscriminator.Byte => ByteValue.ToString(provider),
+                    ConstantValueTypeDiscriminator.Int16 => Int16Value.ToString(provider),
+                    ConstantValueTypeDiscriminator.UInt16 => UInt16Value.ToString(provider),
+                    ConstantValueTypeDiscriminator.NInt or ConstantValueTypeDiscriminator.Int32 => Int32Value.ToString(provider),
+                    ConstantValueTypeDiscriminator.NUInt or ConstantValueTypeDiscriminator.UInt32 => UInt32Value.ToString(provider),
+                    ConstantValueTypeDiscriminator.UInt64 => UInt64Value.ToString(provider),
+                    ConstantValueTypeDiscriminator.Int64 => Int64Value.ToString(provider),
+                    ConstantValueTypeDiscriminator.Char => CharValue.ToString(provider),
+                    ConstantValueTypeDiscriminator.Boolean => BooleanValue.ToString(provider),
+                    ConstantValueTypeDiscriminator.Single => SingleValue.ToString(provider),
+                    ConstantValueTypeDiscriminator.Double => DoubleValue.ToString(provider),
+                    ConstantValueTypeDiscriminator.Decimal => DecimalValue.ToString(provider),
+                    _ => throw new InvalidOperationException(),
+                };
             }
         }
 
@@ -745,7 +747,12 @@ namespace Microsoft.CodeAnalysis
 
             public override string ToString(string? format, IFormatProvider? provider)
             {
-                return _value.ToString(provider);
+                return Discriminator switch
+                {
+                    ConstantValueTypeDiscriminator.Byte => ByteValue.ToString(provider),
+                    ConstantValueTypeDiscriminator.SByte => SByteValue.ToString(provider),
+                    _ => throw new InvalidOperationException()
+                };
             }
         }
 
@@ -807,7 +814,13 @@ namespace Microsoft.CodeAnalysis
 
             public override string ToString(string? format, IFormatProvider? provider)
             {
-                return _value.ToString(provider);
+                return Discriminator switch
+                {
+                    ConstantValueTypeDiscriminator.Int16 => Int16Value.ToString(provider),
+                    ConstantValueTypeDiscriminator.UInt16 => UInt16Value.ToString(provider),
+                    ConstantValueTypeDiscriminator.Char => CharValue.ToString(provider),
+                    _ => throw new InvalidOperationException()
+                };
             }
         }
 
@@ -855,7 +868,12 @@ namespace Microsoft.CodeAnalysis
 
             public override string ToString(string? format, IFormatProvider? provider)
             {
-                return _value.ToString(provider);
+                return Discriminator switch
+                {
+                    ConstantValueTypeDiscriminator.Int32 => Int32Value.ToString(provider),
+                    ConstantValueTypeDiscriminator.UInt32 => UInt32Value.ToString(provider),
+                    _ => throw new InvalidOperationException()
+                };
             }
         }
 
@@ -903,7 +921,12 @@ namespace Microsoft.CodeAnalysis
 
             public override string ToString(string? format, IFormatProvider? provider)
             {
-                return _value.ToString(provider);
+                return Discriminator switch
+                {
+                    ConstantValueTypeDiscriminator.Int64 => Int64Value.ToString(provider),
+                    ConstantValueTypeDiscriminator.UInt64 => UInt64Value.ToString(provider),
+                    _ => throw new InvalidOperationException()
+                };
             }
         }
 
@@ -952,7 +975,12 @@ namespace Microsoft.CodeAnalysis
 
             public override string ToString(string? format, IFormatProvider? provider)
             {
-                return _value.ToString(provider);
+                return Discriminator switch
+                {
+                    ConstantValueTypeDiscriminator.Int32 => Int64Value.ToString(provider),
+                    ConstantValueTypeDiscriminator.UInt32 => UInt64Value.ToString(provider),
+                    _ => throw new InvalidOperationException()
+                };
             }
         }
 
@@ -991,7 +1019,7 @@ namespace Microsoft.CodeAnalysis
 
             public override string ToString(string? format, IFormatProvider? provider)
             {
-                return _value.ToString(provider);
+                return DoubleValue.ToString(provider);
             }
         }
 
@@ -1041,7 +1069,7 @@ namespace Microsoft.CodeAnalysis
 
             public override string ToString(string? format, IFormatProvider? provider)
             {
-                return _value.ToString(provider);
+                return SingleValue.ToString(provider);
             }
         }
     }

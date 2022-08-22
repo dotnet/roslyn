@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis
     internal abstract partial class ConstantValue : IEquatable<ConstantValue?>, IFormattable
     {
         public abstract ConstantValueTypeDiscriminator Discriminator { get; }
+
         internal abstract SpecialType SpecialType { get; }
 
         public virtual string? StringValue { get { throw new InvalidOperationException(); } }
@@ -453,6 +455,30 @@ namespace Microsoft.CodeAnalysis
             }
 
             return ConstantValueTypeDiscriminator.Bad;
+        }
+
+        public string GetPrimitiveTypeName()
+        {
+            return Discriminator switch
+            {
+                ConstantValueTypeDiscriminator.SByte => "sbyte",
+                ConstantValueTypeDiscriminator.Byte => "byte",
+                ConstantValueTypeDiscriminator.Int16 => "short",
+                ConstantValueTypeDiscriminator.UInt16 => "ushort",
+                ConstantValueTypeDiscriminator.Int32 or ConstantValueTypeDiscriminator.NInt => "int",
+                ConstantValueTypeDiscriminator.UInt32 or ConstantValueTypeDiscriminator.NUInt => "uint",
+                ConstantValueTypeDiscriminator.Int64 => "long",
+                ConstantValueTypeDiscriminator.UInt64 => "ulong",
+                ConstantValueTypeDiscriminator.Char => "char",
+                ConstantValueTypeDiscriminator.Boolean => "bool",
+                ConstantValueTypeDiscriminator.Single => "float",
+                ConstantValueTypeDiscriminator.Double => "double",
+                ConstantValueTypeDiscriminator.String => "string",
+                ConstantValueTypeDiscriminator.Decimal => "decimal",
+                ConstantValueTypeDiscriminator.DateTime => "DateTime",
+                ConstantValueTypeDiscriminator.Null or ConstantValueTypeDiscriminator.Bad => throw new InvalidOperationException(),
+                _ => throw new InvalidOperationException()
+            };
         }
 
         private static SpecialType GetSpecialType(ConstantValueTypeDiscriminator discriminator)

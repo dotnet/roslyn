@@ -7179,7 +7179,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Implicitly typed lambda parameter '{0}' cannot have a default value.</value>
   </data>
   <data name="ERR_OptionalParamValueMismatch" xml:space="preserve">
-    <value>Parameter {0} has default value '{1}' in lambda and '{2}' in the target delegate type.</value>
+    <value>Parameter {0} has default value '{1:10}' in lambda and '{2:10}' in the target delegate type.</value>
   </data>
   <data name="IDS_FeatureFileTypes" xml:space="preserve">
     <value>file types</value>

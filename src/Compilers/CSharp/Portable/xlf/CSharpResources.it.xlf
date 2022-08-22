@@ -1138,8 +1138,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_OptionalParamValueMismatch">
-        <source>Parameter {0} has default value '{1}' in lambda and '{2}' in the target delegate type.</source>
-        <target state="new">Parameter {0} has default value '{1}' in lambda and '{2}' in the target delegate type.</target>
+        <source>Parameter {0} has default value '{1:10}' in lambda and '{2:10}' in the target delegate type.</source>
+        <target state="new">Parameter {0} has default value '{1:10}' in lambda and '{2:10}' in the target delegate type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
