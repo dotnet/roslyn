@@ -14717,6 +14717,11 @@ public class A<T>
         [Fact, WorkItem(63070, "https://github.com/dotnet/roslyn/issues/63070")]
         public void UnscopedScoped_Metadata()
         {
+            // Equivalent to:
+            // public class A<T>
+            // {
+            //      public ref T F4([UnscopedRef] scoped R<T> t4) { throw null; }
+            // }
             var ilSource = """
 .class public sequential ansi sealed beforefieldinit R`1<T>
 	extends [mscorlib]System.ValueType

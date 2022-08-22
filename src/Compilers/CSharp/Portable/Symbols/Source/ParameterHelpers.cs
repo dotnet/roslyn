@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static DeclarationScope CalculateEffectiveScope(ParameterSymbol parameter)
+        internal static DeclarationScope CalculateEffectiveScopeIgnoringAttributes(ParameterSymbol parameter)
         {
             var declaredScope = parameter.DeclaredScope;
             return declaredScope == DeclarationScope.Unscoped && IsRefScopedByDefault(parameter) ?
