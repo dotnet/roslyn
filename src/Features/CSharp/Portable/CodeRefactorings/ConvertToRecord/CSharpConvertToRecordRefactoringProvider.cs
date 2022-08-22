@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return;
             }
 
-            var propertyAnalysisResults = PositionalParameterInfo.GetPropertiesForPositionalParameters(
+            var positionalParameterInfos = PositionalParameterInfo.GetPropertiesForPositionalParameters(
                 typeDeclaration.Members
                     .Where(member => member is PropertyDeclarationSyntax)
                     .Cast<PropertyDeclarationSyntax>()
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 type,
                 semanticModel,
                 cancellationToken);
-            if (propertyAnalysisResults.IsEmpty)
+            if (positionalParameterInfos.IsEmpty)
             {
                 return;
             }
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 cancellationToken => ConvertToPositionalRecordAsync(
                     document,
                     type,
-                    propertyAnalysisResults,
+                    positionalParameterInfos,
                     typeDeclaration,
                     cancellationToken),
                 nameof(CSharpFeaturesResources.Convert_to_positional_record));
@@ -87,154 +87,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
         private static async Task<Document> ConvertToPositionalRecordAsync(
             Document document,
-            INamedTypeSymbol originalType,
-            ImmutableArray<PositionalParameterInfo> propertyAnalysisResults,
-            TypeDeclarationSyntax originalDeclarationNode,
+            INamedTypeSymbol type,
+            ImmutableArray<PositionalParameterInfo> positionalParameterInfos,
+            TypeDeclarationSyntax typeDeclaration,
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            // properties to be added to primary constructor parameters
-            var propertiesToMove = propertyAnalysisResults.SelectAsArray(result => result.Declaration);
-
-            var lineFormattingOptions = await document
-                .GetLineFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var modifiedClassTrivia = GetModifiedClassTrivia(propertiesToMove, originalDeclarationNode, lineFormattingOptions);
-
-            var propertiesToAddAsParams = propertiesToMove.SelectAsArray(p =>
-                SyntaxFactory.Parameter(
-                    GetModifiedAttributeListsForProperty(p),
-                    modifiers: default,
-                    p.Type,
-                    p.Identifier,
-                    @default: null));
-
-            // remove converted properties and reformat other methods
-            var membersToKeep = GetModifiedMembersForPositionalRecord(
-                originalDeclarationNode, originalType, semanticModel, propertyAnalysisResults, cancellationToken);
-
-            // if we have a class, move trivia from class keyword to record keyword
-            // if struct, split trivia and leading goes to record keyword, trailing goes to struct keyword
-            var recordKeyword = SyntaxFactory.Token(SyntaxKind.RecordKeyword);
-            recordKeyword = originalType.TypeKind == TypeKind.Class
-                ? recordKeyword.WithTriviaFrom(originalDeclarationNode.Keyword)
-                : recordKeyword.WithLeadingTrivia(originalDeclarationNode.Keyword.LeadingTrivia);
-
-            // use the trailing trivia of the last item before the constructor parameter list as the param list trivia
-            var constructorTrivia = originalDeclarationNode.TypeParameterList?.GetTrailingTrivia() ??
-                originalDeclarationNode.Identifier.TrailingTrivia;
-
-            // if we have no members, use semicolon instead of braces
-            // use default if we don't want it, otherwise use the original token if it exists or a generated one
-            SyntaxToken openBrace, closeBrace, semicolon;
-            if (membersToKeep.IsEmpty)
-            {
-                openBrace = default;
-                closeBrace = default;
-                semicolon = originalDeclarationNode.SemicolonToken == default
-                    ? SyntaxFactory.Token(SyntaxKind.SemicolonToken)
-                    : originalDeclarationNode.SemicolonToken;
-            }
-            else
-            {
-                openBrace = originalDeclarationNode.OpenBraceToken == default
-                    ? SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
-                    : originalDeclarationNode.OpenBraceToken;
-                closeBrace = originalDeclarationNode.CloseBraceToken == default
-                    ? SyntaxFactory.Token(SyntaxKind.CloseBraceToken)
-                    : originalDeclarationNode.CloseBraceToken;
-                semicolon = default;
-            }
-
-            // delete IEquatable if it's explicit because it is implicit on records
-            var iEquatable = ConvertToRecordHelpers.GetIEquatableType(semanticModel.Compilation, originalType);
-            var baseList = originalDeclarationNode.BaseList;
-            if (baseList != null && iEquatable != null)
-            {
-                var typeList = baseList.Types.Where(baseItem
-                    => !iEquatable.Equals(semanticModel.GetTypeInfo(baseItem.Type, cancellationToken).Type));
-
-                if (typeList.IsEmpty())
-                {
-                    baseList = null;
-                }
-                else
-                {
-                    baseList = baseList.WithTypes(SyntaxFactory.SeparatedList(typeList));
-                }
-            }
-
-            var changedTypeDeclaration = SyntaxFactory.RecordDeclaration(
-                    originalType.TypeKind == TypeKind.Class
-                        ? SyntaxKind.RecordDeclaration
-                        : SyntaxKind.RecordStructDeclaration,
-                    originalDeclarationNode.AttributeLists,
-                    originalDeclarationNode.Modifiers,
-                    recordKeyword,
-                    originalType.TypeKind == TypeKind.Class
-                        ? default
-                        : originalDeclarationNode.Keyword.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-                    // remove trailing trivia from places where we would want to insert the parameter list before a line break
-                    originalDeclarationNode.Identifier.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-                    originalDeclarationNode.TypeParameterList?.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-                    SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(propertiesToAddAsParams))
-                        .WithAppendedTrailingTrivia(constructorTrivia),
-                    baseList,
-                    originalDeclarationNode.ConstraintClauses,
-                    openBrace,
-                    SyntaxFactory.List(membersToKeep),
-                    closeBrace,
-                    semicolon)
-                    .WithLeadingTrivia(modifiedClassTrivia)
-                    .WithAdditionalAnnotations(Formatter.Annotation);
-
-            var changedDocument = await document.ReplaceNodeAsync(
-                originalDeclarationNode, changedTypeDeclaration, cancellationToken).ConfigureAwait(false);
-
-            return changedDocument;
-        }
-
-        private static SyntaxList<AttributeListSyntax> GetModifiedAttributeListsForProperty(PropertyDeclarationSyntax p)
-            => SyntaxFactory.List(p.AttributeLists.SelectAsArray(attributeList =>
-            {
-                if (attributeList.Target == null)
-                {
-                    // convert attributes attached to the property with no target into "property :" targeted attributes
-                    return attributeList
-                        .WithTarget(SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(SyntaxKind.PropertyKeyword)))
-                        .WithoutTrivia();
-                }
-                else
-                {
-                    return attributeList.WithoutTrivia();
-                }
-            }));
-
-        /// <summary>
-        /// Removes or modifies members in preparation of adding to a record with a primary constructor (positional parameters)
-        /// Deletes properties that we move to positional params
-        /// Deletes methods, constructors, and operators that would be generated by default if we believe they currently have a
-        /// similar effect to the generated ones
-        /// modifies constructors and some method modifiers to fall in line with record requirements (e.g. this() initializer)
-        /// </summary>
-        /// <param name="typeDeclaration">Original type declaration</param>
-        /// <param name="semanticModel">Semantic model</param>
-        /// <param name="propertiesToMove">Properties we decided to move</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// 
-        /// <returns>The list of members from the original type, modified and trimmed for a positional record type usage</returns>
-        private static ImmutableArray<MemberDeclarationSyntax> GetModifiedMembersForPositionalRecord(
-            TypeDeclarationSyntax typeDeclaration,
-            INamedTypeSymbol type,
-            SemanticModel semanticModel,
-            ImmutableArray<PositionalParameterInfo> propertiesToMove,
-            CancellationToken cancellationToken)
-        {
             using var _ = ArrayBuilder<MemberDeclarationSyntax>.GetInstance(out var modifiedMembers);
             modifiedMembers.AddRange(typeDeclaration.Members);
 
-            // generated hashcode and equals methods compare all instance fields, not just properties
+            // generated hashcode and equals methods compare all instance fields
             // including underlying fields accessed from properties
             // copy constructor generation also uses all fields when copying
+            // so we track all the fields to make sure the methods we consider deleting
+            // would actually perform the same action as an autogenerated one
             var expectedFields = type
                 .GetMembers()
                 .OfType<IFieldSymbol>()
@@ -243,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             // remove properties we're bringing up to positional params
             // or keep them as overrides and link the positional param to the original property
-            foreach (var result in propertiesToMove)
+            foreach (var result in positionalParameterInfos)
             {
                 var property = result.Declaration;
                 if (result.KeepAsOverride)
@@ -263,53 +129,75 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             // get all the constructors so we can add an initializer to them
             // or potentially delete the primary constructor
             var constructors = modifiedMembers.OfType<ConstructorDeclarationSyntax>().AsImmutable();
-            foreach (var constructor in constructors)
+            var constructorSymbols = constructors.SelectAsArray(constructor =>
+                (IMethodSymbol)semanticModel.GetRequiredDeclaredSymbol(constructor, cancellationToken));
+            var constructorOperations = constructors.SelectAsArray(constructor =>
+                (IConstructorBodyOperation)semanticModel.GetRequiredOperation(constructor, cancellationToken));
+            var positionalParamSymbols = positionalParameterInfos.SelectAsArray(p => p.Symbol);
+            // without any knowledge of a constructor, we don't provide defaults
+            var defaults = positionalParameterInfos.SelectAsArray(info => (EqualsValueClauseSyntax?)null);
+
+            // We want to make sure that each type in the parameter list corresponds to exactly one positional parameter type,
+            // but they don't need to be in the same order.
+            // We can't use something like set equality because some parameter types may be duplicate.
+            // So, we order the types in a consistent way (by name) and then compare the lists of types.
+            var primaryIndex = constructorSymbols.IndexOf(constructorSymbol =>
+                constructorSymbol.Parameters.SelectAsArray(parameter => parameter.Type)
+                            .OrderBy(type => type.Name)
+                    .SequenceEqual(positionalParamSymbols.SelectAsArray(s => s.Type)
+                            .OrderBy(type => type.Name),
+                        SymbolEqualityComparer.Default));
+
+            // need to get primary constructor first because it can re-order the initializer list for other constructors
+            if (primaryIndex != -1 && ConvertToRecordHelpers.IsSimplePrimaryConstructor(
+                    constructorOperations[primaryIndex],
+                    ref positionalParamSymbols,
+                    constructorSymbols[primaryIndex].Parameters))
             {
-                // check to see if it would override the primary constructor
-                var constructorSymbol = (IMethodSymbol)semanticModel.GetRequiredDeclaredSymbol(constructor, cancellationToken);
-                var constructorOperation = (IConstructorBodyOperation)semanticModel.GetRequiredOperation(constructor, cancellationToken);
-                var constructorParamTypes = constructorSymbol.Parameters.SelectAsArray(parameter => parameter.Type);
-                var positionalParamTypes = propertiesToMove.SelectAsArray(p => p.Symbol.Type);
-                if (constructorParamTypes.SequenceEqual(positionalParamTypes))
+                // grab parameter defaults and reorder positional param info to be in order of primary constructor params
+                defaults = constructors[primaryIndex].ParameterList.Parameters.SelectAsArray(param => param.Default);
+                positionalParameterInfos = positionalParamSymbols
+                    .SelectAsArray(symbol => positionalParameterInfos.First(info => info.Symbol.Equals(symbol)));
+                modifiedMembers.Remove(constructors[primaryIndex]);
+            }
+
+            for (var i = 0; i < constructors.Length; i++)
+            {
+                if (i != primaryIndex)
                 {
-                    // found a primary constructor override, now check if we are pretty sure we can remove it safely
-                    if (ConvertToRecordHelpers.IsSimplePrimaryConstructor(constructorOperation,
-                        propertiesToMove.SelectAsArray(result => result.Symbol),
-                        constructorSymbol.Parameters))
+                    // skip primary constructor
+                    var constructor = constructors[i];
+                    var constructorSymbol = constructorSymbols[i];
+                    var constructorOperation = constructorOperations[i];
+
+                    // check for copy constructor
+                    if (constructorSymbol.Parameters.Length == 1 &&
+                        constructorSymbol.Parameters[0].Type.Equals(type))
                     {
-                        modifiedMembers.Remove(constructor);
+                        if (ConvertToRecordHelpers.IsSimpleCopyConstructor(constructorOperation,
+                            expectedFields,
+                            constructorSymbol.Parameters.First()))
+                        {
+                            modifiedMembers.Remove(constructor);
+                        }
                     }
                     else
                     {
-                        // can't remove it safely, at least add a warning that it will produce an error
-                        modifiedMembers[modifiedMembers.IndexOf(constructor)] = constructor
-                            .WithAdditionalAnnotations(WarningAnnotation.Create(
-                                CSharpFeaturesResources.Warning_constructor_signature_conflicts_with_primary_constructor));
-                    }
-                }
-                // check for copy constructor
-                else if (constructorSymbol.Parameters.IsSingle() &&
-                    constructorSymbol.Parameters.First().Type.Equals(type))
-                {
-                    if (ConvertToRecordHelpers.IsSimpleCopyConstructor(constructorOperation,
-                        expectedFields,
-                        constructorSymbol.Parameters.First()))
-                    {
-                        modifiedMembers.Remove(constructor);
-                    }
-                }
-                else
-                {
-                    // non-primary constructor, add ": this(default, default...)" initializers to each
-                    var thisArgs = SyntaxFactory.ArgumentList(
-                        SyntaxFactory.SeparatedList(
-                            Enumerable.Repeat(
-                                SyntaxFactory.Argument(
-                                    SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)),
-                                propertiesToMove.Length)));
+                        // non-primary, non-copy constructor, add ": this(...)" initializers to each
+                        // and try to use assignments in the body to determine the values, otherwise default or null
+                        var (thisArgs, statementsToRemove) = ConvertToRecordHelpers
+                            .GetInitializerValuesForNonPrimaryConstructor(constructorOperation, positionalParamSymbols);
 
-                    modifiedMembers[modifiedMembers.IndexOf(constructor)] = constructor
-                        .WithInitializer(SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer, thisArgs));
+                        var removalOptions = SyntaxRemoveOptions.KeepExteriorTrivia |
+                            SyntaxRemoveOptions.KeepDirectives |
+                            SyntaxRemoveOptions.AddElasticMarker;
+                        var modifiedConstructor = constructor
+                            .RemoveNodes(statementsToRemove, removalOptions)!
+                            .WithInitializer(SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer,
+                                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(thisArgs))));
+
+                        modifiedMembers[modifiedMembers.IndexOf(constructor)] = modifiedConstructor;
+                    }
                 }
             }
 
@@ -358,16 +246,120 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 }
             }
 
-            if (!modifiedMembers.IsEmpty())
+            var lineFormattingOptions = await document
+                .GetLineFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var modifiedClassTrivia = GetModifiedClassTrivia(
+                positionalParameterInfos.SelectAsArray(p => p.Declaration), typeDeclaration, lineFormattingOptions);
+
+            var propertiesToAddAsParams = positionalParameterInfos.ZipAsArray(defaults, (p, @default) =>
+                SyntaxFactory.Parameter(
+                    GetModifiedAttributeListsForProperty(p.Declaration),
+                    modifiers: default,
+                    p.Declaration.Type,
+                    p.Declaration.Identifier,
+                    @default: @default));
+
+            // if we have a class, move trivia from class keyword to record keyword
+            // if struct, split trivia and leading goes to record keyword, trailing goes to struct keyword
+            var recordKeyword = SyntaxFactory.Token(SyntaxKind.RecordKeyword);
+            recordKeyword = type.TypeKind == TypeKind.Class
+                ? recordKeyword.WithTriviaFrom(typeDeclaration.Keyword)
+                : recordKeyword.WithLeadingTrivia(typeDeclaration.Keyword.LeadingTrivia);
+
+            // use the trailing trivia of the last item before the constructor parameter list as the param list trivia
+            var constructorTrivia = typeDeclaration.TypeParameterList?.GetTrailingTrivia() ??
+                typeDeclaration.Identifier.TrailingTrivia;
+
+            // if we have no members, use semicolon instead of braces
+            // use default if we don't want it, otherwise use the original token if it exists or a generated one
+            SyntaxToken openBrace, closeBrace, semicolon;
+            if (modifiedMembers.IsEmpty())
             {
+                openBrace = default;
+                closeBrace = default;
+                semicolon = typeDeclaration.SemicolonToken == default
+                    ? SyntaxFactory.Token(SyntaxKind.SemicolonToken)
+                    : typeDeclaration.SemicolonToken;
+            }
+            else
+            {
+                openBrace = typeDeclaration.OpenBraceToken == default
+                    ? SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
+                    : typeDeclaration.OpenBraceToken;
+                closeBrace = typeDeclaration.CloseBraceToken == default
+                    ? SyntaxFactory.Token(SyntaxKind.CloseBraceToken)
+                    : typeDeclaration.CloseBraceToken;
+                semicolon = default;
+
                 // remove any potential leading blank lines right after the class declaration, as we could have
                 // something like a method which was spaced out from the previous properties, but now shouldn't
                 // have that leading space
                 modifiedMembers[0] = modifiedMembers[0].GetNodeWithoutLeadingBlankLines();
             }
 
-            return modifiedMembers.ToImmutable();
+            // delete IEquatable if it's explicit because it is implicit on records
+            var iEquatable = ConvertToRecordHelpers.GetIEquatableType(semanticModel.Compilation, type);
+            var baseList = typeDeclaration.BaseList;
+            if (baseList != null && iEquatable != null)
+            {
+                var typeList = baseList.Types.Where(baseItem
+                    => !iEquatable.Equals(semanticModel.GetTypeInfo(baseItem.Type, cancellationToken).Type));
+
+                if (typeList.IsEmpty())
+                {
+                    baseList = null;
+                }
+                else
+                {
+                    baseList = baseList.WithTypes(SyntaxFactory.SeparatedList(typeList));
+                }
+            }
+
+            var changedTypeDeclaration = SyntaxFactory.RecordDeclaration(
+                    type.TypeKind == TypeKind.Class
+                        ? SyntaxKind.RecordDeclaration
+                        : SyntaxKind.RecordStructDeclaration,
+                    typeDeclaration.AttributeLists,
+                    typeDeclaration.Modifiers,
+                    recordKeyword,
+                    type.TypeKind == TypeKind.Class
+                        ? default
+                        : typeDeclaration.Keyword.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
+                    // remove trailing trivia from places where we would want to insert the parameter list before a line break
+                    typeDeclaration.Identifier.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
+                    typeDeclaration.TypeParameterList?.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
+                    SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(propertiesToAddAsParams))
+                        .WithAppendedTrailingTrivia(constructorTrivia),
+                    baseList,
+                    typeDeclaration.ConstraintClauses,
+                    openBrace,
+                    SyntaxFactory.List(modifiedMembers),
+                    closeBrace,
+                    semicolon)
+                    .WithLeadingTrivia(modifiedClassTrivia)
+                    .WithAdditionalAnnotations(Formatter.Annotation);
+
+            var changedDocument = await document.ReplaceNodeAsync(
+                typeDeclaration, changedTypeDeclaration, cancellationToken).ConfigureAwait(false);
+
+            return changedDocument;
         }
+
+        private static SyntaxList<AttributeListSyntax> GetModifiedAttributeListsForProperty(PropertyDeclarationSyntax p)
+            => SyntaxFactory.List(p.AttributeLists.SelectAsArray(attributeList =>
+            {
+                if (attributeList.Target == null)
+                {
+                    // convert attributes attached to the property with no target into "property :" targeted attributes
+                    return attributeList
+                        .WithTarget(SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(SyntaxKind.PropertyKeyword)))
+                        .WithoutTrivia();
+                }
+                else
+                {
+                    return attributeList.WithoutTrivia();
+                }
+            }));
 
         #region TriviaMovement
         // format should be:

@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -178,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         /// <returns>Whether the constructor body matches the pattern described</returns>
         public static bool IsSimplePrimaryConstructor(
             IConstructorBodyOperation operation,
-            ImmutableArray<IPropertySymbol> properties,
+            ref ImmutableArray<IPropertySymbol> properties,
             ImmutableArray<IParameterSymbol> parameters)
         {
             var body = GetBlockOfMethodBody(operation);
@@ -192,12 +194,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 assignment => (assignment as IParameterReferenceOperation)?.Parameter);
 
             var assignedProperties = assignmentValues.SelectAsArray(value => value.left);
+            var assignedParameters = assignmentValues.SelectAsArray(value => value.right);
 
-            return assignedProperties.SetEquals(properties) &&
-                assignmentValues.All(value =>
-                    value != default &&
-                    value.left is IPropertySymbol property &&
-                    properties.IndexOf(property) == parameters.IndexOf(value.right));
+            if (assignmentValues.All(value => value != default && value.left is IPropertySymbol) &&
+                !assignedProperties.HasDuplicates(SymbolEqualityComparer.Default) &&
+                !assignedParameters.HasDuplicates(SymbolEqualityComparer.Default) &&
+                assignedProperties.SetEquals(properties) &&
+                assignedParameters.SetEquals(parameters))
+            {
+                // order properties in order of the parameters that they were assigned to
+                // e.g if we originally have Properties: [int Y, int X]
+                // and constructor:
+                // public C(int x, int y)
+                // {
+                //     X = x;
+                //     Y = y;
+                // }
+                // then we would re-order the properties to: [int X, int Y]
+                properties = parameters.SelectAsArray(param =>
+                    (IPropertySymbol)assignmentValues.First(value => value.right.Equals(param)).left);
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -247,10 +266,48 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 assignedValues.SetEquals(fields);
         }
 
+        public static (ImmutableArray<ArgumentSyntax> initializerArguments, ImmutableArray<SyntaxNode> assignmentsToRemove)
+            GetInitializerValuesForNonPrimaryConstructor(
+            IConstructorBodyOperation operation,
+            ImmutableArray<IPropertySymbol> positionalParams)
+        {
+            var body = GetBlockOfMethodBody(operation);
+            var bodyOps = body?.Operations ?? ImmutableArray<IOperation>.Empty;
+            var _1 = ArrayBuilder<ArgumentSyntax>.GetInstance(out var initializerBuilder);
+            var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var removalBuilder);
+
+            // make sure the assignment wouldn't reference local variables we may have declared
+            var assignmentValues = GetAssignmentValuesForConstructor(bodyOps,
+                assignment => IsSafeAssignment(assignment)
+                    ? assignment.Syntax as ExpressionSyntax
+                    : null);
+
+            foreach (var property in positionalParams)
+            {
+                var assignmentIndex = assignmentValues.IndexOf(value => property.Equals(value.left));
+                if (assignmentIndex == -1)
+                {
+                    // no assignment found, use "default" (or "null" for nullable types)
+                    initializerBuilder.Add(SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                        property.Type.NullableAnnotation == NullableAnnotation.Annotated
+                            ? SyntaxKind.NullLiteralExpression
+                            : SyntaxKind.DefaultLiteralExpression)));
+                }
+                else
+                {
+                    // found a valid assignment to the parameter, add the expression it was assigned to
+                    // to the initializer list, and add the eniter statement to be deleted
+                    initializerBuilder.Add(SyntaxFactory.Argument(assignmentValues[assignmentIndex].right));
+                    removalBuilder.Add(bodyOps[assignmentIndex].Syntax);
+                }
+            }
+
+            return (initializerBuilder.AsImmutable(), removalBuilder.AsImmutable());
+        }
+
         private static ImmutableArray<(ISymbol left, T right)> GetAssignmentValuesForConstructor<T>(
             ImmutableArray<IOperation> operations,
             Func<IOperation, T?> captureAssignedSymbol)
-            where T : ISymbol
         => operations.SelectAsArray<IOperation, (ISymbol, T)>(operation =>
         {
             if (operation is IExpressionStatementOperation
@@ -277,6 +334,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             return default;
         });
+
+        /// <summary>
+        /// Determines whether the operation is safe to move into the "this(...)" initializer
+        /// i.e. Doesn't reference any other created variables but the parameters
+        /// </summary>
+        private static bool IsSafeAssignment(IOperation operation)
+        {
+            if (operation is ILocalReferenceOperation)
+            {
+                return false;
+            }
+
+            return operation.ChildOperations.All(IsSafeAssignment);
+        }
 
         /// <summary>
         /// Get all the fields (including implicit fields underlying properties) that this
