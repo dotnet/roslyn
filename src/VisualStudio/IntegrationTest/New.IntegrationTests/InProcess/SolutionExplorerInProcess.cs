@@ -206,9 +206,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 return;
             }
 
-            var solutionRestoreService2 = (IVsSolutionRestoreService2)solutionRestoreService;
-            await solutionRestoreService2.NominateProjectAsync(projectFullPath, cancellationToken);
-
             // Check IsRestoreCompleteAsync until it returns true (this stops the retry because true != default(bool))
             await Helper.RetryAsync(
                 async cancellationToken =>
