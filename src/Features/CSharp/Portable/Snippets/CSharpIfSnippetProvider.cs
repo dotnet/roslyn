@@ -33,8 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             condition = ifStatement.Condition;
             var blockStatement = (BlockSyntax)ifStatement.Statement;
 
-            // Getting the starting location of the leading trivia
-            cursorPositionNode = blockStatement.CloseBraceToken.LeadingTrivia.Span.Start + (blockStatement.CloseBraceToken.LeadingTrivia.Span.Length / 2) + 1;
+            var triviaSpan = blockStatement.CloseBraceToken.LeadingTrivia.Span;
+
+            // Getting the midpoint location of the trivia to find where the cursor shoudl end up
+            cursorPositionNode = triviaSpan.Start + (triviaSpan.Length / 2) + 1;
         }
 
         protected override string? GetIndentation(Document document, SyntaxNode node, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
