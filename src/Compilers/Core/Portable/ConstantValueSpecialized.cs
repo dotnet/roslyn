@@ -313,11 +313,7 @@ namespace Microsoft.CodeAnalysis
 
             public override string ToString(string? format, IFormatProvider? provider)
             {
-                if (format is not null)
-                {
-
-                }
-                return _value.ToString(provider);
+                return DateTimeValue.ToString(provider);
             }
         }
 
