@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -212,16 +213,18 @@ namespace Microsoft.CodeAnalysis
 
             public override string ToString(string? format, IFormatProvider? provider)
             {
-                var stringValue = StringValue;
+                int formatLength;
                 if (format is not null && int.TryParse(format, out var len) &&
-                    (len > 0 && len < stringValue.Length))
+                    len > 0 && len < RopeValue.Length)
                 {
-                    return $@"""{stringValue[..len]}"" ...";
+                    formatLength = len;
                 }
                 else
                 {
-                    return stringValue;
+                    formatLength = RopeValue.Length;
                 }
+
+                return RopeValue.ToString(formatLength);
             }
         }
 
