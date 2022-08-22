@@ -79,6 +79,8 @@ We create the merge commit with these commands:
 1. Run `git commit-tree -p HEAD -p A B -m "Merged latest Library.Template"`, where `A` is the output from `git rev-parse HEAD` that you recorded earlier, and `B` is the output from your prior `git write-tree` command.
 1. Run `git merge X` where `X` is the output of the `git commit-tree` command.
 
+**IMPORTANT**: If using a pull request to get your changes into your repo, you must *merge* your PR. If you *squash* your PR, history will be lost and you will have to repeatedly resolve the same merge conflicts at the next Library.Template update.
+
 **CAUTION**: when merging this for the first time, a github-hosted repo may close issues in your repo with the same number as issues that this repo closed in git commit messages.
 Verify after completing your PR by visiting your github closed issues, sorted by recently updated, and reactivate any that were inadvertently closed by this merge.
 This shouldn't be a recurring issue because going forward, we will avoid referencing github issues with simple `#123` syntax in this repo's history.
