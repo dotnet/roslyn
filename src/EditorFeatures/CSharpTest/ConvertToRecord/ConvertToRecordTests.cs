@@ -2545,6 +2545,58 @@ namespace N
         }
 
         [Fact]
+        public async Task TestMovePropertiesAndProvideThisInitializerValuesWithStaticMemberAndInvocation()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public static class Stuff
+    {
+        public static bool GetB(bool b1, bool b2)
+        {
+            return b1 || b2;
+        }
+    }
+
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+        public static int DefaultP { get; set; } = 10;
+
+        public C(bool b1, bool b2, bool b3)
+        {
+            P = b3 ? DefaultP : 0;
+            B = Stuff.GetB(b1, b2);
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public static class Stuff
+    {
+        public static bool GetB(bool b1, bool b2)
+        {
+            return b1 || b2;
+        }
+    }
+
+    public record C(int P, bool B)
+    {
+        public static int DefaultP { get; set; } = 10;
+
+        public C(bool b1, bool b2, bool b3) : this(b3 ? DefaultP : 0, Stuff.GetB(b1, b2))
+        {
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestMovePropertiesAndProvideThisInitializerValuesWithReferences()
         {
             var initialMarkup = @"

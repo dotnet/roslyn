@@ -346,6 +346,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 return false;
             }
 
+            if (operation is IMemberReferenceOperation { Instance: null } or
+                IInvocationOperation { Instance: null })
+            {
+                // static member reference or invocation
+                return true;
+            }
+
             return operation.ChildOperations.All(IsSafeAssignment);
         }
 
