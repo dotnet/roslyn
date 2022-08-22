@@ -400,7 +400,6 @@ namespace Microsoft.CodeAnalysis
             return Default(discriminator);
         }
 
-
         public static ConstantValue Default(ConstantValueTypeDiscriminator discriminator)
         {
             switch (discriminator)

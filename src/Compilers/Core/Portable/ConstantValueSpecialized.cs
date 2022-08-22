@@ -129,7 +129,6 @@ namespace Microsoft.CodeAnalysis
                 return GetValueToDisplay();
             }
         }
-
         private sealed class ConstantValueString : ConstantValue
         {
             private readonly Rope _value;
@@ -210,6 +209,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return (_value == null) ? "null" : string.Format("\"{0}\"", _value);
             }
+
             public override string ToString(string? format, IFormatProvider? provider)
             {
                 var stringValue = StringValue;
@@ -381,12 +381,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     return 0;
                 }
-
             }
 
             public override bool BooleanValue
             {
-
                 get
                 {
                     return false;
@@ -400,7 +398,6 @@ namespace Microsoft.CodeAnalysis
                     return 0;
                 }
             }
-
             public override float SingleValue
             {
                 get
@@ -436,7 +433,6 @@ namespace Microsoft.CodeAnalysis
             // all instances of this class are singletons
             public override bool Equals(ConstantValue? other)
             {
-
                 return ReferenceEquals(this, other);
             }
 
