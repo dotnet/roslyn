@@ -643,10 +643,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                       _handle,
                       out _,
                       this.RefKind == RefKind.RefReadOnly ? AttributeDescription.IsReadOnlyAttribute : default,
-                      out _,
-                      IsRequired ? AttributeDescription.RequiredMemberAttribute : default);
+                      out CustomAttributeHandle required,
+                      AttributeDescription.RequiredMemberAttribute);
 
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
+                _flags.SetHasRequiredMemberAttribute(!required.IsNil);
             }
             return _lazyCustomAttributes;
         }

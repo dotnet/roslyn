@@ -585,10 +585,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     _handle,
                     out _,
                     FilterOutDecimalConstantAttribute() ? AttributeDescription.DecimalConstantAttribute : default,
-                    out _,
-                    IsRequired ? AttributeDescription.RequiredMemberAttribute : default);
+                    out CustomAttributeHandle required,
+                    AttributeDescription.RequiredMemberAttribute);
 
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
+                _packedFlags.SetHasRequiredMemberAttribute(!required.IsNil);
             }
             return _lazyCustomAttributes;
         }

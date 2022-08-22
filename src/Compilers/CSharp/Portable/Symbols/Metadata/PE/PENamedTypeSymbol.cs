@@ -681,11 +681,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     out _,
                     // Filter out [CompilerFeatureRequired]
                     (IsRefLikeType && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default,
-                    out _,
+                    out CustomAttributeHandle requiredHandle,
                     // Filter out [RequiredMember]
-                    HasDeclaredRequiredMembers ? AttributeDescription.RequiredMemberAttribute : default);
+                    AttributeDescription.RequiredMemberAttribute);
 
                 ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCustomAttributes, loadedCustomAttributes);
+
+                if (!uncommon.lazyHasRequiredMembers.HasValue())
+                {
+                    uncommon.lazyHasRequiredMembers = (!requiredHandle.IsNil).ToThreeState();
+                }
+
+                Debug.Assert(uncommon.lazyHasRequiredMembers.Value() != requiredHandle.IsNil);
             }
 
             return uncommon.lazyCustomAttributes;

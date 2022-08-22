@@ -65,6 +65,9 @@ internal class RequiredMemberAttributesVisitor : TestAttributesVisitor
         _builder.Append("[RequiredMember] ");
         _builder.AppendLine(symbol.ToDisplayString(DisplayFormat));
         _reported.Add(symbol);
+
+        // If attributes aren't filtered out, this will print extra data and cause an error in test assertion.
+        base.ReportSymbol(symbol);
     }
 
     protected override CSharpAttributeData? GetTargetAttribute(ImmutableArray<CSharpAttributeData> attributes)
