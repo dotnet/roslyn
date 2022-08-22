@@ -32,7 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var ifStatement = (IfStatementSyntax)node;
             condition = ifStatement.Condition;
             var blockStatement = (BlockSyntax)ifStatement.Statement;
-            cursorPositionNode = blockStatement.CloseBraceToken.SpanStart;
+
+            // Getting the starting location of the leading trivia
+            cursorPositionNode = blockStatement.CloseBraceToken.LeadingTrivia.Span.Start + (blockStatement.CloseBraceToken.LeadingTrivia.Span.Length / 2) + 1;
         }
 
         protected override string? GetIndentation(Document document, SyntaxNode node, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)

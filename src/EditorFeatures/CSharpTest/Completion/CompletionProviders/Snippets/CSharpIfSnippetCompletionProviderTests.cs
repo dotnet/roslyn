@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public void Method()
     {
-        Ins$$
+        $$
     }
 }";
 
@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
             var expectedCodeAfterCommit =
 @"if (true)
-{$$
+{
+    $$
 }
 ";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
@@ -117,7 +118,8 @@ class Program
     {
         var x = 5;
         if (true)
-        {$$
+        {
+            $$
         }
     }
 }";
@@ -149,7 +151,8 @@ class Program
         void LocalMethod()
         {
             if (true)
-            {$$
+            {
+                $$
             }
         }
     }
@@ -178,7 +181,8 @@ static void Main(string[] args)
 {
     Print print = delegate(int val) {
         if (true)
-        {$$
+        {
+            $$
         }
     };
 
@@ -200,7 +204,8 @@ static void Main(string[] args)
 @"Func<int, int, bool> testForEquality = (x, y) =>
 {
     if (true)
-    {$$
+    {
+        $$
     }
 
     return x == y;
@@ -346,7 +351,8 @@ class Test
     public void Method()
     {
         if (true)
-        {$$
+        {
+            $$
         }
     }
 }";
@@ -371,7 +377,8 @@ class Test
     public void Method()
     {
         if (true)
-        {$$
+        {
+            $$
         }
     }
 }";
