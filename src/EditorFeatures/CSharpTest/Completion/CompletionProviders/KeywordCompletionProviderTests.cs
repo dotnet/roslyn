@@ -620,7 +620,9 @@ $@"class C
         [Theory]
         [InlineData("class")]
         [InlineData("struct")]
-        public async Task SuggestRequiredInClassOrStruct(string type)
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public async Task SuggestRequiredInClassOrStructOrRecord(string type)
         {
             var markup = $$"""
                 {{type}} C

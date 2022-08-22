@@ -49,6 +49,6 @@ internal static class DocumentFormattingOptionsProviders
     }
 
     public static async ValueTask<DocumentFormattingOptions> GetDocumentFormattingOptionsAsync(this Document document, DocumentFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await document.GetDocumentFormattingOptionsAsync(await fallbackOptionsProvider.GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+        => await document.GetDocumentFormattingOptionsAsync(await fallbackOptionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 #endif
 }

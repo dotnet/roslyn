@@ -77,13 +77,28 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         /// <summary>
-        /// Constructor for a code style analyzer with a multiple diagnostic descriptors with a code style options that can be used to configure each descriptor.
+        /// Constructor for a code style analyzer with a multiple diagnostic descriptors with a code style option that can be used to configure each descriptor.
         /// </summary>
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableDictionary<DiagnosticDescriptor, IOption2> supportedDiagnosticsWithOptions)
             : this(supportedDiagnosticsWithOptions.Keys.ToImmutableArray())
         {
             foreach (var (descriptor, option) in supportedDiagnosticsWithOptions)
                 AddDiagnosticIdToOptionMapping(descriptor.Id, option);
+        }
+
+        /// <summary>
+        /// Constructor for a code style analyzer with a multiple diagnostic descriptors with zero or more code style options that can be used to configure each descriptor.
+        /// </summary>
+        protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableDictionary<DiagnosticDescriptor, ImmutableHashSet<IOption2>> supportedDiagnosticsWithOptions)
+            : this(supportedDiagnosticsWithOptions.Keys.ToImmutableArray())
+        {
+            foreach (var (descriptor, options) in supportedDiagnosticsWithOptions)
+            {
+                if (!options.IsEmpty)
+                {
+                    AddDiagnosticIdToOptionMapping(descriptor.Id, options);
+                }
+            }
         }
 
         private static void AddDiagnosticIdToOptionMapping(string diagnosticId, IOption2? option)

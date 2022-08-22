@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             declarator = currentRoot.GetCurrentNode(declarator);
             identifier = currentRoot.GetCurrentNode(identifier);
 
-            var editor = document.GetSyntaxEditor(currentRoot);
+            var editor = new SyntaxEditor(currentRoot, document.Project.Solution.Services);
             var sourceText = currentRoot.GetText();
 
             var declaration = (VariableDeclarationSyntax)declarator.Parent;
