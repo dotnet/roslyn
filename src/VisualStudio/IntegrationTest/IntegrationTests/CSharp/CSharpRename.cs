@@ -628,5 +628,51 @@ class program
 }",
                 VisualStudio.SolutionExplorer.GetFileContents(project, "program.cs"));
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WorkItem(1595941, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1595941")]
+        public void VerifyRenameUINotFreeze()
+        {
+            var project = new ProjectUtils.Project(ProjectName);
+            var fileName = "Program.cs";
+            VisualStudio.SolutionExplorer.AddFile(project, fileName);
+            var fileContent = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        int _cols = 10;
+        for (int xyz = 0; xyz < _cols; xyz++)
+        {
+
+        }
+    }
+}";
+            VisualStudio.SolutionExplorer.SetFileContents(project, fileName, fileContent);
+            var caret = "xyz";
+            // Iterate 20 times to make sure the UI commit the change successfully.
+            for (var i = 0; i < 20; i++)
+            {
+                VisualStudio.SolutionExplorer.OpenFile(project, fileName);
+                VisualStudio.Editor.PlaceCaret(caret);
+                InlineRenameDialog.Invoke();
+                VisualStudio.Editor.SendKeys(VirtualKey.End, i.ToString(), VirtualKey.Enter);
+                caret = caret + i;
+                AssertEx.EqualOrDiff(
+                    $@"
+class Program
+{{
+    static void Main(string[] args)
+    {{
+        int _cols = 10;
+        for (int {caret} = 0; {caret} < _cols; {caret}++)
+        {{
+
+        }}
+    }}
+}}",
+                VisualStudio.SolutionExplorer.GetFileContents(project, fileName));
+            }
+        }
     }
 }
