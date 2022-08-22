@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (((TypeSyntax)expression).IsVar)
                         {
                             var varTypeInfo = GetTypeInfoWorker(expression, cancellationToken);
-                            if (varTypeInfo.Type.TypeKind != TypeKind.Error)
+                            if (varTypeInfo.Type is { TypeKind: not TypeKind.Error })
                             {
                                 return GetSymbolInfoFromSymbolOrNone(varTypeInfo.Type.GetPublicSymbol());
                             }
@@ -974,7 +974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (((TypeSyntax)expression).IsVar)
                         {
                             var varTypeInfo = GetTypeInfoWorker(expression, cancellationToken);
-                            if (varTypeInfo.Type.TypeKind != TypeKind.Error)
+                            if (varTypeInfo.Type is { TypeKind: not TypeKind.Error })
                             {
                                 return varTypeInfo;
                             }
