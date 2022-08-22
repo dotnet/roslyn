@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData(",  ,  , control_flow_statements", (int)SpacingWithinParenthesesOption.ControlFlowStatements)]
         public void TestParseParenthesesSpaceOptionsTrue(string value, int parenthesesSpacingOption)
         {
-            Assert.True(DetermineIfSpaceOptionIsSet(value, (SpacingWithinParenthesesOption)parenthesesSpacingOption),
+            Assert.True(DetermineIfSpaceOptionIsSet(value, (SpacingWithinParenthesesOption)parenthesesSpacingOption, CSharpEditorConfigSettingsData.SpaceBetweenParentheses),
                         $"Expected option {value} to be parsed as set.");
         }
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("*", (int)SpacingWithinParenthesesOption.Expressions)]
         public void TestParseParenthesesSpaceOptionsFalse(string value, int parenthesesSpacingOption)
         {
-            Assert.False(DetermineIfSpaceOptionIsSet(value, (SpacingWithinParenthesesOption)parenthesesSpacingOption),
+            Assert.False(DetermineIfSpaceOptionIsSet(value, (SpacingWithinParenthesesOption)parenthesesSpacingOption, CSharpEditorConfigSettingsData.SpaceBetweenParentheses),
                         $"Expected option {value} to be parsed as un-set.");
         }
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("before_and_after", BinaryOperatorSpacingOptions.Single)]
         public void TestParseEditorConfigSpacingAroundBinaryOperatorTrue(string value, BinaryOperatorSpacingOptions expectedResult)
         {
-            Assert.True(CSharpEditorConfigSettingsValueHolder.SpacingAroundBinaryOperator.GetValueFromEditorConfigString(value).Value == expectedResult,
+            Assert.True(CSharpEditorConfigSettingsData.SpacingAroundBinaryOperator.GetValueFromEditorConfigString(value).Value == expectedResult,
                         $"Expected option {value} to be parsed as set.");
         }
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("before_and_after,ignore")]
         public void TestParseEditorConfigSpacingAroundBinaryOperatorFalse(string value)
         {
-            Assert.True(CSharpEditorConfigSettingsValueHolder.SpacingAroundBinaryOperator.GetValueFromEditorConfigString(value).Value == BinaryOperatorSpacingOptions.Single,
+            Assert.True(CSharpEditorConfigSettingsData.SpacingAroundBinaryOperator.GetValueFromEditorConfigString(value).Value == BinaryOperatorSpacingOptions.Single,
                         $"Expected option {value} to be parsed as default option.");
         }
 
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("one_less_than_current", LabelPositionOptions.OneLess)]
         public void TestParseEditorConfigLabelPositioningTrue(string value, LabelPositionOptions expectedValue)
         {
-            Assert.True(CSharpEditorConfigSettingsValueHolder.LabelPositioning.GetValueFromEditorConfigString(value).Value == expectedValue,
+            Assert.True(CSharpEditorConfigSettingsData.LabelPositioning.GetValueFromEditorConfigString(value).Value == expectedValue,
                         $"Expected option {value} to be parsed as set.");
         }
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("one_less_thancurrent")]
         public void TestParseEditorConfigLabelPositioningFalse(string value)
         {
-            Assert.True(CSharpEditorConfigSettingsValueHolder.LabelPositioning.GetValueFromEditorConfigString(value).Value == LabelPositionOptions.NoIndent,
+            Assert.True(CSharpEditorConfigSettingsData.LabelPositioning.GetValueFromEditorConfigString(value).Value == LabelPositionOptions.NoIndent,
                         $"Expected option {value} to be parsed default");
         }
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("local_functions", (int)NewLineOption.LocalFunction)]
         public void TestParseNewLineOptionTrue(string value, int option)
         {
-            Assert.True(DetermineIfNewLineOptionIsSet(value, (NewLineOption)option),
+            Assert.True(DetermineIfNewLineOptionIsSet(value, (NewLineOption)option, CSharpEditorConfigSettingsData.NewLineBeforeOpenBrace),
                         $"Expected option {value} to be set");
         }
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData(",,,", (int)NewLineOption.Types)]
         public void TestParseNewLineOptionFalse(string value, int option)
         {
-            Assert.False(DetermineIfNewLineOptionIsSet(value, (NewLineOption)option),
+            Assert.False(DetermineIfNewLineOptionIsSet(value, (NewLineOption)option, CSharpEditorConfigSettingsData.NewLineBeforeOpenBrace),
                         $"Expected option {value} to be un-set");
         }
 

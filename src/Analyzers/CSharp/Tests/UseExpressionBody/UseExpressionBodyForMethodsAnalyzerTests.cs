@@ -89,35 +89,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public void TestOptionEditorConfig1()
         {
-            var option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("true", CSharpCodeStyleOptions.NeverWithSilentEnforcement, CSharpEditorConfigSettingsValueHolder.PreferExpressionBodiedTest.GetValueFromEditorConfigString);
+            var option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("true", CSharpCodeStyleOptions.NeverWithSilentEnforcement, CSharpEditorConfigSettingsData.PreferExpressionBodiedTest);
             Assert.Equal(ExpressionBodyPreference.WhenPossible, option.Value);
             Assert.Equal(NotificationOption2.Silent, option.Notification);
 
-            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("false", CSharpCodeStyleOptions.NeverWithSilentEnforcement, CSharpEditorConfigSettingsValueHolder.PreferExpressionBodiedTest.GetValueFromEditorConfigString);
+            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("false", CSharpCodeStyleOptions.NeverWithSilentEnforcement, CSharpEditorConfigSettingsData.PreferExpressionBodiedTest);
             Assert.Equal(ExpressionBodyPreference.Never, option.Value);
             Assert.Equal(NotificationOption2.Silent, option.Notification);
 
-            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_on_single_line", CSharpCodeStyleOptions.NeverWithSilentEnforcement, CSharpEditorConfigSettingsValueHolder.PreferExpressionBodiedTest.GetValueFromEditorConfigString);
+            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_on_single_line", CSharpCodeStyleOptions.NeverWithSilentEnforcement, CSharpEditorConfigSettingsData.PreferExpressionBodiedTest);
             Assert.Equal(ExpressionBodyPreference.WhenOnSingleLine, option.Value);
             Assert.Equal(NotificationOption2.Silent, option.Notification);
 
-            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("true:blah", CSharpCodeStyleOptions.NeverWithSilentEnforcement, CSharpEditorConfigSettingsValueHolder.PreferExpressionBodiedTest.GetValueFromEditorConfigString);
+            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("true:blah", CSharpCodeStyleOptions.NeverWithSilentEnforcement, CSharpEditorConfigSettingsData.PreferExpressionBodiedTest);
             Assert.Equal(ExpressionBodyPreference.Never, option.Value);
             Assert.Equal(NotificationOption2.Silent, option.Notification);
 
-            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_blah:error", CSharpCodeStyleOptions.NeverWithSilentEnforcement, CSharpEditorConfigSettingsValueHolder.PreferExpressionBodiedTest.GetValueFromEditorConfigString);
+            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_blah:error", CSharpCodeStyleOptions.NeverWithSilentEnforcement, CSharpEditorConfigSettingsData.PreferExpressionBodiedTest);
             Assert.Equal(ExpressionBodyPreference.Never, option.Value);
             Assert.Equal(NotificationOption2.Silent, option.Notification);
 
-            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("false:error", CSharpCodeStyleOptions.NeverWithSilentEnforcement, CSharpEditorConfigSettingsValueHolder.PreferExpressionBodiedTest.GetValueFromEditorConfigString);
+            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("false:error", CSharpCodeStyleOptions.NeverWithSilentEnforcement, CSharpEditorConfigSettingsData.PreferExpressionBodiedTest);
             Assert.Equal(ExpressionBodyPreference.Never, option.Value);
             Assert.Equal(NotificationOption2.Error, option.Notification);
 
-            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("true:warning", CSharpCodeStyleOptions.NeverWithSilentEnforcement, CSharpEditorConfigSettingsValueHolder.PreferExpressionBodiedTest.GetValueFromEditorConfigString);
+            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("true:warning", CSharpCodeStyleOptions.NeverWithSilentEnforcement, CSharpEditorConfigSettingsData.PreferExpressionBodiedTest);
             Assert.Equal(ExpressionBodyPreference.WhenPossible, option.Value);
             Assert.Equal(NotificationOption2.Warning, option.Notification);
 
-            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_on_single_line:suggestion", CSharpCodeStyleOptions.NeverWithSilentEnforcement, CSharpEditorConfigSettingsValueHolder.PreferExpressionBodiedTest.GetValueFromEditorConfigString);
+            option = CSharpCodeStyleOptions.ParseExpressionBodyPreference("when_on_single_line:suggestion", CSharpCodeStyleOptions.NeverWithSilentEnforcement, CSharpEditorConfigSettingsData.PreferExpressionBodiedTest);
             Assert.Equal(ExpressionBodyPreference.WhenOnSingleLine, option.Value);
             Assert.Equal(NotificationOption2.Suggestion, option.Notification);
         }
