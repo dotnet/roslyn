@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     // Each handler treats those as separate worlds that they are responsible for.
                     if (context.IsTracking(document.GetURI()))
                     {
-                        await context.TraceInformationAsync($"Skipping tracked document: {document.GetURI()}");
+                        await context.TraceInformationAsync($"Skipping tracked document: {document.GetURI()}", cancellationToken);
                         continue;
                     }
 

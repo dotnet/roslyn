@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (cacheEntry == null)
             {
                 // Don't have a cache associated with this completion item, cannot resolve.
-                context.TraceInformationAsync("No cache entry found for the provided completion item at resolve time.");
+                await context.TraceInformationAsync("No cache entry found for the provided completion item at resolve time.", cancellationToken).ConfigureAwait(false);
                 return completionItem;
             }
 

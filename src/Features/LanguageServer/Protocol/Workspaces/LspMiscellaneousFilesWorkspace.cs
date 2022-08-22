@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             if (!s_extensionToLanguageInformation.TryGetValue(Path.GetExtension(uriAbsolutePath), out var languageInformation))
             {
                 // Only log here since throwing here could take down the LSP server.
-                _ = logger.LogErrorAsync($"Could not find language information for {uri} with absolute path {uriAbsolutePath}");
+                _ = logger.LogErrorAsync($"Could not find language information for {uri} with absolute path {uriAbsolutePath}", CancellationToken.None);
                 return null;
             }
 

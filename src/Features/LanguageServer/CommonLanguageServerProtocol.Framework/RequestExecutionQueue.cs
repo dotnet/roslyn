@@ -45,7 +45,7 @@ namespace CommonLanguageServerProtocol.Framework;
 /// more messages, and a new queue will need to be created.
 /// </para>
 /// </remarks>
-internal class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<RequestContextType>
+public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<RequestContextType>
 {
     protected readonly ILspLogger _logger;
     private readonly IHandlerProvider _handlerProvider;
@@ -80,6 +80,31 @@ internal class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueu
         _queueProcessingTask = ProcessQueueAsync(lspServices);
     }
 
+    protected object? GetTextDocumentIdentifier<TRequestType, TResponseType>(
+        TRequestType request,
+        string methodName)
+    {
+        var handler = GetMethodHandler<TRequestType, TResponseType>(methodName);
+
+        object? textDocument = null;
+        if (handler is IRequestHandler<TRequestType, TResponseType, RequestContextType> requestHandler)
+        {
+            textDocument = requestHandler.GetTextDocumentIdentifier(request);
+        }
+
+        return textDocument;
+    }
+
+    private IMethodHandler GetMethodHandler<TRequestType, TResponseType>(string methodName)
+    {
+        var requestType = typeof(TRequestType) == typeof(VoidReturn) ? null : typeof(TRequestType);
+        var responseType = typeof(TResponseType) == typeof(VoidReturn) ? null : typeof(TResponseType);
+
+        var handler = _handlerProvider.GetMethodHandler(methodName, requestType, responseType);
+
+        return handler;
+    }
+
     /// <summary>
     /// Queues a request to be handled by the specified handler, with mutating requests blocking subsequent requests
     /// from starting until the mutation is complete.
@@ -96,17 +121,9 @@ internal class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueu
         CancellationToken requestCancellationToken)
     {
         // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
-        var requestType = typeof(TRequestType) == typeof(VoidReturn) ? null : typeof(TRequestType);
-        var responseType = typeof(TResponseType) == typeof(VoidReturn) ? null : typeof(TResponseType);
+        var textDocument = GetTextDocumentIdentifier<TRequestType, TResponseType>(request, methodName);
 
-        var handler = _handlerProvider.GetMethodHandler(methodName, requestType, responseType);
-
-        object? textDocument = null;
-        if (handler is IRequestHandler<TRequestType, TResponseType, RequestContextType> requestHandler)
-        {
-            textDocument = requestHandler.GetTextDocumentIdentifier(request);
-        }
-
+        var handler = GetMethodHandler<TRequestType, TResponseType>(methodName);
         // Create a combined cancellation token so either the client cancelling it's token or the queue
         // shutting down cancels the request.
         var combinedTokenSource = _cancelSource.Token.CombineWith(requestCancellationToken);

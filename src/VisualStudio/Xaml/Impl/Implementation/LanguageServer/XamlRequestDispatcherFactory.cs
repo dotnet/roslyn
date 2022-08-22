@@ -41,75 +41,68 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
 
         public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         {
-            return new XamlRequestExecutionQueue(_projectService, lspServices, _feedbackService);
+            var handlerProvider = lspServices.GetRequiredService<IHandlerProvider>();
+            var logger = lspServices.GetRequiredService<ILspLogger>();
+            return new XamlRequestExecutionQueue(_projectService, lspServices, _feedbackService, logger, handlerProvider);
         }
 
-        private class XamlRequestExecutionQueue : IRoslynRequestExecutionQueue
+        private class XamlRequestExecutionQueue : RequestExecutionQueue<RequestContext>, ILspService
         {
             private readonly XamlProjectService _projectService;
             private readonly IXamlLanguageServerFeedbackService? _feedbackService;
             private readonly ILspServices _lspServices;
             private readonly IRequestExecutionQueue<RequestContext> _baseQueue;
+            private readonly IHandlerProvider _handlerProvider;
 
             public XamlRequestExecutionQueue(
                 XamlProjectService projectService,
                 ILspServices lspServices,
-                IXamlLanguageServerFeedbackService? feedbackService)
+                IXamlLanguageServerFeedbackService? feedbackService,
+                ILspLogger logger,
+                IHandlerProvider handlerProvider) : base(logger, handlerProvider)
             {
                 _projectService = projectService;
                 _feedbackService = feedbackService;
                 _lspServices = lspServices;
+                _handlerProvider = handlerProvider;
             }
 
             public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 
             public ValueTask DisposeAsync()
             {
-                return _baseQueue.DisposeAsync();
+                return base.DisposeAsync();
             }
 
-            public async Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(TRequestType? request, string methodName, ILspServices lspServices, CancellationToken cancellationToken)
+            public async Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(
+                TRequestType request,
+                string methodName,
+                ILspServices lspServices,
+                CancellationToken cancellationToken)
             {
-                // TODO: This is broken
-                //var textDocument = handler.GetTextDocumentIdentifier(request);
-                throw new NotImplementedException();
+                var textDocument = GetTextDocumentIdentifier<TRequestType, TResponseType>(request, methodName);
 
-                //Uri textDocumentUri;
-                //if (textDocument is Uri uri)
-                //{
-                //    textDocumentUri = uri;
-                //}
-                //else if (textDocument is TextDocumentIdentifier textDocumentIdentifier)
-                //{
-                //    textDocumentUri = textDocumentIdentifier.Uri;
-                //}
-                //else
-                //{
-                //    throw new NotImplementedException($"TextDocument was set to an unsupported value for method {methodName}");
-                //}
+                DocumentId? documentId = null;
+                if (textDocument as TextDocumentIdentifier is { Uri: { IsAbsoluteUri: true } documentUri })
+                {
+                    documentId = _projectService.TrackOpenDocument(documentUri.LocalPath);
+                }
 
-                //DocumentId? documentId = null;
-                //if (textDocumentUri.IsAbsoluteUri)
-                //{
-                //    documentId = _projectService.TrackOpenDocument(textDocumentUri.LocalPath);
-                //}
-
-                //using (var requestScope = _feedbackService?.CreateRequestScope(documentId, methodName))
-                //{
-                //    try
-                //    {
-                //        var result = await _baseQueue.ExecuteAsync<TRequestType, TResponseType>(
-                //            request, methodName, lspServices, cancellationToken).ConfigureAwait(false);
-                //        return result;
-                //    }
-                //    catch (Exception e) when (e is not OperationCanceledException)
-                //    {
-                //        // Inform Xaml language service that the RequestScope failed.
-                //        // This doesn't send the exception to Telemetry or Watson
-                //        requestScope?.RecordFailure(e);
-                //        throw;
-                //    }
-                //}
+                using (var requestScope = _feedbackService?.CreateRequestScope(documentId, methodName))
+                {
+                    try
+                    {
+                        return await base.ExecuteAsync<TRequestType, TResponseType>(
+                            request, methodName, lspServices, cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception e) when (e is not OperationCanceledException)
+                    {
+                        // Inform Xaml language service that the RequestScope failed.
+                        // This doesn't send the exception to Telemetry or Watson
+                        requestScope?.RecordFailure(e);
+                        throw;
+                    }
+                }
             }
 
             public void Start(ILspServices lspServices)

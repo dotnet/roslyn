@@ -19,8 +19,6 @@ public class ExitHandler<RequestContextType> : INotificationHandler<RequestConte
 
     public bool MutatesSolutionState => true;
 
-    public bool RequiresLSPSolution => true;
-
     public async Task HandleNotificationAsync(RequestContextType requestContext, CancellationToken cancellationToken)
     {
         await _lifeCycleManager.ExitAsync();

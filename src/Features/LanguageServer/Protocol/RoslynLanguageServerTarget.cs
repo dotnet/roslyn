@@ -17,13 +17,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal class RoslynLanguageServer : AbstractLanguageServer<RequestContext>, IClientCapabilitiesProvider
     {
-        private readonly ICapabilitiesProvider _capabilitiesProvider;
-
         private readonly AbstractLspServiceProvider _lspServiceProvider;
         private readonly IAsynchronousOperationListener _listener;
         private readonly ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> _baseServices;
         private readonly IServiceCollection _serviceCollection;
-        private readonly ImmutableArray<string> _supportedLanguages;
         private Task? _errorShutdownTask;
         private readonly string _serverKind;
 
@@ -45,7 +42,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var lifeCycleManager = new RoslynLifeCycleManager(this);
             _baseServices = GetBaseServices();
             _serviceCollection = GetServiceCollection(jsonRpc, this, logger, capabilitiesProvider, lifeCycleManager, serverKind.ToConvertableString(), supportedLanguages);
-            _supportedLanguages = supportedLanguages;
         }
 
         protected override ILspServices ConstructLspServices()
@@ -97,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var asyncToken = _listener.BeginAsyncOperation("RequestExecutionQueue_Errored");
             _errorShutdownTask = Task.Run(async () =>
             {
-                await _logger.LogInformationAsync("Shutting down language server.");
+                await _logger.LogInformationAsync("Shutting down language server.", CancellationToken.None).ConfigureAwait(false);
 
                 await clientNotificationService.SendNotificationAsync("window/logMessage", message, CancellationToken.None).ConfigureAwait(false);
 
@@ -119,7 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             if (_errorShutdownTask is not null)
                 await _errorShutdownTask.ConfigureAwait(false);
 
-            await base.DisposeAsync();
+            await base.DisposeAsync().ConfigureAwait(false);
         }
     }
 }

@@ -90,7 +90,7 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
     /// <returns>The result of the request.</returns>
     public async Task StartRequestAsync(RequestContextType? context, CancellationToken cancellationToken)
     {
-        await _logger.LogStartContextAsync($"{MethodName}");
+        await _logger.LogStartContextAsync($"{MethodName}", cancellationToken).ConfigureAwait(false);
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -104,7 +104,7 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
                 // the requests this could happen for.  However, this assumption may not hold in the future.
                 // If that turns out to be the case, we could defer to the individual handler to decide
                 // what to do.
-                await _logger.LogWarningAsync($"Could not get request context for {MethodName}");
+                await _logger.LogWarningAsync($"Could not get request context for {MethodName}", cancellationToken).ConfigureAwait(false);
                 _completionSource.TrySetException(new InvalidOperationException($"Unable to create request context for {MethodName}"));
             }
             else
@@ -136,20 +136,21 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
         catch (OperationCanceledException ex)
         {
             // Record logs + metrics on cancellation.
-            await _logger.LogInformationAsync($"{MethodName} - Canceled");
+            await _logger.LogInformationAsync($"{MethodName} - Canceled", cancellationToken).ConfigureAwait(false);
 
             _completionSource.TrySetCanceled(ex.CancellationToken);
         }
         catch (Exception ex)
         {
             // Record logs and metrics on the exception.
-            await _logger.LogExceptionAsync(ex);
+            // It's important that this can NEVER throw, or the queue will hang.
+            await _logger.LogExceptionAsync(ex, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             _completionSource.TrySetException(ex);
         }
         finally
         {
-            await _logger.LogEndContextAsync($"{MethodName}");
+            await _logger.LogEndContextAsync($"{MethodName}", cancellationToken).ConfigureAwait(false);
         }
 
         // Return the result of this completion source to the caller

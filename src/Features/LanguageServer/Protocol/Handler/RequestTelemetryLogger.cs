@@ -202,7 +202,7 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
         }
     }
 
-    public enum Result
+    internal enum Result
     {
         Succeeded,
         Failed,

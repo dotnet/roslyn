@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(DidOpenHandler)), Shared]
     [Method(LSP.Methods.TextDocumentDidOpenName)]
-    internal class DidOpenHandler : IRoslynRequestHandler<LSP.DidOpenTextDocumentParams, object?>
+    internal class DidOpenHandler : IRoslynNotificationHandler<LSP.DidOpenTextDocumentParams>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,17 +28,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 
         public object? GetTextDocumentIdentifier(LSP.DidOpenTextDocumentParams request) => request.TextDocument.Uri;
 
-        public Task<object?> HandleRequestAsync(LSP.DidOpenTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(LSP.DidOpenTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
             // GetTextDocumentIdentifier returns null to avoid creating the solution, so the queue is not able to log the uri.
-            context.TraceInformationAsync($"didOpen for {request.TextDocument.Uri}");
+            await context.TraceInformationAsync($"didOpen for {request.TextDocument.Uri}", cancellationToken);
 
             // Add the document and ensure the text we have matches whats on the client
             var sourceText = SourceText.From(request.TextDocument.Text, System.Text.Encoding.UTF8);
 
             context.StartTracking(request.TextDocument.Uri, sourceText);
-
-            return SpecializedTasks.Default<object>();
         }
     }
 }

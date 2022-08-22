@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Composition;
 using System.IO;
+using System.Threading;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Snippets;
@@ -38,7 +39,7 @@ internal partial class XmlSnippetParser
         {
             if (cachedSnippet == null)
             {
-                context.TraceWarningAsync($"Returning a null cached snippet for {matchingSnippetInfo.Title}");
+                _ = context.TraceWarningAsync($"Returning a null cached snippet for {matchingSnippetInfo.Title}", CancellationToken.None);
             }
 
             return cachedSnippet;
@@ -47,13 +48,13 @@ internal partial class XmlSnippetParser
         ParsedXmlSnippet? parsedSnippet = null;
         try
         {
-            context.TraceInformationAsync($"Reading snippet for {matchingSnippetInfo.Title} with path {matchingSnippetInfo.Path}");
+            _ = context.TraceInformationAsync($"Reading snippet for {matchingSnippetInfo.Title} with path {matchingSnippetInfo.Path}", CancellationToken.None);
             parsedSnippet = GetAndParseSnippetFromFile(matchingSnippetInfo);
         }
         catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
         {
-            context.TraceErrorAsync($"Got exception parsing xml snippet {matchingSnippetInfo.Title} from file {matchingSnippetInfo.Path}");
-            context.TraceExceptionAsync(ex);
+            _ = context.TraceErrorAsync($"Got exception parsing xml snippet {matchingSnippetInfo.Title} from file {matchingSnippetInfo.Path}", CancellationToken.None);
+            _ = context.TraceExceptionAsync(ex, CancellationToken.None);
         }
 
         // Add the snippet to the cache regardless of if we succeeded in parsing it.

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// <summary>
     /// Context for requests handled by <see cref="IMethodHandler"/>
     /// </summary>
-    internal class RequestContext
+    internal readonly struct RequestContext
     {
         /// <summary>
         /// This will be the <see cref="NonMutatingDocumentChangeTracker"/> for non-mutating requests because they're not allowed to change documents
@@ -167,17 +167,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// Logs an informational message.
         /// </summary>
-        public Task TraceInformationAsync(string message)
-            => _logger.LogInformationAsync(message);
+        public Task TraceInformationAsync(string message, CancellationToken cancellationToken)
+            => _logger.LogInformationAsync(message, cancellationToken);
 
-        public Task TraceWarningAsync(string message)
-            => _logger.LogWarningAsync(message);
+        public Task TraceWarningAsync(string message, CancellationToken cancellationToken)
+            => _logger.LogWarningAsync(message, cancellationToken);
 
-        public Task TraceErrorAsync(string message)
-            => _logger.LogErrorAsync(message);
+        public Task TraceErrorAsync(string message, CancellationToken cancellationToken)
+            => _logger.LogErrorAsync(message, cancellationToken);
 
-        public Task TraceExceptionAsync(Exception exception)
-            => _logger.LogExceptionAsync(exception);
+        public Task TraceExceptionAsync(Exception exception, CancellationToken cancellationToken)
+            => _logger.LogExceptionAsync(exception, cancellationToken: cancellationToken);
 
         public T GetRequiredLspService<T>() where T : class, ILspService
         {

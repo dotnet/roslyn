@@ -247,7 +247,7 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
     private async void RequestExecutionQueue_Errored(object? sender, RequestShutdownEventArgs e)
     {
         // log message and shut down
-        await _logger.LogWarningAsync($"Request queue is requesting shutdown due to error: {e.Message}");
+        await _logger.LogWarningAsync($"Request queue is requesting shutdown due to error: {e.Message}", CancellationToken.None);
 
         RequestExecutionQueueErroredInternal(e.Message);
 
@@ -270,7 +270,7 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
             return;
         }
         var message = $"Encountered unexpected jsonrpc disconnect, Reason={e.Reason}, Description={e.Description}, Exception={e.Exception}";
-        await _logger.LogWarningAsync(message);
+        await _logger.LogWarningAsync(message, CancellationToken.None);
 
         var lspServices = GetLspServices();
         var lifeCycleManager = lspServices.GetRequiredService<LifeCycleManager<RequestContextType>>();
