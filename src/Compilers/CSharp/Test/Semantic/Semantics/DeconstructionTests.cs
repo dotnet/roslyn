@@ -6532,7 +6532,7 @@ class C
 ");
         }
 
-        [Fact]
+        [Fact, WorkItem(61332, "https://github.com/dotnet/roslyn/issues/61332")]
         public void NestedNullableConversions()
         {
             var code = """
