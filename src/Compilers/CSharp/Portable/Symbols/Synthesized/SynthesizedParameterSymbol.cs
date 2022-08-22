@@ -247,6 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var oldParam in sourceMethod.Parameters)
             {
+                Debug.Assert(!(oldParam is SynthesizedComplexParameterSymbol));
                 //same properties as the old one, just change the owner
                 builder.Add(Create(
                     destinationMethod,
