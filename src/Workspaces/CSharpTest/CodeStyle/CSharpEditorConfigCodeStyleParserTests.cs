@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeStyle
         [InlineData(" none ", BinaryOperatorSpacingOptions.Remove)]
         [InlineData(" before_and_after ", BinaryOperatorSpacingOptions.Single)]
         public void TestParseSpacingAroundBinaryOperator(string rawValue, BinaryOperatorSpacingOptions parsedValue)
-            => Assert.Equal(parsedValue, CSharpEditorConfigSettingsValueHolder.SpacingAroundBinaryOperator.GetValueFromEditorConfigString(rawValue));
+            => Assert.Equal(parsedValue, CSharpEditorConfigSettingsData.SpacingAroundBinaryOperator.GetValueFromEditorConfigString(rawValue));
 
         [Theory]
         [InlineData("flush_left", LabelPositionOptions.LeftMost)]
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeStyle
         [InlineData(" no_change ", LabelPositionOptions.NoIndent)]
         [InlineData(" one_less_than_current ", LabelPositionOptions.OneLess)]
         public void TestParseLabelPositioning(string rawValue, LabelPositionOptions parsedValue)
-            => Assert.Equal(parsedValue, CSharpEditorConfigSettingsValueHolder.LabelPositioning.GetValueFromEditorConfigString(rawValue));
+            => Assert.Equal(parsedValue, CSharpEditorConfigSettingsData.LabelPositioning.GetValueFromEditorConfigString(rawValue));
 
         [Theory]
         [InlineData("false:none", (int)ExpressionBodyPreference.Never, ReportDiagnostic.Suppress)]
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeStyle
         {
             var defaultValue = new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.Error);
             severity ??= ReportDiagnostic.Error;
-            var codeStyleOption = CSharpCodeStyleOptions.ParseExpressionBodyPreference(optionString, defaultValue, CSharpEditorConfigSettingsValueHolder.PreferExpressionBodiedMethods.GetValueFromEditorConfigString);
+            var codeStyleOption = CSharpCodeStyleOptions.ParseExpressionBodyPreference(optionString, defaultValue, CSharpEditorConfigSettingsData.PreferExpressionBodiedMethods);
 
             Assert.NotSame(defaultValue, codeStyleOption);
             Assert.Equal((ExpressionBodyPreference)parsedValue, codeStyleOption.Value);
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeStyle
         {
             var defaultValue = new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error);
             severity ??= ReportDiagnostic.Error;
-            var codeStyleOption = CSharpCodeStyleOptions.ParseUsingDirectivesPlacement(optionString, defaultValue, CSharpEditorConfigSettingsValueHolder.PreferredUsingDirectivePlacement.GetValueFromEditorConfigString);
+            var codeStyleOption = CSharpCodeStyleOptions.ParseUsingDirectivesPlacement(optionString, defaultValue, CSharpEditorConfigSettingsData.PreferredUsingDirectivePlacement);
 
             Assert.NotSame(defaultValue, codeStyleOption);
             Assert.Equal(parsedValue, codeStyleOption.Value);

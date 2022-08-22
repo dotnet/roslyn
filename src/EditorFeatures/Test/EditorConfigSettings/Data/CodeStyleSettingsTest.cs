@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             var option = CreateBoolOption(defaultValue);
             var editorConfigOptions = new TestAnalyzerConfigOptions();
             var visualStudioOptions = new TestOptionSet<bool>(option.DefaultValue);
-            var setting = CodeStyleSetting.Create(option, editorConfigOptions, visualStudioOptions, updater: null!, fileName: null!, editorConfigData: EditorConfigSettingsValueHolder.BoolCodeStyleTest);
+            var setting = CodeStyleSetting.Create(option, editorConfigOptions, visualStudioOptions, updater: null!, fileName: null!, editorConfigData: EditorConfigSettingsData.BoolCodeStyleTest);
             Assert.Equal(string.Empty, setting.Category);
             Assert.Equal("TestDesciption", setting.Description);
             Assert.False(setting.IsDefinedInEditorConfig);
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
                                                   visualStudioOptions,
                                                   updater: null!,
                                                   fileName: null!,
-                                                  editorConfigData: EditorConfigSettingsValueHolder.DayOfWeekCodeStyleTest);
+                                                  editorConfigData: EditorConfigSettingsData.DayOfWeekCodeStyleTest);
             Assert.Equal(string.Empty, setting.Category);
             Assert.Equal("TestDesciption", setting.Description);
             Assert.False(setting.IsDefinedInEditorConfig);
