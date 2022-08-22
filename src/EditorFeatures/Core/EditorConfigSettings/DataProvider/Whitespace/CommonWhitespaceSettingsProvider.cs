@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.EditorConfigSettings;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whitespace
 {
-    internal partial class CommonWhitespaceSettingsProvider : SettingsProviderBase<WhitespaceSetting, OptionUpdater, IOption2, object>
+    internal class CommonWhitespaceSettingsProvider : SettingsProviderBase<WhitespaceSetting, OptionUpdater, IOption2, object>
     {
         public CommonWhitespaceSettingsProvider(string fileName, OptionUpdater settingsUpdater, Workspace workspace)
             : base(fileName, settingsUpdater, workspace)

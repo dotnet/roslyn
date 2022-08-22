@@ -3,24 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Text.Adornments;
-using Microsoft.CodeAnalysis.QuickInfo;
-using StreamJsonRpc;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 {

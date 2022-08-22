@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
         public string GetDocumentation()
         {
-            return Description;
+            return Description + _descriptor.HelpLinkUri;
         }
 
         public ImmutableArray<string>? GetSettingValues()
