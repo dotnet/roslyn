@@ -5,14 +5,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-
-#nullable enable
-
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
-
-internal class RequestContextFactory : IRequestContextFactory<RequestContext>, ILspService
+using rnal class RequestContextFactory : IRequestContextFactory<RequestContext>, ILspService
 {
     private readonly ILspServices _lspServices;
 

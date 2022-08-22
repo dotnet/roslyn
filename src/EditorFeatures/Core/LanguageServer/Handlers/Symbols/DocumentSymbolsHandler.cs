@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(DocumentSymbolsHandler)), Shared]
     [Method(Methods.TextDocumentDocumentSymbolName)]
-    internal class DocumentSymbolsHandler : IRoslynRequestHandler<RoslynDocumentSymbolParams, object[]>
+    internal class DocumentSymbolsHandler : ILspServiceRequestHandler<RoslynDocumentSymbolParams, object[]>
     {
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;

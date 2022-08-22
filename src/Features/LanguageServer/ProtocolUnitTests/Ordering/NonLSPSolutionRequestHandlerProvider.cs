@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(NonLSPSolutionRequestHandler)), PartNotDiscoverable, Shared]
     [Method(MethodName)]
-    internal class NonLSPSolutionRequestHandler : IRoslynRequestHandler<TestRequest, TestResponse>
+    internal class NonLSPSolutionRequestHandler : ILspServiceRequestHandler<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(NonLSPSolutionRequestHandler);
 

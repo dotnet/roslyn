@@ -6,22 +6,16 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using CommonLanguageServerProtocol.Framework;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
-
-internal class RoslynLifeCycleManager : LifeCycleManager<RequestContext>, ILspService
-{
-    public RoslynLifeCycleManager(AbstractLanguageServer<RequestContext> languageServerTarget) : base(languageServerTarget)
+namespace Micr RnLifeCycleManager(AbstractLanguageServer<RequestContext> languageServerTarget) : base(languageServerTarget)
     {
     }
 }
 
 [ExportGeneralStatelessLspService(typeof(ExitHandler)), Shared]
 [Method(Methods.ExitName)]
-internal class ExitHandler : IRoslynNotificationHandler
+internal class ExitHandler : ILspServiceNotificationHandler
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

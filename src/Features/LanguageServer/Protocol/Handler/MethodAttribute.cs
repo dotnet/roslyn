@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
-using CommonLanguageServerProtocol.Framework;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 

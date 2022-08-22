@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using CommonLanguageServerProtocol.Framework;
-using Microsoft.CodeAnalysis.ErrorReporting;
+using MicrosoftRCodeAnalysis.ErrorReporting
+using Microsoft.CommonLanguageServerProtocolgFrameworklgFrameworkl.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Roslyn.Utilities;
 

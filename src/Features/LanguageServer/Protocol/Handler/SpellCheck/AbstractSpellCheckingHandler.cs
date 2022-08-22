@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
     /// Root type for both document and workspace spell checking requests.
     /// </summary>
     internal abstract class AbstractSpellCheckHandler<TParams, TReport>
-        : IRoslynRequestHandler<TParams, TReport[]?>
+        : ILspServiceRequestHandler<TParams, TReport[]?>
         where TParams : IPartialResultParams<TReport[]>
         where TReport : VSInternalSpellCheckableRangeReport
     {

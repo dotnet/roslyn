@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [ExportGeneralStatelessLspService(typeof(InitializeHandler)), Shared]
 [Method(Methods.InitializeName)]
-internal class InitializeHandler : IRoslynRequestHandler<InitializeParams, InitializeResult>
+internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, InitializeResult>
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -22,7 +22,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     [Method(Methods.TextDocumentSemanticTokensRangeName)]
-    internal class SemanticTokensRangeHandler : IRoslynRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>, IDisposable
+    internal class SemanticTokensRangeHandler : ILspServiceRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>, IDisposable
     {
         private readonly IGlobalOptionService _globalOptions;
         private readonly IAsynchronousOperationListener _asyncListener;

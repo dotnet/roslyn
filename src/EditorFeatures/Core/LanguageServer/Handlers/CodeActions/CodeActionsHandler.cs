@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(CodeActionsHandler)), Shared]
     [Method(LSP.Methods.TextDocumentCodeActionName)]
-    internal class CodeActionsHandler : IRoslynRequestHandler<LSP.CodeActionParams, LSP.CodeAction[]>
+    internal class CodeActionsHandler : ILspServiceRequestHandler<LSP.CodeActionParams, LSP.CodeAction[]>
     {
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;

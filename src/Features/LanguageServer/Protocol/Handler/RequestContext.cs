@@ -8,12 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Roslyn.Utilities;
-
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler
-{
-    /// <summary>
+using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.>
     /// Context for requests handled by <see cref="IMethodHandler"/>
     /// </summary>
     internal readonly struct RequestContext

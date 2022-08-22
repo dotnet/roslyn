@@ -14,7 +14,7 @@
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
       Keep the setting conditional. The toolset sets the assembly version to 42.42.42.42 if not set explicitly.
     -->
-    <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(MajorVersion).$(MinorVersion).0.0-dev</AssemblyVersion>
+    <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(MajorVersion).$(MinorVersion).0.0</AssemblyVersion>
     <MicrosoftNetCompilersToolsetVersion>4.3.0-1.final</MicrosoftNetCompilersToolsetVersion>
   </PropertyGroup>
   <PropertyGroup>

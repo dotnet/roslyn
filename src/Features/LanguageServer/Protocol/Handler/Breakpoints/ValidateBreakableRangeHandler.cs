@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(ValidateBreakableRangeHandler)), Shared]
     [Method(LSP.VSInternalMethods.TextDocumentValidateBreakableRangeName)]
-    internal sealed class ValidateBreakableRangeHandler : IRoslynRequestHandler<LSP.VSInternalValidateBreakableRangeParams, LSP.Range?>
+    internal sealed class ValidateBreakableRangeHandler : ILspServiceRequestHandler<LSP.VSInternalValidateBreakableRangeParams, LSP.Range?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

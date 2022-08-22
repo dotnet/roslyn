@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(FindImplementationsHandler)), Shared]
     [Method(LSP.Methods.TextDocumentImplementationName)]
-    internal sealed class FindImplementationsHandler : IRoslynRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
+    internal sealed class FindImplementationsHandler : ILspServiceRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
     {
         private readonly IGlobalOptionService _globalOptions;
 

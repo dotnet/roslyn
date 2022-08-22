@@ -6,10 +6,10 @@ using System;
 using System.Composition;
 using System.IO;
 using System.Threading.Tasks;
-using CommonLanguageServerProtocol.Framework;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer

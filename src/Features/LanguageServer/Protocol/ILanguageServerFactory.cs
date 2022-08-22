@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using CommonLanguageServerProtocol.Framework;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using MicrosoftaCodeAnalysis.LanguageServer.HandlerHandlerHandler;
+using Microsoft.CommonLanguageServerProtocollFrameworkorkork;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer

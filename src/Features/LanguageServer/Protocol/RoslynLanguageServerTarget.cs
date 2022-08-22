@@ -6,14 +6,8 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using CommonLanguageServerProtocol.Framework;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using StreamJsonRpc;
-
-namespace Microsoft.CodeAnalysis.LanguageServer
+using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.oft.CodeAnalysis.LanguageServer
 {
     internal class RoslynLanguageServer : AbstractLanguageServer<RequestContext>, IClientCapabilitiesProvider
     {

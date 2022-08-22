@@ -5,9 +5,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CommonLanguageServerProtocol.Framework;
-using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using MicrosoftaCodeAnalysis.LanguageServerusing Microsoft.CodeAnalysis.LanguageServer.Handler.Handler.Handler.Handler;
+using Microsoft.CommonLanguageServerProtocollFrameworkorkorkork;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 /// <summary>
 /// Request handler type exposed to typescript.
 /// </summary>
-internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TResponseType> : IRoslynRequestHandler<TRequestType, TResponseType>, IVSTypeScriptRequestHandler
+internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TResponseType> : ILspServiceRequestHandler<TRequestType, TResponseType>, IVSTypeScriptRequestHandler
 {
     bool IMethodHandler.MutatesSolutionState => MutatesSolutionState;
 

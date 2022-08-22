@@ -132,8 +132,8 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\..\Features\LanguageServer\CommonLanguageServerProtocol.Framework\CommonLanguageServerProtocol.Framework.csproj">
-      <Name>CommonLanguageServerProtocolFramework</Name>
+    <ProjectReference Include="..\..\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.csproj">
+      <Name>Microsoft.CommonLanguageServerProtocolFramework</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>

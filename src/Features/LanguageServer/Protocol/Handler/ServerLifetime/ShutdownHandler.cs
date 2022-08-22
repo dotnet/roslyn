@@ -6,15 +6,15 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [ExportGeneralStatelessLspService(typeof(ShutdownHandler)), Shared]
 [Method(Methods.ShutdownName)]
-internal class ShutdownHandler : IRoslynNotificationHandler
+internal class ShutdownHandler : ILspServiceNotificationHandler
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

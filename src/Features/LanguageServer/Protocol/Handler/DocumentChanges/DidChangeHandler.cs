@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(DidChangeHandler)), Shared]
     [Method(LSP.Methods.TextDocumentDidChangeName)]
-    internal class DidChangeHandler : IRoslynRequestHandler<LSP.DidChangeTextDocumentParams, object?>
+    internal class DidChangeHandler : ILspServiceRequestHandler<LSP.DidChangeTextDocumentParams, object?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -10,21 +10,16 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CommonLanguageServerProtocol.Framework;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Roslyn.Utilities;
+using Roslyn.Utioft.CodeAnalysis.LanguageServer;
 
-namespace Microsoft.CodeAnalysis.LanguageServer;
-
-/// <summary>
-/// Manages the registered workspaces and corresponding LSP solutions for an LSP server.
+/// <summary>registered workspaces and corresponding LSP solutions for an LSP server.
 /// This type is tied to a particular server.
 /// </summary>
 /// <remarks>

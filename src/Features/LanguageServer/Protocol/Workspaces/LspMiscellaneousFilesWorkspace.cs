@@ -11,12 +11,12 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CommonLanguageServerProtocol.Framework;
-using Microsoft.CodeAnalysis.Features.Workspaces;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServ
+using Microsoft.CommonLanguageServ
+using Microsoft.CommonLanguageServerProtocol.Framework;erProtocol.Framework;erProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {

@@ -6,16 +6,10 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using CommonLanguageServerProtocol.Framework;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.WorkspaceCommand;
-
-[ExportGeneralStatelessLspService(typeof(ExecuteWorkspaceCommandHandler)), Shared]
-[Method(Methods.WorkspaceExecuteCommandName)]
-internal class ExecuteWorkspaceCommandHandler : IRoslynRequestHandler<ExecuteCommandParams, object?>
+namespace MicrStxecuteWorkspaceCommandHandler : ILspServiceRequestHandler<ExecuteCommandParams, object?>
 {
     public bool MutatesSolutionState => false;
 
