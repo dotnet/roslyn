@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -251,7 +251,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 assignedValues.SetEquals(fields);
         }
 
-        public static (ImmutableArray<ArgumentSyntax> initializerArguments, ImmutableArray<SyntaxNode> assignmentsToRemove)
+        public static (ImmutableArray<ArgumentSyntax> initializerArguments,
+            ImmutableArray<ExpressionStatementSyntax> assignmentsToRemove)
         GetInitializerValuesForNonPrimaryConstructor(
             IConstructorBodyOperation operation,
             ImmutableArray<IPropertySymbol> positionalParams)
@@ -265,36 +266,52 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     ? assignment.Syntax as ExpressionSyntax
                     : null);
 
-            foreach (var property in positionalParams)
-            {
-                var assignmentValue = assignmentValues.FirstOrDefault(value => property.Equals(value.left));
-                if (assignmentValue == default)
-                {
-                    // no assignment found, use "default" (or "null" for nullable types)
-                    initializerBuilder.Add(SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                        property.Type.NullableAnnotation == NullableAnnotation.Annotated
-                            ? SyntaxKind.NullLiteralExpression
-                            : SyntaxKind.DefaultLiteralExpression)));
-                }
-                else
-                {
-                    // found a valid assignment to the parameter, add the expression it was assigned to
-                    // to the initializer list, and add the eniter statement to be deleted
-                    initializerBuilder.Add(SyntaxFactory.Argument(assignmentValue.right));
-                    // don't need to remove argument syntaxes as the base initializer will already get removed
-                    if (assignmentValue.right.Parent is not ArgumentSyntax)
-                    {
-                        removalBuilder.Add(assignmentValue.right.GetAncestor<ExpressionStatementSyntax>()!);
-                    }
-                }
-            }
+            AddArgumentAndRemovalAssignments(assignmentValues, positionalParams, initializerBuilder, removalBuilder);
 
             return (initializerBuilder.AsImmutable(), removalBuilder.AsImmutable());
         }
 
-        public static ArgumentListSyntax GetConstructorFromObjectInitializer(
-            IEnumerable<ReferenceLocation> docLocs,
-            )
+        public static (ImmutableArray<ArgumentSyntax> initializerArguments,
+            ImmutableArray<SyntaxNode> assignmentsToRemove)
+        GetConstructorArgumentsFromObjectCreation(
+            ObjectCreationExpressionSyntax expressionNode,
+            ImmutableArray<IPropertySymbol> positionalParams,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            // we want to be very careful about when we refactor because if the user has a constructor
+            // and initializer it could be what they intend. Since we gave initializers to all non-primary
+            // constructors they already have, any calls to an explicit constructor with additional block initialization
+            // still work absolutely fine. Further, we can't necessarily associate their constructor args to
+            // primary constructor args or any other constructor args. Therefore,
+            // the only time we want to actually make a change is if they use the default no-param constructor,
+            // and a block initializer.
+            var operation = semanticModel.GetRequiredOperation(expressionNode, cancellationToken);
+            if (operation is IObjectCreationOperation
+                {
+                    Arguments: [],
+                    Initializer: IObjectOrCollectionInitializerOperation initializer,
+                    Constructor: IMethodSymbol { IsImplicitlyDeclared: true }
+                })
+            {
+                using var _1 = ArrayBuilder<(ISymbol left, ExpressionSyntax right)>
+                    .GetInstance(out var assignmentValuesBuilder);
+                using var _2 = ArrayBuilder<ArgumentSyntax>.GetInstance(out var argumentBuilder);
+                using var _3 = ArrayBuilder<SyntaxNode>.GetInstance(out var removalBuilder);
+
+                AddAssignmentValuesForBlock(initializer.Initializers,
+                    assignment => assignment.Syntax as ExpressionSyntax,
+                    assignmentValuesBuilder);
+
+                AddArgumentAndRemovalAssignments(assignmentValuesBuilder.ToImmutable(),
+                    positionalParams, argumentBuilder, removalBuilder);
+
+                return (argumentBuilder.ToImmutable(), removalBuilder.ToImmutable());
+            }
+
+            // no initializer, no need to make a change
+            return default;
+        }
 
         private static ImmutableArray<(ISymbol left, T right)> GetAssignmentValuesForConstructor<T>(
             IConstructorBodyOperation constructorOperation,
@@ -330,7 +347,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 builder.Add(default);
             }
 
-            foreach (var operation in body.Operations)
+            AddAssignmentValuesForBlock(body.Operations, captureAssignedSymbol, builder);
+
+            return builder.ToImmutable();
+        }
+
+        private static void AddAssignmentValuesForBlock<T>(
+            ImmutableArray<IOperation> operations,
+            Func<IOperation, T?> captureAssignedSymbol,
+            ArrayBuilder<(ISymbol left, T right)> builder)
+        {
+            foreach (var operation in operations)
             {
                 if (operation is IExpressionStatementOperation
                     {
@@ -358,8 +385,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     builder.Add(default);
                 }
             }
+        }
 
-            return builder.ToImmutable();
+        private static void AddArgumentAndRemovalAssignments(
+            ImmutableArray<(ISymbol left, ExpressionSyntax right)> assignmentValues,
+            ImmutableArray<IPropertySymbol> positionalParams,
+            ArrayBuilder<ArgumentSyntax> initializerBuilder,
+            ArrayBuilder<SyntaxNode> removalBuilder)
+        {
+            foreach (var property in positionalParams)
+            {
+                var assignmentValue = assignmentValues.FirstOrDefault(value => property.Equals(value.left));
+                if (assignmentValue == default)
+                {
+                    // no assignment found, use "default" (or "null" for nullable types)
+                    initializerBuilder.Add(SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                        property.Type.NullableAnnotation == NullableAnnotation.Annotated
+                            ? SyntaxKind.NullLiteralExpression
+                            : SyntaxKind.DefaultLiteralExpression)));
+                }
+                else
+                {
+                    // found a valid assignment to the parameter, add the expression it was assigned to
+                    // to the initializer list, and add the eniter statement to be deleted
+                    initializerBuilder.Add(SyntaxFactory.Argument(assignmentValue.right));
+                    // don't need to remove argument syntaxes as the base initializer will already get removed
+                    if (assignmentValue.right.Parent is not ArgumentSyntax)
+                    {
+                        removalBuilder.Add(assignmentValue.right);
+                    }
+                }
+            }
         }
 
         /// <summary>

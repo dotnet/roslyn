@@ -230,6 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             var currDocEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
             currDocEditor.ReplaceNode(originalDeclarationNode, changedTypeDeclaration);
 
+            RefactorInitializersAsync(originalType, solutionEditor, )
         }
 
         private static SyntaxList<AttributeListSyntax> GetModifiedAttributeListsForProperty(PositionalParameterInfo result)
@@ -386,7 +387,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                             SyntaxRemoveOptions.KeepDirectives |
                             SyntaxRemoveOptions.AddElasticMarker;
                         var modifiedConstructor = constructor
-                            .RemoveNodes(statementsToRemove, removalOptions)!
+                            .RemoveNodes(statementsToRemove
+                                    // take the parent ExpressionStatementSyntax so we take the semicolon too
+                                    .SelectAsArray(assignment => assignment.GetAncestor<ExpressionStatementSyntax>()),
+                                removalOptions)!
                             .WithInitializer(SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer,
                                 SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(thisArgs))));
 
@@ -460,19 +464,47 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             var symbolReferences = await SymbolFinder
                 .FindReferencesAsync(type, solutionEditor.OriginalSolution, cancellationToken).ConfigureAwait(false);
             var referenceLocations = symbolReferences.SelectMany(reference => reference.Locations);
-            var docLookup = referenceLocations.ToLookup(refLoc => refLoc.Document.Id);
-            foreach (var (docID, docLocs) in docLookup)
+            var projLookup = referenceLocations.ToLookup(refLoc => refLoc.Document.Project.Id);
+            foreach (var (projID, projLocs) in projLookup)
             {
-                var documentEditor = await solutionEditor.GetDocumentEditorAsync(docID, cancellationToken).ConfigureAwait(false);
-                var nodes = docLocs
-                    .Select(refLoc => refLoc.Location.FindNode(cancellationToken))
-                    .Where(node => node is InitializerExpressionSyntax);
-                root = root.AddAnnotations(nodes.Select(node =>
-                    Tuple.Create(node, Annotation)));
-                returnedSolution = returnedSolution.WithDocumentSyntaxRoot(docID, root);
-            }
+                // organize by project first, so we can solve one project at a time
+                var project = solutionEditor.OriginalSolution.GetRequiredProject(projID);
+                var compilation = await project
+                    .GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var docLookup = projLocs.ToLookup(refLoc => refLoc.Document.Id);
+                foreach (var (docID, docLocs) in docLookup)
+                {
+                    var documentEditor = await solutionEditor
+                        .GetDocumentEditorAsync(docID, cancellationToken).ConfigureAwait(false);
+                    var syntaxTree = await documentEditor.OriginalDocument
+                        .GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    var semanticModel = compilation.GetSemanticModel(syntaxTree);
+                    var nodes = docLocs
+                        .Select(refLoc => refLoc.Location.FindNode(cancellationToken))
+                        .OfType<ObjectCreationExpressionSyntax>();
+                    foreach (var node in nodes)
+                    {
+                        var (constructorArgs, nodesToRemove) =
+                            ConvertToRecordHelpers.GetConstructorArgumentsFromObjectCreation(
+                                node, positionalParameters, semanticModel, cancellationToken);
 
-            return returnedSolution;
+                        if (!constructorArgs.IsDefaultOrEmpty)
+                        {
+                            var replacementNode = SyntaxFactory.ObjectCreationExpression(
+                                node.NewKeyword,
+                                node.Type,
+                                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(constructorArgs)),
+                                SyntaxFactory.InitializerExpression(SyntaxKind.ObjectInitializerExpression,
+                                    SyntaxFactory.SeparatedList(
+                                        node.Initializer!.Expressions.Where(nodesToRemove.Contains))));
+                            documentEditor.ReplaceNode(node, replacementNode);
+                        }
+                    }
+                }
+
+                // We keep the compilation until we are done with the project
+                GC.KeepAlive(compilation);
+            }
         }
 
         #region TriviaMovement
