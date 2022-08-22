@@ -7214,4 +7214,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExplicitScopedRef" xml:space="preserve">
     <value>Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</value>
   </data>
+  <data name="ERR_UnscopedScoped" xml:space="preserve">
+    <value>UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</value>
+  </data>
 </root>
