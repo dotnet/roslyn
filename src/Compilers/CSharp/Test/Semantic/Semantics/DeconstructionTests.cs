@@ -6539,5 +6539,27 @@ class C
 }
 ");
         }
+
+        [Fact, WorkItem(61332, "https://github.com/dotnet/roslyn/issues/61332")]
+        public void NestedNullableConversions()
+        {
+            var code = """
+            float? _startScrollPosition, _endScrollPosition;
+            (_startScrollPosition, _endScrollPosition) = GetScrollPositions();
+
+            (float, float) GetScrollPositions() => (0, 0);
+            """;
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+            var deconstructionInfo = model.GetDeconstructionInfo(assignment);
+            var nestedConversions = deconstructionInfo.Nested;
+            Assert.Equal(2, nestedConversions.Length);
+            Assert.All(nestedConversions, n => Assert.Empty(n.Nested));
+        }
     }
 }
