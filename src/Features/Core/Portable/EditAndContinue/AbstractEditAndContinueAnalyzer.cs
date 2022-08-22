@@ -2261,11 +2261,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                TypesEquivalent(oldMethod.ReturnType, newMethod.ReturnType, exact);
 
         protected static bool ReturnTypesEquivalent(IPropertySymbol oldProperty, IPropertySymbol newProperty, bool exact)
+            => ReturnTypeRefsAndModifiersEquivalent(oldProperty, newProperty, exact) &&
+               TypesEquivalent(oldProperty.Type, newProperty.Type, exact);
+
+        private static bool ReturnTypeRefsAndModifiersEquivalent(IPropertySymbol oldProperty, IPropertySymbol newProperty, bool exact)
             => oldProperty.ReturnsByRef == newProperty.ReturnsByRef &&
                oldProperty.ReturnsByRefReadonly == newProperty.ReturnsByRefReadonly &&
                CustomModifiersEquivalent(oldProperty.TypeCustomModifiers, newProperty.TypeCustomModifiers, exact) &&
-               CustomModifiersEquivalent(oldProperty.RefCustomModifiers, newProperty.RefCustomModifiers, exact) &&
-               TypesEquivalent(oldProperty.Type, newProperty.Type, exact);
+               CustomModifiersEquivalent(oldProperty.RefCustomModifiers, newProperty.RefCustomModifiers, exact);
 
         protected static bool ReturnTypesEquivalent(IEventSymbol oldEvent, IEventSymbol newEvent, bool exact)
             => TypesEquivalent(oldEvent.Type, newEvent.Type, exact);
@@ -3777,7 +3780,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             else if (oldSymbol is IPropertySymbol oldProperty && newSymbol is IPropertySymbol newProperty)
             {
-                AnalyzeReturnType(oldProperty, newProperty, ref rudeEdit, ref hasGeneratedReturnTypeAttributeChange);
+                AnalyzeReturnType(oldProperty, newProperty, capabilities, ref rudeEdit, ref hasGeneratedReturnTypeAttributeChange, ref hasReturnTypeChange, cancellationToken);
             }
             else if (oldSymbol is IEventSymbol oldEvent && newSymbol is IEventSymbol newEvent)
             {
@@ -3789,7 +3792,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 else
                 {
-                    AnalyzeReturnType(oldEvent, newEvent, ref rudeEdit, ref hasGeneratedReturnTypeAttributeChange);
+                    AnalyzeReturnType(oldEvent, newEvent, capabilities, ref rudeEdit, ref hasGeneratedReturnTypeAttributeChange, ref hasReturnTypeChange, cancellationToken);
                 }
             }
             else if (oldSymbol is IParameterSymbol oldParameter && newSymbol is IParameterSymbol newParameter)
@@ -3974,13 +3977,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static void AnalyzeReturnType(IEventSymbol oldEvent, IEventSymbol newEvent, ref RudeEditKind rudeEdit, ref bool hasGeneratedReturnTypeAttributeChange)
+        private void AnalyzeReturnType(IEventSymbol oldEvent, IEventSymbol newEvent, EditAndContinueCapabilitiesGrantor capabilities, ref RudeEditKind rudeEdit, ref bool hasGeneratedReturnTypeAttributeChange, ref bool hasReturnTypeChange, CancellationToken cancellationToken)
         {
             if (!ReturnTypesEquivalent(oldEvent, newEvent, exact: true))
             {
                 if (ReturnTypesEquivalent(oldEvent, newEvent, exact: false))
                 {
                     hasGeneratedReturnTypeAttributeChange = true;
+                }
+                else if (oldEvent.ContainingType.IsDelegateType())
+                {
+                    rudeEdit = RudeEditKind.TypeUpdate;
+                }
+                else if (AllowsDeletion(newEvent))
+                {
+                    if (CanAddNewMember(newEvent, capabilities, cancellationToken))
+                    {
+                        hasReturnTypeChange = true;
+                    }
+                    else
+                    {
+                        rudeEdit = RudeEditKind.ChangingTypeNotSupportedByRuntime;
+                    }
                 }
                 else
                 {
@@ -3989,13 +4007,29 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static void AnalyzeReturnType(IPropertySymbol oldProperty, IPropertySymbol newProperty, ref RudeEditKind rudeEdit, ref bool hasGeneratedReturnTypeAttributeChange)
+        private void AnalyzeReturnType(IPropertySymbol oldProperty, IPropertySymbol newProperty, EditAndContinueCapabilitiesGrantor capabilities, ref RudeEditKind rudeEdit, ref bool hasGeneratedReturnTypeAttributeChange, ref bool hasReturnTypeChange, CancellationToken cancellationToken)
         {
             if (!ReturnTypesEquivalent(oldProperty, newProperty, exact: true))
             {
                 if (ReturnTypesEquivalent(oldProperty, newProperty, exact: false))
                 {
                     hasGeneratedReturnTypeAttributeChange = true;
+                }
+                else if (oldProperty.ContainingType.IsDelegateType())
+                {
+                    rudeEdit = RudeEditKind.TypeUpdate;
+                }
+                else if (ReturnTypeRefsAndModifiersEquivalent(oldProperty, newProperty, exact: true) &&
+                    AllowsDeletion(newProperty))
+                {
+                    if (CanAddNewMember(newProperty, capabilities, cancellationToken))
+                    {
+                        hasReturnTypeChange = true;
+                    }
+                    else
+                    {
+                        rudeEdit = RudeEditKind.ChangingTypeNotSupportedByRuntime;
+                    }
                 }
                 else
                 {

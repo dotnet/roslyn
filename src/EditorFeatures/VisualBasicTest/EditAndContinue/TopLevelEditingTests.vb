@@ -7806,8 +7806,15 @@ End Class
             edits.VerifyEdits(
                 "Update [Property P As Integer]@10 -> [Property P As Char]@10")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "Property P", FeaturesResources.property_))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.set_P").FirstOrDefault(Function(m) m.GetParameters().Any(Function(p) p.Type.SpecialType = SpecialType.System_Int32)), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.get_P")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.set_P"))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType Or EditAndContinueCapabilities.AddInstanceFieldToExistingType)
         End Sub
 
         <Fact>
@@ -10290,8 +10297,17 @@ End Class
                 "Update [value As Action]@78 -> [value As Action(Of String)]@89",
                 "Update [value As Action]@142 -> [value As Action(Of String)]@164")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "Event E", FeaturesResources.event_))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.add_E").FirstOrDefault(Function(m) m.GetParameters()(0).Type.GetTypeParameters().Length = 0), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMembers("C.remove_E").FirstOrDefault(Function(m) m.GetParameters()(0).Type.GetTypeParameters().Length = 0), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.raise_E"), deletedSymbolContainerProvider:=Function(c) c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.add_E")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.remove_E")),
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.raise_E"))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
