@@ -51,5 +51,5 @@ internal static class OrganizeImportsOptionsProviders
     }
 
     public static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(this Document document, OrganizeImportsOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await GetOrganizeImportsOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+        => await GetOrganizeImportsOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 }

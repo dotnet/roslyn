@@ -457,11 +457,6 @@
         <target state="translated">지정한 경로가 절대 경로여야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified.</source>
-        <target state="translated">이름을 단순화할 수 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_identifier">
         <source>Unknown identifier.</source>
         <target state="translated">알 수 없는 식별자입니다.</target>

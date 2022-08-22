@@ -457,11 +457,6 @@
         <target state="translated">指定的路径必须是绝对路径。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified.</source>
-        <target state="translated">可以简化名称。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_identifier">
         <source>Unknown identifier.</source>
         <target state="translated">未知的标识符。</target>

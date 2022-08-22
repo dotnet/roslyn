@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             var whitespaceProvider = settingsAggregator.GetSettingsProvider<WhitespaceSetting>(filePath);
             var analyzerProvider = settingsAggregator.GetSettingsProvider<AnalyzerSetting>(filePath);
 
-            var codeStyleSnapshot = (IEditorConfigSettingInfo[])codeStyleProvider?.GetCurrentDataSnapshot().ToArray()!;
-            var whitespaceSnapshot = (IEditorConfigSettingInfo[])whitespaceProvider?.GetCurrentDataSnapshot().ToArray()!;
-            var analyzerSnapshot = (IEditorConfigSettingInfo[])analyzerProvider?.GetCurrentDataSnapshot().ToArray()!;
+            var codeStyleSnapshot = codeStyleProvider?.GetCurrentDataSnapshot().SelectAsArray(s => (IEditorConfigSettingInfo)s) ?? ImmutableArray<IEditorConfigSettingInfo>.Empty;
+            var whitespaceSnapshot = whitespaceProvider?.GetCurrentDataSnapshot().SelectAsArray(s => (IEditorConfigSettingInfo)s) ?? ImmutableArray<IEditorConfigSettingInfo>.Empty;
+            var analyzerSnapshot = analyzerProvider?.GetCurrentDataSnapshot().SelectAsArray(s => (IEditorConfigSettingInfo)s) ?? ImmutableArray<IEditorConfigSettingInfo>.Empty;
 
-            return codeStyleSnapshot.Concat(whitespaceSnapshot).Concat(analyzerSnapshot).ToImmutableArray();
+            return codeStyleSnapshot.Concat(whitespaceSnapshot).Concat(analyzerSnapshot);
         }
     }
 }

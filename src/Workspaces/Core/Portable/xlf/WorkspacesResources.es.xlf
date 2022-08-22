@@ -457,11 +457,6 @@
         <target state="translated">La ruta de acceso especificada debe ser absoluta.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified.</source>
-        <target state="translated">El nombre se puede simplificar.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_identifier">
         <source>Unknown identifier.</source>
         <target state="translated">Identificador desconocido.</target>

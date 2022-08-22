@@ -457,11 +457,6 @@
         <target state="translated">Le chemin d'accès spécifié doit être absolu.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified.</source>
-        <target state="translated">Le nom peut être simplifié.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_identifier">
         <source>Unknown identifier.</source>
         <target state="translated">Identificateur inconnu.</target>

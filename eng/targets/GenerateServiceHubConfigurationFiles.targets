@@ -19,7 +19,7 @@
       <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.Identity)%(_ServicesWithBitness.FileSuffix).servicehub.service.json" Runtime="%(_ServicesWithBitness.Runtime)" Condition="'%(_ServicesWithBitness.Runtime)' == 'desktop'" >
         <Content>
           <![CDATA[{
-  "host": "desktopClr",
+  "host": "netfx.anycpu",
   "hostId": "RoslynCodeAnalysisService%(_ServicesWithBitness.HostIdSuffix)",
   "hostGroupAllowed": true,
   "serviceOverride": true, 
@@ -37,7 +37,7 @@
       <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.Identity)%(_ServicesWithBitness.FileSuffix).servicehub.service.json" Runtime="%(_ServicesWithBitness.Runtime)" Condition="'%(_ServicesWithBitness.Runtime)' == 'core'" >
         <Content>
           <![CDATA[{
-  "host": "coreClr",
+  "host": "dotnet",
   "hostId": "RoslynCodeAnalysisService%(_ServicesWithBitness.HostIdSuffix)",
   "hostGroupAllowed": true,
   "serviceOverride": true, 

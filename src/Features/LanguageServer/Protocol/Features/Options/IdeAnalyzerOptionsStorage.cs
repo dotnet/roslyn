@@ -17,7 +17,7 @@ internal static class IdeAnalyzerOptionsStorage
     public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, Project project)
         => GetIdeAnalyzerOptions(globalOptions, project.Services);
 
-    public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, HostProjectServices languageServices)
+    public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
     {
         var language = languageServices.Language;
         var supportsLanguageSpecificOptions = languageServices.GetService<ISyntaxFormattingOptionsStorage>() != null;
