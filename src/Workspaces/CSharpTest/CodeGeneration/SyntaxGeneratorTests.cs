@@ -1608,6 +1608,24 @@ public interface IFace
                         Generator.Attribute("a")),
                     Generator.Attribute("b")),
                 "[assembly: a]\r\n[assembly: b]\r\nnamespace n\r\n{\r\n}");
+
+            VerifySyntax<StatementSyntax>(
+                Generator.AddAttributes(
+                    SyntaxFactory.BreakStatement(),
+                    Generator.Attribute("a")),
+                "[a]\r\nbreak;");
+
+            VerifySyntax<TypeParameterSyntax>(
+                Generator.AddAttributes(
+                    SyntaxFactory.TypeParameter("T"),
+                    Generator.Attribute("a")),
+                "[a]\r\nT");
+
+            VerifySyntax<LambdaExpressionSyntax>(
+                Generator.AddAttributes(
+                    SyntaxFactory.ParenthesizedLambdaExpression(),
+                    Generator.Attribute("a")),
+                "[a]\r\n() =>");
         }
 
         [Fact]
@@ -2350,6 +2368,22 @@ public class C
             VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"file class C
 {
 }");
+        }
+
+        [Fact]
+        public void TestAddRequiredModifierToVirtualProperty()
+        {
+            var property = (PropertyDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("public virtual int P { get; }");
+            var updatedProperty = Generator.WithModifiers(property, Generator.GetModifiers(property).WithIsRequired(true));
+            VerifySyntax<PropertyDeclarationSyntax>(updatedProperty, "public virtual required int P { get; }");
+        }
+
+        [Fact]
+        public void TestAddVirtualModifierToRequiredProperty()
+        {
+            var property = (PropertyDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("public required int P { get; }");
+            var updatedProperty = Generator.WithModifiers(property, Generator.GetModifiers(property).WithIsVirtual(true));
+            VerifySyntax<PropertyDeclarationSyntax>(updatedProperty, "public virtual required int P { get; }");
         }
 
         [Fact]

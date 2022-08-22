@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            public FilteredCompletionModel? UpdateCompletionList(CancellationToken cancellationToken)
+            public FilteredCompletionModel? UpdateCompletionList(IAsyncCompletionSession session, CancellationToken cancellationToken)
             {
                 if (ShouldDismissCompletionListImmediately())
                     return null;
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     var finalSelection = UpdateSelectionBasedOnSuggestedDefaults(itemsToBeIncluded, initialSelection.Value, cancellationToken);
 
                     return new FilteredCompletionModel(
-                        items: GetHighlightedList(itemsToBeIncluded, cancellationToken),
+                        items: GetHighlightedList(session, itemsToBeIncluded, cancellationToken),
                         finalSelection.SelectedItemIndex,
                         filters: GetUpdatedFilters(itemsToBeIncluded, cancellationToken),
                         finalSelection.SelectionHint,
@@ -227,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var filterHelper = new FilterStateHelper(_snapshotData.SelectedFilters);
 
                 // Filter items based on the selected filters and matching.
-                foreach (var item in _snapshotData.InitialSortedList)
+                foreach (var item in _snapshotData.InitialSortedItemList)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -432,10 +433,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     UniqueItem: moreThanOneMatch || !bestMatchResult.HasValue ? null : bestMatchResult.Value.EditorCompletionItem);
             }
 
-            private ImmutableArray<CompletionItemWithHighlight> GetHighlightedList(IReadOnlyList<MatchResult<VSCompletionItem>> items, CancellationToken cancellationToken)
+            private CompletionList<CompletionItemWithHighlight> GetHighlightedList(
+                IAsyncCompletionSession session,
+                IReadOnlyList<MatchResult<VSCompletionItem>> items,
+                CancellationToken cancellationToken)
             {
-                using var _ = ArrayBuilder<CompletionItemWithHighlight>.GetInstance(items.Count, out var builder);
-                builder.AddRange(items.Select(matchResult =>
+                return session.CreateCompletionList(items.Select(matchResult =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var highlightedSpans = _highlightMatchingPortions
@@ -444,8 +447,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                     return new CompletionItemWithHighlight(matchResult.EditorCompletionItem, highlightedSpans);
                 }));
-
-                return builder.ToImmutable();
 
                 static ImmutableArray<Span> GetHighlightedSpans(
                     MatchResult<VSCompletionItem> matchResult,
@@ -576,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             private static bool TryGetInitialTriggerLocation(AsyncCompletionSessionDataSnapshot data, out SnapshotPoint intialTriggerLocation)
             {
-                foreach (var item in data.InitialSortedList)
+                foreach (var item in data.InitialSortedItemList)
                 {
                     if (CompletionItemData.TryGetData(item, out var itemData) && itemData.TriggerLocation.HasValue)
                     {

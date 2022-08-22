@@ -10064,6 +10064,39 @@ class Class
             End Using
         End Function
 
+        <WpfTheory>
+        <InlineData("string", "string")>
+        <InlineData("string", "String")>
+        <InlineData("String", "string")>
+        <InlineData("String", "String")>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSpecialTypeKeywordSelection(first As String, second As String) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document>
+using System;
+class Class
+{
+    public void M()
+    {
+        $$
+    }
+}</Document>)
+
+                ' filter text decides selection when no type can be inferred.
+                state.SendTypeChars(first)
+                Await state.AssertCompletionItemsContainAll(first, second)
+                Await state.AssertSelectedCompletionItem(displayText:=first, isHardSelected:=True)
+                state.SendTab()
+
+                state.SendTypeChars(" x =")
+
+                ' We should let what user has typed to dictate whether to select keyword or type form, even when we can infer the type.
+                state.SendTypeChars(second.Substring(0, 3))
+                Await state.AssertCompletionItemsContainAll(first, second)
+                Await state.AssertSelectedCompletionItem(displayText:=second, isHardSelected:=True)
+            End Using
+        End Function
+
         <ExportCompletionProvider(NameOf(TestProvider), LanguageNames.CSharp)>
         <[Shared]>
         <PartNotDiscoverable>
@@ -10231,5 +10264,28 @@ class MyClass
                 Throw New NotImplementedException()
             End Function
         End Class
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSortingOfSameNamedCompletionItems() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class MyClass
+{
+    public void MyMethod()
+    {
+        $$
+    }
+}
+                              </Document>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperience, LanguageNames.CSharp), True)
+                state.SendTypeChars("cw")
+                Await state.AssertSelectedCompletionItem(displayText:="cw", inlineDescription:=Nothing, isHardSelected:=True)
+                state.SendDownKey()
+                Await state.AssertSelectedCompletionItem(displayText:="cw", inlineDescription:="Console.WriteLine", isHardSelected:=True)
+            End Using
+        End Function
     End Class
 End Namespace
