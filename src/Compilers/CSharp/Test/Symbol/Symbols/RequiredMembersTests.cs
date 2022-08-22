@@ -56,14 +56,7 @@ End Namespace";
                 AssertEx.NotNull(member, $"Member {memberPath} was not found");
                 Assert.True(member is PropertySymbol or FieldSymbol, $"Unexpected member symbol type {member.Kind}");
                 Assert.True(member.IsRequired());
-                if (module is SourceModuleSymbol)
-                {
-                    Assert.All(member.GetAttributes(), attr => AssertEx.NotEqual("System.Runtime.CompilerServices.RequiredMemberAttribute", attr.AttributeClass.ToTestDisplayString()));
-                }
-                else
-                {
-                    AssertEx.Any(member.GetAttributes(), attr => attr.AttributeClass.ToTestDisplayString() == "System.Runtime.CompilerServices.RequiredMemberAttribute");
-                }
+                Assert.All(member.GetAttributes(), attr => AssertEx.NotEqual("System.Runtime.CompilerServices.RequiredMemberAttribute", attr.AttributeClass.ToTestDisplayString()));
 
                 requiredTypes.Add((NamedTypeSymbol)member.ContainingType);
             }
