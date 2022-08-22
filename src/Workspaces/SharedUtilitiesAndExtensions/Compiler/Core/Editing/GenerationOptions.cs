@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 
@@ -15,13 +16,13 @@ namespace Microsoft.CodeAnalysis.Editing
         public static readonly PerLanguageOption2<bool> PlaceSystemNamespaceFirst = new(
             "GenerationOptions", CodeStyleOptionGroups.Usings, "PlaceSystemNamespaceFirst",
             AddImportPlacementOptions.Default.PlaceSystemNamespaceFirst,
-            EditorConfigStorageLocation.ForBoolOption("dotnet_sort_system_directives_first"),
+            new EditorConfigStorageLocation<bool>(EditorConfigSettingsData.PlaceSystemNamespaceFirst),
             new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PlaceSystemNamespaceFirst"));
 
         public static readonly PerLanguageOption2<bool> SeparateImportDirectiveGroups = new(
             "GenerationOptions", CodeStyleOptionGroups.Usings, "SeparateImportDirectiveGroups",
             SyntaxFormattingOptions.CommonOptions.Default.SeparateImportDirectiveGroups,
-            EditorConfigStorageLocation.ForBoolOption("dotnet_separate_import_directive_groups"),
+            new EditorConfigStorageLocation<bool>(EditorConfigSettingsData.SeparateImportDirectiveGroups),
             new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(SeparateImportDirectiveGroups)}"));
 
         public static readonly ImmutableArray<IOption2> AllOptions = ImmutableArray.Create<IOption2>(

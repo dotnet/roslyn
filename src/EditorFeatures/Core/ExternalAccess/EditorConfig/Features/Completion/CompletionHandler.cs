@@ -10,22 +10,13 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Roslyn.Utilities;
 using System.Linq;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.EditorConfigSettings.Data;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
-using System.Net.WebSockets;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
-using Microsoft.CodeAnalysis.Collections.Internal;
-using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 {
@@ -52,17 +43,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             var document = context.AdditionalDocument;
             Contract.ThrowIfNull(document);
 
-            var workspace = document.Project.Solution.Workspace;
-
             if (request.Context == null)
             {
                 return null;
             }
-
-            var filePath = document.FilePath;
-            Contract.ThrowIfNull(filePath);
-
-            var optionSet = workspace.Options;
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var offset = text.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(request.Position));
@@ -77,104 +61,48 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             }
 
             // Check if we need to display values of the settings
-            // |setting_name = (caret is here)
-            // |setting_name = setting_value_1, (caret is here)
-            bool showValueComma = false, showValueEqual = false, showName = false, seenWhitespace = false;
+            // Show completion: |setting_name = (caret)
+            // Show completion: |setting_name = setting_va(caret)
+            // Show completion: |setting_name = setting_value_1, (caret)
+            // Dont't show completion: | setting_name = setting_value (caret)
+            var seenWhitespace = false;
             foreach (var element in textToCheck)
             {
-                if (element == ' ')
+                if (char.IsWhiteSpace(element))
                 {
                     seenWhitespace = true;
                 }
                 else if (element == ',')
                 {
-                    showValueComma = true;
-                    break;
+                    return CreateCompletionList(document, textInLine, allowsMultipleValues: true);
                 }
                 else if (element == '=')
                 {
-                    showValueEqual = true;
-                    break;
+                    return CreateCompletionList(document, textInLine);
                 }
                 else
                 {
                     if (seenWhitespace)
                     {
-                        showValueEqual = false;
-                        break;
+                        return null;
                     }
                 }
             }
 
             // Check if we need to suggest completion for the setting name
-            // Show completion |indent(caret is here)
-            // Don't show completion |indent_size (caret is here)
-            if (!showValueComma && !showValueEqual)
+            // Show completion: |indent(caret)
+            // Don't show completion: |indent_size (caret)
+            seenWhitespace = false;
+            foreach (var element in textToCheck)
             {
-                seenWhitespace = false;
-                foreach (var element in textToCheck)
-                {
-                    if (seenWhitespace && !(element == ' '))
-                    {
-                        showName = false;
-                        break;
-                    }
-                    seenWhitespace = element == ' ';
-                    showName = true;
-                }
-            }
-
-            // Show completion additional values (after a comma)
-            if (showValueComma)
-            {
-                var settingName = textInLine.Split('=').First().Trim();
-                var settingsSnapshots1 = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
-                var options = GetSettingValues(settingName, settingsSnapshots1, optionSet, multipleValues: true);
-                if (options == null)
+                if (seenWhitespace && !char.IsWhiteSpace(element))
                 {
                     return null;
                 }
-
-                return new CompletionList
-                {
-                    Items = options,
-                };
+                seenWhitespace = char.IsWhiteSpace(element);
             }
 
-            // Show completion for setting values (after equal)
-            if (showValueEqual)
-            {
-                var settingName = textInLine.Split('=').First().Trim();
-                var settingsSnapshots2 = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
-                var values = GetSettingValues(settingName, settingsSnapshots2, optionSet);
-                if (values == null)
-                {
-                    return null;
-                }
-
-                return new CompletionList
-                {
-                    Items = values,
-                };
-            }
-
-            // Show completion for the setting name
-            if (showName)
-            {
-                var settingsSnapshots3 = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
-                var settingsItems = settingsSnapshots3.Select(GenerateSettingNameCompletionItem).WhereNotNull().GroupBy(x => x.Label).Select(grp => grp.First());
-                if (settingsItems == null)
-                {
-                    return null;
-                }
-
-                return new CompletionList
-                {
-                    Items = settingsItems.ToArray(),
-                };
-            }
-
-            return null;
+            return CreateCompletionList(document, textInLine, showValueList: false);
         }
 
         private static CompletionItem? GenerateSettingNameCompletionItem(IEditorConfigSettingInfo setting)
@@ -185,14 +113,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                 return null;
             }
             var documentation = setting.GetDocumentation();
-            var commitCharacters = _settingNameCommitCharacters;
 
-            return CreateCompletionItem(name, name, CompletionItemKind.Property, documentation, commitCharacters);
+            return CreateCompletionItem(name, name, CompletionItemKind.Property, documentation, _settingNameCommitCharacters);
         }
-
-        private static CompletionItem[]? GenerateSettingValuesCompletionItem(IEditorConfigSettingInfo setting, bool additional, OptionSet optionSet, bool allowsMultipleValues = false)
+        private static CompletionItem[]? GenerateSettingValuesCompletionItem(IEditorConfigSettingInfo setting, bool additional)
         {
             var values = new List<CompletionItem>();
+            var allowsMultipleValues = setting.AllowsMultipleValues();
 
             // User may type a ',' but not in a setting that allows multiple values
             if (additional && (!allowsMultipleValues))
@@ -201,7 +128,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             }
 
             // Create normal values list
-            var settingValues = setting.GetSettingValues(optionSet);
+            var settingValues = setting.GetSettingValues();
             if (settingValues == null)
             {
                 return null;
@@ -228,17 +155,34 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             };
             return item;
         }
-
-        private static CompletionItem[]? GetSettingValues(string settingName, ImmutableArray<IEditorConfigSettingInfo> settingsSnapshot, OptionSet optionSet, bool multipleValues = false)
+        private static CompletionItem[]? GetSettingValues(string settingName, ImmutableArray<IEditorConfigSettingInfo> settingsSnapshot, bool multipleValues = false)
         {
             var foundSetting = settingsSnapshot.Where(sett => sett.GetSettingName() == settingName);
             if (foundSetting.Any())
             {
-                var allowsMultipleValues = settingName == "csharp_new_line_before_open_brace" || settingName == "csharp_space_between_parentheses";
-                return GenerateSettingValuesCompletionItem(foundSetting.First(), multipleValues, optionSet, allowsMultipleValues: allowsMultipleValues);
+                return GenerateSettingValuesCompletionItem(foundSetting.First(), multipleValues);
             }
 
             return null;
+        }
+
+        private static CompletionList? CreateCompletionList(TextDocument document, string textInLine, bool showValueList = true, bool allowsMultipleValues = false)
+        {
+            var workspace = document.Project.Solution.Workspace;
+            var filePath = document.FilePath;
+            Contract.ThrowIfNull(filePath);
+
+            var settingsSnapshots = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
+            var settingName = textInLine.Split('=').First().Trim();
+
+            if (showValueList)
+            {
+                var values = GetSettingValues(settingName, settingsSnapshots, multipleValues: allowsMultipleValues);
+                return values == null ? null : new CompletionList { Items = values };
+            }
+
+            var names = settingsSnapshots.Select(GenerateSettingNameCompletionItem).WhereNotNull().GroupBy(x => x.Label).Select(grp => grp.First());
+            return names == null ? null : new CompletionList { Items = names.ToArray() };
         }
     }
 }

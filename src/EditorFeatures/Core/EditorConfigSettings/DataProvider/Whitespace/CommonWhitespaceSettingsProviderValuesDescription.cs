@@ -11,16 +11,15 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whitespace
 {
     internal partial class CommonWhitespaceSettingsProvider
     {
-        internal ImmutableDictionary<string, string> OperatorPlacementWhenWrappingValuesDescription = new Dictionary<string, string>()
-        {
-            { "beginning_of_line", EditorFeaturesResources.Operator_Placement_When_Wrapping_Beginning_Of_Line },
-            { "end_of_line", EditorFeaturesResources.Operator_Placement_When_Wrapping_End_Of_Line },
-        }.ToImmutableDictionary();
+        //internal ImmutableDictionary<string, string> OperatorPlacementWhenWrappingValuesDescription = new Dictionary<string, string>()
+        //{
+        //    { "beginning_of_line", EditorFeaturesResources.Operator_Placement_When_Wrapping_Beginning_Of_Line },
+        //    { "end_of_line", EditorFeaturesResources.Operator_Placement_When_Wrapping_End_Of_Line },
+        //}.ToImmutableDictionary();
     }
 }

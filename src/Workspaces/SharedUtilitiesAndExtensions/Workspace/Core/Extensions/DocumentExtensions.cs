@@ -141,8 +141,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (node == null)
                 return document.GetRequiredSemanticModelAsync(cancellationToken);
 
-            var workspace = document.Project.Solution.Workspace;
-            var semanticModelService = workspace.Services.GetRequiredService<ISemanticModelReuseWorkspaceService>();
+#if CODE_STYLE
+            // Remove once Solution.Services becomes public: https://github.com/dotnet/roslyn/issues/62914
+            var semanticModelService = document.Project.Solution.Workspace.Services.GetRequiredService<ISemanticModelReuseWorkspaceService>();
+#else
+            var semanticModelService = document.Project.Solution.Services.GetRequiredService<ISemanticModelReuseWorkspaceService>();
+#endif
 
             return semanticModelService.ReuseExistingSpeculativeModelAsync(document, node, cancellationToken);
         }

@@ -16,6 +16,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\PreferBracesPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\TypeStyle\TypeStyleHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\TypeStyle\UseVarPreference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\EditorConfigSettingsValueHolder\CSharpCodeStyleEditorConfigSettingsData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\EditorConfigSettingsValueHolder\CSharpWhitespaceEditorConfigSettingsData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\CSharpVirtualCharService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\RuneExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArgumentSyntaxExtensions.cs" />
@@ -126,5 +128,8 @@
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)EditorConfig\EditorConfigSettingsValueHolder\" />
   </ItemGroup>
 </Project>

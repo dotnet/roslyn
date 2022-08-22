@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
 {
@@ -15,8 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
 
         public string[] EnumValues => GetValueDescriptions();
 
-        public string ToolTip => ServicesVSResources.Value;
-        public string AutomationName => ServicesVSResources.Value;
+        public string ToolTip => EditorFeaturesResources.Value;
+        public string AutomationName => EditorFeaturesResources.Value;
 
         private string? _selectedEnumValue;
 

@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                 var setting = foundSetting.First();
                 if (displayValueInfo)
                 {
-                    var value = setting.GetSettingValues(optionSet)?.Where(val => val == settingValue).FirstOrDefault();
+                    var value = setting.GetSettingValues()?.Where(val => val == settingValue).FirstOrDefault();
                     return value != null ? setting.GetValueDocumentation(settingValue) : null;
                 }
 

@@ -2,6 +2,21 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="All_methods">
+        <source>All methods</source>
+        <target state="new">All methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always">
+        <source>Always</source>
+        <target state="new">Always</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_for_clarity">
+        <source>Always for clarity</source>
+        <target state="new">Always for clarity</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
         <target state="translated">識別子 '{0}' のインラインの名前変更セッションがアクティブです。追加オプションにアクセスするには、インラインの名前変更をもう一度呼び出します。名前を変更する識別子はいつでも引き続き編集できます。</target>
@@ -77,6 +92,11 @@
         <target state="translated">フィルター</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
+      <trans-unit id="For_non_interface_members">
+        <source>For non interface members</source>
+        <target state="new">For non interface members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
         <target state="translated">ドキュメントのフォーマットで追加のクリーンアップが実行されました</target>
@@ -102,26 +122,6 @@
         <target state="translated">基本へ移動</target>
         <note />
       </trans-unit>
-      <trans-unit id="In_arithmetic_binary_operators">
-        <source>In arithmetic operators</source>
-        <target state="translated">算術演算子内で</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="In_other_binary_operators">
-        <source>In other binary operators</source>
-        <target state="translated">その他のバイナリ演算子内で</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="In_relational_binary_operators">
-        <source>In relational operators</source>
-        <target state="translated">関係演算子内で</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indentation_Size">
-        <source>Indentation Size</source>
-        <target state="translated">インデントのサイズ</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inline_Diagnostics_Error">
         <source>Inline Diagnostics - Error</source>
         <target state="translated">インライン診断 - エラー</target>
@@ -140,11 +140,6 @@
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
         <target state="translated">インラインのヒント</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_Final_Newline">
-        <source>Insert Final Newline</source>
-        <target state="translated">最後の改行を挿入する</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -217,21 +212,6 @@
         <target state="translated">キーワード - コントロール</target>
         <note />
       </trans-unit>
-      <trans-unit id="Label_Positioning_Flush_Left">
-        <source>Placed in the Zeroth column of the text editor</source>
-        <target state="new">Placed in the Zeroth column of the text editor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Label_Positioning_No_Change">
-        <source>Placed at the same indent as the current context</source>
-        <target state="new">Placed at the same indent as the current context</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Label_Positioning_One_Less_Than_Current">
-        <source>Placed at one less indent to the current context</source>
-        <target state="new">Placed at one less indent to the current context</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Language_client_initialization_failed">
         <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
         <target state="translated">{0} を初期化できませんでした。状態 = {1}。例外 = {2}</target>
@@ -242,9 +222,14 @@
         <target state="translated">ベースを検索しています...</target>
         <note />
       </trans-unit>
-      <trans-unit id="New_Line">
-        <source>New Line</source>
-        <target state="translated">改行</target>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="new">Never</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_if_unnecessary">
+        <source>Never if unnecessary</source>
+        <target state="new">Never if unnecessary</target>
         <note />
       </trans-unit>
       <trans-unit id="No">
@@ -252,19 +237,19 @@
         <target state="translated">いいえ</target>
         <note />
       </trans-unit>
+      <trans-unit id="Non_public_methods">
+        <source>Non-public methods</source>
+        <target state="new">Non-public methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Omit_if_default">
+        <source>Omit if default</source>
+        <target state="new">Omit if default</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">演算子 - オーバーロード</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Operator_Placement_When_Wrapping_Beginning_Of_Line">
-        <source>Adds the operator at the beginning of the line</source>
-        <target state="new">Adds the operator at the beginning of the line</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Operator_Placement_When_Wrapping_End_Of_Line">
-        <source>Adds the operator at the end of the line</source>
-        <target state="new">Adds the operator at the end of the line</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste_Tracking">
@@ -272,9 +257,14 @@
         <target state="translated">追跡の貼り付け</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
-        <source>Prefer 'is null' for reference equality checks</source>
-        <target state="translated">参照の等値性のチェックには 'is null' を優先する</target>
+      <trans-unit id="Prefer_framework_type">
+        <source>Prefer framework type</source>
+        <target state="new">Prefer framework type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_predefined_type">
+        <source>Prefer predefined type</source>
+        <target state="new">Prefer predefined type</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_this_or_Me">
@@ -290,26 +280,6 @@
       <trans-unit id="Punctuation">
         <source>Punctuation</source>
         <target state="translated">句読点</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_event_access_with_this_or_Me">
-        <source>Qualify event access with 'this' or 'Me'</source>
-        <target state="translated">イベント アクセスを 'this' または 'Me' で修飾する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_field_access_with_this_or_Me">
-        <source>Qualify field access with 'this' or 'Me'</source>
-        <target state="translated">フィールド アクセスを 'this' または 'Me' で修飾する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_method_access_with_this_or_Me">
-        <source>Qualify method access with 'this' or 'Me'</source>
-        <target state="translated">メソッド アクセスを 'this' または 'Me' で修飾する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_property_access_with_this_or_Me">
-        <source>Qualify property access with 'this' or 'Me'</source>
-        <target state="translated">プロパティ アクセスを 'this' または 'Me' で修飾する</target>
         <note />
       </trans-unit>
       <trans-unit id="Reassigned_variable">
@@ -337,46 +307,6 @@
         <target state="translated">シンボルのファイルの名前を変更する(_F)</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
       </trans-unit>
-      <trans-unit id="Severities_Error">
-        <source>Offending code is underlined with a red squiggle and marked by a small red box in the scroll bar</source>
-        <target state="new">Offending code is underlined with a red squiggle and marked by a small red box in the scroll bar</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Severities_None">
-        <source>Suppressed completely</source>
-        <target state="new">Suppressed completely</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Severities_Silent">
-        <source>Non-visible to user. The diagnostic is reported to the IDE diagnostic engine, however</source>
-        <target state="new">Non-visible to user. The diagnostic is reported to the IDE diagnostic engine, however</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Severities_Suggestion">
-        <source>Offending code is underlined with a gray squiggle and marked by a small gray box in the scroll bar</source>
-        <target state="new">Offending code is underlined with a gray squiggle and marked by a small gray box in the scroll bar</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Severities_Warning">
-        <source>Offending code is underlined with a green squiggle and marked by a small green box in the scroll bar</source>
-        <target state="new">Offending code is underlined with a green squiggle and marked by a small green box in the scroll bar</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Spacing_Around_Binary_Operator_Before_And_After">
-        <source>Single spacing</source>
-        <target state="new">Single spacing</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Spacing_Around_Binary_Operator_Ignore">
-        <source>Ignores formatting</source>
-        <target state="new">Ignores formatting</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Spacing_Around_Binary_Operator_None">
-        <source>Removes spacing</source>
-        <target state="new">Removes spacing</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Split_comment">
         <source>Split comment</source>
         <target state="translated">コメントの分割</target>
@@ -390,11 +320,6 @@
       <trans-unit id="Symbol_Static">
         <source>Symbol - Static</source>
         <target state="translated">シンボル - 静的</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Tab_Size">
-        <source>Tab Size</source>
-        <target state="translated">タブのサイズ</target>
         <note />
       </trans-unit>
       <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
@@ -420,11 +345,6 @@
       <trans-unit id="Toggling_line_comment">
         <source>Toggling line comment...</source>
         <target state="translated">行コメントを切り替えています...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Tabs">
-        <source>Use Tabs</source>
-        <target state="translated">タブの使用</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -525,6 +445,11 @@
       <trans-unit id="String_Verbatim">
         <source>String - Verbatim</source>
         <target state="translated">文字列 - Verbatim</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value">
+        <source>Value</source>
+        <target state="new">Value</target>
         <note />
       </trans-unit>
       <trans-unit id="Waiting_for_background_work_to_finish">

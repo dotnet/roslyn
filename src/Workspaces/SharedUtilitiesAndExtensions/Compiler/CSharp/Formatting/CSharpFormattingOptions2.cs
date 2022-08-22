@@ -6,6 +6,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.CSharp.EditorConfigSettings;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
+using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions2;
 
 #if CODE_STYLE
 using CSharpWorkspaceResources = Microsoft.CodeAnalysis.CSharp.CSharpCodeStyleResources;
@@ -26,47 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         // Maps to store mapping between special option kinds and the corresponding editor config string representations.
         #region Editor Config maps
-        private static readonly BidirectionalMap<string, SpacingWithinParenthesesOption> s_spacingWithinParenthesisOptionsEditorConfigMap =
-            new(new[]
-            {
-                KeyValuePairUtil.Create("expressions", SpacingWithinParenthesesOption.Expressions),
-                KeyValuePairUtil.Create("type_casts", SpacingWithinParenthesesOption.TypeCasts),
-                KeyValuePairUtil.Create("control_flow_statements", SpacingWithinParenthesesOption.ControlFlowStatements),
-            });
-        private static readonly BidirectionalMap<string, BinaryOperatorSpacingOptions> s_binaryOperatorSpacingOptionsEditorConfigMap =
-            new(new[]
-            {
-                KeyValuePairUtil.Create("ignore", BinaryOperatorSpacingOptions.Ignore),
-                KeyValuePairUtil.Create("none", BinaryOperatorSpacingOptions.Remove),
-                KeyValuePairUtil.Create("before_and_after", BinaryOperatorSpacingOptions.Single),
-            });
-        private static readonly BidirectionalMap<string, LabelPositionOptions> s_labelPositionOptionsEditorConfigMap =
-            new(new[]
-            {
-                KeyValuePairUtil.Create("flush_left", LabelPositionOptions.LeftMost),
-                KeyValuePairUtil.Create("no_change", LabelPositionOptions.NoIndent),
-                KeyValuePairUtil.Create("one_less_than_current", LabelPositionOptions.OneLess),
-            });
         private static readonly BidirectionalMap<string, NewLineOption> s_legacyNewLineOptionsEditorConfigMap =
             new(new[]
             {
                 KeyValuePairUtil.Create("object_collection_array_initalizers", NewLineOption.ObjectCollectionsArrayInitializers),
-            });
-        private static readonly BidirectionalMap<string, NewLineOption> s_newLineOptionsEditorConfigMap =
-            new(new[]
-            {
-                KeyValuePairUtil.Create("accessors", NewLineOption.Accessors),
-                KeyValuePairUtil.Create("types", NewLineOption.Types),
-                KeyValuePairUtil.Create("methods", NewLineOption.Methods),
-                KeyValuePairUtil.Create("properties", NewLineOption.Properties),
-                KeyValuePairUtil.Create("indexers", NewLineOption.Indexers),
-                KeyValuePairUtil.Create("events", NewLineOption.Events),
-                KeyValuePairUtil.Create("anonymous_methods", NewLineOption.AnonymousMethods),
-                KeyValuePairUtil.Create("control_blocks", NewLineOption.ControlBlocks),
-                KeyValuePairUtil.Create("anonymous_types", NewLineOption.AnonymousTypes),
-                KeyValuePairUtil.Create("object_collection_array_initializers", NewLineOption.ObjectCollectionsArrayInitializers),
-                KeyValuePairUtil.Create("lambdas", NewLineOption.Lambdas),
-                KeyValuePairUtil.Create("local_functions", NewLineOption.LocalFunction),
             });
         #endregion
 
@@ -94,12 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 CSharpFormattingOptionGroups.Spacing, name,
                 defaultValue,
                 new EditorConfigStorageLocation<bool>(
-                    "csharp_space_between_parentheses",
-                    s => DetermineIfSpaceOptionIsSet(s, parenthesesOption),
-                    GetSpacingWithParenthesesEditorConfigString),
-                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{name}"));
+                    CSharpEditorConfigSettingsData.SpaceBetweenParentheses.GetSettingName(),
+                    s => DetermineIfSpaceOptionIsSet(s, parenthesesOption, CSharpEditorConfigSettingsData.SpaceBetweenParentheses),
+                    optionSet => GetSpacingWithParenthesesEditorConfigString(optionSet, CSharpEditorConfigSettingsData.SpaceBetweenParentheses)),
+            new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{name}"));
 
-            Debug.Assert(s_spacingWithinParenthesisOptionsEditorConfigMap.ContainsValue(parenthesesOption));
+            Debug.Assert(CSharpEditorConfigSettingsData.SpaceBetweenParentheses.GetEditorConfigStringFromValue(parenthesesOption) != "");
             s_spacingWithinParenthesisOptionsMapBuilder.Add(option, parenthesesOption);
 
             return option;
@@ -111,12 +77,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 CSharpFormattingOptionGroups.NewLine, name,
                 defaultValue,
                 new EditorConfigStorageLocation<bool>(
-                    "csharp_new_line_before_open_brace",
-                    value => DetermineIfNewLineOptionIsSet(value, newLineOption),
-                    GetNewLineOptionEditorConfigString),
+                    CSharpEditorConfigSettingsData.NewLineBeforeOpenBrace.GetSettingName(),
+                    value => DetermineIfNewLineOptionIsSet(value, newLineOption, CSharpEditorConfigSettingsData.NewLineBeforeOpenBrace),
+                    optionSet => GetNewLineOptionEditorConfigString(optionSet, CSharpEditorConfigSettingsData.NewLineBeforeOpenBrace)),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{name}"));
 
-            Debug.Assert(s_newLineOptionsEditorConfigMap.ContainsValue(newLineOption));
+            Debug.Assert(CSharpEditorConfigSettingsData.NewLineBeforeOpenBrace.GetEditorConfigStringFromValue(newLineOption) != "");
             s_newLineOptionsMapBuilder.Add(option, newLineOption);
 
             return option;
@@ -125,43 +91,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static Option2<bool> SpacingAfterMethodDeclarationName { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpacingAfterMethodDeclarationName),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.AfterMethodDeclarationName),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_between_method_declaration_name_and_open_parenthesis"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpacingAfterMethodDeclarationName),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpacingAfterMethodDeclarationName"));
 
         public static Option2<bool> SpaceWithinMethodDeclarationParenthesis { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpaceWithinMethodDeclarationParenthesis),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.WithinMethodDeclarationParenthesis),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_between_method_declaration_parameter_list_parentheses"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpaceWithinMethodDeclarationParenthesis),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceWithinMethodDeclarationParenthesis"));
 
         public static Option2<bool> SpaceBetweenEmptyMethodDeclarationParentheses { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpaceBetweenEmptyMethodDeclarationParentheses),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.BetweenEmptyMethodDeclarationParentheses),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_between_method_declaration_empty_parameter_list_parentheses"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpaceBetweenEmptyMethodDeclarationParentheses),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceBetweenEmptyMethodDeclarationParentheses"));
 
         public static Option2<bool> SpaceAfterMethodCallName { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpaceAfterMethodCallName),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.AfterMethodCallName),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_between_method_call_name_and_opening_parenthesis"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpaceAfterMethodCallName),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceAfterMethodCallName"));
 
         public static Option2<bool> SpaceWithinMethodCallParentheses { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpaceWithinMethodCallParentheses),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.WithinMethodCallParentheses),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_between_method_call_parameter_list_parentheses"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpaceWithinMethodCallParentheses),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceWithinMethodCallParentheses"));
 
         public static Option2<bool> SpaceBetweenEmptyMethodCallParentheses { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpaceBetweenEmptyMethodCallParentheses),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.BetweenEmptyMethodCallParentheses),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_between_method_call_empty_parameter_list_parentheses"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpaceBetweenEmptyMethodCallParentheses),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceBetweenEmptyMethodCallParentheses"));
 
         public static Option2<bool> SpaceAfterControlFlowStatementKeyword { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpaceAfterControlFlowStatementKeyword),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.AfterControlFlowStatementKeyword),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_after_keywords_in_control_flow_statements"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpaceAfterControlFlowStatementKeyword),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceAfterControlFlowStatementKeyword"));
 
         public static Option2<bool> SpaceWithinExpressionParentheses { get; } = CreateSpaceWithinParenthesesOption(
@@ -179,142 +145,133 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static Option2<bool> SpaceAfterCast { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpaceAfterCast),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.AfterCast),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_after_cast"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpaceAfterCast),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceAfterCast"));
 
         public static Option2<bool> SpacesIgnoreAroundVariableDeclaration { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpacesIgnoreAroundVariableDeclaration),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.IgnoreAroundVariableDeclaration),
-            new EditorConfigStorageLocation<bool>(
-                "csharp_space_around_declaration_statements",
-                s => DetermineIfIgnoreSpacesAroundVariableDeclarationIsSet(s),
-                v => v ? "ignore" : "false"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpacesIgnoreAroundVariableDeclaration),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpacesIgnoreAroundVariableDeclaration"));
 
         public static Option2<bool> SpaceBeforeOpenSquareBracket { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpaceBeforeOpenSquareBracket),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.BeforeOpenSquareBracket),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_before_open_square_brackets"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpaceBeforeOpenSquareBracket),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceBeforeOpenSquareBracket"));
 
         public static Option2<bool> SpaceBetweenEmptySquareBrackets { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpaceBetweenEmptySquareBrackets),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.BetweenEmptySquareBrackets),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_between_empty_square_brackets"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpaceBetweenEmptySquareBrackets),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceBetweenEmptySquareBrackets"));
 
         public static Option2<bool> SpaceWithinSquareBrackets { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpaceWithinSquareBrackets),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.WithinSquareBrackets),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_between_square_brackets"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpaceWithinSquareBrackets),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceWithinSquareBrackets"));
 
         public static Option2<bool> SpaceAfterColonInBaseTypeDeclaration { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpaceAfterColonInBaseTypeDeclaration),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.AfterColonInBaseTypeDeclaration),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_after_colon_in_inheritance_clause"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpaceAfterColonInBaseTypeDeclaration),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceAfterColonInBaseTypeDeclaration"));
 
         public static Option2<bool> SpaceAfterComma { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpaceAfterComma),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.AfterComma),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_after_comma"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpaceAfterComma),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceAfterComma"));
 
         public static Option2<bool> SpaceAfterDot { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpaceAfterDot),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.AfterDot),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_after_dot"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpaceAfterDot),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceAfterDot"));
 
         public static Option2<bool> SpaceAfterSemicolonsInForStatement { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpaceAfterSemicolonsInForStatement),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.AfterSemicolonsInForStatement),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_after_semicolon_in_for_statement"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpaceAfterSemicolonsInForStatement),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceAfterSemicolonsInForStatement"));
 
         public static Option2<bool> SpaceBeforeColonInBaseTypeDeclaration { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpaceBeforeColonInBaseTypeDeclaration),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.BeforeColonInBaseTypeDeclaration),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_before_colon_in_inheritance_clause"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpaceBeforeColonInBaseTypeDeclaration),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceBeforeColonInBaseTypeDeclaration"));
 
         public static Option2<bool> SpaceBeforeComma { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpaceBeforeComma),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.BeforeComma),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_before_comma"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpaceBeforeComma),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceBeforeComma"));
 
         public static Option2<bool> SpaceBeforeDot { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpaceBeforeDot),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.BeforeDot),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_before_dot"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpaceBeforeDot),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceBeforeDot"));
 
         public static Option2<bool> SpaceBeforeSemicolonsInForStatement { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpaceBeforeSemicolonsInForStatement),
             CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.BeforeSemicolonsInForStatement),
-            EditorConfigStorageLocation.ForBoolOption("csharp_space_before_semicolon_in_for_statement"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.SpaceBeforeSemicolonsInForStatement),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpaceBeforeSemicolonsInForStatement"));
 
         public static Option2<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = CreateOption(
             CSharpFormattingOptionGroups.Spacing, nameof(SpacingAroundBinaryOperator),
             CSharpSyntaxFormattingOptions.Default.SpacingAroundBinaryOperator,
-            new EditorConfigStorageLocation<BinaryOperatorSpacingOptions>(
-                "csharp_space_around_binary_operators",
-                s => ParseEditorConfigSpacingAroundBinaryOperator(s),
-                GetSpacingAroundBinaryOperatorEditorConfigString),
+            new EditorConfigStorageLocation<BinaryOperatorSpacingOptions>(CSharpEditorConfigSettingsData.SpacingAroundBinaryOperator),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpacingAroundBinaryOperator"));
 
         public static Option2<bool> IndentBraces { get; } = CreateOption(
             CSharpFormattingOptionGroups.Indentation, nameof(IndentBraces),
             CSharpSyntaxFormattingOptions.IndentationDefault.HasFlag(IndentationPlacement.Braces),
-            EditorConfigStorageLocation.ForBoolOption("csharp_indent_braces"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.IndentBraces),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.OpenCloseBracesIndent"));
 
         public static Option2<bool> IndentBlock { get; } = CreateOption(
             CSharpFormattingOptionGroups.Indentation, nameof(IndentBlock),
             CSharpSyntaxFormattingOptions.IndentationDefault.HasFlag(IndentationPlacement.BlockContents),
-            EditorConfigStorageLocation.ForBoolOption("csharp_indent_block_contents"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.IndentBlock),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.IndentBlock"));
 
         public static Option2<bool> IndentSwitchSection { get; } = CreateOption(
             CSharpFormattingOptionGroups.Indentation, nameof(IndentSwitchSection),
             CSharpSyntaxFormattingOptions.IndentationDefault.HasFlag(IndentationPlacement.SwitchSection),
-            EditorConfigStorageLocation.ForBoolOption("csharp_indent_switch_labels"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.IndentSwitchSection),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.IndentSwitchSection"));
 
         public static Option2<bool> IndentSwitchCaseSection { get; } = CreateOption(
             CSharpFormattingOptionGroups.Indentation, nameof(IndentSwitchCaseSection),
             CSharpSyntaxFormattingOptions.IndentationDefault.HasFlag(IndentationPlacement.SwitchSection),
-            EditorConfigStorageLocation.ForBoolOption("csharp_indent_case_contents"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.IndentSwitchCaseSection),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.IndentSwitchCaseSection"));
 
         public static Option2<bool> IndentSwitchCaseSectionWhenBlock { get; } = CreateOption(
             CSharpFormattingOptionGroups.Indentation, nameof(IndentSwitchCaseSectionWhenBlock),
             CSharpSyntaxFormattingOptions.IndentationDefault.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock),
-            EditorConfigStorageLocation.ForBoolOption("csharp_indent_case_contents_when_block"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.IndentSwitchCaseSectionWhenBlock),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.IndentSwitchCaseSectionWhenBlock"));
 
         public static Option2<LabelPositionOptions> LabelPositioning { get; } = CreateOption(
             CSharpFormattingOptionGroups.Indentation, nameof(LabelPositioning),
             CSharpSyntaxFormattingOptions.Default.LabelPositioning,
-            new EditorConfigStorageLocation<LabelPositionOptions>(
-                "csharp_indent_labels",
-                s => ParseEditorConfigLabelPositioning(s),
-                GetLabelPositionOptionEditorConfigString),
+            new EditorConfigStorageLocation<LabelPositionOptions>(CSharpEditorConfigSettingsData.LabelPositioning),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.LabelPositioning"));
 
         public static Option2<bool> WrappingPreserveSingleLine { get; } = CreateOption(
             CSharpFormattingOptionGroups.Wrapping, nameof(WrappingPreserveSingleLine),
             CSharpSyntaxFormattingOptions.Default.WrappingPreserveSingleLine,
-            EditorConfigStorageLocation.ForBoolOption("csharp_preserve_single_line_blocks"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.WrappingPreserveSingleLine),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.WrappingPreserveSingleLine"));
 
         public static Option2<bool> WrappingKeepStatementsOnSingleLine { get; } = CreateOption(
             CSharpFormattingOptionGroups.Wrapping, nameof(WrappingKeepStatementsOnSingleLine),
             CSharpSyntaxFormattingOptions.Default.WrappingKeepStatementsOnSingleLine,
-            EditorConfigStorageLocation.ForBoolOption("csharp_preserve_single_line_statements"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.WrappingKeepStatementsOnSingleLine),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.WrappingKeepStatementsOnSingleLine"));
 
         public static Option2<bool> NewLinesForBracesInTypes { get; } = CreateNewLineForBracesOption(
@@ -356,37 +313,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static Option2<bool> NewLineForElse { get; } = CreateOption(
             CSharpFormattingOptionGroups.NewLine, nameof(NewLineForElse),
             CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeElse),
-            EditorConfigStorageLocation.ForBoolOption("csharp_new_line_before_else"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.NewLineForElse),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLineForElse"));
 
         public static Option2<bool> NewLineForCatch { get; } = CreateOption(
             CSharpFormattingOptionGroups.NewLine, nameof(NewLineForCatch),
             CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeCatch),
-            EditorConfigStorageLocation.ForBoolOption("csharp_new_line_before_catch"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.NewLineForCatch),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLineForCatch"));
 
         public static Option2<bool> NewLineForFinally { get; } = CreateOption(
             CSharpFormattingOptionGroups.NewLine, nameof(NewLineForFinally),
             CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeFinally),
-            EditorConfigStorageLocation.ForBoolOption("csharp_new_line_before_finally"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.NewLineForFinally),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLineForFinally"));
 
         public static Option2<bool> NewLineForMembersInObjectInit { get; } = CreateOption(
             CSharpFormattingOptionGroups.NewLine, nameof(NewLineForMembersInObjectInit),
             CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeMembersInObjectInitializers),
-            EditorConfigStorageLocation.ForBoolOption("csharp_new_line_before_members_in_object_initializers"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.NewLineForMembersInObjectInit),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLineForMembersInObjectInit"));
 
         public static Option2<bool> NewLineForMembersInAnonymousTypes { get; } = CreateOption(
             CSharpFormattingOptionGroups.NewLine, nameof(NewLineForMembersInAnonymousTypes),
             CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BeforeMembersInAnonymousTypes),
-            EditorConfigStorageLocation.ForBoolOption("csharp_new_line_before_members_in_anonymous_types"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.NewLineForMembersInAnonymousTypes),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLineForMembersInAnonymousTypes"));
 
         public static Option2<bool> NewLineForClausesInQuery { get; } = CreateOption(
             CSharpFormattingOptionGroups.NewLine, nameof(NewLineForClausesInQuery),
             CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BetweenQueryExpressionClauses),
-            EditorConfigStorageLocation.ForBoolOption("csharp_new_line_between_query_expression_clauses"),
+            new EditorConfigStorageLocation<bool>(CSharpEditorConfigSettingsData.NewLineForClausesInQuery),
             new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLineForClausesInQuery"));
 
         static CSharpFormattingOptions2()

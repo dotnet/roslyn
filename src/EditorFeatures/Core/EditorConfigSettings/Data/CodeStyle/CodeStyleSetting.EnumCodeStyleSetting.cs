@@ -3,15 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Windows.Input;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
@@ -24,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             private readonly AnalyzerConfigOptions _editorConfigOptions;
             private readonly OptionSet _visualStudioOptions;
 
+            public IEditorConfigData EditorConfigData;
+
             public EnumCodeStyleSetting(Option2<CodeStyleOption2<T>> option,
                                         string description,
                                         T[] enumValues,
@@ -31,13 +30,15 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                         AnalyzerConfigOptions editorConfigOptions,
                                         OptionSet visualStudioOptions,
                                         OptionUpdater updater,
-                                        string fileName)
+                                        string fileName,
+                                        IEditorConfigData editorConfigData)
                 : base(description, enumValues, valueDescriptions, option.Group.Description, updater)
             {
                 _option = option;
                 _editorConfigOptions = editorConfigOptions;
                 _visualStudioOptions = visualStudioOptions;
                 Location = new SettingLocation(IsDefinedInEditorConfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, fileName);
+                EditorConfigData = editorConfigData;
             }
 
             public override bool IsDefinedInEditorConfig => _editorConfigOptions.TryGetEditorConfigOption<CodeStyleOption2<T>>(_option, out _);
@@ -65,8 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
             public override string? GetSettingName()
             {
-                var storageLocation = GetEditorConfigStorageLocation(_option);
-                return storageLocation?.KeyName;
+                return EditorConfigData.GetSettingName();
             }
 
             public override string GetDocumentation()
@@ -74,25 +74,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                 return Description;
             }
 
-            public override ImmutableArray<string>? GetSettingValues(OptionSet optionSet)
+            public override ImmutableArray<string>? GetSettingValues()
             {
-                var type = typeof(T);
-                var strings = new List<string>();
-                var enumValues = type.GetEnumValues();
-
-                foreach (var enumValue in enumValues)
-                {
-                    var storageLocation = GetEditorConfigStorageLocation(_option);
-                    var codeStyleSetting = new CodeStyleOption2<T>((T)enumValue!, NotificationOption2.Silent);
-                    var option = storageLocation?.GetEditorConfigStringValue(codeStyleSetting, optionSet);
-                    if (option != null)
-                    {
-                        option = option.Contains(':') ? option.Split(':').First() : option;
-                        strings.Add(option);
-                    }
-                }
-
-                return strings.ToImmutableArray();
+                return EditorConfigData.GetAllSettingValues();
             }
 
             public override string? GetValueDocumentation(string value)

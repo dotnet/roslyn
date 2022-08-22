@@ -6,11 +6,12 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
-    internal sealed class WhitespaceSetting<T> : WhitespaceSetting
+    internal abstract class WhitespaceSetting<T> : WhitespaceSetting
         where T : notnull
     {
         public override bool IsDefinedInEditorConfig => _options.TryGetEditorConfigOption<T>(_option, out _);
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                 return _visualStudioOptions.GetOption(_option);
             }
         }
+        public IEditorConfigData EditorConfigData;
 
         public override Type Type => typeof(T);
         public override string Category => _option.Group.Description;
@@ -60,12 +62,13 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                  OptionSet visualStudioOptions,
                                  OptionUpdater updater,
                                  SettingLocation location,
-                                 ImmutableDictionary<string, string>? valuesDescription)
-            : base(description, updater, location, valuesDescription)
+                                 IEditorConfigData editorConfigData)
+            : base(description, updater, location)
         {
             _option = option;
             _options = options;
             _visualStudioOptions = visualStudioOptions;
+            EditorConfigData = editorConfigData;
         }
 
         public override void SetValue(object value)
@@ -76,5 +79,25 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         }
 
         public override object? GetValue() => Value;
+
+        public override string? GetSettingName()
+        {
+            return EditorConfigData.GetSettingName();
+        }
+
+        public override string GetDocumentation()
+        {
+            return Description;
+        }
+
+        public override ImmutableArray<string>? GetSettingValues()
+        {
+            return EditorConfigData.GetAllSettingValues();
+        }
+
+        public override bool AllowsMultipleValues()
+        {
+            return EditorConfigData.GetAllowsMultipleValues();
+        }
     }
 }
