@@ -56,6 +56,7 @@
     <ExpectedDependency Include="System.Text.Encoding.CodePages" />
     <ExpectedDependency Include="System.Numerics.Vectors"/>
     <ExpectedDependency Include="Microsoft.Extensions.DependencyInjection" />
+    <ExpectedDependency Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
   </ItemGroup>
 
   <Target Name="_CalculateDependenciesToInsert" DependsOnTargets="ResolveAssemblyReferences;GetAssemblyVersion">
