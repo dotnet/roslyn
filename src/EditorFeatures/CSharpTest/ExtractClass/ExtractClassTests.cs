@@ -198,6 +198,69 @@ partial class Test
         }
 
         [Fact]
+        public async Task TestRecord()
+        {
+            var input = """
+                record R(string S)
+                {
+                    void $$M()
+                    {
+                    }
+                }
+                """;
+
+            var expected1 = """
+                record R(string S) : MyBase
+                {
+                }
+                """;
+
+            var expected2 = """
+                internal record MyBase
+                {
+                    void M()
+                    {
+                    }
+                }
+
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                LanguageVersion = LanguageVersion.CSharp9,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestRecord2()
+        {
+            // https://github.com/dotnet/roslyn/issues/62415 to make this scenario work
+            var input = """
+                record R(string $$S)
+                {
+                }
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input,
+                LanguageVersion = LanguageVersion.CSharp9,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestInNamespace()
         {
             var input = @"
