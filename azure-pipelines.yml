@@ -322,6 +322,7 @@ jobs:
         ArtifactName: 'BuildValidator_DebugOut'
         publishLocation: Container
       continueOnError: true
+      condition: failed()
 
     - template: eng/pipelines/publish-logs.yml
       parameters:

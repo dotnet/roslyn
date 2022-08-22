@@ -209,7 +209,7 @@ class C
     dynamic d;
 }",
                 testHost,
-                Record("dynamic"));
+                RecordClass("dynamic"));
         }
 
         [Theory]
@@ -5576,7 +5576,7 @@ class X
     R() { }
 }",
                 testHost,
-                Record("R"));
+                RecordClass("R"));
         }
 
         [Theory]
@@ -5592,7 +5592,7 @@ class C
     R r;
 }",
                 testHost,
-                Record("R"));
+                RecordClass("R"));
         }
 
         [Theory]
@@ -5607,7 +5607,7 @@ class C
     R() { }
 }",
                 testHost,
-                Record("R"));
+                RecordClass("R"));
         }
 
         [Theory]
