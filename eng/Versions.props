@@ -73,6 +73,7 @@
     <RefOnlyMicrosoftBuildFrameworkVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildFrameworkVersion>
     <RefOnlyMicrosoftBuildRuntimeVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildRuntimeVersion>
     <RefOnlyMicrosoftBuildTasksCoreVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildTasksCoreVersion>
+    <RefOnlyMicrosoftBuildUtilitiesCoreVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildUtilitiesCoreVersion>
     <NuGetVisualStudioContractsVersion>6.0.0-preview.0.15</NuGetVisualStudioContractsVersion>
     <MicrosoftVisualStudioRpcContractsVersion>17.2.31</MicrosoftVisualStudioRpcContractsVersion>
     <!--
