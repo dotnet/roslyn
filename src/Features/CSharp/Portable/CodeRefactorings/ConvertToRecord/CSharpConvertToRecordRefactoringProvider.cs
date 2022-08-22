@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Operations;
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             context.RegisterRefactoring(positional);
         }
 
-        private static async Task<Document> ConvertToPositionalRecordAsync(
+        private static async Task<Solution> ConvertToPositionalRecordAsync(
             Document document,
             INamedTypeSymbol originalType,
             ImmutableArray<PositionalParameterInfo> propertyAnalysisResults,
@@ -224,10 +226,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     .WithLeadingTrivia(modifiedClassTrivia)
                     .WithAdditionalAnnotations(Formatter.Annotation);
 
-            var changedDocument = await document.ReplaceNodeAsync(
-                originalDeclarationNode, changedTypeDeclaration, cancellationToken).ConfigureAwait(false);
+            var solutionEditor = new SolutionEditor(document.Project.Solution);
+            var currDocEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
+            currDocEditor.ReplaceNode(originalDeclarationNode, changedTypeDeclaration);
 
-            return changedDocument;
         }
 
         private static SyntaxList<AttributeListSyntax> GetModifiedAttributeListsForProperty(PositionalParameterInfo result)
@@ -447,6 +449,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             }
 
             return modifiedMembers.ToImmutable();
+        }
+
+        private static async Task RefactorInitializersAsync(
+            INamedTypeSymbol type,
+            SolutionEditor solutionEditor,
+            ImmutableArray<IPropertySymbol> positionalParameters,
+            CancellationToken cancellationToken)
+        {
+            var symbolReferences = await SymbolFinder
+                .FindReferencesAsync(type, solutionEditor.OriginalSolution, cancellationToken).ConfigureAwait(false);
+            var referenceLocations = symbolReferences.SelectMany(reference => reference.Locations);
+            var docLookup = referenceLocations.ToLookup(refLoc => refLoc.Document.Id);
+            foreach (var (docID, docLocs) in docLookup)
+            {
+                var documentEditor = await solutionEditor.GetDocumentEditorAsync(docID, cancellationToken).ConfigureAwait(false);
+                var nodes = docLocs
+                    .Select(refLoc => refLoc.Location.FindNode(cancellationToken))
+                    .Where(node => node is InitializerExpressionSyntax);
+                root = root.AddAnnotations(nodes.Select(node =>
+                    Tuple.Create(node, Annotation)));
+                returnedSolution = returnedSolution.WithDocumentSyntaxRoot(docID, root);
+            }
+
+            return returnedSolution;
         }
 
         #region TriviaMovement

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -290,6 +291,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             return (initializerBuilder.AsImmutable(), removalBuilder.AsImmutable());
         }
+
+        public static ArgumentListSyntax GetConstructorFromObjectInitializer(
+            IEnumerable<ReferenceLocation> docLocs,
+            )
 
         private static ImmutableArray<(ISymbol left, T right)> GetAssignmentValuesForConstructor<T>(
             IConstructorBodyOperation constructorOperation,
