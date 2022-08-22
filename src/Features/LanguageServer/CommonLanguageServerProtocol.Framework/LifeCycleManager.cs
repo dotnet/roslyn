@@ -38,5 +38,5 @@ public class LifeCycleManager<RequestContextType>
         OnShutdown?.Invoke(this, new RequestShutdownEventArgs(message));
     }
 
-    public event EventHandler<RequestShutdownEventArgs> OnShutdown;
+    public event EventHandler<RequestShutdownEventArgs>? OnShutdown;
 }
