@@ -100,17 +100,6 @@ namespace Microsoft.CodeAnalysis.Snippets
             }
         }
 
-        /*private static string GenerateStringOfSpaces(string textChangeText, char charToConsider)
-        {
-            var spacesString = "";
-            if (charToConsider == '{')
-            {
-                spacesString += 
-            }
-
-            return spacesString;
-        }*/
-
         /// <summary>
         /// We need to extend the snippet's TextChange if any of the placeholders or
         /// if the caret position comes before or after the span of the TextChange.
