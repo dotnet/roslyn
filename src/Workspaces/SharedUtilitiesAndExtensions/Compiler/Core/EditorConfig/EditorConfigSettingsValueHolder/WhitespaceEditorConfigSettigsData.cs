@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whitespace;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditorConfigSettings
@@ -34,7 +35,8 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
 
         public static EditorConfigData<bool> UseTabs = new BooleanEditorConfigData("indent_style",
                                                                                    CompilerExtensionsResources.Use_Tabs,
-                                                                                   UseTabsMap);
+                                                                                   UseTabsMap,
+                                                                                   EditorConfigSettingsValuesDescriptions.BooleanYesNo);
 
         public static EditorConfigData<int> TabSize = new IntegerEditorConfigData("tab_width",
                                                                                   CompilerExtensionsResources.Tab_Size);

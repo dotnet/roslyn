@@ -209,6 +209,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\EditorConfigData\EnumEditorConfigData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\EditorConfigData\IntegerEditorConfigData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\EditorConfigData\StringEditorConfigData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\EditorConfigSettingsValueHolder\WhitespaceSettingsValuesDescription.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Language.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageExtensions.cs" />
@@ -608,7 +609,6 @@
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)EditorConfig\EditorConfigSettingsValueHolder\" />
     <Folder Include="$(MSBuildThisFileDirectory)Extensions\Compiler\" />
     <Folder Include="$(MSBuildThisFileDirectory)Services\FileBannerFacts\" />
   </ItemGroup>
