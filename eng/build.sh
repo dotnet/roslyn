@@ -36,6 +36,7 @@ usage()
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
   echo "  --sourceBuild              Simulate building for source-build"
+  echo "  --solution                 Soluton to build (Default is Compilers.sln)"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -74,6 +75,7 @@ prepare_machine=false
 warn_as_error=false
 properties=""
 source_build=false
+solution_to_build="Compilers.sln"
 
 args=""
 
@@ -160,6 +162,11 @@ while [[ $# > 0 ]]; do
       # have an alias.
       source_build=true
       ;;
+    --solution)
+      solution_to_build=$2
+      args="$args $1"
+      shift
+      ;;
     /p:*)
       properties="$properties $1"
       ;;
@@ -203,7 +210,7 @@ function MakeBootstrapBuild {
 }
 
 function BuildSolution {
-  local solution="Compilers.sln"
+  local solution=$solution_to_build
   echo "$solution:"
 
   InitializeToolset
@@ -320,6 +327,6 @@ if [[ "$test_core_clr" == true ]]; then
   if [[ "$ci" != true ]]; then
     runtests_args="$runtests_args --html"
   fi
-  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net6.0/RunTests.dll" --tfm net6.0 --configuration ${configuration} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
+  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net6.0/RunTests.dll" --tfm net6.0 --configuration ${configuration} --logs ${log_dir} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
 fi
 ExitWithExitCode 0

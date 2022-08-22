@@ -293,7 +293,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 typeWithAnnotations = NullableTypeDecoder.TransformType(typeWithAnnotations, handle, moduleSymbol, accessSymbol: accessSymbol, nullableContext: nullableContext);
                 typeWithAnnotations = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeWithAnnotations, handle, moduleSymbol);
 
-                if (refKind == RefKind.Out)
+                if (_moduleSymbol.Module.HasUnscopedRefAttribute(_handle))
+                {
+                    scope = DeclarationScope.Unscoped;
+                }
+                else if (refKind == RefKind.Out)
                 {
                     scope = DeclarationScope.RefScoped;
                 }
@@ -312,6 +316,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         isBad = true;
                     }
+                }
+                else if (ParameterHelpers.IsRefScopedByDefault(refKind, typeWithAnnotations))
+                {
+                    scope = DeclarationScope.RefScoped;
                 }
             }
 
@@ -985,7 +993,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override DeclarationScope Scope => _packedFlags.Scope;
+        internal sealed override DeclarationScope DeclaredScope => _packedFlags.Scope;
+
+        internal sealed override DeclarationScope EffectiveScope => DeclaredScope;
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
