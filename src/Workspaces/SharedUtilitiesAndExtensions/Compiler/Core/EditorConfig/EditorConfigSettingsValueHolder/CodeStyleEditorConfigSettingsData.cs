@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
         public static EditorConfigData<AccessibilityModifiersRequired> RequireAccessibilityModifiers = new EnumEditorConfigData<AccessibilityModifiersRequired>("dotnet_style_require_accessibility_modifiers",
                                                                                                                                                                 CompilerExtensionsResources.Require_accessibility_modifiers,
                                                                                                                                                                 AccessibilityModifiersRequiredMap);
-        
+
         public static EditorConfigData<bool> PreferReadonly = new BooleanEditorConfigData("dotnet_style_readonly_field",
                                                                                           CompilerExtensionsResources.Prefer_readonly_fields);
         #endregion
