@@ -210,14 +210,9 @@ namespace Microsoft.CodeAnalysis.Snippets
             return document;
         }
 
-        protected virtual string? GetIndentation(Document document, SyntaxNode node, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
+        protected virtual async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            return null;
-        }
-
-        protected async virtual Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-        {
-            return document;
+            return await Task.FromResult(document).ConfigureAwait(false);
         }
     }
 }

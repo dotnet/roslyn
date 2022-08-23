@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             cursorPositionNode = triviaSpan.Start + (triviaSpan.Length / 2) + 1;
         }
 
-        protected override string? GetIndentation(Document document, SyntaxNode node, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
+        private static string GetIndentation(Document document, SyntaxNode node, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
         {
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
             var ifStatementSyntax = (IfStatementSyntax)node;
@@ -61,11 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
             var indentationString = GetIndentation(document, nearestStatement, syntaxFormattingOptions, cancellationToken);
-
-            if (indentationString is null)
-            {
-                return document;
-            }
 
             var ifStatementSyntax = (IfStatementSyntax)nearestStatement;
             var blockStatement = (BlockSyntax)ifStatementSyntax.Statement;
