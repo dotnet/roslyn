@@ -220,9 +220,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             return diagnostics;
         }
-
-        public bool CanApplyChanges(ApplyChangesKind kind)
-            => Document.Project.Solution.CanApplyChange(kind);
     }
 
     [Obsolete]
