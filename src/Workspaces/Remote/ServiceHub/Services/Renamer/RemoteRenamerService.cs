@@ -36,22 +36,16 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public ValueTask KeepAliveAsync(
             Checksum solutionChecksum,
-            RemoteServiceCallbackId callbackId,
             CancellationToken cancellationToken)
         {
             // First get the solution, ensuring that it is currently pinned.
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                // Once we have it, let our caller know so that it can proceed to it's next steps.
-                await _callback.InvokeAsync((callback, cancellationToken) =>
-                    callback.KeepAliveAsync(callbackId, cancellationToken), cancellationToken).ConfigureAwait(false);
-
-                // Finally wait for our caller to tell us to cancel.  That way we can release this solution and allow it
+                // Wait for our caller to tell us to cancel.  That way we can release this solution and allow it
                 // to be collected if not needed anymore.
-                var taskCompletionSource = new TaskCompletionSource<bool>();
-                cancellationToken.Register(() => taskCompletionSource.TrySetCanceled(cancellationToken));
-
-                await taskCompletionSource.Task.ConfigureAwait(false);
+                //
+                // This was provided by stoub as an idiomatic way to wait indefinitely until a cancellation token triggers.
+                await Task.Delay(-1, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 

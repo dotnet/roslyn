@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
             private CompilationTrackerState ReadState()
                 => Volatile.Read(ref _stateDoNotAccessDirectly);
 
-            private void WriteState(CompilationTrackerState state, HostWorkspaceServices solutionServices)
+            private void WriteState(CompilationTrackerState state, SolutionServices solutionServices)
             {
                 var cacheService = solutionServices.GetService<IProjectCacheHostService>();
                 if (cacheService != null)
@@ -116,10 +116,8 @@ namespace Microsoft.CodeAnalysis
             /// compilation state as the now 'old' state
             /// </summary>
             public ICompilationTracker Fork(
-                HostWorkspaceServices solutionServices,
                 ProjectState newProject,
-                CompilationAndGeneratorDriverTranslationAction? translate = null,
-                CancellationToken cancellationToken = default)
+                CompilationAndGeneratorDriverTranslationAction? translate)
             {
                 var state = ReadState();
 
@@ -396,7 +394,7 @@ namespace Microsoft.CodeAnalysis
                 return compilationInfo.Compilation;
             }
 
-            private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(HostWorkspaceServices solutionServices, CancellationToken cancellationToken)
+            private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(SolutionServices solutionServices, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -542,7 +540,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     var compilation = await BuildDeclarationCompilationFromScratchAsync(
-                        solution.Services,
+                        solution.Services.SolutionServices,
                         generatorInfo,
                         cancellationToken).ConfigureAwait(false);
 
@@ -563,7 +561,7 @@ namespace Microsoft.CodeAnalysis
                 "https://github.com/dotnet/roslyn/issues/23582",
                 Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
             private async Task<Compilation> BuildDeclarationCompilationFromScratchAsync(
-                HostWorkspaceServices solutionServices,
+                SolutionServices solutionServices,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 CancellationToken cancellationToken)
             {
@@ -613,7 +611,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    var (compilationWithoutGenerators, compilationWithGenerators, generatorDriver) = await BuildDeclarationCompilationFromInProgressAsync(solution.Services, state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
+                    var (compilationWithoutGenerators, compilationWithGenerators, generatorDriver) = await BuildDeclarationCompilationFromInProgressAsync(solution.Services.SolutionServices, state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
                     return await FinalizeCompilationAsync(
                         solution,
                         compilationWithoutGenerators,
@@ -628,7 +626,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             private async Task<(Compilation compilationWithoutGenerators, Compilation? compilationWithGenerators, GeneratorDriver? generatorDriver)> BuildDeclarationCompilationFromInProgressAsync(
-                HostWorkspaceServices solutionServices, InProgressState state, Compilation compilationWithoutGenerators, CancellationToken cancellationToken)
+                SolutionServices solutionServices, InProgressState state, Compilation compilationWithoutGenerators, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -958,7 +956,7 @@ namespace Microsoft.CodeAnalysis
                         this.ProjectState.Id,
                         metadataReferenceToProjectId);
 
-                    this.WriteState(finalState, solution.Services);
+                    this.WriteState(finalState, solution.Services.SolutionServices);
 
                     return new CompilationInfo(compilationWithGenerators, hasSuccessfullyLoaded, generatorInfo);
                 }

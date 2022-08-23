@@ -42,7 +42,7 @@ internal sealed record class IdeAnalyzerOptions
     public CodeGenerationOptions? GenerationOptions => CleanCodeGenerationOptions?.GenerationOptions;
 
 #if !CODE_STYLE
-    public static IdeAnalyzerOptions GetDefault(HostProjectServices languageServices)
+    public static IdeAnalyzerOptions GetDefault(LanguageServices languageServices)
         => new()
         {
             CleanCodeGenerationOptions = CodeGeneration.CleanCodeGenerationOptions.GetDefault(languageServices),

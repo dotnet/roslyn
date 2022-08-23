@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             using var workspace = CreateWorkspace();
 
-            var exportProvider = (IMefHostExportProvider)workspace.Services.HostServices;
+            var exportProvider = workspace.Services.SolutionServices.ExportProvider;
             var listenerProvider = exportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
 
