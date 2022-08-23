@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
             return ImmutableArray.Create(new[] { "2", "4", "8" });
         }
 
-        public override string[]? GetAllSettingValuesDocumentation()
+        public override string[] GetAllSettingValuesDocumentation()
         {
             return Array.Empty<string>();
         }

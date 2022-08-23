@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
         {
             return ValueToSettingName.Keys.ToImmutableArray();
         }
-        public override string[]? GetAllSettingValuesDocumentation()
+        public override string[] GetAllSettingValuesDocumentation()
         {
             return ValuesDocumentation.Values.ToArray<string>();
         }
