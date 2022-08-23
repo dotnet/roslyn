@@ -6,7 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.MoveStaticMembers
 Imports Microsoft.CodeAnalysis.PullMemberUp
 Imports Microsoft.CodeAnalysis.Shared.Extensions

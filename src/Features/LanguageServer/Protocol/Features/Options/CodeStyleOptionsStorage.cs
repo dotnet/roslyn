@@ -21,7 +21,7 @@ internal interface ICodeStyleOptionsStorage : ILanguageService
 
 internal static class CodeStyleOptionsStorage
 {
-    public static IdeCodeStyleOptions GetCodeStyleOptions(this IGlobalOptionService globalOptions, HostProjectServices languageServices)
+    public static IdeCodeStyleOptions GetCodeStyleOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
         => languageServices.GetRequiredService<ICodeStyleOptionsStorage>().GetOptions(globalOptions);
 
     public static IdeCodeStyleOptions.CommonOptions GetCommonCodeStyleOptions(this IGlobalOptionService globalOptions, string language)

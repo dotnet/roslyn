@@ -295,11 +295,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (_moduleSymbol.Module.HasUnscopedRefAttribute(_handle))
                 {
+                    if (_moduleSymbol.Module.HasScopedRefAttribute(_handle))
+                    {
+                        isBad = true;
+                    }
                     scope = DeclarationScope.Unscoped;
-                }
-                else if (refKind == RefKind.Out)
-                {
-                    scope = DeclarationScope.RefScoped;
                 }
                 else if (_moduleSymbol.Module.HasScopedRefAttribute(_handle))
                 {
@@ -316,6 +316,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         isBad = true;
                     }
+                }
+                else if (ParameterHelpers.IsRefScopedByDefault(refKind, typeWithAnnotations))
+                {
+                    scope = DeclarationScope.RefScoped;
                 }
             }
 

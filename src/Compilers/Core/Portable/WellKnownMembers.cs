@@ -3653,6 +3653,13 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                                       // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
 
+                // MetadataUpdateOriginalTypeAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                                               // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute - WellKnownType.ExtSentinel),            // DeclaringTypeId
+                 0,                                                                                                                          // Arity
+                    1,                                                                                                                       // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                                       // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -4103,13 +4110,14 @@ namespace Microsoft.CodeAnalysis
                 "ToStringAndClear",                         // System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear
                 ".ctor",                                    // System_Runtime_CompilerServices_RequiredMemberAttribute__ctor
                 ".ctor",                                    // System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor
-                ".ctor",                         // System_Runtime_CompilerServices_LifetimeAttribute__ctor
+                ".ctor",                                    // System_Runtime_CompilerServices_LifetimeAttribute__ctor
                 "SequenceEqual",                            // System_MemoryExtensions__SequenceEqual_Span_T
                 "SequenceEqual",                            // System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T
                 "AsSpan",                                   // System_MemoryExtensions__AsSpan_String
                 ".ctor",                                    // System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute_ctor
                 ".ctor",                                    // System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor
                 ".ctor",                                    // System_MissingMethodException__ctor
+                ".ctor",                                    // System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

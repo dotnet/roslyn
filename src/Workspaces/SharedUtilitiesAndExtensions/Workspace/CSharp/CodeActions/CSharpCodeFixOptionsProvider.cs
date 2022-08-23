@@ -87,35 +87,35 @@ internal readonly struct CSharpCodeFixOptionsProvider
 #if CODE_STYLE
         => CSharpIdeCodeStyleOptions.Default;
 #else
-        => (CSharpIdeCodeStyleOptions)_fallbackOptions.GetOptions(_languageServices).CodeStyleOptions;
+        => (CSharpIdeCodeStyleOptions)_fallbackOptions.GetOptions(_languageServices.LanguageServices).CodeStyleOptions;
 #endif
 
     private CSharpSimplifierOptions FallbackSimplifierOptions
 #if CODE_STYLE
         => CSharpSimplifierOptions.Default;
 #else
-        => (CSharpSimplifierOptions)_fallbackOptions.GetOptions(_languageServices).CleanupOptions.SimplifierOptions;
+        => (CSharpSimplifierOptions)_fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.SimplifierOptions;
 #endif
 
     private CSharpSyntaxFormattingOptions FallbackSyntaxFormattingOptions
 #if CODE_STYLE
         => CSharpSyntaxFormattingOptions.Default;
 #else
-        => (CSharpSyntaxFormattingOptions)_fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions;
+        => (CSharpSyntaxFormattingOptions)_fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions;
 #endif
 
     private LineFormattingOptions FallbackLineFormattingOptions
 #if CODE_STYLE
         => LineFormattingOptions.Default;
 #else
-        => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions.LineFormatting;
+        => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions.LineFormatting;
 #endif
 
     private AddImportPlacementOptions FallbackAddImportPlacementOptions
 #if CODE_STYLE
         => AddImportPlacementOptions.Default;
 #else
-        => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.AddImportOptions;
+        => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.AddImportOptions;
 #endif
 }
 
