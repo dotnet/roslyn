@@ -11096,16 +11096,10 @@ public ref struct S1
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
         comp.VerifyDiagnostics(
             // (17,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, ref CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
-            //         M2(ref s1, $"{s}");
+            //         M2(ref s1, $"""{s}""" + $"""
             Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, " + expression + @")").WithArguments("CustomHandler.M2(ref S1, ref CustomHandler)", "handler").WithLocation(17, 9),
-            // (17,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+            // (17,25): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
             //         M2(ref s1, $"""{s}""" + $"""
-            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1").WithLocation(17, 16),
-            // (17,20): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
-            //         M2(ref s1, $"""{s}""" + $"""
-            Diagnostic(ErrorCode.ERR_EscapeCall, expression).WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(17, 20),
-            // (17,23): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
-            //         M2(ref s1, $"{s}");
             Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 25));
     }
 
@@ -11246,9 +11240,12 @@ public ref struct CustomHandler
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
         comp.VerifyDiagnostics(
-            // (16,16): error CS8352: Cannot use variable 'c' in this context because it may expose referenced variables outside of their declaration scope
+            // (18,16): error CS8352: Cannot use variable 'c' in this context because it may expose referenced variables outside of their declaration scope
             //         return c;
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("c").WithLocation(18, 16));
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("c").WithLocation(18, 16),
+            // (23,20): error CS8166: Cannot return a parameter by reference 'handler' because it is not a ref parameter
+            //         return ref handler;
+            Diagnostic(ErrorCode.ERR_RefReturnParameter, "handler").WithArguments("handler").WithLocation(23, 20));
     }
 
     [Fact]
@@ -11285,16 +11282,10 @@ public ref struct S1
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
         comp.VerifyDiagnostics(
             // (15,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
-            //         M2(ref s1, $"{s2}");
+            //         M2(ref s1, $"""{s2}""");
             Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, $""""""{s2}"""""")").WithArguments("CustomHandler.M2(ref S1, CustomHandler)", "handler").WithLocation(15, 9),
-            // (15,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+            // (15,25): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
             //         M2(ref s1, $"""{s2}""");
-            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1").WithLocation(15, 16),
-            // (15,20): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
-            //         M2(ref s1, $"""{s2}""");
-            Diagnostic(ErrorCode.ERR_EscapeCall, @"$""""""{s2}""""""").WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(15, 20),
-            // (15,23): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-            //         M2(ref s1, $"{s2}");
             Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(15, 25));
     }
 
@@ -11324,13 +11315,7 @@ class Program
 }";
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
-        comp.VerifyDiagnostics(
-            // (17,15): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
-            //         M(ref s, $"""{1}""");
-            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s").WithLocation(17, 15),
-            // (17,18): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-            //         M(ref s, $"""{1}""");
-            Diagnostic(ErrorCode.ERR_EscapeCall, @"$""""""{1}""""""").WithArguments("CustomHandler.CustomHandler(int, int, ref S)", "s").WithLocation(17, 18));
+        comp.VerifyDiagnostics();
     }
 
     [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]

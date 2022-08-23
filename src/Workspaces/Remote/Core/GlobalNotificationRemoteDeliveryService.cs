@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly object _globalNotificationsGate = new object();
         private Task<GlobalNotificationState> _globalNotificationsTask = Task.FromResult(GlobalNotificationState.NotStarted);
 
-        private readonly HostWorkspaceServices _services;
+        private readonly SolutionServices _services;
         private readonly CancellationToken _cancellationToken;
 
-        public GlobalNotificationRemoteDeliveryService(HostWorkspaceServices services, CancellationToken cancellationToken)
+        public GlobalNotificationRemoteDeliveryService(SolutionServices services, CancellationToken cancellationToken)
         {
             _services = services;
             _cancellationToken = cancellationToken;
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return previousTask.Result;
             }
 
-            var client = await RemoteHostClient.TryGetClientAsync(_services.SolutionServices, _cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(_services, _cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 return previousTask.Result;
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return previousTask.Result;
             }
 
-            var client = await RemoteHostClient.TryGetClientAsync(_services.SolutionServices, _cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(_services, _cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 return previousTask.Result;
