@@ -1292,6 +1292,11 @@
         <target state="translated">Un campo de referencia no puede hacer referencia a una estructura de referencia.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefFieldInNonRefStruct">
+        <source>A ref field can only be declared in a ref struct.</source>
+        <target state="new">A ref field can only be declared in a ref struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="translated">La parte izquierda de una asignación de referencias debe ser una variable local.</target>

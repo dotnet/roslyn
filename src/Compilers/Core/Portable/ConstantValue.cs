@@ -122,7 +122,6 @@ namespace Microsoft.CodeAnalysis
             return new ConstantValueI16(value);
         }
 
-
         public static ConstantValue Create(sbyte value)
         {
             if (value == 0)
@@ -477,8 +476,8 @@ namespace Microsoft.CodeAnalysis
                 ConstantValueTypeDiscriminator.String => "string",
                 ConstantValueTypeDiscriminator.Decimal => "decimal",
                 ConstantValueTypeDiscriminator.DateTime => "DateTime",
-                ConstantValueTypeDiscriminator.Null or ConstantValueTypeDiscriminator.Bad => throw new InvalidOperationException(),
-                _ => throw new InvalidOperationException()
+                ConstantValueTypeDiscriminator.Null or ConstantValueTypeDiscriminator.Bad => throw ExceptionUtilities.UnexpectedValue(Discriminator),
+                _ => throw ExceptionUtilities.UnexpectedValue(Discriminator)
             };
         }
 

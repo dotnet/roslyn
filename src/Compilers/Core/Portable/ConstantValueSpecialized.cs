@@ -342,6 +342,27 @@ namespace Microsoft.CodeAnalysis
             {
                 get { return GetSpecialType(_discriminator); }
             }
+
+            public override string ToString(string? format, IFormatProvider? provider)
+            {
+                return Discriminator switch
+                {
+                    ConstantValueTypeDiscriminator.SByte => SByteValue.ToString(provider),
+                    ConstantValueTypeDiscriminator.Byte => ByteValue.ToString(provider),
+                    ConstantValueTypeDiscriminator.Int16 => Int16Value.ToString(provider),
+                    ConstantValueTypeDiscriminator.UInt16 => UInt16Value.ToString(provider),
+                    ConstantValueTypeDiscriminator.NInt or ConstantValueTypeDiscriminator.Int32 => Int32Value.ToString(provider),
+                    ConstantValueTypeDiscriminator.NUInt or ConstantValueTypeDiscriminator.UInt32 => UInt32Value.ToString(provider),
+                    ConstantValueTypeDiscriminator.UInt64 => UInt64Value.ToString(provider),
+                    ConstantValueTypeDiscriminator.Int64 => Int64Value.ToString(provider),
+                    ConstantValueTypeDiscriminator.Char => CharValue.ToString(provider),
+                    ConstantValueTypeDiscriminator.Boolean => BooleanValue.ToString(provider),
+                    ConstantValueTypeDiscriminator.Single => SingleValue.ToString(provider),
+                    ConstantValueTypeDiscriminator.Double => DoubleValue.ToString(provider),
+                    ConstantValueTypeDiscriminator.Decimal => DecimalValue.ToString(provider),
+                    _ => throw ExceptionUtilities.UnexpectedValue(Discriminator)
+                };
+            }
         }
 
         // default value of a value type constant. (reference type constants use Null as default)
@@ -400,6 +421,7 @@ namespace Microsoft.CodeAnalysis
                     return 0;
                 }
             }
+
             public override float SingleValue
             {
                 get
@@ -650,27 +672,6 @@ namespace Microsoft.CodeAnalysis
             public override int GetHashCode()
             {
                 return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
-            }
-
-            public override string ToString(string? format, IFormatProvider? provider)
-            {
-                return Discriminator switch
-                {
-                    ConstantValueTypeDiscriminator.SByte => SByteValue.ToString(provider),
-                    ConstantValueTypeDiscriminator.Byte => ByteValue.ToString(provider),
-                    ConstantValueTypeDiscriminator.Int16 => Int16Value.ToString(provider),
-                    ConstantValueTypeDiscriminator.UInt16 => UInt16Value.ToString(provider),
-                    ConstantValueTypeDiscriminator.NInt or ConstantValueTypeDiscriminator.Int32 => Int32Value.ToString(provider),
-                    ConstantValueTypeDiscriminator.NUInt or ConstantValueTypeDiscriminator.UInt32 => UInt32Value.ToString(provider),
-                    ConstantValueTypeDiscriminator.UInt64 => UInt64Value.ToString(provider),
-                    ConstantValueTypeDiscriminator.Int64 => Int64Value.ToString(provider),
-                    ConstantValueTypeDiscriminator.Char => CharValue.ToString(provider),
-                    ConstantValueTypeDiscriminator.Boolean => BooleanValue.ToString(provider),
-                    ConstantValueTypeDiscriminator.Single => SingleValue.ToString(provider),
-                    ConstantValueTypeDiscriminator.Double => DoubleValue.ToString(provider),
-                    ConstantValueTypeDiscriminator.Decimal => DecimalValue.ToString(provider),
-                    _ => throw new InvalidOperationException(),
-                };
             }
         }
 
