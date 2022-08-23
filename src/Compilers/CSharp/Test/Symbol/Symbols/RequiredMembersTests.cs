@@ -4964,30 +4964,32 @@ public class Derived : Base
         {
             var c = module.ContainingAssembly.GetTypeByMetadataName("C");
             AssertEx.NotNull(c);
+            FieldSymbol fieldSymbol = c.GetMember<FieldSymbol>("Field");
+            PropertySymbol propertySymbol = c.GetMember<PropertySymbol>("Property");
 
             if (accessAttributesFirst)
             {
-                AssertAttributesEmpty();
-                AssertIsRequired();
+                assertAttributesEmpty();
+                assertIsRequired();
             }
             else
             {
-                AssertIsRequired();
-                AssertAttributesEmpty();
+                assertIsRequired();
+                assertAttributesEmpty();
             }
 
-            void AssertIsRequired()
+            void assertIsRequired()
             {
                 Assert.True(c.HasDeclaredRequiredMembers);
-                Assert.True(c.GetMember<FieldSymbol>("Field").IsRequired);
-                Assert.True(c.GetMember<PropertySymbol>("Property").IsRequired);
+                Assert.True(fieldSymbol.IsRequired);
+                Assert.True(propertySymbol.IsRequired);
             }
 
-            void AssertAttributesEmpty()
+            void assertAttributesEmpty()
             {
                 Assert.Empty(c.GetAttributes());
-                Assert.Empty(c.GetMember<FieldSymbol>("Field").GetAttributes());
-                Assert.Empty(c.GetMember<PropertySymbol>("Property").GetAttributes());
+                Assert.Empty(fieldSymbol.GetAttributes());
+                Assert.Empty(propertySymbol.GetAttributes());
             }
         });
     }
