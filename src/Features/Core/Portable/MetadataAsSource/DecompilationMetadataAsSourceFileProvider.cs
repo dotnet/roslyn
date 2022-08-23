@@ -40,7 +40,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             _implementationAssemblyLookupService = implementationAssemblyLookupService;
         }
 
-        public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, string tempPath, CancellationToken cancellationToken)
+        public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(
+            Workspace workspace,
+            Project project,
+            ISymbol symbol,
+            bool signaturesOnly,
+            MetadataAsSourceOptions options,
+            string tempPath,
+            CancellationToken cancellationToken)
         {
             MetadataAsSourceGeneratedFileInfo fileInfo;
             Location? navigateLocation = null;
@@ -69,7 +76,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             }
 
             var infoKey = await GetUniqueDocumentKeyAsync(project, topLevelNamedType, signaturesOnly: !useDecompiler, cancellationToken).ConfigureAwait(false);
-            fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(tempPath, project, topLevelNamedType, signaturesOnly: !useDecompiler));
+            fileInfo = _keyToInformation.GetOrAdd(infoKey,
+                _ => new MetadataAsSourceGeneratedFileInfo(workspace, project, tempPath, topLevelNamedType, signaturesOnly: !useDecompiler));
 
             _generatedFilenameToInformation[fileInfo.TemporaryFilePath] = fileInfo;
 
