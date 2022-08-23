@@ -2,21 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../EditorFeaturesResources.resx">
     <body>
-      <trans-unit id="All_methods">
-        <source>All methods</source>
-        <target state="new">All methods</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always">
-        <source>Always</source>
-        <target state="new">Always</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always_for_clarity">
-        <source>Always for clarity</source>
-        <target state="new">Always for clarity</target>
-        <note />
-      </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
         <target state="translated">식별자 '{0}'의 인라인 이름 바꾸기 세션이 활성 상태입니다. 추가 옵션에 액세스하려면 인라인 이름 바꾸기를 다시 호출하세요. 언제든지 이름을 바꾸려는 식별자를 계속 편집할 수 있습니다.</target>
@@ -50,11 +35,6 @@
       <trans-unit id="Configure_it_now">
         <source>Configure it now</source>
         <target state="translated">지금 구성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_not_prefer_this_or_Me">
-        <source>Do not prefer 'this.' or 'Me.'</source>
-        <target state="translated">'this.' 또는 'Me.'를 기본으로 사용하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_show_this_message_again">
@@ -91,11 +71,6 @@
         <source>Filter</source>
         <target state="translated">필터</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
-      </trans-unit>
-      <trans-unit id="For_non_interface_members">
-        <source>For non interface members</source>
-        <target state="new">For non interface members</target>
-        <note />
       </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
@@ -222,31 +197,6 @@
         <target state="translated">베이스를 찾는 중...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="new">Never</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_if_unnecessary">
-        <source>Never if unnecessary</source>
-        <target state="new">Never if unnecessary</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No">
-        <source>No</source>
-        <target state="translated">아니요</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Non_public_methods">
-        <source>Non-public methods</source>
-        <target state="new">Non-public methods</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Omit_if_default">
-        <source>Omit if default</source>
-        <target state="new">Omit if default</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">연산자 - 오버로드됨</target>
@@ -255,21 +205,6 @@
       <trans-unit id="Paste_Tracking">
         <source>Paste Tracking</source>
         <target state="translated">붙여넣기 추적</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_framework_type">
-        <source>Prefer framework type</source>
-        <target state="new">Prefer framework type</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_predefined_type">
-        <source>Prefer predefined type</source>
-        <target state="new">Prefer predefined type</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_this_or_Me">
-        <source>Prefer 'this.' or 'Me.'</source>
-        <target state="translated">'this.' 또는 'Me.'를 기본으로 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="Preprocessor_Text">
@@ -580,11 +515,6 @@
       <trans-unit id="Rename_will_update_0_references_in_1_files">
         <source>Rename will update {0} references in {1} files.</source>
         <target state="translated">이름 바꾸기로 {1}개의 파일에서 {0}개의 참조가 업데이트됩니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Yes">
-        <source>Yes</source>
-        <target state="translated">예</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file">

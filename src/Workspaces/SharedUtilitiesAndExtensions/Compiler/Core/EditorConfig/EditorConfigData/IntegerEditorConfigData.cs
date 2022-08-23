@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
@@ -26,6 +23,11 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
         public override ImmutableArray<string> GetAllSettingValues()
         {
             return ImmutableArray.Create(new[] { "2", "4", "8" });
+        }
+
+        public override string[]? GetAllSettingValuesDocumentation()
+        {
+            return Array.Empty<string>();
         }
 
         public override string? GetSettingValueDocumentation(string key)

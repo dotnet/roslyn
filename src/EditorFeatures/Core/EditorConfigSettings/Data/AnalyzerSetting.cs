@@ -88,11 +88,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             return EditorConfigData.GetAllSettingValues();
         }
 
-        public bool AllowsMultipleValues() => false;
-
         public string? GetValueDocumentation(string value)
         {
-            throw new NotImplementedException();
+            return EditorConfigData.GetSettingValueDocumentation(value);
         }
+
+        public bool AllowsMultipleValues() => false;
     }
 }

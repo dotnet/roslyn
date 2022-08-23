@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
 using Roslyn.Utilities;
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
         public string GetSettingNameDocumentation();
         public bool GetAllowsMultipleValues();
         public ImmutableArray<string> GetAllSettingValues();
+        public string[] GetAllSettingValuesDocumentation();
         public string? GetSettingValueDocumentation(string key);
     }
 
@@ -35,6 +37,7 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
         public abstract string GetSettingNameDocumentation();
         public abstract bool GetAllowsMultipleValues();
         public abstract ImmutableArray<string> GetAllSettingValues();
+        public abstract string[] GetAllSettingValuesDocumentation();
         public abstract string? GetSettingValueDocumentation(string key);
 
         public abstract string GetEditorConfigStringFromValue(T value);

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using Roslyn.Utilities;
 
@@ -13,14 +14,16 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
     internal class StringEditorConfigData : EditorConfigData<string>
     {
         private readonly BidirectionalMap<string, string>? ValueToSettingName;
+        private readonly Dictionary<string, string>? ValuesDocumentation;
         private readonly string DefaultEditorConfigString;
         private readonly string DefaultValue;
 
-        public StringEditorConfigData(string settingName, string settingNameDocumentation, string defaultEditorConfigString, string defaultValue, BidirectionalMap<string, string>? valueToSettingName = null)
+        public StringEditorConfigData(string settingName, string settingNameDocumentation, string defaultEditorConfigString, string defaultValue, BidirectionalMap<string, string>? valueToSettingName = null, Dictionary<string, string>? valuesDocumentation = null)
             : base(settingName, settingNameDocumentation)
         {
             ValueToSettingName = valueToSettingName;
             DefaultEditorConfigString = defaultEditorConfigString;
+            ValuesDocumentation = valuesDocumentation;
             DefaultValue = defaultValue;
         }
 
@@ -35,9 +38,24 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
             return ValueToSettingName != null ? ValueToSettingName.Keys.ToImmutableArray() : ImmutableArray<string>.Empty;
         }
 
+        public override string[] GetAllSettingValuesDocumentation()
+        {
+            if (ValuesDocumentation != null)
+            {
+                return ValuesDocumentation.Values.ToArray();
+            }
+
+            return Array.Empty<string>();
+        }
+
         public override string? GetSettingValueDocumentation(string key)
         {
-            throw new NotImplementedException();
+            if (ValuesDocumentation != null)
+            {
+                return ValuesDocumentation.TryGetValue(key, out var value) ? value : null;
+            }
+
+            return null;
         }
 
         public override string GetEditorConfigStringFromValue(string value)

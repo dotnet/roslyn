@@ -20,25 +20,20 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             private readonly Option2<CodeStyleOption2<T>> _option;
             private readonly AnalyzerConfigOptions _editorConfigOptions;
             private readonly OptionSet _visualStudioOptions;
-
-            public IEditorConfigData EditorConfigData;
-
             public EnumCodeStyleSetting(Option2<CodeStyleOption2<T>> option,
                                         string description,
                                         T[] enumValues,
-                                        string[] valueDescriptions,
                                         AnalyzerConfigOptions editorConfigOptions,
                                         OptionSet visualStudioOptions,
                                         OptionUpdater updater,
                                         string fileName,
                                         IEditorConfigData editorConfigData)
-                : base(description, enumValues, valueDescriptions, option.Group.Description, updater)
+                : base(description, enumValues, option.Group.Description, updater, editorConfigData)
             {
                 _option = option;
                 _editorConfigOptions = editorConfigOptions;
                 _visualStudioOptions = visualStudioOptions;
                 Location = new SettingLocation(IsDefinedInEditorConfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, fileName);
-                EditorConfigData = editorConfigData;
             }
 
             public override bool IsDefinedInEditorConfig => _editorConfigOptions.TryGetEditorConfigOption<CodeStyleOption2<T>>(_option, out _);
@@ -63,26 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                 => _editorConfigOptions.TryGetEditorConfigOption(_option, out CodeStyleOption2<T>? value) && value is not null
                     ? value
                     : _visualStudioOptions.GetOption(_option);
-
-            public override string? GetSettingName()
-            {
-                return EditorConfigData.GetSettingName();
-            }
-
-            public override string GetDocumentation()
-            {
-                return Description;
-            }
-
-            public override ImmutableArray<string>? GetSettingValues()
-            {
-                return EditorConfigData.GetAllSettingValues();
-            }
-
-            public override string? GetValueDocumentation(string value)
-            {
-                return GetCurrentValue();
-            }
         }
     }
 }

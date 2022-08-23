@@ -76,8 +76,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             }
 
             // We look for commas
-            var commaPosition = textInLine.IndexOf(',');
-            if (caretPosition < commaPosition)
+            if (textInLine.Contains(','))
             {
                 return HandleMultiValuedSettings(document, textInLine, caretPosition, equalPosition, ',');
             }

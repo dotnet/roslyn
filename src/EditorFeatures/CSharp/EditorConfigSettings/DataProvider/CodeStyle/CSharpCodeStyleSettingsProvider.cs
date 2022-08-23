@@ -62,20 +62,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
         {
             yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.VarForBuiltInTypes,
                 editorConfigData: CSharpEditorConfigSettingsData.VarForBuiltInTypes,
-                trueValueDescription: CSharpEditorResources.Prefer_var,
-                falseValueDescription: CSharpEditorResources.Prefer_explicit_type,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.VarWhenTypeIsApparent,
                 editorConfigData: CSharpEditorConfigSettingsData.VarWhenTypeIsApparent,
-                trueValueDescription: CSharpEditorResources.Prefer_var,
-                falseValueDescription: CSharpEditorResources.Prefer_explicit_type,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.VarElsewhere,
                 editorConfigData: CSharpEditorConfigSettingsData.VarElsewhere,
-                trueValueDescription: CSharpEditorResources.Prefer_var,
-                falseValueDescription: CSharpEditorResources.Prefer_explicit_type,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
         }
@@ -86,7 +80,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
                 option: CSharpCodeStyleOptions.PreferredUsingDirectivePlacement,
                 editorConfigData: CSharpEditorConfigSettingsData.PreferredUsingDirectivePlacement,
                 enumValues: new[] { AddImportPlacement.InsideNamespace, AddImportPlacement.OutsideNamespace },
-                valueDescriptions: new[] { CSharpEditorResources.Inside_namespace, CSharpEditorResources.Outside_namespace },
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
         }
@@ -125,13 +118,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
             yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferBraces,
                 editorConfigData: CSharpEditorConfigSettingsData.PreferBraces,
                 enumValues: new[] { PreferBracesPreference.Always, PreferBracesPreference.None, PreferBracesPreference.WhenMultiline },
-                valueDescriptions: new[] { EditorFeaturesResources.Yes, EditorFeaturesResources.No, CSharpEditorResources.When_on_multiple_lines },
                 editorConfigOptions: editorConfigOptions, visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
 
             yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.NamespaceDeclarations,
                 editorConfigData: CSharpEditorConfigSettingsData.NamespaceDeclarations,
                 enumValues: new[] { NamespaceDeclarationPreference.BlockScoped, NamespaceDeclarationPreference.FileScoped },
-                valueDescriptions: new[] { CSharpEditorResources.Block_scoped, CSharpEditorResources.File_scoped },
                 editorConfigOptions: editorConfigOptions, visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
 
             yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferMethodGroupConversion,
@@ -175,53 +166,44 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
         private IEnumerable<CodeStyleSetting> GetExpressionBodyCodeStyleOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)
         {
             var enumValues = new[] { ExpressionBodyPreference.Never, ExpressionBodyPreference.WhenPossible, ExpressionBodyPreference.WhenOnSingleLine };
-            var valueDescriptions = new[] { CSharpEditorResources.Never, CSharpEditorResources.When_possible, CSharpEditorResources.When_on_single_line };
             yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
                 editorConfigData: CSharpEditorConfigSettingsData.PreferExpressionBodiedMethods,
                 enumValues: enumValues,
-                valueDescriptions: valueDescriptions,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferExpressionBodiedConstructors,
                 editorConfigData: CSharpEditorConfigSettingsData.PreferExpressionBodiedConstructors,
                 enumValues: enumValues,
-                valueDescriptions: valueDescriptions,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferExpressionBodiedOperators,
                 editorConfigData: CSharpEditorConfigSettingsData.PreferExpressionBodiedOperators,
                 enumValues: enumValues,
-                valueDescriptions: valueDescriptions,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferExpressionBodiedProperties,
                 editorConfigData: CSharpEditorConfigSettingsData.PreferExpressionBodiedProperties,
                 enumValues: enumValues,
-                valueDescriptions: valueDescriptions,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferExpressionBodiedIndexers,
                 editorConfigData: CSharpEditorConfigSettingsData.PreferExpressionBodiedIndexers,
                 enumValues: enumValues,
-                valueDescriptions: valueDescriptions,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferExpressionBodiedAccessors,
                 editorConfigData: CSharpEditorConfigSettingsData.PreferExpressionBodiedAccessors,
                 enumValues: enumValues,
-                valueDescriptions: valueDescriptions,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferExpressionBodiedLambdas,
                 editorConfigData: CSharpEditorConfigSettingsData.PreferExpressionBodiedLambdas,
                 enumValues: enumValues,
-                valueDescriptions: valueDescriptions,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions,
                 editorConfigData: CSharpEditorConfigSettingsData.PreferExpressionBodiedLocalFunctions,
                 enumValues: enumValues,
-                valueDescriptions: valueDescriptions,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
         }
@@ -236,7 +218,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
 
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.UnusedValueAssignment,
                 enumValues,
-                new[] { CSharpEditorResources.Unused_local, CSharpEditorResources.Discard },
                 editorConfigOptions,
                 visualStudioOptions,
                 updaterService, FileName,
@@ -244,7 +225,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
 
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
                 enumValues,
-                new[] { CSharpEditorResources.Unused_local, CSharpEditorResources.Discard },
                 editorConfigOptions,
                 visualStudioOptions,
                 updaterService, FileName,

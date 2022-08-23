@@ -12,6 +12,16 @@
         <target state="translated">Método abstracto</target>
         <note>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
       </trans-unit>
+      <trans-unit id="Accessors">
+        <source>Accessors</source>
+        <target state="new">Accessors</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="All_methods">
+        <source>All methods</source>
+        <target state="new">All methods</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Allow_multiple_blank_lines">
         <source>Allow multiple blank lines</source>
         <target state="new">Allow multiple blank lines</target>
@@ -20,6 +30,16 @@
       <trans-unit id="Allow_statement_immediately_after_block">
         <source>Allow statement immediately after block</source>
         <target state="new">Allow statement immediately after block</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always">
+        <source>Always</source>
+        <target state="new">Always</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_for_clarity">
+        <source>Always for clarity</source>
+        <target state="new">Always for clarity</target>
         <note />
       </trans-unit>
       <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
@@ -32,9 +52,29 @@
         <target state="new">Prefer auto properties</target>
         <note />
       </trans-unit>
+      <trans-unit id="Anonymous_methods">
+        <source>Anonymous methods</source>
+        <target state="new">Anonymous methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Anonymous_types">
+        <source>Anonymous types</source>
+        <target state="new">Anonymous types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Avoid_unused_parameters">
         <source>Avoid unused parameters</source>
         <target state="new">Avoid unused parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Before_and_after">
+        <source>Insert spaces before and after binary operators</source>
+        <target state="new">Insert spaces before and after binary operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Beginning_of_line">
+        <source>Beginning of line</source>
+        <target state="new">Beginning of line</target>
         <note />
       </trans-unit>
       <trans-unit id="Begins_with_I">
@@ -42,20 +82,65 @@
         <target state="translated">Empieza por I</target>
         <note>{locked:I}</note>
       </trans-unit>
+      <trans-unit id="Block_scoped">
+        <source>Block scoped</source>
+        <target state="new">Block scoped</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Class">
         <source>Class</source>
         <target state="new">Class</target>
         <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Control_blocks">
+        <source>Control blocks</source>
+        <target state="new">Control blocks</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Control_flow_statements">
+        <source>Control flow statements</source>
+        <target state="new">Control flow statements</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cr">
+        <source>Carriage Return (\r)</source>
+        <target state="new">Carriage Return (\r)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Crlf">
+        <source>Carriage Return + New Line (\r\n)</source>
+        <target state="new">Carriage Return + New Line (\r\n)</target>
+        <note />
       </trans-unit>
       <trans-unit id="Delegate">
         <source>Delegate</source>
         <target state="new">Delegate</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
+      <trans-unit id="Discard">
+        <source>Discard</source>
+        <target state="new">Discard</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_prefer_this_or_Me">
+        <source>Do not prefer 'this.' or 'Me.'</source>
+        <target state="new">Do not prefer 'this.' or 'Me.'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="End_of_line">
+        <source>End of line</source>
+        <target state="new">End of line</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enum">
         <source>Enum</source>
         <target state="new">Enum</target>
         <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Error_severity">
+        <source>Offending code is underlined with a red squiggle and marked by a small red box in the scroll bar.</source>
+        <target state="new">Offending code is underlined with a red squiggle and marked by a small red box in the scroll bar.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Event">
         <source>Event</source>
@@ -67,14 +152,39 @@
         <target state="translated">La conversión es redundante.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Events">
+        <source>Events</source>
+        <target state="new">Events</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expression_level_preferences">
         <source>Expression-level preferences</source>
         <target state="translated">Preferencias de nivel de expresión</target>
         <note />
       </trans-unit>
+      <trans-unit id="Expressions">
+        <source>Expressions</source>
+        <target state="new">Expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="False">
+        <source>False</source>
+        <target state="new">False</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Field_preferences">
         <source>Field preferences</source>
         <target state="translated">Preferencias de campo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_scoped">
+        <source>File scoped</source>
+        <target state="new">File scoped</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Flush_left">
+        <source>Place goto labels in leftmost column</source>
+        <target state="new">Place goto labels in leftmost column</target>
         <note />
       </trans-unit>
       <trans-unit id="For_locals_parameters_and_members">
@@ -85,6 +195,21 @@
       <trans-unit id="For_member_access_expressions">
         <source>For member access expressions</source>
         <target state="new">For member access expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="For_non_interface_members">
+        <source>For non interface members</source>
+        <target state="new">For non interface members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ignore">
+        <source>Ignore</source>
+        <target state="new">Ignore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ignore_binary_operator_spacing">
+        <source>Ignore spaces around binary operators</source>
+        <target state="new">Ignore spaces around binary operators</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
@@ -112,9 +237,19 @@
         <target state="new">Indentation Size</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indexers">
+        <source>Indexers</source>
+        <target state="new">Indexers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insert_Final_Newline">
         <source>Insert Final Newline</source>
         <target state="new">Insert Final Newline</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inside_namespace">
+        <source>Inside namespace</source>
+        <target state="new">Inside namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Interface">
@@ -122,15 +257,35 @@
         <target state="new">Interface</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
+      <trans-unit id="Lambdas">
+        <source>Lambdas</source>
+        <target state="new">Lambdas</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Language_keywords_vs_BCL_types_preferences">
         <source>Language keywords vs BCL types preferences</source>
         <target state="translated">Preferencias de palabras clave frente a tipos de BCL</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Lf">
+        <source>New Line (\n)</source>
+        <target state="new">New Line (\n)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Local_functions">
+        <source>Local functions</source>
+        <target state="new">Local functions</target>
         <note />
       </trans-unit>
       <trans-unit id="Method">
         <source>Method</source>
         <target state="translated">método</target>
         <note>{locked:method} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Methods">
+        <source>Methods</source>
+        <target state="new">Methods</target>
+        <note />
       </trans-unit>
       <trans-unit id="Missing_prefix_colon_0">
         <source>Missing prefix: '{0}'</source>
@@ -157,6 +312,16 @@
         <target state="translated">Estilos de nomenclatura</target>
         <note />
       </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="new">Never</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_if_unnecessary">
+        <source>Never if unnecessary</source>
+        <target state="new">Never if unnecessary</target>
+        <note />
+      </trans-unit>
       <trans-unit id="New_Line">
         <source>New Line</source>
         <target state="new">New Line</target>
@@ -167,10 +332,45 @@
         <target state="translated">Nuevas preferencias de línea</target>
         <note />
       </trans-unit>
+      <trans-unit id="No">
+        <source>No</source>
+        <target state="new">No</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_change">
+        <source>Indent labels normally</source>
+        <target state="new">Indent labels normally</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Non_Field_Members">
         <source>Non-Field Members</source>
         <target state="translated">Miembros que no son un campo</target>
         <note>{locked:field}</note>
+      </trans-unit>
+      <trans-unit id="Non_public_methods">
+        <source>Non-public methods</source>
+        <target state="new">Non-public methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="None_binary_operator_spacing">
+        <source>Remove spaces before and after binary operators</source>
+        <target state="new">Remove spaces before and after binary operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Object_collection_array_initializers">
+        <source>Object collection array initializers</source>
+        <target state="new">Object collection array initializers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Omit_if_default">
+        <source>Omit if default</source>
+        <target state="new">Omit if default</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="One_less_than_current">
+        <source>Place goto labels one indent less than current</source>
+        <target state="new">Place goto labels one indent less than current</target>
+        <note />
       </trans-unit>
       <trans-unit id="Operator_placement_when_wrapping">
         <source>Operator placement when wrapping</source>
@@ -180,6 +380,11 @@
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>
         <target state="translated">Organizar instrucciones Using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="new">Outside namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences">
@@ -232,6 +437,16 @@
         <target state="new">Prefer explicit tuple name</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_explicit_type">
+        <source>Prefer explicit type</source>
+        <target state="new">Prefer explicit type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_framework_type">
+        <source>Prefer framework type</source>
+        <target state="new">Prefer framework type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_inferred_anonymous_type_member_names">
         <source>Prefer inferred anonymous type member names</source>
         <target state="new">Prefer inferred anonymous type member names</target>
@@ -262,6 +477,11 @@
         <target state="new">Prefer object initializer</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_predefined_type">
+        <source>Prefer predefined type</source>
+        <target state="new">Prefer predefined type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
         <target state="new">Prefer readonly fields</target>
@@ -275,6 +495,16 @@
       <trans-unit id="Prefer_simplified_interpolation">
         <source>Prefer simplified interpolation</source>
         <target state="new">Prefer simplified interpolation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_this_or_Me">
+        <source>Prefer 'this.' or 'Me.'</source>
+        <target state="new">Prefer 'this.' or 'Me.'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_var">
+        <source>Prefer 'var'</source>
+        <target state="new">Prefer 'var'</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
@@ -301,6 +531,11 @@
         <source>Private or Internal Static Field</source>
         <target state="translated">Campo estático privado o interno</target>
         <note>{locked: private}{locked: internal}{locked:static}{locked:field}</note>
+      </trans-unit>
+      <trans-unit id="Properties">
+        <source>Properties</source>
+        <target state="new">Properties</target>
+        <note />
       </trans-unit>
       <trans-unit id="Property">
         <source>Property</source>
@@ -342,6 +577,16 @@
         <target state="translated">El tamaño del segmento debe ser una potencia de 2 mayor que 1</target>
         <note />
       </trans-unit>
+      <trans-unit id="Silent_severity">
+        <source>Non-visible to user. The diagnostic is reported to the IDE diagnostic engine, however.</source>
+        <target state="new">Non-visible to user. The diagnostic is reported to the IDE diagnostic engine, however.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Space">
+        <source>Use spaces</source>
+        <target state="new">Use spaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Specified_sequence_has_duplicate_items">
         <source>Specified sequence has duplicate items</source>
         <target state="translated">La secuencia especificada tiene elementos duplicados.</target>
@@ -362,6 +607,11 @@
         <target state="new">Struct</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
+      <trans-unit id="Suggestion_severity">
+        <source>Offending code is underlined with a gray squiggle and marked by a small gray box in the scroll bar.</source>
+        <target state="new">Offending code is underlined with a gray squiggle and marked by a small gray box in the scroll bar.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suppression_preferences">
         <source>Suppression preferences</source>
         <target state="translated">Preferencias de eliminación</target>
@@ -370,6 +620,11 @@
       <trans-unit id="Symbol_specifications">
         <source>Symbol specifications</source>
         <target state="translated">Especificaciones de símbolos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Tab">
+        <source>Use tabs</source>
+        <target state="new">Use tabs</target>
         <note />
       </trans-unit>
       <trans-unit id="Tab_Size">
@@ -412,14 +667,49 @@
         <target state="translated">Estas palabras deben comenzar por caracteres en mayúscula: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Type_casts">
+        <source>Type casts</source>
+        <target state="new">Type casts</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Types">
         <source>Types</source>
         <target state="translated">Tipos</target>
         <note>{locked:types} unless the capitalization should be handled differently</note>
       </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="new">Unused local</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_Tabs">
         <source>Use Tabs</source>
         <target state="new">Use Tabs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_severity">
+        <source>Offending code is underlined with a green squiggle and marked by a small green box in the scroll bar.</source>
+        <target state="new">Offending code is underlined with a green squiggle and marked by a small green box in the scroll bar.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_on_multiple_lines">
+        <source>When on multiple lines</source>
+        <target state="new">When on multiple lines</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_on_single_line">
+        <source>When on single line</source>
+        <target state="new">When on single line</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_possible">
+        <source>When possible</source>
+        <target state="new">When possible</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Yes">
+        <source>Yes</source>
+        <target state="new">Yes</target>
         <note />
       </trans-unit>
       <trans-unit id="this_dot_and_Me_dot_preferences">
