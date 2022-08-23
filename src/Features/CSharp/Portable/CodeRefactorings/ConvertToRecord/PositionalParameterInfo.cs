@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             return results;
         }
 
-        private static ImmutableArray<IPropertySymbol> GetInheritedPositionalParams(
+        public static ImmutableArray<IPropertySymbol> GetInheritedPositionalParams(
             INamedTypeSymbol currentType,
             CancellationToken cancellationToken)
         {

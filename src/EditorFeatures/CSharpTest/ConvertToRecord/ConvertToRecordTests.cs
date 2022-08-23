@@ -356,6 +356,43 @@ namespace N
         }
 
         [Fact]
+        public async Task TestMovePropertyPositionalParameterRecordInheritanceWithComments()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    /// <summary> B </summary>
+    /// <param name=""Foo""> Foo is an int </param>
+    /// <param name=""Bar""> Bar is an int as well </param>
+    public record B(int Foo, int Bar);
+
+    /// <summary> C inherits from B </summary>
+    public class [|{|CS1729:C|}|] : {|CS8865:B|}
+    {
+        /// <summary> P can be initialized </summary>
+        public int P { get; init; }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    /// <summary> B </summary>
+    /// <param name=""Foo""> Foo is an int </param>
+    /// <param name=""Bar""> Bar is an int as well </param>
+    public record B(int Foo, int Bar);
+
+    /// <summary> C inherits from B </summary>
+    /// <param name=""Foo""><inheritdoc cref=""B"" path=""/param[@name='Foo']""/></param>
+    /// <param name=""Bar""><inheritdoc cref=""B"" path=""/param[@name='Bar']""/></param>
+    /// <param name=""P""> P can be initialized </param>
+    public record C(int Foo, int Bar, int P) : B(Foo, Bar);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestMovePropertyAndReorderWithPositionalParameterRecordInheritance()
         {
             var initialMarkup = @"
@@ -2633,6 +2670,58 @@ namespace N
         }
 
         [Fact]
+        public async Task TestMovePropertiesAndProvideThisInitializerValuesWithStaticMemberAndInvocation()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public static class Stuff
+    {
+        public static bool GetB(bool b1, bool b2)
+        {
+            return b1 || b2;
+        }
+    }
+
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+        public static int DefaultP { get; set; } = 10;
+
+        public C(bool b1, bool b2, bool b3)
+        {
+            P = b3 ? DefaultP : 0;
+            B = Stuff.GetB(b1, b2);
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public static class Stuff
+    {
+        public static bool GetB(bool b1, bool b2)
+        {
+            return b1 || b2;
+        }
+    }
+
+    public record C(int P, bool B)
+    {
+        public static int DefaultP { get; set; } = 10;
+
+        public C(bool b1, bool b2, bool b3) : this(b3 ? DefaultP : 0, Stuff.GetB(b1, b2))
+        {
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestMovePropertiesAndProvideThisInitializerValuesWithReferences()
         {
             var initialMarkup = @"
@@ -2918,6 +3007,54 @@ namespace N
         {
             var b = !b2;
             B = b;
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndProvideThisInitializerValuesPatternVariable()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(bool b, int p)
+        {
+            P = p;
+            B = b;
+        }
+
+        public C(bool b1, object b2)
+        {
+            P = b1 ? 1 : 0;
+            B = b2 switch
+            {
+                C cb2 => cb2.B,
+                _ => false
+            };
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(bool B, int P)
+    {
+        public C(bool b1, object b2) : this(default, b1 ? 1 : 0)
+        {
+            B = b2 switch
+            {
+                C cb2 => cb2.B,
+                _ => false
+            };
         }
     }
 }
