@@ -156,7 +156,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             var symbolInfo = semanticModel.GetSymbolInfo(matchingNode, cancellationToken);
-            return (symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault(), 0);
+            symbol = symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault();
+            var parameterIndex = 0;
+
+            // If we're being called on an invocation and not a definition we need to find the selected argument index based on the original definition.
+            var invocation = matchingNode.GetAncestorOrThis<InvocationExpressionSyntax>();
+            var argument = invocation?.ArgumentList.Arguments.FirstOrDefault(a => a.Span.Contains(position));
+            if (argument != null)
+            {
+                parameterIndex = GetParameterIndexFromInvocationArgument(argument, document, semanticModel, cancellationToken);
+            }
+
+            return (symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault(), parameterIndex);
         }
 
         private static int TryGetSelectedIndexFromDeclaration(int position, SyntaxNode matchingNode)
