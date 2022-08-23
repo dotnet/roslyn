@@ -652,8 +652,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                                     {
                                         // remove the starting line and trivia from the first line
                                         tokens = tokens.RemoveAt(0);
-                                        tokens = tokens.Replace(tokens[0], tokens[0].WithoutLeadingTrivia());
                                     }
+
+                                    // remove trivia from first statement because it should never be on a separate line
+                                    tokens = tokens.Replace(tokens[0], tokens[0].WithoutLeadingTrivia());
 
                                     if (index == summaryContent.Count - 1 &&
                                         tokens.Length >= 2 &&

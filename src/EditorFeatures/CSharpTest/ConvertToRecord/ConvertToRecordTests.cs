@@ -356,6 +356,43 @@ namespace N
         }
 
         [Fact]
+        public async Task TestMovePropertyPositionalParameterRecordInheritanceWithComments()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    /// <summary> B </summary>
+    /// <param name=""Foo""> Foo is an int </param>
+    /// <param name=""Bar""> Bar is an int as well </param>
+    public record B(int Foo, int Bar);
+
+    /// <summary> C inherits from B </summary>
+    public class [|{|CS1729:C|}|] : {|CS8865:B|}
+    {
+        /// <summary> P can be initialized </summary>
+        public int P { get; init; }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    /// <summary> B </summary>
+    /// <param name=""Foo""> Foo is an int </param>
+    /// <param name=""Bar""> Bar is an int as well </param>
+    public record B(int Foo, int Bar);
+
+    /// <summary> C inherits from B </summary>
+    /// <param name=""Foo""><inheritdoc cref=""B"" path=""/param[@name='Foo']""/></param>
+    /// <param name=""Bar""><inheritdoc cref=""B"" path=""/param[@name='Bar']""/></param>
+    /// <param name=""P""> P can be initialized </param>
+    public record C(int Foo, int Bar, int P) : B(Foo, Bar);
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task TestMovePropertyAndReorderWithPositionalParameterRecordInheritance()
         {
             var initialMarkup = @"
