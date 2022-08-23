@@ -37,9 +37,13 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             // If this document is not in the primary workspace, we may want to search for results
             // in a solution different from the one we started in. Use the starting workspace's
             // ISymbolMappingService to get a context for searching in the proper solution.
+            // For example when looking at a file from Source Link, it could be a partial type that
+            // only has a subset of the type actually part of the project (because the rest hasn't been
+            // downloaded) so we want to ensure we're navigating based on the original metadata symbol.
             var mappingService = services.GetRequiredService<ISymbolMappingService>();
             var mapping = await mappingService.MapSymbolAsync(document, symbol, cancellationToken).ConfigureAwait(false);
 
+            // If the mapping fails, we proceed as normal with the symbol we originally found.
             if (mapping is not null)
             {
                 symbol = mapping.Symbol;

@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             // if the symbol only has a single source location, and we're already on it,
             // try to see if there's a better symbol we could navigate to.
             var remappedLocation = await GetAlternativeLocationIfAlreadyOnDefinitionAsync(
-                document, project, position, symbol, cancellationToken).ConfigureAwait(false);
+                project, position, symbol, originalDocument: document, cancellationToken).ConfigureAwait(false);
             if (remappedLocation != null)
                 return remappedLocation;
 
@@ -78,8 +78,13 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                 cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Attempts to find a better definition for the symbol, if the user is already on the definition of it.
+        /// </summary>
+        /// <param name="project">The project context to use for finding symbols</param>
+        /// <param name="originalDocument">The document the user is navigating from. This may not be part of the project supplied.</param>
         private async Task<INavigableLocation?> GetAlternativeLocationIfAlreadyOnDefinitionAsync(
-            Document document, Project project, int position, ISymbol symbol, CancellationToken cancellationToken)
+            Project project, int position, ISymbol symbol, Document originalDocument, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
 
@@ -93,7 +98,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
 
             var definitionTree = definitionLocation.SourceTree;
             var definitionDocument = solution.GetDocument(definitionTree);
-            if (definitionDocument != document)
+            if (definitionDocument != originalDocument)
                 return null;
 
             // Ok, we were already on the definition. Look for better symbols we could show results
