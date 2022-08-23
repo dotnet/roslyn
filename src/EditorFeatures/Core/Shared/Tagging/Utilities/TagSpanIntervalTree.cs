@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -41,19 +42,23 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         public SpanTrackingMode SpanTrackingMode => _spanTrackingMode;
 
-        public IList<ITagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
+        public IList<ITagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan, Func<ITagSpan<TTag>, bool>? predicate)
         {
             var snapshot = snapshotSpan.Snapshot;
             Debug.Assert(snapshot.TextBuffer == _textBuffer);
 
-            var introspector = new IntervalIntrospector(snapshot);
-            var intersectingIntervals = _tree.GetIntervalsThatIntersectWith(snapshotSpan.Start, snapshotSpan.Length, introspector);
+            var intersectingIntervals = _tree.GetIntervalsThatIntersectWith(
+                snapshotSpan.Start, snapshotSpan.Length, new IntervalIntrospector(snapshot));
 
             List<ITagSpan<TTag>>? result = null;
             foreach (var tagNode in intersectingIntervals)
             {
+                var tagSpan = new TagSpan<TTag>(tagNode.Span.GetSpan(snapshot), tagNode.Tag);
+                if (predicate != null && !predicate(tagSpan))
+                    continue;
+
                 result ??= new List<ITagSpan<TTag>>();
-                result.Add(new TagSpan<TTag>(tagNode.Span.GetSpan(snapshot), tagNode.Tag));
+                result.Add(tagSpan);
             }
 
             return result ?? SpecializedCollections.EmptyList<ITagSpan<TTag>>();

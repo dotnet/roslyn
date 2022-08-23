@@ -90,8 +90,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             if (_existingTags != null && _existingTags.TryGetValue(point.Snapshot.TextBuffer, out var tree))
             {
-                return tree.GetIntersectingSpans(new SnapshotSpan(point.Snapshot, new Span(point, 0)))
-                           .Where(s => s.Span.Contains(point));
+                return tree.GetIntersectingSpans(
+                    new SnapshotSpan(point.Snapshot, new Span(point, 0)),
+                    predicate: s => s.Span.Contains(point));
             }
 
             return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
