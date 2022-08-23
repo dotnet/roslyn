@@ -7557,7 +7557,6 @@ class Program
 """;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
-
         }
 
         [Fact]
