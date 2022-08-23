@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public async Task<AbstractLanguageServer<RequestContext>> CreateAsync(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            IRoslynLspLogger logger)
+            ILspServiceLogger logger)
         {
             var server = new RoslynLanguageServer(
                 _lspServiceProvider,
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return server;
         }
 
-        public Task<AbstractLanguageServer<RequestContext>> CreateAsync(Stream input, Stream output, ICapabilitiesProvider capabilitiesProvider, IRoslynLspLogger logger)
+        public Task<AbstractLanguageServer<RequestContext>> CreateAsync(Stream input, Stream output, ICapabilitiesProvider capabilitiesProvider, ILspServiceLogger logger)
         {
             var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(output, input));
             return CreateAsync(jsonRpc, capabilitiesProvider, logger);

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     {
         private readonly IThreadingContext _threadingContext;
         private readonly ILanguageClientMiddleLayer? _middleLayer;
-        private readonly IRoslynLspLoggerFactory _lspLoggerFactory;
+        private readonly ILspServiceLoggerFactory _lspLoggerFactory;
 
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly AbstractLspServiceProvider _lspServiceProvider;
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             AbstractLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
-            IRoslynLspLoggerFactory lspLoggerFactory,
+            ILspServiceLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
             AbstractLanguageClientMiddleLayer? middleLayer = null)
         {
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             AbstractInProcLanguageClient languageClient,
             Stream inputStream,
             Stream outputStream,
-            IRoslynLspLoggerFactory lspLoggerFactory,
+            ILspServiceLoggerFactory lspLoggerFactory,
             CancellationToken cancellationToken)
         {
             var jsonMessageFormatter = new JsonMessageFormatter();
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public async Task<AbstractLanguageServer<RequestContext>> CreateAsync(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            IRoslynLspLogger logger)
+            ILspServiceLogger logger)
         {
             var server = new RoslynLanguageServer(
                 _lspServiceProvider,

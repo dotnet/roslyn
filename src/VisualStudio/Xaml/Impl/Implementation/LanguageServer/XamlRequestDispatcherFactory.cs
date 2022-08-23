@@ -19,11 +19,11 @@ using Microsoft.VisualStudio.LanguageServices.Xaml.Telemetry;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
 {
-    internal interface IRoslynRequestExecutionQueue : IRequestExecutionQueue<RequestContext>, ILspService
+    internal interface ILSPServiceRequestExecutionQueue : IRequestExecutionQueue<RequestContext>, ILspService
     {
     }
 
-    [ExportLspServiceFactory(typeof(IRoslynRequestExecutionQueue), StringConstants.XamlLspLanguagesContract), Shared]
+    [ExportLspServiceFactory(typeof(ILSPServiceRequestExecutionQueue), StringConstants.XamlLspLanguagesContract), Shared]
     internal sealed class XamlRequestExecutionQueueFactory : ILspServiceFactory
     {
         private readonly XamlProjectService _projectService;

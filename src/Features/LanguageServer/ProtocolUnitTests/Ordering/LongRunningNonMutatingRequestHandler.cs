@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 
         public bool MutatesSolutionState => false;
 
-        public static bool RequiresLSPSOlution => true;
+        public static bool RequiresLSPSolution => true;
 
         public object? GetTextDocumentIdentifier(TestRequest request) => null;
 

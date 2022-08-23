@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         private readonly CancellationTokenSource _disposalTokenSource;
 
         public bool MutatesSolutionState => false;
-        public static bool RequiresLSPSOlution => true;
+        public static bool RequiresLSPSolution => true;
 
         #region Semantic Tokens Refresh state
 

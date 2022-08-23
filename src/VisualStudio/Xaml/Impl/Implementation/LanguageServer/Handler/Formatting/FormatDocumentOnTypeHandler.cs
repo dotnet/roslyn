@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         }
 
         public bool MutatesSolutionState => false;
-        public static bool RequiresLSPSOlution => true;
+        public static bool RequiresLSPSolution => true;
 
         public object? GetTextDocumentIdentifier(DocumentOnTypeFormattingParams request) => request.TextDocument;
 

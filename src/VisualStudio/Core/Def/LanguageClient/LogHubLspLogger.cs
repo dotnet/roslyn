@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
-    internal class LogHubLspLogger : IRoslynLspLogger
+    internal class LogHubLspLogger : ILspServiceLogger
     {
         private readonly TraceConfiguration _configuration;
         private readonly TraceSource _traceSource;

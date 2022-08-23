@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         }
 
         public bool MutatesSolutionState => true;
-        public static bool RequiresLSPSOlution => false;
+        public static bool RequiresLSPSolution => false;
 
         public object? GetTextDocumentIdentifier(LSP.DidCloseTextDocumentParams request) => request.TextDocument;
 

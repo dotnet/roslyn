@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal class NoOpLspLogger : IRoslynLspLogger
+    internal class NoOpLspLogger : ILspServiceLogger
     {
-        public static readonly IRoslynLspLogger Instance = new NoOpLspLogger();
+        public static readonly ILspServiceLogger Instance = new NoOpLspLogger();
 
         private NoOpLspLogger() { }
 

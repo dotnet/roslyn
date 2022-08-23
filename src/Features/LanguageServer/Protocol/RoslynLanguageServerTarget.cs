@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServersoft.CodeAnalysis.LanguageServer
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
             IAsynchronousOperationListenerProvider listenerProvider,
-            IRoslynLspLogger logger,
+            ILspServiceLogger logger,
             ImmutableArray<string> supportedLanguages,
             WellKnownLspServerKinds serverKind)
             : base(jsonRpc, logger)
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServersoft.CodeAnalysis.LanguageServer
         private IServiceCollection GetServiceCollection(
             JsonRpc jsonRpc,
             IClientCapabilitiesProvider clientCapabilitiesProvider,
-            IRoslynLspLogger logger,
+            ILspServiceLogger logger,
             ICapabilitiesProvider capabilitiesProvider,
             RoslynLifeCycleManager lifeCycleManager,
             string serverKind,
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServersoft.CodeAnalysis.LanguageServer
             var serviceCollection = new ServiceCollection()
                 .AddSingleton<IClientLanguageServerManager>(new ClientLanguageServerManager(jsonRpc))
                 .AddSingleton<ILspLogger>(logger)
-                .AddSingleton<IRoslynLspLogger>(logger)
+                .AddSingleton<ILspServiceLogger>(logger)
                 .AddSingleton<IClientCapabilitiesProvider>(clientCapabilitiesProvider)
                 .AddSingleton<ICapabilitiesProvider>(capabilitiesProvider)
                 .AddSingleton<LifeCycleManager<RequestContext>>(lifeCycleManager)

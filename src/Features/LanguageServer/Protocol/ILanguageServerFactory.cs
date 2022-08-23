@@ -14,6 +14,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public Task<AbstractLanguageServer<RequestContext>> CreateAsync(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            IRoslynLspLogger logger);
+            ILspServiceLogger logger);
     }
 }

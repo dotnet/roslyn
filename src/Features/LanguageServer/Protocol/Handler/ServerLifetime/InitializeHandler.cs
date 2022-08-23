@@ -30,7 +30,7 @@ internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, I
 
     public async Task<InitializeResult> HandleRequestAsync(InitializeParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var logger = context.GetRequiredLspService<IRoslynLspLogger>();
+        var logger = context.GetRequiredLspService<ILspServiceLogger>();
         try
         {
             await logger.LogStartContextAsync("Initialize", cancellationToken).ConfigureAwait(false);

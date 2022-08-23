@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         private readonly IXamlPullDiagnosticService _xamlDiagnosticService;
 
         public bool MutatesSolutionState => false;
-        public static bool RequiresLSPSOlution => true;
+        public static bool RequiresLSPSolution => true;
 
         /// <summary>
         /// Gets the progress object to stream results to.

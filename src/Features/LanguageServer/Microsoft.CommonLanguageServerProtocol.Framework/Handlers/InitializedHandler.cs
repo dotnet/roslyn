@@ -15,7 +15,7 @@ public abstract class InitializedHandler<RequestType, RequestContextType> : INot
 
     public bool MutatesSolutionState => true;
 
-    public static bool RequiresLSPSOlution => true;
+    public static bool RequiresLSPSolution => true;
 
     public Task HandleNotificationAsync(RequestType request, RequestContextType requestContext, CancellationToken cancellationToken)
     {

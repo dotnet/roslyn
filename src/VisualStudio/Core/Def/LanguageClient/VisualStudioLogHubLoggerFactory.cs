@@ -21,8 +21,8 @@ using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
-    [Export(typeof(IRoslynLspLoggerFactory))]
-    internal class VisualStudioLogHubLoggerFactory : IRoslynLspLoggerFactory
+    [Export(typeof(ILspServiceLoggerFactory))]
+    internal class VisualStudioLogHubLoggerFactory : ILspServiceLoggerFactory
     {
         /// <summary>
         /// A unique, always increasing, ID we use to identify this server in our loghub logs.  Needed so that if our
@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _threadingContext = threadingContext;
         }
 
-        public async Task<IRoslynLspLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken)
+        public async Task<ILspServiceLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken)
         {
             var logName = $"Roslyn.{serverTypeName}.{Interlocked.Increment(ref s_logHubSessionId)}";
             var logId = new LogId(logName, new ServiceMoniker(typeof(AbstractLanguageServer<>).FullName));

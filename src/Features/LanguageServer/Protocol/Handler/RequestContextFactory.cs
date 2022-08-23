@@ -23,7 +23,7 @@ internal class RequestContextFactory : IRequestContextFactory<RequestContext>, I
     {
         var clientCapabilitiesManager = _lspServices.GetRequiredService<IClientCapabilitiesManager>();
         var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
-        var logger = _lspServices.GetRequiredService<IRoslynLspLogger>();
+        var logger = _lspServices.GetRequiredService<ILspServiceLogger>();
         var serverInfoProvider = _lspServices.GetRequiredService<ServerInfoProvider>();
 
         TextDocumentIdentifier? textDocumentIdentifier;
