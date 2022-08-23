@@ -1564,6 +1564,7 @@ namespace Microsoft.CodeAnalysis
                         return;
                 }
 
+                // ReadOnlySpan<byte> supports a builtin + operator.
                 if (type.OriginalDefinition.Equals(this.CommonGetWellKnownType(WellKnownType.System_ReadOnlySpan_T)?.GetISymbol(), SymbolEqualityComparer.ConsiderEverything) &&
                     ((INamedTypeSymbol)type).TypeArguments[0].SpecialType == SpecialType.System_Byte)
                 {
