@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// </summary>
         private sealed class ActiveFileState
         {
+            private readonly object _gate = new();
+
             // file state this is for
             public readonly DocumentId DocumentId;
 
@@ -24,39 +26,59 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public ActiveFileState(DocumentId documentId)
                 => DocumentId = documentId;
 
-            public bool IsEmpty => _syntax.Items.IsEmpty && _semantic.Items.IsEmpty;
+            public bool IsEmpty
+            {
+                get
+                {
+                    lock (_gate)
+                    {
+                        return _syntax.Items.IsEmpty && _semantic.Items.IsEmpty;
+                    }
+                }
+            }
 
             public void ResetVersion()
             {
-                // reset version of cached data so that we can recalculate new data (ex, OnDocumentReset)
-                _syntax = new DocumentAnalysisData(VersionStamp.Default, _syntax.Items);
-                _semantic = new DocumentAnalysisData(VersionStamp.Default, _semantic.Items);
+                lock (_gate)
+                {
+                    // reset version of cached data so that we can recalculate new data (ex, OnDocumentReset)
+                    _syntax = new DocumentAnalysisData(VersionStamp.Default, _syntax.Items);
+                    _semantic = new DocumentAnalysisData(VersionStamp.Default, _semantic.Items);
+                }
             }
 
             public DocumentAnalysisData GetAnalysisData(AnalysisKind kind)
-                => kind switch
+            {
+                lock (_gate)
                 {
-                    AnalysisKind.Syntax => _syntax,
-                    AnalysisKind.Semantic => _semantic,
-                    _ => throw ExceptionUtilities.UnexpectedValue(kind)
-                };
+                    return kind switch
+                    {
+                        AnalysisKind.Syntax => _syntax,
+                        AnalysisKind.Semantic => _semantic,
+                        _ => throw ExceptionUtilities.UnexpectedValue(kind)
+                    };
+                }
+            }
 
             public void Save(AnalysisKind kind, DocumentAnalysisData data)
             {
                 Contract.ThrowIfFalse(data.OldItems.IsDefault);
 
-                switch (kind)
+                lock (_gate)
                 {
-                    case AnalysisKind.Syntax:
-                        _syntax = data;
-                        return;
+                    switch (kind)
+                    {
+                        case AnalysisKind.Syntax:
+                            _syntax = data;
+                            return;
 
-                    case AnalysisKind.Semantic:
-                        _semantic = data;
-                        return;
+                        case AnalysisKind.Semantic:
+                            _semantic = data;
+                            return;
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(kind);
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(kind);
+                    }
                 }
             }
         }

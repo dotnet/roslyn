@@ -6,7 +6,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {

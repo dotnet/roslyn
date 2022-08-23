@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             SemanticModel semanticModel,
             int position,
             SymbolDescriptionOptions options,
-            Host.LanguageServices languageServices,
+            LanguageServices languageServices,
             CancellationToken cancellationToken)
         {
             Debug.Assert(semanticModel.Language is LanguageNames.CSharp or LanguageNames.VisualBasic);

@@ -6,7 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
