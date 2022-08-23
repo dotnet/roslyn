@@ -4946,6 +4946,49 @@ public class Derived : Base
             //     public required int Test { get; set; }
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(4, 25)
         );
+    }
 
+    [Theory, CombinatorialData]
+    public void FirstAccessOfIsRequiredDoesNotMatter(bool accessAttributesFirst)
+    {
+        // Accessing attributes will populate IsRequired if it's not already populated, so we want to test both codepaths explicitly.
+        var comp = CreateCompilationWithRequiredMembers("""
+            public class C
+            {
+                public required int Field;
+                public required int Property { get; set; }
+            }
+            """);
+
+        CompileAndVerify(comp, symbolValidator: module =>
+        {
+            var c = module.ContainingAssembly.GetTypeByMetadataName("C");
+            AssertEx.NotNull(c);
+
+            if (accessAttributesFirst)
+            {
+                AssertAttributesEmpty();
+                AssertIsRequired();
+            }
+            else
+            {
+                AssertIsRequired();
+                AssertAttributesEmpty();
+            }
+
+            void AssertIsRequired()
+            {
+                Assert.True(c.HasDeclaredRequiredMembers);
+                Assert.True(c.GetMember<FieldSymbol>("Field").IsRequired);
+                Assert.True(c.GetMember<PropertySymbol>("Property").IsRequired);
+            }
+
+            void AssertAttributesEmpty()
+            {
+                Assert.Empty(c.GetAttributes());
+                Assert.Empty(c.GetMember<FieldSymbol>("Field").GetAttributes());
+                Assert.Empty(c.GetMember<PropertySymbol>("Property").GetAttributes());
+            }
+        });
     }
 }
