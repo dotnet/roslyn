@@ -191,8 +191,8 @@ namespace T
 
         private static async Task<QuickInfoItem> GetQuickinfo(TestWorkspace workspace, Document document, int position)
         {
-            var diagnosticAnalyzerService = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
-            var provider = new CSharpDiagnosticAnalyzerQuickInfoProvider(diagnosticAnalyzerService);
+            var sharedGlobalCache = workspace.ExportProvider.GetExportedValue<DiagnosticAnalyzerInfoCache.SharedGlobalCache>();
+            var provider = new CSharpDiagnosticAnalyzerQuickInfoProvider(sharedGlobalCache);
             var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, SymbolDescriptionOptions.Default, CancellationToken.None));
             return info;
         }

@@ -132,6 +132,139 @@ class A
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        Public Async Function TestOutVarTuple() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void M(out (int, int) x) => x = default;
+
+    void Main() 
+    {
+        M(out var {|(int, int) :|}x);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+           <Workspace>
+               <Project Language="C#" CommonReferences="true">
+                   <Document>
+class A
+{
+    void M(out (int, int) x) => x = default;
+
+    void Main() 
+    {
+        M(out (int, int) x);
+    }
+}
+                    </Document>
+               </Project>
+           </Workspace>
+
+            Await VerifyTypeHints(input, output)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        Public Async Function TestForEachDeconstruction() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet6="true">
+                    <Document>
+using System.Collections.Generic;
+
+class A
+{
+    void Main(IDictionary&lt;int, string&gt; d)
+    {
+        foreach (var ({|int :|}i, {|string :|}s) in d)
+        {
+        }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+           <Workspace>
+               <Project Language="C#" CommonReferences="true">
+                   <Document>
+using System.Collections.Generic;
+
+class A
+{
+    void Main(IDictionary&lt;int, string&gt; d)
+    {
+        foreach (var (i, s) in d)
+        {
+        }
+    }
+}
+                    </Document>
+               </Project>
+           </Workspace>
+
+            Await VerifyTypeHints(input, output)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        Public Async Function TestForEachDeconstruction_NestedTuples() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet6="true">
+                    <Document>
+using System.Collections.Generic;
+
+class A
+{
+    void Main(IDictionary&lt;int, (string, float)&gt; d)
+    {
+        foreach (var ({|int :|}i, {|(string, float) :|}sf) in d)
+        {
+        }
+
+        foreach (var ({|int :|}i, ({|string :|}s, {|float :|}f)) in d)
+        {
+        }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+           <Workspace>
+               <Project Language="C#" CommonReferences="true">
+                   <Document>
+using System.Collections.Generic;
+
+class A
+{
+    void Main(IDictionary&lt;int, (string, float)&gt; d)
+    {
+        foreach (var (i, sf) in d)
+        {
+        }
+
+        foreach (var (i, (s, f)) in d)
+        {
+        }
+    }
+}
+                    </Document>
+               </Project>
+           </Workspace>
+
+            Await VerifyTypeHints(input, output)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
         Public Async Function TestWithForeachVar() As Task
             Dim input =
             <Workspace>
