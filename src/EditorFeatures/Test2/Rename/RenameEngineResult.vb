@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -134,8 +135,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 ' This tests that rename properly works when the entire call is remoted to OOP and the final result is
                 ' marshaled back.
 
-                Return Renamer.RenameSymbolAsync(
-                    solution, symbol, renameTo, renameOptions, CodeActionOptions.DefaultProvider,
+                Return Renamer.RenameSymbolsAsync(
+                    solution, ImmutableArray.Create((symbol, renameTo, renameOptions)), CodeActionOptions.DefaultProvider,
                     nonConflictSymbolKeys:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
             End If
         End Function

@@ -7,7 +7,11 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
+<<<<<<< HEAD
 using Microsoft.CodeAnalysis.Elfie.Diagnostics;
+=======
+using Microsoft.CodeAnalysis.PooledObjects;
+>>>>>>> bac7f483a19 (Add the stub)
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 
@@ -49,27 +53,29 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public ValueTask<SerializableConflictResolution?> RenameSymbolAsync(
+        public ValueTask<SerializableConflictResolution?> RenameSymbolsAsync(
             Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
-            SerializableSymbolAndProjectId symbolAndProjectId,
-            string newName,
-            SymbolRenameOptions options,
+            ImmutableArray<(SerializableSymbolAndProjectId symbolAndProjectId, string replacementText, SymbolRenameOptions options)> serializedRenameSymbolsInfo,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var symbol = await symbolAndProjectId.TryRehydrateAsync(
-                    solution, cancellationToken).ConfigureAwait(false);
-
-                if (symbol == null)
+                if (serializedRenameSymbolsInfo.IsEmpty)
                     return null;
 
-                var fallbackOptions = GetClientOptionsProvider(callbackId);
+                using var _ = ArrayBuilder<(ISymbol symbol, string newName, SymbolRenameOptions options)>.GetInstance(out var builder);
+                foreach (var (symbolAndProjectId, replacementText, options) in serializedRenameSymbolsInfo)
+                {
+                    var symbol = await symbolAndProjectId.TryRehydrateAsync(
+                        solution, cancellationToken).ConfigureAwait(false);
+                    builder.Add((symbol, replacementText, options));
+                }
 
-                var result = await Renamer.RenameSymbolAsync(
-                    solution, symbol, newName, options, fallbackOptions, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+                var fallbackOptions = GetClientOptionsProvider(callbackId);
+                var result = await Renamer.RenameSymbolsAsync(
+                    solution, builder.ToImmutableArray(), fallbackOptions, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
 
                 return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
@@ -123,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var fallBackOptions = GetClientOptionsProvider(callbackId);
                 var result = await ConflictResolver.ResolveSymbolicLocationConflictsInCurrentProcessAsync(
-                    locations, replacementText, nonConflictSymbolKeys, fallBackOptions, cancellationToken).ConfigureAwait(false);
+                    solution, ImmutableArray.Create((locations, replacementText)), nonConflictSymbolKeys, fallBackOptions, cancellationToken).ConfigureAwait(false);
 
                 return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
