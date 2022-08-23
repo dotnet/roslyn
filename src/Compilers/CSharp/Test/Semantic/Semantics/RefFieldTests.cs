@@ -1249,6 +1249,8 @@ class Program
         int i = 42;
         var r = new R() { Field = ref i };
         Console.WriteLine(r.Field);
+        i = 43;
+        Console.WriteLine(r.Field);
     }
 }
 
@@ -1258,11 +1260,13 @@ ref struct R
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
-            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("42")).VerifyDiagnostics().
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+@"42
+43")).VerifyDiagnostics().
                 VerifyIL("Program.Main",
 @"
 {
-  // Code size       33 (0x21)
+  // Code size       48 (0x30)
   .maxstack  2
   .locals init (int V_0, //i
                 R V_1)
@@ -1274,10 +1278,16 @@ ref struct R
   IL_000d:  ldloca.s   V_0
   IL_000f:  stfld      ""ref int R.Field""
   IL_0014:  ldloc.1
-  IL_0015:  ldfld      ""ref int R.Field""
-  IL_001a:  ldind.i4
-  IL_001b:  call       ""void System.Console.WriteLine(int)""
-  IL_0020:  ret
+  IL_0015:  dup
+  IL_0016:  ldfld      ""ref int R.Field""
+  IL_001b:  ldind.i4
+  IL_001c:  call       ""void System.Console.WriteLine(int)""
+  IL_0021:  ldc.i4.s   43
+  IL_0023:  stloc.0
+  IL_0024:  ldfld      ""ref int R.Field""
+  IL_0029:  ldind.i4
+  IL_002a:  call       ""void System.Console.WriteLine(int)""
+  IL_002f:  ret
 }
 ");
         }
