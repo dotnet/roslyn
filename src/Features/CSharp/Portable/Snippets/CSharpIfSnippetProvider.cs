@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
         }
 
-        protected override void GetIfStatementConditionAndCursorPosition(SyntaxNode node, out SyntaxNode condition, out int cursorPositionNode)
+        protected override void GetIfStatementConditionAndCursorPosition(SyntaxNode node, out SyntaxNode condition, out int cursorPosition)
         {
             var ifStatement = (IfStatementSyntax)node;
             condition = ifStatement.Condition;
@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
             var triviaSpan = blockStatement.CloseBraceToken.LeadingTrivia.Span;
 
-            // Getting the midpoint location of the trivia to find where the cursor shoudl end up
-            cursorPositionNode = triviaSpan.Start + (triviaSpan.Length / 2) + 1;
+            // Getting the midpoint location of the trivia's span to get the midway position between the set of curly braces.
+            cursorPosition = ((triviaSpan.Start + triviaSpan.End) / 2) + 1;
         }
 
         private static string GetIndentation(Document document, SyntaxNode node, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
             var indentationService = parsedDocument.LanguageServices.GetRequiredService<IIndentationService>();
             var indentation = indentationService.GetIndentation(parsedDocument, openBraceLine + 1, indentationOptions, cancellationToken);
+
+            // Adding the offset calculated with one tab so that it is indented once past the line containing the opening brace
             var newIndentation = new IndentationResult(indentation.BasePosition, indentation.Offset + syntaxFormattingOptions.TabSize);
             return newIndentation.GetIndentationString(parsedDocument.Text, syntaxFormattingOptions.UseTabs, syntaxFormattingOptions.TabSize) + newLine;
         }
