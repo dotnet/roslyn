@@ -14,18 +14,21 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
     {
         private readonly BidirectionalMap<string, T> ValueToSettingName;
         private readonly T? DefaultValue;
+        private readonly bool Nullable;
 
-        public EnumEditorConfigData(string settingName, string settingNameDocumentation, BidirectionalMap<string, T> valueToSettingName, bool allowsMultipleValues = false)
+        public EnumEditorConfigData(string settingName, string settingNameDocumentation, BidirectionalMap<string, T> valueToSettingName, bool allowsMultipleValues = false, bool nullable = false)
             : base(settingName, settingNameDocumentation, allowsMultipleValues)
         {
             ValueToSettingName = valueToSettingName;
+            Nullable = nullable;
         }
 
-        public EnumEditorConfigData(string settingName, string settingNameDocumentation, BidirectionalMap<string, T> valueToSettingName, T defaultValue, bool allowsMultipleValues = false)
+        public EnumEditorConfigData(string settingName, string settingNameDocumentation, BidirectionalMap<string, T> valueToSettingName, T defaultValue, bool allowsMultipleValues = false, bool nullable = false)
             : base(settingName, settingNameDocumentation, allowsMultipleValues)
         {
             ValueToSettingName = valueToSettingName;
             DefaultValue = defaultValue;
+            Nullable = nullable;
         }
 
         public override string GetSettingName() => SettingName;
@@ -51,7 +54,11 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
 
         public override Optional<T> GetValueFromEditorConfigString(string key)
         {
-            return ValueToSettingName.TryGetValue(key.Trim(), out var value) ? value : DefaultValue ?? ValueToSettingName.GetValueOrDefault(key)!;
+            if (Nullable)
+            {
+                return ValueToSettingName.TryGetValue(key.Trim(), out var value1) ? value1 : new Optional<T>();
+            }
+            return ValueToSettingName.TryGetValue(key.Trim(), out var value2) ? value2 : DefaultValue ?? ValueToSettingName.GetValueOrDefault(key)!;
         }
     }
 }

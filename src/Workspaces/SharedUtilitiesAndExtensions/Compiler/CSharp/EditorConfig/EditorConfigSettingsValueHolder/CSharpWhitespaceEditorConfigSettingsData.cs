@@ -85,7 +85,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditorConfigSettings
         public static EditorConfigData<SpacingWithinParenthesesOption> SpaceBetweenParentheses = new EnumEditorConfigData<SpacingWithinParenthesesOption>("csharp_space_between_parentheses",
                                                                                                                                                           CSharpCompilerExtensionsResources.Insert_space_within_parentheses,
                                                                                                                                                           SpacingWithinParenthesisOptionsEditorConfigMap,
-                                                                                                                                                          allowsMultipleValues: true);
+                                                                                                                                                          allowsMultipleValues: true,
+                                                                                                                                                          nullable: true);
 
         public static EditorConfigData<bool> SpaceAfterCast = new BooleanEditorConfigData("csharp_space_after_cast",
                                                                                           CSharpCompilerExtensionsResources.Insert_space_after_cast);
@@ -137,7 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditorConfigSettings
         public static EditorConfigData<NewLineOption> NewLineBeforeOpenBrace = new EnumEditorConfigData<NewLineOption>("csharp_new_line_before_open_brace",
                                                                                                                        CSharpCompilerExtensionsResources.Place_open_brace_on_new_line,
                                                                                                                        NewLineOptionsEditorConfigMap,
-                                                                                                                       allowsMultipleValues: true);
+                                                                                                                       allowsMultipleValues: true,
+                                                                                                                       nullable: true);
 
         public static EditorConfigData<bool> NewLineForElse = new BooleanEditorConfigData("csharp_new_line_before_else",
                                                                                           CSharpCompilerExtensionsResources.Place_else_on_new_line);

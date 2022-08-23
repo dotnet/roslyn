@@ -26,7 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 .Any();
 
         private static SpacingWithinParenthesesOption? ConvertToSpacingOption(string value, EditorConfigData<SpacingWithinParenthesesOption> editorConfigData)
-            => editorConfigData.GetValueFromEditorConfigString(value).Value;
+        {
+            var editorConfigOption = editorConfigData.GetValueFromEditorConfigString(value);
+            if (editorConfigOption.HasValue)
+            {
+                return editorConfigOption.Value;
+            }
+
+            return null;
+        }
 
         private static string GetSpacingWithParenthesesEditorConfigString(OptionSet optionSet, EditorConfigData<SpacingWithinParenthesesOption> editorConfigData)
         {
@@ -76,12 +84,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static NewLineOption? ConvertToNewLineOption(string value, EditorConfigData<NewLineOption> editorConfigData)
         {
+            var editorConfigOption = editorConfigData.GetValueFromEditorConfigString(value);
+            if (editorConfigOption.HasValue)
+            {
+                return editorConfigOption.Value;
+            }
+
             if (s_legacyNewLineOptionsEditorConfigMap.TryGetValue(value, out var legacyOption))
             {
                 return legacyOption;
             }
 
-            return editorConfigData.GetValueFromEditorConfigString(value).Value;
+            return null;
         }
 
         private static string GetNewLineOptionEditorConfigString(OptionSet optionSet, EditorConfigData<NewLineOption> editorConfigData)
