@@ -19,8 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(optionString,
                     @default.Notification, out var value, out var notification))
             {
-                var expressionBodyPreference = editorConfigData.GetValueFromEditorConfigString(value).Value;
-                return new CodeStyleOption2<ExpressionBodyPreference>(expressionBodyPreference, notification);
+                var editorConfigValue = editorConfigData.GetValueFromEditorConfigString(value);
+                if (editorConfigValue.HasValue)
+                {
+                    return new CodeStyleOption2<ExpressionBodyPreference>(editorConfigValue.Value, notification);
+                }
             }
 
             return @default;

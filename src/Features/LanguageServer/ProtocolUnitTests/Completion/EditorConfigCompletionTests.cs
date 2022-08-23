@@ -284,7 +284,7 @@ csharp_new_line_before_open_brace={|caret:|}
                 triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
 
             var results = await CompletionTests.RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            Assert.Equal(14, results.Items.Length);
+            Assert.Equal(12, results.Items.Length);
         }
 
         [Fact]
@@ -312,7 +312,7 @@ csharp_new_line_before_open_brace=accessors,{|caret:|}
                 triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
 
             var results = await CompletionTests.RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            Assert.Equal(14, results.Items.Length);
+            Assert.Equal(12, results.Items.Length);
         }
 
         [Fact]
@@ -424,7 +424,7 @@ dotnet_diagnostic.CS0021.severity={|caret:|}
                 triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
 
             var results = await CompletionTests.RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            Assert.Equal(5, results.Items.Length);
+            Assert.Equal(4, results.Items.Length);
         }
 
         [Fact]
