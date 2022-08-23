@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 services,
                 solutionKey,
                 getChecksumAsync: () => new ValueTask<Checksum>(GetMetadataChecksum(services, reference, cancellationToken)),
-                createAsync: checksum => new ValueTask<SymbolTreeInfo>(CreateMetadataSymbolTreeInfo(checksum, reference)),
+                createAsync: checksum => new ValueTask<SymbolTreeInfo>(new MetadataInfoCreator(checksum, reference).Create()),
                 keySuffix: GetMetadataKeySuffix(reference),
                 cancellationToken);
         }
@@ -198,13 +198,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 checksumMustMatch: false,
                 keySuffix: GetMetadataKeySuffix(reference),
                 cancellationToken);
-        }
-
-        private static SymbolTreeInfo CreateMetadataSymbolTreeInfo(
-            Checksum checksum, PortableExecutableReference reference)
-        {
-            var creator = new MetadataInfoCreator(checksum, reference);
-            return creator.Create();
         }
 
         private struct MetadataInfoCreator : IDisposable
@@ -760,7 +753,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private class MetadataNode
+        private sealed class MetadataNode
         {
             private static readonly ObjectPool<MetadataNode> s_pool = SharedPools.Default<MetadataNode>();
 
