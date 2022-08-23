@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         {
             if (IsCommandSupported(args, needsSemantics, out var workspace))
             {
-                var organizeImportsService = workspace.Services.GetLanguageServices(args.SubjectBuffer).GetService<IOrganizeImportsService>();
+                var organizeImportsService = workspace.Services.SolutionServices.GetProjectServices(args.SubjectBuffer).GetService<IOrganizeImportsService>();
                 return new CommandState(isAvailable: true, displayText: descriptionString(organizeImportsService));
             }
             else

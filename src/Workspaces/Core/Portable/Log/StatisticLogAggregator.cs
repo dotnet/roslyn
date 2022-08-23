@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             AddDataPoint(key, (int)timeSpan.TotalMilliseconds);
         }
 
-        public StatisticResult GetStaticticResult(TKey key)
+        public StatisticResult GetStatisticResult(TKey key)
         {
             if (TryGetCounter(key, out var counter))
             {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 }
                 else
                 {
-                    return new StatisticResult(_maximum, _mininum, median: null, mean: _total / _count, range: _maximum - _mininum, mode: null, count: _count);
+                    return new StatisticResult(_maximum, _mininum, mean: _total / _count, range: _maximum - _mininum, mode: null, count: _count);
                 }
             }
         }

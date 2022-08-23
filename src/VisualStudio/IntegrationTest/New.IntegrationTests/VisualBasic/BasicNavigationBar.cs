@@ -104,10 +104,10 @@ End Structure";
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
 
-            globalOptions.SetGlobalOption(new OptionKey(NavigationBarViewOptions.ShowNavigationBar, LanguageNames.VisualBasic), false);
+            globalOptions.SetGlobalOption(new OptionKey(NavigationBarViewOptionsStorage.ShowNavigationBar, LanguageNames.VisualBasic), false);
             Assert.False(await TestServices.Editor.IsNavigationBarEnabledAsync(HangMitigatingCancellationToken));
 
-            globalOptions.SetGlobalOption(new OptionKey(NavigationBarViewOptions.ShowNavigationBar, LanguageNames.VisualBasic), true);
+            globalOptions.SetGlobalOption(new OptionKey(NavigationBarViewOptionsStorage.ShowNavigationBar, LanguageNames.VisualBasic), true);
             Assert.True(await TestServices.Editor.IsNavigationBarEnabledAsync(HangMitigatingCancellationToken));
         }
 

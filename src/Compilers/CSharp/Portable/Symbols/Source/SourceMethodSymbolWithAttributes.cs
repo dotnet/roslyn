@@ -570,6 +570,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 DecodeUnmanagedCallersOnlyAttribute(ref arguments);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.UnscopedRefAttribute))
+            {
+                if (this.IsValidUnscopedRefAttributeTarget())
+                {
+                    arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasUnscopedRefAttribute = true;
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, arguments.AttributeSyntaxOpt.Location);
+                }
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -599,6 +610,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static FlowAnalysisAnnotations DecodeFlowAnalysisAttributes(MethodWellKnownAttributeData attributeData)
             => attributeData?.HasDoesNotReturnAttribute == true ? FlowAnalysisAnnotations.DoesNotReturn : FlowAnalysisAnnotations.None;
+
+        internal sealed override bool HasUnscopedRefAttribute => GetDecodedWellKnownAttributeData()?.HasUnscopedRefAttribute == true;
 
         private bool VerifyObsoleteAttributeAppliedToMethod(
             ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,

@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
 
             public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-                => new InteractiveCommandCompletionService(languageServices.WorkspaceServices);
+                => new InteractiveCommandCompletionService(languageServices.LanguageServices.SolutionServices);
         }
 
-        private InteractiveCommandCompletionService(HostWorkspaceServices services)
+        private InteractiveCommandCompletionService(SolutionServices services)
             : base(services)
         {
         }

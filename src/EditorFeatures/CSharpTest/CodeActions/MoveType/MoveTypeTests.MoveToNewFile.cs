@@ -1655,5 +1655,36 @@ class A
 
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WorkItem(63114, "https://github.com/dotnet/roslyn/issues/63114")]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("interface")]
+        [InlineData("enum")]
+        [InlineData("record")]
+        public async Task MoveNestedTypeFromInterface(string memberType)
+        {
+            var code = $@"
+interface I
+{{
+    {memberType} [||]Member
+    {{
+    }}
+}}";
+            var codeAfterMove = @"
+partial interface I
+{
+}";
+            var expectedDocumentName = "Member.cs";
+            var destinationDocumentText = $@"
+partial interface I
+{{
+    {memberType} Member
+    {{
+    }}
+}}";
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
     }
 }

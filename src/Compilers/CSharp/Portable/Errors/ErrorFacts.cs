@@ -2211,6 +2211,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
                 case ErrorCode.ERR_CannotMatchOnINumberBase:
                 case ErrorCode.ERR_MisplacedScoped:
+                case ErrorCode.ERR_ScopedTypeNameDisallowed:
+                case ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget:
+                case ErrorCode.ERR_RuntimeDoesNotSupportRefFields:
+                case ErrorCode.ERR_ExplicitScopedRef:
+                case ErrorCode.ERR_UnscopedScoped:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
