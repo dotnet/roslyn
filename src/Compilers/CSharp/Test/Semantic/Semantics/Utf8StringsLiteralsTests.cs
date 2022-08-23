@@ -3853,6 +3853,10 @@ class C
                 Assert.Equal("System.ReadOnlySpan<System.Byte> System.ReadOnlySpan<System.Byte>.op_Addition(System.ReadOnlySpan<System.Byte> left, System.ReadOnlySpan<System.Byte> right)", method.ToTestDisplayString());
                 Assert.True(method.IsImplicitlyDeclared);
                 Assert.Equal(MethodKind.BuiltinOperator, method.MethodKind);
+
+                var synthesizedMethod = comp.CreateBuiltinOperator(
+                    method.Name, method.ReturnType, method.Parameters[0].Type, method.Parameters[1].Type, method.IsCheckedBuiltin);
+                Assert.Equal(synthesizedMethod, method);
             }
         }
 

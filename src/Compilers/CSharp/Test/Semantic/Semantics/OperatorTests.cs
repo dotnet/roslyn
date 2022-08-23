@@ -7620,6 +7620,10 @@ public class RubyTime
             Assert.Equal(MethodKind.BuiltinOperator, symbol1.MethodKind);
             Assert.True(symbol1.IsImplicitlyDeclared);
 
+            var synthesizedMethod = compilation.CreateBuiltinOperator(
+                symbol1.Name, symbol1.ReturnType, symbol1.Parameters[0].Type, symbol1.IsCheckedBuiltin);
+            Assert.Equal(synthesizedMethod, symbol1);
+
             bool expectChecked = false;
 
             switch (op)
@@ -8395,6 +8399,10 @@ class Module1
 
             Assert.Equal(MethodKind.BuiltinOperator, symbol1.MethodKind);
             Assert.True(symbol1.IsImplicitlyDeclared);
+
+            var synthesizedMethod = compilation.CreateBuiltinOperator(
+                symbol1.Name, symbol1.ReturnType, symbol1.Parameters[0].Type, symbol1.Parameters[1].Type, symbol1.IsCheckedBuiltin);
+            Assert.Equal(synthesizedMethod, symbol1);
 
             bool isChecked;
 
