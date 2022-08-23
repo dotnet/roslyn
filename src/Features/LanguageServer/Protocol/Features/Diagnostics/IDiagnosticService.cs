@@ -66,8 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Get current buckets storing our grouped diagnostics.  Specific buckets can be retrieved by calling <see
-        /// cref="IDiagnosticServiceExtensions.GetPushDiagnosticsAsync(IDiagnosticService, DiagnosticBucket, bool, DiagnosticMode, CancellationToken)"/>.
+        /// Get current buckets storing our grouped diagnostics.
         /// </summary>
         /// <param name="diagnosticMode">Option controlling if pull diagnostics are allowed for the client.  The <see
         /// cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).  If
