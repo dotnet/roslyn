@@ -34,15 +34,22 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             var nodeValues = values?.Select(ts => new TagNode(ts, trackingMode));
 
-            var introspector = new IntervalIntrospector(textBuffer.CurrentSnapshot);
-            _tree = IntervalTree.Create(introspector, nodeValues);
+            _tree = IntervalTree.Create(new IntervalIntrospector(textBuffer.CurrentSnapshot), nodeValues);
         }
 
         public ITextBuffer Buffer => _textBuffer;
 
         public SpanTrackingMode SpanTrackingMode => _spanTrackingMode;
 
-        public IList<ITagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan, Func<ITagSpan<TTag>, bool>? predicate)
+        public bool HasSpanThatContains(SnapshotPoint point)
+        {
+            var snapshot = point.Snapshot;
+            Debug.Assert(snapshot.TextBuffer == _textBuffer);
+
+            return _tree.HasIntervalThatContains(point.Position, length: 0, new IntervalIntrospector(snapshot));
+        }
+
+        public IList<ITagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
         {
             var snapshot = snapshotSpan.Snapshot;
             Debug.Assert(snapshot.TextBuffer == _textBuffer);
@@ -53,12 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             List<ITagSpan<TTag>>? result = null;
             foreach (var tagNode in intersectingIntervals)
             {
-                var tagSpan = new TagSpan<TTag>(tagNode.Span.GetSpan(snapshot), tagNode.Tag);
-                if (predicate != null && !predicate(tagSpan))
-                    continue;
-
                 result ??= new List<ITagSpan<TTag>>();
-                result.Add(tagSpan);
+                result.Add(new TagSpan<TTag>(tagNode.Span.GetSpan(snapshot), tagNode.Tag));
             }
 
             return result ?? SpecializedCollections.EmptyList<ITagSpan<TTag>>();
