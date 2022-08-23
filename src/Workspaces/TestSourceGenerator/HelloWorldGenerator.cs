@@ -11,15 +11,18 @@ namespace Microsoft.CodeAnalysis.TestSourceGenerator
     [Generator]
     public sealed class HelloWorldGenerator : ISourceGenerator
     {
+        public const string GeneratedEnglishClassName = "HelloWorld";
+        public const string GeneratedSpanishClassName = "HolaMundo";
+
         public void Initialize(GeneratorInitializationContext context)
         {
         }
 
         public void Execute(GeneratorExecutionContext context)
         {
-            context.AddSource(Constants.GeneratedEnglishClassName, SourceText.From(@"
-/// <summary><see cref=""" + Constants.GeneratedEnglishClassName + @""" /> is a simple class to fetch the classic message.</summary>
-internal class " + Constants.GeneratedEnglishClassName + @"
+            context.AddSource(GeneratedEnglishClassName, SourceText.From(@"
+/// <summary><see cref=""" + GeneratedEnglishClassName + @""" /> is a simple class to fetch the classic message.</summary>
+internal class " + GeneratedEnglishClassName + @"
 {
     public static string GetMessage()
     {
@@ -28,8 +31,8 @@ internal class " + Constants.GeneratedEnglishClassName + @"
 }
 ", encoding: Encoding.UTF8));
 
-            context.AddSource(Constants.GeneratedSpanishClassName, SourceText.From(@"
-internal class " + Constants.GeneratedSpanishClassName + @"
+            context.AddSource(GeneratedSpanishClassName, SourceText.From(@"
+internal class " + GeneratedSpanishClassName + @"
 {
     public static string GetMessage()
     {
