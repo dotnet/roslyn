@@ -7,13 +7,14 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(DidCloseHandler)), Shared]
     [Method(LSP.Methods.TextDocumentDidCloseName)]
-    internal class DidCloseHandler : ILspServiceNotificationHandler<LSP.DidCloseTextDocumentParams>
+    internal class DidCloseHandler : ILspServiceNotificationHandler<LSP.DidCloseTextDocumentParams>, ITextDocumentIdentifierHandler<LSP.DidCloseTextDocumentParams>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

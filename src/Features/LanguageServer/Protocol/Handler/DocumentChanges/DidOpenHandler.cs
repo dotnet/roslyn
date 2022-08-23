@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(DidOpenHandler)), Shared]
     [Method(LSP.Methods.TextDocumentDidOpenName)]
-    internal class DidOpenHandler : ILspServiceNotificationHandler<LSP.DidOpenTextDocumentParams>
+    internal class DidOpenHandler : ILspServiceNotificationHandler<LSP.DidOpenTextDocumentParams>, ITextDocumentIdentifierHandler<LSP.DidOpenTextDocumentParams>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

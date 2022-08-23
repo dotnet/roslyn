@@ -35,13 +35,13 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
         return result;
     }
 
-    internal async Task ExecuteNotificationAsync(string methodName, CancellationToken cancellationToken)
+    internal async Task ExecuteNotificationAsync(string methodName, CancellationToken _)
     {
         await _clientRpc.NotifyAsync(methodName);
     }
 
-    private TaskCompletionSource<int> _shuttingDown = new TaskCompletionSource<int>();
-    private TaskCompletionSource<int> _exiting = new TaskCompletionSource<int>();
+    private readonly TaskCompletionSource<int> _shuttingDown = new TaskCompletionSource<int>();
+    private readonly TaskCompletionSource<int> _exiting = new TaskCompletionSource<int>();
 
     private void _clientRpc_Disconnected(object sender, JsonRpcDisconnectedEventArgs e)
     {
@@ -121,5 +121,4 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
 
         return result;
     }
-
 }

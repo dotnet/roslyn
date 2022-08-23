@@ -87,8 +87,8 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         var handler = GetMethodHandler<TRequestType, TResponseType>(methodName);
 
         object? textDocument = null;
-        if (handler is IRequestHandler<TRequestType, TResponseType, RequestContextType> requestHandler)
-            textDocument = requestHandler.GetTextDocumentIdentifier(request);
+        if (handler is ITextDocumentIdentifierHandler<TRequestType> textDocumentIdentifierHandler)
+            textDocument = textDocumentIdentifierHandler.GetTextDocumentIdentifier(request);
 
         return textDocument;
     }

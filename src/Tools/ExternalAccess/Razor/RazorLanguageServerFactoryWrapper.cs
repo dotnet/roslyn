@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             _languageServerFactory = languageServerFactory;
         }
 
-        public async Task<IRazorLanguageServerTarget> CreateLanguageServer(JsonRpc jsonRpc, IRazorCapabilitiesProvider razorCapabilitiesProvider)
+        public async Task<IRazorLanguageServerTarget> CreateLanguageServerAsync(JsonRpc jsonRpc, IRazorCapabilitiesProvider razorCapabilitiesProvider)
         {
             var capabilitiesProvider = new RazorCapabilitiesProvider(razorCapabilitiesProvider);
             var languageServer = await _languageServerFactory.CreateAsync(jsonRpc, capabilitiesProvider, NoOpLspLogger.Instance).ConfigureAwait(false);

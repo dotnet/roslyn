@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 
 [LanguageServerEndpoint("initialized")]
-public class InitializedHandler<RequestType, RequestContextType> : INotificationHandler<RequestType, RequestContextType>
+public abstract class InitializedHandler<RequestType, RequestContextType> : INotificationHandler<RequestType, RequestContextType>
 {
     private bool HasBeenInitialized = false;
 
@@ -26,4 +26,6 @@ public class InitializedHandler<RequestType, RequestContextType> : INotification
 
         return Task.CompletedTask;
     }
+
+    public abstract object? GetTextDocumentIdentifier(RequestType request);
 }

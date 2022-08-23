@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             [ImportMany(StringConstants.XamlLspLanguagesContract)] IEnumerable<Lazy<ILspService, LspServiceMetadataView>> lspServices,
             [ImportMany(StringConstants.XamlLspLanguagesContract)] IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> lspServiceFactories,
             [ImportMany(StringConstants.GeneralLspLanguagesContract)] IEnumerable<Lazy<ILspService, LspServiceMetadataView>> generalLspServices,
-            [ImportMany(StringConstants.GeneralLspLanguagesContract)] IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> generalLspServiceFactories) 
+            [ImportMany(StringConstants.GeneralLspLanguagesContract)] IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> generalLspServiceFactories)
         : base(lspServices, lspServiceFactories, generalLspServices, generalLspServiceFactories)
         {
         }
