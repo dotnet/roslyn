@@ -670,9 +670,11 @@ namespace Roslyn.Test.Utilities
 
             internal ImmutableArray<SourceText> GetTrackedTexts() => GetManager().GetTrackedLspText().Values.ToImmutableArray();
 
-            public async ValueTask DisposeAsync()
+            public ValueTask DisposeAsync()
             {
                 Dispose();
+
+                return new ValueTask();
             }
 
             public void Dispose()

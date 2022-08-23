@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -9,7 +10,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework.Example;
 
 internal class CapabilitiesManager : IInitializeManager<InitializeParams, InitializeResult>
 {
-    private InitializeParams _initializeParams;
+    private InitializeParams? _initializeParams;
 
     public void SetInitializeParams(InitializeParams request)
     {
@@ -36,6 +37,11 @@ internal class CapabilitiesManager : IInitializeManager<InitializeParams, Initia
 
     public InitializeParams GetInitializeParams()
     {
+        if (_initializeParams is null)
+        {
+            throw new ArgumentNullException(nameof(_initializeParams));
+        }
+
         return _initializeParams;
     }
 }
