@@ -22,7 +22,7 @@ public class ShutdownHandler<RequestContextType> : INotificationHandler<RequestC
 
     public bool MutatesSolutionState => true;
 
-    public bool RequiresLSPSolution => true;
+    public static bool RequiresLSPSOlution => true;
 
     public async Task HandleNotificationAsync(RequestContextType requestContext, CancellationToken cancellationToken)
     {

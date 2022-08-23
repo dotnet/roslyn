@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         private readonly VersionedPullCache<(int, VersionStamp?), (int, Checksum)> _versionedCache;
 
         public bool MutatesSolutionState => false;
-        public bool RequiresLSPSolution => true;
+        public static bool RequiresLSPSOlution => true;
 
         protected AbstractPullDiagnosticHandler(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,

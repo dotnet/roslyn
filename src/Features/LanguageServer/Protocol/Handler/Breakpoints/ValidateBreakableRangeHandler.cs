@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public bool MutatesSolutionState => false;
-        public bool RequiresLSPSolution => true;
+        public static bool RequiresLSPSOlution => true;
 
         public object? GetTextDocumentIdentifier(LSP.VSInternalValidateBreakableRangeParams request)
             => request.TextDocument;

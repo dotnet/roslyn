@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     internal abstract class AbstractFormatDocumentHandlerBase<RequestType, ResponseType> : ILspServiceRequestHandler<RequestType, ResponseType>
     {
         public bool MutatesSolutionState => false;
-        public bool RequiresLSPSolution => true;
+        public static bool RequiresLSPSOlution => true;
 
         public abstract object? GetTextDocumentIdentifier(RequestType request);
         public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);

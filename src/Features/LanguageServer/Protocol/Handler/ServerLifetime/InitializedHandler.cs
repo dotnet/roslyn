@@ -23,7 +23,7 @@ internal class InitializedHandler : ILspServiceNotificationHandler<InitializedPa
 
     public bool MutatesSolutionState => true;
 
-    public bool RequiresLSPSolution => false;
+    public static bool RequiresLSPSOlution => false;
 
     public Task HandleNotificationAsync(InitializedParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {

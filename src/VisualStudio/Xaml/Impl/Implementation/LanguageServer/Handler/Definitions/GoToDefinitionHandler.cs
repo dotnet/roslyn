@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 
         public bool MutatesSolutionState => false;
 
-        public bool RequiresLSPSolution => true;
+        public static bool RequiresLSPSOlution => true;
 
         public object? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
 

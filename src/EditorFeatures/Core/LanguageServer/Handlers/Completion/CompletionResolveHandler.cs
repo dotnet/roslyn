@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly IGlobalOptionService _globalOptions;
 
         public bool MutatesSolutionState => false;
-        public bool RequiresLSPSolution => true;
+        public static bool RequiresLSPSOlution => true;
 
         public CompletionResolveHandler(IGlobalOptionService globalOptions, CompletionListCache completionListCache)
         {

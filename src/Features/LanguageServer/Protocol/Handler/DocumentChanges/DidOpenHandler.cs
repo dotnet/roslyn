@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         }
 
         public bool MutatesSolutionState => true;
-        public bool RequiresLSPSolution => false;
+        public static bool RequiresLSPSOlution => false;
 
         public object? GetTextDocumentIdentifier(LSP.DidOpenTextDocumentParams request) => request.TextDocument.Uri;
 
         public async Task HandleNotificationAsync(LSP.DidOpenTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
             // GetTextDocumentIdentifier returns null to avoid creating the solution, so the queue is not able to log the uri.
-            await context.TraceInformationAsync($"didOpen for {request.TextDocument.Uri}", cancellationToken);
+            await context.TraceInformationAsync($"didOpen for {request.TextDocument.Uri}", cancellationToken).ConfigureAwait(false);
 
             // Add the document and ensure the text we have matches whats on the client
             var sourceText = SourceText.From(request.TextDocument.Text, System.Text.Encoding.UTF8);

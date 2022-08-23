@@ -20,7 +20,7 @@ public class InitializeHandler<RequestType, ResponseType, RequestContextType>
 
     public bool MutatesSolutionState => true;
 
-    public bool RequiresLSPSolution => false;
+    public static bool RequiresLSPSOlution => false;
 
     public object? GetTextDocumentIdentifier(RequestType request)
     {

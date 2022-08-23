@@ -7,7 +7,6 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
@@ -23,14 +22,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         }
 
         public bool MutatesSolutionState => true;
-        public bool RequiresLSPSolution => false;
+        public static bool RequiresLSPSOlution => false;
 
         public object? GetTextDocumentIdentifier(LSP.DidCloseTextDocumentParams request) => request.TextDocument;
 
         public async Task HandleNotificationAsync(LSP.DidCloseTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
             // GetTextDocumentIdentifier returns null to avoid creating the solution, so the queue is not able to log the uri.
-            await context.TraceInformationAsync($"didClose for {request.TextDocument.Uri}", cancellationToken);
+            await context.TraceInformationAsync($"didClose for {request.TextDocument.Uri}", cancellationToken).ConfigureAwait(false);
 
             context.StopTracking(request.TextDocument.Uri);
         }
