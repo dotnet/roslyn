@@ -34,5 +34,5 @@ public interface IQueueItem<RequestContextType>
     /// This comes from the TextDocumentIdentifier returned from the handler itself via a call to 
     /// <see cref="IRequestHandler{RequestType, ResponseType, TResponseContextType}.GetTextDocumentIdentifier(RequestType)"/>.
     /// </summary>
-    object? TextDocument { get; }
+    object? TextDocumentIdentifier { get; }
 }

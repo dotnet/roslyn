@@ -27,18 +27,18 @@ internal class RequestContextFactory : IRequestContextFactory<RequestContext>, I
         var serverInfoProvider = _lspServices.GetRequiredService<ServerInfoProvider>();
 
         TextDocumentIdentifier? textDocumentIdentifier;
-        if (queueItem.TextDocument is TextDocumentIdentifier t)
+        if (queueItem.TextDocumentIdentifier is TextDocumentIdentifier t)
         {
             textDocumentIdentifier = t;
         }
-        else if (queueItem.TextDocument is Uri uri)
+        else if (queueItem.TextDocumentIdentifier is Uri uri)
         {
             textDocumentIdentifier = new TextDocumentIdentifier
             {
                 Uri = uri,
             };
         }
-        else if (queueItem.TextDocument is null)
+        else if (queueItem.TextDocumentIdentifier is null)
         {
             textDocumentIdentifier = null;
         }

@@ -119,7 +119,7 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         CancellationToken requestCancellationToken)
     {
         // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
-        var textDocument = GetTextDocumentIdentifier<TRequestType, TResponseType>(request, methodName);
+        var textDocumentIdentifier = GetTextDocumentIdentifier<TRequestType, TResponseType>(request, methodName);
 
         var handler = GetMethodHandler<TRequestType, TResponseType>(methodName);
         // Create a combined cancellation token so either the client cancelling it's token or the queue
@@ -129,7 +129,7 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         var (item, resultTask) = CreateQueueItem<TRequestType, TResponseType>(
             handler.MutatesSolutionState,
             methodName,
-            textDocument,
+            textDocumentIdentifier,
             request,
             handler,
             combinedCancellationToken);
@@ -152,14 +152,14 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
     internal (IQueueItem<RequestContextType>, Task<TResponseType>) CreateQueueItem<TRequestType, TResponseType>(
         bool mutatesSolutionState,
         string methodName,
-        object? textDocument,
+        object? textDocumentIdentifier,
         TRequestType request,
         IMethodHandler handler,
         CancellationToken cancellationToken)
     {
         return QueueItem<TRequestType, TResponseType, RequestContextType>.Create(mutatesSolutionState,
             methodName,
-            textDocument,
+            textDocumentIdentifier,
             request,
             handler,
             _logger,
@@ -195,9 +195,11 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
                     var context = await requestContextFactory.CreateRequestContextAsync(work, cancellationTokenSource.Token).ConfigureAwait(false);
 
                     if (work.MutatesDocumentState)
+                    {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
                         // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
                         await work.StartRequestAsync(context, cancellationToken).ConfigureAwait(false);
+                    }
                     else
                     {
                         // Non mutating are fire-and-forget because they are by definition readonly. Any errors

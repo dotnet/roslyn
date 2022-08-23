@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-            _languageServer = (AbstractLanguageServer<RequestContext>)await CreateAsync<RequestContext>(
+            _languageServer = await CreateAsync<RequestContext>(
                 this,
                 serverStream,
                 serverStream,

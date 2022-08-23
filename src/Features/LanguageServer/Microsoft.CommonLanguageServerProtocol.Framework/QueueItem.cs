@@ -35,12 +35,12 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
 
     public string MethodName { get; }
 
-    public object? TextDocument { get; }
+    public object? TextDocumentIdentifier { get; }
 
-    public QueueItem(
+    private QueueItem(
         bool mutatesSolutionState,
         string methodName,
-        object? textDocument,
+        object? textDocumentIdentifier,
         TRequestType request,
         IMethodHandler handler,
         ILspLogger logger,
@@ -55,13 +55,13 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
 
         MutatesDocumentState = mutatesSolutionState;
         MethodName = methodName;
-        TextDocument = textDocument;
+        TextDocumentIdentifier = textDocumentIdentifier;
     }
 
     public static (IQueueItem<RequestContextType>, Task<TResponseType>) Create(
         bool mutatesSolutionState,
         string methodName,
-        object? textDocument,
+        object? textDocumentIdentifier,
         TRequestType request,
         IMethodHandler handler,
         ILspLogger logger,
@@ -70,7 +70,7 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
         var queueItem = new QueueItem<TRequestType, TResponseType, RequestContextType>(
             mutatesSolutionState,
             methodName,
-            textDocument,
+            textDocumentIdentifier,
             request,
             handler,
             logger,

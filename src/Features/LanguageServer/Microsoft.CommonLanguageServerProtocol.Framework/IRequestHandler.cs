@@ -14,6 +14,9 @@ public interface IRequestHandler<TRequestType, TResponseType, TRequestContextTyp
     /// <summary>
     /// Gets the identifier of the document from the request, if the request provides one.
     /// </summary>
+    /// <remarks>Despite a return type of <see cref="object"/>, you are advised to severly restrict variety of possible return values.
+    /// It is left open here to allow for flexibility and variability in finding the TextDocumentIdentifier.
+    /// For example, some Param types only have a URI instead of a "TextDocumentIdenfier" object, and others have custom TDI's, or choose to parse JSON.</remarks>
     object? GetTextDocumentIdentifier(TRequestType request);
 
     /// <summary>
