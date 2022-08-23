@@ -1515,16 +1515,29 @@ namespace Microsoft.CodeAnalysis
             if (rightType is null)
                 throw new ArgumentNullException(nameof(rightType));
 
-            CheckSupportedBinaryOperatorType(returnType, nameof(returnType));
-            CheckSupportedBinaryOperatorType(leftType, nameof(leftType));
-            CheckSupportedBinaryOperatorType(rightType, nameof(rightType));
+            // When the types are dynamic, then virtually all operators are allowed and synthesized.
+            // So only check when neither are dynamic.
+            if (leftType.TypeKind != TypeKind.Dynamic && rightType.TypeKind != TypeKind.Dynamic)
+            {
+                CheckSupportedBinaryOperatorType(returnType, nameof(returnType));
+                CheckSupportedBinaryOperatorType(leftType, nameof(leftType));
+                CheckSupportedBinaryOperatorType(rightType, nameof(rightType));
+            }
 
             return CommonCreateBuiltinOperator(name, returnType, leftType, rightType, isChecked);
 
-            static void CheckSupportedBinaryOperatorType(ITypeSymbol type, string paramName)
+            void CheckSupportedBinaryOperatorType(ITypeSymbol type, string paramName)
             {
-                // Dynamic gets a host of operators attached to it.
-                if (type.TypeKind == TypeKind.Dynamic)
+                // Enums have operators automatically synthesized for them.
+                if (type.TypeKind == TypeKind.Enum)
+                    return;
+
+                // Pointers have operators automatically synthesized for them.
+                if (type.TypeKind == TypeKind.Pointer)
+                    return;
+
+                // Delegates have a synthesized operator for combining them together.
+                if (type.TypeKind == TypeKind.Delegate)
                     return;
 
                 switch (type.OriginalDefinition.SpecialType)
@@ -1546,7 +1559,15 @@ namespace Microsoft.CodeAnalysis
                     case SpecialType.System_Boolean:
                     case SpecialType.System_Object:
                     case SpecialType.System_String:
+                    case SpecialType.System_DateTime:
+                    case SpecialType.System_Delegate:
                         return;
+                }
+
+                if (type.OriginalDefinition.Equals(this.CommonGetWellKnownType(WellKnownType.System_ReadOnlySpan_T)?.GetISymbol(), SymbolEqualityComparer.ConsiderEverything) &&
+                    ((INamedTypeSymbol)type).TypeArguments[0].SpecialType == SpecialType.System_Byte)
+                {
+                    return;
                 }
 
                 throw new ArgumentException($"Unsupported built-in operator type: {type.ToDisplayString()}", paramName);
@@ -1583,8 +1604,16 @@ namespace Microsoft.CodeAnalysis
 
             static void CheckSupportedUnaryOperatorType(ITypeSymbol type, string paramName)
             {
+                // Delegates have operators automatically synthesized for them.
+                if (type.TypeKind == TypeKind.Dynamic)
+                    return;
+
                 // Unary operators are supported on enums.
                 if (type.TypeKind == TypeKind.Enum)
+                    return;
+
+                // Pointers have operators automatically synthesized for them.
+                if (type.TypeKind == TypeKind.Pointer)
                     return;
 
                 switch (type.OriginalDefinition.SpecialType)
