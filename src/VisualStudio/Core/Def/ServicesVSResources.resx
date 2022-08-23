@@ -2009,6 +2009,6 @@ Additional information: {1}</value>
   </data>
   <data name="Extract_Base_Record" xml:space="preserve">
     <value>Extract Base Record</value>
-    <comment>"Record" is a language construct for C#</comment>
+    <comment>{Locked="Record"} "Record" is a language construct for C# and should not be localized</comment>
   </data>
 </root>

@@ -3159,6 +3159,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Extract_base_record" xml:space="preserve">
     <value>Extract base record...</value>
-    <comment>"record" is a language construct and should be left the same</comment>
+    <comment>{Locked="record"} "record" is a language construct for C# and should not be localized.</comment>
   </data>
 </root>
