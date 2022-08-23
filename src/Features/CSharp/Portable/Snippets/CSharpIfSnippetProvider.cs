@@ -58,8 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var nearestStatement = FindAddedSnippetSyntaxNode(root, position, syntaxFacts);
-            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
+            if (nearestStatement is null)
+            {
+                return document;
+            }
+
+            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
             var indentationString = GetIndentation(document, nearestStatement, syntaxFormattingOptions, cancellationToken);
 
             var ifStatementSyntax = (IfStatementSyntax)nearestStatement;
