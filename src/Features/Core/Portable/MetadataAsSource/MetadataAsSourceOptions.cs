@@ -38,6 +38,6 @@ internal readonly record struct MetadataAsSourceOptions(
     [DataMember]
     public bool NavigateToSourceLinkAndEmbeddedSources { get; init; } = true;
 
-    public static MetadataAsSourceOptions GetDefault(HostProjectServices languageServices)
+    public static MetadataAsSourceOptions GetDefault(LanguageServices languageServices)
         => new(GenerationOptions: CleanCodeGenerationOptions.GetDefault(languageServices));
 }

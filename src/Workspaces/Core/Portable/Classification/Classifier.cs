@@ -51,14 +51,14 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         internal static IEnumerable<ClassifiedSpan> GetClassifiedSpans(
-            HostSolutionServices services,
+            SolutionServices services,
             Project? project,
             SemanticModel semanticModel,
             TextSpan textSpan,
             ClassificationOptions options,
             CancellationToken cancellationToken)
         {
-            var projectServices = services.GetProjectServices(semanticModel.Language);
+            var projectServices = services.GetLanguageServices(semanticModel.Language);
             var classsificationService = projectServices.GetRequiredService<ISyntaxClassificationService>();
             var embeddedLanguageService = projectServices.GetRequiredService<IEmbeddedLanguageClassificationService>();
 
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         internal static async Task<ImmutableArray<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
-            HostSolutionServices services, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options,
+            SolutionServices services, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options,
             CancellationToken cancellationToken = default)
         {
             var classifiedSpans = GetClassifiedSpans(services, project: null, semanticModel, textSpan, options, cancellationToken);

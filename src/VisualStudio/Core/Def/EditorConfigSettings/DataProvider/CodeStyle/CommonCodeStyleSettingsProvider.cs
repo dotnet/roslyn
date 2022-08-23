@@ -132,10 +132,6 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
                 description: ServicesVSResources.analyzer_Prefer_auto_properties,
                 editorConfigOptions: options,
                 visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
-            yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferSystemHashCode,
-                description: ServicesVSResources.Prefer_System_HashCode_in_GetHashCode,
-                editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
         }
 
         private IEnumerable<CodeStyleSetting> GetExpressionCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)

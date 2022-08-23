@@ -1732,6 +1732,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Create a new empty solution and set this; we will reuse the same SolutionId and path since components still may have persistence information they still need
             // to look up by that location; we also keep the existing analyzer references around since those are host-level analyzers that were loaded asynchronously.
+            ClearOpenDocuments();
+
             SetCurrentSolution(
                 solution => CreateSolution(
                     SolutionInfo.Create(

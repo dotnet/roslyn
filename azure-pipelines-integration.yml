@@ -22,12 +22,13 @@ pr:
       - eng/config/PublishData.json
       - .vscode/*
       - .github/*
-      - .devcontainer/
+      - .devcontainer/*
       - .git-blame-ignore-revs
       - .vsconfig
       - CODE-OF-CONDUCT.md
       - CONTRIBUTING.md
       - README.md
+      - src/Compilers/*
 
 jobs:
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
