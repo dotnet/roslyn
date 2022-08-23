@@ -6,9 +6,16 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Micr RnLifeCycleManager(AbstractLanguageServer<RequestContext> languageServerTarget) : base(languageServerTarget)
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
+
+internal class RoslynLifeCycleManager : LifeCycleManager<RequestContext>, ILspService
+{
+    public RoslynLifeCycleManager(AbstractLanguageServer<RequestContext> languageServerTarget) : base(languageServerTarget)
     {
     }
 }
@@ -28,10 +35,8 @@ internal class ExitHandler : ILspServiceNotificationHandler
     public async Task HandleNotificationAsync(RequestContext requestContext, CancellationToken _)
     {
         if (requestContext.ClientCapabilities is null)
-        {
             throw new InvalidOperationException($"{Methods.InitializedName} called before {Methods.InitializeName}");
-        }
         var lifeCycleManager = requestContext.GetRequiredLspService<RoslynLifeCycleManager>();
-        await lifeCycleManager.ExitAsync();
+        await lifeCycleManager.ExitAsync().ConfigureAwait(false);
     }
 }

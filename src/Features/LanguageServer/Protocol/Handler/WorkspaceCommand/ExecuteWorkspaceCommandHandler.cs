@@ -6,10 +6,15 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace MicrStxecuteWorkspaceCommandHandler : ILspServiceRequestHandler<ExecuteCommandParams, object?>
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
+
+internal class ExecuteWorkspaceCommandHandler : ILspServiceRequestHandler<ExecuteCommandParams, object?>
 {
     public bool MutatesSolutionState => false;
 

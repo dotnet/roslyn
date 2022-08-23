@@ -8,11 +8,12 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServersoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             var server = await languageClient.CreateAsync(
                 jsonRpc,
                 languageClient,
-                logger);
+                logger).ConfigureAwait(false);
 
             jsonRpc.StartListening();
             return server;
@@ -232,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 logger,
                 SupportedLanguages,
                 ServerKind);
-            await server.InitializeAsync();
+            await server.InitializeAsync().ConfigureAwait(false);
 
             return server;
         }

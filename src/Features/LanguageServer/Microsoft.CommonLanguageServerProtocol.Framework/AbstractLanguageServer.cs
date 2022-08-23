@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.namespace Microsoft.CommonLanguageServerProtocol
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -95,7 +95,9 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
 
             MethodInfo genericEntryPointMethod;
             if (metadata.RequestType is not null && metadata.ResponseType is not null)
+            {
                 genericEntryPointMethod = entryPointMethod.MakeGenericMethod(metadata.RequestType, metadata.ResponseType);
+            }
             else if (metadata.RequestType is not null && metadata.ResponseType is null)
             {
                 genericEntryPointMethod = notificationMethod.MakeGenericMethod(metadata.RequestType);
@@ -230,7 +232,8 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
     {
     }
 
-    private async Task RequestExecutionQueue_Errored(object? sender, RequestShutdownEventArgs e)
+#pragma warning disable VSTHRD100
+    private async void RequestExecutionQueue_Errored(object? sender, RequestShutdownEventArgs e)
     {
         // log message and shut down
         await _logger.LogWarningAsync($"Request queue is requesting shutdown due to error: {e.Message}", CancellationToken.None).ConfigureAwait(false);
@@ -248,11 +251,14 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
     /// <summary>
     /// Cleanup the server if we encounter a json rpc disconnect so that we can be restarted later.
     /// </summary>
-    private async Task JsonRpc_Disconnected(object? sender, JsonRpcDisconnectedEventArgs e)
+    private async void JsonRpc_Disconnected(object? sender, JsonRpcDisconnectedEventArgs e)
     {
         if (_shuttingDown)
+        {
             // We're already in the normal shutdown -> exit path, no need to do anything.
             return;
+        }
+
         var message = $"Encountered unexpected jsonrpc disconnect, Reason={e.Reason}, Description={e.Description}, Exception={e.Exception}";
         await _logger.LogWarningAsync(message, CancellationToken.None).ConfigureAwait(false);
 
@@ -262,6 +268,7 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
         await lifeCycleManager.ShutdownAsync(message).ConfigureAwait(false);
         await lifeCycleManager.ExitAsync().ConfigureAwait(false);
     }
+#pragma warning disable VSTHRD100
 
     /// <summary>
     /// Disposes the LanguageServer, clearing and shutting down the queue and exiting.

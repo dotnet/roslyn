@@ -4,7 +4,7 @@
 
 using System;
 using System.Composition;
-using CommonLanguageServerProtocol.Framework;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 

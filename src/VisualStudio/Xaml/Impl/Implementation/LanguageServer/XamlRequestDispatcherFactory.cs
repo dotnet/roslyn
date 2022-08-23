@@ -8,11 +8,13 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Telemetry;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
@@ -41,38 +43,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
         {
             var handlerProvider = lspServices.GetRequiredService<IHandlerProvider>();
             var logger = lspServices.GetRequiredService<ILspLogger>();
-            return new XamlRequestExecutionQueue(_projectService, lspServices, _feedbackService, logger, handlerProvider);
+            return new XamlRequestExecutionQueue(_projectService, _feedbackService, logger, handlerProvider);
         }
 
         private class XamlRequestExecutionQueue : RequestExecutionQueue<RequestContext>, ILspService
         {
             private readonly XamlProjectService _projectService;
             private readonly IXamlLanguageServerFeedbackService? _feedbackService;
-            private readonly ILspServices _lspServices;
-            private readonly IRequestExecutionQueue<RequestContext> _baseQueue;
-            private readonly IHandlerProvider _handlerProvider;
 
             public XamlRequestExecutionQueue(
                 XamlProjectService projectService,
-                ILspServices lspServices,
                 IXamlLanguageServerFeedbackService? feedbackService,
                 ILspLogger logger,
                 IHandlerProvider handlerProvider) : base(logger, handlerProvider)
             {
                 _projectService = projectService;
                 _feedbackService = feedbackService;
-                _lspServices = lspServices;
-                _handlerProvider = handlerProvider;
             }
 
-            public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
-
-            public ValueTask DisposeAsync()
-            {
-                return base.DisposeAsync();
-            }
-
-            public async Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(
+            public new async Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(
                 TRequestType request,
                 string methodName,
                 ILspServices lspServices,
@@ -101,11 +90,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                         throw;
                     }
                 }
-            }
-
-            public void Start(ILspServices lspServices)
-            {
-                _baseQueue.Start(lspServices);
             }
         }
     }

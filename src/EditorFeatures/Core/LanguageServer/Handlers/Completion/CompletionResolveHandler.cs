@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
                 else
                 {
-                    var clientSupportsMarkdown = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat.Contains(LSP.MarkupKind.Markdown) == true;
+                    var clientSupportsMarkdown = context.ClientCapabilities?.TextDocument?.Completion?.CompletionItem?.DocumentationFormat.Contains(LSP.MarkupKind.Markdown) == true;
                     completionItem.Documentation = ProtocolConversions.GetDocumentationMarkupContent(description.TaggedParts, document, clientSupportsMarkdown);
                 }
             }
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Contract.ThrowIfTrue(completionItem.InsertText != null);
                 Contract.ThrowIfTrue(completionItem.TextEdit != null);
 
-                var snippetsSupported = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
+                var snippetsSupported = context.ClientCapabilities?.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
 
                 completionItem.TextEdit = await GenerateTextEditAsync(
                     document, completionService, selectedItem, snippetsSupported, cancellationToken).ConfigureAwait(false);

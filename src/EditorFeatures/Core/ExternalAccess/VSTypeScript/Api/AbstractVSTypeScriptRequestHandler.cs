@@ -5,8 +5,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MicrosoftaCodeAnalysis.LanguageServerusing Microsoft.CodeAnalysis.LanguageServer.Handler.Handler.Handler.Handler;
-using Microsoft.CommonLanguageServerProtocollFrameworkorkorkork;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;

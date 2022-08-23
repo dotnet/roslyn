@@ -5,11 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -17,9 +16,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Roslyn.Utioft.CodeAnalysis.LanguageServer;
+using Roslyn.Utilities;
 
-/// <summary>registered workspaces and corresponding LSP solutions for an LSP server.
+namespace Microsoft.CodeAnalysis.LanguageServer;
+
+/// <summary>
+/// Manages the registered workspaces and corresponding LSP solutions for an LSP server.
 /// This type is tied to a particular server.
 /// </summary>
 /// <remarks>
@@ -180,7 +182,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 var workspaceKind = document.Project.Solution.WorkspaceKind;
                 _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
                 _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
-                await _logger.LogInformationAsync($"{document.FilePath} found in workspace {workspaceKind}", cancellationToken);
+                await _logger.LogInformationAsync($"{document.FilePath} found in workspace {workspaceKind}", cancellationToken).ConfigureAwait(false);
 
                 return document;
             }
@@ -188,7 +190,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
         var searchedWorkspaceKinds = string.Join(";", lspSolutions.SelectAsArray(lspSolution => lspSolution.Solution.Workspace.Kind));
-        await _logger.LogErrorAsync($"Could not find '{textDocumentIdentifier.Uri}'.  Searched {searchedWorkspaceKinds}", cancellationToken);
+        await _logger.LogErrorAsync($"Could not find '{textDocumentIdentifier.Uri}'.  Searched {searchedWorkspaceKinds}", cancellationToken).ConfigureAwait(false);
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
         // Add the document to our loose files workspace if its open.
@@ -286,7 +288,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
             if (!isTextEquivalent)
             {
-                await _logger.LogWarningAsync($"Text for {uriInWorkspace} did not match document text {firstDocument.Id} in workspace's {firstDocument.Project.Solution.WorkspaceKind} current solution", cancellationToken);
+                await _logger.LogWarningAsync($"Text for {uriInWorkspace} did not match document text {firstDocument.Id} in workspace's {firstDocument.Project.Solution.WorkspaceKind} current solution", cancellationToken).ConfigureAwait(false);
                 return false;
             }
         }

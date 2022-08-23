@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Threading.Tasks;
-using CommonLanguageServerProtocol.Framework;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public async Task<IRazorLanguageServerTarget> CreateLanguageServer(JsonRpc jsonRpc, IRazorCapabilitiesProvider razorCapabilitiesProvider)
         {
             var capabilitiesProvider = new RazorCapabilitiesProvider(razorCapabilitiesProvider);
-            var languageServer = await _languageServerFactory.CreateAsync(jsonRpc, capabilitiesProvider, NoOpLspLogger.Instance);
+            var languageServer = await _languageServerFactory.CreateAsync(jsonRpc, capabilitiesProvider, NoOpLspLogger.Instance).ConfigureAwait(false);
 
             return new RazorLanguageServerTargetWrapper(languageServer);
         }

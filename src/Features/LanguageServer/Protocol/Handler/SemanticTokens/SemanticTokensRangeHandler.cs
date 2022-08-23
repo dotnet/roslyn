@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
             Contract.ThrowIfNull(context.Document, "Document is null.");
 
-            if (_semanticTokenRefreshQueue is null && context.ClientCapabilities.Workspace?.SemanticTokens?.RefreshSupport is true)
+            if (_semanticTokenRefreshQueue is null && context.ClientCapabilities?.Workspace?.SemanticTokens?.RefreshSupport is true)
             {
                 // Only send a refresh notification to the client every 2s (if needed) in order to avoid
                 // sending too many notifications at once.  This ensures we batch up workspace notifications,

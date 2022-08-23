@@ -5,7 +5,12 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using rnal class RequestContextFactory : IRequestContextFactory<RequestContext>, ILspService
+using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
+
+internal class RequestContextFactory : IRequestContextFactory<RequestContext>, ILspService
 {
     private readonly ILspServices _lspServices;
 

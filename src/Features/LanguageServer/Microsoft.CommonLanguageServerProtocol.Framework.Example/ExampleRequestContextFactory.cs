@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CommonLanguageServerProtocol.Framework;ple;
+
+namespace Microsoft.CommonLanguageServerProtocol.Framework.Example;
 
 internal class ExampleRequestContextFactory : IRequestContextFactory<ExampleRequestContext>
 {
@@ -18,12 +16,12 @@ internal class ExampleRequestContextFactory : IRequestContextFactory<ExampleRequ
         _lspServices = lspServices;
     }
 
-    public Task<ExampleRequestContext?> CreateRequestContextAsync(IQueueItem<ExampleRequestContext> queueItem, CancellationToken cancellationToken)
+    public Task<ExampleRequestContext> CreateRequestContextAsync(IQueueItem<ExampleRequestContext> queueItem, CancellationToken cancellationToken)
     {
         var logger = _lspServices.GetRequiredService<ILspLogger>();
 
         var requestContext = new ExampleRequestContext(_lspServices, logger);
 
-        return Task.FromResult<ExampleRequestContext?>(requestContext);
+        return Task.FromResult(requestContext);
     }
 }

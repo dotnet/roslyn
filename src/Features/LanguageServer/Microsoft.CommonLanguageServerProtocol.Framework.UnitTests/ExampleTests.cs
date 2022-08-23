@@ -25,7 +25,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests
             var server = TestExampleLanguageServer.CreateLanguageServer(logger);
 
             var result = await server.InitializeServerAsync();
-            Assert.True(result.Capabilities.SemanticTokensOptions!.Range.Value.First);
+            Assert.True(result.Capabilities.SemanticTokensOptions!.Range!.Value.First);
         }
 
         [Fact]

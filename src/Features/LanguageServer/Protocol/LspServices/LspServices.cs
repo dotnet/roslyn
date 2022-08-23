@@ -5,10 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using MicrosoftRCodeAnalysis.ErrorReporting
-using Microsoft.CommonLanguageServerProtocolgFrameworklgFrameworkl.Framework;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Roslyn.Utilities;
 
@@ -55,16 +54,13 @@ internal class LspServices : ILspServices
         return GetRequiredService<T>();
     }
 
-    public T GetRequiredService<T>()
+    public T GetRequiredService<T>() where T : notnull
     {
         T? service;
 
         // Check the ServiceProvider first
         service = _serviceProvider.GetService<T>();
-        if (service is null)
-        {
-            service = GetService<T>();
-        }
+        service ??= GetService<T>();
 
         Contract.ThrowIfNull(service, $"Missing required LSP service {typeof(T).FullName}");
         return service;
