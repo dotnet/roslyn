@@ -277,7 +277,5 @@ namespace Microsoft.CodeAnalysis
         ImplicitIndexerReference = 0x7b,
         /// <summary>Indicates an <see cref="IUtf8StringOperation"/>.</summary>
         Utf8String = 0x7c,
-        /// <summary>Indicates an <see cref="IAttributeOperation"/>.</summary>
-        Attribute = 0x7d,
     }
 }
