@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                 return metadataInfo.SymbolTreeInfo;
 
             // If we didn't have it in our cache, see if we can load it from disk.
-            var info = await SymbolTreeInfo.LoadInfoForMetadataReferenceAsync(solution, reference, cancellationToken).ConfigureAwait(false);
+            var info = await SymbolTreeInfo.LoadAnyInfoForMetadataReferenceAsync(solution, reference, cancellationToken).ConfigureAwait(false);
             if (info is null)
                 return null;
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                 return projectInfo;
 
             // If we didn't have it in our cache, see if we can load some version of it from disk.
-            var info = await SymbolTreeInfo.LoadInfoForSourceAssemblyAsync(project, cancellationToken).ConfigureAwait(false);
+            var info = await SymbolTreeInfo.LoadAnyInfoForSourceAssemblyAsync(project, cancellationToken).ConfigureAwait(false);
             if (info is null)
                 return null;
 

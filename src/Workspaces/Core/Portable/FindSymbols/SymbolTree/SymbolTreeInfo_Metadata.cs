@@ -190,7 +190,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return reader => TryReadSymbolTreeInfo(reader, checksum);
         }
 
-        public static Task<SymbolTreeInfo> LoadInfoForMetadataReferenceAsync(
+        /// <summary>
+        /// Loads any info we have for this reference from our persistence store.  Will succeed regardless of the
+        /// checksum of the <paramref name="reference"/>.  Should only be used by clients that are ok with potentially
+        /// stale data.
+        /// </summary>
+        public static Task<SymbolTreeInfo> LoadAnyInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
             CancellationToken cancellationToken)

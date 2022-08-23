@@ -58,7 +58,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<SymbolTreeInfo?> LoadInfoForSourceAssemblyAsync(
+        /// <summary>
+        /// Loads any info we have for this project from our persistence store.  Will succeed regardless of the
+        /// checksum of the <paramref name="project"/>.  Should only be used by clients that are ok with potentially
+        /// stale data.
+        /// </summary>
+        public static async Task<SymbolTreeInfo?> LoadAnyInfoForSourceAssemblyAsync(
             Project project, CancellationToken cancellationToken)
         {
             var tryReadObject = await GetSourceInfoReaderAsync(project, cancellationToken).ConfigureAwait(false);
