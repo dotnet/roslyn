@@ -1515,11 +1515,42 @@ namespace Microsoft.CodeAnalysis
             if (rightType is null)
                 throw new ArgumentNullException(nameof(rightType));
 
-            //CheckBuiltInOperatorNullable(returnType, nameof(returnType));
-            //CheckBuiltInOperatorNullable(leftType, nameof(leftType));
-            //CheckBuiltInOperatorNullable(rightType, nameof(rightType));
+            CheckSupportedBinaryOperatorType(returnType, nameof(returnType));
+            CheckSupportedBinaryOperatorType(leftType, nameof(leftType));
+            CheckSupportedBinaryOperatorType(rightType, nameof(rightType));
 
             return CommonCreateBuiltinOperator(name, returnType, leftType, rightType, isChecked);
+
+            static void CheckSupportedBinaryOperatorType(ITypeSymbol type, string paramName)
+            {
+                // Dynamic gets a host of operators attached to it.
+                if (type.TypeKind == TypeKind.Dynamic)
+                    return;
+
+                switch (type.OriginalDefinition.SpecialType)
+                {
+                    case SpecialType.System_SByte:
+                    case SpecialType.System_Byte:
+                    case SpecialType.System_Int16:
+                    case SpecialType.System_UInt16:
+                    case SpecialType.System_Int32:
+                    case SpecialType.System_UInt32:
+                    case SpecialType.System_Int64:
+                    case SpecialType.System_UInt64:
+                    case SpecialType.System_IntPtr:
+                    case SpecialType.System_UIntPtr:
+                    case SpecialType.System_Char:
+                    case SpecialType.System_Single:
+                    case SpecialType.System_Double:
+                    case SpecialType.System_Decimal:
+                    case SpecialType.System_Boolean:
+                    case SpecialType.System_Object:
+                    case SpecialType.System_String:
+                        return;
+                }
+
+                throw new ArgumentException($"Unsupported built-in operator type: {type.ToDisplayString()}", paramName);
+            }
         }
 
         protected abstract IMethodSymbol CommonCreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType, bool isChecked);
