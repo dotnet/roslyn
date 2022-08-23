@@ -2757,6 +2757,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         {
             var compilation = CreateCompilation("");
             var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+            var nullableIntType = compilation.GetSpecialType(SpecialType.System_Nullable_T).GetPublicSymbol().Construct(intType);
 
             // vb binary operator name
             Assert.Throws<ArgumentException>(() =>
@@ -2773,6 +2774,18 @@ public class C { public static FrameworkName Goo() { return null; }}";
             // mismatched checked
             Assert.Throws<ArgumentException>(() =>
                 compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, intType, isChecked: false));
+
+            // nullable type 1
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, nullableIntType, intType, intType, isChecked: false));
+
+            // nullable type 2
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, nullableIntType, intType, isChecked: false));
+
+            // nullable type 3
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedAdditionOperatorName, intType, intType, nullableIntType, isChecked: false));
         }
 
         [Fact]
@@ -2914,6 +2927,7 @@ class C
         {
             var compilation = CreateCompilation("");
             var intType = compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+            var nullableIntType = compilation.GetSpecialType(SpecialType.System_Nullable_T).GetPublicSymbol().Construct(intType);
 
             // Binary operator name
             Assert.Throws<ArgumentException>(() =>
@@ -2926,6 +2940,14 @@ class C
             // Mismatched checks
             Assert.Throws<ArgumentException>(() =>
                 compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedUnaryNegationOperatorName, intType, intType, isChecked: false));
+
+            // Nullable type 1
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedUnaryNegationOperatorName, nullableIntType, intType, isChecked: false));
+
+            // Nullable type 2
+            Assert.Throws<ArgumentException>(() =>
+                compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedUnaryNegationOperatorName, intType, nullableIntType, isChecked: false));
         }
 
         [Fact]

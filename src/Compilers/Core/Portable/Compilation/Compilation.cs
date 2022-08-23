@@ -1514,6 +1514,13 @@ namespace Microsoft.CodeAnalysis
             if (rightType is null)
                 throw new ArgumentNullException(nameof(rightType));
 
+            if (returnType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T ||
+                leftType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T ||
+                rightType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            {
+                throw new ArgumentException("Built-in operator type cannot be System.Nullable");
+            }
+
             return CommonCreateBuiltinOperator(name, returnType, leftType, rightType, isChecked);
         }
 
@@ -1539,6 +1546,12 @@ namespace Microsoft.CodeAnalysis
 
             if (valueType is null)
                 throw new ArgumentNullException(nameof(valueType));
+
+            if (returnType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T ||
+                valueType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            {
+                throw new ArgumentException("Built-in operator type cannot be System.Nullable");
+            }
 
             return CommonCreateBuiltinOperator(name, returnType, valueType, isChecked);
         }

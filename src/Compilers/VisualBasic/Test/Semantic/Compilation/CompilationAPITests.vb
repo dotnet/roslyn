@@ -1768,12 +1768,22 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         Public Sub CreateBuiltinBinaryOperator_NotSupported()
             Dim compilation = CreateCompilation("")
             Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+            Dim nullableIntType = compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(intType)
 
             ' c# binary operator name
             Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.IncrementOperatorName, intType, intType, intType, isChecked:=False))
 
             ' unary operator name
             Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType, intType, isChecked:=False))
+
+            ' nullable type 1
+            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, nullableIntType, intType, intType, isChecked:=False))
+
+            ' nullable type 2
+            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, nullableIntType, intType, isChecked:=False))
+
+            ' nullable type 3
+            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType, nullableIntType, isChecked:=False))
         End Sub
 
         <Fact>
@@ -1805,9 +1815,16 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         Public Sub CreateBuiltinUnaryOperator_NotSupported()
             Dim compilation = CreateCompilation("")
             Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+            Dim nullableIntType = compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(intType)
 
             ' Binary operator name
             Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, isChecked:=False))
+
+            ' Nullable type 1
+            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, nullableIntType, intType, isChecked:=False))
+
+            ' Nullable type 2
+            Assert.Throws(Of ArgumentException)(Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, nullableIntType, isChecked:=False))
         End Sub
 
         <Fact>
