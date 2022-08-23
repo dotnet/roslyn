@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo : IObjectWritable
     {
-        private const string PrefixMetadataSymbolTreeInfo = "<SymbolTreeInfo>";
+        private const string PrefixSymbolTreeInfo = "<SymbolTreeInfo>";
         private static readonly Checksum SerializationFormatChecksum = Checksum.Create("23");
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     stream.Position = 0;
 
-                    var key = PrefixMetadataSymbolTreeInfo + keySuffix;
+                    var key = PrefixSymbolTreeInfo + keySuffix;
                     await storage.WriteStreamAsync(key, stream, checksum, cancellationToken).ConfigureAwait(false);
                 }
 
@@ -98,14 +98,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Func<ObjectReader, T> tryReadObject,
             CancellationToken cancellationToken) where T : class
         {
-            // Ok, we can use persistence.  First try to load from the persistence service.
             var persistentStorageService = services.GetPersistentStorageService();
 
             var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
             await using var _ = storage.ConfigureAwait(false);
 
             // Get the unique key to identify our data.
-            var key = PrefixMetadataSymbolTreeInfo + keySuffix;
+            var key = PrefixSymbolTreeInfo + keySuffix;
             using var stream = await storage.ReadStreamAsync(key, checksumOpt, cancellationToken).ConfigureAwait(false);
             using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
 
