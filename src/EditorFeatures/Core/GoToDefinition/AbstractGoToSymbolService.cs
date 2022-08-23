@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             // [includeType: false]
             // Enable Ctrl+Click on tokens with aliased, referenced or declared symbol.
             // If the token has none of those but does have a type (mostly literals), we're not interested
-            var (symbol, span) = await service.GetSymbolAndBoundSpanAsync(document, position, includeType: false, cancellationToken).ConfigureAwait(false);
+            var (symbol, project, span) = await service.GetSymbolProjectAndBoundSpanAsync(document, position, includeType: false, cancellationToken).ConfigureAwait(false);
 
             if (symbol == null)
             {
                 return;
             }
 
-            var solution = document.Project.Solution;
+            var solution = project.Solution;
             var definitions = await GoToDefinitionHelpers.GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed: true, cancellationToken).ConfigureAwait(false);
 
             foreach (var definition in definitions)
