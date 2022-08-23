@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Walk up to the nearest method/property/event.
         /// </summary>
-        internal static Symbol GetAttributedMember(Symbol symbol)
+        private static Symbol GetAttributedMember(Symbol symbol)
         {
             for (; (object)symbol != null; symbol = symbol.ContainingSymbol)
             {
