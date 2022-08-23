@@ -16,6 +16,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -1514,12 +1515,9 @@ namespace Microsoft.CodeAnalysis
             if (rightType is null)
                 throw new ArgumentNullException(nameof(rightType));
 
-            if (returnType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T ||
-                leftType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T ||
-                rightType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-            {
-                throw new ArgumentException("Built-in operator type cannot be System.Nullable");
-            }
+            //CheckBuiltInOperatorNullable(returnType, nameof(returnType));
+            //CheckBuiltInOperatorNullable(leftType, nameof(leftType));
+            //CheckBuiltInOperatorNullable(rightType, nameof(rightType));
 
             return CommonCreateBuiltinOperator(name, returnType, leftType, rightType, isChecked);
         }
@@ -1547,13 +1545,40 @@ namespace Microsoft.CodeAnalysis
             if (valueType is null)
                 throw new ArgumentNullException(nameof(valueType));
 
-            if (returnType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T ||
-                valueType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-            {
-                throw new ArgumentException("Built-in operator type cannot be System.Nullable");
-            }
+            CheckSupportedUnaryOperatorType(returnType, nameof(returnType));
+            CheckSupportedUnaryOperatorType(valueType, nameof(valueType));
 
             return CommonCreateBuiltinOperator(name, returnType, valueType, isChecked);
+
+            static void CheckSupportedUnaryOperatorType(ITypeSymbol type, string paramName)
+            {
+                // Unary operators are supported on enums.
+                if (type.TypeKind == TypeKind.Enum)
+                    return;
+
+                switch (type.OriginalDefinition.SpecialType)
+                {
+                    case SpecialType.System_SByte:
+                    case SpecialType.System_Byte:
+                    case SpecialType.System_Int16:
+                    case SpecialType.System_UInt16:
+                    case SpecialType.System_Int32:
+                    case SpecialType.System_UInt32:
+                    case SpecialType.System_Int64:
+                    case SpecialType.System_UInt64:
+                    case SpecialType.System_IntPtr:
+                    case SpecialType.System_UIntPtr:
+                    case SpecialType.System_Char:
+                    case SpecialType.System_Single:
+                    case SpecialType.System_Double:
+                    case SpecialType.System_Decimal:
+                    case SpecialType.System_Boolean:
+                    case SpecialType.System_Object:
+                        return;
+                }
+
+                throw new ArgumentException($"Unsupported built-in operator type: {type.ToDisplayString()}", paramName);
+            }
         }
 
         protected abstract IMethodSymbol CommonCreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol valueType, bool isChecked);
