@@ -3784,6 +3784,265 @@ namespace N
             await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
+        [Fact]
+        public async Task TestMovePropertiesAndRefactorInitializer()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+    }
+
+    public static class D
+    {
+        public static C GetC()
+        {
+            return new C
+            {
+                P = 0,
+                B = false
+            };
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+
+    public static class D
+    {
+        public static C GetC()
+        {
+            return new C(0, false);
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndRefactorInitializerKeepSomeProperties()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public int I { get; set; } = 4;
+    }
+
+    public static class D
+    {
+        public static C GetC()
+        {
+            return new C
+            {
+                P = 0,
+                B = false,
+                I = 10,
+            };
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+        public int I { get; set; } = 4;
+    }
+
+    public static class D
+    {
+        public static C GetC()
+        {
+            return new C(0, false)
+            {
+                I = 10,
+            };
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndRefactorInitializerWithDefault()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+    }
+
+    public static class D
+    {
+        public static C GetC()
+        {
+            return new C
+            {
+                P = 0,
+            };
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B);
+
+    public static class D
+    {
+        public static C GetC()
+        {
+            return new C(0, default);
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndDontRefactorInitializerWithExistingConstructor()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(int p)
+        {
+            P = p;
+            B = false;
+        }
+    }
+
+    public static class D
+    {
+        public static C GetC()
+        {
+            return new C(0)
+            {
+                B = true,
+            };
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P, bool B)
+    {
+        public C(int p) : this(p, false)
+        {
+        }
+    }
+
+    public static class D
+    {
+        public static C GetC()
+        {
+            return new C(0)
+            {
+                B = true,
+            };
+        }
+    }
+}
+";
+            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMovePropertiesAndRefactorInitializerInSeparateFile()
+        {
+            var initialMarkup1 = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+    }
+}
+";
+            var initialMarkup2 = @"
+using N;
+
+namespace N2
+{
+    public static class D
+    {
+        public static C GetC()
+        {
+            return new C
+            {
+                P = 0,
+                B = true,
+            };
+        }
+    }
+}";
+            var changedMarkup1 = @"
+namespace N
+{
+    public record C(int P, bool B);
+}
+";
+            var changedMarkup2 = @"
+using N;
+
+namespace N2
+{
+    public static class D
+    {
+        public static C GetC()
+        {
+            return new C(0, true);
+        }
+    }
+}";
+            await new Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        initialMarkup1,
+                        initialMarkup2
+                    }
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        changedMarkup1,
+                        changedMarkup2
+                    }
+                }
+            }.RunAsync().ConfigureAwait(false);
+        }
+
         #region selection
 
         [Fact]
@@ -3909,7 +4168,23 @@ namespace N
 
         private class Test : VerifyCS.Test
         {
-            public Test() { }
+            public Test()
+            {
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10;
+                SolutionTransforms.Add((solution, projectId) =>
+                {
+                    var project = solution.GetProject(projectId)!;
+
+                    var compilationOptions = (CSharpCompilationOptions)project.CompilationOptions!;
+                    // enable nullable
+                    compilationOptions = compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable);
+                    solution = solution
+                        .WithProjectCompilationOptions(projectId, compilationOptions)
+                        .WithProjectMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Net60));
+
+                    return solution;
+                });
+            }
 
             protected override Workspace CreateWorkspaceImpl()
             {
@@ -3927,21 +4202,7 @@ namespace N
             {
                 TestCode = initialMarkup,
                 FixedCode = changedMarkup,
-                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
             };
-            test.SolutionTransforms.Add((solution, projectId) =>
-            {
-                var project = solution.GetProject(projectId)!;
-
-                var compilationOptions = (CSharpCompilationOptions)project.CompilationOptions!;
-                // enable nullable
-                compilationOptions = compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable);
-                solution = solution
-                    .WithProjectCompilationOptions(projectId, compilationOptions)
-                    .WithProjectMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Net60));
-
-                return solution;
-            });
             await test.RunAsync().ConfigureAwait(false);
         }
 

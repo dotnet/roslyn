@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         }
 
         public static (ImmutableArray<ArgumentSyntax> initializerArguments,
-            ImmutableArray<ExpressionStatementSyntax> assignmentsToRemove)
+            ImmutableArray<SyntaxNode> assignmentsToRemove)
         GetInitializerValuesForNonPrimaryConstructor(
             IConstructorBodyOperation operation,
             ImmutableArray<IPropertySymbol> positionalParams)
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
         }
 
         public static (ImmutableArray<ArgumentSyntax> initializerArguments,
-            ImmutableArray<SyntaxNode> assignmentsToRemove)
+            ImmutableArray<AssignmentExpressionSyntax> assignmentsToRemove)
         GetConstructorArgumentsFromObjectCreation(
             ObjectCreationExpressionSyntax expressionNode,
             ImmutableArray<IPropertySymbol> positionalParams,
@@ -290,24 +290,34 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             var operation = semanticModel.GetRequiredOperation(expressionNode, cancellationToken);
             if (operation is IObjectCreationOperation
                 {
-                    Arguments: [],
+                    Arguments: ImmutableArray<IArgumentOperation> args,
                     Initializer: IObjectOrCollectionInitializerOperation initializer,
                     Constructor: IMethodSymbol { IsImplicitlyDeclared: true }
-                })
+                } && args.IsDefaultOrEmpty)
             {
                 using var _1 = ArrayBuilder<(ISymbol left, ExpressionSyntax right)>
                     .GetInstance(out var assignmentValuesBuilder);
                 using var _2 = ArrayBuilder<ArgumentSyntax>.GetInstance(out var argumentBuilder);
                 using var _3 = ArrayBuilder<SyntaxNode>.GetInstance(out var removalBuilder);
 
-                AddAssignmentValuesForBlock(initializer.Initializers,
-                    assignment => assignment.Syntax as ExpressionSyntax,
-                    assignmentValuesBuilder);
+                foreach (var assignment in initializer.Initializers)
+                {
+                    if (assignment is ISimpleAssignmentOperation
+                        {
+                            Target: IPropertyReferenceOperation { Property: IPropertySymbol property },
+                            Value: IOperation { Syntax: ExpressionSyntax syntax }
+                        })
+                    {
+                        assignmentValuesBuilder.Add((property, syntax));
+                    }
+                }
 
                 AddArgumentAndRemovalAssignments(assignmentValuesBuilder.ToImmutable(),
                     positionalParams, argumentBuilder, removalBuilder);
 
-                return (argumentBuilder.ToImmutable(), removalBuilder.ToImmutable());
+                return (argumentBuilder.ToImmutable(),
+                    removalBuilder.SelectAsArray(node =>
+                        node.GetAncestor<AssignmentExpressionSyntax>()).WhereAsArray(node => node != null));
             }
 
             // no initializer, no need to make a change
@@ -348,17 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 builder.Add(default);
             }
 
-            AddAssignmentValuesForBlock(body.Operations, captureAssignedSymbol, builder);
-
-            return builder.ToImmutable();
-        }
-
-        private static void AddAssignmentValuesForBlock<T>(
-            ImmutableArray<IOperation> operations,
-            Func<IOperation, T?> captureAssignedSymbol,
-            ArrayBuilder<(ISymbol left, T right)> builder)
-        {
-            foreach (var operation in operations)
+            foreach (var operation in body.Operations)
             {
                 if (operation is IExpressionStatementOperation
                     {
@@ -386,6 +386,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     builder.Add(default);
                 }
             }
+
+            return builder.ToImmutable();
         }
 
         private static void AddArgumentAndRemovalAssignments(
@@ -408,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 else
                 {
                     // found a valid assignment to the parameter, add the expression it was assigned to
-                    // to the initializer list, and add the eniter statement to be deleted
+                    // to the initializer arg list, and add the entire statement to be deleted
                     initializerBuilder.Add(SyntaxFactory.Argument(assignmentValue.right));
                     // don't need to remove argument syntaxes as the base initializer will already get removed
                     if (assignmentValue.right.Parent is not ArgumentSyntax)

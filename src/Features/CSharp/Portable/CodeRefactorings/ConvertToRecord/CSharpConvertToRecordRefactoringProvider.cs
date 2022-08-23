@@ -378,9 +378,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             var solutionEditor = new SolutionEditor(document.Project.Solution);
             var currDocEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
-            currDocEditor.ReplaceNode(originalDeclarationNode, changedTypeDeclaration);
+            currDocEditor.ReplaceNode(typeDeclaration, changedTypeDeclaration);
 
-            RefactorInitializersAsync(originalType, solutionEditor, )
+            await RefactorInitializersAsync(type, solutionEditor, positionalParamSymbols, cancellationToken).ConfigureAwait(false);
+            return solutionEditor.GetChangedSolution();
         }
 
         private static SyntaxList<AttributeListSyntax> GetModifiedAttributeListsForProperty(PositionalParameterInfo result)
@@ -421,6 +422,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             {
                 // organize by project first, so we can solve one project at a time
                 var project = solutionEditor.OriginalSolution.GetRequiredProject(projID);
+                if (project.Language != LanguageNames.CSharp)
+                {
+                    // skip non-CSharp projects that reference records
+                    continue;
+                }
+
                 var compilation = await project
                     .GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var docLookup = projLocs.ToLookup(refLoc => refLoc.Document.Id);
@@ -432,7 +439,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                         .GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                     var semanticModel = compilation.GetSemanticModel(syntaxTree);
                     var nodes = docLocs
-                        .Select(refLoc => refLoc.Location.FindNode(cancellationToken))
+                        // we should find the identifier node of an object creation expression
+                        .Select(refLoc => refLoc.Location.FindNode(cancellationToken).Parent)
                         .OfType<ObjectCreationExpressionSyntax>();
                     foreach (var node in nodes)
                     {
@@ -442,13 +450,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
                         if (!constructorArgs.IsDefaultOrEmpty)
                         {
+                            var initializerExpressions = node.Initializer!.Expressions;
+                            // need to get all indices and then remove because otherwise nodes change
+                            var removalIndices = nodesToRemove
+                                .SelectAsArray(initializerExpressions.IndexOf)
+                                .OrderByDescending(i => i);
+                            // remove in descending order so indices aren't shifted around
+                            foreach (var nodeIndex in removalIndices)
+                            {
+                                initializerExpressions = initializerExpressions.RemoveAt(nodeIndex);
+                            }
+
+                            var initializerBlock = initializerExpressions.IsEmpty()
+                                ? null
+                                : node.Initializer!.WithExpressions(initializerExpressions);
+
                             var replacementNode = SyntaxFactory.ObjectCreationExpression(
                                 node.NewKeyword,
-                                node.Type,
-                                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(constructorArgs)),
-                                SyntaxFactory.InitializerExpression(SyntaxKind.ObjectInitializerExpression,
-                                    SyntaxFactory.SeparatedList(
-                                        node.Initializer!.Expressions.Where(nodesToRemove.Contains))));
+                                node.Type.WithoutTrailingTrivia(),
+                                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(constructorArgs
+                                    .Select(expr => expr.WithoutTrivia()))),
+                                initializerBlock);
+
                             documentEditor.ReplaceNode(node, replacementNode);
                         }
                     }
