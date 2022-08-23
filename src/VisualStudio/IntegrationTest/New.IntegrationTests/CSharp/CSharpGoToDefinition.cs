@@ -171,7 +171,7 @@ class C
         [IdeFact]
         public async Task GoToDefinitionFromMetadataSecondHop()
         {
-            await TestServices.SolutionExplorer.AddDllReferenceAsync(ProjectName, typeof(EmbeddedClass).Assembly.Location, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddDllReferenceAsync(ProjectName, typeof(CSharpGoToDefinition).Assembly.Location, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "C.cs", HangMitigatingCancellationToken);
             await TestServices.Editor.SetTextAsync(
@@ -181,28 +181,29 @@ class C
 {
     public void Test()
     {
-        var helper = new Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpGoToDefinition.EmbeddedClass();
+        var helper = new Roslyn.VisualStudio.NewIntegrationTests.CSharp.CSharpGoToBase();
     }
 }", HangMitigatingCancellationToken);
 
-            await TestServices.Editor.PlaceCaretAsync("EmbeddedClass", charsOffset: -1, HangMitigatingCancellationToken);
+            // Purposefully not using this test class as test data, or the strings in this test could be found
+            await TestServices.Editor.PlaceCaretAsync("CSharpGoToBase", charsOffset: -1, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-            Assert.Equal("CSharpGoToDefinition.EmbeddedClass.cs [embedded] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal("CSharpGoToBase.cs [embedded] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
 
-            await TestServices.Editor.PlaceCaretAsync("EmbeddedClassHelper.", charsOffset: -1, HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("AbstractEditorTest", charsOffset: -1, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-            Assert.Equal("CSharpGoToDefinition.EmbeddedClassHelper.cs [embedded] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal("AbstractEditorTest.cs [embedded] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
 
-            // Close the file and try again. If symbol mapping isn't working, the second GTD to Constants.cs will fail
+            // Close the file and try again. If symbol mapping isn't working, the second GTD to AbstractEditorTest.cs will fail
             await TestServices.SolutionExplorer.CloseActiveWindow(HangMitigatingCancellationToken);
 
-            await TestServices.Editor.PlaceCaretAsync("EmbeddedClass", charsOffset: -1, HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("CSharpGoToBase", charsOffset: -1, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-            Assert.Equal("CSharpGoToDefinition.EmbeddedClass.cs [embedded] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal("CSharpGoToBase.cs [embedded] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
 
-            await TestServices.Editor.PlaceCaretAsync("EmbeddedClassHelper.", charsOffset: -1, HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("AbstractEditorTest", charsOffset: -1, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-            Assert.Equal("CSharpGoToDefinition.EmbeddedClassHelper.cs [embedded] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal("AbstractEditorTest.cs [embedded] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
         }
     }
 }
