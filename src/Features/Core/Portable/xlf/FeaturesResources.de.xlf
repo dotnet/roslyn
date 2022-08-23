@@ -718,7 +718,7 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       <trans-unit id="Extract_base_record">
         <source>Extract base record...</source>
         <target state="new">Extract base record...</target>
-        <note>"record" is a language construct and should be left the same</note>
+        <note>{Locked="record"} "record" is a language construct for C# and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
