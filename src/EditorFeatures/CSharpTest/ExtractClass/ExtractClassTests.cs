@@ -198,7 +198,7 @@ partial class Test
         }
 
         [Fact]
-        public async Task TestRecord()
+        public async Task TestRecord_Method()
         {
             var input = """
                 record R(string S)
@@ -242,7 +242,87 @@ partial class Test
         }
 
         [Fact]
-        public async Task TestRecord2()
+        public async Task TestRecord_Property()
+        {
+            var input = """
+                record R
+                {
+                    public string $$S { get; set; }
+                }
+                """;
+
+            var expected1 = """
+                record R : MyBase
+                {
+                }
+                """;
+
+            var expected2 = """
+                internal record MyBase
+                {
+                    public string S { get; set; }
+                }
+
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                LanguageVersion = LanguageVersion.CSharp9,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+            }.RunAsync();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/62415")]
+        public async Task TestRecord_PropertyAndImplicitField()
+        {
+            var input = """
+                record R(string S)
+                {
+                    public string $$S { get; set; } = S;
+                }
+                """;
+
+            var expected1 = """
+                record R(string S) : MyBase(S)
+                {
+                }
+                """;
+
+            var expected2 = """
+                record MyBase(string S)
+                {
+                    public string S { get; set; } = S;
+                }
+
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                LanguageVersion = LanguageVersion.CSharp9,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestRecordParam()
         {
             // https://github.com/dotnet/roslyn/issues/62415 to make this scenario work
             var input = """
@@ -256,6 +336,27 @@ partial class Test
                 TestCode = input,
                 FixedCode = input,
                 LanguageVersion = LanguageVersion.CSharp9,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestRecordStruct()
+        {
+            var input = """
+                record struct R(string S)
+                {
+                    void $$M()
+                    {
+                    }
+                }
+                """;
+
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input,
+                LanguageVersion = LanguageVersion.CSharp10,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
         }
