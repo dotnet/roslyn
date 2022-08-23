@@ -239,10 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <see langword="true"/> if this operation succeeded, or <see langword="false"/> if it failed.
         /// </summary>
         bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText);
-    }
 
-    internal interface IInlineRenameInfoWithFileRename : IInlineRenameInfo
-    {
         /// <summary>
         /// Returns information about the file rename capabilities of 
         /// an inline rename

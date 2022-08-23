@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Friend Class TestCompletionService
             Inherits CompletionService
 
-            Public Sub New(services As HostSolutionServices)
+            Public Sub New(services As SolutionServices)
                 MyBase.New(services)
             End Sub
 

@@ -61,6 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
+                if (_conversion.Kind != ConversionKind.Deconstruction)
+                {
+                    return ImmutableArray<DeconstructionInfo>.Empty;
+                }
+
                 var deconstructConversionInfo = _conversion.DeconstructConversionInfo;
 
                 return deconstructConversionInfo.IsDefault

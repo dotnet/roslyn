@@ -8,12 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Features.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -223,7 +221,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             context.TraceInformation($"Found {diagnostics.Length} diagnostics for {diagnosticSource.GetUri()}");
 
             foreach (var diagnostic in diagnostics)
-                result.Add(ConvertDiagnostic(diagnosticSource, diagnostic, clientCapabilities));
+                result.AddRange(ConvertDiagnostic(diagnosticSource, diagnostic, clientCapabilities));
 
             return CreateReport(new LSP.TextDocumentIdentifier { Uri = diagnosticSource.GetUri() }, result.ToArray(), resultId);
         }
@@ -242,37 +240,57 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
         }
 
-        private LSP.Diagnostic ConvertDiagnostic(IDiagnosticSource diagnosticSource, DiagnosticData diagnosticData, ClientCapabilities capabilities)
+        private ImmutableArray<LSP.Diagnostic> ConvertDiagnostic(IDiagnosticSource diagnosticSource, DiagnosticData diagnosticData, ClientCapabilities capabilities)
         {
-            Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
-
             var project = diagnosticSource.GetProject();
+            var diagnostic = CreateLspDiagnostic(diagnosticData, project, capabilities);
 
-            if (!capabilities.HasVisualStudioLspCapability())
+            // Check if we need to handle the unnecessary tag (fading).
+            if (!diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
             {
-                var diagnostic = CreateBaseLspDiagnostic();
-                return diagnostic;
-            }
-            else
-            {
-                var vsDiagnostic = CreateBaseLspDiagnostic();
-                vsDiagnostic.DiagnosticType = diagnosticData.Category;
-                vsDiagnostic.Projects = new[]
-                {
-                    new VSDiagnosticProjectInformation
-                    {
-                        ProjectIdentifier = project.Id.Id.ToString(),
-                        ProjectName = project.Name,
-                    },
-                };
-
-                return vsDiagnostic;
+                return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
             }
 
-            // We can just use VSDiagnostic as it doesn't have any default properties set that
-            // would get automatically serialized.
-            LSP.VSDiagnostic CreateBaseLspDiagnostic()
+            // DiagnosticId supports fading, check if the corresponding VS option is turned on.
+            if (!SupportsFadingOption(diagnosticData))
             {
+                return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
+            }
+
+            // Check to see if there are specific locations marked to fade.
+            if (!diagnosticData.TryGetUnnecessaryDataLocations(out var unnecessaryLocations))
+            {
+                // There are no specific fading locations, just mark the whole diagnostic span as unnecessary.
+                // We should always have at least one tag (build or intellisense error).
+                Contract.ThrowIfNull(diagnostic.Tags, $"diagnostic {diagnostic.Identifier} was missing tags");
+                diagnostic.Tags = diagnostic.Tags.Append(DiagnosticTag.Unnecessary);
+                return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
+            }
+
+            // Roslyn produces unnecessary diagnostics by using additional locations, however LSP doesn't support tagging
+            // additional locations separately.  Instead we just create multiple hidden diagnostics for unnecessary squiggling.
+            using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var diagnosticsBuilder);
+            diagnosticsBuilder.Add(diagnostic);
+            foreach (var location in unnecessaryLocations)
+            {
+                var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, capabilities);
+                additionalDiagnostic.Severity = LSP.DiagnosticSeverity.Hint;
+                additionalDiagnostic.Range = GetRange(location);
+                additionalDiagnostic.Tags = new DiagnosticTag[] { DiagnosticTag.Unnecessary, VSDiagnosticTags.HiddenInEditor, VSDiagnosticTags.HiddenInErrorList, VSDiagnosticTags.SuppressEditorToolTip };
+                diagnosticsBuilder.Add(additionalDiagnostic);
+            }
+
+            return diagnosticsBuilder.ToImmutableArray();
+
+            LSP.VSDiagnostic CreateLspDiagnostic(
+                DiagnosticData diagnosticData,
+                Project project,
+                ClientCapabilities capabilities)
+            {
+                Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
+
+                // We can just use VSDiagnostic as it doesn't have any default properties set that
+                // would get automatically serialized.
                 var diagnostic = new LSP.VSDiagnostic
                 {
                     Source = "Roslyn",
@@ -282,22 +300,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
                     Tags = ConvertTags(diagnosticData),
                 };
-                var range = GetRange(diagnosticData.DataLocation);
-                if (range != null)
+                if (diagnosticData.DataLocation != null)
                 {
-                    diagnostic.Range = range;
+                    diagnostic.Range = GetRange(diagnosticData.DataLocation);
+                }
+
+                if (capabilities.HasVisualStudioLspCapability())
+                {
+                    diagnostic.DiagnosticType = diagnosticData.Category;
+                    diagnostic.Projects = new[]
+                    {
+                        new VSDiagnosticProjectInformation
+                        {
+                            ProjectIdentifier = project.Id.Id.ToString(),
+                            ProjectName = project.Name,
+                        },
+                    };
                 }
 
                 return diagnostic;
             }
 
-            static Range? GetRange(DiagnosticDataLocation? dataLocation)
+            static LSP.Range GetRange(DiagnosticDataLocation dataLocation)
             {
-                if (dataLocation == null)
-                {
-                    return null;
-                }
-
                 // We currently do not map diagnostics spans as
                 //   1.  Razor handles span mapping for razor files on their side.
                 //   2.  LSP does not allow us to report document pull diagnostics for a different file path.
@@ -306,7 +331,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
                 // We also do not adjust the diagnostic locations to ensure they are in bounds because we've
                 // explicitly requested up to date diagnostics as of the snapshot we were passed in.
-                return new Range
+                return new LSP.Range
                 {
                     Start = new Position
                     {
@@ -360,13 +385,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 ? VSDiagnosticTags.BuildError
                 : VSDiagnosticTags.IntellisenseError);
 
-            if (diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
-                result.Add(DiagnosticTag.Unnecessary);
-
             if (diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.EditAndContinue))
                 result.Add(VSDiagnosticTags.EditAndContinueError);
 
             return result.ToArray();
+        }
+
+        private bool SupportsFadingOption(DiagnosticData diagnosticData)
+        {
+            if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedFadingOption(diagnosticData.Id, out var fadingOption))
+            {
+                Contract.ThrowIfNull(diagnosticData.Language, $"diagnostic {diagnosticData.Id} is missing a language");
+                return GlobalOptions.GetOption(fadingOption, diagnosticData.Language);
+            }
+
+            return true;
         }
     }
 }

@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return ValueUsageInfo.ReadableWritableReference;
             }
-            else if (operation.Parent is IIncrementOrDecrementOperation)
+            else if (operation.Parent is IIncrementOrDecrementOperation || (operation.Parent is IForToLoopOperation forToLoopOperation && forToLoopOperation.LoopControlVariable.Equals(operation)))
             {
                 return ValueUsageInfo.ReadWrite;
             }
