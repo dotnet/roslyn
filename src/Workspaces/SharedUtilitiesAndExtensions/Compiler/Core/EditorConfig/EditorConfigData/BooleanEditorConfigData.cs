@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
         {
             if (ValueToSettingName != null)
             {
-                ValueToSettingName.TryGetValue(key, out var value);
+                ValueToSettingName.TryGetValue(key.Trim(), out var value);
                 return value;
             }
 
