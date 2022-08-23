@@ -22,6 +22,6 @@ public class ExitHandler<RequestContextType> : INotificationHandler<RequestConte
 
     public async Task HandleNotificationAsync(RequestContextType requestContext, CancellationToken cancellationToken)
     {
-        await _lifeCycleManager.ExitAsync();
+        await _lifeCycleManager.ExitAsync().ConfigureAwait(false);
     }
 }

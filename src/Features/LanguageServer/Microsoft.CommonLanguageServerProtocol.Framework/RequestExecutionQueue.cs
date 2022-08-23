@@ -192,7 +192,7 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
 
                     var requestContextFactory = lspServices.GetRequiredService<IRequestContextFactory<RequestContextType>>();
                     var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, cancellationToken);
-                    var context = await requestContextFactory.CreateRequestContextAsync(work, cancellationTokenSource.Token);
+                    var context = await requestContextFactory.CreateRequestContextAsync(work, cancellationTokenSource.Token).ConfigureAwait(false);
 
                     if (work.MutatesDocumentState)
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
@@ -221,8 +221,8 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
         {
             // We encountered an unexpected exception in processing the queue or in a mutating request.
             // Log it, shutdown the queue, and exit the loop.
-            await _logger.LogExceptionAsync(ex);
-            await OnRequestServerShutdownAsync($"Error occurred processing queue: {ex.Message}.");
+            await _logger.LogExceptionAsync(ex).ConfigureAwait(false);
+            await OnRequestServerShutdownAsync($"Error occurred processing queue: {ex.Message}.").ConfigureAwait(false);
             return;
         }
     }
@@ -236,7 +236,7 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
     {
         RequestServerShutdown?.Invoke(this, new RequestShutdownEventArgs(message));
 
-        await DisposeAsync();
+        await DisposeAsync().ConfigureAwait(false);
     }
 
     /// <summary>
@@ -270,7 +270,10 @@ public class RequestExecutionQueue<RequestContextType> : IRequestExecutionQueue<
 
         public async Task WaitForProcessingToStopAsync()
         {
-            await _queue._queueProcessingTask.ConfigureAwait(false);
+            if (_queue._queueProcessingTask is not null)
+            {
+                await _queue._queueProcessingTask.ConfigureAwait(false);
+            }
         }
 
         /// <summary>

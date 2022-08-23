@@ -32,6 +32,6 @@ internal class ShutdownHandler : ILspServiceNotificationHandler
         }
 
         var lifeCycleManager = requestContext.GetRequiredService<LifeCycleManager<RequestContext>>();
-        await lifeCycleManager.ShutdownAsync();
+        await lifeCycleManager.ShutdownAsync().ConfigureAwait(false);
     }
 }

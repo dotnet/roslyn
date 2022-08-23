@@ -34,7 +34,7 @@ public class LifeCycleManager<RequestContextType>
     /// </summary>
     public async Task ShutdownAsync(string message = "Shutting down")
     {
-        await _target.ShutdownAsync();
+        await _target.ShutdownAsync().ConfigureAwait(false);
         OnShutdown?.Invoke(this, new RequestShutdownEventArgs(message));
     }
 

@@ -26,6 +26,6 @@ public class ShutdownHandler<RequestContextType> : INotificationHandler<RequestC
 
     public async Task HandleNotificationAsync(RequestContextType requestContext, CancellationToken cancellationToken)
     {
-        await _lifeCycleManager.ShutdownAsync();
+        await _lifeCycleManager.ShutdownAsync().ConfigureAwait(false);
     }
 }

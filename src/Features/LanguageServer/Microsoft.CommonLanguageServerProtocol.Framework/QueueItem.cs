@@ -118,13 +118,13 @@ internal class QueueItem<TRequestType, TResponseType, RequestContextType> : IQue
                 {
                     await notificationHandler.HandleNotificationAsync(_request, context, cancellationToken).ConfigureAwait(false);
 
-                    _completionSource.TrySetResult(default);
+                    _completionSource.TrySetResult((TResponseType)(object)VoidReturn.Instance);
                 }
                 else if (_handler is INotificationHandler<RequestContextType> parameterlessNotificationHandler)
                 {
                     await parameterlessNotificationHandler.HandleNotificationAsync(context, cancellationToken).ConfigureAwait(false);
 
-                    _completionSource.TrySetResult(default);
+                    _completionSource.TrySetResult((TResponseType)(object)VoidReturn.Instance);
                 }
                 else
                 {

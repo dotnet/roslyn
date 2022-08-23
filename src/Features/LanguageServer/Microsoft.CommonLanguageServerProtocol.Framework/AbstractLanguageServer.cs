@@ -230,7 +230,7 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
     {
     }
 
-    private async void RequestExecutionQueue_Errored(object? sender, RequestShutdownEventArgs e)
+    private async Task RequestExecutionQueue_Errored(object? sender, RequestShutdownEventArgs e)
     {
         // log message and shut down
         await _logger.LogWarningAsync($"Request queue is requesting shutdown due to error: {e.Message}", CancellationToken.None).ConfigureAwait(false);
@@ -248,7 +248,7 @@ public abstract class AbstractLanguageServer<RequestContextType> : IAsyncDisposa
     /// <summary>
     /// Cleanup the server if we encounter a json rpc disconnect so that we can be restarted later.
     /// </summary>
-    private async void JsonRpc_Disconnected(object? sender, JsonRpcDisconnectedEventArgs e)
+    private async Task JsonRpc_Disconnected(object? sender, JsonRpcDisconnectedEventArgs e)
     {
         if (_shuttingDown)
             // We're already in the normal shutdown -> exit path, no need to do anything.
