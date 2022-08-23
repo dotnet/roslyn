@@ -2918,7 +2918,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim vbReturnType = returnType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(returnType))
             Dim vbLeftType = leftType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(leftType))
-            Dim vbRightType = returnType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(rightType))
+            Dim vbRightType = rightType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(rightType))
 
             Dim opInfo = OverloadResolution.GetOperatorInfo(name)
             If Not opInfo.IsBinary Then
