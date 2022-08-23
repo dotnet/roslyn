@@ -12,9 +12,9 @@
       ]
     },
     "vs": {
-      "version": "17.0"
+      "version": "17.2"
     },
-    "xcopy-msbuild": "17.1.0"
+    "xcopy-msbuild": "17.2.1"
   },
   "msbuild-sdks": {
     "Microsoft.DotNet.Arcade.Sdk": "7.0.0-beta.22419.1",
