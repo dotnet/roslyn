@@ -172,22 +172,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             PortableExecutableReference reference,
             CancellationToken cancellationToken)
         {
-            var checksum = GetMetadataChecksum(services, reference, cancellationToken);
-
             return LoadOrCreateAsync(
                 services,
                 solutionKey,
-                checksum,
-                createAsync: () => Task.FromResult(CreateMetadataSymbolTreeInfo(checksum, reference)),
+                getChecksumAsync: () => new ValueTask<Checksum>(GetMetadataChecksum(services, reference, cancellationToken)),
+                createAsync: checksum => new ValueTask<SymbolTreeInfo>(CreateMetadataSymbolTreeInfo(checksum, reference)),
                 keySuffix: GetMetadataKeySuffix(reference),
-                tryReadObject: GetMetadataInfoReader(services, reference, cancellationToken),
                 cancellationToken);
-        }
-
-        private static Func<ObjectReader, SymbolTreeInfo> GetMetadataInfoReader(SolutionServices services, PortableExecutableReference reference, CancellationToken cancellationToken)
-        {
-            var checksum = GetMetadataChecksum(services, reference, cancellationToken);
-            return reader => TryReadSymbolTreeInfo(reader, checksum);
         }
 
         /// <summary>
@@ -203,9 +194,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return LoadAsync(
                 solution.Services,
                 SolutionKey.ToSolutionKey(solution),
-                checksumOpt: null,
+                checksum: GetMetadataChecksum(solution.Services, reference, cancellationToken),
+                checksumMustMatch: false,
                 keySuffix: GetMetadataKeySuffix(reference),
-                tryReadObject: GetMetadataInfoReader(solution.Services, reference, cancellationToken),
                 cancellationToken);
         }
 

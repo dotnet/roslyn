@@ -29,23 +29,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Generalized function for loading/creating/persisting data.  Used as the common core code for serialization
         /// of source and metadata SymbolTreeInfos.
         /// </summary>
-        private static async Task<T> LoadOrCreateAsync<T>(
+        private static async Task<SymbolTreeInfo> LoadOrCreateAsync(
             SolutionServices services,
             SolutionKey solutionKey,
-            Checksum checksum,
-            Func<Task<T>> createAsync,
+            Func<ValueTask<Checksum>> getChecksumAsync,
+            Func<Checksum, ValueTask<SymbolTreeInfo>> createAsync,
             string keySuffix,
-            Func<ObjectReader, T> tryReadObject,
-            CancellationToken cancellationToken) where T : class, IObjectWritable, IChecksummedObject
+            CancellationToken cancellationToken)
         {
+            var checksum = await getChecksumAsync().ConfigureAwait(false);
+
             using (Logger.LogBlock(FunctionId.SymbolTreeInfo_TryLoadOrCreate, cancellationToken))
             {
                 if (checksum == null)
                     return await CreateWithLoggingAsync().ConfigureAwait(false);
 
-                // Ok, we can use persistence.  First try to load from the persistence service.
+                // Ok, we can use persistence.  First try to load from the persistence service. The data in the
+                // persistence store must match the checksum passed in.
 
-                var read = await LoadAsync(services, solutionKey, checksum, keySuffix, tryReadObject, cancellationToken).ConfigureAwait(false);
+                var read = await LoadAsync(services, solutionKey, checksum, checksumMustMatch: true, keySuffix, cancellationToken).ConfigureAwait(false);
                 if (read != null)
                 {
                     // If we were able to read something in, it's checksum better
@@ -81,22 +83,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return result;
             }
 
-            async Task<T> CreateWithLoggingAsync()
+            async Task<SymbolTreeInfo> CreateWithLoggingAsync()
             {
                 using (Logger.LogBlock(FunctionId.SymbolTreeInfo_Create, cancellationToken))
                 {
-                    return await createAsync().ConfigureAwait(false);
+                    return await createAsync(checksum).ConfigureAwait(false);
                 }
             }
         }
 
-        private static async Task<T> LoadAsync<T>(
+        private static async Task<SymbolTreeInfo> LoadAsync(
             SolutionServices services,
             SolutionKey solutionKey,
-            Checksum checksumOpt,
+            Checksum checksum,
+            bool checksumMustMatch,
             string keySuffix,
-            Func<ObjectReader, T> tryReadObject,
-            CancellationToken cancellationToken) where T : class
+            CancellationToken cancellationToken)
         {
             var persistentStorageService = services.GetPersistentStorageService();
 
@@ -105,18 +107,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // Get the unique key to identify our data.
             var key = PrefixSymbolTreeInfo + keySuffix;
-            using var stream = await storage.ReadStreamAsync(key, checksumOpt, cancellationToken).ConfigureAwait(false);
+
+            // If the checksum doesn't need to match, then we can pass in 'null' here allowing any result to be found.
+            using var stream = await storage.ReadStreamAsync(key, checksumMustMatch ? checksum : null, cancellationToken).ConfigureAwait(false);
             using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
 
-            if (reader != null)
-            {
-                // We have some previously persisted data.  Attempt to read it back.  
-                // If we're able to, and the version of the persisted data matches
-                // our version, then we can reuse this instance.
-                return tryReadObject(reader);
-            }
-
-            return null;
+            // We have some previously persisted data.  Attempt to read it back.  
+            // If we're able to, and the version of the persisted data matches
+            // our version, then we can reuse this instance.
+            return TryReadSymbolTreeInfo(reader, checksum);
         }
 
         bool IObjectWritable.ShouldReuseInSerialization => true;
@@ -199,6 +198,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ObjectReader reader,
             Checksum checksum)
         {
+            if (reader == null)
+                return null;
+
             try
             {
                 var nodeCount = reader.ReadInt32();

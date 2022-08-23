@@ -32,30 +32,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static string GetSourceKeySuffix(Project project)
             => "_Source_" + project.FilePath;
 
-        private static async Task<Func<ObjectReader, SymbolTreeInfo>> GetSourceInfoReaderAsync(
-            Project project, CancellationToken cancellationToken)
-        {
-            var checksum = await GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
-            return reader => TryReadSymbolTreeInfo(reader, checksum);
-        }
-
-        public static async Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
+        public static Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
             Project project, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-            var services = solution.Services;
-            var solutionKey = SolutionKey.ToSolutionKey(solution);
-            var checksum = await GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
-            var tryReadObject = await GetSourceInfoReaderAsync(project, cancellationToken).ConfigureAwait(false);
 
-            return await LoadOrCreateAsync(
-                services,
-                solutionKey,
-                checksum,
-                createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
+            return LoadOrCreateAsync(
+                solution.Services,
+                SolutionKey.ToSolutionKey(solution),
+                getChecksumAsync: async () => await GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false),
+                createAsync: checksum => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
                 keySuffix: GetSourceKeySuffix(project),
-                tryReadObject,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
         }
 
         /// <summary>
@@ -66,14 +54,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<SymbolTreeInfo?> LoadAnyInfoForSourceAssemblyAsync(
             Project project, CancellationToken cancellationToken)
         {
-            var tryReadObject = await GetSourceInfoReaderAsync(project, cancellationToken).ConfigureAwait(false);
-
             return await LoadAsync(
                 project.Solution.Services,
                 SolutionKey.ToSolutionKey(project.Solution),
-                checksumOpt: null,
+                checksum: await GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false),
+                checksumMustMatch: false,
                 GetSourceKeySuffix(project),
-                tryReadObject,
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -81,13 +67,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Cache of project to the checksum for it so that we don't have to expensively recompute
         /// this each time we get a project.
         /// </summary>
-        private static readonly ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>> s_projectToSourceChecksum =
-            new();
+        private static readonly ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>> s_projectToSourceChecksum = new();
 
         public static Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
         {
             var lazy = s_projectToSourceChecksum.GetValue(
-                project.State, p => new AsyncLazy<Checksum>(c => ComputeSourceSymbolsChecksumAsync(p, c), cacheResult: true));
+                project.State, static p => new AsyncLazy<Checksum>(c => ComputeSourceSymbolsChecksumAsync(p, c), cacheResult: true));
 
             return lazy.GetValueAsync(cancellationToken);
         }
@@ -129,15 +114,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return Checksum.Create(allChecksums);
         }
 
-        internal static async Task<SymbolTreeInfo> CreateSourceSymbolTreeInfoAsync(
+        internal static async ValueTask<SymbolTreeInfo> CreateSourceSymbolTreeInfoAsync(
             Project project, Checksum checksum, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var assembly = compilation?.Assembly;
             if (assembly == null)
-            {
                 return CreateEmpty(checksum);
-            }
 
             var unsortedNodes = ArrayBuilder<BuilderNode>.GetInstance();
             unsortedNodes.Add(new BuilderNode(assembly.GlobalNamespace.Name, RootNodeParentIndex));
