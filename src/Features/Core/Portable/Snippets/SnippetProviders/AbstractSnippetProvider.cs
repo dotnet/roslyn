@@ -204,11 +204,11 @@ namespace Microsoft.CodeAnalysis.Snippets
             return document;
         }
 
-        protected virtual SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> IsCorrectContainer)
+        protected virtual SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
         {
             var closestNode = root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true);
 
-            if (!IsCorrectContainer(closestNode))
+            if (!isCorrectContainer(closestNode))
             {
                 return null;
             }

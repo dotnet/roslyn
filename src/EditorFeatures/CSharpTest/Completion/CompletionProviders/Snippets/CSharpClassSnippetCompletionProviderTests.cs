@@ -159,6 +159,34 @@ class MyClass
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertClassSnippetWithModifiersTest()
+        {
+            var markupBeforeCommit =
+                $@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+    <Document FilePath=""/0/Test0.cs"">
+$$
+</Document>
+<AnalyzerConfigDocument FilePath=""/.editorconfig"">
+root = true
+ 
+[*]
+# IDE0008: Use explicit type
+dotnet_style_require_accessibility_modifiers = always
+    </AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+            var expectedCodeAfterCommit =
+                $@"
+public class MyClass
+{{$$
+}}
+";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoClassSnippetInEnumTest()
         {
             var markupBeforeCommit =
