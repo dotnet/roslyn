@@ -57,8 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     // TODO (https://github.com/dotnet/roslyn/issues/5107): Enable in Interactive.
                     var solution = document.Project.Solution;
-                    var workspace = solution.Workspace;
-                    if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
+                    if (!solution.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
                          solution.WorkspaceKind == WorkspaceKind.Debugger ||
                          solution.WorkspaceKind == WorkspaceKind.Interactive)
                     {

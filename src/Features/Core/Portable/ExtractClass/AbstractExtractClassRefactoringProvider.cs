@@ -34,12 +34,13 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             // cases that won't work because the refactoring may try to add a document. There's non-trivial
             // work to support a user interaction that makes sense for those cases. 
             // See: https://github.com/dotnet/roslyn/issues/50868
-            if (!context.Document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.AddDocument))
+            var solution = context.Document.Project.Solution;
+            if (!solution.CanApplyChange(ApplyChangesKind.AddDocument))
             {
                 return;
             }
 
-            var optionsService = _optionsService ?? context.Document.Project.Solution.Services.GetService<IExtractClassOptionsService>();
+            var optionsService = _optionsService ?? solution.Services.GetService<IExtractClassOptionsService>();
             if (optionsService is null)
             {
                 return;

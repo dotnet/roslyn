@@ -7962,6 +7962,56 @@ namespace NS
             End Using
         End Function
 
+        <WorkItem(38289, "https://github.com/dotnet/roslyn/issues/38289")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestShowCompletionsWhenTypingCompilerDirective_SingleDirectiveWord(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document><![CDATA[
+#nullable$$
+]]></Document>,
+                  showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars(" ")
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                Await state.AssertCompletionItemsContainAll("disable", "enable", "restore")
+            End Using
+        End Function
+
+        <WorkItem(38289, "https://github.com/dotnet/roslyn/issues/38289")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestShowCompletionsWhenTypingCompilerDirective_MultipleDirectiveWords(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document><![CDATA[
+#pragma warning$$
+]]></Document>,
+                  showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars(" ")
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                Await state.AssertCompletionItemsContainAll("disable", "enable", "restore")
+            End Using
+        End Function
+
+        <WorkItem(38289, "https://github.com/dotnet/roslyn/issues/38289")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCompletionsWhenTypingCompilerDirective_DoNotCrashOnDocumentStart(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                  <Document><![CDATA[nullable$$]]></Document>,
+                  showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars(" ")
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                ' This assertion would fail if any unhandled exception was thrown during computing completions
+                Await state.AssertCompletionItemsDoNotContainAny("disable", "enable", "restore")
+            End Using
+        End Function
+
         <ExportCompletionProvider(NameOf(MultipleChangeCompletionProvider), LanguageNames.CSharp)>
         <[Shared]>
         <PartNotDiscoverable>
