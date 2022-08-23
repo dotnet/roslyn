@@ -11993,6 +11993,27 @@ class Program
         }
 
         [Fact]
+        public void LambdaWithDefault_WithParameterError_EmptyBody()
+        {
+            var source = """
+class Program
+{
+    // Named delegate has required parameter x
+    public static int f(int x) => 2 * x;
+    public static void Main()
+    {
+        // lambda has optional parameter x
+        var lam = (int x = f(1000)) => { };
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (8,28): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                    //         var lam = (int x = f(1000)) => { };
+                    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1000)").WithArguments("x").WithLocation(8, 28));
+        }
+
+        [Fact]
         public void LambdaOptionalBeforeRequiredBadConversion()
         {
 

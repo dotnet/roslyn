@@ -213,18 +213,17 @@ namespace Microsoft.CodeAnalysis
 
             public override string ToString(string? format, IFormatProvider? provider)
             {
-                int formatLength;
+                int formatLength = RopeValue.Length;
                 if (format is not null && int.TryParse(format, out var len) &&
-                    len > 0 && len < RopeValue.Length)
+                    len >= 0)
                 {
                     formatLength = len;
                 }
-                else
-                {
-                    formatLength = RopeValue.Length;
-                }
 
-                return RopeValue.ToString(formatLength);
+                bool trim = formatLength >= 3 && formatLength < RopeValue.Length;
+                var formatString = @"""{0}""" + (trim ? "..." : string.Empty);
+
+                return string.Format(formatString, trim ? RopeValue.ToString(formatLength - 3) : RopeValue);
             }
         }
 

@@ -16,6 +16,7 @@ using Xunit;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly bool _ignoreArgumentsWhenComparing;
         private readonly DiagnosticSeverity? _defaultSeverityOpt;
         private readonly DiagnosticSeverity? _effectiveSeverityOpt;
+        private readonly ImmutableArray<string>? _originalFormatSpecifiers;
 
         // fields for DiagnosticDescriptions constructed via factories
         private readonly Func<SyntaxNode, bool> _syntaxPredicate;
@@ -51,14 +53,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 // We'll use IFormattable here, because it is more explicit than just calling .ToString()
                 // (and is closer to what the compiler actually does when displaying error messages)
-                _argumentsAsStrings = _arguments.Select(o =>
+                _argumentsAsStrings = _arguments.Select((o, i) =>
                 {
                     if (o is DiagnosticInfo embedded)
                     {
                         return embedded.GetMessage(EnsureEnglishUICulture.PreferredOrNull);
                     }
 
-                    return string.Format(EnsureEnglishUICulture.PreferredOrNull, "{0}", o);
+                    var fmt = _originalFormatSpecifiers is not null ? _originalFormatSpecifiers.Value[i] : "{0}";
+                    return string.Format(EnsureEnglishUICulture.PreferredOrNull, fmt, o);
                 });
             }
             return _argumentsAsStrings;
@@ -88,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _defaultSeverityOpt = defaultSeverityOpt;
             _effectiveSeverityOpt = effectiveSeverityOpt;
             _isSuppressed = isSuppressed;
+            _originalFormatSpecifiers = null;
         }
 
         public DiagnosticDescription(
@@ -113,6 +117,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _defaultSeverityOpt = defaultSeverityOpt;
             _effectiveSeverityOpt = effectiveSeverityOpt;
             _isSuppressed = isSuppressed;
+            _originalFormatSpecifiers = null;
         }
 
         public DiagnosticDescription(Diagnostic d, bool errorCodeOnly, bool includeDefaultSeverity = false, bool includeEffectiveSeverity = false)
@@ -123,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _location = d.Location;
             _defaultSeverityOpt = includeDefaultSeverity ? d.DefaultSeverity : (DiagnosticSeverity?)null;
             _effectiveSeverityOpt = includeEffectiveSeverity ? d.Severity : (DiagnosticSeverity?)null;
+            _originalFormatSpecifiers = GetFormatSpecifiers(d.Descriptor.MessageFormat.ToString());
 
             DiagnosticWithInfo dinfo = null;
             if (d.Code == 0 || d.Descriptor.ImmutableCustomTags.Contains(WellKnownDiagnosticTags.CustomObsolete))
@@ -356,6 +362,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return hashCode;
         }
 
+        private void AppendArgumentString(StringBuilder sb, string argumentString)
+        {
+            var beginQuote = "\"";
+            var endQuote = "\"";
+            if (argumentString.Contains("\""))
+            {
+                argumentString = argumentString.Replace("\"", "\"\"");
+                beginQuote = "@\"";
+            }
+            sb.Append(beginQuote);
+            sb.Append(argumentString);
+            sb.Append(endQuote);
+        }
+
         public override string ToString()
         {
             var sb = new StringBuilder();
@@ -401,9 +421,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var argumentStrings = GetArgumentsAsStrings().GetEnumerator();
                 for (int i = 0; argumentStrings.MoveNext(); i++)
                 {
-                    sb.Append("\"");
-                    sb.Append(argumentStrings.Current);
-                    sb.Append("\"");
+                    AppendArgumentString(sb, argumentStrings.Current);
                     if (i < _arguments.Length - 1)
                     {
                         sb.Append(", ");
@@ -444,6 +462,29 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return sb.ToString();
         }
 
+        public static ImmutableArray<string>? GetFormatSpecifiers(string messageFormat)
+        {
+            ImmutableArray<string>? specifiers = null;
+            if (Regex.Matches(messageFormat, @"\{\d+(:\d+)?\}") is { Count: > 0 } matches)
+            {
+                var builder = ArrayBuilder<string>.GetInstance();
+                foreach (Match match in matches)
+                {
+                    if (match.Groups.Count > 1 && match.Groups[1].Success)
+                    {
+                        builder.Add($@"{{0{match.Groups[1].Value}}}");
+                    }
+                    else
+                    {
+                        builder.Add("{0}");
+                    }
+                }
+                specifiers = builder.ToImmutableArray();
+            }
+
+            return specifiers;
+        }
+
         public static string GetAssertText(DiagnosticDescription[] expected, IEnumerable<Diagnostic> actual, DiagnosticDescription[] unamtchedExpected, IEnumerable<Diagnostic> unmatchedActual)
         {
             const int CSharp = 1;
@@ -461,6 +502,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 actual = Sort(actual);
                 unmatchedActual = Sort(unmatchedActual);
             }
+
 
             var assertText = new StringBuilder();
             assertText.AppendLine();
