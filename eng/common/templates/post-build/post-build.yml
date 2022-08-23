@@ -49,6 +49,7 @@ parameters:
     type: object
     default:
       enable: false
+      publishGdn: false
       continueOnError: false
       params: ''
       artifactNames: ''
@@ -235,6 +236,7 @@ stages:
     - template: /eng/common/templates/job/execute-sdl.yml
       parameters:
         enable: ${{ parameters.SDLValidationParameters.enable }}
+        publishGuardianDirectoryToPipeline: ${{ parameters.SDLValidationParameters.publishGdn }}
         additionalParameters: ${{ parameters.SDLValidationParameters.params }}
         continueOnError: ${{ parameters.SDLValidationParameters.continueOnError }}
         artifactNames: ${{ parameters.SDLValidationParameters.artifactNames }}
@@ -261,7 +263,7 @@ stages:
         # If it's not devdiv, it's dnceng
         ${{ else }}:
           name: NetCore1ESPool-Internal
-          demands: ImageOverride -equals Build.Server.Amd64.VS2019
+          demands: ImageOverride -equals windows.vs2019.amd64
       steps:
         - template: setup-maestro-vars.yml
           parameters:
