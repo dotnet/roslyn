@@ -1450,6 +1450,18 @@ public partial class C
 ");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task ParameterInPartialMethodDefinition_NoDiagnostic()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+public partial class C
+{
+    public partial void M(int [|x|]);
+}
+");
+        }
+
         [Fact, WorkItem(36817, "https://github.com/dotnet/roslyn/issues/36817")]
         public async Task ParameterWithoutName_NoDiagnostic()
         {
