@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             // Creating the variable declaration based on if the user has
             // 'var for built in types' set in their editorconfig.
             var variableDeclarationSyntax =
-                 SyntaxFactory.VariableDeclaration(compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(allowVar: false),
+                 SyntaxFactory.VariableDeclaration(compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(allowVar: true),
                     SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.VariableDeclarator(
                             indexVariable,
@@ -103,9 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var operand = ((PostfixUnaryExpressionSyntax)incrementor!).Operand;
             placeHolderBuilder.Add(operand.ToString(), operand.SpanStart);
 
-            foreach (var kvp in placeHolderBuilder)
+            foreach (var (key, value) in placeHolderBuilder)
             {
-                arrayBuilder.Add(new SnippetPlaceholder(kvp.Key, kvp.Value.ToImmutableArray()));
+                arrayBuilder.Add(new SnippetPlaceholder(key, value.ToImmutableArray()));
             }
 
             return arrayBuilder.ToImmutableArray();
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             declaration = forStatement.Declaration;
             condition = forStatement.Condition;
             // We can assume there will only be one incrementor since it is only constructed with one.
-            incrementor = forStatement.Incrementors.FirstOrDefault();
+            incrementor = forStatement.Incrementors.First();
             statement = forStatement.Statement;
         }
     }
