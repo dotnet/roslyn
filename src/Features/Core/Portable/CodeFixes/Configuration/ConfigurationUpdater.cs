@@ -474,6 +474,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             TextLine? lastValidSpecificHeaderSpanEnd = null;
 
             var textChange = new TextChange();
+            var isGlobalConfig = false;
 
             foreach (var curLine in result.Lines)
             {
@@ -493,6 +494,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                     var value = groups[2].Value.ToString();
                     var severitySuffixInValue = groups[3].Value.ToString();
                     var commentValue = groups[4].Value.ToString();
+
+                    // Check for global config header: "is_global = true"
+                    if (mostRecentHeader == null &&
+                        lastValidHeader == null &&
+                        key.Equals("is_global", StringComparison.OrdinalIgnoreCase) &&
+                        value.Trim().Equals("true", StringComparison.OrdinalIgnoreCase) &&
+                        severitySuffixInValue.Length == 0)
+                    {
+                        isGlobalConfig = true;
+                        mostRecentHeader = curLine;
+                        lastValidHeader = curLine;
+                        lastValidHeaderSpanEnd = curLine;
+                        continue;
+                    }
 
                     // Verify the most recent header is a valid header
                     if (mostRecentHeader != null &&
@@ -573,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                         }
                     }
                 }
-                else if (s_headerPattern.IsMatch(curLineText.Trim()))
+                else if (!isGlobalConfig && s_headerPattern.IsMatch(curLineText.Trim()))
                 {
                     // We found a header entry such as '[*.cs]', '[*.vb]', etc.
                     // Verify that header is valid.

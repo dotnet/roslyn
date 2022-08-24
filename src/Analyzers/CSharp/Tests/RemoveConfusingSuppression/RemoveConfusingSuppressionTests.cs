@@ -168,7 +168,6 @@ class C
         [Fact, WorkItem(44872, "https://github.com/dotnet/roslyn/issues/44872")]
         public async Task TestNegateWithIsPattern_CSharp9()
         {
-            // this will change to `if (o is not string s)` once it's legal to have declarations under a `not` pattern.
             await new VerifyCS.Test
             {
                 TestCode =
@@ -191,7 +190,7 @@ class C
 {
     void M(object o)
     {
-        if (!(o is string s))
+        if (o is not string s)
         {
         }
     }

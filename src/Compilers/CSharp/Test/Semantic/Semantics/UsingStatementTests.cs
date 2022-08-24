@@ -1159,10 +1159,10 @@ class C2
 ";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (11,16): error CS8370: The feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (11,16): error CS8370: Feature 'pattern-based disposal' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         using (S1 s = new S1())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "S1 s = new S1()").WithArguments("using declarations", "8.0").WithLocation(11, 16)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "S1 s = new S1()").WithArguments("pattern-based disposal", "8.0").WithLocation(11, 16)
+                );
 
             CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
@@ -1773,9 +1773,6 @@ class C
 }";
 
             CreateEmptyCompilation(source).VerifyDiagnostics(
-                // (11,9): error CS0518: Predefined type 'System.IDisposable' is not defined or imported
-                //         using (var v = null) ;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "using").WithArguments("System.IDisposable").WithLocation(11, 9),
                 // (11,20): error CS0815: Cannot assign <null> to an implicitly-typed variable
                 //         using (var v = null) ;
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = null").WithArguments("<null>").WithLocation(11, 20),
@@ -1784,6 +1781,32 @@ class C
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(11, 30));
         }
 
+        [Fact]
+        public void MissingIDisposable_NoLocal()
+        {
+            var source = @"
+namespace System
+{
+    public class Object { }
+    public class Void { }
+}
+class C
+{
+    void M()
+    {
+        using (null);
+    }
+}";
+
+            CreateEmptyCompilation(source).VerifyDiagnostics(
+                // (11,9): error CS0518: Predefined type 'System.IDisposable' is not defined or imported
+                //         using (null);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "using").WithArguments("System.IDisposable").WithLocation(11, 9),
+                // (11,21): warning CS0642: Possible mistaken empty statement
+                //         using (null);
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(11, 21)
+                );
+        }
 
         [WorkItem(9581, "https://github.com/dotnet/roslyn/issues/9581")]
         [Fact]

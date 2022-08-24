@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Packaging
 Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.SymbolSearch
@@ -25,9 +26,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
             ImmutableArray.Create(New PackageSource(PackageSourceHelper.NugetOrgSourceName, "http://nuget.org"))
 
         Protected Overrides Sub InitializeWorkspace(workspace As TestWorkspace, parameters As TestParameters)
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.
-                WithChangedOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic, True).
-                WithChangedOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.VisualBasic, True)))
+            workspace.GlobalOptions.SetGlobalOption(New OptionKey(SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.VisualBasic), True)
+            workspace.GlobalOptions.SetGlobalOption(New OptionKey(SymbolSearchOptionsStorage.SearchReferenceAssemblies, LanguageNames.VisualBasic), True)
         End Sub
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
@@ -52,8 +52,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
             installerServiceMock.Setup(Function(i) i.IsInstalled(It.IsAny(Of Workspace), It.IsAny(Of ProjectId), "NuGetPackage")).Returns(False)
             installerServiceMock.Setup(Function(i) i.GetInstalledVersions("NuGetPackage")).Returns(ImmutableArray(Of String).Empty)
             installerServiceMock.Setup(Function(i) i.TryGetPackageSources()).Returns(NuGetPackageSources)
-            installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", It.IsAny(Of String), It.IsAny(Of Boolean), It.IsAny(Of IProgressTracker)(), It.IsAny(Of CancellationToken))).
-                                 Returns(True)
+            installerServiceMock.Setup(Function(s) s.TryInstallPackageAsync(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", It.IsAny(Of String), It.IsAny(Of Boolean), It.IsAny(Of IProgressTracker)(), It.IsAny(Of CancellationToken))).
+                                 Returns(SpecializedTasks.True)
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).
@@ -81,8 +81,8 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
             installerServiceMock.Setup(Function(i) i.IsInstalled(It.IsAny(Of Workspace), It.IsAny(Of ProjectId), "NuGetPackage")).Returns(False)
             installerServiceMock.Setup(Function(i) i.GetInstalledVersions("NuGetPackage")).Returns(ImmutableArray(Of String).Empty)
             installerServiceMock.Setup(Function(i) i.TryGetPackageSources()).Returns(NuGetPackageSources)
-            installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", It.IsAny(Of String), It.IsAny(Of Boolean), It.IsAny(Of IProgressTracker)(), It.IsAny(Of CancellationToken))).
-                                 Returns(True)
+            installerServiceMock.Setup(Function(s) s.TryInstallPackageAsync(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", It.IsAny(Of String), It.IsAny(Of Boolean), It.IsAny(Of IProgressTracker)(), It.IsAny(Of CancellationToken))).
+                                 Returns(SpecializedTasks.True)
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).
@@ -110,8 +110,8 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
             installerServiceMock.Setup(Function(i) i.IsInstalled(It.IsAny(Of Workspace), It.IsAny(Of ProjectId), "NuGetPackage")).Returns(False)
             installerServiceMock.Setup(Function(i) i.GetInstalledVersions("NuGetPackage")).Returns(ImmutableArray(Of String).Empty)
             installerServiceMock.Setup(Function(i) i.TryGetPackageSources()).Returns(NuGetPackageSources)
-            installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", It.IsAny(Of String), It.IsAny(Of Boolean), It.IsAny(Of IProgressTracker)(), It.IsAny(Of CancellationToken))).
-                                 Returns(False)
+            installerServiceMock.Setup(Function(s) s.TryInstallPackageAsync(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", It.IsAny(Of String), It.IsAny(Of Boolean), It.IsAny(Of IProgressTracker)(), It.IsAny(Of CancellationToken))).
+                                 Returns(SpecializedTasks.False)
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).
@@ -202,8 +202,8 @@ parameters:=New TestParameters(index:=2, fixProviderData:=data))
             installerServiceMock.Setup(Function(i) i.IsInstalled(It.IsAny(Of Workspace), It.IsAny(Of ProjectId), "NuGetPackage")).Returns(False)
             installerServiceMock.Setup(Function(i) i.GetInstalledVersions("NuGetPackage")).Returns(ImmutableArray(Of String).Empty)
             installerServiceMock.Setup(Function(i) i.TryGetPackageSources()).Returns(NuGetPackageSources)
-            installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", Nothing, It.IsAny(Of Boolean), It.IsAny(Of IProgressTracker)(), It.IsAny(Of CancellationToken))).
-                                 Returns(True)
+            installerServiceMock.Setup(Function(s) s.TryInstallPackageAsync(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", Nothing, It.IsAny(Of Boolean), It.IsAny(Of IProgressTracker)(), It.IsAny(Of CancellationToken))).
+                                 Returns(SpecializedTasks.True)
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).
@@ -234,8 +234,8 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
             installerServiceMock.Setup(Function(i) i.TryGetPackageSources()).Returns(NuGetPackageSources)
             installerServiceMock.Setup(Function(s) s.GetInstalledVersions("NuGetPackage")).
                 Returns(ImmutableArray.Create("1.0"))
-            installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", "1.0", It.IsAny(Of Boolean), It.IsAny(Of IProgressTracker)(), It.IsAny(Of CancellationToken))).
-                                 Returns(True)
+            installerServiceMock.Setup(Function(s) s.TryInstallPackageAsync(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", "1.0", It.IsAny(Of Boolean), It.IsAny(Of IProgressTracker)(), It.IsAny(Of CancellationToken))).
+                                 Returns(SpecializedTasks.True)
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).

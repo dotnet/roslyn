@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -18,14 +16,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
     internal abstract partial class AbstractPullMemberUpRefactoringProvider : CodeRefactoringProvider
     {
-        private readonly IPullMemberUpOptionsService _service;
+        private IPullMemberUpOptionsService? _service;
 
         protected abstract Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context);
 
         /// <summary>
         /// Test purpose only
         /// </summary>
-        protected AbstractPullMemberUpRefactoringProvider(IPullMemberUpOptionsService service)
+        protected AbstractPullMemberUpRefactoringProvider(IPullMemberUpOptionsService? service)
             => _service = service;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -34,13 +32,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             // constructor, operator and finalizer are excluded.
             var (document, _, cancellationToken) = context;
 
+            _service ??= document.Project.Solution.Workspace.Services.GetService<IPullMemberUpOptionsService>();
+            if (_service == null)
+            {
+                return;
+            }
+
             var selectedMemberNode = await GetSelectedNodeAsync(context).ConfigureAwait(false);
             if (selectedMemberNode == null)
             {
                 return;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var selectedMember = semanticModel.GetDeclaredSymbol(selectedMemberNode);
             if (selectedMember == null || selectedMember.ContainingType == null)
             {

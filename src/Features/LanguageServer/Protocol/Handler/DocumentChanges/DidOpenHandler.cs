@@ -13,8 +13,8 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.Methods.TextDocumentDidOpenName)]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(DidOpenHandler)), Shared]
+    [Method(LSP.Methods.TextDocumentDidOpenName)]
     internal class DidOpenHandler : AbstractStatelessRequestHandler<LSP.DidOpenTextDocumentParams, object?>
     {
         [ImportingConstructor]
@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         public DidOpenHandler()
         {
         }
-
-        public override string Method => LSP.Methods.TextDocumentDidOpenName;
 
         public override bool MutatesSolutionState => true;
         public override bool RequiresLSPSolution => false;

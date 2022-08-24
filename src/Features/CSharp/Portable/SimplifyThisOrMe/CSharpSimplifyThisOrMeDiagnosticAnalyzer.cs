@@ -22,9 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
             ThisExpressionSyntax,
             MemberAccessExpressionSyntax>
     {
-        protected override string GetLanguageName()
-            => LanguageNames.CSharp;
-
         protected override ISyntaxFacts GetSyntaxFacts()
             => CSharpSyntaxFacts.Instance;
 

@@ -3133,12 +3133,24 @@ class C
                 // (5,12): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
                 //         => nt1 == nt2; // warn 1 and 2
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt1").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(5, 12),
+                // (5,12): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 == nt2; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt1").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(5, 12),
+                // (5,19): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 == nt2; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt2").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(5, 19),
                 // (5,19): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
                 //         => nt1 == nt2; // warn 1 and 2
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt2").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(5, 19),
                 // (8,12): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
                 //         => nt1 != nt2; // warn 3 and 4
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt1").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(8, 12),
+                // (8,12): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 != nt2; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt1").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(8, 12),
+                // (8,19): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 != nt2; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt2").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(8, 19),
                 // (8,19): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
                 //         => nt1 != nt2; // warn 3 and 4
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt2").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(8, 19)

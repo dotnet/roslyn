@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             SyntaxToken previousToken,
             EnumDeclarationSyntax enumDeclaration,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(enumDeclaration, ref spans, optionProvider);
+            CSharpStructureHelpers.CollectCommentBlockSpans(enumDeclaration, ref spans, options);
 
             if (!enumDeclaration.OpenBraceToken.IsMissing &&
                 !enumDeclaration.CloseBraceToken.IsMissing)
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 // Check IsNode to compress blank lines after this node if it is the last child of the parent.
                 //
                 // Whitespace between type declarations is collapsed in Metadata as Source.
-                var compressEmptyLines = optionProvider.IsMetadataAsSource
+                var compressEmptyLines = options.IsMetadataAsSource
                     && (!nextSibling.IsNode || nextSibling.AsNode() is BaseTypeDeclarationSyntax);
 
                 spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(

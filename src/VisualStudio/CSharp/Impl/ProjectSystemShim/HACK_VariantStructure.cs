@@ -23,18 +23,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     /// as this structure. We can then pick out this broken pattern, and convert
     /// it to null instead of true.
     /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
     internal struct HACK_VariantStructure
     {
         private readonly short _type;
 
-#pragma warning disable IDE0051 // Remove unused private members - padding bytes
         private readonly short _padding1;
         private readonly short _padding2;
         private readonly short _padding3;
 
         private readonly short _booleanValue;
         private readonly IntPtr _padding4; // this will be aligned to the IntPtr-sized address
-#pragma warning restore IDE0051 // Remove unused private members
 
         public unsafe object ConvertToObject()
         {

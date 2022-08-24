@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             var tags = GetTags(tagAggregator, new SnapshotSpan(textView.TextSnapshot, new Span(caretPosition, 0)));
             return tags.Any()
                 ? tags.First()
-                : (SnapshotSpan?)null;
+                : null;
         }
     }
 }

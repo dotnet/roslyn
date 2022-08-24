@@ -3261,7 +3261,7 @@ End Class
                 End Sub)
         End Sub
 
-        Private Function GetGenericExtender(codeElement As EnvDTE80.CodeClass2) As IVBGenericExtender
+        Private Shared Function GetGenericExtender(codeElement As EnvDTE80.CodeClass2) As IVBGenericExtender
             Return CType(codeElement.Extender(ExtenderNames.VBGenericExtender), IVBGenericExtender)
         End Function
 

@@ -23,14 +23,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
     public abstract class AbstractFileCodeElementTests : IDisposable
     {
         private readonly string _contents;
-        private (TestWorkspace workspace, VisualStudioWorkspace extraWorkspaceToDisposeButNotUse, FileCodeModel fileCodeModel)? _workspaceAndCodeModel;
+        private (TestWorkspace workspace, FileCodeModel fileCodeModel)? _workspaceAndCodeModel;
 
         protected AbstractFileCodeElementTests(string contents)
         {
             _contents = contents;
         }
 
-        public (TestWorkspace workspace, VisualStudioWorkspace extraWorkspaceToDisposeButNotUse, FileCodeModel fileCodeModel) WorkspaceAndCodeModel
+        public (TestWorkspace workspace, FileCodeModel fileCodeModel) WorkspaceAndCodeModel
         {
             get
             {
@@ -41,11 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         protected TestWorkspace GetWorkspace()
         {
             return WorkspaceAndCodeModel.workspace;
-        }
-
-        private VisualStudioWorkspace GetExtraWorkspaceToDisposeButNotUse()
-        {
-            return WorkspaceAndCodeModel.extraWorkspaceToDisposeButNotUse;
         }
 
         protected FileCodeModel GetCodeModel()
@@ -62,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         protected Microsoft.CodeAnalysis.Document GetCurrentDocument()
             => GetCurrentProject().Documents.Single();
 
-        protected static (TestWorkspace workspace, VisualStudioWorkspace extraWorkspaceToDisposeButNotUse, FileCodeModel fileCodeModel) CreateWorkspaceAndFileCodeModelAsync(string file)
+        protected static (TestWorkspace workspace, FileCodeModel fileCodeModel) CreateWorkspaceAndFileCodeModelAsync(string file)
             => FileCodeModelTestHelpers.CreateWorkspaceAndFileCodeModel(file);
 
         protected CodeElement GetCodeElement(params object[] path)
@@ -86,7 +81,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 
         public void Dispose()
         {
-            GetExtraWorkspaceToDisposeButNotUse().Dispose();
             GetWorkspace().Dispose();
         }
 

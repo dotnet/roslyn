@@ -4,9 +4,12 @@
 
 #nullable disable
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -50,10 +53,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
         {
-            foreach (var symbol in group.Symbols)
-                _progress.OnDefinitionFound(symbol);
+            try
+            {
+                foreach (var symbol in group.Symbols)
+                    _progress.OnDefinitionFound(symbol);
 
-            return default;
+                return default;
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken)

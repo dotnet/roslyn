@@ -6,6 +6,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -39,6 +40,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.True(VisualStudio.Shell.IsUIContextActive(Guids.CSharpProjectExistsInWorkspaceUIContext));
 
             VisualStudio.SolutionExplorer.CloseSolution();
+            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
 
             Assert.False(VisualStudio.Shell.IsUIContextActive(Guids.CSharpProjectExistsInWorkspaceUIContext));
         }

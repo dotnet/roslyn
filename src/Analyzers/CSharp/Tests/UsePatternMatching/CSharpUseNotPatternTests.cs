@@ -126,5 +126,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
                 LanguageVersion = LanguageVersion.CSharp8,
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
+        [WorkItem(50690, "https://github.com/dotnet/roslyn/issues/50690")]
+        public async Task BinaryIsObject()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"class C
+{
+    void M(object x)
+    {
+        if (!(x [|is|] object))
+        {
+        }
+    }
+}",
+                FixedCode =
+@"class C
+{
+    void M(object x)
+    {
+        if (x is null)
+        {
+        }
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
     }
 }

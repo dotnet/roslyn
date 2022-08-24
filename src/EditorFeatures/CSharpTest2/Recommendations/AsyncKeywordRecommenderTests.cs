@@ -41,6 +41,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMethodDeclarationAsyncAfterCursor()
+        {
+            await VerifyKeywordAsync(@"class C
+{
+    public $$ async void goo() { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInsideInterface()
         {
             await VerifyKeywordAsync(@"interface C
@@ -219,7 +228,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotIfAlreadyAsync2()
+        public async Task TestNotIfAlreadyAsyncInLambda()
         {
             await VerifyAbsenceAsync(@"
 class Program
@@ -228,6 +237,30 @@ class Program
     {
         var z = async $$ () => 2;
     }
+}");
+        }
+
+        [WorkItem(60340, "https://github.com/dotnet/roslyn/issues/60340")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotIfAlreadyAsyncBeforeOtherMember()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    async $$    
+
+    public void M() {}
+}");
+        }
+
+        [WorkItem(60340, "https://github.com/dotnet/roslyn/issues/60340")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotIfAlreadyAsyncAsLastMember()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    async $$
 }");
         }
 

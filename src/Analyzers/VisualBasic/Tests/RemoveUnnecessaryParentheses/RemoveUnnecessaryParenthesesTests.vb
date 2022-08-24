@@ -18,6 +18,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryP
     Partial Public Class RemoveUnnecessaryParenthesesTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
+        Private Shared ReadOnly CheckOverflow As CompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, checkOverflow:=True)
+        Private Shared ReadOnly DoNotCheckOverflow As CompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, checkOverflow:=False)
+
         Friend Overrides Function CreateDiagnosticProviderAndFixer(Workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicRemoveUnnecessaryParenthesesDiagnosticAnalyzer(), New VisualBasicRemoveUnnecessaryParenthesesCodeFixProvider())
         End Function
@@ -32,13 +35,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryP
 
         Private Shadows Async Function TestAsync(initial As String, expected As String,
                                                  offeredWhenRequireAllParenthesesForClarityIsEnabled As Boolean,
-                                                 Optional ByVal index As Integer = 0) As Task
-            Await TestInRegularAndScriptAsync(initial, expected, options:=RemoveAllUnnecessaryParentheses, index:=index)
+                                                 Optional index As Integer = 0,
+                                                 Optional checkOverflow As Boolean = True) As Task
+            Dim compilationOptions = If(checkOverflow,
+                RemoveUnnecessaryParenthesesTests.CheckOverflow,
+                RemoveUnnecessaryParenthesesTests.DoNotCheckOverflow)
+
+            Await TestInRegularAndScriptAsync(initial, expected, options:=RemoveAllUnnecessaryParentheses, index:=index, compilationOptions:=compilationOptions)
 
             If (offeredWhenRequireAllParenthesesForClarityIsEnabled) Then
-                Await TestInRegularAndScriptAsync(initial, expected, options:=MyBase.RequireAllParenthesesForClarity, index:=index)
+                Await TestInRegularAndScriptAsync(initial, expected, options:=RequireAllParenthesesForClarity, index:=index, compilationOptions:=compilationOptions)
             Else
-                Await TestMissingAsync(initial, parameters:=New TestParameters(options:=MyBase.RequireAllParenthesesForClarity))
+                Await TestMissingAsync(initial, parameters:=New TestParameters(options:=RequireAllParenthesesForClarity, compilationOptions:=compilationOptions))
             End If
         End Function
 
@@ -114,7 +122,7 @@ end class", parameters:=New TestParameters(options:=RequireOtherBinaryParenthese
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
-        Public Async Function TestArithmeticNotRequiredForClarityWhenPrecedenceStaysTheSame1() As Task
+        Public Async Function TestArithmeticNotRequiredForClarityWhenPrecedenceStaysTheSame1_DoNotCheckOverflow() As Task
             Await TestAsync(
 "class C
     sub M()
@@ -125,7 +133,17 @@ end class",
     sub M()
         dim x = 1 + 2 + 3
     end sub
-end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True, checkOverflow:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        Public Async Function TestArithmeticNotRequiredForClarityWhenPrecedenceStaysTheSame1_CheckOverflow() As Task
+            Await TestMissingAsync(
+"class C
+    sub M()
+        dim x = 1 + $$(2 + 3)
+    end sub
+end class", New TestParameters(options:=RequireArithmeticBinaryParenthesesForClarity))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -587,7 +605,7 @@ end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses), firstL
 
         <WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
-        Public Async Function TestUnnecessaryParenthesisDiagnosticInNestedExpression() As Task
+        Public Async Function TestUnnecessaryParenthesisDiagnosticInNestedExpression_DoNotCheckOverflow() As Task
             Dim outerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + (2 + 3) + 4)", 2, 16)
             Dim innerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(2 + 3)", 2, 21)
             Dim expectedDiagnostics = New DiagnosticDescription() {outerParentheticalExpressionDiagnostic, innerParentheticalExpressionDiagnostic}
@@ -596,12 +614,12 @@ end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses), firstL
     sub M()
         dim x = [|(1 + (2 + 3) + 4)|]
     end sub
-end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses), expectedDiagnostics)
+end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses, compilationOptions:=DoNotCheckOverflow), expectedDiagnostics)
         End Function
 
         <WorkItem(27925, "https://github.com/dotnet/roslyn/issues/27925")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
-        Public Async Function TestUnnecessaryParenthesisDiagnosticInNestedMultiLineExpression() As Task
+        Public Async Function TestUnnecessaryParenthesisDiagnosticInNestedMultiLineExpression_DoNotCheckOverflow() As Task
             Dim outerFirstLineParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(1 + 2 +", 2, 16)
             Dim innerParentheticalExpressionDiagnostic = GetRemoveUnnecessaryParenthesesDiagnostic("(3 + 4)", 3, 12)
             Dim expectedDiagnostics = New DiagnosticDescription() {outerFirstLineParentheticalExpressionDiagnostic, innerParentheticalExpressionDiagnostic}
@@ -612,7 +630,7 @@ end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses), expect
             (3 + 4) +
             5 + 6)|]
     end sub
-end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses), expectedDiagnostics)
+end class", New TestParameters(options:=RemoveAllUnnecessaryParentheses, compilationOptions:=DoNotCheckOverflow), expectedDiagnostics)
         End Function
 
         <WorkItem(27925, "https://github.com/dotnet/roslyn/issues/39529")>

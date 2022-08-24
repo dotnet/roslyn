@@ -144,4 +144,7 @@
   <data name="Place_colon_on_following_line" xml:space="preserve">
     <value>Place colon on following line</value>
   </data>
+  <data name="Fix_record_declaration" xml:space="preserve">
+    <value>Fix_record_declaration</value>
+  </data>
 </root>

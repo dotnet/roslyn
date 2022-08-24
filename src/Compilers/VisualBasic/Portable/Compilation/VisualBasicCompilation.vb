@@ -2503,14 +2503,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Friend Overrides Function GenerateResourcesAndDocumentationComments(
+        Friend Overrides Function GenerateResources(
             moduleBuilder As CommonPEModuleBuilder,
-            xmlDocStream As Stream,
             win32Resources As Stream,
             useRawWin32Resources As Boolean,
-            outputNameOverride As String,
             diagnostics As DiagnosticBag,
             cancellationToken As CancellationToken) As Boolean
+
+            cancellationToken.ThrowIfCancellationRequested()
 
             ' Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             Dim resourceDiagnostics = DiagnosticBag.GetInstance()
@@ -2524,9 +2524,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AddedModulesResourceNames(resourceDiagnostics),
                 resourceDiagnostics)
 
-            If Not FilterAndAppendAndFreeDiagnostics(diagnostics, resourceDiagnostics, cancellationToken) Then
-                Return False
-            End If
+            Return FilterAndAppendAndFreeDiagnostics(diagnostics, resourceDiagnostics, cancellationToken)
+        End Function
+
+        Friend Overrides Function GenerateDocumentationComments(
+            xmlDocStream As Stream,
+            outputNameOverride As String,
+            diagnostics As DiagnosticBag,
+            cancellationToken As CancellationToken) As Boolean
 
             cancellationToken.ThrowIfCancellationRequested()
 

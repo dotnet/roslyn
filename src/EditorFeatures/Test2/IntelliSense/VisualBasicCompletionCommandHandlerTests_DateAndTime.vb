@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
+Imports Microsoft.CodeAnalysis.Test.Utilities.EmbeddedLanguages
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
@@ -23,6 +24,52 @@ end class
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("d.ToString(""G"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ExplicitInvoke_LanguageComment() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                <Document><![CDATA[
+class c
+    sub goo()
+        ' lang=datetime
+        dim d = "$$"
+    end sub
+end class
+]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("G", inlineDescription:=FeaturesResources.general_long_date_time)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("dim d = ""G""", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ExplicitInvoke_StringSyntaxAttribute_Argument() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                <Document><![CDATA[
+imports system.diagnostics.codeanalysis
+
+class c
+    sub goo()
+        M("$$")
+    end sub
+
+    sub M(<StringSyntax(StringSyntaxAttribute.DateTimeFormat)> p as string)
+    end sub
+end class
+]]>
+                    <%= EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVBXml %>
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("G", inlineDescription:=FeaturesResources.general_long_date_time)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("M(""G"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 

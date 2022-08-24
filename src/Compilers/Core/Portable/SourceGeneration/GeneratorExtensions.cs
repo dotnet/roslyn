@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Converts an <see cref="IIncrementalGenerator"/> in an <see cref="ISourceGenerator"/> object that can be used when constructing a <see cref="GeneratorDriver"/>
+        /// Converts an <see cref="IIncrementalGenerator"/> into an <see cref="ISourceGenerator"/> object that can be used when constructing a <see cref="GeneratorDriver"/>
         /// </summary>
         /// <param name="incrementalGenerator">The incremental generator to wrap</param>
         /// <returns>A wrapped generator that can be passed to a generator driver</returns>

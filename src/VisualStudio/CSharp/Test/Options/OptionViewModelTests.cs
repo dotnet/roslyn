@@ -37,7 +37,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
             }
         }
 
-        private string GetText(AbstractOptionPreviewViewModel viewModel)
+        private static string GetText(AbstractOptionPreviewViewModel viewModel)
         {
             return viewModel.TextViewHost.TextView.TextBuffer.CurrentSnapshot.GetText().ToString();
         }

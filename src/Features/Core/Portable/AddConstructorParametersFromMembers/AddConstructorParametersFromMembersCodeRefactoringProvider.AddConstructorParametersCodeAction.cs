@@ -47,22 +47,29 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 _useSubMenuName = useSubMenuName;
             }
 
-            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            protected override async Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
-                var workspace = _document.Project.Solution.Workspace;
+                var services = _document.Project.Solution.Workspace.Services;
                 var declarationService = _document.GetRequiredLanguageService<ISymbolDeclarationService>();
                 var constructor = declarationService.GetDeclarations(
                     _constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
+                var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
+                var options = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, _document, cancellationToken).ConfigureAwait(false);
+
                 var newConstructor = constructor;
-                newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, _missingParameters, workspace);
-                newConstructor = CodeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), workspace)
+                newConstructor = codeGenerator.AddParameters(newConstructor, _missingParameters, options, cancellationToken);
+                newConstructor = codeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), options, cancellationToken)
                                                       .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var syntaxTree = constructor.SyntaxTree;
                 var newRoot = syntaxTree.GetRoot(cancellationToken).ReplaceNode(constructor, newConstructor);
 
-                return Task.FromResult(_document.WithSyntaxRoot(newRoot));
+                // Make sure we get the document that contains the constructor we just updated
+                var constructorDocument = _document.Project.GetDocument(syntaxTree);
+                Contract.ThrowIfNull(constructorDocument);
+
+                return constructorDocument.WithSyntaxRoot(newRoot).Project.Solution;
             }
 
             private IEnumerable<SyntaxNode> CreateAssignStatements(ConstructorCandidate constructorCandidate)

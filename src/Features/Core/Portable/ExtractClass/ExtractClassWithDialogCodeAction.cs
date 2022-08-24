@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         public override object? GetOptions(CancellationToken cancellationToken)
         {
             var extractClassService = _service ?? _document.Project.Solution.Workspace.Services.GetRequiredService<IExtractClassOptionsService>();
-            return extractClassService.GetExtractClassOptionsAsync(_document, _selectedType, _selectedMember)
+            return extractClassService.GetExtractClassOptionsAsync(_document, _selectedType, _selectedMember, cancellationToken)
                 .WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
 

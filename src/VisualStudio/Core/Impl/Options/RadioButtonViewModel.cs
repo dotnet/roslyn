@@ -10,10 +10,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     internal class RadioButtonViewModel<TOption> : AbstractRadioButtonViewModel
     {
-        private readonly Option<TOption> _option;
+        private readonly Option2<TOption> _option;
         private readonly TOption _value;
 
-        public RadioButtonViewModel(string description, string preview, string group, TOption value, Option<TOption> option, AbstractOptionPreviewViewModel info, OptionStore optionStore)
+        public RadioButtonViewModel(string description, string preview, string group, TOption value, Option2<TOption> option, AbstractOptionPreviewViewModel info, OptionStore optionStore)
             : base(description, preview, info, isChecked: optionStore.GetOption(option).Equals(value), group: group)
         {
             _value = value;

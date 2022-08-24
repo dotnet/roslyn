@@ -61,7 +61,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             options,
                             text,
                             encoding,
-                            root.FullSpan.Length))
+                            root.FullSpan.Length,
+                            root.ContainsDirectives))
                 End Function
 
                 Public Overrides ReadOnly Property FilePath As String Implements IRecoverableSyntaxTree(Of CompilationUnitSyntax).FilePath
@@ -142,6 +143,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return CloneNodeAsRoot(root)
                 End Function
 
+                Public ReadOnly Property ContainsDirectives As Boolean Implements IRecoverableSyntaxTree.ContainsDirectives
+                    Get
+                        Return _info.ContainsDirectives
+                    End Get
+                End Property
+
                 Public Overrides Function WithRootAndOptions(root As SyntaxNode, options As ParseOptions) As SyntaxTree
                     Dim oldRoot As VisualBasicSyntaxNode = Nothing
                     If _info.Options Is options AndAlso TryGetRoot(oldRoot) AndAlso root Is oldRoot Then
@@ -157,6 +164,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     Return New RecoverableSyntaxTree(Me, _info.WithFilePath(path))
+                End Function
+
+                Public Function WithOptions(parseOptions As ParseOptions) As SyntaxTree Implements IRecoverableSyntaxTree.WithOptions
+                    If _info.Options Is parseOptions Then
+                        Return Me
+                    End If
+
+                    Return New RecoverableSyntaxTree(Me, _info.WithOptions(parseOptions))
                 End Function
             End Class
         End Class

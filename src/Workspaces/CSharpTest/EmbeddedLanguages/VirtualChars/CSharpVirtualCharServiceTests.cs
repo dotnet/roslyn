@@ -45,6 +45,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         {
             var token = GetStringToken(stringText, allowFailure: false);
             var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
+            foreach (var ch in virtualChars)
+            {
+                for (var i = ch.Span.Start; i < ch.Span.End; i++)
+                    Assert.Equal(ch, virtualChars.Find(i));
+            }
+
             var actual = ConvertToString(virtualChars);
             Assert.Equal(expected, actual);
         }
@@ -53,9 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         {
             var token = GetStringToken(stringText, allowFailure: true);
             if (token == default)
-            {
                 return;
-            }
 
             var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
             Assert.True(virtualChars.IsDefault);

@@ -26,14 +26,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
     {
     }|}
 }|}";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var clientCapabilities = new LSP.ClientCapabilities()
+            {
+                TextDocument = new LSP.TextDocumentClientCapabilities()
+                {
+                    DocumentSymbol = new LSP.DocumentSymbolSetting()
+                    {
+                        HierarchicalDocumentSymbolSupport = true
+                    }
+                }
+            };
+            using var testLspServer = await CreateTestLspServerAsync(markup, clientCapabilities);
             var expected = new LSP.DocumentSymbol[]
             {
-                CreateDocumentSymbol(LSP.SymbolKind.Class, "A", "A", locations["class"].Single(), locations["classSelection"].Single())
+                CreateDocumentSymbol(LSP.SymbolKind.Class, "A", "A", testLspServer.GetLocations("class").Single(), testLspServer.GetLocations("classSelection").Single())
             };
-            CreateDocumentSymbol(LSP.SymbolKind.Method, "M", "M()", locations["method"].Single(), locations["methodSelection"].Single(), expected.First());
+            CreateDocumentSymbol(LSP.SymbolKind.Method, "M", "M()", testLspServer.GetLocations("method").Single(), testLspServer.GetLocations("methodSelection").Single(), expected.First());
 
-            var results = await RunGetDocumentSymbolsAsync(testLspServer, true);
+            var results = await RunGetDocumentSymbolsAsync<LSP.DocumentSymbol[]>(testLspServer);
             AssertJsonEquals(expected, results);
         }
 
@@ -47,14 +57,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
     {
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
             var expected = new LSP.SymbolInformation[]
             {
-                CreateSymbolInformation(LSP.SymbolKind.Class, "A", locations["class"].Single(), Glyph.ClassInternal),
-                CreateSymbolInformation(LSP.SymbolKind.Method, "M()", locations["method"].Single(), Glyph.MethodPrivate, "A")
+                CreateSymbolInformation(LSP.SymbolKind.Class, "A", testLspServer.GetLocations("class").Single(), Glyph.ClassInternal),
+                CreateSymbolInformation(LSP.SymbolKind.Method, "M()", testLspServer.GetLocations("method").Single(), Glyph.MethodPrivate, "A")
             };
 
-            var results = await RunGetDocumentSymbolsAsync(testLspServer, false);
+            var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer);
             AssertJsonEquals(expected, results);
         }
 
@@ -71,21 +81,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
         int i = 1;
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var _);
-            var results = await RunGetDocumentSymbolsAsync(testLspServer, false).ConfigureAwait(false);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer).ConfigureAwait(false);
             Assert.Equal(3, results.Length);
         }
 
         [Fact]
         public async Task TestGetDocumentSymbolsAsync__NoSymbols()
         {
-            using var testLspServer = CreateTestLspServer(string.Empty, out var _);
+            using var testLspServer = await CreateTestLspServerAsync(string.Empty);
 
-            var results = await RunGetDocumentSymbolsAsync(testLspServer, true);
+            var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer);
             Assert.Empty(results);
         }
 
-        private static async Task<object[]> RunGetDocumentSymbolsAsync(TestLspServer testLspServer, bool hierarchicalSupport)
+        private static async Task<TReturn> RunGetDocumentSymbolsAsync<TReturn>(TestLspServer testLspServer)
         {
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var request = new LSP.DocumentSymbolParams
@@ -93,19 +103,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
                 TextDocument = CreateTextDocumentIdentifier(new Uri(document.FilePath))
             };
 
-            var clientCapabilities = new LSP.ClientCapabilities()
-            {
-                TextDocument = new LSP.TextDocumentClientCapabilities()
-                {
-                    DocumentSymbol = new LSP.DocumentSymbolSetting()
-                    {
-                        HierarchicalDocumentSymbolSupport = hierarchicalSupport
-                    }
-                }
-            };
-
-            return await testLspServer.ExecuteRequestAsync<LSP.DocumentSymbolParams, object[]>(LSP.Methods.TextDocumentDocumentSymbolName,
-                request, clientCapabilities, null, CancellationToken.None);
+            return await testLspServer.ExecuteRequestAsync<LSP.DocumentSymbolParams, TReturn>(LSP.Methods.TextDocumentDocumentSymbolName,
+                request, CancellationToken.None);
         }
 
         private static void AssertDocumentSymbolEquals(LSP.DocumentSymbol expected, LSP.DocumentSymbol actual)

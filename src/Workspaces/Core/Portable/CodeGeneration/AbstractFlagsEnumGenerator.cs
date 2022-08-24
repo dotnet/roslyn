@@ -13,10 +13,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal abstract class AbstractFlagsEnumGenerator : IComparer<(IFieldSymbol field, ulong value)>
     {
         protected abstract SyntaxGenerator GetSyntaxGenerator();
-        protected abstract SyntaxNode CreateExplicitlyCastedLiteralValue(INamedTypeSymbol enumType, SpecialType underlyingSpecialType, object? constantValue);
+        protected abstract SyntaxNode CreateExplicitlyCastedLiteralValue(INamedTypeSymbol enumType, SpecialType underlyingSpecialType, object constantValue);
         protected abstract bool IsValidName(INamedTypeSymbol enumType, string name);
 
-        public SyntaxNode? TryCreateEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
+        public SyntaxNode CreateEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
         {
             // Code copied from System.Enum.
             var isFlagsEnum = IsFlagsEnum(enumType);
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return false;
         }
 
-        private SyntaxNode? CreateFlagsEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
+        private SyntaxNode CreateFlagsEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
         {
             // These values are sorted by value. Don't change this.
             var allFieldsAndValues = new List<(IFieldSymbol field, ulong value)>();
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return CreateFlagsEnumConstantValue(enumType, constantValue, allFieldsAndValues, usedFieldsAndValues);
         }
 
-        private SyntaxNode? CreateFlagsEnumConstantValue(
+        private SyntaxNode CreateFlagsEnumConstantValue(
             INamedTypeSymbol enumType,
             object constantValue,
             List<(IFieldSymbol field, ulong value)> allFieldsAndValues,
@@ -120,23 +120,22 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                     }
                 }
 
+                Contract.ThrowIfNull(finalNode);
                 return finalNode;
+            }
+
+            // We couldn't find fields to OR together to make the value.
+
+            // If we had 0 as the value, and there's an enum value equal to 0, then use that.
+            var zeroField = GetZeroField(allFieldsAndValues);
+            if (constantValueULong == 0 && zeroField != null)
+            {
+                return CreateMemberAccessExpression(zeroField, enumType, underlyingSpecialType);
             }
             else
             {
-                // We couldn't find fields to OR together to make the value.
-
-                // If we had 0 as the value, and there's an enum value equal to 0, then use that.
-                var zeroField = GetZeroField(allFieldsAndValues);
-                if (constantValueULong == 0 && zeroField != null)
-                {
-                    return CreateMemberAccessExpression(zeroField, enumType, underlyingSpecialType);
-                }
-                else
-                {
-                    // Add anything else in as a literal value.
-                    return CreateExplicitlyCastedLiteralValue(enumType, underlyingSpecialType, constantValue);
-                }
+                // Add anything else in as a literal value.
+                return CreateExplicitlyCastedLiteralValue(enumType, underlyingSpecialType, constantValue);
             }
         }
 
@@ -152,6 +151,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
             else
             {
+                Contract.ThrowIfNull(field.ConstantValue);
                 return CreateExplicitlyCastedLiteralValue(enumType, underlyingSpecialType, field.ConstantValue);
             }
         }

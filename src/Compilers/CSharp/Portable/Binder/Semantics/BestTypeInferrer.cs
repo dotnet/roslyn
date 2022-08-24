@@ -91,8 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (result is FunctionTypeSymbol functionType)
             {
-                inferredFromFunctionType = true;
-                return functionType.GetInternalDelegateType();
+                result = functionType.GetInternalDelegateType();
+                inferredFromFunctionType = result is { };
+                return result;
             }
 
             inferredFromFunctionType = false;
@@ -182,14 +183,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case 0:
                     return null;
                 case 1:
-                    return types[0];
+                    return checkType(types[0]);
             }
 
             TypeSymbol? best = null;
             int bestIndex = -1;
             for (int i = 0; i < types.Count; i++)
             {
-                TypeSymbol type = types[i];
+                TypeSymbol? type = checkType(types[i]);
+                if (type is null)
+                {
+                    continue;
+                }
                 if (best is null)
                 {
                     best = type;
@@ -220,7 +225,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // that every type *before* best was also worse.
             for (int i = 0; i < bestIndex; i++)
             {
-                TypeSymbol type = types[i];
+                TypeSymbol? type = checkType(types[i]);
+                if (type is null)
+                {
+                    continue;
+                }
                 TypeSymbol? better = Better(best, type, conversions, ref useSiteInfo);
                 if (!best.Equals(better, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
@@ -229,6 +238,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return best;
+
+            static TypeSymbol? checkType(TypeSymbol type) =>
+                type is FunctionTypeSymbol functionType && functionType.GetInternalDelegateType() is null ?
+                null :
+                type;
         }
 
         /// <summary>

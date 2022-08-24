@@ -5,7 +5,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <StartupObject>Sub Main</StartupObject>
-    <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
+    <UseAppHost Condition="'$(DotNetBuildFromSource)' == 'true'">false</UseAppHost>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -19,11 +20,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="vbi.coreclr.rsp" Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+    <None Include="vbi.coreclr.rsp" Condition="'$(TargetFramework)' == 'net6.0'">
       <Link>vbi.rsp</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="vbi.desktop.rsp" Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
+    <None Include="vbi.desktop.rsp" Condition="'$(TargetFramework)' != 'net6.0'">
       <Link>vbi.rsp</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

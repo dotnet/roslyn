@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             public ValueTask AddItemsAsync(int count, CancellationToken _) => new();
 
-            public ValueTask ItemCompletedAsync(CancellationToken _) => new();
+            public ValueTask ItemsCompletedAsync(int count, CancellationToken _) => new();
 
             public ValueTask OnCompletedAsync(CancellationToken _) => new();
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 else if (location.IsWrittenTo)
                 {
                     var syntaxFacts = location.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                    var node = location.Location.FindNode(CancellationToken.None);
+                    var node = location.Location.FindNode(cancellationToken);
 
                     // Assignments to a member using a "this." or "Me." result in the node being an
                     // identifier and the parent of the node being the member access expression. The member
@@ -84,6 +84,53 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         }
 
                         await _operationCollector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+                else if (symbol is IPropertySymbol { IsIndexer: true } propertySymbol)
+                {
+                    // If the location isn't written to but it's an index accessor we still want to follow
+                    // it as a source to be tracked for the property itself. Specifically, we want to check
+                    // invocation sites and track the arguments being used in the invocation and potentially
+                    // the expression being indexed to, if it is relavent (as determined by the OperationCollector).
+                    var node = location.Location.FindNode(cancellationToken);
+                    var syntaxFacts = location.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+                    var elementAccess = node.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsElementAccessExpression);
+                    if (elementAccess is null)
+                    {
+                        return;
+                    }
+
+                    syntaxFacts.GetPartsOfElementAccessExpression(elementAccess, out var expression, out var argumentList);
+                    var semanticModel = await location.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                    if (argumentList is not null)
+                    {
+                        foreach (var argument in syntaxFacts.GetArgumentsOfArgumentList(argumentList))
+                        {
+                            var argumentOperation = semanticModel.GetOperation(argument, cancellationToken);
+                            if (argumentOperation is not null)
+                            {
+                                await _operationCollector.VisitAsync(argumentOperation, cancellationToken).ConfigureAwait(false);
+                            }
+                        }
+                    }
+
+                    if (expression is not null)
+                    {
+                        // We do not want to track "this" as part of an index operation, but we do 
+                        // want to track other variables that are accessed. Arguably they "contribute" even if
+                        // not specifically to the argument of the element access.
+                        if (syntaxFacts.IsThisExpression(expression))
+                        {
+                            return;
+                        }
+
+                        var expressionOperation = semanticModel.GetOperation(expression, cancellationToken);
+                        if (expressionOperation is not null)
+                        {
+                            await _operationCollector.VisitAsync(expressionOperation, cancellationToken).ConfigureAwait(false);
+                        }
                     }
                 }
             }

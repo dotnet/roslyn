@@ -23,9 +23,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void ShowErrorList()
             => ExecuteCommand("View.ErrorList");
 
-        public int ErrorListErrorCount
-            => GetErrorCount();
-
         public void WaitForNoErrorsInErrorList(TimeSpan timeout)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -100,7 +97,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        private IVsEnumTaskItems GetErrorItems()
+        private static IVsEnumTaskItems GetErrorItems()
         {
             return InvokeOnUIThread(cancellationToken =>
             {

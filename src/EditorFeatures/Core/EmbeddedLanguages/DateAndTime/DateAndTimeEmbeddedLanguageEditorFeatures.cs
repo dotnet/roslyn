@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 {
-    internal class DateAndTimeEmbeddedLanguageEditorFeatures : DateAndTimeEmbeddedLanguageFeatures, IEmbeddedLanguageEditorFeatures
+    internal sealed class DateAndTimeEmbeddedLanguageEditorFeatures : DateAndTimeEmbeddedLanguageFeatures, IEmbeddedLanguageEditorFeatures
     {
         public IBraceMatcher BraceMatcher { get; }
 

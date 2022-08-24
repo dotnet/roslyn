@@ -24,7 +24,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     [Export(typeof(ICodeRefactoringService)), Shared]
-    internal class CodeRefactoringService : ICodeRefactoringService
+    internal sealed class CodeRefactoringService : ICodeRefactoringService
     {
         private readonly Lazy<ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>> _lazyLanguageToProvidersMap;
         private readonly Lazy<ImmutableDictionary<CodeRefactoringProvider, CodeChangeProviderMetadata>> _lazyRefactoringToMetadataMap;
@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public async Task<bool> HasRefactoringsAsync(
             Document document,
             TextSpan state,
+            CodeActionOptions options,
             CancellationToken cancellationToken)
         {
             var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
                 var refactoring = await GetRefactoringFromProviderAsync(
-                    document, state, provider, providerMetadata, extensionManager, isBlocking: false, cancellationToken).ConfigureAwait(false);
+                    document, state, provider, providerMetadata, extensionManager, options, cancellationToken).ConfigureAwait(false);
 
                 if (refactoring != null)
                 {
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Document document,
             TextSpan state,
             CodeActionRequestPriority priority,
-            bool isBlocking,
+            CodeActionOptions options,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                             using (addOperationScope(providerName))
                             using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
                             {
-                                return GetRefactoringFromProviderAsync(document, state, provider, providerMetadata, extensionManager, isBlocking, cancellationToken);
+                                return GetRefactoringFromProviderAsync(document, state, provider, providerMetadata, extensionManager, options, cancellationToken);
                             }
                         },
                         cancellationToken));
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             CodeRefactoringProvider provider,
             CodeChangeProviderMetadata? providerMetadata,
             IExtensionManager extensionManager,
-            bool isBlocking,
+            CodeActionOptions options,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -176,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                             actions.Add((action, applicableToSpan));
                         }
                     },
-                    isBlocking,
+                    options,
                     cancellationToken);
 
                 var task = provider.ComputeRefactoringsAsync(context) ?? Task.CompletedTask;

@@ -245,5 +245,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+        public static InterpolatedStringHandlerData GetInterpolatedStringHandlerData(this BoundExpression e, bool throwOnMissing = true)
+            => e switch
+            {
+                BoundBinaryOperator { InterpolatedStringHandlerData: { } d } => d,
+                BoundInterpolatedString { InterpolationData: { } d } => d,
+                BoundBinaryOperator or BoundInterpolatedString when !throwOnMissing => default,
+                BoundBinaryOperator or BoundInterpolatedString => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.UnexpectedValue(e.Kind),
+            };
     }
 }

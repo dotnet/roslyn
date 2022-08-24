@@ -860,7 +860,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 
 #End Region
 
-        Private Sub Test(
+        Private Shared Sub Test(
             workspaceDefinition As XElement,
             ParamArray presentationNodes As NodeVerifier()
         )

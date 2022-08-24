@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 // to connect. When it fails it should fall back to in-proc
                 // compilation.
                 bool holdsMutex;
-                using (var serverMutex = new Mutex(initiallyOwned: true,
+                using (var serverMutex = BuildServerConnection.OpenOrCreateMutex(
                                                    name: BuildServerConnection.GetServerMutexName(_pipeName),
                                                    createdNew: out holdsMutex))
                 {

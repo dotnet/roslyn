@@ -311,5 +311,47 @@ class C
     }
 }");
         }
+
+        [Fact]
+        [WorkItem(53574, "https://github.com/dotnet/roslyn/issues/53574")]
+        public async Task TestAnonymousTypeTopLevel()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    public void Method()
+    {
+        [|return|] new { A = 0, B = 1 };
+    }
+}",
+@"class C
+{
+    public object Method()
+    {
+        return new { A = 0, B = 1 };
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(53574, "https://github.com/dotnet/roslyn/issues/53574")]
+        public async Task TestAnonymousTypeTopNested()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    public void Method()
+    {
+        [|return|] new[] { new { A = 0, B = 1 } };
+    }
+}",
+@"class C
+{
+    public object Method()
+    {
+        return new[] { new { A = 0, B = 1 } };
+    }
+}");
+        }
     }
 }

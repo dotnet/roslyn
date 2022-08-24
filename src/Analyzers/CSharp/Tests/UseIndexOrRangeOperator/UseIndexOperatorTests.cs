@@ -511,6 +511,43 @@ class C
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp20,
                 TestCode = source,
                 FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        public async Task TestMissingWithInaccessibleSystemIndex()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string[] s)
+    {
+        var v = s[s.Length - 1];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp20,
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalProjects =
+                    {
+                        ["AdditionalProject"] =
+                        {
+                            Sources =
+                            {
+                                "namespace System { internal struct Index { } }"
+                            }
+                        }
+                    },
+                    AdditionalProjectReferences = { "AdditionalProject" },
+                },
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp8,
             }.RunAsync();
         }
 
@@ -711,6 +748,31 @@ class C
     void Goo(Dictionary<int, string> s)
     {
         var v = s[s.Count - 1];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = source,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [WorkItem(49347, "https://github.com/dotnet/roslyn/issues/49347")]
+        public async Task TestNotInExpressionTree()
+        {
+            var source =
+@"
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+class C
+{
+    void Goo(List<int> s)
+    {
+        Expression<Func<int>> f = () => s[s.Count - 1];
     }
 }";
 

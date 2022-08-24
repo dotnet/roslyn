@@ -97,8 +97,9 @@ class C
             var hostDocument = workspace.Documents.First();
             var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
             var outliningService = document.GetLanguageService<BlockStructureService>();
+            var options = BlockStructureOptions.Default;
 
-            var structure = await outliningService.GetBlockStructureAsync(document, CancellationToken.None);
+            var structure = await outliningService.GetBlockStructureAsync(document, options, CancellationToken.None);
             return structure.Spans;
         }
     }

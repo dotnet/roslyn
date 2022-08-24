@@ -3,11 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities.Formatting;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -35,8 +36,7 @@ namespace Goo;
 
 internal class C
 {
-}
-",
+}",
             options: new[]
             {
                 (CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error))
@@ -168,6 +168,30 @@ namespace Goo
             options: new[]
             {
                 (CodeStyleOptions2.RequireAccessibilityModifiers, new CodeStyleOption2<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, NotificationOption2.Error))
+            });
+        }
+
+        [Fact]
+        public async Task TestAccessibilityModifiers_FileScopedNamespace()
+        {
+            await TestAsync(testCode: @"using System;
+
+namespace Goo
+{
+    class C
+    {
+    }
+}",
+            expected: @"using System;
+
+namespace Goo;
+internal class C
+{
+}",
+            options: new (OptionKey, object)[]
+            {
+                (new OptionKey(CSharpCodeStyleOptions.NamespaceDeclarations), new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error)),
+                (new OptionKey(CodeStyleOptions2.RequireAccessibilityModifiers, Language), new CodeStyleOption2<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, NotificationOption2.Error))
             });
         }
 

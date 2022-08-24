@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.Structure
             SyntaxToken previousToken,
             SyntaxNode node,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken);
 
         public abstract void CollectBlockSpans(
             SyntaxTrivia trivia,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken);
     }
 }

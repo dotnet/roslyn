@@ -17,9 +17,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             SyntaxToken previousToken,
             DocumentationCommentTriviaSyntax documentationComment,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
+            // In metadata as source we want to treat documentation comments slightly differently, and collapse them
+            // to just "..." in front of the decalaration they're attached to. That happens in CSharpStructureHelper.CollectCommentBlockSpans
+            // so we don't need to do anything here
+            if (options.IsMetadataAsSource)
+            {
+                return;
+            }
+
             var startPos = documentationComment.FullSpan.Start;
 
             // The trailing newline is included in XmlDocCommentSyntax, so we need to strip it.
@@ -27,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
             var span = TextSpan.FromBounds(startPos, endPos);
 
-            var bannerLength = optionProvider.GetOption(BlockStructureOptions.MaximumBannerLength, LanguageNames.CSharp);
+            var bannerLength = options.MaximumBannerLength;
             var bannerText = CSharpFileBannerFacts.Instance.GetBannerText(
                 documentationComment, bannerLength, cancellationToken);
 

@@ -407,7 +407,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " and constant ", IsImplicit) (Syntax: ' and constant ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{[Class]}')
         Expression: 
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '[Class]')
+          IOperation:  (OperationKind.None, Type: [Class], IsInvalid) (Syntax: '[Class]')
         Alignment: 
           null
         FormatString: 

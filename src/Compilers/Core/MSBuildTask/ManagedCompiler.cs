@@ -691,7 +691,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// in the language specific manner. This often involves parsing the raw output and formatting it as 
         /// individual messages for MSBuild.
         /// </summary>
-        private protected abstract void LogCompilerOutput(string output, MessageImportance messageImportance);
+        /// <remarks>
+        /// Internal for testing only.
+        /// </remarks>
+        internal abstract void LogCompilerOutput(string output, MessageImportance messageImportance);
 
         /// <summary>
         /// Used to log a message that should go into both the compiler server log as well as the MSBuild logs

@@ -97,6 +97,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return;
             }
 
+            var expressionSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
+            if (expressionSymbol is IParameterSymbol parameterSymbol && parameterSymbol.ContainingSymbol.Equals(containingSymbol))
+            {
+                return;
+            }
+
             // Code actions for trampoline and overloads will not be offered if the method is a constructor.
             // Code actions for overloads will not be offered if the method if the method is a local function.
             var methodKind = methodSymbol.MethodKind;
@@ -251,7 +257,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 foreach (var (document, invocations) in projectCallSites)
                 {
                     var newRoot = await rewriter.RewriteDocumentAsync(compilation, document, invocations, cancellationToken).ConfigureAwait(false);
-                    modifiedSolution = modifiedSolution.WithDocumentSyntaxRoot(originalDocument.Id, newRoot);
+                    modifiedSolution = modifiedSolution.WithDocumentSyntaxRoot(document.Id, newRoot);
                 }
             }
 

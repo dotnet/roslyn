@@ -14,11 +14,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    internal abstract partial class AbstractCodeGenerationService
+    internal abstract partial class AbstractCodeGenerationService<TCodeGenerationOptions>
     {
-        protected abstract IList<bool> GetAvailableInsertionIndices(SyntaxNode destination, CancellationToken cancellationToken);
+        protected abstract IList<bool>? GetAvailableInsertionIndices(SyntaxNode destination, CancellationToken cancellationToken);
 
-        private IList<bool> GetAvailableInsertionIndices<TDeclarationNode>(TDeclarationNode destination, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
+        private IList<bool>? GetAvailableInsertionIndices<TDeclarationNode>(TDeclarationNode destination, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
             => GetAvailableInsertionIndices((SyntaxNode)destination, cancellationToken);
 
         public bool CanAddTo(ISymbol destination, Solution solution, CancellationToken cancellationToken)
@@ -124,25 +124,24 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public async Task<SyntaxNode?> FindMostRelevantNameSpaceOrTypeDeclarationAsync(
             Solution solution,
             INamespaceOrTypeSymbol namespaceOrType,
-            CodeGenerationOptions options,
+            CodeGenerationContext context,
             CancellationToken cancellationToken)
         {
-            var option = options ?? CodeGenerationOptions.Default;
-            var (declaration, _) = await FindMostRelevantDeclarationAsync(solution, namespaceOrType, option, cancellationToken).ConfigureAwait(false);
+            var (declaration, _) = await FindMostRelevantDeclarationAsync(solution, namespaceOrType, context, cancellationToken).ConfigureAwait(false);
             return declaration;
         }
 
         private async Task<(SyntaxNode? declaration, IList<bool>? availableIndices)> FindMostRelevantDeclarationAsync(
             Solution solution,
             INamespaceOrTypeSymbol namespaceOrType,
-            CodeGenerationOptions options,
+            CodeGenerationContext context,
             CancellationToken cancellationToken)
         {
             var declaration = (SyntaxNode?)null;
             IList<bool>? availableIndices = null;
 
             var symbol = namespaceOrType;
-            var locationOpt = options.BestLocation;
+            var locationOpt = context.BestLocation;
 
             var declarations = _symbolDeclarationService.GetDeclarations(symbol);
 

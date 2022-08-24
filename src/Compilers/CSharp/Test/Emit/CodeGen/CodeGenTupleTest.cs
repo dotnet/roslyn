@@ -21,9 +21,8 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static TestResources.NetFX.ValueTuple;
 using static Roslyn.Test.Utilities.TestMetadata;
-using System.Runtime.CompilerServices;
+using static TestResources.NetFX.ValueTuple;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -8087,6 +8086,227 @@ class C
                 // (6,29): error CS8135: Tuple with 3 elements cannot be converted to type '(long c, long d)'.
                 //         (int a, int b) x4 = ((long c, long d))(1, null, 2);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "((long c, long d))(1, null, 2)").WithArguments("3", "(long c, long d)").WithLocation(6, 29)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion03()
+        {
+            var source = @"
+
+var x = (1, new C());
+
+_ = ((int i, bool c))x;
+_ = ((int i, bool c))(1, new C());
+    
+(int i, bool c) z;
+
+z = x;
+z = (1, new C());
+z.i++;
+
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c))x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "((int i, bool c))x").WithArguments("C.implicit operator bool(C)").WithLocation(5, 5),
+                // (6,26): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c))(1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(6, 26),
+                // (10,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "x").WithArguments("C.implicit operator bool(C)").WithLocation(10, 5),
+                // (11,9): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = (1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion04()
+        {
+            var source = @"
+
+var x = (1, new C());
+
+_ = ((int i, bool c)?)x;
+_ = ((int i, bool c)?)(1, new C());
+    
+(int i, bool c)? z;
+
+z = x;
+z = (1, new C());
+_ = z?.i;
+
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c)?)x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "((int i, bool c)?)x").WithArguments("C.implicit operator bool(C)").WithLocation(5, 5),
+                // (6,27): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c)?)(1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(6, 27),
+                // (10,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "x").WithArguments("C.implicit operator bool(C)").WithLocation(10, 5),
+                // (11,9): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = (1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion05()
+        {
+            var source = @"
+
+var x = (1, new C());
+
+_ = ((int i, bool c)?)x;
+_ = ((int i, bool c)?)(1, new C());
+    
+(int i, bool c)? z;
+
+z = x;
+z = (1, new C());
+_ = z?.i;
+
+class C
+{
+    [System.Obsolete(""Obsolete error"", true)]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // _ = ((int i, bool c)?)x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "((int i, bool c)?)x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(5, 5),
+                // (6,27): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // _ = ((int i, bool c)?)(1, new C());
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C()").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(6, 27),
+                // (10,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // z = x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(10, 5),
+                // (11,9): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // z = (1, new C());
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C()").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion06()
+        {
+            var source = @"
+
+(int, C)? x = (1, new C());
+
+_ = ((int i, bool c)?)x;
+    
+(int i, bool c)? z;
+
+z = x;
+_ = z?.i;
+
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c)?)x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "((int i, bool c)?)x").WithArguments("C.implicit operator bool(C)").WithLocation(5, 5),
+                // (9,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "x").WithArguments("C.implicit operator bool(C)").WithLocation(9, 5)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion07()
+        {
+            var source = @"
+
+(int, C)? x = (1, new C());
+
+_ = ((int i, bool c)?)x;
+    
+(int i, bool c)? z;
+
+z = x;
+_ = z?.i;
+
+class C
+{
+    [System.Obsolete(""Obsolete error"", true)]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // _ = ((int i, bool c)?)x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "((int i, bool c)?)x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(5, 5),
+                // (9,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // z = x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(9, 5)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion08()
+        {
+            var source = @"
+(int, C)? x = (1, new C());
+_ = ((int i, bool c))x;
+   
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c))x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "((int i, bool c))x").WithArguments("C.implicit operator bool(C)").WithLocation(3, 5)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion09()
+        {
+            var source = @"
+(int, C)? x = (1, new C());
+_ = ((int i, bool c))x;
+
+class C
+{
+    [System.Obsolete(""Obsolete error"", true)]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // _ = ((int i, bool c))x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "((int i, bool c))x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(3, 5)
                 );
         }
 
@@ -19006,7 +19226,7 @@ public class C
             Assert.Equal("(System.Int32 a, dynamic c) x2", x2.ToTestDisplayString());
         }
 
-        [Fact]
+        [Fact, WorkItem(60046, "https://github.com/dotnet/roslyn/issues/60046")]
         [WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")]
         public void NullCoalescingOperatorWithTupleNames()
         {
@@ -19055,6 +19275,7 @@ public class D
                 //         var x8 = new C() ?? (a: 1, c: 3); // C
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 3").WithArguments("c", "(int, int)").WithLocation(18, 36)
                 );
+            _ = comp.GetEmitDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -19089,6 +19310,44 @@ public class D
 
             var x6double = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(11));
             Assert.Equal("(System.Double d, System.Int32 c) x6double", x6double.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(60046, "https://github.com/dotnet/roslyn/issues/60046")]
+        public void NullCoalescingOperatorWithTupleNames_IdentityConversionOnUserDefinedConversion()
+        {
+            // LHS has identity conversion (for tuple names) on top of user-defined conversion
+            var source = @"
+System.Console.Write(new D() ?? (a: 1, c: 3));
+
+public class D
+{
+    public static implicit operator (int d1, int d2) (D x) { return (42, 43); }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            _ = comp.GetEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "(42, 43)");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (D V_0)
+  IL_0000:  newobj     ""D..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  brtrue.s   IL_0012
+  IL_0009:  ldc.i4.1
+  IL_000a:  ldc.i4.3
+  IL_000b:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0010:  br.s       IL_0018
+  IL_0012:  ldloc.0
+  IL_0013:  call       ""System.ValueTuple<int, int> D.op_Implicit(D)""
+  IL_0018:  box        ""System.ValueTuple<int, int>""
+  IL_001d:  call       ""void System.Console.Write(object)""
+  IL_0022:  ret
+}
+");
         }
 
         [Fact]
@@ -28341,41 +28600,33 @@ class C
         [Fact]
         public void TupleWithElementNamedWithDefaultName()
         {
-            // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
-            for (int i = 0; i < 1000; i++)
-            {
-                string source = @"
+            string source = @"
 class C
 {
     (int Item1, int Item2) M() => throw null;
 }
 ";
-                var comp = CreateCompilation(source);
-                var m = (MethodSymbol)comp.GetMember("C.M");
-                var tuple = m.ReturnType;
-                Assert.Equal("(System.Int32 Item1, System.Int32 Item2)", tuple.ToTestDisplayString());
-                Assert.IsType<ConstructedNamedTypeSymbol>(tuple);
+            var comp = CreateCompilation(source);
+            var m = (MethodSymbol)comp.GetMember("C.M");
+            var tuple = m.ReturnType;
+            Assert.Equal("(System.Int32 Item1, System.Int32 Item2)", tuple.ToTestDisplayString());
+            Assert.IsType<ConstructedNamedTypeSymbol>(tuple);
 
-                var item1 = tuple.GetMember<TupleElementFieldSymbol>("Item1");
-                // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
-                RoslynDebug.AssertOrFailFast(0 == item1.TupleElementIndex);
+            var item1 = tuple.GetMember<TupleElementFieldSymbol>("Item1");
+            Assert.Equal(0, item1.TupleElementIndex);
 
-                var item1Underlying = item1.TupleUnderlyingField;
-                Assert.IsType<SubstitutedFieldSymbol>(item1Underlying);
-                Assert.Equal("System.Int32 (System.Int32 Item1, System.Int32 Item2).Item1", item1Underlying.ToTestDisplayString());
-                // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
-                RoslynDebug.AssertOrFailFast(0 == item1Underlying.TupleElementIndex);
-                Assert.Same(item1Underlying, item1Underlying.TupleUnderlyingField);
+            var item1Underlying = item1.TupleUnderlyingField;
+            Assert.IsType<SubstitutedFieldSymbol>(item1Underlying);
+            Assert.Equal("System.Int32 (System.Int32 Item1, System.Int32 Item2).Item1", item1Underlying.ToTestDisplayString());
+            Assert.Equal(0, item1Underlying.TupleElementIndex);
+            Assert.Same(item1Underlying, item1Underlying.TupleUnderlyingField);
 
-                var item2 = tuple.GetMember<TupleElementFieldSymbol>("Item2");
-                // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
-                RoslynDebug.AssertOrFailFast(1 == item2.TupleElementIndex);
-                var item2Underlying = item2.TupleUnderlyingField;
-                Assert.IsType<SubstitutedFieldSymbol>(item2Underlying);
-                // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
-                RoslynDebug.AssertOrFailFast(1 == item2Underlying.TupleElementIndex);
-                Assert.Same(item2Underlying, item2Underlying.TupleUnderlyingField);
-            }
+            var item2 = tuple.GetMember<TupleElementFieldSymbol>("Item2");
+            Assert.Equal(1, item2.TupleElementIndex);
+            var item2Underlying = item2.TupleUnderlyingField;
+            Assert.IsType<SubstitutedFieldSymbol>(item2Underlying);
+            Assert.Equal(1, item2Underlying.TupleElementIndex);
+            Assert.Same(item2Underlying, item2Underlying.TupleUnderlyingField);
         }
 
         [Fact]
@@ -28393,6 +28644,19 @@ class C
             Assert.Equal("(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)",
                 tuple.ToTestDisplayString());
             Assert.IsType<ConstructedNamedTypeSymbol>(tuple);
+
+            var item1 = tuple.GetMember<TupleElementFieldSymbol>("Item1");
+            Assert.Equal("System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item1",
+                item1.ToTestDisplayString());
+            Assert.Equal(0, item1.TupleElementIndex);
+
+            var item1Underlying = item1.TupleUnderlyingField;
+            Assert.Equal("System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item1",
+                item1Underlying.ToTestDisplayString());
+            Assert.IsType<SubstitutedFieldSymbol>(item1Underlying);
+            Assert.Equal(-1, item1Underlying.TupleElementIndex); // should be zero, tracked by https://github.com/dotnet/roslyn/issues/58499
+
+            Assert.Same(tuple, item1Underlying.ContainingType);
 
             var item8 = tuple.GetMember<TupleElementFieldSymbol>("Item8");
             Assert.Equal("System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item8",

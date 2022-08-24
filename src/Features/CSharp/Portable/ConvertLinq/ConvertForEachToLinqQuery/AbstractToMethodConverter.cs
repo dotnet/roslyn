@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                             lastDeclaration.Identifier.ValueText.Equals(identifierName.Identifier.ValueText) &&
                             CanReplaceInitialization(lastDeclaration.Initializer.Value, cancellationToken))
                         {
-                            Convert(lastDeclaration.Initializer.Value, variables.Count == 1 ? (SyntaxNode)previous : lastDeclaration);
+                            Convert(lastDeclaration.Initializer.Value, variables.Count == 1 ? previous : lastDeclaration);
                             return;
                         }
 

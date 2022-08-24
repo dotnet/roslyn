@@ -319,7 +319,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return F.Block(bodyBuilder.ToImmutableAndFree());
+            var builtBody = bodyBuilder.ToImmutableAndFree();
+            return F.Block(builtBody);
         }
 
         protected SynthesizedImplementationMethod OpenMethodImplementation(

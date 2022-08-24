@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 if (isInternalCodeFixProvider)
                 {
-                    m[CodeFixProvider] = fixAllState.CodeFixProvider.GetType().FullName;
+                    m[CodeFixProvider] = fixAllState.CodeFixProvider.GetType().FullName!;
                     m[CodeActionEquivalenceKey] = fixAllState.CodeActionEquivalenceKey;
                     m[LanguageName] = fixAllState.Project.Language;
                 }

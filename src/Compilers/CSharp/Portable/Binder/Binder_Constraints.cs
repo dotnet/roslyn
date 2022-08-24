@@ -157,11 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if (diagnostics.DiagnosticBag is DiagnosticBag diagnosticBag)
                             {
-                                LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(
-                                    AreNullableAnnotationsEnabled(questionToken),
-                                    IsGeneratedCode(questionToken),
-                                    questionToken.GetLocation(),
-                                    diagnosticBag);
+                                LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(this, questionToken, type: null, diagnosticBag);
                             }
                         }
                         else if (isForOverride || AreNullableAnnotationsEnabled(constraintSyntax.ClassOrStructKeyword))

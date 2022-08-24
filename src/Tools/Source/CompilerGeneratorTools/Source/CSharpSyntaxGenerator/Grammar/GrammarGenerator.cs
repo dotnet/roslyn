@@ -36,14 +36,35 @@ namespace CSharpSyntaxGenerator.Grammar
                 if (type is Node && type.Children.Count > 0)
                 {
                     // Convert rules like `a: (x | y) ...` into:
+                    //
                     // a: x ...
                     //  | y ...;
-                    if (type.Children[0] is Field field && field.Kinds.Count > 0)
+                    //
+                    // Note: if we have `a: (a1 | b1) ... (ax | bx) presume that that's a paired construct and generate:
+                    //
+                    // a: a1 ... ax
+                    //  | b1 ... bx;
+
+                    if (type.Children.First() is Field firstField && firstField.Kinds.Count > 0)
                     {
-                        foreach (var kind in field.Kinds)
+                        var originalFirstFieldKinds = firstField.Kinds.ToList();
+                        if (type.Children.Count >= 2 && type.Children.Last() is Field lastField && lastField.Kinds.Count == firstField.Kinds.Count)
                         {
-                            field.Kinds = new List<Kind> { kind };
-                            rules[type.Name].Add(HandleChildren(type.Children));
+                            var originalLastFieldKinds = lastField.Kinds.ToList();
+                            for (int i = 0; i < originalFirstFieldKinds.Count; i++)
+                            {
+                                firstField.Kinds = new List<Kind> { originalFirstFieldKinds[i] };
+                                lastField.Kinds = new List<Kind> { originalLastFieldKinds[i] };
+                                rules[type.Name].Add(HandleChildren(type.Children));
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < originalFirstFieldKinds.Count; i++)
+                            {
+                                firstField.Kinds = new List<Kind> { originalFirstFieldKinds[i] };
+                                rules[type.Name].Add(HandleChildren(type.Children));
+                            }
                         }
                     }
                     else

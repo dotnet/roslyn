@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return ch = ")"c
         End Function
 
-        Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
+        Private Shared Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
             Dim functionAggregation As FunctionAggregationSyntax = Nothing
             If TryGetFunctionAggregation(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, functionAggregation) AndAlso
                 functionAggregation.SpanStart = currentSpan.Start Then
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 functionAggregation)
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As SignatureHelpOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim functionAggregation As FunctionAggregationSyntax = Nothing
@@ -75,32 +75,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
 
             Dim accessibleMethods = methods.WhereAsArray(Function(m) m.IsAccessibleWithin(within)).
-                                            FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
+                                            FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(options.HideAdvancedMembers, semanticModel.Compilation).
                                             Sort(semanticModel, functionAggregation.SpanStart)
 
             If Not accessibleMethods.Any() Then
                 Return Nothing
             End If
 
-            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
+            Dim structuralTypeDisplayService = document.GetLanguageService(Of IStructuralTypeDisplayService)()
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
             Dim textSpan = CommonSignatureHelpUtilities.GetSignatureHelpSpan(functionAggregation, functionAggregation.SpanStart, Function(n) n.CloseParenToken)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Return CreateSignatureHelpItems(
-                accessibleMethods.Select(Function(m) Convert(m, functionAggregation, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList(),
+                accessibleMethods.Select(Function(m) Convert(m, functionAggregation, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
         Private Overloads Shared Function Convert(method As IMethodSymbol,
                                            functionAggregation As FunctionAggregationSyntax,
                                            semanticModel As SemanticModel,
-                                           anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+                                           structuralTypeDisplayService As IStructuralTypeDisplayService,
                                            documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpItem
             Dim position = functionAggregation.SpanStart
             Dim item = CreateItem(
                 method, semanticModel, position,
-                anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 False,
                 method.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(method),

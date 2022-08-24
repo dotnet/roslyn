@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ExtractClass;
 using Microsoft.CodeAnalysis.ExtractClass;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.ExtractClass
             _omniSharpExtractClassOptionsService = omniSharpExtractClassOptionsService;
         }
 
-        public async Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalType, ISymbol? selectedMember)
+        public async Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalType, ISymbol? selectedMember, CancellationToken cancellationToken)
         {
             var result = await _omniSharpExtractClassOptionsService.GetExtractClassOptionsAsync(document, originalType, selectedMember).ConfigureAwait(false);
             return result == null

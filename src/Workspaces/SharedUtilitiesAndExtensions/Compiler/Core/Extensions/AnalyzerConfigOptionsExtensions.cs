@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
                 hasEditorConfigStorage = true;
                 if (configStorageLocation.TryGetOption(analyzerConfigOptions, option.Type, out var objectValue))
                 {
-                    value = (T)objectValue;
+                    value = (T?)objectValue;
                     return true;
                 }
             }

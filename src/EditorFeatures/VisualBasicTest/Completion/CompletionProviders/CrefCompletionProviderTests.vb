@@ -414,7 +414,7 @@ Class C
     End Sub
 End Class]]></a>.Value.NormalizeLineEndings()
 
-            Using workspace = TestWorkspace.Create(LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), New VisualBasicParseOptions(), {text}, ExportProvider)
+            Using workspace = TestWorkspace.Create(LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication), New VisualBasicParseOptions(), {text}, exportProvider:=ExportProvider)
                 Dim called = False
 
                 Dim hostDocument = workspace.DocumentWithCursor

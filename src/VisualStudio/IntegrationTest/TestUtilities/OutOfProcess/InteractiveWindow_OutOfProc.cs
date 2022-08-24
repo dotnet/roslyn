@@ -28,12 +28,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _interactiveWindowInProc.Initialize();
 
         /// <summary>
-        /// Gets the last output from the REPL.
-        /// </summary>
-        public string GetLastReplOutput()
-            => _interactiveWindowInProc.GetLastReplOutput();
-
-        /// <summary>
         /// Gets the last input from the REPL.
         /// </summary>
         public string GetLastReplInput()
@@ -50,12 +44,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             // Clear the line
             _instance.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
         }
-
-        /// <summary>
-        /// Gets the contents of the REPL window without the prompt text.
-        /// </summary>
-        public string GetReplTextWithoutPrompt()
-            => _interactiveWindowInProc.GetReplTextWithoutPrompt();
 
         public void ShowWindow(bool waitForPrompt = true)
             => _interactiveWindowInProc.ShowWindow(waitForPrompt);

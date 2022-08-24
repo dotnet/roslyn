@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
         protected abstract bool CheckExplicitNameAllowsConversion(ExplicitInterfaceSpecifierSyntax? explicitName);
         protected abstract bool CheckMemberCanBeConverted(ISymbol member);
-        protected abstract SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode currentDecl, ISymbol interfaceMember);
+        protected abstract SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode currentDecl, ISymbol implMember, ISymbol interfaceMember);
         protected abstract Task UpdateReferencesAsync(Project project, SolutionEditor solutionEditor, ISymbol implMember, INamedTypeSymbol containingType, CancellationToken cancellationToken);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -220,14 +220,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
             // Now, bucket all the implemented members by which document they appear in.
             // That way, we can update all the members in a specific document in bulk.
-            var documentToImplDeclarations = new OrderedMultiDictionary<Document, (SyntaxNode, SetWithInsertionOrder<ISymbol>)>();
+            var documentToImplDeclarations = new OrderedMultiDictionary<Document, (SyntaxNode, ISymbol impl, SetWithInsertionOrder<ISymbol> interfaceMembers)>();
             foreach (var (implMember, interfaceMembers) in implMemberToInterfaceMembers)
             {
                 foreach (var syntaxRef in implMember.DeclaringSyntaxReferences)
                 {
                     var doc = solution.GetRequiredDocument(syntaxRef.SyntaxTree);
                     var decl = await syntaxRef.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                    documentToImplDeclarations.Add(doc, (decl, interfaceMembers));
+                    documentToImplDeclarations.Add(doc, (decl, implMember, interfaceMembers));
                 }
             }
 
@@ -235,11 +235,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             {
                 var editor = await solutionEditor.GetDocumentEditorAsync(
                     document.Id, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                foreach (var (decl, symbols) in declsAndSymbol)
+                foreach (var (decl, implMember, interfaceMembers) in declsAndSymbol)
                 {
                     editor.ReplaceNode(decl, (currentDecl, g) =>
-                        symbols.Select(s => ChangeImplementation(g, currentDecl, s)));
+                        interfaceMembers.Select(s => ChangeImplementation(g, currentDecl, implMember, s)));
                 }
             }
 

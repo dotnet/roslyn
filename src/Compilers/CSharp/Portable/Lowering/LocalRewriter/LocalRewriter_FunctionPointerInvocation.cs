@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt: default,
                 ref argumentRefKindsOpt,
                 ref temps,
-                invokedAsExtensionMethod: false,
-                enableCallerInfo: ThreeState.False);
+                invokedAsExtensionMethod: false);
 
             Debug.Assert(rewrittenExpression != null);
             node = node.Update(rewrittenExpression, rewrittenArgs, argumentRefKindsOpt, node.ResultKind, node.Type);

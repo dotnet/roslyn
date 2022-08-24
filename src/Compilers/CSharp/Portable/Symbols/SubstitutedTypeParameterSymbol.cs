@@ -181,5 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _map.SubstituteType(_underlyingTypeParameter.GetDeducedBaseType(inProgress)).AsTypeSymbolOnly();
         }
+
+        internal override CSharpCompilation DeclaringCompilation => ContainingSymbol.DeclaringCompilation;
     }
 }

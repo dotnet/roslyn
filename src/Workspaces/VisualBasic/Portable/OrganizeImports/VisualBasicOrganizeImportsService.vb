@@ -4,7 +4,6 @@
 
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.OrganizeImports
 
@@ -18,15 +17,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
         Public Sub New()
         End Sub
 
-        Public Async Function OrganizeImportsAsync(document As Document,
-                                        cancellationToken As CancellationToken) As Task(Of Document) Implements IOrganizeImportsService.OrganizeImportsAsync
+        Public Async Function OrganizeImportsAsync(document As Document, options As OrganizeImportsOptions, cancellationToken As CancellationToken) As Task(Of Document) Implements IOrganizeImportsService.OrganizeImportsAsync
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim options = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
-
-            Dim placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst)
-            Dim separateGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups)
-
-            Dim rewriter = New Rewriter(placeSystemNamespaceFirst, separateGroups)
+            Dim rewriter = New Rewriter(options)
             Dim newRoot = rewriter.Visit(root)
             Return document.WithSyntaxRoot(newRoot)
         End Function

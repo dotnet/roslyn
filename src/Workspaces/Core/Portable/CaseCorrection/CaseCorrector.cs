@@ -7,6 +7,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CaseCorrection
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// <summary>
         /// Case correct only things that don't require semantic information
         /// </summary>
-        internal static SyntaxNode CaseCorrect(SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken = default)
-            => workspace.Services.GetLanguageServices(root.Language).GetRequiredService<ICaseCorrectionService>().CaseCorrect(root, spans, workspace, cancellationToken);
+        internal static SyntaxNode CaseCorrect(SyntaxNode root, ImmutableArray<TextSpan> spans, HostWorkspaceServices services, CancellationToken cancellationToken = default)
+            => services.GetLanguageServices(root.Language).GetRequiredService<ICaseCorrectionService>().CaseCorrect(root, spans, cancellationToken);
     }
 }

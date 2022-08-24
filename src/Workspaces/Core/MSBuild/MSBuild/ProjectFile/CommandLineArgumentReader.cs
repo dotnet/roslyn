@@ -39,11 +39,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _builder.Add($"/{name}");
         }
 
-        protected void Add(string name, string? value)
+        protected void Add(string name, string? value, bool addQuoteIfValueContainsWhitespace = true)
         {
             ValidateName(name);
 
-            if (RoslynString.IsNullOrEmpty(value) || value.Contains(char.IsWhiteSpace))
+            if (RoslynString.IsNullOrEmpty(value) || (addQuoteIfValueContainsWhitespace && value.Contains(char.IsWhiteSpace)))
             {
                 _builder.Add($"/{name}:\"{value}\"");
             }
@@ -58,11 +58,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             Add(name, value.ToString());
         }
 
-        protected void AddIfNotNullOrWhiteSpace(string name, string? value)
+        protected void AddIfNotNullOrWhiteSpace(string name, string? value, bool addQuoteIfValueContainsWhitespace = true)
         {
             if (!RoslynString.IsNullOrWhiteSpace(value))
             {
-                Add(name, value);
+                Add(name, value, addQuoteIfValueContainsWhitespace);
             }
         }
 
@@ -209,9 +209,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
         protected void ReadImports()
         {
             var imports = Project.GetTaskItems(ItemNames.Import);
-            if (imports != null)
+            if (imports == null)
+                return;
+
+            // In case of import alias clause in the form of `aliasname = namespace`,
+            // we want to add quotes to that single clause only instead of the entire imports.
+            AddIfNotNullOrWhiteSpace("imports", string.Join(",", imports.Select(ReadImportItem)), addQuoteIfValueContainsWhitespace: false);
+
+            static string ReadImportItem(MSB.Framework.ITaskItem item)
             {
-                AddIfNotNullOrWhiteSpace("imports", string.Join(",", imports.Select(item => item.ItemSpec.Trim())));
+                var trimmed = item.ItemSpec.Trim();
+                return trimmed.Contains(' ') ? $"\"{trimmed}\"" : trimmed;
             }
         }
 

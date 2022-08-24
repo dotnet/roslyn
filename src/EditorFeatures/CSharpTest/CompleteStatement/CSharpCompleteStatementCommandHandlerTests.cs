@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Roslyn.Test.Utilities;
@@ -1988,6 +1989,43 @@ public class SaleItem
 {
    public string Name 
    { get$$ set; }
+}";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void PropertyInitializer1()
+        {
+            var code = @"
+public class C
+{
+   public static C MyProp { get; } = new C($$)
+}";
+
+            var expected = @"
+public class C
+{
+   public static C MyProp { get; } = new C();$$
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void PropertyAttribute1()
+        {
+            var code = @"
+public class C
+{
+    public int P
+    {
+        [My(typeof(C$$))]
+        get
+        {
+            return 0;
+        }
+    }
 }";
 
             VerifyNoSpecialSemicolonHandling(code);
@@ -4180,7 +4218,8 @@ public class ClassC
             Verify(code, expected, ExecuteTest,
                 setOptionsOpt: workspace =>
                 {
-                    workspace.SetOptions(workspace.Options.WithChangedOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon, false));
+                    var globalOptions = workspace.GetService<IGlobalOptionService>();
+                    globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon), false);
                 });
         }
         protected override TestWorkspace CreateTestWorkspace(string code)

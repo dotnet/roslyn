@@ -6,16 +6,19 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports.CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports.CSharpRemoveUnnecessaryImportsCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImports
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer,
+        CSharpRemoveUnnecessaryImportsCodeFixProvider>;
+
     public class RemoveUnnecessaryImportsTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
@@ -785,7 +788,7 @@ class Program
         public async Task TestComments8718()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|using Goo; {|IDE0005:using System.Collections.Generic;|} /*comment*/ using Goo2;|]
+@"[|using Goo; {|IDE0005:using System.Collections.Generic; /*comment*/|} using Goo2;|]
 
 class Program
 {
@@ -843,7 +846,7 @@ namespace Goo2
             await VerifyCS.VerifyCodeFixAsync(
 @"//c1
 /*c2*/
-[|{|IDE0005:using/*c3*/ System/*c4*/;|}|] //c5
+{|IDE0005:[|using/*c3*/ System/*c4*/;|] //c5|}
 //c6
 
 class Program
@@ -1133,7 +1136,7 @@ namespace SomeNS
         public async Task TestRemoveTrailingComment()
         {
             await VerifyCS.VerifyCodeFixAsync(
-@"[|{|IDE0005:using System.Collections.Generic;|}|] // comment
+@"{|IDE0005:[|using System.Collections.Generic;|] // comment|}
 
 class Program
 {
@@ -1869,6 +1872,22 @@ class Program
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WorkItem(1323, "https://github.com/dotnet/roslyn/issues/1323")]
+        public async Task TestUsingsInPPRegionWithoutOtherMembers()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"
+#if true
+[|{|IDE0005:using System;|}|]
+#endif
+",
+@"
+#if true
+#endif
+");
+        }
+
         [Theory]
         [InlineData(0)]
         [InlineData(1)]
@@ -1926,6 +1945,43 @@ class Program
                         return solution.WithProjectCompilationOptions(projectId, compilationOptions.WithWarningLevel(warningLevel));
                     },
                 },
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WorkItem(58972, "https://github.com/dotnet/roslyn/issues/58972")]
+        public async Task TestWhitespaceBeforeUnusedUsings_FileScopedNamespace()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"namespace N;
+
+[|{|IDE0005:using System;|}
+using System.Collections.Generic;|]
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+    }
+}
+",
+                FixedCode =
+@"namespace N;
+
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+    }
+}
+",
+                LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
     }

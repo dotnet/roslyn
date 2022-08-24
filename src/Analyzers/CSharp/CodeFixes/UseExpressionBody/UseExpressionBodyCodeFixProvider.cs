@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -90,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         {
             var declarationLocation = diagnostic.AdditionalLocations[0];
             var helper = _helpers.Single(h => h.DiagnosticId == diagnostic.Id);
-            var declaration = declarationLocation.FindNode(cancellationToken);
+            var declaration = declarationLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
             var useExpressionBody = diagnostic.Properties.ContainsKey(nameof(UseExpressionBody));
 
             var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody)

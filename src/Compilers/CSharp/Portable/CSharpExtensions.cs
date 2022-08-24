@@ -1033,7 +1033,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within an expression.
+        /// Analyze data-flow within a <see cref="ConstructorInitializerSyntax"/>.
+        /// </summary>
+        public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, ConstructorInitializerSyntax constructorInitializer)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.AnalyzeDataFlow(constructorInitializer);
+        }
+
+        /// <summary>
+        /// Analyze data-flow within a <see cref="PrimaryConstructorBaseTypeSyntax.ArgumentList"/> initializer.
+        /// </summary>
+        public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.AnalyzeDataFlow(primaryConstructorBaseType);
+        }
+
+        /// <summary>
+        /// Analyze data-flow within an <see cref="ExpressionSyntax"/>.
         /// </summary>
         public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, ExpressionSyntax expression)
         {

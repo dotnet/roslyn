@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Editor;
@@ -84,13 +85,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             SVsServiceProvider serviceProvider,
             IDiagnosticService diagnosticService,
             ITableManagerProvider tableManagerProvider,
-            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext)
             : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.CloudEnvironmentClientWorkspace)
         {
             _serviceProvider = serviceProvider;
 
-            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(serviceProvider, this, globalOptions, diagnosticService, tableManagerProvider);
+            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(threadingContext, serviceProvider, this, diagnosticService, tableManagerProvider);
 
             var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
@@ -101,6 +101,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             _remoteWorkspaceRootPaths = ImmutableHashSet<string>.Empty;
             _registeredExternalPaths = ImmutableHashSet<string>.Empty;
         }
+
+        private IGlobalOptionService GlobalOptions
+            => _remoteDiagnosticListTable.GlobalOptions;
 
         void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? windowFrame) => NotifyOnDocumentOpened(moniker, textBuffer);
 
@@ -339,7 +342,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             return CurrentSolution.GetDocument(docInfo.Id)!;
         }
 
-        private string? GetLanguage(string filePath)
+        private static string? GetLanguage(string filePath)
         {
             var fileExtension = Path.GetExtension(filePath).ToLower();
 
@@ -523,7 +526,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         }
 
         private void StartSolutionCrawler()
-            => DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
+        {
+            if (GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+            {
+                DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
+            }
+        }
 
         private void StopSolutionCrawler()
             => DiagnosticProvider.Disable(this);

@@ -342,6 +342,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var workspace = TestWorkspace.CreateCSharp(code);
             using var remoteWorkspace = CreateRemoteWorkspace();
 
+            // Start solution crawler in the remote workspace:
+            remoteWorkspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(remoteWorkspace);
+
             // create solution service
             var solution = workspace.CurrentSolution;
             var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
@@ -486,18 +489,29 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 .AddAnalyzerReference(new AnalyzerFileReference(typeof(Microsoft.CodeAnalysis.TestSourceGenerator.HelloWorldGenerator).Assembly.Location, new TestAnalyzerAssemblyLoader()))
                 .Solution;
 
+            // First sync the solution over that has a generator
             var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
             var synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion: 0, projectId: null, CancellationToken.None);
             Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
 
+            // Now freeze with some content
             var documentIdentity = (await solution.Projects.Single().GetSourceGeneratedDocumentsAsync()).First().Identity;
-            var frozenText = SourceText.From("// Hello, World!");
-            solution = solution.WithFrozenSourceGeneratedDocument(documentIdentity, frozenText).Project.Solution;
+            var frozenText1 = SourceText.From("// Hello, World!");
+            var frozenSolution1 = solution.WithFrozenSourceGeneratedDocument(documentIdentity, frozenText1).Project.Solution;
 
-            assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
-            solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
-            synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: false, workspaceVersion: 1, projectId: null, CancellationToken.None);
+            assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, frozenSolution1);
+            solutionChecksum = await frozenSolution1.State.GetChecksumAsync(CancellationToken.None);
+            synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion: 1, projectId: null, CancellationToken.None);
+            Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
+
+            // Try freezing with some different content from the original solution
+            var frozenText2 = SourceText.From("// Hello, World! A second time!");
+            var frozenSolution2 = solution.WithFrozenSourceGeneratedDocument(documentIdentity, frozenText2).Project.Solution;
+
+            assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, frozenSolution2);
+            solutionChecksum = await frozenSolution2.State.GetChecksumAsync(CancellationToken.None);
+            synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion: 2, projectId: null, CancellationToken.None);
             Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
         }
 
@@ -725,23 +739,46 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(solutionChecksum, await syncedFullSolution.State.GetChecksumAsync(CancellationToken.None));
             Assert.Equal(2, syncedFullSolution.Projects.Count());
             var options = (SerializableOptionSet)syncedFullSolution.Options;
-            Assert.Equal(2, options.Languages.Count);
+            Assert.Equal(2, options.GetTestAccessor().Languages.Count);
 
             var project1Checksum = await solution.State.GetChecksumAsync(project1.Id, CancellationToken.None);
             var project1SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project1Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project1.Id, CancellationToken.None);
             Assert.Equal(1, project1SyncedSolution.Projects.Count());
             Assert.Equal(project1.Name, project1SyncedSolution.Projects.Single().Name);
             var project1Options = (SerializableOptionSet)project1SyncedSolution.Options;
-            Assert.Equal(1, project1Options.Languages.Count);
-            Assert.Contains(LanguageNames.CSharp, project1Options.Languages);
+            Assert.Equal(2, project1Options.GetTestAccessor().Languages.Count);
+            Assert.Contains(LanguageNames.CSharp, project1Options.GetTestAccessor().Languages);
 
             var project2Checksum = await solution.State.GetChecksumAsync(project2.Id, CancellationToken.None);
             var project2SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project2Checksum, fromPrimaryBranch: false, workspaceVersion: -1, project2.Id, CancellationToken.None);
             Assert.Equal(1, project2SyncedSolution.Projects.Count());
             Assert.Equal(project2.Name, project2SyncedSolution.Projects.Single().Name);
             var project2Options = (SerializableOptionSet)project2SyncedSolution.Options;
-            Assert.Equal(1, project2Options.Languages.Count);
-            Assert.Contains(LanguageNames.VisualBasic, project2Options.Languages);
+            Assert.Equal(2, project2Options.GetTestAccessor().Languages.Count);
+            Assert.Contains(LanguageNames.VisualBasic, project2Options.GetTestAccessor().Languages);
+        }
+
+        [Fact]
+        public async Task TestPartialProjectSync_ReferenceToNonExistentProject()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var remoteWorkspace = CreateRemoteWorkspace();
+
+            var solution = workspace.CurrentSolution;
+
+            var project1 = solution.Projects.Single();
+
+            // This reference a project that doesn't exist.
+            // Ensure that it's still fine to get the checksum for this project we have.
+            project1 = project1.AddProjectReference(new ProjectReference(ProjectId.CreateNewId()));
+
+            solution = project1.Solution;
+
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+
+            var project1Checksum = await solution.State.GetChecksumAsync(project1.Id, CancellationToken.None);
         }
 
         private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)

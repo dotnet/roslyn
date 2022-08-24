@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     {
-        protected abstract ISyntaxFacts SyntaxFacts { get; }
+        public abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract ISemanticFacts SemanticFacts { get; }
 
         protected abstract SyntaxToken ToIdentifierToken(string identifier);
@@ -148,17 +148,30 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
             => SemanticFacts.IsPartial(typeSymbol, cancellationToken);
 
+        public bool IsNullChecked(IParameterSymbol parameterSymbol, CancellationToken cancellationToken)
+            => SemanticFacts.IsNullChecked(parameterSymbol, cancellationToken);
+
         public IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
             => SemanticFacts.GetDeclaredSymbols(semanticModel, memberDeclaration, cancellationToken);
 
         public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
             => SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, cancellationToken);
 
+        public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
+            => SemanticFacts.FindParameterForAttributeArgument(semanticModel, argumentNode, cancellationToken);
+
         public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
             => SemanticFacts.GetBestOrAllSymbols(semanticModel, node, token, cancellationToken);
 
         public bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => SemanticFacts.IsInsideNameOfExpression(semanticModel, node, cancellationToken);
+
+        public ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(Compilation compilation, ISymbol symbol, CancellationToken cancellationToken)
+            => SemanticFacts.GetLocalFunctionSymbols(compilation, symbol, cancellationToken);
+
+        public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
+            => SemanticFacts.IsInExpressionTree(semanticModel, node, expressionTypeOpt, cancellationToken);
+
         #endregion
     }
 }

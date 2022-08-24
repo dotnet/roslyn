@@ -341,7 +341,7 @@ class Goo
                 defaultValue:="default")
         End Function
 
-        Private Sub VerifyAlteredState(
+        Private Shared Sub VerifyAlteredState(
            viewModelTestState As ChangeSignatureViewModelTestState,
            Optional monitor As PropertyChangedTestMonitor = Nothing,
            Optional canCommit As Boolean? = Nothing,
@@ -393,7 +393,7 @@ class Goo
 
         End Sub
 
-        Private Sub AssertPermuted(permutation As Integer(), actualParameterList As List(Of ChangeSignatureDialogViewModel.ParameterViewModel), originalParameterList As ImmutableArray(Of IParameterSymbol))
+        Private Shared Sub AssertPermuted(permutation As Integer(), actualParameterList As List(Of ChangeSignatureDialogViewModel.ParameterViewModel), originalParameterList As ImmutableArray(Of IParameterSymbol))
             Dim finalParameterList = actualParameterList.Where(Function(p) Not p.IsRemoved)
             For index = 0 To permutation.Length - 1
                 Dim expected = originalParameterList(permutation(index))
@@ -401,7 +401,7 @@ class Goo
             Next
         End Sub
 
-        Private Sub VerifyOpeningState(viewModel As ChangeSignatureDialogViewModel, openingSignatureDisplay As String)
+        Private Shared Sub VerifyOpeningState(viewModel As ChangeSignatureDialogViewModel, openingSignatureDisplay As String)
             Assert.Equal(openingSignatureDisplay, viewModel.TEST_GetSignatureDisplayText())
             Dim message As String = Nothing
             Assert.False(viewModel.CanSubmit(message))
@@ -409,7 +409,7 @@ class Goo
             Assert.False(viewModel.CanMoveUp)
         End Sub
 
-        Private Sub VerifyParameterInfo(
+        Private Shared Sub VerifyParameterInfo(
             viewModel As ChangeSignatureDialogViewModel,
                 parameterIndex As Integer,
                 Optional modifier As String = Nothing,
@@ -446,7 +446,7 @@ class Goo
             End If
         End Sub
 
-        Private Async Function GetViewModelTestStateAsync(
+        Private Shared Async Function GetViewModelTestStateAsync(
             markup As XElement,
             languageName As String) As Tasks.Task(Of ChangeSignatureViewModelTestState)
 

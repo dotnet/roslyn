@@ -74,7 +74,10 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                     if (unwrapped == null)
                         continue;
 
-                    alignment = negate ? (TExpressionSyntax)generator.NegateExpression(alignment) : alignment;
+                    if (alignment != null && negate)
+                    {
+                        alignment = (TExpressionSyntax)generator.NegateExpression(alignment);
+                    }
 
                     editor.ReplaceNode(
                         interpolationSyntax,
