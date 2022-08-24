@@ -30,10 +30,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestCreation()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim provider = New TestDiagnosticService()
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, threadingContext, provider, tableManagerProvider)
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
 
                 Assert.Equal(manager.Identifier, StandardTables.ErrorsTable)
@@ -63,11 +64,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestInitialEntries()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim provider = New TestDiagnosticService(CreateItem(documentId))
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, threadingContext, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -83,11 +85,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestEntryChanged()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim provider = New TestDiagnosticService()
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, threadingContext, provider, tableManagerProvider)
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
 
                 Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem, DiagnosticsUpdatedArgs))
@@ -109,13 +112,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestEntry()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(documentId)
                 Dim provider = New TestDiagnosticService(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, threadingContext, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -151,13 +155,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestSnapshotEntry()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(documentId)
                 Dim provider = New TestDiagnosticService(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, threadingContext, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -200,13 +205,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestInvalidEntry()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(documentId)
                 Dim provider = New TestDiagnosticService(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, threadingContext, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -231,6 +237,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestNoHiddenEntry()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(documentId, DiagnosticSeverity.Error)
@@ -239,7 +246,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, threadingContext, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -259,6 +266,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestProjectEntry()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim projectId = workspace.CurrentSolution.Projects.First().Id
 
                 Dim item = CreateItem(projectId, Nothing, DiagnosticSeverity.Error)
@@ -266,7 +274,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, threadingContext, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -290,12 +298,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Dim projectId = documentId.ProjectId
 
                     Dim item1 = CreateItem(projectId, documentId, DiagnosticSeverity.Error)
+                    Dim globalOptions = workspace1.GetService(Of IGlobalOptionService)()
                     Dim provider = New TestDiagnosticService(item1)
 
                     Dim tableManagerProvider = New TestTableManagerProvider()
 
                     Dim threadingContext = workspace1.GetService(Of IThreadingContext)()
-                    Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace1, threadingContext, provider, tableManagerProvider)
+                    Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace1, globalOptions, threadingContext, provider, tableManagerProvider)
                     provider.RaiseDiagnosticsUpdated(workspace1)
 
                     Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -322,6 +331,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestDetailExpander()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
@@ -330,7 +340,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, threadingContext, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -360,6 +370,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestHyperLink()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
@@ -368,7 +379,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, threadingContext, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -393,6 +404,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestBingHyperLink()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
@@ -401,7 +413,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, threadingContext, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -426,6 +438,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestHelpLink()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
@@ -434,7 +447,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, threadingContext, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -456,6 +469,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestHelpKeyword()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
@@ -464,7 +478,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, threadingContext, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -486,6 +500,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestErrorSource()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
@@ -494,7 +509,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, threadingContext, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -516,6 +531,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestWorkspaceDiagnostic()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
@@ -524,7 +540,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, threadingContext, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -547,6 +563,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Public Sub TestProjectDiagnostic()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim projectId = documentId.ProjectId
 
@@ -555,7 +572,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, threadingContext, provider, tableManagerProvider)
                 provider.RaiseDiagnosticsUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -598,7 +615,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim service = Assert.IsType(Of DiagnosticService)(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService)())
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
-                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, service, tableManagerProvider)
+                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, threadingContext, service, tableManagerProvider)
 
                 RunCompilerAnalyzer(workspace)
 
