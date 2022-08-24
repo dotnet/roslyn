@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
                 KeyValuePairUtil.Create("silent", DiagnosticSeverity.Hidden),
                 KeyValuePairUtil.Create("error", DiagnosticSeverity.Error),
             });
-        public static EditorConfigData<DiagnosticSeverity> AnalyzerSetting = new AnalyzerEditorConfigData("dotnet_diagnostic.Id.severity",
-                                                                                                          AnalyzerSettingMap,
-                                                                                                          EditorConfigSettingsValuesDocumentation.DiagnosticSeverityDocumentation);
+        public static EditorConfigData<DiagnosticSeverity> AnalyzerSetting = new AnalyzerEditorConfigData("dotnet_diagnostic.Id.severity", AnalyzerSettingMap, EditorConfigSettingsValuesDocumentation.DiagnosticSeverityDocumentation);
     }
 }

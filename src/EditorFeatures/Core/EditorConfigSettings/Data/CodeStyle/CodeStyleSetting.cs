@@ -108,6 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             description = description == "" ? editorConfigData.GetSettingNameDocumentation() : description;
             return new PerLanguageEnumCodeStyleSetting<T>(option, description, enumValues, editorConfigOptions, visualStudioOptions, updater, fileName, editorConfigData);
         }
+
         public string? GetSettingName()
         {
             return EditorConfigData.GetSettingName();
