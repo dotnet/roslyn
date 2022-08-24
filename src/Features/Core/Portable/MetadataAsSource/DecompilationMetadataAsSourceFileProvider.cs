@@ -178,18 +178,18 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 isReferenceAssembly &&
                 !_implementationAssemblyLookupService.TryFindImplementationAssemblyPath(assemblyLocation, out assemblyLocation))
             {
-                // We didn't find an implementation assembly by any of our heuristic based approaches so
-                // let's see if its in the GAC
                 try
                 {
                     var fullAssemblyName = containingAssembly.Identity.GetDisplayName();
                     GlobalAssemblyCache.Instance.ResolvePartialName(fullAssemblyName, out assemblyLocation, preferredCulture: CultureInfo.CurrentCulture);
                     isReferenceAssembly = assemblyLocation is null;
                 }
-                catch (Exception)
+                catch (IOException)
                 {
-                    // If we can't find an implementation assembly in the GAC, we can just ignore it and the system
-                    // will show the metadata view for the reference assembly instead.
+                    // If we get an IO exception we can safely ignore it, and the system will show the metadata view of the reference assembly.
+                }
+                catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
+                {
                 }
             }
 
