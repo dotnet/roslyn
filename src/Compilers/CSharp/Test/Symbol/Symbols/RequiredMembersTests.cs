@@ -4955,8 +4955,10 @@ public class Derived : Base
         var comp = CreateCompilationWithRequiredMembers("""
             public class C
             {
-                public required int Field;
-                public required int Property { get; set; }
+                public required int Field1;
+                public required int Property1 { get; set; }
+                public int Field2;
+                public int Property2 { get; set; }
             }
             """);
 
@@ -4964,8 +4966,10 @@ public class Derived : Base
         {
             var c = module.ContainingAssembly.GetTypeByMetadataName("C");
             AssertEx.NotNull(c);
-            FieldSymbol fieldSymbol = c.GetMember<FieldSymbol>("Field");
-            PropertySymbol propertySymbol = c.GetMember<PropertySymbol>("Property");
+            FieldSymbol field1 = c.GetMember<FieldSymbol>("Field1");
+            PropertySymbol property1 = c.GetMember<PropertySymbol>("Property1");
+            FieldSymbol field2 = c.GetMember<FieldSymbol>("Field2");
+            PropertySymbol property2 = c.GetMember<PropertySymbol>("Property2");
 
             if (accessAttributesFirst)
             {
@@ -4981,15 +4985,19 @@ public class Derived : Base
             void assertIsRequired()
             {
                 Assert.True(c.HasDeclaredRequiredMembers);
-                Assert.True(fieldSymbol.IsRequired);
-                Assert.True(propertySymbol.IsRequired);
+                Assert.True(field1.IsRequired);
+                Assert.True(property1.IsRequired);
+                Assert.False(field2.IsRequired);
+                Assert.False(property2.IsRequired);
             }
 
             void assertAttributesEmpty()
             {
                 Assert.Empty(c.GetAttributes());
-                Assert.Empty(fieldSymbol.GetAttributes());
-                Assert.Empty(propertySymbol.GetAttributes());
+                Assert.Empty(field1.GetAttributes());
+                Assert.Empty(property1.GetAttributes());
+                Assert.Empty(field2.GetAttributes());
+                Assert.Empty(property2.GetAttributes());
             }
         });
     }
