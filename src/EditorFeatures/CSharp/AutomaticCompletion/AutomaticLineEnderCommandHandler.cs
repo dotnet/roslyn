@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             CancellationToken cancellationToken)
         {
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
-            var formattingOptions = document.GetSyntaxFormattingOptionsAsync(EditorOptionsService.GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+            var formattingOptions = args.SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.Project.Services, explicitFormat: false);
 
             // Add braces for the selected node
             if (addBrace)
