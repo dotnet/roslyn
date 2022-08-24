@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.EditorFeatures.Intents;
 [IntentProvider(WellKnownIntents.DeleteParameter, LanguageNames.CSharp), Shared]
 internal class DeleteParameterIntentProvider : IIntentProvider
 {
-    private IGlobalOptionService _globalOptionService;
+    private readonly IGlobalOptionService _globalOptionService;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
