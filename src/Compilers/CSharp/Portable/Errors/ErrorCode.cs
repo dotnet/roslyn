@@ -2120,7 +2120,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics introduced for C# 12.0
         ERR_ImplicitlyTypedDefaultParameter = 9066,
         ERR_OptionalParamValueMismatch = 9067,
-        WRN_OptionalRequiredParamMismatch = 9068
         #endregion
 
         // Note: you will need to do the following after adding warnings:

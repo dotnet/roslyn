@@ -206,11 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
-                case ErrorCode.WRN_OptionalRequiredParamMismatch:
-                    // PROTOTYPE: confirm dotnet version that will include C# 12 and this warning
-                    // Warning level 8 is exclusively for warnings introduced in the compiler
-                    // shipped with dotnet 8 (C# 12) and that can be reported for pre-existing code.
-                    return 8;
                 case ErrorCode.WRN_LowerCaseTypeName:
                     // Warning level 7 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 7 (C# 11) and that can be reported for pre-existing code.
