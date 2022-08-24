@@ -158,6 +158,17 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
             { "silent", CompilerExtensionsResources.Silent_severity },
             { "error", CompilerExtensionsResources.Error_severity },
         };
+
+        public static readonly Dictionary<string, string> DayOfWeekTestDocumentation = new()
+        {
+            { "Monday", "Monday" },
+            { "Tuesday", "Tuesday" },
+            { "Wednesday", "Wednesday" },
+            { "Thursday", "Thursday" },
+            { "Friday", "Friday"},
+            { "Saturday", "Saturday"},
+            { "Sunday", "Sunday"},
+        };
         #endregion
     }
 }

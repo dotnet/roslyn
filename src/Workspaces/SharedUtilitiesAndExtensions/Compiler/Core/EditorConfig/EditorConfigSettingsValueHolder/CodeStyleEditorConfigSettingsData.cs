@@ -269,7 +269,8 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
 
         public static EditorConfigData<DayOfWeek> DayOfWeekCodeStyleTest = new EnumEditorConfigData<DayOfWeek>("DayOfWeekCodeStyleTest",
                                                                                                                "TestDescription",
-                                                                                                               DayOfWeekMap);
+                                                                                                               DayOfWeekMap,
+                                                                                                               EditorConfigSettingsValuesDocumentation.DayOfWeekTestDocumentation);
         #endregion
     }
 }
