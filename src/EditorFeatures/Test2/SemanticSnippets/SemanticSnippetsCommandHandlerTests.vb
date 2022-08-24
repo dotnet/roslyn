@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.SemanticSnippets
     <[UseExportProvider]>
-    Public Class ConsoleSnippetsCommandHandlerTests
+    Public Class SemanticSnippetsCommandHandlerTests
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInsertingConsoleSnippet() As Task
@@ -35,11 +35,44 @@ class MyClass
 {
     public void MyMethod()
     {
-        Console.WriteLine();
+        Console.WriteLine($$);
     }
 }
 ", state.GetDocumentText())
-                Await state.AssertLineTextAroundCaret(expectedTextBeforeCaret:="", expectedTextAfterCaret:="")
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInsertingIfSnippet() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class MyClass
+{
+    public void MyMethod()
+    {
+        $$
+    }
+}
+                              </Document>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperience, LanguageNames.CSharp), True)
+                state.SendTypeChars("if")
+                Await state.AssertSelectedCompletionItem(displayText:="if", inlineDescription:=Nothing, isHardSelected:=True)
+                state.SendDownKey()
+                Await state.AssertSelectedCompletionItem(displayText:="if", inlineDescription:="if statement", isHardSelected:=True)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("
+class MyClass
+{
+    public void MyMethod()
+    {
+        if (true)
+        {$$
+        }
+    }
+}", state.GetDocumentText())
             End Using
         End Function
     End Class
