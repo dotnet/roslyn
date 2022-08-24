@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1006,6 +1007,14 @@ $@"#pragma warning disable 169
         }
 
         private static void VerifyFieldSymbol(FieldSymbol field, string expectedDisplayString, RefKind expectedRefKind, string[] expectedRefCustomModifiers)
+        {
+            Assert.Equal(expectedRefKind, field.RefKind);
+            Assert.Equal(expectedRefCustomModifiers, field.RefCustomModifiers.SelectAsArray(m => m.Modifier.ToTestDisplayString()));
+            Assert.Equal(expectedDisplayString, field.ToTestDisplayString());
+            VerifyFieldSymbol(field.GetPublicSymbol(), expectedDisplayString, expectedRefKind, expectedRefCustomModifiers);
+        }
+
+        private static void VerifyFieldSymbol(IFieldSymbol field, string expectedDisplayString, RefKind expectedRefKind, string[] expectedRefCustomModifiers)
         {
             Assert.Equal(expectedRefKind, field.RefKind);
             Assert.Equal(expectedRefCustomModifiers, field.RefCustomModifiers.SelectAsArray(m => m.Modifier.ToTestDisplayString()));
@@ -8551,24 +8560,54 @@ ref struct @scoped { } // 5
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
+                // (2,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref scoped s2").WithArguments("ref fields", "11.0").WithLocation(2, 1),
                 // (2,5): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
                 // ref scoped s2 = ref s1; // 1
                 Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(2, 5),
+                // (2,12): error CS0246: The type or namespace name 's2' could not be found (are you missing a using directive or an assembly reference?)
+                // ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "s2").WithArguments("s2").WithLocation(2, 12),
                 // (2,15): error CS1525: Invalid expression term '='
                 // ref scoped s2 = ref s1; // 1
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 15),
+                // (2,15): error CS9064: Target runtime doesn't support ref fields.
+                // ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "").WithLocation(2, 15),
+                // (2,15): error CS9059: A ref field can only be declared in a ref struct.
+                // ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(2, 15),
                 // (4,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // scoped scoped s4 = default; // 2
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 1),
                 // (4,15): warning CS0219: The variable 's4' is assigned but its value is never used
                 // scoped scoped s4 = default; // 2
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s4").WithArguments("s4").WithLocation(4, 15),
+                // (5,8): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref scoped s5").WithArguments("ref fields", "11.0").WithLocation(5, 8),
                 // (5,12): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
                 // scoped ref scoped s5 = ref s1; // 3
                 Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(5, 12),
+                // (5,19): error CS0246: The type or namespace name 's5' could not be found (are you missing a using directive or an assembly reference?)
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "s5").WithArguments("s5").WithLocation(5, 19),
                 // (5,22): error CS1525: Invalid expression term '='
                 // scoped ref scoped s5 = ref s1; // 3
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(5, 22),
+                // (5,22): error CS0106: The modifier 'scoped' is not valid for this item
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "").WithArguments("scoped").WithLocation(5, 22),
+                // (5,22): error CS9064: Target runtime doesn't support ref fields.
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "").WithLocation(5, 22),
+                // (5,22): error CS9059: A ref field can only be declared in a ref struct.
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(5, 22),
+                // (5,22): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("<invalid-global-code>", "").WithLocation(5, 22),
                 // (6,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // scoped ref @scoped s6 = ref s1; // 4
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 1));
@@ -8579,18 +8618,42 @@ ref struct @scoped { } // 5
                 // (2,5): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
                 // ref scoped s2 = ref s1; // 1
                 Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(2, 5),
+                // (2,12): error CS0246: The type or namespace name 's2' could not be found (are you missing a using directive or an assembly reference?)
+                // ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "s2").WithArguments("s2").WithLocation(2, 12),
                 // (2,15): error CS1525: Invalid expression term '='
                 // ref scoped s2 = ref s1; // 1
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 15),
+                // (2,15): error CS9064: Target runtime doesn't support ref fields.
+                // ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "").WithLocation(2, 15),
+                // (2,15): error CS9059: A ref field can only be declared in a ref struct.
+                // ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(2, 15),
                 // (4,15): warning CS0219: The variable 's4' is assigned but its value is never used
                 // scoped scoped s4 = default; // 2
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s4").WithArguments("s4").WithLocation(4, 15),
                 // (5,12): error CS9061: Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?
                 // scoped ref scoped s5 = ref s1; // 3
                 Diagnostic(ErrorCode.ERR_MisplacedScoped, "scoped").WithLocation(5, 12),
+                // (5,19): error CS0246: The type or namespace name 's5' could not be found (are you missing a using directive or an assembly reference?)
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "s5").WithArguments("s5").WithLocation(5, 19),
                 // (5,22): error CS1525: Invalid expression term '='
                 // scoped ref scoped s5 = ref s1; // 3
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(5, 22));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(5, 22),
+                // (5,22): error CS0106: The modifier 'scoped' is not valid for this item
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "").WithArguments("scoped").WithLocation(5, 22),
+                // (5,22): error CS9064: Target runtime doesn't support ref fields.
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "").WithLocation(5, 22),
+                // (5,22): error CS9059: A ref field can only be declared in a ref struct.
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(5, 22),
+                // (5,22): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
+                // scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("<invalid-global-code>", "").WithLocation(5, 22));
             verify(comp);
 
             static void verify(CSharpCompilation comp)
@@ -8598,12 +8661,15 @@ ref struct @scoped { } // 5
                 var tree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(tree);
                 var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
-                var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+                var symbols = decls.Select(d => model.GetDeclaredSymbol(d)).ToArray();
+                Assert.Equal(6, symbols.Length);
 
-                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[1], "ref scoped s3", RefKind.Ref, DeclarationScope.Unscoped);
-                VerifyLocalSymbol(locals[2], "scoped scoped s4", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[3], "scoped ref scoped s6", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(symbols[0].GetSymbol<LocalSymbol>(), "scoped s1", RefKind.None, DeclarationScope.Unscoped);
+                VerifyFieldSymbol(symbols[1].GetSymbol<SourceMemberFieldSymbolFromDeclarator>(), "ref s2 <invalid-global-code>.", RefKind.Ref, expectedRefCustomModifiers: Array.Empty<string>());
+                VerifyLocalSymbol(symbols[2].GetSymbol<LocalSymbol>(), "ref scoped s3", RefKind.Ref, DeclarationScope.Unscoped);
+                VerifyLocalSymbol(symbols[3].GetSymbol<LocalSymbol>(), "scoped scoped s4", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyFieldSymbol(symbols[4].GetSymbol<SourceMemberFieldSymbolFromDeclarator>(), "ref s5 <invalid-global-code>.", RefKind.Ref, expectedRefCustomModifiers: Array.Empty<string>());
+                VerifyLocalSymbol(symbols[5].GetSymbol<LocalSymbol>(), "scoped ref scoped s6", RefKind.Ref, DeclarationScope.RefScoped);
             }
         }
 

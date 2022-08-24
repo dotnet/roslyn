@@ -243,9 +243,12 @@ record class Point(int x, int y);
 ";
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (2,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(2, 1),
+                // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
                 // (2,19): error CS1514: { expected
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 19),

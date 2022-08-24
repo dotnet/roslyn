@@ -2779,9 +2779,11 @@ namespace ns1
                 // (7,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 new ErrorDescription { Code = (int)ErrorCode.ERR_EOFExpected, Line = 4, Column = 5 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 4, Column = 10 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_SingleTypeNameNotFound, Line = 4, Column = 10 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_EOFExpected, Line = 4, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 6, Column = 5 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_EOFExpected, Line = 6, Column = 9 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateNameInClass, Line = 6, Column = 9 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 5, Column = 15 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SingleTypeNameNotFound, Line = 6, Column = 5 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 7, Column = 15 });

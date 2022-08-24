@@ -9754,7 +9754,7 @@ public class C
 }";
             var expectedDiagnostics = new[]
             {
-                // (10,35): error CS1525: Invalid expression term '{'
+                    // (10,35): error CS1525: Invalid expression term '{'
                 //         var b = a with { Nested = { A = 20 } };
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(10, 35),
                 // (10,35): error CS1513: } expected
@@ -9787,6 +9787,9 @@ public class C
                 // (11,32): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //         System.Console.Write(b);
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(11, 32),
+                // (11,32): error CS0102: The type 'C' already contains a definition for ''
+                //         System.Console.Write(b);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("C", "").WithLocation(11, 32),
                 // (13,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(13, 1)

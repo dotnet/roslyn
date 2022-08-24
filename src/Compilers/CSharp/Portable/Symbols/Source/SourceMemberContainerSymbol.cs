@@ -1901,7 +1901,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (symbol.Kind != SymbolKind.Field || !symbol.IsImplicitlyDeclared)
                             {
                                 // The type '{0}' already contains a definition for '{1}'
-                                if ((Locations.Length == 1 || IsPartial) && symbol is not SourceIncompleteMemberFieldSymbol)
+                                if (Locations.Length == 1 || IsPartial)
                                 {
                                     diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, symbol.Locations[0], this, symbol.Name);
                                 }
@@ -4762,27 +4762,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 diagnostics.Add(ErrorCode.ERR_GlobalStatement, new SourceLocation(globalStatement));
                             }
-                        }
-                        break;
-
-                    case SyntaxKind.IncompleteMember:
-                        {
-                            var incompleteMemberSyntax = (IncompleteMemberSyntax)m;
-                            TypeWithAnnotations type;
-                            RefKind refKind;
-                            if (incompleteMemberSyntax.Type is null)
-                            {
-                                type = TypeWithAnnotations.Create(bodyBinder.CreateErrorType());
-                                refKind = RefKind.None;
-                            }
-                            else
-                            {
-                                type = bodyBinder.BindType(incompleteMemberSyntax.Type, diagnostics);
-                                refKind = incompleteMemberSyntax.Type.GetRefKind();
-                            }
-
-                            var incompleteMemberSymbol = new SourceIncompleteMemberFieldSymbol(this, incompleteMemberSyntax, type, refKind);
-                            builder.NonTypeMembers.Add(incompleteMemberSymbol);
                         }
                         break;
 

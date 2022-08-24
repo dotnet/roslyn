@@ -12,12 +12,17 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class SyntaxNodeTests
+    public class SyntaxNodeTests : ParsingTests
     {
+        public SyntaxNodeTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         [WorkItem(565382, "https://developercommunity.visualstudio.com/content/problem/565382/compiling-causes-a-stack-overflow-error.html")]
         public void TestLargeFluentCallWithDirective()
@@ -886,12 +891,52 @@ using goo.bar;
         [Fact]
         public void TestGetNextTokenExcludingSkippedTokens()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(
+            var tree = UsingTree(
 @"garbage
 using goo.bar;
-");
+",
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // garbage
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "garbage").WithLocation(1, 1),
+                // (2,1): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                // using goo.bar;
+                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using goo.bar;").WithLocation(2, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "garbage");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
             var tokens = tree.GetCompilationUnitRoot().DescendantTokens().ToList();
-            Assert.Equal(6, tokens.Count);
+            Assert.Equal(4, tokens.Count);
+
+            Assert.Equal("garbage", tokens[0].Text);
+            Assert.Equal(SyntaxKind.IdentifierToken, tokens[0].Kind());
+
+            Assert.Equal("", tokens[1].Text);
+            Assert.Equal(SyntaxKind.IdentifierToken, tokens[1].Kind());
+
+            Assert.Equal("", tokens[2].Text);
+            Assert.Equal(SyntaxKind.SemicolonToken, tokens[2].Kind());
+
+            Assert.Equal("", tokens[3].Text);
+            Assert.Equal(SyntaxKind.EndOfFileToken, tokens[3].Kind());
 
             var list = new List<SyntaxToken>(tokens.Count);
             var token = tree.GetCompilationUnitRoot().GetFirstToken(includeSkipped: false);
@@ -902,7 +947,7 @@ using goo.bar;
             }
 
             // descendant tokens includes EOF
-            Assert.Equal(tokens.Count - 1, list.Count);
+            Assert.Equal(1, list.Count);
             for (int i = 0; i < list.Count; i++)
             {
                 Assert.Equal(list[i], tokens[i]);
@@ -991,11 +1036,51 @@ using goo.bar;
 @"garbage
 using goo.bar;
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            var tree = UsingTree(text,
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // garbage
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "garbage").WithLocation(1, 1),
+                // (2,1): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                // using goo.bar;
+                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using goo.bar;").WithLocation(2, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "garbage");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
 
             var tokens = tree.GetCompilationUnitRoot().DescendantTokens().ToList();
-            Assert.Equal(6, tokens.Count);
+            Assert.Equal(4, tokens.Count);
+
+            Assert.Equal("garbage", tokens[0].Text);
+            Assert.Equal(SyntaxKind.IdentifierToken, tokens[0].Kind());
+
+            Assert.Equal("", tokens[1].Text);
+            Assert.Equal(SyntaxKind.IdentifierToken, tokens[1].Kind());
+
+            Assert.Equal("", tokens[2].Text);
+            Assert.Equal(SyntaxKind.SemicolonToken, tokens[2].Kind());
+
+            Assert.Equal("", tokens[3].Text);
+            Assert.Equal(SyntaxKind.EndOfFileToken, tokens[3].Kind());
 
             var list = new List<SyntaxToken>(tokens.Count);
             var token = tree.GetCompilationUnitRoot().GetLastToken(includeSkipped: false);
@@ -1007,7 +1092,7 @@ using goo.bar;
             list.Reverse();
 
             // descendant tokens includes EOF
-            Assert.Equal(tokens.Count, list.Count + 1);
+            Assert.Equal(1, list.Count);
             for (int i = 0; i < list.Count; i++)
             {
                 Assert.Equal(tokens[i], list[i]);

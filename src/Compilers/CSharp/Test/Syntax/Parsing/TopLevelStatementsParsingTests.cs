@@ -96,63 +96,90 @@ class C
 [a]fod;
 [b";
             UsingTree(text,
-                // (2,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // asas]
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "asas").WithLocation(2, 1),
                 // (2,5): error CS1022: Type or namespace definition, or end-of-file expected
                 // asas]
                 Diagnostic(ErrorCode.ERR_EOFExpected, "]").WithLocation(2, 5),
-                // (4,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (3,1): error CS0439: An extern alias declaration must precede all other elements defined in the namespace
+                // extern alias A;
+                Diagnostic(ErrorCode.ERR_ExternAfterElements, "extern").WithLocation(3, 1),
+                // (4,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // asas
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "asas").WithLocation(4, 1),
-                // (6,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (5,1): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                // using System;
+                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using System;").WithLocation(5, 1),
+                // (6,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // sadasdasd]
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "sadasdasd").WithLocation(6, 1),
                 // (6,10): error CS1022: Type or namespace definition, or end-of-file expected
                 // sadasdasd]
                 Diagnostic(ErrorCode.ERR_EOFExpected, "]").WithLocation(6, 10),
+                // (8,2): error CS1730: Assembly and module attributes must precede all other elements defined in a file except using clauses and extern alias declarations
+                // [assembly: goo]
+                Diagnostic(ErrorCode.ERR_GlobalAttributesNotFirst, "assembly").WithLocation(8, 2),
                 // (15,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // [a]fod;
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "[a]fod;").WithLocation(15, 1),
+                // (16,2): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // [b
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "b").WithLocation(16, 2),
                 // (16,3): error CS1003: Syntax error, ']' expected
                 // [b
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(16, 3)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(16, 3),
+                // (16,3): error CS1031: Type expected
+                // [b
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(16, 3)
                 );
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.ExternAliasDirective);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.ExternKeyword);
-                    N(SyntaxKind.AliasKeyword);
-                    N(SyntaxKind.IdentifierToken, "A");
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.UsingDirective);
-                {
-                    N(SyntaxKind.UsingKeyword);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "System");
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.AttributeList);
-                {
-                    N(SyntaxKind.OpenBracketToken);
-                    N(SyntaxKind.AttributeTargetSpecifier);
-                    {
-                        N(SyntaxKind.AssemblyKeyword);
-                        N(SyntaxKind.ColonToken);
-                    }
-                    N(SyntaxKind.Attribute);
+                    N(SyntaxKind.VariableDeclaration);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "goo");
+                            N(SyntaxKind.IdentifierToken, "asas");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
-                    N(SyntaxKind.CloseBracketToken);
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "asas");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "sadasdasd");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.ClassDeclaration);
                 {
@@ -184,7 +211,7 @@ class C
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.AttributeList);
                     {
@@ -198,6 +225,18 @@ class C
                         }
                         M(SyntaxKind.CloseBracketToken);
                     }
+                    M(SyntaxKind.VariableDeclaration);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -537,29 +576,30 @@ int x = 0;
 using goo.bar;
 ";
             UsingTree(test,
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // garbage
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "garbage").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "garbage").WithLocation(1, 1),
+                // (2,1): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                // using goo.bar;
+                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using goo.bar;").WithLocation(2, 1)
                 );
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.UsingDirective);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.UsingKeyword);
-                    N(SyntaxKind.QualifiedName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "goo");
+                            N(SyntaxKind.IdentifierToken, "garbage");
                         }
-                        N(SyntaxKind.DotToken);
-                        N(SyntaxKind.IdentifierName);
+                        M(SyntaxKind.VariableDeclarator);
                         {
-                            N(SyntaxKind.IdentifierToken, "bar");
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -690,28 +730,36 @@ class Test : Itest
                             M(SyntaxKind.CloseBraceToken);
                         }
                     }
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.TupleType);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            M(SyntaxKind.TupleElement);
+                            N(SyntaxKind.TupleType);
                             {
-                                M(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.TupleElement);
                                 {
-                                    M(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
                                 }
+                                M(SyntaxKind.CommaToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
                             }
-                            M(SyntaxKind.CommaToken);
-                            M(SyntaxKind.TupleElement);
+                            M(SyntaxKind.VariableDeclarator);
                             {
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
+                                M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.CloseParenToken);
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -795,12 +843,20 @@ class Test : Itest
                     M(SyntaxKind.OpenBraceToken);
                     M(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "D");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "D");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -904,12 +960,20 @@ class Test : Itest
                         M(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "Basic");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Basic");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -1114,12 +1178,20 @@ aeu";
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "aeu");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "aeu");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -1138,13 +1210,21 @@ aeu";
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.ExternKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -1432,12 +1512,20 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
                         M(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.StringKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -1452,7 +1540,6 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
                 // C operator +(C lhs, C rhs) {
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 29)
                 );
-
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.OperatorDeclaration);
@@ -1663,12 +1750,20 @@ using VT2 = (int, int);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "e");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -1692,7 +1787,7 @@ e
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.AttributeList);
                     {
@@ -1706,10 +1801,18 @@ e
                         }
                         N(SyntaxKind.CloseBracketToken);
                     }
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "e");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -1725,9 +1828,6 @@ e
                 // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // abc using
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "abc").WithLocation(1, 1),
-                // (1,10): error CS1001: Identifier expected
-                // abc using
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 10),
                 // (1,10): error CS1002: ; expected
                 // abc using
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 10)
@@ -1735,12 +1835,18 @@ e
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.UsingDirective);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.UsingKeyword);
-                    M(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "abc");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
                     M(SyntaxKind.SemicolonToken);
                 }
@@ -2626,25 +2732,33 @@ e
                     }
                     M(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.FunctionPointerType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.DelegateKeyword);
-                        N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.FunctionPointerParameterList);
+                        N(SyntaxKind.FunctionPointerType);
                         {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.FunctionPointerParameter);
+                            N(SyntaxKind.DelegateKeyword);
+                            N(SyntaxKind.AsteriskToken);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
                                 }
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {

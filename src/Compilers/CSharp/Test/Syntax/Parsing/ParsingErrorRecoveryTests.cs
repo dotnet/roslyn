@@ -445,11 +445,13 @@ class C
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(SyntaxKind.IncompleteMember, file.Members[0].Kind());
-            Assert.Equal(3, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[2].Code);
+            Assert.Equal(SyntaxKind.FieldDeclaration, file.Members[0].Kind());
+            Assert.Equal(5, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_NamespaceUnexpected, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[3].Code);
+            Assert.Equal((int)ErrorCode.ERR_TypeExpected, file.Errors()[4].Code);
         }
 
         [Fact]
@@ -461,10 +463,12 @@ class C
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(SyntaxKind.IncompleteMember, file.Members[0].Kind());
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
+            Assert.Equal(SyntaxKind.FieldDeclaration, file.Members[0].Kind());
+            Assert.Equal(4, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_NamespaceUnexpected, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_TypeExpected, file.Errors()[3].Code);
         }
 
         [Fact]
@@ -1369,7 +1373,7 @@ class C
             Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var agg = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(2, agg.Members.Count);
-            Assert.Equal(SyntaxKind.IncompleteMember, agg.Members[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[0].Kind());
             Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[1].Kind());
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_InvalidMemberDecl, file.Errors()[0].Code);
@@ -1424,7 +1428,7 @@ class C
             Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var agg = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(2, agg.Members.Count);
-            Assert.Equal(SyntaxKind.IncompleteMember, agg.Members[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[0].Kind());
             Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[1].Kind());
             Assert.Equal(3, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_InvalidMemberDecl, file.Errors()[0].Code);
@@ -1483,7 +1487,7 @@ class C
             Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var agg = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(1, agg.Members.Count);
-            Assert.Equal(SyntaxKind.IncompleteMember, agg.Members[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[0].Kind());
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_InvalidMemberDecl, file.Errors()[0].Code);
         }
@@ -2807,7 +2811,7 @@ class C
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var agg = (TypeDeclarationSyntax)file.Members[0];
-            Assert.Equal(SyntaxKind.IncompleteMember, agg.Members[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[0].Kind());
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
         }
@@ -2823,7 +2827,7 @@ class C
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var agg = (TypeDeclarationSyntax)file.Members[0];
-            Assert.Equal(SyntaxKind.IncompleteMember, agg.Members[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[0].Kind());
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
         }
@@ -2840,7 +2844,7 @@ class C
             Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var agg = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(2, agg.Members.Count);
-            Assert.Equal(SyntaxKind.IncompleteMember, agg.Members[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[0].Kind());
             Assert.Equal(SyntaxKind.MethodDeclaration, agg.Members[1].Kind());
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
@@ -2858,7 +2862,7 @@ class C
             Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var agg = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(2, agg.Members.Count);
-            Assert.Equal(SyntaxKind.IncompleteMember, agg.Members[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, agg.Members[0].Kind());
             Assert.Equal(SyntaxKind.MethodDeclaration, agg.Members[1].Kind());
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
@@ -6448,7 +6452,7 @@ class C
             Assert.Equal(text, file.ToFullString());
 
             var incompleteMemberDecl = file.ChildNodesAndTokens()[0];
-            Assert.Equal(SyntaxKind.IncompleteMember, incompleteMemberDecl.Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, incompleteMemberDecl.Kind());
             Assert.False(incompleteMemberDecl.IsMissing);
 
             var attributeDecl = incompleteMemberDecl.ChildNodesAndTokens()[0];

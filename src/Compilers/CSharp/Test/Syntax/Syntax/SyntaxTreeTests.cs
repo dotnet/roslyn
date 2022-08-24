@@ -789,21 +789,30 @@ namespace ns {}
             var test = "d using ns1;";
 
             UsingTree(test, TestOptions.Regular,
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // d using ns1;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "d").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "d").WithLocation(1, 1),
+                // (1,3): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                // d using ns1;
+                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using ns1;").WithLocation(1, 3)
                 );
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.UsingDirective);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.UsingKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "ns1");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "d");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -816,22 +825,30 @@ namespace ns {}
             var test = "d global using ns1;";
 
             UsingTree(test, TestOptions.RegularPreview,
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // d global using ns1;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "d").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "d").WithLocation(1, 1),
+                // (1,3): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                // d global using ns1;
+                Diagnostic(ErrorCode.ERR_UsingAfterElements, "global using ns1;").WithLocation(1, 3)
                 );
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.UsingDirective);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.GlobalKeyword);
-                    N(SyntaxKind.UsingKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "ns1");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "d");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -844,9 +861,12 @@ namespace ns {}
             var test = "using ns1; p using ns2;";
 
             UsingTree(test, TestOptions.Regular,
-                // (1,12): error CS0116: A namespace cannot directly contain members such as fields or methods
-                // using ns1; p using ns2;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(1, 12)
+                    // (1,12): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                    // using ns1; p using ns2;
+                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(1, 12),
+                    // (1,14): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                    // using ns1; p using ns2;
+                    Diagnostic(ErrorCode.ERR_UsingAfterElements, "using ns2;").WithLocation(1, 14)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -860,14 +880,20 @@ namespace ns {}
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.UsingDirective);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.UsingKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "ns2");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "p");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -880,9 +906,12 @@ namespace ns {}
             var test = "global using ns1; p global using ns2;";
 
             UsingTree(test, TestOptions.RegularPreview,
-                // (1,19): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,19): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // global using ns1; p global using ns2;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(1, 19)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(1, 19),
+                // (1,21): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                // global using ns1; p global using ns2;
+                Diagnostic(ErrorCode.ERR_UsingAfterElements, "global using ns2;").WithLocation(1, 21)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -897,15 +926,20 @@ namespace ns {}
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.UsingDirective);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.GlobalKeyword);
-                    N(SyntaxKind.UsingKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "ns2");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "p");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }

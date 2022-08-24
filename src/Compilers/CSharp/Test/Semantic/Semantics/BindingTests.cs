@@ -3718,6 +3718,9 @@ class X
                 """);
 
             compilation.VerifyDiagnostics(
+                // (6,1): error CS0723: Cannot declare a variable of static type 'Directory'
+                //     private int i; 
+                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "").WithArguments("System.IO.Directory").WithLocation(6, 1),
                 // (6,5): error CS1585: Member modifier 'private' must precede the member type and name
                 //     private int i; 
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "private").WithArguments("private").WithLocation(6, 5),
@@ -3772,6 +3775,9 @@ class X
                 // (3,6): error CS0246: The type or namespace name 'My' could not be found (are you missing a using directive or an assembly reference?)
                 //     [My]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "My").WithArguments("My").WithLocation(3, 6),
+                // (3,9): error CS1031: Type expected
+                //     [My]
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(3, 9),
                 // (4,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 // }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(4, 1),
@@ -3781,6 +3787,9 @@ class X
                 // (8,6): error CS0246: The type or namespace name 'MyAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 //     [MyAttribute]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MyAttribute").WithArguments("MyAttribute").WithLocation(8, 6),
+                // (8,18): error CS1031: Type expected
+                //     [MyAttribute]
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(8, 18),
                 // (9,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 // }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(9, 1));
@@ -3805,6 +3814,9 @@ class X
                     // (3,9): error CS0103: The name 'List' does not exist in the current context
                     //     [My(List)]
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "List").WithArguments("List").WithLocation(3, 9),
+                    // (3,15): error CS1031: Type expected
+                    //     [My(List)]
+                    Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(3, 15),
                     // (4,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                     // }
                     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(4, 1));

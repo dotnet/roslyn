@@ -1443,7 +1443,7 @@ class Program
 }
 ";
             // Get the list of LookupSymbols at the location of the CSharpSyntaxNode
-            var actual_lookupSymbols = GetLookupSymbols(usings.ToString() + source, isScript: false);
+            var actual_lookupSymbols = GetLookupSymbols(string.Join("\r\n", usings) + source, isScript: false);
             TestLookupSymbolsNestedNamespaces(actual_lookupSymbols);
 
             actual_lookupSymbols = GetLookupSymbols(source, isScript: true, globalUsings: usings);

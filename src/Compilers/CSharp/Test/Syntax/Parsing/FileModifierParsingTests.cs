@@ -1337,7 +1337,10 @@ public class FileModifierParsingTests : ParsingTests
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 15),
                 // (3,15): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     file async;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 15),
+                // (3,15): error CS0106: The modifier 'file' is not valid for this item
+                //     file async;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "").WithArguments("file").WithLocation(3, 15)
             });
 
         N(SyntaxKind.CompilationUnit);
@@ -1347,13 +1350,21 @@ public class FileModifierParsingTests : ParsingTests
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.FileKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "async");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "async");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
@@ -1431,7 +1442,7 @@ public class FileModifierParsingTests : ParsingTests
             },
             expectedBindingDiagnostics: new[]
             {
-                // (3,10): error CS0246: The type or namespace name 'item' could not be found (are you missing a using directive or an assembly reference?)
+                    // (3,10): error CS0246: The type or namespace name 'item' could not be found (are you missing a using directive or an assembly reference?)
                 //     file item;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "item").WithArguments("item").WithLocation(3, 10),
                 // (3,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
@@ -1439,7 +1450,10 @@ public class FileModifierParsingTests : ParsingTests
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 14),
                 // (3,14): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     file item;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 14)
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 14),
+                // (3,14): error CS0106: The modifier 'file' is not valid for this item
+                //     file item;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "").WithArguments("file").WithLocation(3, 14)
             });
 
         N(SyntaxKind.CompilationUnit);
@@ -1449,13 +1463,21 @@ public class FileModifierParsingTests : ParsingTests
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.FileKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "item");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "item");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
@@ -1577,18 +1599,38 @@ public class FileModifierParsingTests : ParsingTests
             file
             """,
             options: TestOptions.Regular10,
-            // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-            // file
-            Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1));
+            expectedParsingDiagnostics: new[]
+            {
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // file
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1)
+            },
+            expectedBindingDiagnostics: new[]
+            {
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // file
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1),
+                // (1,1): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                // file
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(1, 1)
+            });
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.FieldDeclaration);
             {
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "file");
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "file");
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
                 }
+                M(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -1601,18 +1643,38 @@ public class FileModifierParsingTests : ParsingTests
         UsingNode($$"""
             file
             """,
-            // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-            // file
-            Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1));
+            expectedParsingDiagnostics: new[]
+            {
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // file
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1)
+            },
+            expectedBindingDiagnostics: new[]
+            {
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // file
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1),
+                // (1,1): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                // file
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(1, 1)
+            });
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.FieldDeclaration);
             {
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "file");
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "file");
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
                 }
+                M(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -1706,6 +1768,9 @@ public class FileModifierParsingTests : ParsingTests
                 // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // file namespace NS;
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1),
+                // (1,1): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                // file namespace NS;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(1, 1),
                 // (1,16): error CS8956: File-scoped namespace must precede all other members in a file.
                 // file namespace NS;
                 Diagnostic(ErrorCode.ERR_FileScopedNamespaceNotBeforeAllMembers, "NS").WithLocation(1, 16)
@@ -1713,12 +1778,20 @@ public class FileModifierParsingTests : ParsingTests
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.FieldDeclaration);
             {
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "file");
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "file");
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
                 }
+                M(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.FileScopedNamespaceDeclaration);
             {
@@ -1751,6 +1824,9 @@ public class FileModifierParsingTests : ParsingTests
                 // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // file namespace NS;
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1),
+                // (1,1): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                // file namespace NS;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(1, 1),
                 // (1,16): error CS8956: File-scoped namespace must precede all other members in a file.
                 // file namespace NS;
                 Diagnostic(ErrorCode.ERR_FileScopedNamespaceNotBeforeAllMembers, "NS").WithLocation(1, 16)
@@ -1758,12 +1834,20 @@ public class FileModifierParsingTests : ParsingTests
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.FieldDeclaration);
             {
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "file");
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "file");
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
                 }
+                M(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.FileScopedNamespaceDeclaration);
             {
@@ -1791,16 +1875,33 @@ public class FileModifierParsingTests : ParsingTests
                 // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // file namespace NS { }
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1)
+            },
+            expectedBindingDiagnostics: new[]
+            {
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // file namespace NS { }
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1),
+                // (1,1): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                // file namespace NS { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(1, 1)
             });
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.FieldDeclaration);
             {
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "file");
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "file");
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
                 }
+                M(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.NamespaceDeclaration);
             {
@@ -1828,16 +1929,33 @@ public class FileModifierParsingTests : ParsingTests
                 // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // file namespace NS { }
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1)
+            },
+            expectedBindingDiagnostics: new[]
+            {
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // file namespace NS { }
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 1),
+                // (1,1): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                // file namespace NS { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(1, 1)
             });
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.FieldDeclaration);
             {
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "file");
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "file");
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
                 }
+                M(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.NamespaceDeclaration);
             {
@@ -1862,23 +1980,48 @@ public class FileModifierParsingTests : ParsingTests
         UsingNode(manyFileModifiers,
             expectedParsingDiagnostics: new[]
             {
+                // (1,46): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // file file file file file file file file file file
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 499996)
+            },
+            expectedBindingDiagnostics: new[]
+            {
+                // (1,6): error CS1004: Duplicate 'file' modifier
+                // file file file file file file file file file file
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "file").WithArguments("file").WithLocation(1, 6),
+                // (1,46): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // file file file file file file file file file file
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 499996),
+                // (1,46): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                // file file file file file file file file file file
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(1, 499996),
+                // (1,50): error CS0106: The modifier 'file' is not valid for this item
+                // file file file file file file file file file file
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "").WithArguments("file").WithLocation(1, 500000)
             });
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.FieldDeclaration);
             {
                 for (var i = 0; i < FileModifiersCount - 1; i++)
                 {
                     N(SyntaxKind.FileKeyword);
                 }
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.VariableDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "file");
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "file");
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
                 }
-                N(SyntaxKind.EndOfFileToken);
+                M(SyntaxKind.SemicolonToken);
             }
+            N(SyntaxKind.EndOfFileToken);
         }
         EOF();
 

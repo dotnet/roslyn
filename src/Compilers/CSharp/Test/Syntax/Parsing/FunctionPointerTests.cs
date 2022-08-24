@@ -4132,25 +4132,33 @@ void C()
                     }
                     M(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.FunctionPointerType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.DelegateKeyword);
-                        N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.FunctionPointerParameterList);
+                        N(SyntaxKind.FunctionPointerType);
                         {
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.FunctionPointerParameter);
+                            N(SyntaxKind.DelegateKeyword);
+                            N(SyntaxKind.AsteriskToken);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
                                 }
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {

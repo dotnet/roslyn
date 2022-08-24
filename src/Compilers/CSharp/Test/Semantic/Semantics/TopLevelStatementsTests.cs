@@ -651,6 +651,9 @@ class Test
                  // (4,20): error CS0426: The type name 'WriteLine' does not exist in the type 'Console'
                 //     System.Console.WriteLine("Hi!");
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "WriteLine").WithArguments("WriteLine", "System.Console").WithLocation(4, 20),
+                // (4,30): error CS0102: The type 'Test' already contains a definition for ''
+                //     System.Console.WriteLine("Hi!");
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("Test", "").WithLocation(4, 30),
             }).ToArray());
         }
 
@@ -667,9 +670,15 @@ namespace Test
             var comp = CreateCompilation(text, parseOptions: DefaultParseOptions);
 
             var expected = new[] {
-                // (4,20): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (4,20): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 //     System.Console.WriteLine("Hi!");
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "WriteLine").WithLocation(4, 20),
+                // (4,30): error CS1031: Type expected
+                //     System.Console.WriteLine("Hi!");
+                Diagnostic(ErrorCode.ERR_TypeExpected, @"""Hi!""").WithLocation(4, 30),
+                // (4,30): error CS8124: Tuple must contain at least two elements.
+                //     System.Console.WriteLine("Hi!");
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, @"""Hi!""").WithLocation(4, 30),
                 // (4,30): error CS1026: ) expected
                 //     System.Console.WriteLine("Hi!");
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, @"""Hi!""").WithLocation(4, 30),
@@ -679,7 +688,15 @@ namespace Test
                 };
 
             comp.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, cancellationToken: default).Verify(expected);
-            comp.VerifyDiagnostics(expected);
+            comp.VerifyDiagnostics(expected.Concat(new[]
+            {
+                // (4,20): error CS0426: The type name 'WriteLine' does not exist in the type 'Console'
+                //     System.Console.WriteLine("Hi!");
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "WriteLine").WithArguments("WriteLine", "System.Console").WithLocation(4, 20),
+                // (4,30): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
+                //     System.Console.WriteLine("Hi!");
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("Test.<invalid-global-code>", "").WithLocation(4, 30)
+            }).ToArray());
         }
 
         [Fact]
@@ -9505,12 +9522,24 @@ System.Console.Write(42);
                 // (3,16): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // System.Console.Write(42);
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Write").WithLocation(3, 16),
+                // (3,16): error CS0426: The type name 'Write' does not exist in the type 'Console'
+                // System.Console.Write(42);
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Write").WithArguments("Write", "System.Console").WithLocation(3, 16),
+                // (3,22): error CS1031: Type expected
+                // System.Console.Write(42);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "42").WithLocation(3, 22),
+                // (3,22): error CS8124: Tuple must contain at least two elements.
+                // System.Console.Write(42);
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "42").WithLocation(3, 22),
                 // (3,22): error CS1026: ) expected
                 // System.Console.Write(42);
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "42").WithLocation(3, 22),
                 // (3,22): error CS1022: Type or namespace definition, or end-of-file expected
                 // System.Console.Write(42);
-                Diagnostic(ErrorCode.ERR_EOFExpected, "42").WithLocation(3, 22)
+                Diagnostic(ErrorCode.ERR_EOFExpected, "42").WithLocation(3, 22),
+                // (3,22): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
+                // System.Console.Write(42);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("NS.<invalid-global-code>", "").WithLocation(3, 22)
                 );
         }
 

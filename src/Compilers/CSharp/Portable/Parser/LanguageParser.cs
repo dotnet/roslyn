@@ -826,7 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //using directive, so there's no danger in checking the error case first.
 
                 name = WithAdditionalDiagnostics(CreateMissingIdentifierName(), GetExpectedTokenError(SyntaxKind.IdentifierToken, this.CurrentToken.Kind));
-                semicolon = SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken);
+                semicolon = CreateMissingSemicolonToken();
             }
             else
             {
@@ -2279,10 +2279,11 @@ tryAgain:
             // Creates a dummy declaration node to which we can attach a stack overflow message
             MemberDeclarationSyntax createEmptyNodeFunc()
             {
-                return _syntaxFactory.IncompleteMember(
+                return _syntaxFactory.FieldDeclaration(
                     new SyntaxList<AttributeListSyntax>(),
                     new SyntaxList<SyntaxToken>(),
-                    CreateMissingIdentifierName()
+                    CreateVariableDeclarationWithTypeAndSingleMissingDeclarator(CreateMissingIdentifierName()),
+                    CreateMissingSemicolonToken()
                     );
             }
         }
@@ -2708,7 +2709,7 @@ parse_member_name:;
                     ErrorCode.ERR_BadModifierLocation,
                     misplacedModifier.Text);
 
-                result = _syntaxFactory.IncompleteMember(attributes, modifiers.ToList(), type);
+                result = _syntaxFactory.FieldDeclaration(attributes, modifiers.ToList(), CreateVariableDeclarationWithTypeAndSingleMissingDeclarator(type), CreateMissingSemicolonToken());
                 return true;
             }
 
@@ -2729,18 +2730,21 @@ parse_member_name:;
                     return true;
                 }
 
-                var incompleteMember = _syntaxFactory.IncompleteMember(attributes, modifiers.ToList(), type.IsMissing ? null : type);
-                if (incompleteMember.ContainsDiagnostics)
+                var incompleteMember = _syntaxFactory.FieldDeclaration(attributes, modifiers.ToList(), CreateVariableDeclarationWithTypeAndSingleMissingDeclarator(type), CreateMissingSemicolonToken());
+                //var incompleteMember = _syntaxFactory.IncompleteMember(attributes, modifiers.ToList(), type.IsMissing ? null : type);
+                if (incompleteMember.ContainsDiagnostics && !type.IsMissing)
                 {
                     result = incompleteMember;
                 }
                 else if (parentKind is SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration ||
                          parentKind == SyntaxKind.CompilationUnit && !IsScript)
                 {
+                    // PROTOTYPE: Is this now reachable?
                     result = this.AddErrorToLastToken(incompleteMember, ErrorCode.ERR_NamespaceUnexpected);
                 }
                 else
                 {
+                    // PROTOTYPE: Is this now reachable?
                     //the error position should indicate CurrentToken
                     result = this.AddError(
                         incompleteMember,
@@ -3487,7 +3491,7 @@ parse_member_name:;
                         paramList,
                         body: null,
                         expressionBody: null,
-                        semicolonToken: SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken));
+                        semicolonToken: CreateMissingSemicolonToken());
                 }
 
                 opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
@@ -5755,6 +5759,16 @@ tryAgain:
             return SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken);
         }
 
+        private static SyntaxToken CreateMissingSemicolonToken()
+        {
+            return SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken);
+        }
+
+        private VariableDeclarationSyntax CreateVariableDeclarationWithTypeAndSingleMissingDeclarator(TypeSyntax type)
+        {
+            return _syntaxFactory.VariableDeclaration(type, SyntaxFactory.SeparatedList<VariableDeclaratorSyntax>(_syntaxFactory.VariableDeclarator(CreateMissingIdentifierToken(), null, null)));
+        }
+
         [Flags]
         private enum NameOptions
         {
@@ -7860,7 +7874,7 @@ done:;
         {
             return ParseWithStackGuard(
                 () => ParsePossiblyAttributedStatement() ?? ParseExpressionStatement(attributes: default),
-                () => SyntaxFactory.EmptyStatement(attributeLists: default, SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken)));
+                () => SyntaxFactory.EmptyStatement(attributeLists: default, CreateMissingSemicolonToken()));
         }
 
         private StatementSyntax ParsePossiblyAttributedStatement()
@@ -10313,7 +10327,7 @@ tryAgain:
             SyntaxToken semicolon;
             if (IsScript && this.CurrentToken.Kind == SyntaxKind.EndOfFileToken)
             {
-                semicolon = SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken);
+                semicolon = CreateMissingSemicolonToken();
             }
             else
             {

@@ -620,15 +620,24 @@ namespace B;
 System.Console.WriteLine();";
 
             CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
-                    // (3,16): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (3,16): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                     // System.Console.WriteLine();
                     Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "WriteLine").WithLocation(3, 16),
+                    // (3,16): error CS0426: The type name 'WriteLine' does not exist in the type 'Console'
+                    // System.Console.WriteLine();
+                    Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "WriteLine").WithArguments("WriteLine", "System.Console").WithLocation(3, 16),
+                    // (3,25): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                    // System.Console.WriteLine();
+                    Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(3, 25),
                     // (3,26): error CS8124: Tuple must contain at least two elements.
                     // System.Console.WriteLine();
                     Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 26),
                     // (3,27): error CS1022: Type or namespace definition, or end-of-file expected
                     // System.Console.WriteLine();
-                    Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(3, 27));
+                    Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(3, 27),
+                    // (3,27): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
+                    // System.Console.WriteLine();
+                    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("B.<invalid-global-code>", "").WithLocation(3, 27));
         }
 
         [Fact]

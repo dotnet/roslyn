@@ -2441,9 +2441,12 @@ Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
                 // (1,27): error CS1002: ; expected
                 //  > Roslyn.Utilities.dll!  Basic
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Basic").WithLocation(1, 27),
-                // (1,27): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,27): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 //  > Roslyn.Utilities.dll!  Basic
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Basic").WithLocation(1, 27)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Basic").WithLocation(1, 27),
+                // (1,27): error CS0246: The type or namespace name 'Basic' could not be found (are you missing a using directive or an assembly reference?)
+                //  > Roslyn.Utilities.dll!  Basic
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Basic").WithArguments("Basic").WithLocation(1, 27)
                 );
         }
 
@@ -5907,6 +5910,9 @@ class MyClass
                 // (9,1): error CS1519: Invalid token '' in class, record, struct, or interface member declaration
                 // 
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(9, 1),
+                // (8,11): error CS1031: Type expected
+                //     public
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(8, 11),
                 // (8,11): error CS1513: } expected
                 //     public
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 11),

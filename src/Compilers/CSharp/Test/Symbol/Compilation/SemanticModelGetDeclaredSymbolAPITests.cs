@@ -3387,7 +3387,7 @@ class Program
             var model = compilation.GetSemanticModel(tree);
             var symbol = model.GetDeclaredSymbol(node);
 
-            Assert.Equal(SyntaxKind.IncompleteMember, node.Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, node.Kind());
             Assert.Null(symbol);
         }
 
@@ -5133,30 +5133,38 @@ class C
 
             var model = compilation.GetSemanticModel(tree);
             var symbol = model.GetDeclaredSymbol(node);
-            Assert.Equal(SyntaxKind.IncompleteMember, node.Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, node.Kind());
 
-            var x = tree.FindNodeOrTokenByKind(SyntaxKind.IncompleteMember);
-            Assert.Equal(SyntaxKind.IncompleteMember, x.Kind());
+            var x = tree.FindNodeOrTokenByKind(SyntaxKind.FieldDeclaration);
+            Assert.Equal(SyntaxKind.FieldDeclaration, x.Kind());
             Assert.Equal("C#", x.Language);
             Assert.Equal(7, x.Width);
 
             // This will call the Visitor Pattern Methods via the syntaxwalker
-            var collector = new IncompleteSyntaxWalker();
+            var collector = new IncompleteAndFieldSyntaxWalker();
             collector.Visit(root);
-            int counter = collector.Incompletes.Count;
-            Assert.Equal(1, counter);
+            Assert.Equal(0, collector.Incompletes.Count);
+            Assert.Equal(1, collector.Fields.Count);
         }
 
-        private class IncompleteSyntaxWalker : CSharpSyntaxWalker
+        private class IncompleteAndFieldSyntaxWalker : CSharpSyntaxWalker
         {
             public readonly List<IncompleteMemberSyntax> Incompletes = new List<IncompleteMemberSyntax>();
+            public readonly List<FieldDeclarationSyntax> Fields = new List<FieldDeclarationSyntax>();
 
             public override void VisitIncompleteMember(IncompleteMemberSyntax node)
             {
                 this.Incompletes.Add(node);
                 base.VisitIncompleteMember(node);
             }
+
+            public override void VisitFieldDeclaration(FieldDeclarationSyntax node)
+            {
+                this.Fields.Add(node);
+                base.VisitFieldDeclaration(node);
+            }
         }
+
 
         [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
         [Fact]

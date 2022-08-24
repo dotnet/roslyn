@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var file = this.ParseFile(text);
 
             Assert.NotNull(file);
-            Assert.Equal(1, file.Usings.Count);
+            Assert.Equal(0, file.Usings.Count);
             Assert.Equal(text, file.ToFullString());
 
             var errors = file.Errors();
@@ -2632,7 +2632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.IncompleteMember, cs.Members[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind());
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
@@ -2662,7 +2662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.IncompleteMember, cs.Members[0].Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind());
         }
 
         private void TestClassMethodModifiers(params SyntaxKind[] modifiers)
@@ -2972,10 +2972,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(text, file.ToString());
 
-            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal(4, file.Errors().Length);
             Assert.Equal(ErrorCode.ERR_SemicolonExpected, (ErrorCode)file.Errors()[0].Code);
             Assert.Equal(ErrorCode.ERR_InvalidMemberDecl, (ErrorCode)file.Errors()[1].Code);
-            Assert.Equal(ErrorCode.ERR_InvalidMemberDecl, (ErrorCode)file.Errors()[2].Code);
+            Assert.Equal(ErrorCode.ERR_TypeExpected, (ErrorCode)file.Errors()[2].Code);
+            Assert.Equal(ErrorCode.ERR_InvalidMemberDecl, (ErrorCode)file.Errors()[3].Code);
         }
 
         [Fact]
@@ -6172,12 +6173,20 @@ P10
                             M(SyntaxKind.CloseBraceToken);
                         }
                     }
-                    N(SyntaxKind.IncompleteMember);
+                    N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierToken, "P10");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "P10");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -8664,12 +8673,20 @@ class A : B : C
                     M(SyntaxKind.OpenBraceToken);
                     M(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {

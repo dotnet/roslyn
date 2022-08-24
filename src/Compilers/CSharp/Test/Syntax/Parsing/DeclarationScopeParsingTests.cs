@@ -317,16 +317,24 @@ ref scoped F4() { }";
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
                         {
-                            N(SyntaxKind.IdentifierToken, "F2");
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "F2");
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -369,16 +377,24 @@ ref scoped F4() { }";
                         }
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
                         {
-                            N(SyntaxKind.IdentifierToken, "F4");
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "F4");
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -1848,16 +1864,24 @@ ref scoped b;
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
                         {
-                            N(SyntaxKind.IdentifierToken, "b");
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -1978,16 +2002,24 @@ ref readonly scoped.nested c;
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
                         {
                             M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -2007,17 +2039,25 @@ ref readonly scoped.nested c;
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
                         {
                             M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -2188,17 +2228,25 @@ scoped ref readonly scoped c;
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
                         {
-                            N(SyntaxKind.IdentifierToken, "b");
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -2207,18 +2255,26 @@ scoped ref readonly scoped c;
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
                     N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
                         {
-                            N(SyntaxKind.IdentifierToken, "c");
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -2597,16 +2653,24 @@ ref scoped var;
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
                         {
-                            N(SyntaxKind.IdentifierToken, "var");
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -2639,16 +2703,24 @@ ref scoped var;
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.VariableDeclarator);
                         {
                             M(SyntaxKind.IdentifierToken);
                         }
                     }
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
