@@ -47,11 +47,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 if (x.Kind == SymbolKind.DynamicType ||
                     (_objectAndDynamicCompareEqually && IsObjectType(x)))
                 {
-                    return Hash.Combine(typeof(IDynamicTypeSymbol), currentHash);
+                    return Hash.Combine(GetNullableAnnotationsHashCode((ITypeSymbol)x), Hash.Combine(typeof(IDynamicTypeSymbol), currentHash));
                 }
 
                 return GetHashCodeWorker(x, currentHash);
             }
+
+            private int GetNullableAnnotationsHashCode(ITypeSymbol type)
+                => _symbolEquivalenceComparer._ignoreNullableAnnotations ? 0 : type.NullableAnnotation.GetHashCode();
 
             private int GetHashCodeWorker(ISymbol x, int currentHash)
                 => x.Kind switch
@@ -78,8 +81,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             private int CombineHashCodes(IArrayTypeSymbol x, int currentHash)
             {
                 return
+                    Hash.Combine(GetNullableAnnotationsHashCode(x),
                     Hash.Combine(x.Rank,
-                    GetHashCode(x.ElementType, currentHash));
+                    GetHashCode(x.ElementType, currentHash)));
             }
 
             private int CombineHashCodes(IAssemblySymbol x, int currentHash)
@@ -167,13 +171,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // If we want object and dynamic to be the same, and this is 'object', then return
                 // the same hash we do for 'dynamic'.
                 currentHash =
-                    Hash.Combine(x.IsDefinition,
+                    Hash.Combine((int)GetTypeKind(x),
                     Hash.Combine(IsConstructedFromSelf(x),
                     Hash.Combine(x.Arity,
-                    Hash.Combine((int)GetTypeKind(x),
                     Hash.Combine(x.Name,
                     Hash.Combine(x.IsAnonymousType,
                     Hash.Combine(x.IsUnboundGenericType,
+                    Hash.Combine(GetNullableAnnotationsHashCode(x),
                     GetHashCode(x.ContainingSymbol, currentHash))))))));
 
                 if (x.IsAnonymousType)

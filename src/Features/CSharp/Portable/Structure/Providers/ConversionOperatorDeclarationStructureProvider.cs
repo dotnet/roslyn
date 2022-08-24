@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class ConversionOperatorDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<ConversionOperatorDeclarationSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             ConversionOperatorDeclarationSyntax operatorDeclaration,
             ref TemporaryArray<BlockSpan> spans,
             BlockStructureOptionProvider optionProvider,

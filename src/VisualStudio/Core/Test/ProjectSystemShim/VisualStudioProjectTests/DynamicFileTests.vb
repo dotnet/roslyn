@@ -49,6 +49,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         End Function
 
         <WpfFact>
+        Public Async Function DynamicFileNamesAreCaseInsensitive() As Task
+            Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesFiles))
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "project", LanguageNames.CSharp, CancellationToken.None)
+
+                project.AddDynamicSourceFile("DynamicFile.cshtml", ImmutableArray(Of String).Empty)
+
+                project.RemoveDynamicSourceFile("dynamicfile.cshtml")
+            End Using
+        End Function
+
+        <WpfFact>
         Public Async Function AddAndRemoveFileAndAddAgain() As Task
             Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesFiles))
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(

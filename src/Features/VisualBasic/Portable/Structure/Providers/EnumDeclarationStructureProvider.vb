@@ -11,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class EnumDeclarationStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of EnumStatementSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(enumDeclaration As EnumStatementSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  enumDeclaration As EnumStatementSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
                                                   optionProvider As BlockStructureOptionProvider,
                                                   cancellationToken As CancellationToken)

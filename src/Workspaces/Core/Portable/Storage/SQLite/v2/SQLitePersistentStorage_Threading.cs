@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
@@ -28,15 +29,33 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         // Read tasks go to the concurrent-scheduler where they can run concurrently with other read
         // tasks.
         private Task<TResult> PerformReadAsync<TArg, TResult>(Func<TArg, TResult> func, TArg arg, CancellationToken cancellationToken) where TArg : struct
-            => PerformTaskAsync(func, arg, _connectionPoolService.Scheduler.ConcurrentScheduler, cancellationToken);
+        {
+            // Suppress ExecutionContext flow for asynchronous operations that write to the database. In addition to
+            // avoiding ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone
+            // data set by CallContext.LogicalSetData at each yielding await in the task tree.
+            //
+            // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
+            // same thread where SuppressFlow was originally run.
+            using var _ = FlowControlHelper.TrySuppressFlow();
+            return PerformTaskAsync(func, arg, _connectionPoolService.Scheduler.ConcurrentScheduler, cancellationToken);
+        }
 
         // Write tasks go to the exclusive-scheduler so they run exclusively of all other threading
         // tasks we need to do.
-        public Task<bool> PerformWriteAsync<TArg>(Func<TArg, bool> func, TArg arg, CancellationToken cancellationToken) where TArg : struct
-            => PerformTaskAsync(func, arg, _connectionPoolService.Scheduler.ExclusiveScheduler, cancellationToken);
+        public Task<TResult> PerformWriteAsync<TArg, TResult>(Func<TArg, TResult> func, TArg arg, CancellationToken cancellationToken) where TArg : struct
+        {
+            // Suppress ExecutionContext flow for asynchronous operations that write to the database. In addition to
+            // avoiding ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone
+            // data set by CallContext.LogicalSetData at each yielding await in the task tree.
+            //
+            // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
+            // same thread where SuppressFlow was originally run.
+            using var _ = FlowControlHelper.TrySuppressFlow();
+            return PerformTaskAsync(func, arg, _connectionPoolService.Scheduler.ExclusiveScheduler, cancellationToken);
+        }
 
         public Task PerformWriteAsync(Action action, CancellationToken cancellationToken)
-            => PerformWriteAsync(vt =>
+            => PerformWriteAsync(static vt =>
             {
                 vt.Item1();
                 return true;

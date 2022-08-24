@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -43,6 +41,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Identifier("var"),
                 Field("goo"),
                 Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNamespace(TestHost testHost)
+        {
+            await TestAsync(
+@"namespace N
+{
+}",
+                testHost,
+                Keyword("namespace"),
+                Namespace("N"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestFileScopedNamespace(TestHost testHost)
+        {
+            await TestAsync(
+@"namespace N;
+",
+                testHost,
+                Keyword("namespace"),
+                Namespace("N"),
+                Punctuation.Semicolon);
         }
 
         [Theory]

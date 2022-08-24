@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
         internal override CodeActionPriority Priority => CodeActionPriority.Low;
 
         public WrapItemsAction(string title, string parentTitle, Func<CancellationToken, Task<Document>> createChangedDocument)
-            : base(title, createChangedDocument)
+            : base(title, createChangedDocument, title)
         {
             ParentTitle = parentTitle;
             SortTitle = parentTitle + "_" + title;

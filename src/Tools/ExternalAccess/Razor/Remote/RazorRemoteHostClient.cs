@@ -3,15 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using MessagePack;
-using MessagePack.Formatters;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
@@ -27,18 +22,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             _serviceDescriptors = serviceDescriptors;
             _callbackDispatchers = callbackDispatchers;
         }
-
-        [Obsolete]
-        public static async Task<RazorRemoteHostClient?> CreateAsync(Workspace workspace, CancellationToken cancellationToken = default)
-        {
-            var client = await RemoteHostClient.TryGetClientAsync(workspace.Services, cancellationToken).ConfigureAwait(false);
-            var descriptors = new RazorServiceDescriptorsWrapper("dummy", _ => throw ExceptionUtilities.Unreachable, ImmutableArray<IMessagePackFormatter>.Empty, ImmutableArray<IFormatterResolver>.Empty, Array.Empty<(Type, Type?)>());
-            return client == null ? null : new RazorRemoteHostClient((ServiceHubRemoteHostClient)client, descriptors, RazorRemoteServiceCallbackDispatcherRegistry.Empty);
-        }
-
-        [Obsolete]
-        public async Task<Optional<T>> TryRunRemoteAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
-            => await _client.RunRemoteAsync<T>(WellKnownServiceHubService.Razor, targetName, solution, arguments, callbackTarget: null, cancellationToken).ConfigureAwait(false);
 
         public static async Task<RazorRemoteHostClient?> TryGetClientAsync(HostWorkspaceServices services, RazorServiceDescriptorsWrapper serviceDescriptors, RazorRemoteServiceCallbackDispatcherRegistry callbackDispatchers, CancellationToken cancellationToken = default)
         {

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -126,20 +127,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // if operation is already forced, return as it is.
             if (operation.Option == AdjustNewLinesOption.ForceLines)
-            {
                 return operation;
-            }
 
             if (!CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken))
-            {
                 return operation;
-            }
+
+            var afterFileScopedNamespaceOperation = GetAdjustNewLinesOperationAfterFileScopedNamespace(previousToken, currentToken);
+            if (afterFileScopedNamespaceOperation != null)
+                return afterFileScopedNamespaceOperation;
 
             var betweenMemberOperation = GetAdjustNewLinesOperationBetweenMembers(previousToken, currentToken);
             if (betweenMemberOperation != null)
-            {
                 return betweenMemberOperation;
-            }
 
             var line = Math.Max(LineBreaksAfter(previousToken, currentToken), operation.Line);
             if (line == 0)
@@ -148,6 +147,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             return CreateAdjustNewLinesOperation(line, AdjustNewLinesOption.ForceLines);
+        }
+
+        private static AdjustNewLinesOperation? GetAdjustNewLinesOperationAfterFileScopedNamespace(SyntaxToken previousToken, SyntaxToken currentToken)
+        {
+            if (previousToken.Kind() != SyntaxKind.SemicolonToken)
+                return null;
+
+            if (currentToken.Kind() == SyntaxKind.EndOfFileToken)
+                return null;
+
+            if (currentToken.Kind() == SyntaxKind.CloseBraceToken)
+                return null;
+
+            if (previousToken.Parent is not FileScopedNamespaceDeclarationSyntax)
+                return null;
+
+            if (TryGetOperationBeforeDocComment(currentToken, out var operation))
+                return operation;
+
+            return FormattingOperations.CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.ForceLines);
         }
 
         private static AdjustNewLinesOperation? GetAdjustNewLinesOperationBetweenMembers(SyntaxToken previousToken, SyntaxToken currentToken)
@@ -164,25 +183,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return null;
             }
 
-            // see whether first non whitespace trivia after before the current member is a comment or not
-            var triviaList = currentToken.LeadingTrivia;
-            var firstNonWhitespaceTrivia = triviaList.FirstOrDefault(trivia => !IsWhitespace(trivia));
-            if (firstNonWhitespaceTrivia.IsRegularOrDocComment())
-            {
-                // the first one is a comment, add two more lines than existing number of lines
-                var numberOfLines = GetNumberOfLines(triviaList);
-                var numberOfLinesBeforeComment = GetNumberOfLines(triviaList.Take(triviaList.IndexOf(firstNonWhitespaceTrivia)));
-                var addedLines = (numberOfLinesBeforeComment < 1) ? 2 : 1;
-                return CreateAdjustNewLinesOperation(numberOfLines + addedLines, AdjustNewLinesOption.ForceLines);
-            }
+            if (TryGetOperationBeforeDocComment(currentToken, out var operation))
+                return operation;
 
             // If we have two members of the same kind, we won't insert a blank line if both members
             // have any content (e.g. accessors bodies, non-empty method bodies, etc.).
             if (previousMember.Kind() == nextMember.Kind())
             {
                 // Easy cases:
-                if (previousMember.Kind() == SyntaxKind.FieldDeclaration ||
-                    previousMember.Kind() == SyntaxKind.EventFieldDeclaration)
+                if (previousMember.Kind() is SyntaxKind.FieldDeclaration or
+                    SyntaxKind.EventFieldDeclaration)
                 {
                     // Ensure that fields and events are each declared on a separate line.
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines);
@@ -214,6 +224,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             return FormattingOperations.CreateAdjustNewLinesOperation(2 /* +1 for member itself and +1 for a blank line*/, AdjustNewLinesOption.ForceLines);
+        }
+
+        private static bool TryGetOperationBeforeDocComment(SyntaxToken currentToken, [NotNullWhen(true)] out AdjustNewLinesOperation? operation)
+        {
+            // see whether first non whitespace trivia after before the current member is a comment or not
+            var triviaList = currentToken.LeadingTrivia;
+            var firstNonWhitespaceTrivia = triviaList.FirstOrDefault(trivia => !IsWhitespace(trivia));
+            if (!firstNonWhitespaceTrivia.IsRegularOrDocComment())
+            {
+                operation = null;
+                return false;
+            }
+
+            // the first one is a comment, add two more lines than existing number of lines
+            var numberOfLines = GetNumberOfLines(triviaList);
+            var numberOfLinesBeforeComment = GetNumberOfLines(triviaList.Take(triviaList.IndexOf(firstNonWhitespaceTrivia)));
+            var addedLines = numberOfLinesBeforeComment < 1 ? 2 : 1;
+            operation = CreateAdjustNewLinesOperation(numberOfLines + addedLines, AdjustNewLinesOption.ForceLines);
+            return true;
         }
 
         public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
@@ -310,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return currentToken.Kind() != SyntaxKind.IfKeyword ? 1 : 0;
 
                 case SyntaxKind.ColonToken:
-                    if (previousToken.Parent is LabeledStatementSyntax || previousToken.Parent is SwitchLabelSyntax)
+                    if (previousToken.Parent is LabeledStatementSyntax or SwitchLabelSyntax)
                     {
                         return 1;
                     }
@@ -348,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                             if (parent.Target.Identifier == SyntaxFactory.Token(SyntaxKind.AssemblyKeyword) ||
                                 parent.Target.Identifier == SyntaxFactory.Token(SyntaxKind.ModuleKeyword))
                             {
-                                if (!(previousToken.Parent is AttributeListSyntax))
+                                if (previousToken.Parent is not AttributeListSyntax)
                                 {
                                     return 2;
                                 }
@@ -380,9 +409,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return 1;
             }
             else if (
-                nextToken.Kind() == SyntaxKind.CatchKeyword ||
-                nextToken.Kind() == SyntaxKind.FinallyKeyword ||
-                nextToken.Kind() == SyntaxKind.ElseKeyword)
+                nextToken.Kind() is SyntaxKind.CatchKeyword or
+                SyntaxKind.FinallyKeyword or
+                SyntaxKind.ElseKeyword)
             {
                 return 1;
             }
@@ -432,8 +461,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static bool IsWhitespace(SyntaxTrivia trivia)
         {
-            return trivia.Kind() == SyntaxKind.WhitespaceTrivia
-                || trivia.Kind() == SyntaxKind.EndOfLineTrivia;
+            return trivia.Kind() is SyntaxKind.WhitespaceTrivia
+                or SyntaxKind.EndOfLineTrivia;
         }
 
         private static int GetNumberOfLines(IEnumerable<SyntaxTrivia> triviaList)

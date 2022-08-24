@@ -87,6 +87,11 @@
         <target state="translated">Navigační panel</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_ProcessTelemetry">
+        <source>Process telemetry</source>
+        <target state="translated">Zpracovat telemetrii</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
         <source>Project telemetry collection</source>
         <target state="translated">Shromažďování telemetrie projektu</target>
@@ -130,6 +135,11 @@
       <trans-unit id="FeatureName_UnusedReferenceAnalysis">
         <source>Unused reference analysis</source>
         <target state="translated">Nepoužité referenční analýzy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ValueTracking">
+        <source>Value Tracking</source>
+        <target state="translated">Sledování hodnot</target>
         <note />
       </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">

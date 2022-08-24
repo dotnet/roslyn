@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 SyntaxKind.SealedKeyword,
                 SyntaxKind.StaticKeyword,
                 SyntaxKind.UnsafeKeyword,
-                SyntaxKind.DataKeyword
+                SyntaxKind.ReadOnlyKeyword,
             };
 
         public RecordKeywordRecommender()

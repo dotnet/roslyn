@@ -173,6 +173,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         If methodStatement.TypeParameterList IsNot Nothing Then
                             AppendArity(builder, methodStatement.TypeParameterList.Parameters.Count)
                         End If
+
                         AppendParameterList(builder, methodStatement.ParameterList)
 
                     Case SyntaxKind.FunctionStatement,
@@ -183,6 +184,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         If methodStatement.TypeParameterList IsNot Nothing Then
                             AppendArity(builder, methodStatement.TypeParameterList.Parameters.Count)
                         End If
+
                         AppendParameterList(builder, methodStatement.ParameterList)
 
                     Case SyntaxKind.DeclareFunctionStatement,
@@ -204,6 +206,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                             builder.Append("_"c)
                             AppendTypeName(builder, DirectCast(operatorStatement.AsClause, SimpleAsClauseSyntax).Type)
                         End If
+
                         AppendParameterList(builder, operatorStatement.ParameterList)
 
                     Case SyntaxKind.ConstructorBlock

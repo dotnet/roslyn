@@ -49,8 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _binder = binder;
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;
-            _refKind = refKind;
-            _returnType = !returnType.HasType ? TypeWithAnnotations.Create(ReturnTypeIsBeingInferred) : returnType;
+            if (!unboundLambda.HasExplicitReturnType(out _refKind, out _returnType))
+            {
+                _refKind = refKind;
+                _returnType = !returnType.HasType ? TypeWithAnnotations.Create(ReturnTypeIsBeingInferred) : returnType;
+            }
             _isSynthesized = unboundLambda.WasCompilerGenerated;
             _isAsync = unboundLambda.IsAsync;
             _isStatic = unboundLambda.IsStatic;
@@ -235,6 +238,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private bool HasExplicitReturnType => Syntax is ParenthesizedLambdaExpressionSyntax { ReturnType: not null };
+
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
@@ -281,6 +286,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetAttributes();
             GetReturnTypeAttributes();
 
+            AsyncMethodChecks(verifyReturnType: HasExplicitReturnType, DiagnosticLocation, _declarationDiagnostics);
+            if (!HasExplicitReturnType && this.HasAsyncMethodBuilderAttribute(out _))
+            {
+                addTo.Add(ErrorCode.ERR_BuilderAttributeDisallowed, DiagnosticLocation);
+            }
+
             addTo.AddRange(_declarationDiagnostics, allowMismatchInDependencyAccumulation: true);
         }
 
@@ -314,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int p = 0; p < unboundLambda.ParameterCount; ++p)
             {
-                // If there are no types given in the lambda then used the delegate type.
+                // If there are no types given in the lambda then use the delegate type.
                 // If the lambda is typed then the types probably match the delegate types;
                 // if they do not, use the lambda types for binding. Either way, if we 
                 // can, then we use the lambda types. (Whatever you do, do not use the names 

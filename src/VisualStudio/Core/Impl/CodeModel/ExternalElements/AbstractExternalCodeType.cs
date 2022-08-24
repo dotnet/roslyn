@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             }
 
             var compilation = GetCompilation();
-            if (!(compilation.GetMetadataReference(assembly) is PortableExecutableReference metadataReference))
+            if (compilation.GetMetadataReference(assembly) is not PortableExecutableReference metadataReference)
             {
                 return string.Empty;
             }

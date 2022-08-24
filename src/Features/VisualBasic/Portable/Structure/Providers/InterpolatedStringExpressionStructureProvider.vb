@@ -11,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class InterpolatedStringExpressionStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of InterpolatedStringExpressionSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(node As InterpolatedStringExpressionSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  node As InterpolatedStringExpressionSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
                                                   optionProvider As BlockStructureOptionProvider,
                                                   cancellationToken As CancellationToken)

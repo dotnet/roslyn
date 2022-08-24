@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         Interface,
         Method,
         Module,
+        Namespace,
         Property,
         Record,
         RecordStruct,
@@ -125,16 +126,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Accessibility accessibility,
             TextSpan span,
             ImmutableArray<string> inheritanceNames,
-            bool isNestedType = false, int parameterCount = 0, int typeParameterCount = 0)
+            bool isNestedType = false,
+            int parameterCount = 0,
+            int typeParameterCount = 0)
         {
-            const uint MaxFlagValue5 = 0b10000;
-            const uint MaxFlagValue4 = 0b1111;
+            // Max value that we can store depending on how many bits we have to store that particular value in.
+            const uint Max5BitValue = 0b11111;
+            const uint Max4BitValue = 0b1111;
 
-            Contract.ThrowIfTrue((uint)accessibility > MaxFlagValue4);
-            Contract.ThrowIfTrue((uint)kind > MaxFlagValue5);
+            Contract.ThrowIfTrue((uint)accessibility > Max4BitValue);
+            Contract.ThrowIfTrue((uint)kind > Max5BitValue);
 
-            parameterCount = Math.Min(parameterCount, (byte)MaxFlagValue4);
-            typeParameterCount = Math.Min(typeParameterCount, (byte)MaxFlagValue4);
+            parameterCount = Math.Min(parameterCount, (byte)Max4BitValue);
+            typeParameterCount = Math.Min(typeParameterCount, (byte)Max4BitValue);
 
             var flags =
                 (uint)kind |

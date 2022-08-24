@@ -32,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
             {
                 return;
             }
+
             TextEditApplication.UpdateText(changes.ToImmutableArray(), buffer, EditOptions.DefaultMinimalChange);
         }
     }

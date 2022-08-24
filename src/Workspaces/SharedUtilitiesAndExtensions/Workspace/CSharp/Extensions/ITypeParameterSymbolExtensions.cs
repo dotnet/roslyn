@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var constraintTypes =
                 typeParameter.ConstraintTypes.Where(t => t.TypeKind == TypeKind.Class).Concat(
                 typeParameter.ConstraintTypes.Where(t => t.TypeKind == TypeKind.Interface).Concat(
-                typeParameter.ConstraintTypes.Where(t => t.TypeKind != TypeKind.Class && t.TypeKind != TypeKind.Interface)));
+                typeParameter.ConstraintTypes.Where(t => t.TypeKind is not TypeKind.Class and not TypeKind.Interface)));
 
             foreach (var type in constraintTypes)
             {

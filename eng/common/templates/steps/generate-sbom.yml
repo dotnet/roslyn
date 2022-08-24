@@ -4,7 +4,7 @@
 # ManifestDirPath - The path of the directory where the generated manifest files will be placed
 
 parameters:
-  PackageVersion: 6.0.0
+  PackageVersion: 7.0.0
   BuildDropPath: '$(Build.SourcesDirectory)/artifacts'
   PackageName: '.NET'
   ManifestDirPath: $(Build.ArtifactStagingDirectory)/sbom

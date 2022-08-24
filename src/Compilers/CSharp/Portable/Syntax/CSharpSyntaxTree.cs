@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -607,6 +608,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region LinePositions and Locations
 
+        private CSharpLineDirectiveMap GetDirectiveMap()
+        {
+            if (_lazyLineDirectiveMap == null)
+            {
+                // Create the line directive map on demand.
+                Interlocked.CompareExchange(ref _lazyLineDirectiveMap, new CSharpLineDirectiveMap(this), null);
+            }
+
+            return _lazyLineDirectiveMap;
+        }
+
         /// <summary>
         /// Gets the location in terms of path, line and column for a given span.
         /// </summary>
@@ -617,9 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </returns>
         /// <remarks>The values are not affected by line mapping directives (<c>#line</c>).</remarks>
         public override FileLinePositionSpan GetLineSpan(TextSpan span, CancellationToken cancellationToken = default)
-        {
-            return new FileLinePositionSpan(this.FilePath, GetLinePosition(span.Start), GetLinePosition(span.End));
-        }
+            => new(FilePath, GetLinePosition(span.Start, cancellationToken), GetLinePosition(span.End, cancellationToken));
 
         /// <summary>
         /// Gets the location in terms of path, line and column after applying source line mapping directives (<c>#line</c>).
@@ -638,25 +648,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </para>
         /// </returns>
         public override FileLinePositionSpan GetMappedLineSpan(TextSpan span, CancellationToken cancellationToken = default)
-        {
-            if (_lazyLineDirectiveMap == null)
-            {
-                // Create the line directive map on demand.
-                Interlocked.CompareExchange(ref _lazyLineDirectiveMap, new CSharpLineDirectiveMap(this), null);
-            }
+            => GetDirectiveMap().TranslateSpan(GetText(cancellationToken), this.FilePath, span);
 
-            return _lazyLineDirectiveMap.TranslateSpan(this.GetText(cancellationToken), this.FilePath, span);
-        }
-
+        /// <inheritdoc/>
         public override LineVisibility GetLineVisibility(int position, CancellationToken cancellationToken = default)
-        {
-            if (_lazyLineDirectiveMap == null)
-            {
-                // Create the line directive map on demand.
-                Interlocked.CompareExchange(ref _lazyLineDirectiveMap, new CSharpLineDirectiveMap(this), null);
-            }
+            => GetDirectiveMap().GetLineVisibility(GetText(cancellationToken), position);
 
-            return _lazyLineDirectiveMap.GetLineVisibility(this.GetText(cancellationToken), position);
+        /// <inheritdoc/>
+        public override IEnumerable<LineMapping> GetLineMappings(CancellationToken cancellationToken = default)
+        {
+            var map = GetDirectiveMap();
+            Debug.Assert(map.Entries.Length >= 1);
+            return (map.Entries.Length == 1) ? Array.Empty<LineMapping>() : map.GetLineMappings(GetText(cancellationToken).Lines);
         }
 
         /// <summary>
@@ -667,30 +670,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="isHiddenPosition">When the method returns, contains a boolean value indicating whether this span is considered hidden or not.</param>
         /// <returns>A resulting <see cref="FileLinePositionSpan"/>.</returns>
         internal override FileLinePositionSpan GetMappedLineSpanAndVisibility(TextSpan span, out bool isHiddenPosition)
-        {
-            if (_lazyLineDirectiveMap == null)
-            {
-                // Create the line directive map on demand.
-                Interlocked.CompareExchange(ref _lazyLineDirectiveMap, new CSharpLineDirectiveMap(this), null);
-            }
-
-            return _lazyLineDirectiveMap.TranslateSpanAndVisibility(this.GetText(), this.FilePath, span, out isHiddenPosition);
-        }
+            => GetDirectiveMap().TranslateSpanAndVisibility(GetText(), FilePath, span, out isHiddenPosition);
 
         /// <summary>
         /// Gets a boolean value indicating whether there are any hidden regions in the tree.
         /// </summary>
         /// <returns>True if there is at least one hidden region.</returns>
         public override bool HasHiddenRegions()
-        {
-            if (_lazyLineDirectiveMap == null)
-            {
-                // Create the line directive map on demand.
-                Interlocked.CompareExchange(ref _lazyLineDirectiveMap, new CSharpLineDirectiveMap(this), null);
-            }
-
-            return _lazyLineDirectiveMap.HasAnyHiddenRegions();
-        }
+            => GetDirectiveMap().HasAnyHiddenRegions();
 
         /// <summary>
         /// Given the error code and the source location, get the warning state based on <c>#pragma warning</c> directives.
@@ -756,10 +743,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private GeneratedKind _lazyIsGeneratedCode = GeneratedKind.Unknown;
 
-        private LinePosition GetLinePosition(int position)
-        {
-            return this.GetText().Lines.GetLinePosition(position);
-        }
+        private LinePosition GetLinePosition(int position, CancellationToken cancellationToken)
+            => GetText(cancellationToken).Lines.GetLinePosition(position);
 
         /// <summary>
         /// Gets a <see cref="Location"/> for the specified text <paramref name="span"/>.

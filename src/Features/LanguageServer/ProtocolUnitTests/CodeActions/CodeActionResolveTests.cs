@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: CSharpAnalyzersResources.Use_implicit_type,
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSCodeAction>(),
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
                 data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, locations["caret"].Single()),
-                priority: PriorityLevel.Low,
+                priority: VSInternalPriorityLevel.Low,
                 groupName: "Roslyn1",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 diagnostics: null);
@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var expectedResolvedAction = CodeActionsTests.CreateCodeAction(
                 title: CSharpAnalyzersResources.Use_implicit_type,
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSCodeAction>(),
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
                 data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, locations["caret"].Single()),
-                priority: PriorityLevel.Low,
+                priority: VSInternalPriorityLevel.Low,
                 groupName: "Roslyn1",
                 diagnostics: null,
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSCodeAction>(),
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
                 data: CreateCodeActionResolveData(
                     FeaturesResources.Introduce_constant + "|" + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     locations["caret"].Single()),
-                priority: PriorityLevel.Normal,
+                priority: VSInternalPriorityLevel.Normal,
                 groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 diagnostics: null);
@@ -115,11 +115,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var expectedResolvedAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSCodeAction>(),
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
                 data: CreateCodeActionResolveData(
                     FeaturesResources.Introduce_constant + "|" + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     locations["caret"].Single()),
-                priority: PriorityLevel.Normal,
+                priority: VSInternalPriorityLevel.Normal,
                 groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 diagnostics: null,
@@ -130,13 +130,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             AssertJsonEquals(expectedResolvedAction, actualResolvedAction);
         }
 
-        private static async Task<LSP.VSCodeAction> RunGetCodeActionResolveAsync(
+        private static async Task<LSP.VSInternalCodeAction> RunGetCodeActionResolveAsync(
             TestLspServer testLspServer,
-            VSCodeAction unresolvedCodeAction,
+            VSInternalCodeAction unresolvedCodeAction,
             LSP.ClientCapabilities clientCapabilities = null)
         {
-            var result = await testLspServer.ExecuteRequestAsync<LSP.VSCodeAction, LSP.VSCodeAction>(
-                LSP.MSLSPMethods.TextDocumentCodeActionResolveName, unresolvedCodeAction, clientCapabilities, null, CancellationToken.None);
+            var result = (VSInternalCodeAction)await testLspServer.ExecuteRequestAsync<LSP.CodeAction, LSP.CodeAction>(
+                LSP.Methods.CodeActionResolveName, unresolvedCodeAction, clientCapabilities, null, CancellationToken.None);
             return result;
         }
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 {
                     new TextDocumentEdit
                     {
-                        TextDocument = new VersionedTextDocumentIdentifier
+                        TextDocument = new OptionalVersionedTextDocumentIdentifier
                         {
                             Uri = locations["caret"].Single().Uri
                         },

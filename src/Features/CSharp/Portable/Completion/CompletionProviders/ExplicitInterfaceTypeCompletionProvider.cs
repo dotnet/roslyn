@@ -129,8 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return IsClassOrStructOrInterfaceOrRecord(tokenBeforeType.GetRequiredParent());
             }
 
-            if (tokenBeforeType.Kind() == SyntaxKind.CloseBraceToken ||
-                tokenBeforeType.Kind() == SyntaxKind.SemicolonToken)
+            if (tokenBeforeType.Kind() is SyntaxKind.CloseBraceToken or
+                SyntaxKind.SemicolonToken)
             {
                 // Check that we're after a class/struct/interface member.
                 var memberDeclaration = tokenBeforeType.GetAncestor<MemberDeclarationSyntax>();

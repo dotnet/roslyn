@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
+            => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -69,7 +67,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             // the tree.  If we didn't do this, then we wouldn't be able to find the 
             // second object-creation-node after we make the edit for the first one.
             var workspace = document.Project.Solution.Workspace;
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var originalRoot = editor.OriginalRoot;
 
             var originalObjectCreationNodes = new Stack<TObjectCreationExpressionSyntax>();
@@ -83,8 +81,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             // We're going to be continually editing this tree.  Track all the nodes we
             // care about so we can find them across each edit.
             document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalObjectCreationNodes));
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             while (originalObjectCreationNodes.Count > 0)
             {
@@ -100,6 +98,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 }
 
                 var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
+                Contract.ThrowIfNull(statement);
+
                 var newStatement = GetNewStatement(statement, objectCreation, matches.Value)
                     .WithAdditionalAnnotations(Formatter.Annotation);
 
@@ -112,8 +112,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 }
 
                 document = document.WithSyntaxRoot(subEditor.GetChangedRoot());
-                semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             }
 
             editor.ReplaceNode(originalRoot, currentRoot);
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Collection_initialization_can_be_simplified, createChangedDocument)
+                : base(AnalyzersResources.Collection_initialization_can_be_simplified, createChangedDocument, nameof(AnalyzersResources.Collection_initialization_can_be_simplified))
             {
             }
         }

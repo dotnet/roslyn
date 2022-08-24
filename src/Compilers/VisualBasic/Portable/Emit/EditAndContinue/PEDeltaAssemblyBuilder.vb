@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Globalization
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports Microsoft.Cci
@@ -87,9 +88,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Translate(If(visited, type), Nothing, diagnostics)
         End Function
 
-        Public Overrides ReadOnly Property CurrentGenerationOrdinal As Integer
+        Public Overrides ReadOnly Property EncSymbolChanges As SymbolChanges
             Get
-                Return _previousGeneration.Ordinal + 1
+                Return _changes
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property PreviousGeneration As EmitBaseline
+            Get
+                Return _previousGeneration
             End Get
         End Property
 
@@ -108,32 +115,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All, assemblyReferenceIdentityMap)
             Dim metadataDecoder = New MetadataDecoder(metadataAssembly.PrimaryModule)
             Dim metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder)
-            Dim metadataSymbols = New EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder, assemblyReferenceIdentityMap)
+            ' VB synthesized delegates are handled as anonymous types in the map above
+            Dim synthesizedDelegates = SpecializedCollections.EmptyReadOnlyDictionary(Of SynthesizedDelegateKey, SynthesizedDelegateValue)
+            Dim metadataSymbols = New EmitBaseline.MetadataSymbols(metadataAnonymousTypes, synthesizedDelegates, metadataDecoder, assemblyReferenceIdentityMap)
 
             Return InterlockedOperations.Initialize(initialBaseline.LazyMetadataSymbols, metadataSymbols)
         End Function
 
         ' friend for testing
         Friend Overloads Shared Function GetAnonymousTypeMapFromMetadata(reader As MetadataReader, metadataDecoder As MetadataDecoder) As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue)
+            ' In general, the anonymous type name Is 'VB$Anonymous' ('Type'|'Delegate') '_' (submission-index '_')? index module-id
+            ' but EnC Is not supported for modules nor submissions. Hence we only look for type names with no module id and no submission index:
+            ' e.g. VB$AnonymousType_123, VB$AnonymousDelegate_123
+
             Dim result = New Dictionary(Of AnonymousTypeKey, AnonymousTypeValue)
             For Each handle In reader.TypeDefinitions
                 Dim def = reader.GetTypeDefinition(handle)
                 If Not def.Namespace.IsNil Then
                     Continue For
                 End If
-                If Not reader.StringComparer.StartsWith(def.Name, GeneratedNames.AnonymousTypeOrDelegateCommonPrefix) Then
+
+                If Not reader.StringComparer.StartsWith(def.Name, GeneratedNameConstants.AnonymousTypeOrDelegateCommonPrefix) Then
                     Continue For
                 End If
+
                 Dim metadataName = reader.GetString(def.Name)
                 Dim arity As Short = 0
                 Dim name = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(metadataName, arity)
+
                 Dim index As Integer = 0
-                If GeneratedNames.TryParseAnonymousTypeTemplateName(GeneratedNames.AnonymousTypeTemplateNamePrefix, name, index) Then
+                If TryParseAnonymousTypeTemplateName(GeneratedNameConstants.AnonymousTypeTemplateNamePrefix, name, index) Then
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
                     Dim key = GetAnonymousTypeKey(type)
                     Dim value = New AnonymousTypeValue(name, index, type.GetCciAdapter())
                     result.Add(key, value)
-                ElseIf GeneratedNames.TryParseAnonymousTypeTemplateName(GeneratedNames.AnonymousDelegateTemplateNamePrefix, name, index) Then
+                ElseIf TryParseAnonymousTypeTemplateName(GeneratedNameConstants.AnonymousDelegateTemplateNamePrefix, name, index) Then
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
                     Dim key = GetAnonymousDelegateKey(type)
                     Dim value = New AnonymousTypeValue(name, index, type.GetCciAdapter())
@@ -141,6 +157,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End If
             Next
             Return result
+        End Function
+
+        Friend Shared Function TryParseAnonymousTypeTemplateName(prefix As String, name As String, <Out()> ByRef index As Integer) As Boolean
+            If name.StartsWith(prefix, StringComparison.Ordinal) AndAlso
+                Integer.TryParse(name.Substring(prefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, index) Then
+                Return True
+            End If
+            index = -1
+            Return False
         End Function
 
         Private Shared Function GetAnonymousTypeKey(type As NamedTypeSymbol) As AnonymousTypeKey
@@ -189,12 +214,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return New AnonymousTypeKey(parameters.ToImmutableAndFree(), isDelegate:=True)
         End Function
 
-        Friend ReadOnly Property PreviousGeneration As EmitBaseline
-            Get
-                Return _previousGeneration
-            End Get
-        End Property
-
         Friend ReadOnly Property PreviousDefinitions As VisualBasicDefinitionMap
             Get
                 Return _previousDefinitions
@@ -216,6 +235,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return anonymousTypes
         End Function
 
+        Friend Overloads Function GetSynthesizedDelegates() As IReadOnlyDictionary(Of SynthesizedDelegateKey, SynthesizedDelegateValue) Implements IPEDeltaAssemblyBuilder.GetSynthesizedDelegates
+            ' VB synthesized delegates are handled as anonymous types in the method above
+            Return SpecializedCollections.EmptyReadOnlyDictionary(Of SynthesizedDelegateKey, SynthesizedDelegateValue)
+        End Function
+
         Friend Overrides Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
             Return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, Compilation, method, topLevelMethod, diagnostics)
         End Function
@@ -232,12 +256,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(Compilation Is template.DeclaringCompilation)
             Return _previousDefinitions.TryGetAnonymousTypeName(template, name, index)
         End Function
-
-        Friend ReadOnly Property Changes As SymbolChanges
-            Get
-                Return _changes
-            End Get
-        End Property
 
         Public Overrides Iterator Function GetTopLevelTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
             For Each typeDef In GetAnonymousTypeDefinitions(context)

@@ -135,24 +135,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsCallerLineNumber As Boolean
-            Get
-                Return Me._underlyingParameter.IsCallerLineNumber
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
-            Get
-                Return Me._underlyingParameter.IsCallerFilePath
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property IsCallerMemberName As Boolean
-            Get
-                Return Me._underlyingParameter.IsCallerMemberName
-            End Get
-        End Property
-
         Friend Overrides ReadOnly Property IsExplicitByRef As Boolean
             Get
                 Return Me._underlyingParameter.IsExplicitByRef

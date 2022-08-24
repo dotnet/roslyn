@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
@@ -411,6 +412,24 @@ class C
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [WorkItem(52493, "https://github.com/dotnet/roslyn/issues/")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task LocalFunctionInTopLevelStatement_AutoCollapse()
+        {
+            const string code = @"
+Foo();
+Bar();
+
+{|hint:static void Foo(){|textspan:
+{$$
+   // ...
+}|}|}
+";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

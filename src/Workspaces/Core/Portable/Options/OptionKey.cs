@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.Options
 
             static bool OptionEqual(IOption thisOption, IOption otherOption)
             {
-                if (!(thisOption is IOption2 thisOption2) ||
-                    !(otherOption is IOption2 otherOption2))
+                if (thisOption is not IOption2 thisOption2 ||
+                    otherOption is not IOption2 otherOption2)
                 {
                     // Third party definition of 'IOption'.
                     return thisOption.Equals(otherOption);

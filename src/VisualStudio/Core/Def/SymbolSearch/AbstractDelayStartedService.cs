@@ -68,8 +68,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 return;
             }
 
-            this._registeredLanguageNames.Add(languageName);
-            if (this._registeredLanguageNames.Count == 1)
+            _registeredLanguageNames.Add(languageName);
+            if (_registeredLanguageNames.Count == 1)
             {
                 // Register to hear about option changing.
                 var optionsService = Workspace.Services.GetService<IOptionService>();

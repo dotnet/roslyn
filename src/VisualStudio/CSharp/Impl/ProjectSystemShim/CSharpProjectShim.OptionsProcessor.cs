@@ -156,9 +156,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             private IEnumerable<string> ParseWarningCodes(CompilerOptions compilerOptions)
             {
                 Contract.ThrowIfFalse(
-                    compilerOptions == CompilerOptions.OPTID_NOWARNLIST ||
-                    compilerOptions == CompilerOptions.OPTID_WARNASERRORLIST ||
-                    compilerOptions == CompilerOptions.OPTID_WARNNOTASERRORLIST);
+                    compilerOptions is CompilerOptions.OPTID_NOWARNLIST or
+                    CompilerOptions.OPTID_WARNASERRORLIST or
+                    CompilerOptions.OPTID_WARNNOTASERRORLIST);
 
                 foreach (var warning in GetStringOption(compilerOptions, defaultValue: "").Split(new[] { ' ', ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
                 {

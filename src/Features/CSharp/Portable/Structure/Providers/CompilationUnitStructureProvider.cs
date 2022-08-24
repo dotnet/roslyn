@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class CompilationUnitStructureProvider : AbstractSyntaxNodeStructureProvider<CompilationUnitSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             CompilationUnitSyntax compilationUnit,
             ref TemporaryArray<BlockSpan> spans,
             BlockStructureOptionProvider optionProvider,

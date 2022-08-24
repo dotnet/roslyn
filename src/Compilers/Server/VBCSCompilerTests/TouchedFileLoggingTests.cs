@@ -67,7 +67,8 @@ End Class
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
                     new BuildPaths(clientDirectory, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
                     s_libDirectory,
-                    new TestAnalyzerAssemblyLoader());
+                    new TestAnalyzerAssemblyLoader(),
+                    driverCache: null);
 
                 List<string> expectedReads;
                 List<string> expectedWrites;
@@ -116,7 +117,8 @@ End Class
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
                     new BuildPaths(clientDirectory, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
                     s_libDirectory,
-                    new TestAnalyzerAssemblyLoader());
+                    new TestAnalyzerAssemblyLoader(),
+                    driverCache: null);
 
                 List<string> expectedReads;
                 List<string> expectedWrites;

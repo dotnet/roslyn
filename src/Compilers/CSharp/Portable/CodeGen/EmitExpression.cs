@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -1480,115 +1481,159 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitCallExpression(BoundCall call, UseKind useKind)
         {
+            if (call.Method.IsDefaultValueTypeConstructor(requireZeroInit: true))
+            {
+                EmitDefaultValueTypeConstructorCallExpression(call);
+            }
+            else if (!call.Method.RequiresInstanceReceiver)
+            {
+                EmitStaticCallExpression(call, useKind);
+            }
+            else
+            {
+                EmitInstanceCallExpression(call, useKind);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void EmitDefaultValueTypeConstructorCallExpression(BoundCall call)
+        {
             var method = call.Method;
             var receiver = call.ReceiverOpt;
-            LocalDefinition tempOpt = null;
 
             // Calls to the default struct constructor are emitted as initobj, rather than call.
             // NOTE: constructor invocations are represented as BoundObjectCreationExpressions,
             // rather than BoundCalls.  This is why we can be confident that if we see a call to a
             // constructor, it has this very specific form.
-            if (method.IsDefaultValueTypeConstructor())
+            Debug.Assert(method.IsImplicitlyDeclared);
+            Debug.Assert(TypeSymbol.Equals(method.ContainingType, receiver.Type, TypeCompareKind.ConsiderEverything2));
+            Debug.Assert(receiver.Kind == BoundKind.ThisReference);
+
+            LocalDefinition tempOpt = EmitReceiverRef(receiver, AddressKind.Writeable);
+            _builder.EmitOpCode(ILOpCode.Initobj);    //  initobj  <MyStruct>
+            EmitSymbolToken(method.ContainingType, call.Syntax);
+            FreeOptTemp(tempOpt);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void EmitStaticCallExpression(BoundCall call, UseKind useKind)
+        {
+            var method = call.Method;
+            var receiver = call.ReceiverOpt;
+            var arguments = call.Arguments;
+
+            Debug.Assert(method.IsStatic);
+
+            EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
+            int stackBehavior = GetCallStackBehavior(method, arguments);
+
+            if (method.IsAbstract)
             {
-                Debug.Assert(method.IsImplicitlyDeclared);
-                Debug.Assert(TypeSymbol.Equals(method.ContainingType, receiver.Type, TypeCompareKind.ConsiderEverything2));
-                Debug.Assert(receiver.Kind == BoundKind.ThisReference);
+                if (receiver is not BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } })
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
 
-                tempOpt = EmitReceiverRef(receiver, AddressKind.Writeable);
-                _builder.EmitOpCode(ILOpCode.Initobj);    //  initobj  <MyStruct>
-                EmitSymbolToken(method.ContainingType, call.Syntax);
-                FreeOptTemp(tempOpt);
-
-                return;
+                _builder.EmitOpCode(ILOpCode.Constrained);
+                EmitSymbolToken(receiver.Type, receiver.Syntax);
             }
 
+            _builder.EmitOpCode(ILOpCode.Call, stackBehavior);
+
+            EmitSymbolToken(method, call.Syntax,
+                            method.IsVararg ? (BoundArgListOperator)arguments[arguments.Length - 1] : null);
+
+            EmitCallCleanup(call.Syntax, useKind, method);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void EmitInstanceCallExpression(BoundCall call, UseKind useKind)
+        {
+            var method = call.Method;
+            var receiver = call.ReceiverOpt;
             var arguments = call.Arguments;
+            LocalDefinition tempOpt = null;
+
+            Debug.Assert(!method.IsStatic && method.RequiresInstanceReceiver);
 
             CallKind callKind;
 
-            if (!method.RequiresInstanceReceiver)
-            {
-                callKind = CallKind.Call;
-            }
-            else
-            {
-                var receiverType = receiver.Type;
+            var receiverType = receiver.Type;
 
-                if (receiverType.IsVerifierReference())
+            if (receiverType.IsVerifierReference())
+            {
+                EmitExpression(receiver, used: true);
+
+                // In some cases CanUseCallOnRefTypeReceiver returns true which means that 
+                // null check is unnecessary and we can use "call"
+                if (receiver.SuppressVirtualCalls ||
+                    (!method.IsMetadataVirtual() && CanUseCallOnRefTypeReceiver(receiver)))
                 {
-                    EmitExpression(receiver, used: true);
-
-                    // In some cases CanUseCallOnRefTypeReceiver returns true which means that 
-                    // null check is unnecessary and we can use "call"
-                    if (receiver.SuppressVirtualCalls ||
-                        (!method.IsMetadataVirtual() && CanUseCallOnRefTypeReceiver(receiver)))
+                    callKind = CallKind.Call;
+                }
+                else
+                {
+                    callKind = CallKind.CallVirt;
+                }
+            }
+            else if (receiverType.IsVerifierValue())
+            {
+                NamedTypeSymbol methodContainingType = method.ContainingType;
+                if (methodContainingType.IsVerifierValue())
+                {
+                    // if method is defined in the struct itself it is assumed to be mutating, unless 
+                    // it is a member of a readonly struct and is not a constructor
+                    var receiverAddresskind = IsReadOnlyCall(method, methodContainingType) ?
+                                                                    AddressKind.ReadOnly :
+                                                                    AddressKind.Writeable;
+                    if (MayUseCallForStructMethod(method))
                     {
+                        // NOTE: this should be either a method which overrides some abstract method or 
+                        //       does not override anything (with few exceptions, see MayUseCallForStructMethod); 
+                        //       otherwise we should not use direct 'call' and must use constrained call;
+
+                        // calling a method defined in a value type
+                        Debug.Assert(TypeSymbol.Equals(receiverType, methodContainingType, TypeCompareKind.ObliviousNullableModifierMatchesAny));
+                        tempOpt = EmitReceiverRef(receiver, receiverAddresskind);
                         callKind = CallKind.Call;
                     }
                     else
                     {
-                        callKind = CallKind.CallVirt;
-                    }
-                }
-                else if (receiverType.IsVerifierValue())
-                {
-                    NamedTypeSymbol methodContainingType = method.ContainingType;
-                    if (methodContainingType.IsVerifierValue())
-                    {
-                        // if method is defined in the struct itself it is assumed to be mutating, unless 
-                        // it is a member of a readonly struct and is not a constructor
-                        var receiverAddresskind = IsReadOnlyCall(method, methodContainingType) ?
-                                                                        AddressKind.ReadOnly :
-                                                                        AddressKind.Writeable;
-                        if (MayUseCallForStructMethod(method))
-                        {
-                            // NOTE: this should be either a method which overrides some abstract method or 
-                            //       does not override anything (with few exceptions, see MayUseCallForStructMethod); 
-                            //       otherwise we should not use direct 'call' and must use constrained call;
-
-                            // calling a method defined in a value type
-                            Debug.Assert(TypeSymbol.Equals(receiverType, methodContainingType, TypeCompareKind.ObliviousNullableModifierMatchesAny));
-                            tempOpt = EmitReceiverRef(receiver, receiverAddresskind);
-                            callKind = CallKind.Call;
-                        }
-                        else
-                        {
-                            tempOpt = EmitReceiverRef(receiver, receiverAddresskind);
-                            callKind = CallKind.ConstrainedCallVirt;
-                        }
-                    }
-                    else
-                    {
-                        // calling a method defined in a base class.
-
-                        // When calling a method that is virtual in metadata on a struct receiver, 
-                        // we use a constrained virtual call. If possible, it will skip boxing.
-                        if (method.IsMetadataVirtual())
-                        {
-                            // NB: all methods that a struct could inherit from bases are non-mutating
-                            //     treat receiver as ReadOnly
-                            tempOpt = EmitReceiverRef(receiver, AddressKind.ReadOnly);
-                            callKind = CallKind.ConstrainedCallVirt;
-                        }
-                        else
-                        {
-                            EmitExpression(receiver, used: true);
-                            EmitBox(receiverType, receiver.Syntax);
-                            callKind = CallKind.Call;
-                        }
+                        tempOpt = EmitReceiverRef(receiver, receiverAddresskind);
+                        callKind = CallKind.ConstrainedCallVirt;
                     }
                 }
                 else
                 {
-                    // receiver is generic and method must come from the base or an interface or a generic constraint
-                    // if the receiver is actually a value type it would need to be boxed.
-                    // let .constrained sort this out. 
-                    callKind = receiverType.IsReferenceType && !IsRef(receiver) ?
-                                CallKind.CallVirt :
-                                CallKind.ConstrainedCallVirt;
+                    // calling a method defined in a base class.
 
-                    tempOpt = EmitReceiverRef(receiver, callKind == CallKind.ConstrainedCallVirt ? AddressKind.Constrained : AddressKind.Writeable);
+                    // When calling a method that is virtual in metadata on a struct receiver, 
+                    // we use a constrained virtual call. If possible, it will skip boxing.
+                    if (method.IsMetadataVirtual())
+                    {
+                        // NB: all methods that a struct could inherit from bases are non-mutating
+                        //     treat receiver as ReadOnly
+                        tempOpt = EmitReceiverRef(receiver, AddressKind.ReadOnly);
+                        callKind = CallKind.ConstrainedCallVirt;
+                    }
+                    else
+                    {
+                        EmitExpression(receiver, used: true);
+                        EmitBox(receiverType, receiver.Syntax);
+                        callKind = CallKind.Call;
+                    }
                 }
+            }
+            else
+            {
+                // receiver is generic and method must come from the base or an interface or a generic constraint
+                // if the receiver is actually a value type it would need to be boxed.
+                // let .constrained sort this out. 
+                callKind = receiverType.IsReferenceType && !IsRef(receiver) ?
+                            CallKind.CallVirt :
+                            CallKind.ConstrainedCallVirt;
+
+                tempOpt = EmitReceiverRef(receiver, callKind == CallKind.ConstrainedCallVirt ? AddressKind.Constrained : AddressKind.Writeable);
             }
 
             // When emitting a callvirt to a virtual method we always emit the method info of the
@@ -1640,7 +1685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
-            int stackBehavior = GetCallStackBehavior(call.Method, call.Arguments);
+            int stackBehavior = GetCallStackBehavior(method, arguments);
             switch (callKind)
             {
                 case CallKind.Call:
@@ -1659,7 +1704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             EmitSymbolToken(actualMethodTargetedByTheCall, call.Syntax,
-                            actualMethodTargetedByTheCall.IsVararg ? (BoundArgListOperator)call.Arguments[call.Arguments.Length - 1] : null);
+                            actualMethodTargetedByTheCall.IsVararg ? (BoundArgListOperator)arguments[arguments.Length - 1] : null);
 
             EmitCallCleanup(call.Syntax, useKind, method);
 
@@ -1785,7 +1830,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             Debug.Assert(method.ContainingType.IsVerifierValue(), "this is not a value type");
 
-            if (!method.IsMetadataVirtual())
+            if (!method.IsMetadataVirtual() || method.IsStatic)
             {
                 return true;
             }
@@ -1911,7 +1956,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitObjectCreationExpression(BoundObjectCreationExpression expression, bool used)
         {
             MethodSymbol constructor = expression.Constructor;
-            if (constructor.IsDefaultValueTypeConstructor())
+            if (constructor.IsDefaultValueTypeConstructor(requireZeroInit: true))
             {
                 EmitInitObj(expression.Type, used, expression.Syntax);
             }
@@ -3474,6 +3519,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (used)
             {
+                if (load.TargetMethod.IsAbstract && load.TargetMethod.IsStatic)
+                {
+                    if (load.ConstrainedToTypeOpt is not { TypeKind: TypeKind.TypeParameter })
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
+
+                    _builder.EmitOpCode(ILOpCode.Constrained);
+                    EmitSymbolToken(load.ConstrainedToTypeOpt, load.Syntax);
+                }
+
                 _builder.EmitOpCode(ILOpCode.Ldftn);
                 EmitSymbolToken(load.TargetMethod, load.Syntax, optArgList: null);
             }

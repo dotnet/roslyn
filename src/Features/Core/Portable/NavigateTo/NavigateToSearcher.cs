@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
-    internal partial class NavigateToSearcher
+    internal class NavigateToSearcher
     {
         private readonly INavigateToSearcherHost _host;
         private readonly Solution _solution;
@@ -49,20 +49,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             _searchPattern = searchPattern;
             _searchCurrentDocument = searchCurrentDocument;
             _kinds = kinds;
-            _progress = new StreamingProgressTracker((current, maximum) =>
+            _progress = new StreamingProgressTracker((current, maximum, ct) =>
             {
                 callback.ReportProgress(current, maximum);
                 return new ValueTask();
             });
 
-            if (_searchCurrentDocument)
-            {
-                var documentService = _solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
-                var activeId = documentService.TryGetActiveDocument();
-                _currentDocument = activeId != null ? _solution.GetDocument(activeId) : null;
-            }
-
-            var docTrackingService = _solution.Workspace.Services.GetService<IDocumentTrackingService>() ?? NoOpDocumentTrackingService.Instance;
+            var docTrackingService = _solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
             // If the workspace is tracking documents, use that to prioritize our search
             // order.  That way we provide results for the documents the user is working
@@ -70,6 +63,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             _activeDocument = docTrackingService.GetActiveDocument(_solution);
             _visibleDocuments = docTrackingService.GetVisibleDocuments(_solution)
                                                   .WhereAsArray(d => d != _activeDocument);
+
+            if (_searchCurrentDocument)
+            {
+                _currentDocument = _activeDocument;
+            }
         }
 
         public static NavigateToSearcher Create(
@@ -88,14 +86,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         internal async Task SearchAsync(CancellationToken cancellationToken)
         {
-            var searchWasComplete = true;
+            var isFullyLoaded = true;
 
             try
             {
                 using var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
                 using var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search");
 
-                searchWasComplete = await SearchAllProjectsAsync(cancellationToken).ConfigureAwait(false);
+                // We consider ourselves fully loaded when both the project system has completed loaded us, and we've
+                // totally hydrated the oop side.  Until that happens, we'll attempt to return cached data from languages
+                // that support that.
+                isFullyLoaded = await _host.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                await SearchAllProjectsAsync(isFullyLoaded, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -104,46 +106,31 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 // providing this extra information will make UI to show indication to users
                 // that result might not contain full data
-                _callback.Done(searchWasComplete);
+                _callback.Done(isFullyLoaded);
             }
         }
 
-        /// <summary>
-        /// Returns <see langword="true"/> if all searches were performed against the latest data and represent the
-        /// complete set of results. Or <see langword="false"/> if any searches were performed against cached data and
-        /// could be incomplete or inaccurate.
-        /// </summary>
-        private async Task<bool> SearchAllProjectsAsync(CancellationToken cancellationToken)
+        private async Task SearchAllProjectsAsync(bool isFullyLoaded, CancellationToken cancellationToken)
         {
-            // We consider ourselves fully loaded when both the project system has completed loaded us, and we've
-            // totally hydrated the oop side.  Until that happens, we'll attempt to return cached data from languages
-            // that support that.
-            var (projectSystemIsFullyLoaded, remoteHostIsFullyLoaded) = await _host.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-
-            var isFullyLoaded = projectSystemIsFullyLoaded && remoteHostIsFullyLoaded;
             var orderedProjects = GetOrderedProjectsToProcess();
             var (itemsReported, projectResults) = await ProcessProjectsAsync(orderedProjects, isFullyLoaded, cancellationToken).ConfigureAwait(false);
 
             // If we're fully loaded then we're done at this point.  All the searches would have been against the latest
             // computed data and we don't need to do anything else.
             if (isFullyLoaded)
-                return true;
+                return;
 
             // We weren't fully loaded *but* we reported some items to the user, then consider that good enough for now.
             // The user will have some results they can use, and (in the case that we actually examined the cache for
             // data) we will tell the user that the results may be incomplete/inaccurate and they should try again soon.
             if (itemsReported > 0)
-                return projectResults.All(t => t.location == NavigateToSearchLocation.Latest);
+                return;
 
             // We didn't have any items reported *and* we weren't fully loaded.  If it turns out that some of our
             // projects were using cached data then we can try searching them again, but this tell them to use the
             // latest data.  The ensures the user at least gets some result instead of nothing.
-            var projectsUsingCache = projectResults.Where(t => t.location == NavigateToSearchLocation.Cache).SelectAsArray(t => t.project);
+            var projectsUsingCache = projectResults.SelectAsArray(t => t.location == NavigateToSearchLocation.Cache, t => t.project);
             await ProcessProjectsAsync(ImmutableArray.Create(projectsUsingCache), isFullyLoaded: true, cancellationToken).ConfigureAwait(false);
-
-            // We attempted a full oop sync and an uncached search.  However, we still may need to tell the user that
-            // things are incomplete if the project system hadn't fully loaded.
-            return projectSystemIsFullyLoaded;
         }
 
         /// <summary>
@@ -228,7 +215,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private async Task<(int itemsReported, ImmutableArray<(Project project, NavigateToSearchLocation location)>)> ProcessProjectsAsync(
             ImmutableArray<ImmutableArray<Project>> orderedProjects, bool isFullyLoaded, CancellationToken cancellationToken)
         {
-            await _progress.AddItemsAsync(orderedProjects.Sum(p => p.Length)).ConfigureAwait(false);
+            await _progress.AddItemsAsync(orderedProjects.Sum(p => p.Length), cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<(Project project, NavigateToSearchLocation location)>.GetInstance(out var result);
 
@@ -249,7 +236,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
             finally
             {
-                await _progress.ItemCompletedAsync().ConfigureAwait(false);
+                await _progress.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 

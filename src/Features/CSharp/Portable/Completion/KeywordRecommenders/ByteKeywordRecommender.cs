@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsFixedVariableDeclarationContext ||
                 context.IsParameterTypeContext ||
                 context.IsPossibleLambdaOrAnonymousMethodParameterTypeContext ||
+                context.IsLocalFunctionDeclarationContext ||
                 context.IsImplicitOrExplicitOperatorTypeContext ||
                 context.IsPrimaryFunctionExpressionContext ||
                 context.IsCrefContext ||

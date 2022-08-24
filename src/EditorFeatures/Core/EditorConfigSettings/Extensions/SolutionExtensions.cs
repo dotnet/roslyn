@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions
                     {
                         return true;
                     }
+
                     projectPath = projectPath.Parent;
                 }
 

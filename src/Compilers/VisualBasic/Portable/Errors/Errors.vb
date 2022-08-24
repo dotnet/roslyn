@@ -1757,6 +1757,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_OverridingInitOnlyProperty = 37312
         ERR_PropertyDoesntImplementInitOnly = 37313
 
+        ERR_BadAbstractStaticMemberAccess = 37314
+        ERR_UnimplementedSharedMember = 37315
+
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
         WRN_InvalidOverrideDueToTupleNames2 = 40001
@@ -1985,6 +1988,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_GeneratorFailedDuringGeneration = 42502
         WRN_AnalyzerReferencesFramework = 42503
 
+        WRN_CallerArgumentExpressionAttributeSelfReferential = 42504
+        WRN_CallerArgumentExpressionAttributeHasInvalidParameterName = 42505
+
         ' // AVAILABLE                             42600 - 49998
         ERRWRN_NextAvailable = 42600
 
@@ -2044,5 +2050,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_UnconstrainedTypeParameterInConditional
         FEATURE_CommentsAfterLineContinuation
         FEATURE_InitOnlySettersUsage
+        FEATURE_CallerArgumentExpression
     End Enum
 End Namespace

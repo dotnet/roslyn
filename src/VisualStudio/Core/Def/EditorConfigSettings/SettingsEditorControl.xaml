@@ -18,7 +18,7 @@
         </Grid.RowDefinitions>
         <TabControl TabStripPlacement="Top"
             Grid.Row="0">
-            <TabItem x:Name="FormattingTab" Header="{Binding Formatting}"/>
+            <TabItem x:Name="WhitespaceTab" Header="{Binding Whitespace}"/>
             <TabItem x:Name="CodeStyleTab" Header="{Binding CodeStyle}" />
             <TabItem x:Name="AnalyzersTab" Header="{Binding Analyzers}" />
         </TabControl>

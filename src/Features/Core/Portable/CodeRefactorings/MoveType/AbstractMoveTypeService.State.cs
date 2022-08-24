@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var syntaxFacts = SemanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
 
                 // compiler declared types, anonymous types, types defined in metadata should be filtered out.
-                if (!(SemanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is INamedTypeSymbol typeSymbol) ||
+                if (SemanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is not INamedTypeSymbol typeSymbol ||
                     typeSymbol.Locations.Any(loc => loc.IsInMetadata) ||
                     typeSymbol.IsAnonymousType ||
                     typeSymbol.IsImplicitlyDeclared ||

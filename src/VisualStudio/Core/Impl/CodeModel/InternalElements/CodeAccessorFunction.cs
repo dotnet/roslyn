@@ -29,11 +29,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         private CodeAccessorFunction(CodeModelState state, AbstractCodeMember parent, MethodKind kind)
             : base(state, parent.FileCodeModel)
         {
-            Debug.Assert(kind == MethodKind.EventAdd ||
-                         kind == MethodKind.EventRaise ||
-                         kind == MethodKind.EventRemove ||
-                         kind == MethodKind.PropertyGet ||
-                         kind == MethodKind.PropertySet);
+            Debug.Assert(kind is MethodKind.EventAdd or
+                         MethodKind.EventRaise or
+                         MethodKind.EventRemove or
+                         MethodKind.PropertyGet or
+                         MethodKind.PropertySet);
 
             _parentHandle = new ParentHandle<AbstractCodeMember>(parent);
             _kind = kind;
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         private AbstractCodeMember ParentMember => _parentHandle.Value;
 
         private bool IsPropertyAccessor()
-            => _kind == MethodKind.PropertyGet || _kind == MethodKind.PropertySet;
+            => _kind is MethodKind.PropertyGet or MethodKind.PropertySet;
 
         internal override bool TryLookupNode(out SyntaxNode node)
         {
@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get
             {
-                if (!(LookupSymbol() is IMethodSymbol methodSymbol))
+                if (LookupSymbol() is not IMethodSymbol methodSymbol)
                 {
                     throw Exceptions.ThrowEUnexpected();
                 }

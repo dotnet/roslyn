@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -28,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
             _generatedCodeAnalysisFlags = generatedCodeAnalysisFlags;
         }
 
+        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         public sealed override void Initialize(AnalysisContext context)
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
             bool isUnnecessary,
             bool isEnabledByDefault = true,
             bool isConfigurable = true,
-            LocalizableString description = null)
+            LocalizableString? description = null)
 #pragma warning disable RS0030 // Do not used banned APIs
             => new(
                     id, title, messageFormat,

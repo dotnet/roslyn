@@ -87,11 +87,6 @@
         <target state="translated">조건식으로 변환</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">튜플로 변환</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
         <source>Expression value is never used</source>
         <target state="translated">식 값은 절대 사용되지 않습니다.</target>

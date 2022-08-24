@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared ReadOnly s_createTypeParameter As Func(Of TypeParameterSymbol, Symbol, TypeParameterSymbol) =
             Function(typeParameter, container) New SynthesizedClonedTypeParameterSymbol(
                                                             typeParameter, container,
-                                                            StringConstants.StateMachineTypeParameterPrefix & typeParameter.Name,
+                                                            GeneratedNameConstants.StateMachineTypeParameterPrefix & typeParameter.Name,
                                                             s_typeSubstitutionFactory)
 
         Protected Friend Sub New(topLevelMethod As MethodSymbol,

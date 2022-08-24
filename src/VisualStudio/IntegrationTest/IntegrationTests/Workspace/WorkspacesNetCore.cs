@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -25,10 +26,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void OpenCSharpThenVBSolution()
         {
+            // The CSharpNetCoreClassLibrary template does not open a file automatically.
+            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), WellKnownProjectTemplates.CSharpNetCoreClassLibraryClassFileName);
             base.OpenCSharpThenVBSolution();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/55711"), Trait(Traits.Feature, Traits.Features.Workspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         [WorkItem(34264, "https://github.com/dotnet/roslyn/issues/34264")]
         public override void MetadataReference()
