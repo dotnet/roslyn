@@ -2,18 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Concurrent;
 using System.Composition;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
-namespace Microsoft.CodeAnalysis.IncrementalCaches
+namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 {
     /// <summary>
     /// Features like add-using want to be able to quickly search symbol indices for projects and
@@ -29,20 +23,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     /// This means that as the project is being indexed, partial results may be returned.  However
     /// once it is fully indexed, then total results will be returned.
     /// </summary>
-    [Shared]
-    [ExportIncrementalAnalyzerProvider(nameof(SymbolTreeInfoIncrementalAnalyzerProvider), new[] { WorkspaceKind.RemoteWorkspace })]
-    [ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService))]
-    internal partial class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, IWorkspaceServiceFactory
+    [ExportIncrementalAnalyzerProvider(
+        highPriorityForActiveFile: false, name: nameof(SymbolTreeInfoIncrementalAnalyzerProvider),
+        workspaceKinds: new[] { WorkspaceKind.Host }), Shared]
+    internal partial class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        // Concurrent dictionaries so they can be read from the SymbolTreeInfoCacheService while they are being
-        // populated/updated by the IncrementalAnalyzer.
-        //
-        // We always  keep around the latest computed information produced by the incremental analyzer.  That way the
-        // values are hopefully ready when someone calls on them for the current solution.
-
-        private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectIdToInfo = new();
-        private readonly ConcurrentDictionary<MetadataId, MetadataInfo> _metadataIdToInfo = new();
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SymbolTreeInfoIncrementalAnalyzerProvider()
@@ -50,9 +35,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new SymbolTreeInfoIncrementalAnalyzer(_projectIdToInfo, _metadataIdToInfo);
-
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new SymbolTreeInfoCacheService(_projectIdToInfo, _metadataIdToInfo);
+            => new SymbolTreeInfoIncrementalAnalyzer(workspace);
     }
 }
