@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Rename
         ValueTask<SerializableConflictResolution?> RenameSymbolsAsync(
             Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
-            ImmutableArray<(SerializableSymbolAndProjectId symbolAndProjectId, string replacementText, SymbolRenameOptions options)> renameSymbolsInfo,
+            ImmutableDictionary<SerializableSymbolAndProjectId, (string replacementText, SymbolRenameOptions options)> renameSymbolsInfo,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken);
 

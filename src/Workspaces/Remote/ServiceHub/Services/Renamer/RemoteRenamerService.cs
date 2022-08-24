@@ -65,17 +65,17 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (serializedRenameSymbolsInfo.IsEmpty)
                     return null;
 
-                using var _ = ArrayBuilder<(ISymbol symbol, string newName, SymbolRenameOptions options)>.GetInstance(out var builder);
+                using var _ = PooledDictionary<ISymbol, (string newName, SymbolRenameOptions options)>.GetInstance(out var builder);
                 foreach (var (symbolAndProjectId, replacementText, options) in serializedRenameSymbolsInfo)
                 {
                     var symbol = await symbolAndProjectId.TryRehydrateAsync(
                         solution, cancellationToken).ConfigureAwait(false);
-                    builder.Add((symbol, replacementText, options));
+                    builder[symbol] = (replacementText, options);
                 }
 
                 var fallbackOptions = GetClientOptionsProvider(callbackId);
                 var result = await Renamer.RenameSymbolsAsync(
-                    solution, builder.ToImmutableArray(), fallbackOptions, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+                    solution, builder.ToImmutableDictionary(), fallbackOptions, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
 
                 return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);

@@ -96,14 +96,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// </summary>
         internal static async Task<ConflictResolution> ResolveSymbolicLocationConflictsInCurrentProcessAsync(
             Solution solution,
-            ImmutableArray<(SymbolicRenameLocations symbolicRenameLocations, string replacementText)> renameSymbolInfo,
+            ImmutableDictionary<ISymbol, (SymbolicRenameLocations symbolicRenameLocations, string replacementText)> renameSymbolInfo,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CodeCleanupOptionsProvider fallBackOptions,
             CancellationToken cancellationToken)
         {
             // when someone e.g. renames a symbol from metadata through the API (IDE blocks this), we need to return
-            var renamedSymbols = renameSymbolInfo.SelectAsArray(pair => pair.symbolicRenameLocations.Symbol);
-            var symbolNotInSource = renamedSymbols.FirstOrDefault(symbol => symbol.Locations.All(loc => !loc.IsInSource));
+            var symbolNotInSource = renameSymbolInfo.Select(pair => pair.Key).FirstOrDefault(symbol => symbol.Locations.All(loc => !loc.IsInSource));
             if (symbolNotInSource != null)
             {
                 // Symbol "{0}" is not from source.
@@ -122,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         private static async Task<MutableConflictResolution> ResolveMutableConflictsAsync(
             Solution solution,
-            ImmutableArray<(SymbolicRenameLocations symbolicRenameLocations, string replacementText)> renameSymbolInfo,
+            ImmutableDictionary<ISymbol, (SymbolicRenameLocations symbolicRenameLocations, string replacementText)> renameSymbolInfo,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CodeCleanupOptionsProvider fallBackOptions,
             CancellationToken cancellationToken)
@@ -130,10 +129,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             Contract.ThrowIfTrue(renameSymbolInfo.IsEmpty);
             cancellationToken.ThrowIfCancellationRequested();
             Session session;
-            if (renameSymbolInfo.Length == 1)
+            if (renameSymbolInfo.Count == 1)
             {
-                var renameLocations = renameSymbolInfo[0].symbolicRenameLocations;
-                var replacementText = renameSymbolInfo[0].replacementText;
+                var renameLocations = renameSymbolInfo.Single().Value.symbolicRenameLocations;
+                var replacementText = renameSymbolInfo.Single().Value.replacementText;
                 var renameSymbolDeclarationLocation  = renameLocations.Symbol.Locations.First(loc => loc.IsInSource);
                 session = await SingleSymbolRenameSession.CreateAsync(
                     renameLocations,  renameSymbolDeclarationLocation,

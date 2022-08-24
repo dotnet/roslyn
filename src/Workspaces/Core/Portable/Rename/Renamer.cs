@@ -152,37 +152,36 @@ namespace Microsoft.CodeAnalysis.Rename
 
         internal static async Task<ConflictResolution> RenameSymbolsAsync(
             Solution solution,
-            ImmutableArray<(ISymbol symbol, string newName, SymbolRenameOptions options)> renameSymbolsInfo,
+            ImmutableDictionary<ISymbol, (string newName, SymbolRenameOptions options)> symbolToRenameInfo,
             CodeCleanupOptionsProvider fallbackOptions,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(solution);
-            Contract.ThrowIfTrue(renameSymbolsInfo.IsDefaultOrEmpty);
-
-            using var _ = ArrayBuilder<(SerializableSymbolAndProjectId serializableSymbol, string replacementText, SymbolRenameOptions options)>.GetInstance(out var builder);
-            foreach (var (symbol, newName, options) in renameSymbolsInfo)
-            {
-                Contract.ThrowIfNull(symbol);
-                Contract.ThrowIfTrue(string.IsNullOrEmpty(newName));
-                if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
-                {
-                    builder.Add((serializedSymbol, newName, options));
-                }
-            }
-
+            Contract.ThrowIfTrue(symbolToRenameInfo.IsEmpty);
             cancellationToken.ThrowIfCancellationRequested();
             using (Logger.LogBlock(FunctionId.Renamer_RenameSymbolAsync, cancellationToken))
             {
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
+                    using var _ = PooledDictionary<SerializableSymbolAndProjectId, (string replacementText, SymbolRenameOptions options)>.GetInstance(out var builder);
+                    foreach (var (symbol, (newName, options)) in symbolToRenameInfo)
+                    {
+                        Contract.ThrowIfNull(symbol);
+                        Contract.ThrowIfTrue(string.IsNullOrEmpty(newName));
+                        if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
+                        {
+                            builder[serializedSymbol] = (newName, options);
+                        }
+                    }
+
                     var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
                         solution,
                         (service, solutionInfo, callbackId, cancellationToken) => service.RenameSymbolsAsync(
                             solutionInfo,
                             callbackId,
-                            builder.ToImmutableArray(),
+                            builder.ToImmutableDictionary(),
                             nonConflictSymbolKeys,
                             cancellationToken),
                         callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Services, fallbackOptions),
@@ -196,34 +195,33 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             return await RenameSymbolInCurrentProcessAsync(
-                solution, renameSymbolsInfo, fallbackOptions,
+                solution, symbolToRenameInfo, fallbackOptions,
                 nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<ConflictResolution> RenameSymbolInCurrentProcessAsync(
             Solution solution,
-            ImmutableArray<(ISymbol symbol, string newName, SymbolRenameOptions options)> renameSymbolsInfo,
+            ImmutableDictionary<ISymbol, (string newName, SymbolRenameOptions options)> renameSymbolsInfo,
             CodeCleanupOptionsProvider cleanupOptions,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(solution);
-            Contract.ThrowIfTrue(renameSymbolsInfo.IsDefaultOrEmpty);
+            Contract.ThrowIfTrue(renameSymbolsInfo.IsEmpty);
 
             cancellationToken.ThrowIfCancellationRequested();
 
             // Since we know we're in the oop process, we know we won't need to make more OOP calls.  Since this is the
             // rename entry-point that does the entire rename, we can directly use the heavyweight RenameLocations type,
             // without having to go through any intermediary LightweightTypes.
-
-            using var _ = ArrayBuilder<(SymbolicRenameLocations SymbolicRenameLocations, string replacementText)>.GetInstance(out var builder);
-            foreach (var (symbol, newName, options) in renameSymbolsInfo)
+            using var _ = PooledDictionary<ISymbol, (SymbolicRenameLocations SymbolicRenameLocations, string replacementText)>.GetInstance(out var builder);
+            foreach (var (symbol, (newName, options)) in renameSymbolsInfo)
             {
                 var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(symbol, solution, options, cancellationToken).ConfigureAwait(false);
-                builder.Add((renameLocations, newName));
+                builder[symbol] = (renameLocations, newName);
             }
 
-            return await ConflictResolver.ResolveSymbolicLocationConflictsInCurrentProcessAsync(solution, builder.ToImmutableArray(), nonConflictSymbolKeys, cleanupOptions, cancellationToken).ConfigureAwait(false);
+            return await ConflictResolver.ResolveSymbolicLocationConflictsInCurrentProcessAsync(solution, builder.ToImmutableDictionary(), nonConflictSymbolKeys, cleanupOptions, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
