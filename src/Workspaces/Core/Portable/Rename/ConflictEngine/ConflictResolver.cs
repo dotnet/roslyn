@@ -85,14 +85,16 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             if (heavyweightLocations is null)
                 return new ConflictResolution(WorkspacesResources.Failed_to_resolve_rename_conflicts);
 
+            var symbolToRenameInfo = ImmutableDictionary<ISymbol, (SymbolicRenameLocations symbolicRenameLocations, string replacementText)>.Empty
+                .Add(symbol, (heavyweightLocations, replacementText));
             return await ResolveSymbolicLocationConflictsInCurrentProcessAsync(
                solution,
-               ImmutableArray.Create((heavyweightLocations, replacementText)), nonConflictSymbolKeys, fallBackOptions, cancellationToken).ConfigureAwait(false);
+               symbolToRenameInfo, nonConflictSymbolKeys, fallBackOptions, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Finds any conflicts that would arise from using <paramref name="replacementText"/> as the new name for a
-        /// symbol and returns how to resolve those conflicts.  Will not cross any process boundaries to do this.
+        /// Finds any conflicts that would arise from renaming symbols using the information in <paramref name="renameSymbolInfo"/>
+        /// and returns how to resolve those conflicts.  Will not cross any process boundaries to do this.
         /// </summary>
         internal static async Task<ConflictResolution> ResolveSymbolicLocationConflictsInCurrentProcessAsync(
             Solution solution,
@@ -115,24 +117,22 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 nonConflictSymbolKeys,
                 fallBackOptions,
                 cancellationToken).ConfigureAwait(false);
-
             return resolution.ToConflictResolution();
         }
 
         private static async Task<MutableConflictResolution> ResolveMutableConflictsAsync(
             Solution solution,
-            ImmutableDictionary<ISymbol, (SymbolicRenameLocations symbolicRenameLocations, string replacementText)> renameSymbolInfo,
+            ImmutableDictionary<ISymbol, (SymbolicRenameLocations symbolicRenameLocations, string replacementText)> symbolToRenameInfo,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CodeCleanupOptionsProvider fallBackOptions,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfTrue(renameSymbolInfo.IsEmpty);
+            Contract.ThrowIfTrue(symbolToRenameInfo.IsEmpty);
             cancellationToken.ThrowIfCancellationRequested();
             Session session;
-            if (renameSymbolInfo.Count == 1)
+            if (symbolToRenameInfo.Count == 1)
             {
-                var renameLocations = renameSymbolInfo.Single().Value.symbolicRenameLocations;
-                var replacementText = renameSymbolInfo.Single().Value.replacementText;
+                var (renameLocations, replacementText) = symbolToRenameInfo.Single().Value;
                 var renameSymbolDeclarationLocation  = renameLocations.Symbol.Locations.First(loc => loc.IsInSource);
                 session = await SingleSymbolRenameSession.CreateAsync(
                     renameLocations,  renameSymbolDeclarationLocation,
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
             else
             {
-                session = await MultipleSymbolsRenameSessions.CreateAsync(solution, renameSymbolInfo, nonConflictSymbolKeys, fallBackOptions, cancellationToken).ConfigureAwait(false);
+                session = await MultipleSymbolsRenameSessions.CreateAsync(solution, symbolToRenameInfo, nonConflictSymbolKeys, fallBackOptions, cancellationToken).ConfigureAwait(false);
             }
 
             return await session.ResolveConflictsAsync().ConfigureAwait(false);

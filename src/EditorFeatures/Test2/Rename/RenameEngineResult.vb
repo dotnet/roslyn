@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 ' marshaled back.
 
                 Return Renamer.RenameSymbolsAsync(
-                    solution, ImmutableArray.Create((symbol, renameTo, renameOptions)), CodeActionOptions.DefaultProvider,
+                    solution, ImmutableDictionary(Of ISymbol, (String, SymbolRenameOptions)).Empty.Add(symbol, (renameTo, renameOptions)), CodeActionOptions.DefaultProvider,
                     nonConflictSymbolKeys:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
             End If
         End Function

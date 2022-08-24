@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 >>>>>>> bac7f483a19 (Add the stub)
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public ValueTask<SerializableConflictResolution?> RenameSymbolsAsync(
             Checksum solutionChecksum,
             RemoteServiceCallbackId callbackId,
-            ImmutableArray<(SerializableSymbolAndProjectId symbolAndProjectId, string replacementText, SymbolRenameOptions options)> serializedRenameSymbolsInfo,
+            ImmutableDictionary<SerializableSymbolAndProjectId, (string replacementText, SymbolRenameOptions options)> serializedRenameSymbolsInfo,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken)
         {
@@ -66,11 +67,14 @@ namespace Microsoft.CodeAnalysis.Remote
                     return null;
 
                 using var _ = PooledDictionary<ISymbol, (string newName, SymbolRenameOptions options)>.GetInstance(out var builder);
-                foreach (var (symbolAndProjectId, replacementText, options) in serializedRenameSymbolsInfo)
+                foreach (var (symbolAndProjectId, (replacementText, options)) in serializedRenameSymbolsInfo)
                 {
                     var symbol = await symbolAndProjectId.TryRehydrateAsync(
                         solution, cancellationToken).ConfigureAwait(false);
-                    builder[symbol] = (replacementText, options);
+                    if (symbol != null)
+                    {
+                        builder[symbol] = (replacementText, options);
+                    }
                 }
 
                 var fallbackOptions = GetClientOptionsProvider(callbackId);
@@ -129,7 +133,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var fallBackOptions = GetClientOptionsProvider(callbackId);
                 var result = await ConflictResolver.ResolveSymbolicLocationConflictsInCurrentProcessAsync(
-                    solution, ImmutableArray.Create((locations, replacementText)), nonConflictSymbolKeys, fallBackOptions, cancellationToken).ConfigureAwait(false);
+                    solution, ImmutableDictionary<ISymbol, (SymbolicRenameLocations symbolicRenameLocations, string replacementText)>.Empty.Add(symbol, (locations, replacementText)),
+                    nonConflictSymbolKeys,
+                    fallBackOptions,
+                    cancellationToken).ConfigureAwait(false);
 
                 return await result.DehydrateAsync(cancellationToken).ConfigureAwait(false);
             }, cancellationToken);

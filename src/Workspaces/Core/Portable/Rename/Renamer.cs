@@ -53,8 +53,10 @@ namespace Microsoft.CodeAnalysis.Rename
             if (string.IsNullOrEmpty(newName))
                 throw new ArgumentException(WorkspacesResources._0_must_be_a_non_null_and_non_empty_string, nameof(newName));
 
+            var symbolToRenameInfo = ImmutableDictionary<ISymbol, (string newName, SymbolRenameOptions options)>.Empty
+                .Add(symbol, (newName, options));
             var resolution = await RenameSymbolsAsync(
-                solution, ImmutableArray.Create((symbol, newName, options)), CodeActionOptions.DefaultProvider, nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
+                solution, symbolToRenameInfo, CodeActionOptions.DefaultProvider, nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
             if (resolution.IsSuccessful)
             {
                 return resolution.NewSolution;
@@ -168,7 +170,6 @@ namespace Microsoft.CodeAnalysis.Rename
                     using var _ = PooledDictionary<SerializableSymbolAndProjectId, (string replacementText, SymbolRenameOptions options)>.GetInstance(out var builder);
                     foreach (var (symbol, (newName, options)) in symbolToRenameInfo)
                     {
-                        Contract.ThrowIfNull(symbol);
                         Contract.ThrowIfTrue(string.IsNullOrEmpty(newName));
                         if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
                         {
@@ -194,12 +195,12 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
             }
 
-            return await RenameSymbolInCurrentProcessAsync(
+            return await RenameSymbolsInCurrentProcessAsync(
                 solution, symbolToRenameInfo, fallbackOptions,
                 nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<ConflictResolution> RenameSymbolInCurrentProcessAsync(
+        private static async Task<ConflictResolution> RenameSymbolsInCurrentProcessAsync(
             Solution solution,
             ImmutableDictionary<ISymbol, (string newName, SymbolRenameOptions options)> renameSymbolsInfo,
             CodeCleanupOptionsProvider cleanupOptions,

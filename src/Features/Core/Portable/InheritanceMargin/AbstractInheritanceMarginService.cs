@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
-    using SymbolAndLineNumberArrayfff = ImmutableArray<(ISymbol symbol, int lineNumber)>;
+    using SymbolAndLineNumberArray = ImmutableArray<(ISymbol symbol, int lineNumber)>;
 
     internal abstract partial class AbstractInheritanceMarginService : IInheritanceMarginService
     {
