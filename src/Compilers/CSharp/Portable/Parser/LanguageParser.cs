@@ -2739,12 +2739,10 @@ parse_member_name:;
                 else if (parentKind is SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration ||
                          parentKind == SyntaxKind.CompilationUnit && !IsScript)
                 {
-                    // PROTOTYPE: Is this now reachable?
                     result = this.AddErrorToLastToken(incompleteMember, ErrorCode.ERR_NamespaceUnexpected);
                 }
                 else
                 {
-                    // PROTOTYPE: Is this now reachable?
                     //the error position should indicate CurrentToken
                     result = this.AddError(
                         incompleteMember,
