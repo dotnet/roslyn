@@ -162,6 +162,11 @@
         <target state="new">Convert to positional record</target>
         <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Convert_to_property_record">
+        <source>Convert to property record</source>
+        <target state="new">Convert to property record</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">원시 문자열로 변환</target>

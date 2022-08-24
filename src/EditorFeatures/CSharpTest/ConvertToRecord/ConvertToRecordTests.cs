@@ -151,7 +151,7 @@ namespace N
     public record [|C|](int P);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -175,7 +175,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -199,7 +199,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -220,7 +220,7 @@ namespace N
     public record C(int P);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -241,7 +241,7 @@ namespace N
     public record [|C|](int P);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -262,7 +262,7 @@ namespace N
     public readonly record struct [|C|](int P);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -296,7 +296,7 @@ namespace N
     public record {|CS0115:{|CS0115:{|CS0115:{|CS8867:C|}|}|}|}(int P) : {|CS8864:B|};
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -327,7 +327,7 @@ namespace N
     public record C(int P) : B;
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -352,7 +352,7 @@ namespace N
     public record C(int Foo, int Bar, int P) : B(Foo, Bar);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -389,7 +389,7 @@ namespace N
     public record C(int Foo, int Bar, int P) : B(Foo, Bar);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -421,7 +421,7 @@ namespace N
     public record C(int P, int Bar, int Foo) : B(Foo, Bar);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -463,7 +463,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -494,7 +494,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -516,7 +516,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -538,7 +538,7 @@ namespace N
     public record struct C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -560,7 +560,7 @@ namespace N
     public readonly record struct C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         // if there are both init and set properties, convert both but keep set property override
@@ -587,7 +587,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -609,7 +609,7 @@ namespace N
     public record C<TA, TB>(TA? P, TB? B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -640,7 +640,7 @@ namespace N
             where TB : IEnumerable<TA>;
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -669,7 +669,7 @@ namespace N
     public record C([property: Obsolete(""P is Obsolete"", error: true)] int P, [property: Obsolete(""B will be obsolete, error: false"")] bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -702,7 +702,7 @@ namespace N
     public record C([property: Obsolete(""P is Obsolete"", error: true)] int P, [property: Obsolete(""B will be obsolete, error: false"")] bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -731,7 +731,7 @@ namespace N
     public record C([/*comment before*/ property: Obsolete(""P is Obsolete"", error: true)] int P, [property: Obsolete(""B will be obsolete, error: false"") /* comment after*/] bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -758,7 +758,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -789,7 +789,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -827,7 +827,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -862,7 +862,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -889,7 +889,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -916,7 +916,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -944,7 +944,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -977,7 +977,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1010,7 +1010,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1043,7 +1043,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1082,7 +1082,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1115,7 +1115,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1148,7 +1148,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1191,7 +1191,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1223,7 +1223,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1255,7 +1255,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1287,7 +1287,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1332,7 +1332,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1365,7 +1365,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1408,7 +1408,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1451,7 +1451,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1490,7 +1490,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1518,7 +1518,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1546,7 +1546,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1581,7 +1581,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1609,7 +1609,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1640,7 +1640,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1676,7 +1676,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1712,7 +1712,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1758,7 +1758,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1794,7 +1794,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1846,7 +1846,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1876,7 +1876,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1910,7 +1910,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1957,7 +1957,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -1987,7 +1987,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2017,7 +2017,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2047,7 +2047,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2077,7 +2077,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2105,7 +2105,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2135,7 +2135,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2165,7 +2165,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2214,7 +2214,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2263,7 +2263,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2310,7 +2310,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2357,7 +2357,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2384,7 +2384,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2412,7 +2412,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2445,7 +2445,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2481,7 +2481,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2519,7 +2519,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2547,7 +2547,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2571,7 +2571,7 @@ namespace N
     public record C(int P);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2599,7 +2599,7 @@ namespace N
     public record C(bool B, int P);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2627,7 +2627,7 @@ namespace N
     public record C(bool B = false, int P = 0);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2666,7 +2666,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2718,7 +2718,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2777,7 +2777,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2836,7 +2836,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2875,7 +2875,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2924,7 +2924,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -2969,7 +2969,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3011,7 +3011,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3059,7 +3059,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3100,7 +3100,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3141,7 +3141,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3180,7 +3180,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3217,7 +3217,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3256,7 +3256,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3319,7 +3319,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3370,7 +3370,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3414,7 +3414,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3474,7 +3474,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3536,7 +3536,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3568,7 +3568,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3603,7 +3603,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3648,7 +3648,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3689,7 +3689,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3735,7 +3735,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3781,7 +3781,7 @@ namespace N
     public record C(int P, bool B);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3823,7 +3823,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3874,7 +3874,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3915,7 +3915,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -3970,7 +3970,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -4039,7 +4039,8 @@ namespace N2
                         changedMarkup1,
                         changedMarkup2
                     }
-                }
+                },
+                CodeActionEquivalenceKey = nameof(CSharpFeaturesResources.Convert_to_positional_record),
             }.RunAsync().ConfigureAwait(false);
         }
 
@@ -4119,7 +4120,7 @@ namespace N
     }
 }
 ";
-            await TestRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -4140,7 +4141,7 @@ namespace N
     public record C(int P);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         [Fact]
@@ -4161,7 +4162,7 @@ namespace N
     public record C(int P);
 }
 ";
-            await TestRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
         }
 
         #endregion
@@ -4194,19 +4195,25 @@ namespace N
             }
         }
 
+        private static async Task TestPositionalRefactoringAsync(string initialMarkup, string changedMarkup)
+            => await TestRefactoringAsync(initialMarkup, changedMarkup,
+                equivalenceKey: nameof(CSharpFeaturesResources.Convert_to_positional_record)).ConfigureAwait(false);
+
         private static async Task TestRefactoringAsync(
             string initialMarkup,
-            string changedMarkup)
+            string changedMarkup,
+            string? equivalenceKey = null)
         {
             var test = new Test()
             {
                 TestCode = initialMarkup,
                 FixedCode = changedMarkup,
+                CodeActionEquivalenceKey = equivalenceKey,
             };
             await test.RunAsync().ConfigureAwait(false);
         }
 
-        private static Task TestNoRefactoringAsync(
-            string initialMarkup) => TestRefactoringAsync(initialMarkup, initialMarkup);
+        private static Task TestNoRefactoringAsync(string initialMarkup)
+            => TestRefactoringAsync(initialMarkup, initialMarkup);
     }
 }

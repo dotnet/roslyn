@@ -632,4 +632,8 @@
     <value>Convert to positional record</value>
     <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Convert_to_property_record" xml:space="preserve">
+    <value>Convert to property record</value>
+    <comment>{Locked="record"} "record" is a C# keyword and should not be localized.</comment>
+  </data>
 </root>
