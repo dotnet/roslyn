@@ -695,6 +695,135 @@ class C
 }");
         }
 
+        [WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIfStatementWithPreprocessorBlock1()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        if (o is null)
+        {
+#if true
+            o = """";
+#endif
+        }
+    }
+}");
+        }
+
+        [WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIfStatementWithPreprocessorBlock2()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        if (o is null)
+        {
+#if X
+            Console.WriteLine(""Only run if o is null"");
+#endif
+            o = """";
+        }
+    }
+}");
+        }
+
+        [WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIfStatementWithPreprocessorBlock3()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        if (o is null)
+        {
+#if X
+            Console.WriteLine(""Only run if o is null"");
+#else
+            o = """";
+#endif
+        }
+    }
+}");
+        }
+
+        [WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIfStatementWithPreprocessorBlock4()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        if (o is null)
+        {
+#if X
+            Console.WriteLine(""Only run if o is null"");
+#elif true
+            o = """";
+#endif
+        }
+    }
+}");
+        }
+
+        [WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIfStatementWithPreprocessorBlock5()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        if (o is null)
+        {
+#if true
+            o = """";
+#else
+            Console.WriteLine(""Only run if o is null"");
+#endif
+        }
+    }
+}");
+        }
+
+        [WorkItem(63552, "https://github.com/dotnet/roslyn/issues/63552")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIfStatementWithPreprocessorBlock6()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    static void Main(object o)
+    {
+        if (o is null)
+        {
+#if true
+            o = """";
+#elif X
+            Console.WriteLine(""Only run if o is null"");
+#endif
+        }
+    }
+}");
+        }
+
         [WorkItem(62473, "https://github.com/dotnet/roslyn/issues/62473")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestPointerCannotUseCoalesceAssignment()
