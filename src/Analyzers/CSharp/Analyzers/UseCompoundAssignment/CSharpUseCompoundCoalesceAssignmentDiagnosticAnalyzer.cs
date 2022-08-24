@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
                 return;
             }
 
-            if (semanticModel.GetTypeInfo(testedExpression, cancellationToken).Type.IsPointerType())
+            if (semanticModel.GetTypeInfo(testedExpression, cancellationToken).Type is IPointerTypeSymbol or IFunctionPointerTypeSymbol)
             {
                 // pointers cannot use ??=
                 return;
