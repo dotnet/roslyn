@@ -703,11 +703,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination, isExpressionTree: destination.IsGenericOrNonGenericExpressionType(out _));
             diagnostics.AddRange(boundLambda.Diagnostics);
 
-            if (conversion.HasWarning)
-            {
-                GenerateImplicitConversionError(diagnostics, syntax, conversion, source, destination);
-            }
-
             CheckValidScopedMethodConversion(syntax, boundLambda.Symbol, destination, invokedAsExtensionMethod: false, diagnostics);
             return new BoundConversion(
                 syntax,
