@@ -117,12 +117,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static Project? GetProject(this Solution solution, TextDocumentIdentifier projectIdentifier)
             => solution.Projects.Where(project => project.FilePath == projectIdentifier.Uri.LocalPath).SingleOrDefault();
 
-        public static TextDocument? GetAdditionalDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
+        public static TextDocument? GetTextDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
         {
             var documentIds = GetDocumentIds(solution, documentIdentifier.Uri);
 
             // We don't call GetRequiredAdditionalDocument as the id could be referring to a regular document.
-            return documentIds.Select(solution.GetAdditionalDocument).WhereNotNull().SingleOrDefault();
+            return documentIds.Select(solution.GetTextDocument).WhereNotNull().SingleOrDefault();
         }
 
         public static async Task<int> GetPositionFromLinePositionAsync(this TextDocument document, LinePosition linePosition, CancellationToken cancellationToken)

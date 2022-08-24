@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     return new ProjectOrDocumentId(project.Id);
                 }
 
-                var additionalDocument = solution.GetAdditionalDocument(textDocumentIdentifier);
+                var additionalDocument = solution.GetTextDocument(textDocumentIdentifier);
                 if (additionalDocument != null)
                 {
                     return new ProjectOrDocumentId(additionalDocument.Id);
