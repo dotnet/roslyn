@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
         public string GetDocumentation()
         {
-            return Description;
+            return EditorConfigData.GetSettingNameDocumentation();
         }
 
         public ImmutableArray<string>? GetSettingValues()
