@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         return embedded.GetMessage(EnsureEnglishUICulture.PreferredOrNull);
                     }
 
-                    var fmt = _originalFormatSpecifiers is not null ? _originalFormatSpecifiers.Value[i] : "{0}";
+                    var fmt = _originalFormatSpecifiers is { Length: var len } && i < len ? _originalFormatSpecifiers.Value[i] : "{0}";
                     return string.Format(EnsureEnglishUICulture.PreferredOrNull, fmt, o);
                 });
             }

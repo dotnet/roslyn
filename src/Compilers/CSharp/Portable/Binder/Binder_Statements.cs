@@ -2176,14 +2176,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (int i = 0; i < anonymousFunction.ParameterCount; i++)
                 {
-                    var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
                     var lambdaParamDefaultVal = lambdaSymbol.Parameters[i].ExplicitDefaultConstantValue;
-                    var delegateParamDefaultVal = delegateParameters[i].ExplicitDefaultConstantValue;
 
-                    if (lambdaParamDefaultVal is not null && lambdaParamDefaultVal != delegateParamDefaultVal)
+                    if (lambdaParamDefaultVal is not null && !lambdaParamDefaultVal.IsBad)
                     {
-                        // Parameter {0} has default value '{1}' in lambda and '{2}' in target delegate type.
-                        reportDefaultParameterMismatchError(diagnostics, lambdaParameterLocation, i + 1, lambdaParamDefaultVal, delegateParamDefaultVal);
+                        var delegateParamDefaultVal = delegateParameters[i].ExplicitDefaultConstantValue;
+                        if ((!delegateParamDefaultVal?.IsBad ?? true) && lambdaParamDefaultVal != delegateParamDefaultVal)
+                        {
+                            var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
+
+                            // Parameter {0} has default value '{1}' in lambda and '{2}' in target delegate type.
+                            Error(diagnostics, ErrorCode.ERR_OptionalParamValueMismatch, lambdaParameterLocation, i + 1, lambdaParamDefaultVal!, delegateParamDefaultVal ?? ((object)"<missing>"));
+                        }
                     }
                 }
                 return;
@@ -2201,23 +2205,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(false, "Missing case in lambda conversion error reporting");
             diagnostics.Add(ErrorCode.ERR_InternalError, syntax.Location);
-
-            static void reportDefaultParameterMismatchError(BindingDiagnosticBag diagnostics, Location lambdaParameterLocation, int paramIdx, ConstantValue lambdaDefault, ConstantValue? delegateDefault)
-            {
-                if (lambdaDefault.IsBad || (delegateDefault?.IsBad ?? false))
-                {
-                    return;
-                }
-
-                if (delegateDefault is null)
-                {
-                    Error(diagnostics, ErrorCode.ERR_OptionalParamValueMismatch, lambdaParameterLocation, paramIdx, lambdaDefault, "<missing>");
-                }
-                else
-                {
-                    Error(diagnostics, ErrorCode.ERR_OptionalParamValueMismatch, lambdaParameterLocation, paramIdx, lambdaDefault, delegateDefault);
-                }
-            }
         }
 #nullable disable
 

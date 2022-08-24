@@ -841,7 +841,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Interlocked.CompareExchange(ref _lazyLambdaSymbol, CreateTemporaryLambdaSymbol(), null);
+                if (_lazyLambdaSymbol is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyLambdaSymbol, CreateTemporaryLambdaSymbol(), null);
+                }
+
                 return _lazyLambdaSymbol;
             }
         }
