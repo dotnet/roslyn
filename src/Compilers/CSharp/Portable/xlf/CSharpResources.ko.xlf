@@ -978,8 +978,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid">
-        <source>Module initializer method '{0}' must be static, must have no parameters, and must return 'void'</source>
-        <target state="translated">모듈 이니셜라이저 메서드 '{0}'은(는) 정적이어야 하고, 매개 변수가 없어야 하며, 'void'를 반환해야 합니다.</target>
+        <source>Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</source>
+        <target state="needs-review-translation">모듈 이니셜라이저 메서드 '{0}'은(는) 정적이어야 하고, 매개 변수가 없어야 하며, 'void'를 반환해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">

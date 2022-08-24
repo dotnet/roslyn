@@ -893,7 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnostics.Add(arguments.AttributeSyntaxOpt, useSiteInfo);
 
-            if (!IsStatic || ParameterCount > 0 || !ReturnsVoid)
+            if (!IsStatic || ParameterCount > 0 || !ReturnsVoid || IsAbstract || IsVirtual)
             {
                 diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, arguments.AttributeSyntaxOpt.Location, Name);
                 hasError = true;
