@@ -133,7 +133,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                 var filePath = document.FilePath;
                 Contract.ThrowIfNull(filePath);
 
-                var optionSet = workspace.Options;
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var diagnostics = new List<DiagnosticData>();
 
