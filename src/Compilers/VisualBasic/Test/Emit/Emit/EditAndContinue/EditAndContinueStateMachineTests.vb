@@ -8321,7 +8321,7 @@ End Class")
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
 
-                ' Notice that we reused field "$VB$ResumableLocal_$VB$Closure_$0" (there is no "$VB$ResumableLocal_$VB$Closure_$1"), which stores the local function closure pointer.
+                ' Notice that we reused field "$VB$ResumableLocal_$VB$Closure_$0" (there is no "$VB$ResumableLocal_$VB$Closure_$1"), which stores the closure pointer.
                 diff1.VerifySynthesizedMembers(
                     "C: {VB$StateMachine_1_M, _Closure$__1-0}",
                     "C.VB$StateMachine_1_M: {$State, $Builder, $VB$ResumableLocal_$VB$Closure_$0, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}",
@@ -8431,7 +8431,7 @@ End Class")
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
 
-                ' Notice that we reused field "$W0" (there is no "$W1"), which stores the local function closure pointer.
+                ' Notice that we reused field "$W0" (there is no "$W1"), which stores the closure pointer.
                 diff1.VerifySynthesizedMembers(
                     "C: {VB$StateMachine_3_M}",
                     "C.VB$StateMachine_3_M: {$State, $Builder, $W0, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
