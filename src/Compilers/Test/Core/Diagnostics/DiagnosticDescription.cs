@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly bool _ignoreArgumentsWhenComparing;
         private readonly DiagnosticSeverity? _defaultSeverityOpt;
         private readonly DiagnosticSeverity? _effectiveSeverityOpt;
-        private readonly ImmutableArray<string>? _originalFormatSpecifiers;
+        private readonly ImmutableArray<string> _originalFormatSpecifiers = default;
 
         // fields for DiagnosticDescriptions constructed via factories
         private readonly Func<SyntaxNode, bool> _syntaxPredicate;
@@ -60,8 +60,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         return embedded.GetMessage(EnsureEnglishUICulture.PreferredOrNull);
                     }
 
-                    var fmt = _originalFormatSpecifiers is { Length: var len } && i < len ? _originalFormatSpecifiers.Value[i] : "{0}";
-                    return string.Format(EnsureEnglishUICulture.PreferredOrNull, fmt, o);
+                    return !_originalFormatSpecifiers.IsDefault && i < _originalFormatSpecifiers.Length ?
+                        string.Format(_originalFormatSpecifiers[i], o) :
+                        string.Format(EnsureEnglishUICulture.PreferredOrNull, "{0}", o);
                 });
             }
             return _argumentsAsStrings;
@@ -91,7 +92,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _defaultSeverityOpt = defaultSeverityOpt;
             _effectiveSeverityOpt = effectiveSeverityOpt;
             _isSuppressed = isSuppressed;
-            _originalFormatSpecifiers = null;
         }
 
         public DiagnosticDescription(
@@ -117,7 +117,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _defaultSeverityOpt = defaultSeverityOpt;
             _effectiveSeverityOpt = effectiveSeverityOpt;
             _isSuppressed = isSuppressed;
-            _originalFormatSpecifiers = null;
         }
 
         public DiagnosticDescription(Diagnostic d, bool errorCodeOnly, bool includeDefaultSeverity = false, bool includeEffectiveSeverity = false)
@@ -462,9 +461,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return sb.ToString();
         }
 
-        public static ImmutableArray<string>? GetFormatSpecifiers(string messageFormat)
+        private static ImmutableArray<string> GetFormatSpecifiers(string messageFormat)
         {
-            ImmutableArray<string>? specifiers = null;
+            ImmutableArray<string> specifiers = default;
             if (Regex.Matches(messageFormat, @"\{\d+(:\d+)?\}") is { Count: > 0 } matches)
             {
                 var builder = ArrayBuilder<string>.GetInstance();
