@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         private readonly IdeAnalyzerOptions _ideOptions;
         private readonly TextSpan? _span;
         private readonly AnalysisKind? _analysisKind;
-        private readonly IPerformanceTrackerService _performanceTracker;
+        private readonly IPerformanceTrackerService? _performanceTracker;
         private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
         public DiagnosticComputer(
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             _analysisKind = analysisKind;
             _analyzerInfoCache = analyzerInfoCache;
 
-            _performanceTracker = project.Solution.Services.GetRequiredService<IPerformanceTrackerService>();
+            _performanceTracker = project.Solution.Services.GetService<IPerformanceTrackerService>();
         }
 
         public async Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var (analysisResult, additionalPragmaSuppressionDiagnostics) = await compilationWithAnalyzers.GetAnalysisResultAsync(
                 documentAnalysisScope, _project, _analyzerInfoCache, cancellationToken).ConfigureAwait(false);
 
-            if (logPerformanceInfo)
+            if (logPerformanceInfo && _performanceTracker != null)
             {
                 // +1 to include project itself
                 var unitCount = documentAnalysisScope != null ? 1 : _project.DocumentIds.Count + 1;
