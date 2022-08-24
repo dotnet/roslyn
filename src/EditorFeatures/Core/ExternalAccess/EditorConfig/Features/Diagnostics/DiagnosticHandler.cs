@@ -156,14 +156,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                         var settingsSnapshots = SettingsHelper.GetSettingsSnapshots(workspace, filePath);
                         var settingsItems = settingsSnapshots.Select(sett => sett.GetSettingName()).WhereNotNull();
 
-                        // Checkt that the setting name exists
+                        // Check that the setting name exists
                         if (ShowDiagnosticForSettingName(settingsItems, leftSide))
                         {
                             diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.SettingNotFound, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
                             continue;
                         }
 
-                        // Check for repeated settings
+                        // Check that the setting has not been defined
                         if (definedSettings.Contains(leftSide))
                         {
                             diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.SettingAlreadyDefined, DiagnosticSeverity.Warning, false, 1, Document.Project.Id));
@@ -174,36 +174,35 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                         if (rightSide.Contains(':'))
                         {
                             var values = rightSide.Split(':');
+                            // Check if it has more than one ':'
                             if (values.Length > 2)
                             {
                                 diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.IncorrectSettingDefinition, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
                                 continue;
                             }
 
+                            // Check if the setting is allowd to define severities
                             if (!SettingDefinesSeverities(leftSide, settingsSnapshots))
                             {
                                 diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.SeveritiesNotSupported, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
                                 continue;
                             }
 
-                            if (!SettingHasValue(leftSide, values[0], settingsSnapshots, workspace.Options) && !values[0].IsEmpty())
+                            // Check that the setting has the specified value
+                            if (!SettingHasValue(leftSide, values[0], settingsSnapshots) && !values[0].IsEmpty())
                             {
                                 diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.ValueNotDefinedInSetting, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
                                 continue;
                             }
 
-                            if (!IsSeverity(values[1]))
-                            {
-                                diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.SeverityNotDefined, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
-                                continue;
-                            }
                             continue;
                         }
 
                         // Check for settings that allow multiple values
                         if (rightSide.Contains(','))
                         {
-                            if (!SettingAllowsMultipleValues(leftSide))
+                            // Check if setting allows multiple values
+                            if (!SettingAllowsMultipleValues(leftSide, settingsSnapshots))
                             {
                                 diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.MultipleValuesNotSupported, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
                                 continue;
@@ -211,13 +210,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 
                             var values = rightSide.Split(',');
                             var definedValues = new HashSet<string>();
+
+                            // Iterate over every defined value
                             foreach (var value in values)
                             {
-                                if (!SettingHasValue(leftSide, value.Trim(), settingsSnapshots, workspace.Options) && !value.Trim().IsEmpty())
+                                // Check that the setting has the specified value
+                                if (!SettingHasValue(leftSide, value.Trim(), settingsSnapshots) && !value.Trim().IsEmpty())
                                 {
                                     diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.ValueNotDefinedInSetting, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
                                 }
 
+                                // Check that the setting value has not been defined
                                 if (definedValues.Contains(value))
                                 {
                                     diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.ValueAlreadyAssigned, DiagnosticSeverity.Warning, false, 1, Document.Project.Id));
@@ -228,7 +231,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                         }
 
                         // Check if value exists for the setting
-                        if (!SettingHasValue(leftSide, rightSide, settingsSnapshots, workspace.Options) && !rightSide.IsEmpty())
+                        if (!SettingHasValue(leftSide, rightSide, settingsSnapshots) && !rightSide.IsEmpty())
                         {
                             diagnostics.Add(CreateDiagnosticData(document, line, EditorConfigDiagnosticIds.ValueNotDefinedInSetting, DiagnosticSeverity.Error, false, 1, Document.Project.Id));
                         }
@@ -270,32 +273,32 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 
                 static bool SettingDefinesSeverities(string settingName, ImmutableArray<IEditorConfigSettingInfo> settingsSnapshots)
                 {
-                    var codestyleSettings = settingsSnapshots.Where(setting => setting.GetSettingName() == settingName);
-                    if (codestyleSettings.Any())
+                    var foundSetting = settingsSnapshots.Where(setting => setting.GetSettingName() == settingName);
+                    if (foundSetting.Any())
                     {
-                        return codestyleSettings.First().SupportsSeverities();
+                        return foundSetting.First().SupportsSeverities();
                     }
 
                     return false;
                 }
 
-                static bool IsSeverity(string severity)
+                static bool SettingAllowsMultipleValues(string settingName, ImmutableArray<IEditorConfigSettingInfo> settingsSnapshots)
                 {
-                    var severities = ImmutableArray.Create(new string[] { "none", "silent", "suggestion", "warning", "error" });
-                    return severities.Contains(severity);
-                }
-
-                static bool SettingAllowsMultipleValues(string settingName)
-                {
-                    return settingName == "csharp_new_line_before_open_brace" || settingName == "csharp_space_between_parentheses";
-                }
-
-                static bool SettingHasValue(string settingName, string settingValue, ImmutableArray<IEditorConfigSettingInfo> settingsSnapshots, OptionSet optionSet)
-                {
-                    var settings = settingsSnapshots.Where(setting => setting.GetSettingName() == settingName);
-                    if (settings.Any())
+                    var foundSetting = settingsSnapshots.Where(setting => setting.GetSettingName() == settingName);
+                    if (foundSetting.Any())
                     {
-                        var values = settings.First().GetSettingValues(optionSet);
+                        return foundSetting.First().AllowsMultipleValues();
+                    }
+
+                    return false;
+                }
+
+                static bool SettingHasValue(string settingName, string settingValue, ImmutableArray<IEditorConfigSettingInfo> settingsSnapshots)
+                {
+                    var foundSetting = settingsSnapshots.Where(setting => setting.GetSettingName() == settingName);
+                    if (foundSetting.Any())
+                    {
+                        var values = foundSetting.First().GetSettingValues();
                         return values != null && values.Contains(settingValue);
                     }
 
