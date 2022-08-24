@@ -12,9 +12,29 @@
         <target state="translated">抽象方法</target>
         <note>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
       </trans-unit>
+      <trans-unit id="Allow_multiple_blank_lines">
+        <source>Allow multiple blank lines</source>
+        <target state="new">Allow multiple blank lines</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_statement_immediately_after_block">
+        <source>Allow statement immediately after block</source>
+        <target state="new">Allow statement immediately after block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
         <source>An element with the same key but a different value already exists.</source>
         <target state="translated">已存在键相同但值不同的元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_Prefer_auto_properties">
+        <source>Prefer auto properties</source>
+        <target state="new">Prefer auto properties</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_parameters">
+        <source>Avoid unused parameters</source>
+        <target state="new">Avoid unused parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="Begins_with_I">
@@ -57,6 +77,46 @@
         <target state="translated">字段首选项</target>
         <note />
       </trans-unit>
+      <trans-unit id="For_locals_parameters_and_members">
+        <source>For locals, parameters and members</source>
+        <target state="new">For locals, parameters and members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="For_member_access_expressions">
+        <source>For member access expressions</source>
+        <target state="new">For member access expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic operators</source>
+        <target state="new">In arithmetic operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators</source>
+        <target state="new">In other binary operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_operators">
+        <source>In other operators</source>
+        <target state="new">In other operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_relational_binary_operators">
+        <source>In relational operators</source>
+        <target state="new">In relational operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_Size">
+        <source>Indentation Size</source>
+        <target state="new">Indentation Size</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_Final_Newline">
+        <source>Insert Final Newline</source>
+        <target state="new">Insert Final Newline</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Interface">
         <source>Interface</source>
         <target state="new">Interface</target>
@@ -97,6 +157,11 @@
         <target state="translated">命名样式</target>
         <note />
       </trans-unit>
+      <trans-unit id="New_Line">
+        <source>New Line</source>
+        <target state="new">New Line</target>
+        <note />
+      </trans-unit>
       <trans-unit id="New_line_preferences">
         <source>New line preferences</source>
         <target state="translated">新行首选项</target>
@@ -106,6 +171,11 @@
         <source>Non-Field Members</source>
         <target state="translated">非字段成员</target>
         <note>{locked:field}</note>
+      </trans-unit>
+      <trans-unit id="Operator_placement_when_wrapping">
+        <source>Operator placement when wrapping</source>
+        <target state="new">Operator placement when wrapping</target>
+        <note />
       </trans-unit>
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>
@@ -125,6 +195,86 @@
       <trans-unit id="Pascal_Case">
         <source>Pascal Case</source>
         <target state="translated">帕斯卡拼写法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
+        <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
+        <target state="new">Prefer 'System.HashCode' in 'GetHashCode'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_coalesce_expression">
+        <source>Prefer coalesce expression</source>
+        <target state="new">Prefer coalesce expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_collection_initializer">
+        <source>Prefer collection initializer</source>
+        <target state="new">Prefer collection initializer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_compound_assignments">
+        <source>Prefer compound assignments</source>
+        <target state="new">Prefer compound assignments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
+        <source>Prefer conditional expression over 'if' with assignments</source>
+        <target state="new">Prefer conditional expression over 'if' with assignments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
+        <source>Prefer conditional expression over 'if' with returns</source>
+        <target state="new">Prefer conditional expression over 'if' with returns</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_explicit_tuple_name">
+        <source>Prefer explicit tuple name</source>
+        <target state="new">Prefer explicit tuple name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_inferred_anonymous_type_member_names">
+        <source>Prefer inferred anonymous type member names</source>
+        <target state="new">Prefer inferred anonymous type member names</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_inferred_tuple_names">
+        <source>Prefer inferred tuple element names</source>
+        <target state="new">Prefer inferred tuple element names</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="new">Prefer 'is null' for reference equality checks</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_namespace_and_folder_match_structure">
+        <source>Prefer namespace and folder match structure</source>
+        <target state="new">Prefer namespace and folder match structure</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_null_propagation">
+        <source>Prefer null propagation</source>
+        <target state="new">Prefer null propagation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_object_initializer">
+        <source>Prefer object initializer</source>
+        <target state="new">Prefer object initializer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly_fields">
+        <source>Prefer readonly fields</source>
+        <target state="new">Prefer readonly fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simplified_boolean_expressions">
+        <source>Prefer simplified boolean expressions</source>
+        <target state="new">Prefer simplified boolean expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simplified_interpolation">
+        <source>Prefer simplified interpolation</source>
+        <target state="new">Prefer simplified interpolation</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
@@ -162,6 +312,31 @@
         <target state="translated">公共或受保护的字段</target>
         <note>{locked: public}{locked: protected}{locked:field}</note>
       </trans-unit>
+      <trans-unit id="Qualify_event_access_with_this_or_Me">
+        <source>Qualify event access with 'this' or 'Me'</source>
+        <target state="new">Qualify event access with 'this' or 'Me'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_field_access_with_this_or_Me">
+        <source>Qualify field access with 'this' or 'Me'</source>
+        <target state="new">Qualify field access with 'this' or 'Me'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_method_access_with_this_or_Me">
+        <source>Qualify method access with 'this' or 'Me'</source>
+        <target state="new">Qualify method access with 'this' or 'Me'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_property_access_with_this_or_Me">
+        <source>Qualify property access with 'this' or 'Me'</source>
+        <target state="new">Qualify property access with 'this' or 'Me'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Require_accessibility_modifiers">
+        <source>Require accessibility modifiers</source>
+        <target state="new">Require accessibility modifiers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Segment_size_must_be_power_of_2_greater_than_1">
         <source>Segment size must be power of 2 greater than 1</source>
         <target state="translated">段大小必须是 2 的幂且大于 1</target>
@@ -195,6 +370,11 @@
       <trans-unit id="Symbol_specifications">
         <source>Symbol specifications</source>
         <target state="translated">符号规范</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Tab_Size">
+        <source>Tab Size</source>
+        <target state="new">Tab Size</target>
         <note />
       </trans-unit>
       <trans-unit id="The_first_word_0_must_begin_with_a_lower_case_character">
@@ -236,6 +416,11 @@
         <source>Types</source>
         <target state="translated">类型</target>
         <note>{locked:types} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Use_Tabs">
+        <source>Use Tabs</source>
+        <target state="new">Use Tabs</target>
+        <note />
       </trans-unit>
       <trans-unit id="this_dot_and_Me_dot_preferences">
         <source>this. and Me. preferences</source>

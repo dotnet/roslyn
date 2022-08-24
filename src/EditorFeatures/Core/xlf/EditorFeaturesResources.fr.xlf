@@ -2,6 +2,21 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="All_methods">
+        <source>All methods</source>
+        <target state="new">All methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always">
+        <source>Always</source>
+        <target state="new">Always</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_for_clarity">
+        <source>Always for clarity</source>
+        <target state="new">Always for clarity</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
         <target state="translated">Une session de renommage inline est active pour l'identificateur '{0}'. Appelez à nouveau le renommage inline pour accéder à des options supplémentaires. Vous pouvez continuer à modifier l'identificateur renommé à tout moment.</target>
@@ -77,6 +92,11 @@
         <target state="translated">Filtrer</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
+      <trans-unit id="For_non_interface_members">
+        <source>For non interface members</source>
+        <target state="new">For non interface members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
         <target state="translated">L'opération Mettre en forme le document a effectué un nettoyage supplémentaire</target>
@@ -102,26 +122,6 @@
         <target state="translated">Accéder à la base</target>
         <note />
       </trans-unit>
-      <trans-unit id="In_arithmetic_binary_operators">
-        <source>In arithmetic operators</source>
-        <target state="translated">Dans les opérateurs arithmétiques</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="In_other_binary_operators">
-        <source>In other binary operators</source>
-        <target state="translated">Dans d'autres opérateurs binaires</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="In_relational_binary_operators">
-        <source>In relational operators</source>
-        <target state="translated">Dans les opérateurs relationnels</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indentation_Size">
-        <source>Indentation Size</source>
-        <target state="translated">Taille de la mise en retrait</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inline_Diagnostics_Error">
         <source>Inline Diagnostics - Error</source>
         <target state="translated">Diagnostics en ligne – Erreur</target>
@@ -140,11 +140,6 @@
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
         <target state="translated">Indicateurs inline</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_Final_Newline">
-        <source>Insert Final Newline</source>
-        <target state="translated">Insérer une nouvelle ligne finale</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -227,14 +222,29 @@
         <target state="translated">Localisation des bases...</target>
         <note />
       </trans-unit>
-      <trans-unit id="New_Line">
-        <source>New Line</source>
-        <target state="translated">Nouvelle ligne</target>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="new">Never</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_if_unnecessary">
+        <source>Never if unnecessary</source>
+        <target state="new">Never if unnecessary</target>
         <note />
       </trans-unit>
       <trans-unit id="No">
         <source>No</source>
         <target state="translated">Non</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Non_public_methods">
+        <source>Non-public methods</source>
+        <target state="new">Non-public methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Omit_if_default">
+        <source>Omit if default</source>
+        <target state="new">Omit if default</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -247,9 +257,14 @@
         <target state="translated">Suivi du collage</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
-        <source>Prefer 'is null' for reference equality checks</source>
-        <target state="translated">Préférer 'is nul' pour les vérifications d'égalité de référence</target>
+      <trans-unit id="Prefer_framework_type">
+        <source>Prefer framework type</source>
+        <target state="new">Prefer framework type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_predefined_type">
+        <source>Prefer predefined type</source>
+        <target state="new">Prefer predefined type</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_this_or_Me">
@@ -265,26 +280,6 @@
       <trans-unit id="Punctuation">
         <source>Punctuation</source>
         <target state="translated">Ponctuation</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_event_access_with_this_or_Me">
-        <source>Qualify event access with 'this' or 'Me'</source>
-        <target state="translated">Qualifier l'accès à l'événement avec 'this' ou 'Me'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_field_access_with_this_or_Me">
-        <source>Qualify field access with 'this' or 'Me'</source>
-        <target state="translated">Qualifier l'accès au champ avec 'this' ou 'Me'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_method_access_with_this_or_Me">
-        <source>Qualify method access with 'this' or 'Me'</source>
-        <target state="translated">Qualifier l'accès à la méthode avec 'this' ou 'Me'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_property_access_with_this_or_Me">
-        <source>Qualify property access with 'this' or 'Me'</source>
-        <target state="translated">Qualifier l'accès à la propriété avec 'this' ou 'Me'</target>
         <note />
       </trans-unit>
       <trans-unit id="Reassigned_variable">
@@ -327,11 +322,6 @@
         <target state="translated">Symbole - statique</target>
         <note />
       </trans-unit>
-      <trans-unit id="Tab_Size">
-        <source>Tab Size</source>
-        <target state="translated">Taille des tabulations</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
         <source>The results may be incomplete due to the solution still loading projects.</source>
         <target state="translated">Les résultats sont peut-être incomplets, car la solution est toujours en train de charger des projets.</target>
@@ -355,11 +345,6 @@
       <trans-unit id="Toggling_line_comment">
         <source>Toggling line comment...</source>
         <target state="translated">Activation/désactivation du commentaire de ligne...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Tabs">
-        <source>Use Tabs</source>
-        <target state="translated">Utiliser les tabulations</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -460,6 +445,11 @@
       <trans-unit id="String_Verbatim">
         <source>String - Verbatim</source>
         <target state="translated">Chaîne textuelle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value">
+        <source>Value</source>
+        <target state="new">Value</target>
         <note />
       </trans-unit>
       <trans-unit id="Waiting_for_background_work_to_finish">

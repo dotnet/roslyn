@@ -12,6 +12,11 @@
         <target state="translated">Aggiunta di using mancanti...</target>
         <note>Shown in a thread await dialog. "usings" is a language specific term and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Block_scoped">
+        <source>Block scoped</source>
+        <target state="new">Block scoped</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Chosen_version_0">
         <source>Chosen version: '{0}'</source>
         <target state="translated">Versione selezionata: '{0}'</target>
@@ -30,6 +35,16 @@
       <trans-unit id="Decompilation_log">
         <source>Decompilation log</source>
         <target state="translated">Log di decompilazione</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Discard">
+        <source>Discard</source>
+        <target state="new">Discard</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_scoped">
+        <source>File scoped</source>
+        <target state="new">File scoped</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_interpolated_verbatim_string">
@@ -72,6 +87,36 @@
         <target state="translated">Aumenta stringa non elaborata</target>
         <note />
       </trans-unit>
+      <trans-unit id="Ignore_spaces_around_binary_operators">
+        <source>Ignore spaces around binary operators</source>
+        <target state="new">Ignore spaces around binary operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_before_and_after_binary_operators">
+        <source>Insert space before and after binary operators</source>
+        <target state="new">Insert space before and after binary operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_parentheses_of_expressions">
+        <source>Insert space within parentheses of expressions</source>
+        <target state="new">Insert space within parentheses of expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_parentheses_of_type_casts">
+        <source>Insert space within parentheses of type casts</source>
+        <target state="new">Insert space within parentheses of type casts</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_spaces_within_parentheses_of_control_flow_statements">
+        <source>Insert spaces within parentheses of control flow statements</source>
+        <target state="new">Insert spaces within parentheses of control flow statements</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inside_namespace">
+        <source>Inside namespace</source>
+        <target state="new">Inside namespace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Load_from_0">
         <source>Load from: '{0}'</source>
         <target state="translated">Carica da: '{0}'</target>
@@ -82,14 +127,84 @@
         <target state="translated">Modulo non trovato.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="new">Never</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Outside_namespace">
         <source>Outside namespace</source>
         <target state="translated">All'esterno di namespace</target>
         <note />
       </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_anonymous_methods">
+        <source>Place open brace on new line for anonymous methods</source>
+        <target state="new">Place open brace on new line for anonymous methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_anonymous_types">
+        <source>Place open brace on new line for anonymous types</source>
+        <target state="new">Place open brace on new line for anonymous types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_control_blocks">
+        <source>Place open brace on new line for control blocks</source>
+        <target state="new">Place open brace on new line for control blocks</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_lambda_expression">
+        <source>Place open brace on new line for lambda expression</source>
+        <target state="new">Place open brace on new line for lambda expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_methods_local_functions">
+        <source>Place open brace on new line for methods and local functions</source>
+        <target state="new">Place open brace on new line for methods and local functions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
+        <source>Place open brace on new line for object, collection, array, and with initializers</source>
+        <target state="new">Place open brace on new line for object, collection, array, and with initializers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_properties_indexers_and_events">
+        <source>Place open brace on new line for properties, indexers, and events</source>
+        <target state="new">Place open brace on new line for properties, indexers, and events</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_property_indexer_and_event_accessors">
+        <source>Place open brace on new line for property, indexer, and event accessors</source>
+        <target state="new">Place open brace on new line for property, indexer, and event accessors</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_types">
+        <source>Place open brace on new line for types</source>
+        <target state="new">Place open brace on new line for types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_query_expression_clauses_on_new_line">
+        <source>Place query expression clauses on new line</source>
+        <target state="new">Place query expression clauses on new line</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_explicit_type">
+        <source>Prefer explicit type</source>
+        <target state="new">Prefer explicit type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_var">
+        <source>Prefer 'var'</source>
+        <target state="new">Prefer 'var'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
         <target state="translated">     (Premere TAB per inserire)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_spaces_before_and_after_binary_operators">
+        <source>Remove spaces before and after binary operators</source>
+        <target state="new">Remove spaces before and after binary operators</target>
         <note />
       </trans-unit>
       <trans-unit id="Resolve_0">
@@ -117,9 +232,29 @@
         <target state="translated">Dividi stringa</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="new">Unused local</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WARN_Version_mismatch_Expected_0_Got_1">
         <source>WARN: Version mismatch. Expected: '{0}', Got: '{1}'</source>
         <target state="translated">AVVISO: versione non corrispondente. Prevista: '{0}'. Ottenuta: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_on_multiple_lines">
+        <source>When on multiple lines</source>
+        <target state="new">When on multiple lines</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_on_single_line">
+        <source>When on single line</source>
+        <target state="new">When on single line</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_possible">
+        <source>When possible</source>
+        <target state="new">When possible</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_items_in_cache">

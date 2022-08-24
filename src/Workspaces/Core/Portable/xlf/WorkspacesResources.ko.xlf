@@ -97,6 +97,11 @@
         <target state="translated">제출 프로젝트만 제출 프로젝트를 참조할 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Operator_placement_when_wrapping">
+        <source>Operator placement when wrapping</source>
+        <target state="new">Operator placement when wrapping</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Options_did_not_come_from_specified_Solution">
         <source>Options did not come from specified Solution</source>
         <target state="translated">옵션을 지정된 솔루션에서 가져오지 않음</target>

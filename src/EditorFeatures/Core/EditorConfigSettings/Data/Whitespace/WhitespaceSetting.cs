@@ -3,13 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.EditorConfigSettings.Data;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
+using Microsoft.CodeAnalysis.EditorConfigSettings.Data.Whitespace;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
-    internal abstract class WhitespaceSetting
+    internal abstract class WhitespaceSetting : IEditorConfigSettingInfo
     {
         protected OptionUpdater Updater { get; }
         protected string? Language { get; }
@@ -29,32 +33,125 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public abstract void SetValue(object value);
         public abstract object? GetValue();
         public abstract bool IsDefinedInEditorConfig { get; }
+        public abstract string? GetSettingName();
+        public abstract string GetDocumentation();
+        public abstract ImmutableArray<string>? GetSettingValues();
+        public abstract bool AllowsMultipleValues();
+
         public SettingLocation Location { get; protected set; }
 
-        public static PerLanguageWhitespaceSetting<TOption> Create<TOption>(PerLanguageOption2<TOption> option,
-                                                                            string description,
+        public static PerLanguageWhitespaceSetting<int> Create(PerLanguageOption2<int> option,
                                                                             AnalyzerConfigOptions editorConfigOptions,
                                                                             OptionSet visualStudioOptions,
                                                                             OptionUpdater updater,
-                                                                            string fileName)
-            where TOption : notnull
+                                                                            string fileName,
+                                                                            IEditorConfigData editorConfigData,
+                                                                            string? description = null)
         {
-            var isDefinedInEditorConfig = editorConfigOptions.TryGetEditorConfigOption<TOption>(option, out _);
+            var isDefinedInEditorConfig = editorConfigOptions.TryGetEditorConfigOption<int>(option, out _);
             var location = new SettingLocation(isDefinedInEditorConfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, fileName);
-            return new PerLanguageWhitespaceSetting<TOption>(option, description, editorConfigOptions, visualStudioOptions, updater, location);
+            description ??= editorConfigData.GetSettingNameDocumentation();
+            return new PerLanguageIntegerWhitespaceSetting(option, description, editorConfigOptions, visualStudioOptions, updater, location, editorConfigData);
         }
 
-        public static WhitespaceSetting<TOption> Create<TOption>(Option2<TOption> option,
-                                                                 string description,
-                                                                 AnalyzerConfigOptions editorConfigOptions,
-                                                                 OptionSet visualStudioOptions,
-                                                                 OptionUpdater updater,
-                                                                 string fileName)
-            where TOption : struct
+        public static PerLanguageWhitespaceSetting<bool> Create(PerLanguageOption2<bool> option,
+                                                                            AnalyzerConfigOptions editorConfigOptions,
+                                                                            OptionSet visualStudioOptions,
+                                                                            OptionUpdater updater,
+                                                                            string fileName,
+                                                                            IEditorConfigData editorConfigData,
+                                                                            string? description = null)
         {
-            var isDefinedInEditorConfig = editorConfigOptions.TryGetEditorConfigOption<TOption>(option, out _);
+            var isDefinedInEditorConfig = editorConfigOptions.TryGetEditorConfigOption<bool>(option, out _);
             var location = new SettingLocation(isDefinedInEditorConfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, fileName);
-            return new WhitespaceSetting<TOption>(option, description, editorConfigOptions, visualStudioOptions, updater, location);
+            description ??= editorConfigData.GetSettingNameDocumentation();
+            return new PerLanguageBooleanWhitespaceSetting(option, description, editorConfigOptions, visualStudioOptions, updater, location, editorConfigData);
+        }
+
+        public static PerLanguageWhitespaceSetting<string> Create(PerLanguageOption2<string> option,
+                                                                            AnalyzerConfigOptions editorConfigOptions,
+                                                                            OptionSet visualStudioOptions,
+                                                                            OptionUpdater updater,
+                                                                            string fileName,
+                                                                            IEditorConfigData editorConfigData,
+                                                                            string? description = null)
+        {
+            var isDefinedInEditorConfig = editorConfigOptions.TryGetEditorConfigOption<string>(option, out _);
+            var location = new SettingLocation(isDefinedInEditorConfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, fileName);
+            description ??= editorConfigData.GetSettingNameDocumentation();
+            return new PerLanguageStringWhitespaceSetting(option, description, editorConfigOptions, visualStudioOptions, updater, location, editorConfigData);
+        }
+
+        public static PerLanguageWhitespaceSetting<T> Create<T>(PerLanguageOption2<T> option,
+                                                                            AnalyzerConfigOptions editorConfigOptions,
+                                                                            OptionSet visualStudioOptions,
+                                                                            OptionUpdater updater,
+                                                                            string fileName,
+                                                                            IEditorConfigData editorConfigData,
+                                                                            string? description = null)
+            where T : Enum
+        {
+            var isDefinedInEditorConfig = editorConfigOptions.TryGetEditorConfigOption<T>(option, out _);
+            var location = new SettingLocation(isDefinedInEditorConfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, fileName);
+            description ??= editorConfigData.GetSettingNameDocumentation();
+            return new PerLanguageEnumWhitespaceSetting<T>(option, description, editorConfigOptions, visualStudioOptions, updater, location, editorConfigData);
+        }
+
+        public static WhitespaceSetting<int> Create(Option2<int> option,
+                                                        AnalyzerConfigOptions editorConfigOptions,
+                                                        OptionSet visualStudioOptions,
+                                                        OptionUpdater updater,
+                                                        string fileName,
+                                                        IEditorConfigData editorConfigData,
+                                                        string? description = null)
+        {
+            var isDefinedInEditorConfig = editorConfigOptions.TryGetEditorConfigOption<int>(option, out _);
+            var location = new SettingLocation(isDefinedInEditorConfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, fileName);
+            description ??= editorConfigData.GetSettingNameDocumentation();
+            return new IntegerWhitespaceSetting(option, description, editorConfigOptions, visualStudioOptions, updater, location, editorConfigData);
+        }
+
+        public static WhitespaceSetting<bool> Create(Option2<bool> option,
+                                                         AnalyzerConfigOptions editorConfigOptions,
+                                                         OptionSet visualStudioOptions,
+                                                         OptionUpdater updater,
+                                                         string fileName,
+                                                         IEditorConfigData editorConfigData,
+                                                         string? description = null)
+        {
+            var isDefinedInEditorConfig = editorConfigOptions.TryGetEditorConfigOption<bool>(option, out _);
+            var location = new SettingLocation(isDefinedInEditorConfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, fileName);
+            description ??= editorConfigData.GetSettingNameDocumentation();
+            return new BooleanWhitespaceSetting(option, description, editorConfigOptions, visualStudioOptions, updater, location, editorConfigData);
+        }
+
+        public static WhitespaceSetting<string> Create(Option2<string> option,
+                                                           AnalyzerConfigOptions editorConfigOptions,
+                                                           OptionSet visualStudioOptions,
+                                                           OptionUpdater updater,
+                                                           string fileName,
+                                                           IEditorConfigData editorConfigData,
+                                                           string? description = null)
+        {
+            var isDefinedInEditorConfig = editorConfigOptions.TryGetEditorConfigOption<string>(option, out _);
+            var location = new SettingLocation(isDefinedInEditorConfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, fileName);
+            description ??= editorConfigData.GetSettingNameDocumentation();
+            return new StringWhitespaceSetting(option, description, editorConfigOptions, visualStudioOptions, updater, location, editorConfigData);
+        }
+
+        public static WhitespaceSetting<T> Create<T>(Option2<T> option,
+                                                         AnalyzerConfigOptions editorConfigOptions,
+                                                         OptionSet visualStudioOptions,
+                                                         OptionUpdater updater,
+                                                         string fileName,
+                                                         IEditorConfigData editorConfigData,
+                                                         string? description = null)
+            where T : Enum
+        {
+            var isDefinedInEditorConfig = editorConfigOptions.TryGetEditorConfigOption<T>(option, out _);
+            var location = new SettingLocation(isDefinedInEditorConfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, fileName);
+            description ??= editorConfigData.GetSettingNameDocumentation();
+            return new EnumWhitespaceSetting<T>(option, description, editorConfigOptions, visualStudioOptions, updater, location, editorConfigData);
         }
     }
 }

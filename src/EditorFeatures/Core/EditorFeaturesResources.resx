@@ -435,9 +435,6 @@
   <data name="Uncommenting_currently_selected_text" xml:space="preserve">
     <value>Uncommenting currently selected text...</value>
   </data>
-  <data name="Insert_new_line" xml:space="preserve">
-    <value>Insert new line</value>
-  </data>
   <data name="Documentation_Comment" xml:space="preserve">
     <value>Documentation Comment</value>
   </data>
@@ -945,47 +942,8 @@ Do you want to proceed?</value>
   <data name="Do_not_prefer_this_or_Me" xml:space="preserve">
     <value>Do not prefer 'this.' or 'Me.'</value>
   </data>
-  <data name="In_arithmetic_binary_operators" xml:space="preserve">
-    <value>In arithmetic operators</value>
-  </data>
-  <data name="In_other_binary_operators" xml:space="preserve">
-    <value>In other binary operators</value>
-  </data>
-  <data name="In_relational_binary_operators" xml:space="preserve">
-    <value>In relational operators</value>
-  </data>
-  <data name="Prefer_is_null_for_reference_equality_checks" xml:space="preserve">
-    <value>Prefer 'is null' for reference equality checks</value>
-  </data>
   <data name="Prefer_this_or_Me" xml:space="preserve">
     <value>Prefer 'this.' or 'Me.'</value>
-  </data>
-  <data name="Qualify_event_access_with_this_or_Me" xml:space="preserve">
-    <value>Qualify event access with 'this' or 'Me'</value>
-  </data>
-  <data name="Qualify_field_access_with_this_or_Me" xml:space="preserve">
-    <value>Qualify field access with 'this' or 'Me'</value>
-  </data>
-  <data name="Qualify_method_access_with_this_or_Me" xml:space="preserve">
-    <value>Qualify method access with 'this' or 'Me'</value>
-  </data>
-  <data name="Qualify_property_access_with_this_or_Me" xml:space="preserve">
-    <value>Qualify property access with 'this' or 'Me'</value>
-  </data>
-  <data name="Indentation_Size" xml:space="preserve">
-    <value>Indentation Size</value>
-  </data>
-  <data name="Insert_Final_Newline" xml:space="preserve">
-    <value>Insert Final Newline</value>
-  </data>
-  <data name="New_Line" xml:space="preserve">
-    <value>New Line</value>
-  </data>
-  <data name="Tab_Size" xml:space="preserve">
-    <value>Tab Size</value>
-  </data>
-  <data name="Use_Tabs" xml:space="preserve">
-    <value>Use Tabs</value>
   </data>
   <data name="Regex_Comment" xml:space="preserve">
     <value>Regex - Comment</value>
@@ -1075,5 +1033,41 @@ Do you want to proceed?</value>
   </data>
   <data name="Rename_operation_could_not_complete_due_to_external_change_to_workspace" xml:space="preserve">
     <value>Rename operation could not complete due to external change to workspace</value>
+  </data>
+  <data name="All_methods" xml:space="preserve">
+    <value>All methods</value>
+  </data>
+  <data name="Always" xml:space="preserve">
+    <value>Always</value>
+  </data>
+  <data name="Always_for_clarity" xml:space="preserve">
+    <value>Always for clarity</value>
+  </data>
+  <data name="For_non_interface_members" xml:space="preserve">
+    <value>For non interface members</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="Never_if_unnecessary" xml:space="preserve">
+    <value>Never if unnecessary</value>
+  </data>
+  <data name="Non_public_methods" xml:space="preserve">
+    <value>Non-public methods</value>
+  </data>
+  <data name="Omit_if_default" xml:space="preserve">
+    <value>Omit if default</value>
+  </data>
+  <data name="Prefer_framework_type" xml:space="preserve">
+    <value>Prefer framework type</value>
+  </data>
+  <data name="Prefer_predefined_type" xml:space="preserve">
+    <value>Prefer predefined type</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="Insert_new_line" xml:space="preserve">
+    <value>Insert new line</value>
   </data>
 </root>

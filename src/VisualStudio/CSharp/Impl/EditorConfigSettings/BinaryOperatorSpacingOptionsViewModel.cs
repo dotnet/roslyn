@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Editor.CSharp;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
@@ -35,9 +36,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings
 
             static IEnumerable<(string description, BinaryOperatorSpacingOptions value)> EnumerateOptions()
             {
-                yield return (CSharpVSResources.Ignore_spaces_around_binary_operators, BinaryOperatorSpacingOptions.Ignore);
-                yield return (CSharpVSResources.Remove_spaces_before_and_after_binary_operators, BinaryOperatorSpacingOptions.Remove);
-                yield return (CSharpVSResources.Insert_space_before_and_after_binary_operators, BinaryOperatorSpacingOptions.Single);
+                yield return (CSharpEditorResources.Ignore_spaces_around_binary_operators, BinaryOperatorSpacingOptions.Ignore);
+                yield return (CSharpEditorResources.Remove_spaces_before_and_after_binary_operators, BinaryOperatorSpacingOptions.Remove);
+                yield return (CSharpEditorResources.Insert_space_before_and_after_binary_operators, BinaryOperatorSpacingOptions.Single);
             }
         }
     }

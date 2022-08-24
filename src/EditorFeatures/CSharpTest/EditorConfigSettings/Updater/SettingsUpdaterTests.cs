@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.EditorConfigSettings;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.EditorConfig;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
             var id = "Test001";
             var descriptor = new DiagnosticDescriptor(id: id, title: "", messageFormat: "", category: "Naming", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: false);
-            var analyzerSetting = new AnalyzerSetting(descriptor, ReportDiagnostic.Suppress, null!, language, new SettingLocation(EditorConfigSettings.LocationKind.VisualStudio, null));
+            var analyzerSetting = new AnalyzerSetting(descriptor, ReportDiagnostic.Suppress, null!, language, new SettingLocation(EditorConfigSettings.LocationKind.VisualStudio, null), EditorConfigSettingsData.AnalyzerSetting);
 
             await TestAsync(
                 string.Empty,
@@ -329,7 +331,7 @@ csharp_new_line_before_else = true";
             var updater = new AnalyzerSettingsUpdater(workspace, "/a/b/config");
             var id = "Test001";
             var descriptor = new DiagnosticDescriptor(id: id, title: "", messageFormat: "", category: "Naming", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: false);
-            var analyzerSetting = new AnalyzerSetting(descriptor, ReportDiagnostic.Suppress, updater, Language.CSharp, new SettingLocation(EditorConfigSettings.LocationKind.VisualStudio, null));
+            var analyzerSetting = new AnalyzerSetting(descriptor, ReportDiagnostic.Suppress, updater, Language.CSharp, new SettingLocation(EditorConfigSettings.LocationKind.VisualStudio, null), EditorConfigSettingsData.AnalyzerSetting);
             analyzerSetting.ChangeSeverity(DiagnosticSeverity.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
@@ -344,11 +346,11 @@ csharp_new_line_before_else = true";
             var value = "false:silent";
             var editorOptions = new TestAnalyzerConfigOptions(key => value);
             var setting = CodeStyleSetting.Create(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer,
-                                                  "",
                                                   editorOptions,
                                                   workspace.Options,
                                                   updater,
-                                                  null!);
+                                                  null!,
+                                                  CSharpEditorConfigSettingsData.AllowBlankLineAfterColonInConstructorInitializer);
             setting.ChangeSeverity(DiagnosticSeverity.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
@@ -369,7 +371,7 @@ csharp_new_line_before_else = true";
         {
             var workspace = CreateWorkspaceWithProjectAndDocuments();
             var updater = new OptionUpdater(workspace, "/a/b/config");
-            var setting = WhitespaceSetting.Create(CSharpFormattingOptions2.NewLineForElse, "", TestAnalyzerConfigOptions.Instance, workspace.Options, updater, null!);
+            var setting = WhitespaceSetting.Create(CSharpFormattingOptions2.NewLineForElse, TestAnalyzerConfigOptions.Instance, workspace.Options, updater, null!, CSharpEditorConfigSettingsData.NewLineForElse);
             setting.SetValue(false);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);

@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
@@ -19,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             private readonly AnalyzerConfigOptions _editorConfigOptions;
             private readonly OptionSet _visualStudioOptions;
 
+            public IEditorConfigData EditorConfigData;
+
             public PerLanguageEnumCodeStyleSetting(PerLanguageOption2<CodeStyleOption2<T>> option,
                                                    string description,
                                                    T[] enumValues,
@@ -26,7 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                                    AnalyzerConfigOptions editorConfigOptions,
                                                    OptionSet visualStudioOptions,
                                                    OptionUpdater updater,
-                                                   string fileName)
+                                                   string fileName,
+                                                   IEditorConfigData editorConfigData)
                 : base(description, enumValues, valueDescriptions, option.Group.Description, updater)
             {
                 _option = option;
@@ -34,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                 _editorConfigOptions = editorConfigOptions;
                 _visualStudioOptions = visualStudioOptions;
                 Location = new SettingLocation(IsDefinedInEditorConfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, fileName);
+                EditorConfigData = editorConfigData;
             }
 
             public override bool IsDefinedInEditorConfig => _editorConfigOptions.TryGetEditorConfigOption<CodeStyleOption2<T>>(_option, out _);
@@ -60,6 +66,21 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                     // TODO(jmarolf): Should we expose duplicate options if the user has a different setting in VB vs. C#?
                     //                Today this code will choose whatever option is set for C# as the default.
                     : _visualStudioOptions.GetOption<CodeStyleOption2<T>>(new OptionKey2(_option, LanguageNames.CSharp));
+
+            public override string? GetSettingName()
+            {
+                return EditorConfigData.GetSettingName();
+            }
+
+            public override string GetDocumentation()
+            {
+                return Description;
+            }
+
+            public override ImmutableArray<string>? GetSettingValues()
+            {
+                return EditorConfigData.GetAllSettingValues();
+            }
         }
     }
 }

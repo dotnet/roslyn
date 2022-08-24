@@ -97,6 +97,11 @@
         <target state="translated">Solo il progetto di invio può fare riferimento a progetti di invio.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Operator_placement_when_wrapping">
+        <source>Operator placement when wrapping</source>
+        <target state="new">Operator placement when wrapping</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Options_did_not_come_from_specified_Solution">
         <source>Options did not come from specified Solution</source>
         <target state="translated">Le opzioni non provengono dalla soluzione specificata</target>

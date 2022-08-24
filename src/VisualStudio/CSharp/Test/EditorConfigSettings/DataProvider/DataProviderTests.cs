@@ -121,6 +121,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             // We also subtract for this not-yet supported option, tracked by https://github.com/dotnet/roslyn/issues/62937
             // CodeStyleOptions2.ForEachExplicitCastInSource
             var optionsCount = CodeStyleOptions2.AllOptions.Where(x => x.StorageLocations.Any(y => y is IEditorConfigStorageLocation2)).Count() - 4;
+            var aux = CodeStyleOptions2.AllOptions;
+            var ayx2 = CodeStyleOptions2.AllOptions.Where(x => x.StorageLocations.Any(y => y is IEditorConfigStorageLocation2));
             Assert.Equal(optionsCount, dataSnapShot.Length);
         }
 

@@ -2,6 +2,21 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="All_methods">
+        <source>All methods</source>
+        <target state="new">All methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always">
+        <source>Always</source>
+        <target state="new">Always</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_for_clarity">
+        <source>Always for clarity</source>
+        <target state="new">Always for clarity</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
         <target state="translated">識別碼 '{0}' 有正在使用的內嵌重新命名工作階段。再次叫用內嵌重新命名可存取其他選項。您隨時可以繼續編輯正在重新命名的識別碼。</target>
@@ -77,6 +92,11 @@
         <target state="translated">篩選</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
+      <trans-unit id="For_non_interface_members">
+        <source>For non interface members</source>
+        <target state="new">For non interface members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
         <target state="translated">執行額外清除的格式化文件</target>
@@ -102,26 +122,6 @@
         <target state="translated">移至基底</target>
         <note />
       </trans-unit>
-      <trans-unit id="In_arithmetic_binary_operators">
-        <source>In arithmetic operators</source>
-        <target state="translated">在算術運算子中</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="In_other_binary_operators">
-        <source>In other binary operators</source>
-        <target state="translated">在其他二元運算子中</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="In_relational_binary_operators">
-        <source>In relational operators</source>
-        <target state="translated">在關係運算子中</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indentation_Size">
-        <source>Indentation Size</source>
-        <target state="translated">縮排大小</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inline_Diagnostics_Error">
         <source>Inline Diagnostics - Error</source>
         <target state="translated">內嵌診斷 - 錯誤</target>
@@ -140,11 +140,6 @@
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
         <target state="translated">內嵌提示</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_Final_Newline">
-        <source>Insert Final Newline</source>
-        <target state="translated">插入最後一個新行</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -227,14 +222,29 @@
         <target state="translated">正在尋找基底...</target>
         <note />
       </trans-unit>
-      <trans-unit id="New_Line">
-        <source>New Line</source>
-        <target state="translated">新行</target>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="new">Never</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_if_unnecessary">
+        <source>Never if unnecessary</source>
+        <target state="new">Never if unnecessary</target>
         <note />
       </trans-unit>
       <trans-unit id="No">
         <source>No</source>
         <target state="translated">否</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Non_public_methods">
+        <source>Non-public methods</source>
+        <target state="new">Non-public methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Omit_if_default">
+        <source>Omit if default</source>
+        <target state="new">Omit if default</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -247,9 +257,14 @@
         <target state="translated">貼上追蹤</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
-        <source>Prefer 'is null' for reference equality checks</source>
-        <target state="translated">參考相等檢查最好使用 'is null'</target>
+      <trans-unit id="Prefer_framework_type">
+        <source>Prefer framework type</source>
+        <target state="new">Prefer framework type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_predefined_type">
+        <source>Prefer predefined type</source>
+        <target state="new">Prefer predefined type</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_this_or_Me">
@@ -265,26 +280,6 @@
       <trans-unit id="Punctuation">
         <source>Punctuation</source>
         <target state="translated">標點符號</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_event_access_with_this_or_Me">
-        <source>Qualify event access with 'this' or 'Me'</source>
-        <target state="translated">以 'this' 或 'Me' 限定事件存取</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_field_access_with_this_or_Me">
-        <source>Qualify field access with 'this' or 'Me'</source>
-        <target state="translated">以 'this' 或 'Me' 限定欄位存取</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_method_access_with_this_or_Me">
-        <source>Qualify method access with 'this' or 'Me'</source>
-        <target state="translated">以 'this' 或 'Me' 限定方法存取</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Qualify_property_access_with_this_or_Me">
-        <source>Qualify property access with 'this' or 'Me'</source>
-        <target state="translated">以 'this' 或 'Me' 限定屬性存取</target>
         <note />
       </trans-unit>
       <trans-unit id="Reassigned_variable">
@@ -327,11 +322,6 @@
         <target state="translated">符號 - 靜態</target>
         <note />
       </trans-unit>
-      <trans-unit id="Tab_Size">
-        <source>Tab Size</source>
-        <target state="translated">索引標籤大小</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
         <source>The results may be incomplete due to the solution still loading projects.</source>
         <target state="translated">結果可能不完整，因為方案仍在載入專案。</target>
@@ -355,11 +345,6 @@
       <trans-unit id="Toggling_line_comment">
         <source>Toggling line comment...</source>
         <target state="translated">正在切換行註解...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Tabs">
-        <source>Use Tabs</source>
-        <target state="translated">使用索引標籤</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -460,6 +445,11 @@
       <trans-unit id="String_Verbatim">
         <source>String - Verbatim</source>
         <target state="translated">字串 - 逐字</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value">
+        <source>Value</source>
+        <target state="new">Value</target>
         <note />
       </trans-unit>
       <trans-unit id="Waiting_for_background_work_to_finish">
