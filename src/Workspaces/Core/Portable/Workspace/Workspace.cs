@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly string? _workspaceKind;
         private readonly HostWorkspaceServices _services;
-        private readonly BranchId _primaryBranchId;
 
         private readonly ILegacyWorkspaceOptionService _legacyOptions;
 
@@ -71,7 +70,6 @@ namespace Microsoft.CodeAnalysis
         /// <param name="workspaceKind">A string that can be used to identify the kind of workspace. Usually this matches the name of the class.</param>
         protected Workspace(HostServices host, string? workspaceKind)
         {
-            _primaryBranchId = BranchId.GetNextId();
             _workspaceKind = workspaceKind;
 
             _services = host.CreateWorkspaceServices(this);
@@ -133,7 +131,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new empty solution instance associated with this workspace, and with the given options.
         /// </summary>
         private Solution CreateSolution(SolutionInfo solutionInfo, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            => new(this, _primaryBranchId, solutionInfo.Attributes, options, analyzerReferences);
+            => new(this, solutionInfo.Attributes, options, analyzerReferences);
 
         /// <summary>
         /// Create a new empty solution instance associated with this workspace.
@@ -181,7 +179,7 @@ namespace Microsoft.CodeAnalysis
 
             while (true)
             {
-                var newSolution = solution.WithNewWorkspace(this, _primaryBranchId, currentSolution.WorkspaceVersion + 1);
+                var newSolution = solution.WithNewWorkspace(this, currentSolution.WorkspaceVersion + 1);
                 var oldSolution = Interlocked.CompareExchange(ref _latestSolution, newSolution, currentSolution);
                 if (oldSolution == currentSolution)
                 {
@@ -214,7 +212,7 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                var newSolution = transformedSolution.WithNewWorkspace(this, _primaryBranchId, currentSolution.WorkspaceVersion + 1);
+                var newSolution = transformedSolution.WithNewWorkspace(this, currentSolution.WorkspaceVersion + 1);
 
                 Solution oldSolution;
                 using (_serializationLock.DisposableWait())
@@ -1195,16 +1193,6 @@ namespace Microsoft.CodeAnalysis
                         oldSolution,
                         newSolution);
                     return false;
-                }
-
-                // make sure that newSolution is a branch of the current solution
-
-                // the given solution must be a branched one.
-                // otherwise, there should be no change to apply.
-                if (oldSolution.BranchId == newSolution.BranchId)
-                {
-                    CheckNoChanges(oldSolution, newSolution);
-                    return true;
                 }
 
                 var solutionChanges = newSolution.GetChanges(oldSolution);
