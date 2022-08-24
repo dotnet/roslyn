@@ -2,17 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
@@ -44,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData("false : error", false, ReportDiagnostic.Error)]
         public void TestParseEditorConfigCodeStyleOption(string args, bool isEnabled, ReportDiagnostic severity)
         {
-            CodeStyleHelpers.TryParseBoolEditorConfigCodeStyleOption(args, defaultValue: CodeStyleOption2<bool>.Default, out var result);
+            CodeStyleHelpers.TryParseBoolEditorConfigCodeStyleOption(args, defaultValue: CodeStyleOption2<bool>.Default, out var result, EditorConfigSettingsData.BoolCodeStyleTest);
             Assert.True(result.Value == isEnabled,
                         $"Expected {nameof(isEnabled)} to be {isEnabled}, was {result.Value}");
             Assert.True(result.Notification.Severity == severity,

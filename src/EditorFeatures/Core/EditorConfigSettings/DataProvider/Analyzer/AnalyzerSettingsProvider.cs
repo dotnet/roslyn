@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.EditorConfig;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyz
                         var isEditorconfig = selectedDiagnostic.IsDefinedInEditorConfig(editorConfigOptions);
                         var settingLocation = new SettingLocation(isEditorconfig ? LocationKind.EditorConfig : LocationKind.VisualStudio, FileName);
                         var severity = selectedDiagnostic.GetEffectiveSeverity(editorConfigOptions);
-                        return new AnalyzerSetting(selectedDiagnostic, severity, SettingsUpdater, language, settingLocation);
+                        return new AnalyzerSetting(selectedDiagnostic, severity, SettingsUpdater, language, settingLocation, EditorConfigSettingsData.AnalyzerSetting);
                     });
             }
         }

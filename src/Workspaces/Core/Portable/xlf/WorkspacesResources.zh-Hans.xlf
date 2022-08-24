@@ -97,6 +97,11 @@
         <target state="translated">只有提交项目才能引用提交项目。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Operator_placement_when_wrapping">
+        <source>Operator placement when wrapping</source>
+        <target state="new">Operator placement when wrapping</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Options_did_not_come_from_specified_Solution">
         <source>Options did not come from specified Solution</source>
         <target state="translated">选项并非来自指定的解决方案</target>
@@ -450,11 +455,6 @@
       <trans-unit id="Specified_path_must_be_absolute">
         <source>Specified path must be absolute.</source>
         <target state="translated">指定的路径必须是绝对路径。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified.</source>
-        <target state="translated">可以简化名称。</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_identifier">

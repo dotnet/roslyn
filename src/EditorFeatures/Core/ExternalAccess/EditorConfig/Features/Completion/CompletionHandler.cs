@@ -62,12 +62,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 
             // Check if we need to display values of the settings
             // Show completion: |setting_name = (caret)
+            // Show completion: |setting_name = setting_va(caret)
             // Show completion: |setting_name = setting_value_1, (caret)
             // Dont't show completion: | setting_name = setting_value (caret)
             var seenWhitespace = false;
             foreach (var element in textToCheck)
             {
-                if (element == ' ')
+                if (char.IsWhiteSpace(element))
                 {
                     seenWhitespace = true;
                 }
@@ -94,11 +95,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             seenWhitespace = false;
             foreach (var element in textToCheck)
             {
-                if (seenWhitespace && !(element == ' '))
+                if (seenWhitespace && !char.IsWhiteSpace(element))
                 {
                     return null;
                 }
-                seenWhitespace = element == ' ';
+                seenWhitespace = char.IsWhiteSpace(element);
             }
 
             return CreateCompletionList(document, textInLine, showValueList: false);
@@ -112,14 +113,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                 return null;
             }
             var documentation = setting.GetDocumentation();
-            var commitCharacters = _settingNameCommitCharacters;
 
-            return CreateCompletionItem(name, name, CompletionItemKind.Property, documentation, commitCharacters);
+            return CreateCompletionItem(name, name, CompletionItemKind.Property, documentation, _settingNameCommitCharacters);
         }
 
-        private static CompletionItem[]? GenerateSettingValuesCompletionItem(IEditorConfigSettingInfo setting, bool additional, OptionSet optionSet, bool allowsMultipleValues = false)
+        private static CompletionItem[]? GenerateSettingValuesCompletionItem(IEditorConfigSettingInfo setting, bool additional)
         {
             var values = new List<CompletionItem>();
+            var allowsMultipleValues = setting.AllowsMultipleValues();
 
             // User may type a ',' but not in a setting that allows multiple values
             if (additional && (!allowsMultipleValues))
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             }
 
             // Create normal values list
-            var settingValues = setting.GetSettingValues(optionSet);
+            var settingValues = setting.GetSettingValues();
             if (settingValues == null)
             {
                 return null;
@@ -156,13 +157,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             return item;
         }
 
-        private static CompletionItem[]? GetSettingValues(string settingName, ImmutableArray<IEditorConfigSettingInfo> settingsSnapshot, OptionSet optionSet, bool multipleValues = false)
+        private static CompletionItem[]? GetSettingValues(string settingName, ImmutableArray<IEditorConfigSettingInfo> settingsSnapshot, bool multipleValues = false)
         {
             var foundSetting = settingsSnapshot.Where(sett => sett.GetSettingName() == settingName);
             if (foundSetting.Any())
             {
-                var allowsMultipleValues = settingName == "csharp_new_line_before_open_brace" || settingName == "csharp_space_between_parentheses";
-                return GenerateSettingValuesCompletionItem(foundSetting.First(), multipleValues, optionSet, allowsMultipleValues: allowsMultipleValues);
+                return GenerateSettingValuesCompletionItem(foundSetting.First(), multipleValues);
             }
 
             return null;
@@ -171,7 +171,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
         private static CompletionList? CreateCompletionList(TextDocument document, string textInLine, bool showValueList = true, bool allowsMultipleValues = false)
         {
             var workspace = document.Project.Solution.Workspace;
-            var optionSet = workspace.Options;
             var filePath = document.FilePath;
             Contract.ThrowIfNull(filePath);
 
@@ -180,7 +179,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 
             if (showValueList)
             {
-                var values = GetSettingValues(settingName, settingsSnapshots, optionSet, multipleValues: allowsMultipleValues);
+                var values = GetSettingValues(settingName, settingsSnapshots, multipleValues: allowsMultipleValues);
                 return values == null ? null : new CompletionList { Items = values };
             }
 

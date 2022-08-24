@@ -97,6 +97,11 @@
         <target state="translated">送信プロジェクトを参照できるのは、送信プロジェクトのみです。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Operator_placement_when_wrapping">
+        <source>Operator placement when wrapping</source>
+        <target state="new">Operator placement when wrapping</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Options_did_not_come_from_specified_Solution">
         <source>Options did not come from specified Solution</source>
         <target state="translated">オプションは指定されたソリューションに由来するものではありません</target>
@@ -450,11 +455,6 @@
       <trans-unit id="Specified_path_must_be_absolute">
         <source>Specified path must be absolute.</source>
         <target state="translated">絶対パスを指定する必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified.</source>
-        <target state="translated">名前を簡素化できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_identifier">

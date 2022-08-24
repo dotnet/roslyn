@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.EditorConfigSettings
 Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
@@ -22,14 +23,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
             Return CodeStyleHelpers.CreateOption(group, NameOf(VisualBasicCodeStyleOptions), name, defaultValue, s_allOptionsBuilder, storageLocation1, storageLocation2, LanguageNames.VisualBasic)
         End Function
 
-        Private Shared Function CreateOption(group As OptionGroup, name As String, defaultValue As CodeStyleOption2(Of Boolean), editorconfigKeyName As String, roamingProfileStorageKeyName As String) As Option2(Of CodeStyleOption2(Of Boolean))
-            Return CreateOption(group, name, defaultValue, EditorConfigStorageLocation.ForBoolCodeStyleOption(editorconfigKeyName, defaultValue), New RoamingProfileStorageLocation(roamingProfileStorageKeyName))
+        Private Shared Function CreateOption(group As OptionGroup, name As String, defaultValue As CodeStyleOption2(Of Boolean), editorConfigData As EditorConfigData(Of Boolean), roamingProfileStorageKeyName As String) As Option2(Of CodeStyleOption2(Of Boolean))
+            Return CreateOption(group, name, defaultValue, EditorConfigStorageLocation.ForBoolCodeStyleOption(editorConfigData, defaultValue), New RoamingProfileStorageLocation(roamingProfileStorageKeyName))
         End Function
 
-        Private Shared Function CreateOption(group As OptionGroup, name As String, defaultValue As CodeStyleOption2(Of String), editorconfigKeyName As String, roamingProfileStorageKeyName As String) As Option2(Of CodeStyleOption2(Of String))
+        Private Shared Function CreateOption(group As OptionGroup, name As String, defaultValue As CodeStyleOption2(Of String), editorConfigData As EditorConfigData(Of String), roamingProfileStorageKeyName As String) As Option2(Of CodeStyleOption2(Of String))
             Return CreateOption(
                 group, name, defaultValue,
-                EditorConfigStorageLocation.ForStringCodeStyleOption(editorconfigKeyName, defaultValue),
+                EditorConfigStorageLocation.ForStringCodeStyleOption(editorConfigData, defaultValue),
                 New RoamingProfileStorageLocation(roamingProfileStorageKeyName))
         End Function
 
@@ -38,19 +39,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
         Public Shared ReadOnly PreferredModifierOrder As Option2(Of CodeStyleOption2(Of String)) = CreateOption(
             VisualBasicCodeStyleOptionGroups.Modifier, NameOf(PreferredModifierOrder),
             VisualBasicIdeCodeStyleOptions.Default.PreferredModifierOrder,
-            "visual_basic_preferred_modifier_order",
+            EditorConfigSettingsData.VBPreferredModifierOrder,
             $"TextEditor.%LANGUAGE%.Specific.{NameOf(PreferredModifierOrder)}")
 
         Public Shared ReadOnly PreferIsNotExpression As Option2(Of CodeStyleOption2(Of Boolean)) = CreateOption(
             VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences, NameOf(PreferIsNotExpression),
             VisualBasicIdeCodeStyleOptions.Default.PreferIsNotExpression,
-            "visual_basic_style_prefer_isnot_expression",
+            EditorConfigSettingsData.PreferIsNotExpression,
             $"TextEditor.%LANGUAGE%.Specific.{NameOf(PreferIsNotExpression)}")
 
         Public Shared ReadOnly PreferSimplifiedObjectCreation As Option2(Of CodeStyleOption2(Of Boolean)) = CreateOption(
             VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences, NameOf(PreferSimplifiedObjectCreation),
             VisualBasicIdeCodeStyleOptions.Default.PreferSimplifiedObjectCreation,
-            "visual_basic_style_prefer_simplified_object_creation",
+            EditorConfigSettingsData.PreferSimplifiedObjectCreation,
             $"TextEditor.%LANGUAGE%.Specific.{NameOf(PreferSimplifiedObjectCreation)}")
 
         Public Shared ReadOnly UnusedValueExpressionStatement As Option2(Of CodeStyleOption2(Of UnusedValuePreference)) =
@@ -58,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
                 group:=VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences,
                 feature:=NameOf(VisualBasicCodeStyleOptions),
                 name:=NameOf(UnusedValueExpressionStatement),
-                editorConfigName:="visual_basic_style_unused_value_expression_statement_preference",
+                editorConfigData:=EditorConfigSettingsData.VBUnusedValueExpressionStatement,
                 defaultValue:=VisualBasicIdeCodeStyleOptions.Default.UnusedValueExpressionStatement,
                 optionsBuilder:=s_allOptionsBuilder,
                 languageName:=LanguageNames.VisualBasic)
@@ -68,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
                 group:=VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences,
                 feature:=NameOf(VisualBasicCodeStyleOptions),
                 name:=NameOf(UnusedValueAssignment),
-                editorConfigName:="visual_basic_style_unused_value_assignment_preference",
+                editorConfigData:=EditorConfigSettingsData.VBUnusedValueAssignment,
                 defaultValue:=VisualBasicIdeCodeStyleOptions.Default.UnusedValueAssignment,
                 optionsBuilder:=s_allOptionsBuilder,
                 languageName:=LanguageNames.VisualBasic)

@@ -1397,7 +1397,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            analyzerState?.ClearNodeAnalysisState();
+            analyzerState?.OnAllActionsExecutedForNode(node);
         }
 
         internal static ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> GetOperationActionsByKind(IEnumerable<OperationAnalyzerAction> operationActions)
@@ -1449,7 +1449,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (TryStartAnalyzingDeclaration(declaredSymbol, declarationIndex, analyzer, analysisScope, analysisState, out analyzerState))
                 {
-                    ExecuteOperationActionsCore(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, model, filterSpan, analyzerState?.OperationBlockAnalysisState.ExecutableNodesAnalysisState, isGeneratedCode);
+                    ExecuteOperationActionsCore(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, model, filterSpan, analyzerState?.OperationAnalysisState, isGeneratedCode);
                     return true;
                 }
 
@@ -1532,7 +1532,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            analyzerState?.ClearNodeAnalysisState();
+            analyzerState?.OnAllActionsExecutedForOperation(operation);
         }
 
         internal static bool CanHaveExecutableCodeBlock(ISymbol symbol)

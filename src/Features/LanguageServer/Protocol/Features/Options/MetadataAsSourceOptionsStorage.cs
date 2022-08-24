@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
 internal static class MetadataAsSourceOptionsStorage
 {
-    public static MetadataAsSourceOptions GetMetadataAsSourceOptions(this IGlobalOptionService globalOptions, HostProjectServices languageServices)
+    public static MetadataAsSourceOptions GetMetadataAsSourceOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
         => new(GenerationOptions: globalOptions.GetCleanCodeGenerationOptions(languageServices))
         {
             NavigateToDecompiledSources = globalOptions.GetOption(NavigateToDecompiledSources),

@@ -12,21 +12,6 @@
         <target state="translated">Eksik using yönergeleri ekleniyor...</target>
         <note>Shown in a thread await dialog. "usings" is a language specific term and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
-        <source>Allow blank line after colon in constructor initializer</source>
-        <target state="new">Allow blank line after colon in constructor initializer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Allow_blank_lines_between_consecutive_braces">
-        <source>Allow blank lines between consecutive braces</source>
-        <target state="new">Allow blank lines between consecutive braces</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Allow_embedded_statements_on_same_line">
-        <source>Allow embedded statements on same line</source>
-        <target state="new">Allow embedded statements on same line</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Block_scoped">
         <source>Block scoped</source>
         <target state="new">Block scoped</target>
@@ -57,11 +42,6 @@
         <target state="new">Discard</target>
         <note />
       </trans-unit>
-      <trans-unit id="Elsewhere">
-        <source>Elsewhere</source>
-        <target state="new">Elsewhere</target>
-        <note />
-      </trans-unit>
       <trans-unit id="File_scoped">
         <source>File scoped</source>
         <target state="new">File scoped</target>
@@ -75,11 +55,6 @@
       <trans-unit id="Fixing_string_literal_after_paste">
         <source>Fixing string literal after paste</source>
         <target state="translated">Yapıştırma işleminden sonra sabit değerli dize düzeltiliyor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="For_built_in_types">
-        <source>For built-in types</source>
-        <target state="new">For built-in types</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
@@ -117,129 +92,9 @@
         <target state="new">Ignore spaces around binary operators</target>
         <note />
       </trans-unit>
-      <trans-unit id="Ignore_spaces_in_declaration_statements">
-        <source>Ignore spaces in declaration statements</source>
-        <target state="new">Ignore spaces in declaration statements</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indent_block_contents">
-        <source>Indent block contents</source>
-        <target state="new">Indent block contents</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indent_case_contents">
-        <source>Indent case contents</source>
-        <target state="new">Indent case contents</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indent_case_contents_when_block">
-        <source>Indent case contents (when block)</source>
-        <target state="new">Indent case contents (when block)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indent_case_labels">
-        <source>Indent case labels</source>
-        <target state="new">Indent case labels</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indent_open_and_close_braces">
-        <source>Indent open and close braces</source>
-        <target state="new">Indent open and close braces</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_after_cast">
-        <source>Insert space after cast</source>
-        <target state="new">Insert space after cast</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_after_colon_for_base_or_interface_in_type_declaration">
-        <source>Insert space after colon for base or interface in type declaration</source>
-        <target state="new">Insert space after colon for base or interface in type declaration</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_after_comma">
-        <source>Insert space after comma</source>
-        <target state="new">Insert space after comma</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_after_dot">
-        <source>Insert space after dot</source>
-        <target state="new">Insert space after dot</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_after_keywords_in_control_flow_statements">
-        <source>Insert space after keywords in control flow statements</source>
-        <target state="new">Insert space after keywords in control flow statements</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_after_semicolon_in_for_statement">
-        <source>Insert space after semicolon in "for" statement</source>
-        <target state="new">Insert space after semicolon in "for" statement</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_space_before_and_after_binary_operators">
         <source>Insert space before and after binary operators</source>
         <target state="new">Insert space before and after binary operators</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_before_colon_for_base_or_interface_in_type_declaration">
-        <source>Insert space before colon for base or interface in type declaration</source>
-        <target state="new">Insert space before colon for base or interface in type declaration</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_before_comma">
-        <source>Insert space before comma</source>
-        <target state="new">Insert space before comma</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_before_dot">
-        <source>Insert space before dot</source>
-        <target state="new">Insert space before dot</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_before_open_square_bracket">
-        <source>Insert space before open square bracket</source>
-        <target state="new">Insert space before open square bracket</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_before_semicolon_in_for_statement">
-        <source>Insert space before semicolon in "for" statement</source>
-        <target state="new">Insert space before semicolon in "for" statement</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="new">Insert space between method name and its opening parenthesis</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="new">Insert space between method name and its opening parenthesis</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_within_argument_list_parentheses">
-        <source>Insert space within argument list parentheses</source>
-        <target state="new">Insert space within argument list parentheses</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_within_empty_argument_list_parentheses">
-        <source>Insert space within empty argument list parentheses</source>
-        <target state="new">Insert space within empty argument list parentheses</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
-        <source>Insert space within empty parameter list parentheses</source>
-        <target state="new">Insert space within empty parameter list parentheses</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_within_empty_square_brackets">
-        <source>Insert space within empty square brackets</source>
-        <target state="new">Insert space within empty square brackets</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_within_parameter_list_parentheses">
-        <source>Insert space within parameter list parentheses</source>
-        <target state="new">Insert space within parameter list parentheses</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_within_parentheses_of_expressions">
@@ -257,29 +112,9 @@
         <target state="new">Insert spaces within parentheses of control flow statements</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_spaces_within_square_brackets">
-        <source>Insert spaces within square brackets</source>
-        <target state="new">Insert spaces within square brackets</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
         <target state="new">Inside namespace</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Label_Indentation">
-        <source>Label Indentation</source>
-        <target state="new">Label Indentation</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Leave_block_on_single_line">
-        <source>Leave block on single line</source>
-        <target state="new">Leave block on single line</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Leave_statements_and_member_declarations_on_the_same_line">
-        <source>Leave statements and member declarations on the same line</source>
-        <target state="new">Leave statements and member declarations on the same line</target>
         <note />
       </trans-unit>
       <trans-unit id="Load_from_0">
@@ -300,31 +135,6 @@
       <trans-unit id="Outside_namespace">
         <source>Outside namespace</source>
         <target state="translated">namespace dışında</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_catch_on_new_line">
-        <source>Place "catch" on new line</source>
-        <target state="new">Place "catch" on new line</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_else_on_new_line">
-        <source>Place "else" on new line</source>
-        <target state="new">Place "else" on new line</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_finally_on_new_line">
-        <source>Place "finally" on new line</source>
-        <target state="new">Place "finally" on new line</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_members_in_anonymous_types_on_new_line">
-        <source>Place members in anonymous types on new line</source>
-        <target state="new">Place members in anonymous types on new line</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_members_in_object_initializers_on_new_line">
-        <source>Place members in object initializers on new line</source>
-        <target state="new">Place members in object initializers on new line</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_anonymous_methods">
@@ -377,69 +187,14 @@
         <target state="new">Place query expression clauses on new line</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_conditional_delegate_call">
-        <source>Prefer conditional delegate call</source>
-        <target state="new">Prefer conditional delegate call</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_explicit_type">
         <source>Prefer explicit type</source>
         <target state="new">Prefer explicit type</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_extended_property_pattern">
-        <source>Prefer extended property pattern</source>
-        <target state="new">Prefer extended property pattern</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
-        <source>Prefer implicit object creation when type is apparent</source>
-        <target state="new">Prefer implicit object creation when type is apparent</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_null_check_over_type_check">
-        <source>Prefer 'null' check over type check</source>
-        <target state="new">Prefer 'null' check over type check</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_pattern_matching">
-        <source>Prefer pattern matching</source>
-        <target state="new">Prefer pattern matching</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_pattern_matching_over_as_with_null_check">
-        <source>Prefer pattern matching over 'as' with 'null' check</source>
-        <target state="new">Prefer pattern matching over 'as' with 'null' check</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_pattern_matching_over_is_with_cast_check">
-        <source>Prefer pattern matching over 'is' with 'cast' check</source>
-        <target state="new">Prefer pattern matching over 'is' with 'cast' check</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_pattern_matching_over_mixed_type_check">
-        <source>Prefer pattern matching over mixed type check</source>
-        <target state="new">Prefer pattern matching over mixed type check</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_switch_expression">
-        <source>Prefer switch expression</source>
-        <target state="new">Prefer switch expression</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_throw_expression">
-        <source>Prefer throw-expression</source>
-        <target state="new">Prefer throw-expression</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_var">
         <source>Prefer 'var'</source>
         <target state="new">Prefer 'var'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Preferred_using_directive_placement">
-        <source>Preferred 'using' directive placement</source>
-        <target state="new">Preferred 'using' directive placement</target>
         <note />
       </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
@@ -460,11 +215,6 @@
       <trans-unit id="Resolve_module_0_of_1">
         <source>Resolve module: '{0}' of '{1}'</source>
         <target state="translated">'{1}' modül içinden '{0}' modülü çözümle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Set_spacing_for_operators">
-        <source>Set spacing for operators</source>
-        <target state="new">Set spacing for operators</target>
         <note />
       </trans-unit>
       <trans-unit id="Smart_Indenting">
@@ -505,11 +255,6 @@
       <trans-unit id="When_possible">
         <source>When possible</source>
         <target state="new">When possible</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="When_variable_type_is_apparent">
-        <source>When variable type is apparent</source>
-        <target state="new">When variable type is apparent</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_items_in_cache">
