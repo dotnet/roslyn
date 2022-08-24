@@ -4957,6 +4957,10 @@ public class Derived : Base
             {
                 public required int Field1;
                 public required int Property1 { get; set; }
+            }
+
+            public class D
+            {
                 public int Field2;
                 public int Property2 { get; set; }
             }
@@ -4968,8 +4972,10 @@ public class Derived : Base
             AssertEx.NotNull(c);
             FieldSymbol field1 = c.GetMember<FieldSymbol>("Field1");
             PropertySymbol property1 = c.GetMember<PropertySymbol>("Property1");
-            FieldSymbol field2 = c.GetMember<FieldSymbol>("Field2");
-            PropertySymbol property2 = c.GetMember<PropertySymbol>("Property2");
+            var d = module.ContainingAssembly.GetTypeByMetadataName("D");
+            AssertEx.NotNull(d);
+            FieldSymbol field2 = d.GetMember<FieldSymbol>("Field2");
+            PropertySymbol property2 = d.GetMember<PropertySymbol>("Property2");
 
             if (accessAttributesFirst)
             {
@@ -4987,6 +4993,7 @@ public class Derived : Base
                 Assert.True(c.HasDeclaredRequiredMembers);
                 Assert.True(field1.IsRequired);
                 Assert.True(property1.IsRequired);
+                Assert.False(d.HasDeclaredRequiredMembers);
                 Assert.False(field2.IsRequired);
                 Assert.False(property2.IsRequired);
             }
@@ -4996,6 +5003,7 @@ public class Derived : Base
                 Assert.Empty(c.GetAttributes());
                 Assert.Empty(field1.GetAttributes());
                 Assert.Empty(property1.GetAttributes());
+                Assert.Empty(d.GetAttributes());
                 Assert.Empty(field2.GetAttributes());
                 Assert.Empty(property2.GetAttributes());
             }
