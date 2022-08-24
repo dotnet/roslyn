@@ -1606,6 +1606,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                             accessibility = Accessibility.NotApplicable;
                         }
                     }
+
                     var newTokens = Merge(tokens, AsModifierList(accessibility, modifiers));
                     return SetModifierTokens(d, newTokens);
                 });
