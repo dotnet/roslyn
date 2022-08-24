@@ -184,47 +184,56 @@ namespace Microsoft.CodeAnalysis.CSharp.EditorConfigSettings
         public static EditorConfigData<ExpressionBodyPreference> PreferExpressionBodiedTest = new EnumEditorConfigData<ExpressionBodyPreference>("BodyExpressionTest",
                                                                                                                                                  "Use expression body test",
                                                                                                                                                  ExpressionBodyPreferenceMap,
-                                                                                                                                                 EditorConfigSettingsValuesDocumentation.ExpressionBodyPreferenceDocumentation);
+                                                                                                                                                 EditorConfigSettingsValuesDocumentation.ExpressionBodyPreferenceDocumentation,
+                                                                                                                                                 nullable: true);
 
         public static EditorConfigData<ExpressionBodyPreference> PreferExpressionBodiedMethods = new EnumEditorConfigData<ExpressionBodyPreference>("csharp_style_expression_bodied_methods",
                                                                                                                                                     CSharpCompilerExtensionsResources.Use_expression_body_for_methods,
                                                                                                                                                     ExpressionBodyPreferenceMap,
-                                                                                                                                                    EditorConfigSettingsValuesDocumentation.ExpressionBodyPreferenceDocumentation);
+                                                                                                                                                    EditorConfigSettingsValuesDocumentation.ExpressionBodyPreferenceDocumentation,
+                                                                                                                                                    nullable: true);
 
         public static EditorConfigData<ExpressionBodyPreference> PreferExpressionBodiedConstructors = new EnumEditorConfigData<ExpressionBodyPreference>("csharp_style_expression_bodied_constructors",
                                                                                                                                                          CSharpCompilerExtensionsResources.Use_expression_body_for_constructors,
                                                                                                                                                          ExpressionBodyPreferenceMap,
-                                                                                                                                                         EditorConfigSettingsValuesDocumentation.ExpressionBodyPreferenceDocumentation);
+                                                                                                                                                         EditorConfigSettingsValuesDocumentation.ExpressionBodyPreferenceDocumentation,
+                                                                                                                                                         nullable: true);
 
         public static EditorConfigData<ExpressionBodyPreference> PreferExpressionBodiedOperators = new EnumEditorConfigData<ExpressionBodyPreference>("csharp_style_expression_bodied_operators",
                                                                                                                                                       CSharpCompilerExtensionsResources.Use_expression_body_for_operators,
                                                                                                                                                       ExpressionBodyPreferenceMap,
-                                                                                                                                                      EditorConfigSettingsValuesDocumentation.ExpressionBodyPreferenceDocumentation);
+                                                                                                                                                      EditorConfigSettingsValuesDocumentation.ExpressionBodyPreferenceDocumentation,
+                                                                                                                                                      nullable: true);
 
         public static EditorConfigData<ExpressionBodyPreference> PreferExpressionBodiedProperties = new EnumEditorConfigData<ExpressionBodyPreference>("csharp_style_expression_bodied_properties",
                                                                                                                                                        CSharpCompilerExtensionsResources.Use_expression_body_for_properties,
                                                                                                                                                        ExpressionBodyPreferenceMap,
-                                                                                                                                                       EditorConfigSettingsValuesDocumentation.ExpressionBodyPreferenceDocumentation);
+                                                                                                                                                       EditorConfigSettingsValuesDocumentation.ExpressionBodyPreferenceDocumentation,
+                                                                                                                                                       nullable: true);
 
         public static EditorConfigData<ExpressionBodyPreference> PreferExpressionBodiedIndexers = new EnumEditorConfigData<ExpressionBodyPreference>("csharp_style_expression_bodied_indexers",
                                                                                                                                                      CSharpCompilerExtensionsResources.Use_expression_body_for_indexers,
                                                                                                                                                      ExpressionBodyPreferenceMap,
-                                                                                                                                                     EditorConfigSettingsValuesDocumentation.ExpressionBodyPreferenceDocumentation);
+                                                                                                                                                     EditorConfigSettingsValuesDocumentation.ExpressionBodyPreferenceDocumentation,
+                                                                                                                                                     nullable: true);
 
         public static EditorConfigData<ExpressionBodyPreference> PreferExpressionBodiedAccessors = new EnumEditorConfigData<ExpressionBodyPreference>("csharp_style_expression_bodied_accessors",
                                                                                                                                                       CSharpCompilerExtensionsResources.Use_expression_body_for_accessors,
                                                                                                                                                       ExpressionBodyPreferenceMap,
-                                                                                                                                                      EditorConfigSettingsValuesDocumentation.ExpressionBodyPreferenceDocumentation);
+                                                                                                                                                      EditorConfigSettingsValuesDocumentation.ExpressionBodyPreferenceDocumentation,
+                                                                                                                                                      nullable: true);
 
         public static EditorConfigData<ExpressionBodyPreference> PreferExpressionBodiedLambdas = new EnumEditorConfigData<ExpressionBodyPreference>("csharp_style_expression_bodied_lambdas",
                                                                                                                                                     CSharpCompilerExtensionsResources.Use_expression_body_for_lambdas,
                                                                                                                                                     ExpressionBodyPreferenceMap,
-                                                                                                                                                    EditorConfigSettingsValuesDocumentation.ExpressionBodyPreferenceDocumentation);
+                                                                                                                                                    EditorConfigSettingsValuesDocumentation.ExpressionBodyPreferenceDocumentation,
+                                                                                                                                                    nullable: true);
 
         public static EditorConfigData<ExpressionBodyPreference> PreferExpressionBodiedLocalFunctions = new EnumEditorConfigData<ExpressionBodyPreference>("csharp_style_expression_bodied_local_functions",
                                                                                                                                                            CSharpCompilerExtensionsResources.Use_expression_body_for_local_functions,
                                                                                                                                                            ExpressionBodyPreferenceMap,
-                                                                                                                                                           EditorConfigSettingsValuesDocumentation.ExpressionBodyPreferenceDocumentation);
+                                                                                                                                                           EditorConfigSettingsValuesDocumentation.ExpressionBodyPreferenceDocumentation,
+                                                                                                                                                           nullable: true);
         #endregion
 
         #region Unused Value Options
@@ -242,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditorConfigSettings
                                                                                                              CSharpCompilerExtensionsResources.Allow_embedded_statements_on_same_line,
                                                                                                              valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
 
-        public static EditorConfigData<bool> AllowBlankLinesBetweenConsecutiveBraces = new BooleanEditorConfigData("csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental",
+        public static EditorConfigData<bool> AllowBlankLinesBetweenConsecutiveBraces = new BooleanEditorConfigData("csharp_style_allow_blank_lines_between_consecutive_braces_experimental",
                                                                                                                    CSharpCompilerExtensionsResources.Allow_blank_lines_between_consecutive_braces,
                                                                                                                    valuesDocumentation: EditorConfigSettingsValuesDocumentation.YesOrNoDocumentation);
 

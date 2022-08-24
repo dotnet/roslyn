@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
 extern alias WORKSPACES;
 using System;
 using System.Collections.Generic;
@@ -28,12 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             var visualStudioOptions = new TestOptionSet<bool>(option.DefaultValue);
             var setting = CodeStyleSetting.Create(option, editorConfigOptions, visualStudioOptions, updater: null!, fileName: null!, editorConfigData: EditorConfigSettingsData.BoolCodeStyleTest);
             Assert.Equal(string.Empty, setting.Category);
-            Assert.Equal("TestDesciption", setting.Description);
+            Assert.Equal("TestDescription", setting.Description);
             Assert.False(setting.IsDefinedInEditorConfig);
             Assert.Equal(typeof(bool), setting.Type);
             Assert.Equal(defaultValue, setting.Value);
         }
-
         [Theory]
         [InlineData(DayOfWeek.Monday)]
         [InlineData(DayOfWeek.Friday)]
@@ -51,12 +49,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
                                                   fileName: null!,
                                                   editorConfigData: EditorConfigSettingsData.DayOfWeekCodeStyleTest);
             Assert.Equal(string.Empty, setting.Category);
-            Assert.Equal("TestDesciption", setting.Description);
+            Assert.Equal("TestDescription", setting.Description);
             Assert.False(setting.IsDefinedInEditorConfig);
             Assert.Equal(typeof(DayOfWeek), setting.Type);
             Assert.Equal(defaultValue, setting.Value);
         }
-
         private static Option2<CodeStyleOption2<bool>> CreateBoolOption(bool @default = false)
         {
             var option = CodeStyleOption2<bool>.Default;
@@ -65,7 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
                                                        name: "TestOption",
                                                        defaultValue: option);
         }
-
         private static Option2<CodeStyleOption2<T>> CreateEnumOption<T>(T @default)
             where T : notnull, Enum
         {
@@ -75,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
                                                     name: "TestOption",
                                                     defaultValue: option);
         }
-
         private class TestAnalyzerConfigOptions : AnalyzerConfigOptions
         {
             private readonly IDictionary<string, string> _dictionary;
@@ -84,7 +79,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
                 => _dictionary.TryGetValue(key, out value);
         }
-
         private class TestOptionSet<T> : OptionSet
         {
             private readonly object? _value;

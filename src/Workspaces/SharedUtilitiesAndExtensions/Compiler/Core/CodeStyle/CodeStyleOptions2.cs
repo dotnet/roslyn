@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in event access expressions.
         /// </summary>
         public static readonly PerLanguageOption2<CodeStyleOption2<bool>> QualifyEventAccess = CreateQualifyAccessOption(
-            nameof(QualifyEventAccess), EditorConfigSettingsData.QualifyMethodAccess);
+            nameof(QualifyEventAccess), EditorConfigSettingsData.QualifyEventAccess);
 
         /// <summary>
         /// This option says if we should prefer keyword for Intrinsic Predefined Types in Declarations

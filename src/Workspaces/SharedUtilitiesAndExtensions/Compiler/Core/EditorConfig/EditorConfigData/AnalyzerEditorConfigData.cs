@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
 
         public override Optional<DiagnosticSeverity> GetValueFromEditorConfigString(string key)
         {
-            ValueToSettingName.TryGetValue(key, out var value);
+            ValueToSettingName.TryGetValue(key.Trim(), out var value);
             return value;
         }
     }
