@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.EditorConfigSettings
 
         public override string? GetSettingValueDocumentation(string key)
         {
-            throw new NotImplementedException();
+            return null;
         }
 
         public override string GetEditorConfigStringFromValue(int value)
