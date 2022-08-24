@@ -107,6 +107,11 @@ internal class LspServices : ILspServices
 
     public ImmutableArray<Type> GetRegisteredServices() => _lazyLspServices.Keys.ToImmutableArray();
 
+    public bool SupportsGetRegisteredServices()
+    {
+        return true;
+    }
+
     public void Dispose()
     {
         ImmutableArray<IDisposable> disposableServices;
@@ -126,15 +131,5 @@ internal class LspServices : ILspServices
             {
             }
         }
-    }
-
-    public bool SupportsGetRegisteredServices()
-    {
-        return true;
-    }
-
-    public bool SupportsGetRequiredServices()
-    {
-        return false;
     }
 }
