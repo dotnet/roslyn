@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return "bad";
             }
-            public override string ToString(string? s, IFormatProvider? provider)
+            public override string ToString(string? format, IFormatProvider? provider)
             {
                 return GetValueToDisplay();
             }
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis
                 return ((object)this == (object)Uninitialized) ? "unset" : "null";
             }
 
-            public override string ToString(string? s, IFormatProvider? provider)
+            public override string ToString(string? format, IFormatProvider? provider)
             {
                 return GetValueToDisplay();
             }
@@ -214,14 +214,13 @@ namespace Microsoft.CodeAnalysis
             public override string ToString(string? format, IFormatProvider? provider)
             {
                 int formatLength = RopeValue.Length;
-                if (format is not null && int.TryParse(format, out var len) &&
-                    len >= 3)
+                if (format is not null && int.TryParse(format, out var len))
                 {
                     formatLength = len;
                 }
 
                 return formatLength < RopeValue.Length ?
-                    string.Format(@"""{0}...""", RopeValue.ToString(formatLength - 3)) :
+                    string.Format(@"""{0}...""", RopeValue.ToString(Math.Max(formatLength - 3, 0))) :
                     string.Format(@"""{0}""", RopeValue);
             }
         }
@@ -850,7 +849,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return base.Equals(other) && _value == other.Int64Value;
             }
-         }
+        }
 
         private sealed class ConstantValueNativeInt : ConstantValueDiscriminated
         {

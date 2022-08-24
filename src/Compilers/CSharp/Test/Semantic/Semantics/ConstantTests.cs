@@ -4051,8 +4051,11 @@ public class C
             Assert.Equal("0.3333", doubleConst.ToString("G4", CultureInfo.InvariantCulture));
 
             Assert.Equal(@"""abcdefghijklmnopqrstuvwxyz""", stringConst.ToString(null, CultureInfo.InvariantCulture));
-            Assert.Equal(@"""abcdefghijklmnopqrstuvwxyz""", stringConst.ToString("2", CultureInfo.InvariantCulture));
             Assert.Equal(@"""abcdefghijklmnopqrstuvwxyz""", stringConst.ToString("26", CultureInfo.InvariantCulture));
+            Assert.Equal(@"""abcdefghijklmnopqrstuvwxyz""", stringConst.ToString("27", CultureInfo.InvariantCulture));
+
+            Assert.Equal(@"""...""", stringConst.ToString("-1", CultureInfo.InvariantCulture));
+            Assert.Equal(@"""...""", stringConst.ToString("2", CultureInfo.InvariantCulture));
             Assert.Equal(@"""...""", stringConst.ToString("3", CultureInfo.InvariantCulture));
             Assert.Equal(@"""abcd...""", stringConst.ToString("7", CultureInfo.InvariantCulture));
 
