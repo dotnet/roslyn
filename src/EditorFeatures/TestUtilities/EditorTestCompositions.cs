@@ -4,10 +4,12 @@
 
 using System.Reflection;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Implementation.Notification;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Fakes;
@@ -70,6 +72,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public static readonly TestComposition EditorFeaturesWpf = EditorFeatures
             .AddAssemblies(
                 typeof(EditorFeaturesWpfResources).Assembly,
+                typeof(LanguageServerSnippetExpanderAdapter).Assembly,
+                typeof(ILanguageServerSnippetExpander).Assembly,
                 Assembly.LoadFrom("Microsoft.VisualStudio.LanguageServer.Client.Implementation.dll"));
 
         public static readonly TestComposition InteractiveWindow = EditorFeaturesWpf

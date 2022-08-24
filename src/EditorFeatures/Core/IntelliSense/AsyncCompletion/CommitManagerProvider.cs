@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             IThreadingContext threadingContext,
             RecentItemsManager recentItemsManager,
             IGlobalOptionService globalOptions,
-            [Import(AllowDefault = true)] ILanguageServerSnippetExpander? languageServerSnippetExpander)
+            ILanguageServerSnippetExpander? languageServerSnippetExpander)
         {
             _threadingContext = threadingContext;
             _recentItemsManager = recentItemsManager;
