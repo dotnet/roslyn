@@ -215,15 +215,14 @@ namespace Microsoft.CodeAnalysis
             {
                 int formatLength = RopeValue.Length;
                 if (format is not null && int.TryParse(format, out var len) &&
-                    len >= 0)
+                    len >= 3)
                 {
                     formatLength = len;
                 }
 
-                bool trim = formatLength >= 3 && formatLength < RopeValue.Length;
-                var formatString = @"""{0}""" + (trim ? "..." : string.Empty);
-
-                return string.Format(formatString, trim ? RopeValue.ToString(formatLength - 3) : RopeValue);
+                return formatLength < RopeValue.Length ?
+                    string.Format(@"""{0}...""", RopeValue.ToString(formatLength - 3)) :
+                    string.Format(@"""{0}""", RopeValue);
             }
         }
 
@@ -739,16 +738,6 @@ namespace Microsoft.CodeAnalysis
             {
                 return base.Equals(other) && _value == other.ByteValue;
             }
-
-            public override string ToString(string? format, IFormatProvider? provider)
-            {
-                return Discriminator switch
-                {
-                    ConstantValueTypeDiscriminator.Byte => ByteValue.ToString(provider),
-                    ConstantValueTypeDiscriminator.SByte => SByteValue.ToString(provider),
-                    _ => throw new InvalidOperationException()
-                };
-            }
         }
 
         private sealed class ConstantValueI16 : ConstantValueDiscriminated
@@ -806,17 +795,6 @@ namespace Microsoft.CodeAnalysis
             {
                 return base.Equals(other) && _value == other.Int16Value;
             }
-
-            public override string ToString(string? format, IFormatProvider? provider)
-            {
-                return Discriminator switch
-                {
-                    ConstantValueTypeDiscriminator.Int16 => Int16Value.ToString(provider),
-                    ConstantValueTypeDiscriminator.UInt16 => UInt16Value.ToString(provider),
-                    ConstantValueTypeDiscriminator.Char => CharValue.ToString(provider),
-                    _ => throw new InvalidOperationException()
-                };
-            }
         }
 
         private sealed class ConstantValueI32 : ConstantValueDiscriminated
@@ -859,16 +837,6 @@ namespace Microsoft.CodeAnalysis
             public override bool Equals(ConstantValue? other)
             {
                 return base.Equals(other) && _value == other.Int32Value;
-            }
-
-            public override string ToString(string? format, IFormatProvider? provider)
-            {
-                return Discriminator switch
-                {
-                    ConstantValueTypeDiscriminator.Int32 => Int32Value.ToString(provider),
-                    ConstantValueTypeDiscriminator.UInt32 => UInt32Value.ToString(provider),
-                    _ => throw new InvalidOperationException()
-                };
             }
         }
 
@@ -913,17 +881,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return base.Equals(other) && _value == other.Int64Value;
             }
-
-            public override string ToString(string? format, IFormatProvider? provider)
-            {
-                return Discriminator switch
-                {
-                    ConstantValueTypeDiscriminator.Int64 => Int64Value.ToString(provider),
-                    ConstantValueTypeDiscriminator.UInt64 => UInt64Value.ToString(provider),
-                    _ => throw new InvalidOperationException()
-                };
-            }
-        }
+         }
 
         private sealed class ConstantValueNativeInt : ConstantValueDiscriminated
         {
@@ -967,16 +925,6 @@ namespace Microsoft.CodeAnalysis
             {
                 return base.Equals(other) && _value == other.Int32Value;
             }
-
-            public override string ToString(string? format, IFormatProvider? provider)
-            {
-                return Discriminator switch
-                {
-                    ConstantValueTypeDiscriminator.Int32 => Int64Value.ToString(provider),
-                    ConstantValueTypeDiscriminator.UInt32 => UInt64Value.ToString(provider),
-                    _ => throw new InvalidOperationException()
-                };
-            }
         }
 
         private sealed class ConstantValueDouble : ConstantValueDiscriminated
@@ -1012,10 +960,6 @@ namespace Microsoft.CodeAnalysis
                 return base.Equals(other) && _value.Equals(other.DoubleValue);
             }
 
-            public override string ToString(string? format, IFormatProvider? provider)
-            {
-                return DoubleValue.ToString(provider);
-            }
         }
 
         private sealed class ConstantValueSingle : ConstantValueDiscriminated
@@ -1060,11 +1004,6 @@ namespace Microsoft.CodeAnalysis
             public override bool Equals(ConstantValue? other)
             {
                 return base.Equals(other) && _value.Equals(other.DoubleValue);
-            }
-
-            public override string ToString(string? format, IFormatProvider? provider)
-            {
-                return SingleValue.ToString(provider);
             }
         }
     }
