@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 TestCode = testCode,
                 FixedCode = testCode,
                 LanguageVersion = languageVersion,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             }.RunAsync();
         }
 
@@ -864,6 +866,30 @@ class C
                     }
 
                     static byte* Get() => null;
+                }
+                """, LanguageVersion.Preview);
+        }
+
+        [WorkItem(63551, "https://github.com/dotnet/roslyn/issues/63551")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestFunctionPointer()
+        {
+            await TestMissingAsync("""
+                using System.Runtime.InteropServices;
+                public unsafe class C {
+                    [DllImport("A")]
+                    private static extern delegate* unmanaged<void> GetFunc();
+
+                    private delegate* unmanaged<void> s_func;
+
+                    public delegate* unmanaged<void> M() {
+                        delegate* unmanaged<void> func = s_func;
+                        if (func == null)
+                        {
+                            func = s_func = GetFunc();
+                        }
+                        return func;
+                    }
                 }
                 """, LanguageVersion.Preview);
         }
