@@ -715,6 +715,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Temel sınıfı ayıkla...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Extract_base_record">
+        <source>Extract base record...</source>
+        <target state="new">Extract base record...</target>
+        <note>{Locked="record"} "record" is a language construct for C# and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
         <target state="translated">Arabirimi ayıkla...</target>
@@ -963,11 +968,6 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
         <target state="translated">'{0}' öğesini satır içine al ve koru</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_an_if_statement">
-        <source>Insert an 'if' statement</source>
-        <target state="new">Insert an 'if' statement</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -2990,11 +2990,6 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Kaydırma</target>
         <note />
       </trans-unit>
-      <trans-unit id="Write_to_the_console">
-        <source>Write to the console</source>
-        <target state="new">Write to the console</target>
-        <note />
-      </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
         <source>You can use the navigation bar to switch contexts.</source>
         <target state="translated">Bağlamlarda geçiş yapmak için gezinti çubuğunu kullanabilirsiniz.</target>
@@ -3346,6 +3341,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
         <target state="translated">kod</target>
         <note />
       </trans-unit>
+      <trans-unit id="console_writeline">
+        <source>Console.WriteLine</source>
+        <target state="new">Console.WriteLine</target>
+        <note />
+      </trans-unit>
       <trans-unit id="date_separator">
         <source>date separator</source>
         <target state="translated">tarih ayırıcısı</target>
@@ -3480,6 +3480,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">genel aşırı yüklemeler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="if_statement">
+        <source>if statement</source>
+        <target state="new">if statement</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_1_2">
@@ -3998,16 +4003,6 @@ Devam etmek istiyor musunuz?</target>
 '{1}'.</source>
         <target state="translated">'{0}' çözümleyicisi şu özel durumu oluşturdu:
 '{1}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Names">
-        <source>Simplify Names</source>
-        <target state="translated">Adları Basitleştir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Member_Access">
-        <source>Simplify Member Access</source>
-        <target state="translated">Üye Erişimini Basitleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_qualification">

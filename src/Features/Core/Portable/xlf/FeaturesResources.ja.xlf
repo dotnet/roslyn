@@ -715,6 +715,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">基底クラスの抽出...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Extract_base_record">
+        <source>Extract base record...</source>
+        <target state="new">Extract base record...</target>
+        <note>{Locked="record"} "record" is a language construct for C# and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
         <target state="translated">インターフェイスの抽出...</target>
@@ -963,11 +968,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
         <target state="translated">インラインおよび '{0}' の保持</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_an_if_statement">
-        <source>Insert an 'if' statement</source>
-        <target state="new">Insert an 'if' statement</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -2990,11 +2990,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">折り返し</target>
         <note />
       </trans-unit>
-      <trans-unit id="Write_to_the_console">
-        <source>Write to the console</source>
-        <target state="new">Write to the console</target>
-        <note />
-      </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
         <source>You can use the navigation bar to switch contexts.</source>
         <target state="translated">ナビゲーション バーを使用してコンテキストを切り替えることができます。</target>
@@ -3346,6 +3341,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
         <target state="translated">コード</target>
         <note />
       </trans-unit>
+      <trans-unit id="console_writeline">
+        <source>Console.WriteLine</source>
+        <target state="new">Console.WriteLine</target>
+        <note />
+      </trans-unit>
       <trans-unit id="date_separator">
         <source>date separator</source>
         <target state="translated">日付の区切り記号</target>
@@ -3480,6 +3480,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">ジェネリック オーバーロード</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="if_statement">
+        <source>if statement</source>
+        <target state="new">if statement</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_1_2">
@@ -3998,16 +4003,6 @@ Do you want to continue?</source>
 '{1}'.</source>
         <target state="translated">アナライザー '{0}'が、次の例をスローしました:
 '{1}'。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Names">
-        <source>Simplify Names</source>
-        <target state="translated">名前を単純化します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Member_Access">
-        <source>Simplify Member Access</source>
-        <target state="translated">メンバー アクセスを単純化します</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_qualification">
