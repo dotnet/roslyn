@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            : this(new SolutionState(workspace.PrimaryBranchId, workspace.Kind, workspace.PartialSemanticsEnabled, workspace.Services, solutionAttributes, options, analyzerReferences))
+        internal Solution(Workspace workspace, BranchId primaryBranchId, SolutionInfo.SolutionAttributes solutionAttributes, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
+            : this(new SolutionState(primaryBranchId, workspace.Kind, workspace.PartialSemanticsEnabled, workspace.Services, solutionAttributes, options, analyzerReferences))
         {
         }
 
@@ -1710,9 +1710,9 @@ namespace Microsoft.CodeAnalysis
             return this.FilterDocumentIdsByLanguage(documentIds, projectState.ProjectInfo.Language);
         }
 
-        internal Solution WithNewWorkspace(Workspace workspace, int workspaceVersion)
+        internal Solution WithNewWorkspace(Workspace workspace, BranchId primaryBranchId, int workspaceVersion)
         {
-            var newState = _state.WithNewWorkspace(workspace, workspaceVersion);
+            var newState = _state.WithNewWorkspace(workspace, primaryBranchId, workspaceVersion);
             if (newState == _state)
             {
                 return this;

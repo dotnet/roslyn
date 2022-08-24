@@ -148,11 +148,11 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        public SolutionState WithNewWorkspace(Workspace workspace, int workspaceVersion)
+        public SolutionState WithNewWorkspace(Workspace workspace, BranchId primaryBranchId, int workspaceVersion)
         {
             // Note: this will potentially have problems if the workspace services are different, as some services
             // get locked-in by document states and project states when first constructed.
-            return CreatePrimarySolution(workspace.PrimaryBranchId, workspace.Kind, workspaceVersion, workspace.Services);
+            return CreatePrimarySolution(primaryBranchId, workspace.Kind, workspaceVersion, workspace.Services);
         }
 
         public HostDiagnosticAnalyzers Analyzers => _lazyAnalyzers.Value;

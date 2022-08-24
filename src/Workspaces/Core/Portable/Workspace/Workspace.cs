@@ -108,11 +108,6 @@ namespace Microsoft.CodeAnalysis
         public HostWorkspaceServices Services => _services;
 
         /// <summary>
-        /// primary branch id that current solution has
-        /// </summary>
-        internal BranchId PrimaryBranchId => _primaryBranchId;
-
-        /// <summary>
         /// Override this property if the workspace supports partial semantics for documents.
         /// </summary>
         protected internal virtual bool PartialSemanticsEnabled => false;
@@ -138,7 +133,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new empty solution instance associated with this workspace, and with the given options.
         /// </summary>
         private Solution CreateSolution(SolutionInfo solutionInfo, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            => new(this, solutionInfo.Attributes, options, analyzerReferences);
+            => new(this, _primaryBranchId, solutionInfo.Attributes, options, analyzerReferences);
 
         /// <summary>
         /// Create a new empty solution instance associated with this workspace.
@@ -186,7 +181,7 @@ namespace Microsoft.CodeAnalysis
 
             while (true)
             {
-                var newSolution = solution.WithNewWorkspace(this, currentSolution.WorkspaceVersion + 1);
+                var newSolution = solution.WithNewWorkspace(this, _primaryBranchId, currentSolution.WorkspaceVersion + 1);
                 var oldSolution = Interlocked.CompareExchange(ref _latestSolution, newSolution, currentSolution);
                 if (oldSolution == currentSolution)
                 {
@@ -219,7 +214,7 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                var newSolution = transformedSolution.WithNewWorkspace(this, currentSolution.WorkspaceVersion + 1);
+                var newSolution = transformedSolution.WithNewWorkspace(this, _primaryBranchId, currentSolution.WorkspaceVersion + 1);
 
                 Solution oldSolution;
                 using (_serializationLock.DisposableWait())
