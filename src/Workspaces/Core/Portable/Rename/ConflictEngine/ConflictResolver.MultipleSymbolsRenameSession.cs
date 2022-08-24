@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     symbolToPossibleNameConflicts,
                     cancellationToken).ConfigureAwait(false);
 
-                using var _6 = PooledHashSet<RenameLocation>.GetInstance(out var overlapRenameLocations);
+                using var _6 = PooledHashSet<RelatedLocation>.GetInstance(out var overlapRenameLocations);
                 var documentIdToRenameInfoBuilder = PooledDictionary<DocumentId, DocumentRenameInfo.Builder>.GetInstance();
                 try
                 {
@@ -110,7 +110,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             {
                                 if (documentRenameInfoBuilder.AddLocationRenameContext(locationRenameContext))
                                 {
-                                    overlapRenameLocations.Add(locationRenameContext.RenameLocation);
+                                    overlapRenameLocations.Add(new RelatedLocation(
+                                        locationRenameContext.RenameLocation.Location.SourceSpan,
+                                        documentId,
+                                        RelatedLocationType.OverlapRenameLocation,
+                                        isReference: true));
                                 }
                             }
 
@@ -123,7 +127,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             {
                                 if (documentRenameInfoBuilder.AddStringAndCommentRenameContext(stringAndCommentContext))
                                 {
-                                    overlapRenameLocations.Add(stringAndCommentContext.RenameLocation);
+                                    // This is a location in string/comments searched by regex, not a reference location.
+                                    overlapRenameLocations.Add(
+                                        new RelatedLocation(
+                                           stringAndCommentContext.RenameLocation.Location.SourceSpan,
+                                           documentId,
+                                           RelatedLocationType.OverlapRenameLocation,
+                                           isReference: false));
                                 }
                             }
 
@@ -147,6 +157,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         symbolToReplacementTextMap.ToImmutableDictionary(),
                         symbolToReplacementTextValidMap.ToImmutableDictionary(),
                         symbolToDeclarationInfo.ToImmutableDictionary(),
+                        overlapRenameLocations.ToImmutableHashSet(),
                         fallbackOptions,
                         cancellationToken);
 
@@ -180,8 +191,20 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 ImmutableDictionary<DocumentId, DocumentRenameInfo> documentIdToRenameInfo,
                 ImmutableDictionary<ISymbol, string> symbolToReplacementText,
                 ImmutableDictionary<ISymbol, bool> symbolToReplacementTextValid,
-                ImmutableDictionary<ISymbol, (DocumentId declarationDocumentId, Location declarationLocation)> symbolToDeclarationDocumentAndLocation, CodeCleanupOptionsProvider fallBackOptions, CancellationToken cancellationToken)
-                 : base(solution, symbolicRenameLocations, nonConflictSymbolKeys, documentIdToRenameInfo, symbolToReplacementText, symbolToReplacementTextValid, symbolToDeclarationDocumentAndLocation, fallBackOptions, cancellationToken)
+                ImmutableDictionary<ISymbol, (DocumentId declarationDocumentId, Location declarationLocation)> symbolToDeclarationDocumentAndLocation,
+                ImmutableHashSet<RelatedLocation> overlapRenameLocations,
+                CodeCleanupOptionsProvider fallBackOptions,
+                CancellationToken cancellationToken)
+                 : base(solution,
+                     symbolicRenameLocations,
+                     nonConflictSymbolKeys,
+                     documentIdToRenameInfo,
+                     symbolToReplacementText,
+                     symbolToReplacementTextValid,
+                     symbolToDeclarationDocumentAndLocation,
+                     overlapRenameLocations,
+                     fallBackOptions,
+                     cancellationToken)
             {
             }
 

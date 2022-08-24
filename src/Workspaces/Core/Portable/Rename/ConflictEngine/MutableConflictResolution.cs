@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             Solution oldSolution,
             RenamedSpansTracker renamedSpansTracker,
             ImmutableDictionary<ISymbol, string> symbolToReplacementText,
-            ImmutableDictionary<ISymbol, bool> symbolToReplacementTextValid)
+            ImmutableDictionary<ISymbol, bool> symbolToReplacementTextValid,
+            ImmutableHashSet<RelatedLocation> overlapRenameLocations)
         {
             OldSolution = oldSolution;
             CurrentSolution = oldSolution;
@@ -64,6 +65,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             SymbolToReplacementText = symbolToReplacementText;
             SymbolToReplacementTextValid = symbolToReplacementTextValid;
             RelatedLocations = new List<RelatedLocation>();
+            RelatedLocations.AddRange(overlapRenameLocations);
         }
 
         internal void ClearDocuments(IEnumerable<DocumentId> conflictLocationDocumentIds)

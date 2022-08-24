@@ -117,6 +117,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     symbolToReplacementTextValid: ImmutableDictionary<ISymbol, bool>.Empty.Add(renameLocationSet.Symbol, replacementTextValid),
                     symbolToDeclarationDocumentAndLocation: ImmutableDictionary<ISymbol, (DocumentId declarationDocumentId, Location declarationLocation)>.Empty
                         .Add(renameLocationSet.Symbol, (documentIdOfRenameSymbolDeclaration, renameSymbolDeclarationLocation)),
+                    overlapRenameLocations: ImmutableHashSet<RelatedLocation>.Empty,
                     fallBackOptions: fallbackOptions,
                     cancellationToken)
             {

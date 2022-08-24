@@ -35,6 +35,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// </summary>
         UnresolvableConflict = 0x8,
 
+        /// <summary>
+        /// The location being renamed by using different replacement text or rename options.
+        /// </summary>
+        OverlapRenameLocation = 0x10,
+
         UnresolvedConflict = PossiblyResolvableConflict | UnresolvableConflict
     }
 }
