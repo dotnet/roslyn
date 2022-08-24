@@ -34,19 +34,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private readonly EventListenerTracker<IDiagnosticService> _eventListenerTracker;
 
-        public IGlobalOptionService GlobalOptions { get; }
-
         private ImmutableHashSet<IDiagnosticUpdateSource> _updateSources;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticService(
-            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
         {
-            GlobalOptions = globalOptions;
-
             // we use registry service rather than doing MEF import since MEF import method can have race issue where
             // update source gets created before aggregator - diagnostic service - is created and we will lose events fired before
             // the aggregator is created.

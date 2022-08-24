@@ -15,8 +15,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal interface IDiagnosticService
     {
-        IGlobalOptionService GlobalOptions { get; }
-
         /// <summary>
         /// Event to get notified as new diagnostics are discovered by IDiagnosticUpdateSource
         /// 
