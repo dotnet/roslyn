@@ -371,6 +371,10 @@ class C {
     $$
 }");
 
+            // Disable new rename UI for now, it's causing these tests to fail.
+            // https://github.com/dotnet/roslyn/issues/63576
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_UseNewUI, LanguageNames.CSharp, false);
+
             VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("System.Action<", VirtualKey.Tab);
