@@ -808,7 +808,27 @@ namespace Microsoft.CodeAnalysis
             return String.Format("{0}({1}: {2})", this.GetType().Name, valueToDisplay, this.Discriminator);
         }
 
-        public abstract string ToString(string? format, IFormatProvider? provider);
+        public virtual string ToString(string? format, IFormatProvider? provider)
+        {
+            return Discriminator switch
+            {
+                ConstantValueTypeDiscriminator.SByte => SByteValue.ToString(format, provider),
+                ConstantValueTypeDiscriminator.Byte => ByteValue.ToString(format, provider),
+                ConstantValueTypeDiscriminator.Int16 => Int16Value.ToString(format, provider),
+                ConstantValueTypeDiscriminator.UInt16 => UInt16Value.ToString(format, provider),
+                ConstantValueTypeDiscriminator.NInt or ConstantValueTypeDiscriminator.Int32 => Int32Value.ToString(format, provider),
+                ConstantValueTypeDiscriminator.NUInt or ConstantValueTypeDiscriminator.UInt32 => UInt32Value.ToString(format, provider),
+                ConstantValueTypeDiscriminator.UInt64 => UInt64Value.ToString(format, provider),
+                ConstantValueTypeDiscriminator.Int64 => Int64Value.ToString(format, provider),
+                ConstantValueTypeDiscriminator.Char => CharValue.ToString(provider),
+                ConstantValueTypeDiscriminator.Boolean => BooleanValue.ToString(provider),
+                ConstantValueTypeDiscriminator.Single => SingleValue.ToString(format, provider),
+                ConstantValueTypeDiscriminator.Double => DoubleValue.ToString(format, provider),
+                ConstantValueTypeDiscriminator.Decimal => DecimalValue.ToString(format, provider),
+                ConstantValueTypeDiscriminator.DateTime => DateTimeValue.ToString(format, provider),
+                _ => throw ExceptionUtilities.UnexpectedValue(Discriminator)
+            };
+        }
 
         internal virtual string? GetValueToDisplay()
         {

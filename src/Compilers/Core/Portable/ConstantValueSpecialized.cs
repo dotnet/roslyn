@@ -265,11 +265,6 @@ namespace Microsoft.CodeAnalysis
             {
                 return base.Equals(other) && _value == other.DecimalValue;
             }
-
-            public override string ToString(string? format, IFormatProvider? provider)
-            {
-                return _value.ToString(provider);
-            }
         }
 
         private sealed class ConstantValueDateTime : ConstantValue
@@ -311,11 +306,6 @@ namespace Microsoft.CodeAnalysis
             {
                 return base.Equals(other) && _value == other.DateTimeValue;
             }
-
-            public override string ToString(string? format, IFormatProvider? provider)
-            {
-                return DateTimeValue.ToString(provider);
-            }
         }
 
         // base for constant classes that may represent more than one 
@@ -340,27 +330,6 @@ namespace Microsoft.CodeAnalysis
             internal override SpecialType SpecialType
             {
                 get { return GetSpecialType(_discriminator); }
-            }
-
-            public override string ToString(string? format, IFormatProvider? provider)
-            {
-                return Discriminator switch
-                {
-                    ConstantValueTypeDiscriminator.SByte => SByteValue.ToString(provider),
-                    ConstantValueTypeDiscriminator.Byte => ByteValue.ToString(provider),
-                    ConstantValueTypeDiscriminator.Int16 => Int16Value.ToString(provider),
-                    ConstantValueTypeDiscriminator.UInt16 => UInt16Value.ToString(provider),
-                    ConstantValueTypeDiscriminator.NInt or ConstantValueTypeDiscriminator.Int32 => Int32Value.ToString(provider),
-                    ConstantValueTypeDiscriminator.NUInt or ConstantValueTypeDiscriminator.UInt32 => UInt32Value.ToString(provider),
-                    ConstantValueTypeDiscriminator.UInt64 => UInt64Value.ToString(provider),
-                    ConstantValueTypeDiscriminator.Int64 => Int64Value.ToString(provider),
-                    ConstantValueTypeDiscriminator.Char => CharValue.ToString(provider),
-                    ConstantValueTypeDiscriminator.Boolean => BooleanValue.ToString(provider),
-                    ConstantValueTypeDiscriminator.Single => SingleValue.ToString(provider),
-                    ConstantValueTypeDiscriminator.Double => DoubleValue.ToString(provider),
-                    ConstantValueTypeDiscriminator.Decimal => DecimalValue.ToString(provider),
-                    _ => throw ExceptionUtilities.UnexpectedValue(Discriminator)
-                };
             }
         }
 
