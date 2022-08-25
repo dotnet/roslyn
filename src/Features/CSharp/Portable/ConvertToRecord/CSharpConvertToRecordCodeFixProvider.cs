@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
         {
         }
 
+        public override CodeAnalysis.CodeFixes.FixAllProvider? GetFixAllProvider()
+        {
+            return WellKnownFixAllProviders.BatchFixer;
+        }
+
         /// <summary>
         /// Only records may inherit from records.
         /// </summary>

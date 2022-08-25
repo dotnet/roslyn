@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, span, cancellationToken) = context;
+            var (document, _, cancellationToken) = context;
 
             var typeDeclaration = await context.TryGetRelevantNodeAsync<TypeDeclarationSyntax>().ConfigureAwait(false);
 
