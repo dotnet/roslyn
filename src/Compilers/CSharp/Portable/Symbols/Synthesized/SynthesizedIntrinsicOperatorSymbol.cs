@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public SynthesizedIntrinsicOperatorSymbol(TypeSymbol leftType, string name, TypeSymbol rightType, TypeSymbol returnType, bool isCheckedBuiltin)
         {
+            Debug.Assert(SyntaxFacts.IsCheckedOperator(name) == isCheckedBuiltin);
             if (leftType.Equals(rightType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 _containingType = leftType;
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public SynthesizedIntrinsicOperatorSymbol(TypeSymbol container, string name, TypeSymbol returnType, bool isCheckedBuiltin)
         {
+            Debug.Assert(SyntaxFacts.IsCheckedOperator(name) == isCheckedBuiltin);
             _containingType = container;
             _name = name;
             _returnType = returnType;

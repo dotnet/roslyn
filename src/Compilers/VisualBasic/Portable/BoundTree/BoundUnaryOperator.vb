@@ -32,16 +32,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
                 If (OperatorKind And UnaryOperatorKind.Error) = 0 Then
-                    Dim opName As String = OverloadResolution.TryGetOperatorName(OperatorKind)
+                    Dim operandType = DirectCast(Operand.Type.GetNullableUnderlyingTypeOrSelf(), NamedTypeSymbol)
+                    Dim op As UnaryOperatorKind = (OperatorKind And UnaryOperatorKind.OpMask)
+
+                    Dim isChecked = Checked AndAlso operandType.IsIntegralType() AndAlso op = UnaryOperatorKind.Minus
+                    Dim opName As String = OverloadResolution.TryGetOperatorName(OperatorKind, isChecked)
 
                     If opName IsNot Nothing Then
-                        Dim op As UnaryOperatorKind = (OperatorKind And UnaryOperatorKind.OpMask)
-                        Dim operandType = DirectCast(Operand.Type.GetNullableUnderlyingTypeOrSelf(), NamedTypeSymbol)
-                        Return New SynthesizedIntrinsicOperatorSymbol(operandType,
-                                                                      opName,
-                                                                      Type.GetNullableUnderlyingTypeOrSelf(),
-                                                                      Checked AndAlso operandType.IsIntegralType() AndAlso
-                                                                          op = UnaryOperatorKind.Minus)
+                        Return New SynthesizedIntrinsicOperatorSymbol(
+                            operandType,
+                            opName,
+                            Type.GetNullableUnderlyingTypeOrSelf(),
+                            isChecked)
                     End If
                 End If
 

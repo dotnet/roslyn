@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub New(container As NamedTypeSymbol, name As String, rightType As TypeSymbol, returnType As TypeSymbol, isCheckedBuiltin As Boolean)
             MyBase.New(container)
 
+            Debug.Assert(IsCheckedOperator(name) = isCheckedBuiltin)
             _name = name
             _returnType = returnType
             _parameters = (New ParameterSymbol() {New SynthesizedOperatorParameterSymbol(Me, container, 0, "left"),
@@ -26,11 +27,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub New(container As NamedTypeSymbol, name As String, returnType As TypeSymbol, isCheckedBuiltin As Boolean)
             MyBase.New(container)
 
+            Debug.Assert(IsCheckedOperator(name) = isCheckedBuiltin)
             _name = name
             _returnType = returnType
             _parameters = (New ParameterSymbol() {New SynthesizedOperatorParameterSymbol(Me, container, 0, "value")}).AsImmutableOrNull()
             _isCheckedBuiltin = isCheckedBuiltin
         End Sub
+
+        Private Shared Function IsCheckedOperator(operatorMetadataName As String) As Boolean
+            Select Case operatorMetadataName
+                Case WellKnownMemberNames.CheckedUnaryNegationOperatorName,
+                     WellKnownMemberNames.CheckedAdditionOperatorName,
+                     WellKnownMemberNames.CheckedDivisionOperatorName,
+                     WellKnownMemberNames.CheckedMultiplyOperatorName,
+                     WellKnownMemberNames.CheckedSubtractionOperatorName
+                    Return True
+
+                Case Else
+                    Return False
+            End Select
+        End Function
 
         Public Overrides ReadOnly Property Name As String
             Get

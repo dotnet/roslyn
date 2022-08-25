@@ -1104,7 +1104,7 @@ End Class
 
                     Dim nonSpecialType = If(leftSpecial = SpecialType.System_Object, rightType, leftType)
 
-                    For Each m In nonSpecialType.GetMembers(OverloadResolution.TryGetOperatorName(op))
+                    For Each m In nonSpecialType.GetMembers(OverloadResolution.TryGetOperatorName(op, isChecked:=False))
                         If m.Kind = SymbolKind.Method Then
                             Dim method = DirectCast(m, MethodSymbol)
                             If method.MethodKind = MethodKind.UserDefinedOperator AndAlso
@@ -1203,7 +1203,7 @@ End Class
                                        OverloadResolution.TryGetOperatorName(
                                            If(op = BinaryOperatorKind.Add AndAlso resultType = SpecialType.System_String,
                                               BinaryOperatorKind.Concatenate,
-                                              op)),
+                                              op),, isChecked:=False),
                                        rightName,
                                        returnName),
                          symbol1.ToTestDisplayString())
