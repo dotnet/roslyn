@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 IdentifierTextBox.Focus();
                 IdentifierTextBox.Select(_viewModel.StartingSelection.Start, _viewModel.StartingSelection.Length);
 
-                // Don't hook up our close events until we're done loading and have focused withing the textbox
+                // Don't hook up our close events until we're done loading and have focused within the textbox
                 _textView.LostAggregateFocus += TextView_LostFocus;
                 LostFocus += RenameFlyout_LostFocus;
             };
