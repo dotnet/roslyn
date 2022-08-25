@@ -44,10 +44,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If leftType IsNot Nothing Then
                         Dim isChecked = Checked AndAlso leftType.IsIntegralType() AndAlso
-                        (op = BinaryOperatorKind.Multiply OrElse
-                         op = BinaryOperatorKind.Add OrElse
-                         op = BinaryOperatorKind.Subtract OrElse
-                         op = BinaryOperatorKind.IntegerDivide)
+                            (op = BinaryOperatorKind.Multiply OrElse
+                             op = BinaryOperatorKind.Add OrElse
+                             op = BinaryOperatorKind.Subtract OrElse
+                             op = BinaryOperatorKind.IntegerDivide)
                         Dim opName As String = OverloadResolution.TryGetOperatorName(OperatorKind, isChecked)
 
                         If opName IsNot Nothing Then
