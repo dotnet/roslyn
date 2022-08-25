@@ -4577,6 +4577,28 @@ F<T>(MyFunc<T> f, string format, params object[] args)
         }
 
         [Fact]
+        public void OverloadResolution_49()
+        {
+            var source = """
+class Program
+{
+    delegate void D1(int i = 1);
+    delegate void D2(int i = 2);
+    static int F(D1 d) => 1;
+    static object F(D2 d) => 2;
+    static void Main()
+    {
+        int y = F((int x = 2) => { });
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,17): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         int y = F((int x = 2) => { });
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "F((int x = 2) => { })").WithArguments("object", "int").WithLocation(9, 17));
+        }
+
+        [Fact]
         public void BestCommonType_01()
         {
             var source =
