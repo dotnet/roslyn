@@ -25,7 +25,7 @@
     <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.132-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.3.0-1.final</CodeStyleAnalyzerVersion>
-    <VisualStudioEditorPackagesVersion>17.4.68-preview</VisualStudioEditorPackagesVersion>
+    <VisualStudioEditorPackagesVersion>17.4.136-preview</VisualStudioEditorPackagesVersion>
     <!-- This should generally be set to $(VisualStudioEditorPackagesVersion),
          but sometimes EditorFeatures.Cocoa specifically requires a newer editor build. -->
     <VisualStudioMacEditorPackagesVersion>17.3.133-preview</VisualStudioMacEditorPackagesVersion>
@@ -42,7 +42,7 @@
     <SourceGeneratorMicrosoftCodeAnalysisVersion>4.1.0</SourceGeneratorMicrosoftCodeAnalysisVersion>
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
     <MicrosoftServiceHubVersion>4.0.2038</MicrosoftServiceHubVersion>
-    <MicrosoftVisualStudioThreadingPackagesVersion>17.3.33</MicrosoftVisualStudioThreadingPackagesVersion>
+    <MicrosoftVisualStudioThreadingPackagesVersion>17.3.44</MicrosoftVisualStudioThreadingPackagesVersion>
     <MicrosoftTestPlatformVersion>17.4.0-preview-20220707-01</MicrosoftTestPlatformVersion>
   </PropertyGroup>
   <!--
@@ -284,7 +284,7 @@
       create a test insertion in Visual Studio to validate.
     -->
     <NewtonsoftJsonVersion>13.0.1</NewtonsoftJsonVersion>
-    <StreamJsonRpcVersion>2.12.25</StreamJsonRpcVersion>
+    <StreamJsonRpcVersion>2.12.27</StreamJsonRpcVersion>
     <!--
       When updating the S.C.I or S.R.M version please let the MSBuild team know in advance so they
       can update to the same version. Version changes require a VS test insertion for validation.
