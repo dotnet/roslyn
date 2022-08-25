@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             // All the changes from the original document to the most updated. Will later be
             // collpased into one collapsed TextChange.
             var changesArray = changes.ToImmutableArray();
-            Contract.ThrowIfFalse(annotatedReformattedDocument.TryGetText(out var sourceText));
+            var sourceText = await annotatedReformattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             return new SnippetChange(
                 textChanges: changesArray,
