@@ -59,7 +59,7 @@ stages:
 
   - template: eng/common/templates/jobs/source-build.yml
 
--stage: Test_Desktop
+- stage: Test_Desktop
   # Test Windows Desktop
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
@@ -108,7 +108,7 @@ stages:
       configuration: Release
       testArguments: -testDesktop -testArch x64 -helixQueueName Windows.10.Amd64.Server2022.ES.Open
 
--stage: Test_CoreClr
+- stage: Test_CoreClr
   # Test Windows, Linux, MacOS CoreCLR
   - template: eng/pipelines/test-windows-job.yml
     parameters:
