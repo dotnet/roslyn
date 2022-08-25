@@ -74,7 +74,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(EditorFeaturesWpfResources).Assembly,
                 typeof(LanguageServerSnippetExpanderAdapter).Assembly,
                 typeof(ILanguageServerSnippetExpander).Assembly,
-                Assembly.LoadFrom("Microsoft.VisualStudio.LanguageServer.Client.Implementation.dll"));
+                Assembly.LoadFrom("Microsoft.VisualStudio.LanguageServer.Client.Implementation.dll"))
+            .AddParts(typeof(StubVsEditorAdaptersFactoryService));
 
         public static readonly TestComposition InteractiveWindow = EditorFeaturesWpf
             .AddAssemblies(
