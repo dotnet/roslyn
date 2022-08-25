@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     {
         private sealed class MultipleSymbolsRenameSessions : Session
         {
-            private static async Task InitializeRenamingMaps(
+            private static async Task InitializeRenamingMapsAsync(
                 Solution solution,
                 ImmutableDictionary<ISymbol, (SymbolicRenameLocations symbolicRenameLocations, string replacementText)> symbolToRenameInfo,
                 PooledDictionary<ISymbol, ImmutableHashSet<DocumentId>> symbolToDocumentIdNeedsConflictCheck,
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 // Renaming symbol -> the possible naming conflict strings
                 using var _5 = PooledDictionary<ISymbol, ImmutableArray<string>>.GetInstance(out var symbolToPossibleNameConflicts);
 
-                await InitializeRenamingMaps(
+                await InitializeRenamingMapsAsync(
                     solution,
                     symbolToSymbolRenameInfo,
                     symbolToDocumentIdsNeedsConflict,
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
                 else
                 {
-                    // ?? Better way??
+                    // We don't know the replacement & original text, always assume this has conflict to make sure the final result is correct.
                     return true;
                 }
             }

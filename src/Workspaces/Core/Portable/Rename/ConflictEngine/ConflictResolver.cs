@@ -133,10 +133,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             if (symbolToRenameInfo.Count == 1)
             {
                 var (renameLocations, replacementText) = symbolToRenameInfo.Single().Value;
-                var renameSymbolDeclarationLocation  = renameLocations.Symbol.Locations.First(loc => loc.IsInSource);
+                var renameSymbolDeclarationLocation = renameLocations.Symbol.Locations.First(loc => loc.IsInSource);
                 session = await SingleSymbolRenameSession.CreateAsync(
-                    renameLocations,  renameSymbolDeclarationLocation,
-                    replacementText, nonConflictSymbolKeys, fallBackOptions, cancellationToken).ConfigureAwait(false);
+                    renameLocations,
+                    renameSymbolDeclarationLocation,
+                    replacementText,
+                    nonConflictSymbolKeys,
+                    fallBackOptions,
+                    cancellationToken).ConfigureAwait(false);
             }
             else
             {
