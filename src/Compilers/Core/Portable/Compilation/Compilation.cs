@@ -1519,14 +1519,14 @@ namespace Microsoft.CodeAnalysis
             // So only check when neither are dynamic.
             if (leftType.TypeKind != TypeKind.Dynamic && rightType.TypeKind != TypeKind.Dynamic)
             {
-                CheckSupportedBinaryOperatorType(returnType, nameof(returnType));
-                CheckSupportedBinaryOperatorType(leftType, nameof(leftType));
-                CheckSupportedBinaryOperatorType(rightType, nameof(rightType));
+                checkSupportedBinaryOperatorType(returnType, nameof(returnType));
+                checkSupportedBinaryOperatorType(leftType, nameof(leftType));
+                checkSupportedBinaryOperatorType(rightType, nameof(rightType));
             }
 
             return CommonCreateBuiltinOperator(name, returnType, leftType, rightType, isChecked);
 
-            void CheckSupportedBinaryOperatorType(ITypeSymbol type, string paramName)
+            void checkSupportedBinaryOperatorType(ITypeSymbol type, string paramName)
             {
                 // Enums have operators automatically synthesized for them.
                 if (type.TypeKind == TypeKind.Enum)
@@ -1599,12 +1599,12 @@ namespace Microsoft.CodeAnalysis
             if (valueType is null)
                 throw new ArgumentNullException(nameof(valueType));
 
-            CheckSupportedUnaryOperatorType(returnType, nameof(returnType));
-            CheckSupportedUnaryOperatorType(valueType, nameof(valueType));
+            checkSupportedUnaryOperatorType(returnType, nameof(returnType));
+            checkSupportedUnaryOperatorType(valueType, nameof(valueType));
 
             return CommonCreateBuiltinOperator(name, returnType, valueType, isChecked);
 
-            static void CheckSupportedUnaryOperatorType(ITypeSymbol type, string paramName)
+            static void checkSupportedUnaryOperatorType(ITypeSymbol type, string paramName)
             {
                 // Delegates have operators automatically synthesized for them.
                 if (type.TypeKind == TypeKind.Dynamic)
