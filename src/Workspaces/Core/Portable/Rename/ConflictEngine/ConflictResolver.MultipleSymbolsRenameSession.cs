@@ -209,10 +209,21 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
             protected override bool HasConflictForMetadataReference(
+                RenameActionAnnotation renameActionAnnotation,
                 RenameDeclarationLocationReference renameDeclarationLocationReference,
                 ISymbol newReferencedSymbol)
             {
-                throw new System.NotImplementedException();
+                if (renameActionAnnotation.IsRenameLocation)
+                {
+                    var newMetadataName = newReferencedSymbol.ToDisplayString(s_metadataSymbolDisplayFormat);
+                    var oldMetadataName = renameDeclarationLocationReference.Name;
+                    return !HeuristicMetadataNameEquivalenceCheck(oldMetadataName, newMetadataName, renameActionAnnotation.OriginalText, renameActionAnnotation.ReplacementText);
+                }
+                else
+                {
+                    // ?? Better way??
+                    return true;
+                }
             }
         }
     }

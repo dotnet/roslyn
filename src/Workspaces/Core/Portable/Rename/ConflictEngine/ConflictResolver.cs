@@ -417,10 +417,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             var locations = symbol.Locations;
 
-            var originalsourcesymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
-            if (originalsourcesymbol != null)
+            var originalSourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+            if (originalSourceSymbol != null)
             {
-                locations = originalsourcesymbol.Locations;
+                locations = originalSourceSymbol.Locations;
             }
 
             var orderedLocations = locations

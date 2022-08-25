@@ -289,7 +289,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                                     renameDeclarationLocations,
                                     isNamespaceDeclarationReference:=isNamespaceDeclarationReference,
                                     isInvocationExpression:=False,
-                                    isMemberGroupReference:=isMemberGroupReference)
+                                    isMemberGroupReference:=isMemberGroupReference,
+                                    originalText:=Nothing,
+                                    replacementText:=Nothing)
 
                 _annotatedIdentifierTokens.Add(token)
                 _invocationExpressionsNeedingConflictChecks.AddRange(token.GetAncestors(Of InvocationExpressionSyntax)())
@@ -391,7 +393,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                                 renameDeclarationLocations,
                                 isNamespaceDeclarationReference,
                                 isInvocationExpression:=False,
-                                isMemberGroupReference:=isMemberGroupReference)
+                                isMemberGroupReference:=isMemberGroupReference,
+                                originalText:=originalText,
+                                replacementText:=replacementText)
 
                 _annotatedIdentifierTokens.Add(token)
                 newToken = Me._renameAnnotations.WithAdditionalAnnotations(newToken, renameAnnotation, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = token.Span})
@@ -584,7 +588,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                                             isOriginalTextLocation:=False,
                                             isNamespaceDeclarationReference:=False,
                                             isInvocationExpression:=True,
-                                            isMemberGroupReference:=False)
+                                            isMemberGroupReference:=False,
+                                            originalText:=Nothing,
+                                            replacementText:=Nothing)
 
                     Return renameAnnotation
                 End If
