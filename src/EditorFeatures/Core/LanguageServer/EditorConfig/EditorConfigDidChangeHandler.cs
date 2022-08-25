@@ -5,18 +5,16 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig;
+namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig;
 
-[ExportStatelessLspService(typeof(DidCloseHandler), ProtocolConstants.EditorConfigLanguageContract), Shared]
-internal class EditorConfigDidCloseHandler : DidCloseHandler
+[ExportStatelessLspService(typeof(DidChangeHandler), ProtocolConstants.EditorConfigLanguageContract), Shared]
+internal class EditorConfigDidChangeHandler : DidChangeHandler
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public EditorConfigDidCloseHandler()
+    public EditorConfigDidChangeHandler()
     {
     }
 }

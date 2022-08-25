@@ -8,7 +8,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig;
+namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig;
 
 [Export(typeof(EditorConfigLspServiceProvider)), Shared]
 internal class EditorConfigLspServiceProvider : AbstractLspServiceProvider

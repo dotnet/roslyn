@@ -16,9 +16,23 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.EditorConfigSettings.Data;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
+/* Unmerged change from project 'Microsoft.CodeAnalysis.EditorFeatures (netcoreapp3.1)'
+Before:
+using Microsoft.CodeAnalysis.Options;
+After:
+using Microsoft.CodeAnalysis.Options;
+using Microsoft;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess;
+using Microsoft.CodeAnalysis.ExternalAccess.EditorConfig;
+using Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features;
+using Microsoft.CodeAnalysis.LanguageServer.EditorConfig.Features;
+*/
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis;
+
+namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig.Features
 {
     [ExportStatelessLspService(typeof(CompletionHandler), ProtocolConstants.EditorConfigLanguageContract), Shared]
     [Method(Methods.TextDocumentCompletionName)]
@@ -44,9 +58,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             Contract.ThrowIfNull(document);
 
             if (request.Context == null)
-            {
                 return null;
-            }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var offset = text.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(request.Position));
@@ -56,9 +68,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             // Correct syntax is setting_name = setting_value_1, setting_value2, setting_value3... or setting_name = setting_value 
             // When there exists more then one '=' it is incorrect and we should not suggest any completion 
             if (textInLine.Count(c => c == '=') > 1)
-            {
                 return null;
-            }
 
             // Check if we need to display values of the settings
             // Show completion: |setting_name = (caret)
@@ -69,9 +79,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             foreach (var element in textToCheck)
             {
                 if (char.IsWhiteSpace(element))
-                {
                     seenWhitespace = true;
-                }
                 else if (element == ',')
                 {
                     return CreateCompletionList(document, textInLine, allowsMultipleValues: true);
@@ -83,9 +91,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
                 else
                 {
                     if (seenWhitespace)
-                    {
                         return null;
-                    }
                 }
             }
 
@@ -96,9 +102,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             foreach (var element in textToCheck)
             {
                 if (seenWhitespace && !char.IsWhiteSpace(element))
-                {
                     return null;
-                }
                 seenWhitespace = char.IsWhiteSpace(element);
             }
 
@@ -109,9 +113,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
         {
             var name = setting.GetSettingName();
             if (name == null)
-            {
                 return null;
-            }
             var documentation = setting.GetDocumentation();
 
             return CreateCompletionItem(name, name, CompletionItemKind.Property, documentation, _settingNameCommitCharacters);
@@ -122,17 +124,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             var allowsMultipleValues = setting.AllowsMultipleValues();
 
             // User may type a ',' but not in a setting that allows multiple values
-            if (additional && (!allowsMultipleValues))
-            {
+            if (additional && !allowsMultipleValues)
                 return null;
-            }
 
             // Create normal values list
             var settingValues = setting.GetSettingValues();
             if (settingValues == null)
-            {
                 return null;
-            }
 
             foreach (var value in settingValues)
             {
@@ -159,9 +157,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
         {
             var foundSetting = settingsSnapshot.Where(sett => sett.GetSettingName() == settingName);
             if (foundSetting.Any())
-            {
                 return GenerateSettingValuesCompletionItem(foundSetting.First(), multipleValues);
-            }
 
             return null;
         }

@@ -5,9 +5,8 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig;
+namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig;
 
 [ExportLspServiceFactory(typeof(LspWorkspaceManager), ProtocolConstants.EditorConfigLanguageContract), Shared]
 internal class EditorConfigLspWorkspaceManagerFactory : LspWorkspaceManagerFactory

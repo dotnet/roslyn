@@ -7,14 +7,14 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
+namespace Microsoft.CodeAnalysis.LanguageServer.EditorConfig.Features
 {
     [ExportStatelessLspService(typeof(HoverHandler), ProtocolConstants.EditorConfigLanguageContract), Shared]
     [Method(Methods.TextDocumentHoverName)]
@@ -35,9 +35,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
         {
             var document = context.AdditionalDocument;
             if (document == null)
-            {
                 return null;
-            }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var offset = text.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(request.Position));
@@ -48,16 +46,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
 
             // The caret may be in a position that is outside the text
             if (caretPosition >= textInLine.Length)
-            {
                 return null;
-            }
 
             // We don't want to show hovering description if we are over these characters
             var character = textInLine.ElementAt(caretPosition);
             if (character == ' ' || character == '=' || character == ',' || character == ':')
-            {
                 return null;
-            }
 
             // We are on the left of the setting definition and need to display the settings name description
             if (equalPosition == -1 || caretPosition < equalPosition)
@@ -71,15 +65,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.EditorConfig.Features
             // We look for a semicolon
             var colonPosition = textInLine.IndexOf(':');
             if (caretPosition < colonPosition)
-            {
                 return HandleMultiValuedSettings(document, textInLine, caretPosition, equalPosition, ':');
-            }
 
             // We look for commas
             if (textInLine.Contains(','))
-            {
                 return HandleMultiValuedSettings(document, textInLine, caretPosition, equalPosition, ',');
-            }
 
             // We didn't find a comma or colon, so we just display the value description
             var name = textInLine[..equalPosition].Trim();
