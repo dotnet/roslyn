@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
                 else
                 {
-                    renameDeclarationLocations[symbolIndex] = new RenameDeclarationLocationReference(GetString(symbol), locations.Length);
+                    renameDeclarationLocations[symbolIndex] = new RenameDeclarationLocationReference(GetString(symbol), locations.Length, SymbolKey.Create(symbol, cancellationToken));
                 }
 
                 symbolIndex++;

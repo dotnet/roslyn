@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
             protected override bool HasConflictForMetadataReference(
-                RenameActionAnnotation renameActionAnnotation, RenameDeclarationLocationReference renameDeclarationLocationReference, ISymbol newReferencedSymbol)
+                RenameActionAnnotation renameActionAnnotation, RenameDeclarationLocationReference renameDeclarationLocationReference, ISymbol newReferencedSymbol, CancellationToken cancellationToken)
             {
                 var newMetadataName = newReferencedSymbol.ToDisplayString(s_metadataSymbolDisplayFormat);
                 var oldMetadataName = renameDeclarationLocationReference.Name;
