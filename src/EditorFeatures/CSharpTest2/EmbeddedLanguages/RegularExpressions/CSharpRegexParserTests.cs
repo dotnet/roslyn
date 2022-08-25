@@ -342,7 +342,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             position += virtualChars.Length;
         }
 
-        [Fact]
         private static string And(params string[] regexes)
         {
             var conj = $"({regexes[regexes.Length - 1]})";
