@@ -812,20 +812,20 @@ namespace Microsoft.CodeAnalysis
         {
             return Discriminator switch
             {
-                ConstantValueTypeDiscriminator.SByte => SByteValue.ToString(format, provider),
-                ConstantValueTypeDiscriminator.Byte => ByteValue.ToString(format, provider),
-                ConstantValueTypeDiscriminator.Int16 => Int16Value.ToString(format, provider),
-                ConstantValueTypeDiscriminator.UInt16 => UInt16Value.ToString(format, provider),
-                ConstantValueTypeDiscriminator.NInt or ConstantValueTypeDiscriminator.Int32 => Int32Value.ToString(format, provider),
-                ConstantValueTypeDiscriminator.NUInt or ConstantValueTypeDiscriminator.UInt32 => UInt32Value.ToString(format, provider),
-                ConstantValueTypeDiscriminator.UInt64 => UInt64Value.ToString(format, provider),
-                ConstantValueTypeDiscriminator.Int64 => Int64Value.ToString(format, provider),
+                ConstantValueTypeDiscriminator.SByte => SByteValue.ToString(provider),
+                ConstantValueTypeDiscriminator.Byte => ByteValue.ToString(provider),
+                ConstantValueTypeDiscriminator.Int16 => Int16Value.ToString(provider),
+                ConstantValueTypeDiscriminator.UInt16 => UInt16Value.ToString(provider),
+                ConstantValueTypeDiscriminator.NInt or ConstantValueTypeDiscriminator.Int32 => Int32Value.ToString(provider),
+                ConstantValueTypeDiscriminator.NUInt or ConstantValueTypeDiscriminator.UInt32 => UInt32Value.ToString(provider),
+                ConstantValueTypeDiscriminator.UInt64 => UInt64Value.ToString(provider),
+                ConstantValueTypeDiscriminator.Int64 => Int64Value.ToString(provider),
                 ConstantValueTypeDiscriminator.Char => CharValue.ToString(provider),
                 ConstantValueTypeDiscriminator.Boolean => BooleanValue.ToString(provider),
-                ConstantValueTypeDiscriminator.Single => SingleValue.ToString(format, provider),
-                ConstantValueTypeDiscriminator.Double => DoubleValue.ToString(format, provider),
-                ConstantValueTypeDiscriminator.Decimal => DecimalValue.ToString(format, provider),
-                ConstantValueTypeDiscriminator.DateTime => DateTimeValue.ToString(format, provider),
+                ConstantValueTypeDiscriminator.Single => SingleValue.ToString(provider),
+                ConstantValueTypeDiscriminator.Double => DoubleValue.ToString(provider),
+                ConstantValueTypeDiscriminator.Decimal => DecimalValue.ToString(provider),
+                ConstantValueTypeDiscriminator.DateTime => DateTimeValue.ToString(provider),
                 _ => throw ExceptionUtilities.UnexpectedValue(Discriminator)
             };
         }

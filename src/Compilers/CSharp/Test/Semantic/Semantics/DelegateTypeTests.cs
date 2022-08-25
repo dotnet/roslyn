@@ -4599,6 +4599,27 @@ class Program
         }
 
         [Fact]
+        public void OverloadResolution_50()
+        {
+
+            var source = """
+class Program
+{
+    delegate void D1(int i = 1);
+    static int F(D1 d) => 1;
+    static void Main()
+    {
+        int y = F((int x = 2) => { });
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,24): error CS9067: Parameter 1 has default value '2' in lambda and '1' in the target delegate type.
+                //         int y = F((int x = 2) => { });
+                Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "x").WithArguments("1", "2", "1").WithLocation(7, 24));
+        }
+
+        [Fact]
         public void BestCommonType_01()
         {
             var source =

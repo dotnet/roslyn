@@ -4008,62 +4008,37 @@ public class C
                           nullConst = ConstantValue.Null;
 
             Assert.Equal("c", charConstant.ToString(null, CultureInfo.InvariantCulture));
-            Assert.Equal("c", charConstant.ToString("G", CultureInfo.InvariantCulture));
 
             Assert.Equal("4", byteConst.ToString(null, CultureInfo.InvariantCulture));
-            Assert.Equal("4", byteConst.ToString("G", CultureInfo.InvariantCulture));
-
             Assert.Equal("-1", sbyteConst.ToString(null, CultureInfo.InvariantCulture));
-            Assert.Equal("-1", sbyteConst.ToString("G", CultureInfo.InvariantCulture));
 
             Assert.Equal("-1", shortConst.ToString(null, CultureInfo.InvariantCulture));
-            Assert.Equal("-1", shortConst.ToString("G", CultureInfo.InvariantCulture));
-
             Assert.Equal("65535", ushortConst.ToString(null, CultureInfo.InvariantCulture));
-            Assert.Equal("65535", ushortConst.ToString("G", CultureInfo.InvariantCulture));
 
             Assert.Equal("-1", int32Const.ToString(null, CultureInfo.InvariantCulture));
-            Assert.Equal("-1", int32Const.ToString("G", CultureInfo.InvariantCulture));
-
             Assert.Equal("4294967295", uint32Const.ToString(null, CultureInfo.InvariantCulture));
-            Assert.Equal("4.295E+09", uint32Const.ToString("G4", CultureInfo.InvariantCulture));
 
             Assert.Equal("-1", nintConst.ToString(null, CultureInfo.InvariantCulture));
-            Assert.Equal("-1", nintConst.ToString("G4", CultureInfo.InvariantCulture));
-
             Assert.Equal("4294967295", nuintConst.ToString(null, CultureInfo.InvariantCulture));
-            Assert.Equal("4.295E+09", nuintConst.ToString("G4", CultureInfo.InvariantCulture));
 
             Assert.Equal("-1", int64Const.ToString(null, CultureInfo.InvariantCulture));
-
-            Assert.Equal("-1", int64Const.ToString("G", CultureInfo.InvariantCulture));
-
             Assert.Equal("18446744073709551615", uint64Const.ToString(null, CultureInfo.InvariantCulture));
-            Assert.Equal("1.845E+19", uint64Const.ToString("G4", CultureInfo.InvariantCulture));
 
             Assert.Equal("0.3333333333333333333333333333", decimalConst.ToString(null, CultureInfo.InvariantCulture));
-            Assert.Equal("0.3333", decimalConst.ToString("G4", CultureInfo.InvariantCulture));
-
             Assert.Equal("0.33333334", floatConst.ToString(null, CultureInfo.InvariantCulture));
-            Assert.Equal("0.3333", floatConst.ToString("G4", CultureInfo.InvariantCulture));
-
             Assert.Equal("0.3333333333333333", doubleConst.ToString(null, CultureInfo.InvariantCulture));
-            Assert.Equal("0.3333", doubleConst.ToString("G4", CultureInfo.InvariantCulture));
 
             Assert.Equal(@"""abcdefghijklmnopqrstuvwxyz""", stringConst.ToString(null, CultureInfo.InvariantCulture));
             Assert.Equal(@"""abcdefghijklmnopqrstuvwxyz""", stringConst.ToString("26", CultureInfo.InvariantCulture));
             Assert.Equal(@"""abcdefghijklmnopqrstuvwxyz""", stringConst.ToString("27", CultureInfo.InvariantCulture));
-
             Assert.Equal(@"""...""", stringConst.ToString("-1", CultureInfo.InvariantCulture));
             Assert.Equal(@"""...""", stringConst.ToString("2", CultureInfo.InvariantCulture));
             Assert.Equal(@"""...""", stringConst.ToString("3", CultureInfo.InvariantCulture));
             Assert.Equal(@"""abcd...""", stringConst.ToString("7", CultureInfo.InvariantCulture));
 
             Assert.Equal("12/31/9999 23:59:59", dateTimeConst.ToString(null, CultureInfo.InvariantCulture));
-            Assert.Equal("12/31/9999 23:59", dateTimeConst.ToString("g", CultureInfo.InvariantCulture));
 
             Assert.Equal("True", boolConst.ToString(null, CultureInfo.InvariantCulture));
-            Assert.Equal("True", boolConst.ToString("G", CultureInfo.InvariantCulture));
 
             Assert.Equal("bad", badConst.ToString(null, CultureInfo.InvariantCulture));
             Assert.Equal("null", nullConst.ToString(null, CultureInfo.InvariantCulture));
