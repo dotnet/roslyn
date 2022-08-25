@@ -9655,7 +9655,9 @@ class B2 : A<string>
     public override object this[int x, R<string> y] => null; // 4
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA });
-            comp.VerifyEmitDiagnostics(
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // overrides or interface implementations until variance is supported.
+            comp.VerifyEmitDiagnostics(/*
                 // (12,31): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     public override R<string> F1(scoped R<string> r) => default; // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(12, 31),
@@ -9667,7 +9669,7 @@ class B2 : A<string>
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(16, 76),
                 // (17,56): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
                 //     public override object this[int x, R<string> y] => null; // 4
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 56));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(17, 56)*/);
         }
 
         [CombinatorialData]
@@ -9715,7 +9717,9 @@ class C2 : I<string>
     public object this[in R<string> x, int y] => null;
 }";
             comp = CreateCompilation(sourceB1, references: new[] { refA });
-            comp.VerifyEmitDiagnostics(
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // overrides or interface implementations until variance is supported.
+            comp.VerifyEmitDiagnostics(/*
                 // (14,22): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     public R<string> F1(scoped R<string> r) => default; // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(14, 22),
@@ -9727,7 +9731,7 @@ class C2 : I<string>
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(18, 67),
                 // (19,47): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
                 //     public object this[int x, R<string> y] => null; // 4
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(19, 47));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(19, 47)*/);
 
             var sourceB2 =
 @"class C3 : I<int>
@@ -9753,7 +9757,9 @@ class C4 : I<string>
     object I<string>.this[in R<string> x, int y] => null;
 }";
             comp = CreateCompilation(sourceB2, references: new[] { refA });
-            comp.VerifyEmitDiagnostics(
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // overrides or interface implementations until variance is supported.
+            comp.VerifyEmitDiagnostics(/*
                 // (14,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     R<string> I<string>.F1(scoped R<string> r) => default; // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(14, 25),
@@ -9765,7 +9771,7 @@ class C4 : I<string>
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("r").WithLocation(18, 70),
                 // (19,50): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
                 //     object I<string>.this[int x, R<string> y] => null; // 4
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(19, 50));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "null").WithArguments("y").WithLocation(19, 50)*/);
         }
 
         [CombinatorialData]
@@ -9951,13 +9957,15 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
-            comp.VerifyEmitDiagnostics(
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // overrides or interface implementations until variance is supported.
+            comp.VerifyEmitDiagnostics(/*
                 // (13,23): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     public override R F1(R r) => r;
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(13, 23),
                 // (14,23): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     public override R F2(scoped R r) => default;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(14, 23));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(14, 23)*/);
         }
 
         [Fact]
@@ -15343,13 +15351,15 @@ class B2 : A<int>
 ";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             // https://github.com/dotnet/roslyn/issues/62340: Should allow removing [UnscopedRef] rather than reporting error 2.
-            comp.VerifyDiagnostics(
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // overrides or interface implementations until variance is supported.
+            comp.VerifyDiagnostics(/*
                 // (14,28): error CS8987: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
                 //     internal override void F1([UnscopedRef] out int i) { i = 0; } // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("i").WithLocation(14, 28),
                 // (15,28): error CS8987: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
                 //     internal override void F2(out int i) { i = 0; } // 2
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("i").WithLocation(15, 28));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("i").WithLocation(15, 28)*/);
         }
 
         [Fact]
@@ -15411,13 +15421,15 @@ class B2 : A<int>
 }
 ";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
-            comp.VerifyDiagnostics(
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // overrides or interface implementations until variance is supported.
+            comp.VerifyDiagnostics(/*
                 // (17,28): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     internal override void F1([UnscopedRef] ref R<int> r) { } // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(17, 28),
                 // (18,28): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     internal override void F2(ref R<int> r) { } // 2
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(18, 28));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(18, 28)*/);
         }
 
         [Fact]
@@ -15453,7 +15465,9 @@ class C4 : I<object>
 ";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             // https://github.com/dotnet/roslyn/issues/62340: Should allow removing [UnscopedRef] rather than reporting error 2 and 4.
-            comp.VerifyDiagnostics(
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // overrides or interface implementations until variance is supported.
+            comp.VerifyDiagnostics(/*
                 // (14,17): error CS8987: The 'scoped' modifier of parameter 'i' doesn't match overridden or implemented member.
                 //     public void F1([UnscopedRef] out int i) { i = 0; } // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("i").WithLocation(14, 17),
@@ -15465,7 +15479,7 @@ class C4 : I<object>
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("o").WithLocation(24, 20),
                 // (25,20): error CS8987: The 'scoped' modifier of parameter 'o' doesn't match overridden or implemented member.
                 //     void I<object>.F2(out object o) { o = null; } // 4
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("o").WithLocation(25, 20));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("o").WithLocation(25, 20)*/);
         }
 
         [Fact]
@@ -15553,7 +15567,9 @@ class C4 : I<object>
 }
 ";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
-            comp.VerifyDiagnostics(
+            // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+            // overrides or interface implementations until variance is supported.
+            comp.VerifyDiagnostics(/*
                 // (17,17): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     public void F1([UnscopedRef] ref R<int> r) { } // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(17, 17),
@@ -15565,7 +15581,7 @@ class C4 : I<object>
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("r").WithLocation(27, 20),
                 // (28,20): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     void I<object>.F2(ref R<object> r) { } // 4
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(28, 20));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(28, 20)*/);
         }
 
         [Fact]
@@ -16123,11 +16139,11 @@ public abstract class A<T>
             var sourceB =
 @"class B : A<int>
 {
-    public override void F1(out int i1) { i1 = 0; }
+    public override void F1(out int i1) { i1 = 0; } // 1
     public override void F2(R<int> r2) { }
-    public override void F3(ref R<int> r3) { }
-    public override void F4(in R<int> r4) { }
-    public override void F5(out R<int> r5) { r5 = default; }
+    public override void F3(ref R<int> r3) { } // 2
+    public override void F4(in R<int> r4) { } // 3
+    public override void F5(out R<int> r5) { r5 = default; } // 4
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
             if (languageVersionA == languageVersionB)
@@ -16136,19 +16152,9 @@ public abstract class A<T>
             }
             else
             {
-                comp.VerifyEmitDiagnostics(
-                    // (3,26): error CS8987: The 'scoped' modifier of parameter 'i1' doesn't match overridden or implemented member.
-                    //     public override void F1(out int i1) { i1 = 0; }
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("i1").WithLocation(3, 26),
-                    // (5,26): error CS8987: The 'scoped' modifier of parameter 'r3' doesn't match overridden or implemented member.
-                    //     public override void F3(ref R<int> r3) { }
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r3").WithLocation(5, 26),
-                    // (6,26): error CS8987: The 'scoped' modifier of parameter 'r4' doesn't match overridden or implemented member.
-                    //     public override void F4(in R<int> r4) { }
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r4").WithLocation(6, 26),
-                    // (7,26): error CS8987: The 'scoped' modifier of parameter 'r5' doesn't match overridden or implemented member.
-                    //     public override void F5(out R<int> r5) { r5 = default; }
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F5").WithArguments("r5").WithLocation(7, 26));
+                // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+                // overrides or interface implementations until variance is supported.
+                comp.VerifyEmitDiagnostics();
             }
         }
 
@@ -16178,19 +16184,19 @@ public interface I<T>
             var sourceB =
 @"class B1 : I<int>
 {
-    public void F1(out int i1) { i1 = 0; }
+    public void F1(out int i1) { i1 = 0; } // 1
     public void F2(R<int> r2) { }
-    public void F3(ref R<int> r3) { }
-    public void F4(in R<int> r4) { }
-    public void F5(out R<int> r5) { r5 = default; }
+    public void F3(ref R<int> r3) { } // 2
+    public void F4(in R<int> r4) { } // 3
+    public void F5(out R<int> r5) { r5 = default; } // 4
 }
 class B2 : I<object>
 {
-    void I<object>.F1(out object o1) { o1 = null; }
+    void I<object>.F1(out object o1) { o1 = null; } // 5
     void I<object>.F2(R<object> r2) { }
-    void I<object>.F3(ref R<object> r3) { }
-    void I<object>.F4(in R<object> r4) { }
-    void I<object>.F5(out R<object> r5) { r5 = default; }
+    void I<object>.F3(ref R<object> r3) { } // 6
+    void I<object>.F4(in R<object> r4) { } // 7
+    void I<object>.F5(out R<object> r5) { r5 = default; } // 8
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
             if (languageVersionA == languageVersionB)
@@ -16199,31 +16205,9 @@ class B2 : I<object>
             }
             else
             {
-                comp.VerifyEmitDiagnostics(
-                    // (3,17): error CS8987: The 'scoped' modifier of parameter 'i1' doesn't match overridden or implemented member.
-                    //     public void F1(out int i1) { i1 = 0; }
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("i1").WithLocation(3, 17),
-                    // (5,17): error CS8987: The 'scoped' modifier of parameter 'r3' doesn't match overridden or implemented member.
-                    //     public void F3(ref R<int> r3) { }
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r3").WithLocation(5, 17),
-                    // (6,17): error CS8987: The 'scoped' modifier of parameter 'r4' doesn't match overridden or implemented member.
-                    //     public void F4(in R<int> r4) { }
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r4").WithLocation(6, 17),
-                    // (7,17): error CS8987: The 'scoped' modifier of parameter 'r5' doesn't match overridden or implemented member.
-                    //     public void F5(out R<int> r5) { r5 = default; }
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F5").WithArguments("r5").WithLocation(7, 17),
-                    // (11,20): error CS8987: The 'scoped' modifier of parameter 'o1' doesn't match overridden or implemented member.
-                    //     void I<object>.F1(out object o1) { o1 = null; }
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F1").WithArguments("o1").WithLocation(11, 20),
-                    // (13,20): error CS8987: The 'scoped' modifier of parameter 'r3' doesn't match overridden or implemented member.
-                    //     void I<object>.F3(ref R<object> r3) { }
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F3").WithArguments("r3").WithLocation(13, 20),
-                    // (14,20): error CS8987: The 'scoped' modifier of parameter 'r4' doesn't match overridden or implemented member.
-                    //     void I<object>.F4(in R<object> r4) { }
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r4").WithLocation(14, 20),
-                    // (15,20): error CS8987: The 'scoped' modifier of parameter 'r5' doesn't match overridden or implemented member.
-                    //     void I<object>.F5(out R<object> r5) { r5 = default; }
-                    Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F5").WithArguments("r5").WithLocation(15, 20));
+                // https://github.com/dotnet/roslyn/issues/62340: Avoid reporting errors for
+                // overrides or interface implementations until variance is supported.
+                comp.VerifyEmitDiagnostics();
             }
         }
     }
