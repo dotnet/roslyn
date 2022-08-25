@@ -1817,6 +1817,11 @@
         <target state="translated">상수 문자열에서 ReadOnly/Span&lt;char&gt;과 일치하는 패턴</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_Missing">
+        <source>&lt;missing&gt;</source>
+        <target state="new">&lt;missing&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="new">pointer element access</target>

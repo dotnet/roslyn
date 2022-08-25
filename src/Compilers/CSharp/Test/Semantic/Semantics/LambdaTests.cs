@@ -6435,7 +6435,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_InitializeByValueVariableWithReference, "a = ref int => { }").WithLocation(6, 21),
                 // (6,29): error CS1041: Identifier expected; 'int' is a keyword
                 //         Action<int> a = ref int => { };
-                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("int").WithLocation(6, 29));
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "int").WithArguments("", "int").WithLocation(6, 29));
         }
 
         /// <summary>

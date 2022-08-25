@@ -2186,7 +2186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
 
                             // Parameter {0} has default value '{1}' in lambda and '{2}' in target delegate type.
-                            Error(diagnostics, ErrorCode.ERR_OptionalParamValueMismatch, lambdaParameterLocation, i + 1, lambdaParamDefaultVal, delegateParamDefaultVal ?? ((object)"<missing>"), MessageID.IDS_SK_TYPE.Localize());
+                            Error(diagnostics, ErrorCode.ERR_OptionalParamValueMismatch, lambdaParameterLocation, i + 1, lambdaParamDefaultVal, delegateParamDefaultVal ?? ((object)MessageID.IDS_Missing.Localize()));
                         }
                     }
                 }

@@ -259,6 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureFileTypes = MessageBase + 12827,
         IDS_ArrayAccess = MessageBase + 12828,
         IDS_PointerElementAccess = MessageBase + 12829,
+        IDS_Missing = MessageBase + 12830,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -369,6 +370,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // C# preview features.
                 //return LanguageVersion.Preview;
+                case MessageID.IDS_Missing:
+                    return LanguageVersion.Preview;
 
                 // C# 11.0 features.
                 case MessageID.IDS_FeatureRawStringLiterals:
