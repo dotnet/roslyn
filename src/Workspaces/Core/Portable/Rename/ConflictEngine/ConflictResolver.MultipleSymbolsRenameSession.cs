@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     {
         private sealed class MultipleSymbolsRenameSessions : Session
         {
-            private static async Task InitializeRenamingMapsAsync(
+            private static async Task InitializeRenamingMaps(
                 Solution solution,
                 ImmutableDictionary<ISymbol, (SymbolicRenameLocations symbolicRenameLocations, string replacementText)> symbolToRenameInfo,
                 PooledDictionary<ISymbol, ImmutableHashSet<DocumentId>> symbolToDocumentIdNeedsConflictCheck,
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 // Renaming symbol -> the possible naming conflict strings
                 using var _5 = PooledDictionary<ISymbol, ImmutableArray<string>>.GetInstance(out var symbolToPossibleNameConflicts);
 
-                await InitializeRenamingMapsAsync(
+                await InitializeRenamingMaps(
                     solution,
                     symbolToSymbolRenameInfo,
                     symbolToDocumentIdsNeedsConflict,
@@ -211,8 +211,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             protected override bool HasConflictForMetadataReference(
                 RenameActionAnnotation renameActionAnnotation,
                 RenameDeclarationLocationReference renameDeclarationLocationReference,
-                ISymbol newReferencedSymbol,
-                CancellationToken cancellationToken)
+                ISymbol newReferencedSymbol)
             {
                 if (renameActionAnnotation.IsRenameLocation)
                 {
@@ -222,8 +221,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
                 else
                 {
-                    var newReferencedSymbolKey = SymbolKey.Create(newReferencedSymbol, cancellationToken);
-                    return !newReferencedSymbolKey.Equals(renameDeclarationLocationReference.SymbolKey);
+                    // ?? Better way??
+                    return true;
                 }
             }
         }

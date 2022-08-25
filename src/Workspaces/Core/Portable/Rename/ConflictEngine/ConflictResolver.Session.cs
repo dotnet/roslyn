@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             /// <summary>
             /// Whether the <param name="newReferencedSymbol"/> has conflict with <param name="renameDeclarationLocationReference"/>
             /// </summary>
-            protected abstract bool HasConflictForMetadataReference(RenameActionAnnotation renameActionAnnotation, RenameDeclarationLocationReference renameDeclarationLocationReference, ISymbol newReferencedSymbol, CancellationToken cancellationToken);
+            protected abstract bool HasConflictForMetadataReference(RenameActionAnnotation renameActionAnnotation, RenameDeclarationLocationReference renameDeclarationLocationReference, ISymbol newReferencedSymbol);
 
             private readonly struct ConflictLocationInfo
             {
@@ -672,8 +672,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                     || HasConflictForMetadataReference(
                                         conflictAnnotation,
                                         conflictAnnotation.RenameDeclarationLocationReferences[symbolIndex],
-                                        symbol,
-                                        _cancellationToken))
+                                        symbol))
                                 {
 
                                     hasConflict = true;
