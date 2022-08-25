@@ -2753,6 +2753,16 @@ public class C { public static FrameworkName Goo() { return null; }}";
         }
 
         [Fact]
+        public void CreateBuiltinBinaryOperator_ErrorType()
+        {
+            var compilation = CreateCompilation("");
+            var intType = compilation.CreateErrorTypeSymbol(compilation.CreateErrorNamespaceSymbol(compilation.GlobalNamespace, "System"), "Int32", arity: 0);
+            var op = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType, SyntaxFacts.IsCheckedOperator(WellKnownMemberNames.AdditionOperatorName));
+            var result = op.ToDisplayString();
+            AssertEx.Equal("System.Int32.operator +(System.Int32, System.Int32)", result);
+        }
+
+        [Fact]
         public void CreateBuiltinBinaryOperator_NotSupported()
         {
             var compilation = CreateCompilation("");

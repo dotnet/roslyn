@@ -1764,6 +1764,15 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             AssertEx.Equal(display, result)
         End Sub
 
+
+        Public Sub CreateBuiltinBinaryOperator_ErrorType()
+            Dim compilation = CreateCompilation("")
+            Dim intType = compilation.CreateErrorTypeSymbol(compilation.CreateErrorNamespaceSymbol(compilation.GlobalNamespace, "System"), "Int32", arity:=0)
+            Dim op = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType, isChecked:=False)
+            Dim result = op.ToDisplayString()
+            AssertEx.Equal("Public Shared Operator +(left As System.Int32, right As System.Int32) As System.Int32", result)
+        End Sub
+
         <Fact>
         Public Sub CreateBuiltinBinaryOperator_NotSupported()
             Dim compilation = CreateCompilation("")

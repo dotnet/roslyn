@@ -1492,7 +1492,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates an <see cref="IMethodSymbol"/> whose <see cref="IMethodSymbol.MethodKind"/> is <see
         /// cref="MethodKind.BuiltinOperator"/> for a binary operator. Built-in operators are commonly created for
-        /// symbols like <c>bool int.operator==(int v1, int v2)</c> which the language implicitly supports, even if such
+        /// symbols like <c>bool int.operator ==(int v1, int v2)</c> which the language implicitly supports, even if such
         /// a symbol is not explicitly defined for that type in either source or metadata.
         /// </summary>
         /// <param name="name">The binary operator name.  Should be one of the names from <see cref="WellKnownMemberNames"/>.</param>
@@ -1529,15 +1529,12 @@ namespace Microsoft.CodeAnalysis
             void checkSupportedBinaryOperatorType(ITypeSymbol type, string paramName)
             {
                 // Enums have operators automatically synthesized for them.
-                if (type.TypeKind == TypeKind.Enum)
-                    return;
-
                 // Pointers have operators automatically synthesized for them.
-                if (type.TypeKind == TypeKind.Pointer)
-                    return;
-
                 // Delegates have a synthesized operator for combining them together.
-                if (type.TypeKind == TypeKind.Delegate)
+                //
+                // For error types, we don't bother checking.  The type was already in error, so fine to create an error
+                // builtin wrapping it.
+                if (type.TypeKind is TypeKind.Delegate or TypeKind.Enum or TypeKind.Error or TypeKind.Pointer)
                     return;
 
                 switch (type.OriginalDefinition.SpecialType)
@@ -1580,7 +1577,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates an <see cref="IMethodSymbol"/> whose <see cref="IMethodSymbol.MethodKind"/> is <see
         /// cref="MethodKind.BuiltinOperator"/> for a unary operator. Built-in operators are commonly created for
-        /// symbols like <c>bool int.operator-(int value)</c> which the language implicitly supports, even if such a
+        /// symbols like <c>bool int.operator -(int value)</c> which the language implicitly supports, even if such a
         /// symbol is not explicitly defined for that type in either source or metadata.
         /// </summary>
         /// <param name="name">The unary operator name.  Should be one of the names from <see cref="WellKnownMemberNames"/>.</param>
@@ -1607,15 +1604,12 @@ namespace Microsoft.CodeAnalysis
             static void checkSupportedUnaryOperatorType(ITypeSymbol type, string paramName)
             {
                 // Delegates have operators automatically synthesized for them.
-                if (type.TypeKind == TypeKind.Dynamic)
-                    return;
-
-                // Unary operators are supported on enums.
-                if (type.TypeKind == TypeKind.Enum)
-                    return;
-
                 // Pointers have operators automatically synthesized for them.
-                if (type.TypeKind == TypeKind.Pointer)
+                // Unary operators are supported on enums.
+                //
+                // For error types, we don't bother checking.  The type was already in error, so fine to create an error
+                // builtin wrapping it.
+                if (type.TypeKind is TypeKind.Dynamic or TypeKind.Enum or TypeKind.Error or TypeKind.Pointer)
                     return;
 
                 switch (type.OriginalDefinition.SpecialType)
