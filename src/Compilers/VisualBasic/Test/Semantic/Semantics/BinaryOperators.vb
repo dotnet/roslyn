@@ -1203,7 +1203,7 @@ End Class
                                        OverloadResolution.TryGetOperatorName(
                                            If(op = BinaryOperatorKind.Add AndAlso resultType = SpecialType.System_String,
                                               BinaryOperatorKind.Concatenate,
-                                              op), isChecked:=False),
+                                              op), symbol1.IsCheckedBuiltin),
                                        rightName,
                                        returnName),
                          symbol1.ToTestDisplayString())
