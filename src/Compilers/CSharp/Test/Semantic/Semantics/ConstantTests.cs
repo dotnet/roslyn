@@ -3999,8 +3999,8 @@ public class C
                           int64Const = ConstantValue.Create(unchecked((long)ulong.MaxValue)),
                           uint64Const = ConstantValue.Create(ulong.MaxValue),
                           decimalConst = ConstantValue.Create(1m / 3m),
-                          floatConst = ConstantValue.Create(1f / 3f),
-                          doubleConst = ConstantValue.Create((double)1 / 3),
+                          floatConst = ConstantValue.Create(Math.Round(1f / 3f, 5)),
+                          doubleConst = ConstantValue.Create(Math.Round((double)1 / 3, 8)),
                           stringConst = ConstantValue.Create("abcdefghijklmnopqrstuvwxyz"),
                           dateTimeConst = ConstantValue.Create(DateTime.MaxValue),
                           boolConst = ConstantValue.Create(true),
@@ -4025,8 +4025,8 @@ public class C
             Assert.Equal("18446744073709551615", uint64Const.ToString(null, CultureInfo.InvariantCulture));
 
             Assert.Equal("0.3333333333333333333333333333", decimalConst.ToString(null, CultureInfo.InvariantCulture));
-            Assert.Equal("0.33333334", floatConst.ToString(null, CultureInfo.InvariantCulture));
-            Assert.Equal("0.3333333333333333", doubleConst.ToString(null, CultureInfo.InvariantCulture));
+            Assert.Equal("0.33333", floatConst.ToString(null, CultureInfo.InvariantCulture));
+            Assert.Equal("0.33333333", doubleConst.ToString(null, CultureInfo.InvariantCulture));
 
             Assert.Equal(@"""abcdefghijklmnopqrstuvwxyz""", stringConst.ToString(null, CultureInfo.InvariantCulture));
             Assert.Equal(@"""abcdefghijklmnopqrstuvwxyz""", stringConst.ToString("26", CultureInfo.InvariantCulture));
