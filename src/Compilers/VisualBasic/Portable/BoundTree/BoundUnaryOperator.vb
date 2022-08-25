@@ -41,10 +41,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         If opName IsNot Nothing Then
                             Return New SynthesizedIntrinsicOperatorSymbol(
-                            operandType,
-                            opName,
-                            Type.GetNullableUnderlyingTypeOrSelf(),
-                            isChecked)
+                                operandType,
+                                opName,
+                                Type.GetNullableUnderlyingTypeOrSelf(),
+                                isChecked)
                         End If
                     End If
                 End If

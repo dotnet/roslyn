@@ -52,11 +52,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         If opName IsNot Nothing Then
                             Return New SynthesizedIntrinsicOperatorSymbol(
-                            leftType,
-                            opName,
-                            Right.Type.GetNullableUnderlyingTypeOrSelf(),
-                            Type.GetNullableUnderlyingTypeOrSelf(),
-                            isChecked)
+                                leftType,
+                                opName,
+                                Right.Type.GetNullableUnderlyingTypeOrSelf(),
+                                Type.GetNullableUnderlyingTypeOrSelf(),
+                                isChecked)
                         End If
                     End If
                 End If
