@@ -29,8 +29,9 @@ pr:
       - README.md
 
 stages:
-- stage: Build 
-  # Windows and Linux Builds
+- stage: Windows_Build
+  dependsOn: []
+  # Windows Builds
   jobs:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
@@ -50,6 +51,8 @@ stages:
       restoreArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
       buildArguments: -msbuildEngine dotnet /p:UsingToolPdbConverter=false /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
+- stage: Unix_Build
+  dependsOn: []
   - template: eng/pipelines/build-unix-job.yml
     parameters:
       jobName: Build_Unix_Debug
@@ -57,9 +60,12 @@ stages:
       configuration: Debug
       queueName: Build.Ubuntu.1804.Amd64.Open
 
+- stage: Source_Build
+  dependsOn: []
   - template: eng/common/templates/jobs/source-build.yml
 
 - stage: Test_Desktop
+  dependsOn: Windows_Build
   # Test Windows Desktop
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
@@ -108,8 +114,9 @@ stages:
       configuration: Release
       testArguments: -testDesktop -testArch x64 -helixQueueName Windows.10.Amd64.Server2022.ES.Open
 
-- stage: Test_CoreClr
-  # Test Windows, Linux, MacOS CoreCLR
+- stage: Test_Windows_CoreClr
+  dependsOn: Windows_Build
+  # Test Windows CoreCLR
   - template: eng/pipelines/test-windows-job.yml
     parameters:
       testRunName: 'Test Windows CoreClr Debug'
@@ -158,6 +165,8 @@ stages:
       configuration: Debug
       testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
 
+- stage: Test_Linux_CoreClr
+  dependsOn: Unix_Build
   - template: eng/pipelines/test-unix-job.yml
     parameters:
       testRunName: 'Test Linux Debug'
@@ -188,6 +197,7 @@ stages:
       testArguments: --testCoreClr --helixQueueName OSX.1015.Amd64.Open
 
 - stage: Correctness
+  dependsOn: []
   # Build Correctness Jobs
   - template: eng/pipelines/evaluate-changed-files.yml
     parameters:
