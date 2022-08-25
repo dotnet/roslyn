@@ -384,10 +384,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (args.Kind != WorkspaceChangeKind.DocumentChanged)
             {
-                if (!_dismissed)
-                {
-                    this.Cancel();
-                }
+                Cancel();
             }
         }
 
@@ -639,7 +636,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public void Cancel()
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            VerifyNotDismissed();
+            if (_dismissed)
+            {
+                return;
+            }
 
             // This wait is safe.  We are not passing the async callback to DismissUIAndRollbackEditsAndEndRenameSessionAsync.
             // So everything in that method will happen synchronously.

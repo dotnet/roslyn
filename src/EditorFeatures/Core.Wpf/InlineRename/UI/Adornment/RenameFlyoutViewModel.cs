@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private OleComponent? _oleComponent;
         private bool _disposedValue;
         private bool _isReplacementTextValid = true;
-        private bool _canceled;
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public RenameFlyoutViewModel(InlineRenameSession session, TextSpan selectionSpan, bool registerOleComponent)
@@ -142,25 +141,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public TextSpan StartingSelection { get; }
 
         public void Submit()
-        {
-            _session.Commit();
-        }
+            => _session.Commit();
 
         public void Cancel()
-        {
-            // Cancel for RenameSession will throw if we try to cancel multiple times. 
-            // We could make sure this doesn't get called multiple times, but that gets difficult
-            // in managing state between why the cancel happened (Press Esc resulting in focus lost
-            // can trigger twice, for example). Rather than relying on correctly handling all the event handlers
-            // from the UI and TextView, just make sure we always only cancel once. 
-            if (_canceled)
-            {
-                return;
-            }
-
-            _canceled = true;
-            _session.Cancel();
-        }
+            => _session.Cancel();
 
         public void Dispose()
         {
