@@ -242,11 +242,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BinaryOperatorKind.Power
                     Return WellKnownMemberNames.ExponentOperatorName
                 Case BinaryOperatorKind.Divide
-                    Return If(isChecked, WellKnownMemberNames.CheckedDivisionOperatorName, WellKnownMemberNames.DivisionOperatorName)
+                    Return WellKnownMemberNames.DivisionOperatorName
                 Case BinaryOperatorKind.Modulo
                     Return WellKnownMemberNames.ModulusOperatorName
                 Case BinaryOperatorKind.IntegerDivide
-                    Return WellKnownMemberNames.IntegerDivisionOperatorName
+                    Return If(isChecked, WellKnownMemberNames.CheckedDivisionOperatorName, WellKnownMemberNames.IntegerDivisionOperatorName)
                 Case BinaryOperatorKind.LeftShift
                     Return WellKnownMemberNames.LeftShiftOperatorName
                 Case BinaryOperatorKind.RightShift
