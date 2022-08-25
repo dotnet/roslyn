@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
 
     public class ConvertToRegularStringToRawStringStringTests
     {
-        private static async Task VerifyRefactoringAsync(string testCode, string fixedCode, int index = 0, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
+        private static async Task VerifyRefactoringAsync(string testCode, string fixedCode, int index = 0, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary, LanguageVersion languageVersion = LanguageVersion.CSharp11)
         {
             await new VerifyCS.Test
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                LanguageVersion = LanguageVersion.CSharp11,
+                LanguageVersion = languageVersion,
                 CodeActionIndex = index,
                 TestState =
                 {
@@ -143,6 +143,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
 }";
 
             await VerifyRefactoringAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestNotForIncompatibleCSharpVersion()
+        {
+            var code = @"public class C
+{
+    void M()
+    {
+        var v = [||]""You cannot cast me to a raw string!"";
+    }
+}";
+
+            await VerifyRefactoringAsync(code, code, languageVersion: LanguageVersion.CSharp10);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]

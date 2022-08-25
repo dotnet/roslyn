@@ -70,6 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public bool SupportsConstantInterpolatedStrings(ParseOptions options)
             => options.LanguageVersion() >= LanguageVersion.CSharp10;
 
+        public bool SupportsRawStringLiterals(ParseOptions options)
+            => options.LanguageVersion() >= LanguageVersion.CSharp11;
+
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 

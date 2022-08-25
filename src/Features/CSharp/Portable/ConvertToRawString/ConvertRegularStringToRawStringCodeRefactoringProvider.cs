@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -60,6 +61,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, span, cancellationToken) = context;
+
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            if (!syntaxFacts.SupportsRawStringLiterals(document.Project.ParseOptions!))
+                return;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(span.Start);
