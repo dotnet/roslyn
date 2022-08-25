@@ -29,6 +29,11 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
 
         public static bool IsMemberValid(ISymbol member)
         {
+            if (member.IsImplicitlyDeclared)
+            {
+                return false;
+            }
+
             // Static, abstract and accessiblity are not checked here but in PullMembersUpOptionsBuilder.cs since there are
             // two refactoring options provided for pull members up,
             // 1. Quick Action (Only allow members that don't cause error)
@@ -36,8 +41,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             return member switch
             {
                 IMethodSymbol methodSymbol => methodSymbol.MethodKind == MethodKind.Ordinary,
-                IFieldSymbol fieldSymbol => !fieldSymbol.IsImplicitlyDeclared,
-                _ => member.IsKind(SymbolKind.Property) || member.IsKind(SymbolKind.Event),
+                _ => member.IsKind(SymbolKind.Property) || member.IsKind(SymbolKind.Event) || member.IsKind(SymbolKind.Field),
             };
         }
     }

@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -17,6 +18,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 {
+    /// <summary>
+    /// Computes and caches <see cref="SymbolTreeInfo"/> indices for the source symbols in <see cref="Project"/>s and
+    /// for metadata symbols in <see cref="PortableExecutableReference"/>s.
+    /// </summary>
     [ExportWorkspaceService(typeof(SymbolTreeInfoCacheService)), Shared]
     internal sealed partial class SymbolTreeInfoCacheService : IWorkspaceService
     {
@@ -29,7 +34,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
         {
         }
 
-        public async ValueTask<SymbolTreeInfo?> TryGetMetadataSymbolTreeInfoAsync(
+        /// <summary>
+        /// Gets the latest computed <see cref="SymbolTreeInfo"/> for the requested <paramref name="reference"/>.  This
+        /// may return an index corresponding to a prior version of the refernce if it has since changed.  Another
+        /// system is responsible for bringing these indices up to date in the background.
+        /// </summary>
+        public async ValueTask<SymbolTreeInfo?> TryGetPotentiallyStaleMetadataSymbolTreeInfoAsync(
             Solution solution,
             PortableExecutableReference reference,
             CancellationToken cancellationToken)
@@ -38,40 +48,35 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
             if (metadataId == null)
                 return null;
 
-            var checksum = SymbolTreeInfo.GetMetadataChecksum(solution, reference, cancellationToken);
-
-            // See if the last value produced matches what the caller is asking for.  If so, return that.
-            if (_metadataIdToInfo.TryGetValue(metadataId, out var metadataInfo) &&
-                metadataInfo.SymbolTreeInfo.Checksum == checksum)
-            {
+            // See if the last value produced exactly matches what the caller is asking for.  If so, return that.
+            if (_metadataIdToInfo.TryGetValue(metadataId, out var metadataInfo))
                 return metadataInfo.SymbolTreeInfo;
-            }
 
             // If we didn't have it in our cache, see if we can load it from disk.
-            // Note: pass 'loadOnly' so we only attempt to load from disk, not to actually
-            // try to create the metadata.
-            var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                solution, reference, checksum, loadOnly: true, cancellationToken).ConfigureAwait(false);
-            return info;
+            var info = await SymbolTreeInfo.LoadAnyInfoForMetadataReferenceAsync(solution, reference, cancellationToken).ConfigureAwait(false);
+            if (info is null)
+                return null;
+
+            var referencingProjects = new HashSet<ProjectId>(solution.Projects.Where(p => p.MetadataReferences.Contains(reference)).Select(p => p.Id));
+
+            // attempt to add this item to the map.  But defer to whatever is in the map now if something else beat us to this.
+            return _metadataIdToInfo.GetOrAdd(metadataId, new MetadataInfo(info, referencingProjects)).SymbolTreeInfo;
         }
 
-        public async Task<SymbolTreeInfo?> TryGetSourceSymbolTreeInfoAsync(
+        public async Task<SymbolTreeInfo?> TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(
             Project project, CancellationToken cancellationToken)
         {
-            // See if the last value produced matches what the caller is asking for.  If so, return that.
-            var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
-            if (_projectIdToInfo.TryGetValue(project.Id, out var projectInfo) &&
-                projectInfo.Checksum == checksum)
-            {
+            // See if the last value produced exactly matches what the caller is asking for.  If so, return that.
+            if (_projectIdToInfo.TryGetValue(project.Id, out var projectInfo))
                 return projectInfo;
-            }
 
-            // If we didn't have it in our cache, see if we can load it from disk.
-            // Note: pass 'loadOnly' so we only attempt to load from disk, not to actually
-            // try to create the index.
-            var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
-                project, checksum, loadOnly: true, cancellationToken).ConfigureAwait(false);
-            return info;
+            // If we didn't have it in our cache, see if we can load some version of it from disk.
+            var info = await SymbolTreeInfo.LoadAnyInfoForSourceAssemblyAsync(project, cancellationToken).ConfigureAwait(false);
+            if (info is null)
+                return null;
+
+            // attempt to add this item to the map.  But defer to whatever is in the map now if something else beat us to this.
+            return _projectIdToInfo.GetOrAdd(project.Id, info);
         }
 
         public async Task AnalyzeDocumentAsync(Document document, bool isMethodBodyEdit, CancellationToken cancellationToken)
@@ -117,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                 projectInfo.Checksum != checksum)
             {
                 projectInfo = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
-                    project, checksum, loadOnly: false, cancellationToken).ConfigureAwait(false);
+                    project, cancellationToken).ConfigureAwait(false);
 
                 Contract.ThrowIfNull(projectInfo);
                 Contract.ThrowIfTrue(projectInfo.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
@@ -160,7 +165,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
             // ⚠ This local function must be 'async' to ensure exceptions are captured in the resulting task and
             // not thrown directly to the caller.
             static async Task UpdateReferenceAsync(
-                ConcurrentDictionary<MetadataId, SymbolTreeInfoCacheService.MetadataInfo> metadataIdToInfo,
+                ConcurrentDictionary<MetadataId, MetadataInfo> metadataIdToInfo,
                 Project project,
                 PortableExecutableReference reference,
                 CancellationToken cancellationToken)
@@ -172,12 +177,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                 // 🐉 PERF: GetMetadataChecksum indirectly uses a ConditionalWeakTable. This call is intentionally
                 // placed before the first 'await' of this asynchronous method to ensure it executes in the
                 // synchronous portion of the caller. https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1270250
-                var checksum = SymbolTreeInfo.GetMetadataChecksum(project.Solution, reference, cancellationToken);
+                var checksum = SymbolTreeInfo.GetMetadataChecksum(project.Solution.Services, reference, cancellationToken);
                 if (!metadataIdToInfo.TryGetValue(metadataId, out var metadataInfo) ||
                     metadataInfo.SymbolTreeInfo.Checksum != checksum)
                 {
                     var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                        project.Solution, reference, checksum, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        project.Solution, reference, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     Contract.ThrowIfNull(info);
                     Contract.ThrowIfTrue(info.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
@@ -185,7 +190,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                     // Note, getting the info may fail (for example, bogus metadata).  That's ok.  
                     // We still want to cache that result so that don't try to continuously produce
                     // this info over and over again.
-                    metadataInfo = new SymbolTreeInfoCacheService.MetadataInfo(info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
+                    metadataInfo = new MetadataInfo(info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
                     metadataIdToInfo[metadataId] = metadataInfo;
                 }
 
