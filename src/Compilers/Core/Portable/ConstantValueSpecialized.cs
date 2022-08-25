@@ -130,6 +130,7 @@ namespace Microsoft.CodeAnalysis
                 return GetValueToDisplay();
             }
         }
+
         private sealed class ConstantValueString : ConstantValue
         {
             private readonly Rope _value;
