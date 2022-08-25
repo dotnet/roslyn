@@ -17,6 +17,7 @@ using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Collections.Immutable;
+using Castle.Core.Internal;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -469,14 +470,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var builder = ArrayBuilder<string>.GetInstance();
                 foreach (Match match in matches)
                 {
+                    // We use 0 as the position specifier, regardless of what it was in the original format string,
+                    // because we format diagnostic arguments one at a time so we cannot have a position specifier greater than 0
+                    var posSpecifier = "0";
+                    string fmtSpecifier = "";
                     if (match.Groups.Count > 1 && match.Groups[1].Success)
                     {
-                        builder.Add($@"{{0{match.Groups[1].Value}}}");
+                        fmtSpecifier = match.Groups[1].Value;
                     }
-                    else
-                    {
-                        builder.Add("{0}");
-                    }
+
+                    builder.Add(
+                        fmtSpecifier.IsNullOrEmpty() ?
+                            $"{{{posSpecifier}}}" :
+                            $@"{{{posSpecifier}{fmtSpecifier}}}");
                 }
                 specifiers = builder.ToImmutableArray();
             }
@@ -501,7 +507,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 actual = Sort(actual);
                 unmatchedActual = Sort(unmatchedActual);
             }
-
 
             var assertText = new StringBuilder();
             assertText.AppendLine();
