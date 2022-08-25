@@ -75,7 +75,6 @@ stages:
       parameters:
         testRunName: 'Test Windows Desktop Debug 32'
         jobName: Test_Windows_Desktop_Debug_32
-        buildJobName: Build_Windows_Debug
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
         testArguments: -testDesktop -testArch x86
@@ -84,7 +83,6 @@ stages:
     parameters:
       testRunName: 'Test Windows Desktop Debug 64'
       jobName: Test_Windows_Desktop_Debug_64
-      buildJobName: Build_Windows_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testDesktop -testArch x64
@@ -93,7 +91,6 @@ stages:
     parameters:
       testRunName: 'Test Windows Desktop Release 32'
       jobName: Test_Windows_Desktop_Release_32
-      buildJobName: Build_Windows_Release
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testDesktop -testArch x86
@@ -103,7 +100,6 @@ stages:
       parameters:
         testRunName: 'Test Windows Desktop Release 64'
         jobName: Test_Windows_Desktop_Release_64
-        buildJobName: Build_Windows_Release
         testArtifactName: Transport_Artifacts_Windows_Release
         configuration: Release
         testArguments: -testDesktop -testArch x64
@@ -112,7 +108,6 @@ stages:
     parameters:
       testRunName: 'Test Windows Desktop Spanish Release 64'
       jobName: Test_Windows_Desktop_Spanish_Release_64
-      buildJobName: Build_Windows_Release
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testDesktop -testArch x64 -helixQueueName Windows.10.Amd64.Server2022.ES.Open
@@ -125,7 +120,6 @@ stages:
     parameters:
       testRunName: 'Test Windows CoreClr Debug'
       jobName: Test_Windows_CoreClr_Debug
-      buildJobName: Build_Windows_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr
@@ -135,7 +129,6 @@ stages:
       parameters:
         testRunName: 'Test Windows CoreClr Debug Single Machine'
         jobName: Test_Windows_CoreClr_Debug_Single_Machine
-        buildJobName: Build_Windows_Debug
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
         testArguments: -testCoreClr
@@ -144,7 +137,6 @@ stages:
     parameters:
       testRunName: 'Test Windows CoreClr Release'
       jobName: Test_Windows_CoreClr_Release
-      buildJobName: Build_Windows_Release
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testCoreClr
@@ -153,7 +145,6 @@ stages:
     parameters:
       testRunName: 'Test Windows CoreCLR IOperation Debug'
       jobName: Test_Windows_CoreClr_IOperation_Debug
-      buildJobName: Build_Windows_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr -testIOperation -testCompilerOnly
@@ -164,7 +155,6 @@ stages:
     parameters:
       testRunName: 'Test Windows CoreCLR UsedAssemblies Debug'
       jobName: Test_Windows_CoreClr_UsedAssemblies_Debug
-      buildJobName: Build_Windows_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
@@ -176,7 +166,6 @@ stages:
     parameters:
       testRunName: 'Test Linux Debug'
       jobName: Test_Linux_Debug
-      buildJobName: Build_Unix_Debug
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
       testArguments: --testCoreClr --helixQueueName Ubuntu.1804.Amd64.Open
@@ -186,7 +175,6 @@ stages:
       parameters:
         testRunName: 'Test Linux Debug Single Machine'
         jobName: Test_Linux_Debug_Single_Machine
-        buildJobName: Build_Unix_Debug
         testArtifactName: Transport_Artifacts_Unix_Debug
         configuration: Debug
         testArguments: --testCoreClr
@@ -196,7 +184,6 @@ stages:
     parameters:
       testRunName: 'Test macOS Debug'
       jobName: Test_macOS_Debug
-      buildJobName: Build_Unix_Debug
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
       testArguments: --testCoreClr --helixQueueName OSX.1015.Amd64.Open
