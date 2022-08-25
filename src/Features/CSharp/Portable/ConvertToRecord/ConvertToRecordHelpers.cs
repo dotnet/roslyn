@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
+namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 {
     internal static class ConvertToRecordHelpers
     {

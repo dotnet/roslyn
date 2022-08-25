@@ -2,45 +2,33 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
+namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToRecord), Shared]
-    internal sealed class CSharpConvertToRecordRefactoringProvider : CodeRefactoringProvider
+    internal static class ConvertToRecordCommon
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpConvertToRecordRefactoringProvider()
-        {
-        }
 
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public static async Task<CodeAction?> GetCodeActionAsync(
+            Document document, TypeDeclarationSyntax? typeDeclaration, CancellationToken cancellationToken)
         {
-            var (document, span, cancellationToken) = context;
-
-            var typeDeclaration = await context.TryGetRelevantNodeAsync<TypeDeclarationSyntax>().ConfigureAwait(false);
             if (typeDeclaration == null ||
                 // any type declared partial requires complex movement, don't offer refactoring
                 typeDeclaration.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword)))
             {
-                return;
+                return null;
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -54,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     IsStatic: false,
                 } type)
             {
-                return;
+                return null;
             }
 
             var positionalParameterInfos = PositionalParameterInfo.GetPropertiesForPositionalParameters(
@@ -67,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 cancellationToken);
             if (positionalParameterInfos.IsEmpty)
             {
-                return;
+                return null;
             }
 
             var positionalTitle = CSharpFeaturesResources.Convert_to_positional_record;
@@ -82,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     cancellationToken),
                 nameof(CSharpFeaturesResources.Convert_to_positional_record));
             // note: when adding nested actions, use string.Format(CSharpFeaturesResources.Convert_0_to_record, type.Name) as title string
-            context.RegisterRefactoring(positional);
+            return positional;
         }
 
         private static async Task<Document> ConvertToPositionalRecordAsync(
