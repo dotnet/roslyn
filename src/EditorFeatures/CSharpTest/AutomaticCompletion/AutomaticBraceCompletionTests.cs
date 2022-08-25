@@ -7,10 +7,12 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService;
@@ -784,11 +786,12 @@ class C
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+            };
+
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -859,11 +862,12 @@ class Goo
 {
     public int bar;
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+            };
+
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -930,11 +934,12 @@ class Goo
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+            };
+
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -991,11 +996,12 @@ class Goo
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+            };
+
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1052,11 +1058,11 @@ class Goo
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+            };
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1116,13 +1122,13 @@ class Goo
 
     }
 }";
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { AutoFormattingOptionsStorage.FormatOnCloseBrace, false },
+                { FormattingOptions2.SmartIndent, FormattingOptions2.IndentStyle.Block },
+            };
 
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { new OptionKey2(AutoFormattingOptions.Metadata.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false },
-                                { new OptionKey2(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
-                            };
-            using var session = CreateSession(code, optionSet);
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1147,11 +1153,12 @@ $$
 { }
 }";
 
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { new OptionKey2(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { FormattingOptions2.SmartIndent, FormattingOptions2.IndentStyle.None },
+            };
+
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1182,11 +1189,12 @@ $$
         }
 }";
 
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { new OptionKey2(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { FormattingOptions2.SmartIndent, FormattingOptions2.IndentStyle.Block },
+            };
+
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1225,11 +1233,12 @@ $$
         }
 }";
 
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { new OptionKey2(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { FormattingOptions2.SmartIndent, FormattingOptions2.IndentStyle.Block },
+            };
+
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1331,11 +1340,11 @@ $$
         {
             var code = @"class C $$";
 
-            var optionSet = new Dictionary<OptionKey2, object>
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { new OptionKey2(FormattingOptions2.NewLine, LanguageNames.CSharp), "\r" }
+                { FormattingOptions2.NewLine, "\r" }
             };
-            using var session = CreateSession(code, optionSet);
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1374,11 +1383,11 @@ record R
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, bracesOnNewLine }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, bracesOnNewLine }
+            };
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1418,11 +1427,11 @@ class C
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, bracesOnNewLine }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, bracesOnNewLine }
+            };
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1462,11 +1471,11 @@ class C
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInAccessors, bracesOnNewLine }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInAccessors, bracesOnNewLine }
+            };
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1506,11 +1515,11 @@ class C
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods, bracesOnNewLine }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods, bracesOnNewLine }
+            };
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1550,11 +1559,11 @@ class C
         }
     }
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes, bracesOnNewLine }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes, bracesOnNewLine }
+            };
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1595,11 +1604,11 @@ class C
     }
 }";
 
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, bracesOnNewLine }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, bracesOnNewLine }
+            };
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
@@ -1646,22 +1655,22 @@ class C
     }
 }";
 
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, bracesOnNewLine }
-                            };
-            using var session = CreateSession(code, optionSet);
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, bracesOnNewLine }
+            };
+            using var session = CreateSession(code, globalOptions);
             Assert.NotNull(session);
 
             CheckStart(session.Session);
             CheckReturn(session.Session, 12, expected);
         }
 
-        internal static Holder CreateSession(string code, Dictionary<OptionKey2, object>? optionSet = null)
+        internal static Holder CreateSession(string code, OptionsCollection? globalOptions = null)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),
-                CurlyBrace.OpenCharacter, CurlyBrace.CloseCharacter, optionSet);
+                CurlyBrace.OpenCharacter, CurlyBrace.CloseCharacter, globalOptions);
         }
     }
 }

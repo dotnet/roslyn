@@ -46,10 +46,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         {
             var module = compilation.ToModuleInstance(debugFormat, includeLocalSignatures);
 
-            if (references == null)
-            {
-                references = ExpressionCompilerTestHelpers.GetEmittedReferences(compilation, module.GetMetadataReader());
-            }
+            references ??= ExpressionCompilerTestHelpers.GetEmittedReferences(compilation, module.GetMetadataReader());
 
             if (includeIntrinsicAssembly)
             {

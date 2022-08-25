@@ -585,7 +585,7 @@ foundIdx:
             return text;
         }
 
-        internal static string AddSharedUTF8(ReadOnlySpan<byte> bytes)
+        internal static string AddSharedUtf8(ReadOnlySpan<byte> bytes)
         {
             int hashCode = Hash.GetFNVHashCode(bytes, out bool isAscii);
 
@@ -614,7 +614,7 @@ foundIdx:
             }
 
             // Don't add non-ascii strings to table. The hashCode we have here is not correct and we won't find them again.
-            // Non-ascii in UTF8-encoded parts of metadata (the only use of this at the moment) is assumed to be rare in 
+            // Non-ascii in UTF-8 encoded parts of metadata (the only use of this at the moment) is assumed to be rare in 
             // practice. If that turns out to be wrong, we could decode to pooled memory and rehash here.
             if (isAscii)
             {

@@ -4,13 +4,12 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Formatting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
     <[UseExportProvider]>
@@ -31,10 +30,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
 
         Private Shared Async Function TestAsync(expected As String, workspace As TestWorkspace) As Task
             Dim hostDocument = workspace.Documents.First()
-            Dim buffer = hostDocument.GetTextBuffer()
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
             Dim span = (Await document.GetSyntaxRootAsync()).FullSpan
-            Dim options = Await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None)
+
+            Dim options = CodeCleanupOptions.GetDefault(document.Project.Services)
 
             Dim service = document.GetLanguageService(Of ICodeCleanerService)
             Dim newDocument = Await service.CleanupAsync(
@@ -42,9 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
                 ImmutableArray.Create(Of ICodeCleanupProvider)(New CaseCorrectionCodeCleanupProvider()),
                 CancellationToken.None)
 
-            newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, CancellationToken.None)
-
-            Dim actual = buffer.CurrentSnapshot.GetText()
+            Dim actual = newDocument.GetTextSynchronously(CancellationToken.None).ToString()
             Assert.Equal(expected, actual)
         End Function
 

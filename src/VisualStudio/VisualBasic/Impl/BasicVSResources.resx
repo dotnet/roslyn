@@ -325,4 +325,7 @@
   <data name="Prefer_simplified_object_creation" xml:space="preserve">
     <value>Prefer simplified object creation</value>
   </data>
+  <data name="Collapse_imports_on_file_open" xml:space="preserve">
+    <value>Collapse Imports on file open</value>
+  </data>
 </root>

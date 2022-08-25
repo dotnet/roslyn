@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerLineNumber] int expectedValueSourceLine = 0,
             [CallerFilePath] string expectedValueSourcePath = null)
         {
-            VerifyPdb(compilation, "", expectedPdb, embeddedTexts, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
+            VerifyPdb(compilation, qualifiedMethodName: null, expectedPdb, embeddedTexts, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
         }
 
         public static void VerifyPdb(
@@ -265,6 +265,29 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     VerifyConvertedPdbMatchesExpectedXml(peStream, pdbStream, qualifiedMethodName, expectedPdb, pdbToXmlOptions, expectedIsXmlLiteral, isPortable);
                 }
             }
+        }
+
+        public static void VerifyPdb(
+            Stream peStream,
+            Stream pdbStream,
+            string expectedPdb,
+            PdbValidationOptions options = PdbValidationOptions.Default,
+            [CallerLineNumber] int expectedValueSourceLine = 0,
+            [CallerFilePath] string expectedValueSourcePath = null)
+        {
+            pdbStream.Position = 0;
+            var isPortable = pdbStream.ReadByte() == 'B' && pdbStream.ReadByte() == 'S' && pdbStream.ReadByte() == 'J' && pdbStream.ReadByte() == 'B';
+
+            VerifyPdbMatchesExpectedXml(
+                peStream,
+                pdbStream,
+                qualifiedMethodName: null,
+                options.ToPdbToXmlOptions(),
+                expectedPdb.ToString(),
+                expectedValueSourceLine,
+                expectedValueSourcePath,
+                expectedIsXmlLiteral: false,
+                isPortable);
         }
 
         private static void VerifyPdbMatchesExpectedXml(
@@ -642,7 +665,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             expectedTags.Sort((x, y) => x.StartIndex.CompareTo(y.StartIndex));
 
             // Ensure the tag for the method start is the first element
-            expectedTags.Insert(0, new { Tag = "<M>", StartIndex = methodStart });
+            expectedTags.Insert(0, new { Tag = "<M:0>", StartIndex = methodStart });
 
             // Now reverse the list so we can insert without worrying about offsets
             expectedTags.Reverse();

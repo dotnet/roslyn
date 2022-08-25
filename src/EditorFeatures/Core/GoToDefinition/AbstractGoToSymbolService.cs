@@ -10,13 +10,8 @@ using Microsoft.CodeAnalysis.GoToDefinition;
 namespace Microsoft.CodeAnalysis.GoToDefinition
 {
     // Ctrl+Click (GoToSymbol)
-    internal abstract class AbstractGoToSymbolService : ForegroundThreadAffinitizedObject, IGoToSymbolService
+    internal abstract class AbstractGoToSymbolService : IGoToSymbolService
     {
-        protected AbstractGoToSymbolService(IThreadingContext threadingContext, bool assertIsForeground = false)
-            : base(threadingContext, assertIsForeground)
-        {
-        }
-
         public async Task GetSymbolsAsync(GoToSymbolContext context)
         {
             var document = context.Document;
@@ -27,19 +22,20 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             // [includeType: false]
             // Enable Ctrl+Click on tokens with aliased, referenced or declared symbol.
             // If the token has none of those but does have a type (mostly literals), we're not interested
-            var (symbol, span) = await service.GetSymbolAndBoundSpanAsync(document, position, includeType: false, cancellationToken).ConfigureAwait(false);
+            var (symbol, project, span) = await service.GetSymbolProjectAndBoundSpanAsync(document, position, includeType: false, cancellationToken).ConfigureAwait(false);
 
             if (symbol == null)
             {
                 return;
             }
 
-            var solution = document.Project.Solution;
+            var solution = project.Solution;
             var definitions = await GoToDefinitionHelpers.GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed: true, cancellationToken).ConfigureAwait(false);
 
             foreach (var definition in definitions)
             {
-                if (await definition.CanNavigateToAsync(solution.Workspace, cancellationToken).ConfigureAwait(false))
+                var location = await definition.GetNavigableLocationAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                if (location != null)
                     context.AddItem(WellKnownSymbolTypes.Definition, definition);
             }
 

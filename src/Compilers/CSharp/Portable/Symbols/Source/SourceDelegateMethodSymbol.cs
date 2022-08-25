@@ -43,10 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DelegateDeclarationSyntax syntax,
             BindingDiagnosticBag diagnostics)
         {
-            var compilation = delegateType.DeclaringCompilation;
             Binder binder = delegateType.GetBinder(syntax.ParameterList);
-            RefKind refKind;
-            TypeSyntax returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
+            TypeSyntax returnTypeSyntax = syntax.ReturnType.SkipRef(out RefKind refKind);
             var returnType = binder.BindType(returnTypeSyntax, diagnostics);
 
             // reuse types to avoid reporting duplicate errors if missing:
@@ -98,6 +96,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadVisDelegateReturn, delegateType.Locations[0], delegateType, invoke.ReturnType);
             }
 
+            var delegateTypeIsFile = delegateType.HasFileLocalTypes();
+            if (!delegateTypeIsFile && invoke.ReturnType.HasFileLocalTypes())
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, delegateType.Locations[0], invoke.ReturnType, delegateType);
+            }
+
             for (int i = 0; i < invoke.Parameters.Length; i++)
             {
                 var parameterSymbol = invoke.Parameters[i];
@@ -106,10 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than delegate '{0}'
                     diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameterSymbol.Type);
                 }
-                var parameterSyntax = syntax.ParameterList.Parameters[i];
-                if (parameterSyntax.ExclamationExclamationToken.Kind() == SyntaxKind.ExclamationExclamationToken)
+                else if (!delegateTypeIsFile && parameterSymbol.Type.HasFileLocalTypes())
                 {
-                    diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, parameterSyntax.Identifier.GetLocation(), parameterSyntax.Identifier.ValueText);
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, delegateType.Locations[0], parameterSymbol.Type, delegateType);
                 }
             }
 
@@ -244,6 +247,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // so we will keep them the same.
                 return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);
             }
+
+            protected override bool HasSetsRequiredMembersImpl => false;
         }
 
         private sealed class InvokeMethod : SourceDelegateMethodSymbol
@@ -329,12 +334,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
-                if (ReturnType.ContainsNativeInteger())
+                if (compilation.ShouldEmitNativeIntegerAttributes(ReturnType))
                 {
                     compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
 
                 ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+                ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
                 if (compilation.ShouldEmitNullableAttributes(this) &&
                     ReturnTypeWithAnnotations.NeedsNullableAttribute())

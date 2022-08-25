@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new ExternKeywordRecommender(),
                 new FalseKeywordRecommender(),
                 new FieldKeywordRecommender(),
+                new FileKeywordRecommender(),
                 new FinallyKeywordRecommender(),
                 new FixedKeywordRecommender(),
                 new FloatKeywordRecommender(),
@@ -127,6 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new RefKeywordRecommender(),
                 new RegionKeywordRecommender(),
                 new RemoveKeywordRecommender(),
+                new RequiredKeywordRecommender(),
                 new RestoreKeywordRecommender(),
                 new ReturnKeywordRecommender(),
                 new SByteKeywordRecommender(),
@@ -172,9 +174,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override string Language => LanguageNames.CSharp;
 
         public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
-            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
+            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) ||
+               CompletionUtilities.IsCompilerDirectiveTriggerCharacter(text, characterPosition);
 
-        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
 
         private static readonly CompletionItemRules s_tupleRules = CompletionItemRules.Default.
            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));

@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -56,6 +56,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public DocumentAnalysisScope AnalysisScope { get; }
 
+        public DocumentAnalysisExecutor With(DocumentAnalysisScope analysisScope)
+            => new(analysisScope, _compilationWithAnalyzers, _diagnosticAnalyzerRunner, _logPerformanceInfo, _onAnalysisException);
+
         /// <summary>
         /// Return all local diagnostics (syntax, semantic) that belong to given document for the given analyzer by calculating them.
         /// </summary>
@@ -82,6 +85,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (loadDiagnostic != null)
             {
                 return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
+            }
+
+            if (analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance)
+            {
+                // We will count generator diagnostics as semantic diagnostics; some filtering to either syntax/semantic is necessary or else we'll report diagnostics twice.
+                if (kind == AnalysisKind.Semantic)
+                {
+                    var generatorDiagnostics = await textDocument.Project.GetSourceGeneratorDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+                    return ConvertToLocalDiagnostics(generatorDiagnostics, textDocument, span);
+                }
+                else
+                {
+                    return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
+                }
             }
 
             if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
@@ -139,10 +156,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Remap diagnostic locations, if required.
             diagnostics = await RemapDiagnosticLocationsIfRequiredAsync(textDocument, diagnostics, cancellationToken).ConfigureAwait(false);
 
+            if (span.HasValue)
+            {
+                diagnostics = diagnostics.WhereAsArray(d => !d.HasTextSpan || span.Value.IntersectsWith(d.GetTextSpan()));
+            }
+
 #if DEBUG
             var diags = await diagnostics.ToDiagnosticsAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
             Debug.Assert(diags.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diags, _compilationWithAnalyzers.Compilation).Count());
-            //Debug.Assert(diagnostics.Length == diags.ConvertToLocalDiagnostics(textDocument, span).Count());
+            Debug.Assert(diagnostics.Length == ConvertToLocalDiagnostics(diags, textDocument, span).Count());
 #endif
 
             return diagnostics;
@@ -158,9 +180,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
                 return resultAndTelemetry.AnalysisResult;
             }
-            catch
+            catch when (_onAnalysisException != null)
             {
-                _onAnalysisException?.Invoke();
+                _onAnalysisException.Invoke();
                 throw;
             }
         }
@@ -348,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Check if IWorkspaceVenusSpanMappingService is present for remapping.
-            var diagnosticSpanMappingService = textDocument.Project.Solution.Workspace.Services.GetService<IWorkspaceVenusSpanMappingService>();
+            var diagnosticSpanMappingService = textDocument.Project.Solution.Services.GetService<IWorkspaceVenusSpanMappingService>();
             if (diagnosticSpanMappingService == null)
             {
                 return diagnostics;
@@ -362,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 builder.Add(DiagnosticData.Create(diagnostic, textDocument));
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
     }
 }

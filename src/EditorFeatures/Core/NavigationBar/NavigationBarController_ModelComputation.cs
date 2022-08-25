@@ -2,15 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
@@ -20,17 +22,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// <summary>
         /// Starts a new task to compute the model based on the current text.
         /// </summary>
-        private async ValueTask<NavigationBarModel?> ComputeModelAndSelectItemAsync(ImmutableArray<bool> unused, CancellationToken cancellationToken)
+        private async ValueTask<NavigationBarModel?> ComputeModelAndSelectItemAsync(ImmutableSegmentedList<bool> unused, CancellationToken cancellationToken)
         {
             // Jump back to the UI thread to determine what snapshot the user is processing.
-            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var textSnapshot = _subjectBuffer.CurrentSnapshot;
 
             // Ensure we switch to the threadpool before calling GetDocumentWithFrozenPartialSemantics.  It ensures
             // that any IO that performs is not potentially on the UI thread.
             await TaskScheduler.Default;
 
-            var model = await ComputeModelAsync(textSnapshot, cancellationToken).ConfigureAwait(false);
+            var model = await ComputeModelAsync().ConfigureAwait(false);
 
             // Now, enqueue work to select the right item in this new model.
             if (model != null)
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             return model;
 
-            static async Task<NavigationBarModel?> ComputeModelAsync(ITextSnapshot textSnapshot, CancellationToken cancellationToken)
+            async Task<NavigationBarModel?> ComputeModelAsync()
             {
                 // When computing items just get the partial semantics workspace.  This will ensure we can get data for this
                 // file, and hopefully have enough loaded to get data for other files in the case of partial types.  In the
@@ -47,6 +49,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 // partial semantics, we can ensure we don't spend an inordinate amount of time computing and using full
                 // compilation data (like skeleton assemblies).
                 var forceFrozenPartialSemanticsForCrossProcessOperations = true;
+
+                var workspace = textSnapshot.TextBuffer.GetWorkspace();
+                if (workspace is null)
+                    return null;
+
                 var document = textSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
                 if (document == null)
                     return null;
@@ -55,9 +62,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 if (itemService == null)
                     return null;
 
+                // If these are navbars for a file that isn't even visible, then avoid doing any unnecessary computation
+                // work until far in the future (or if visibility changes).  This ensures our non-visible docs do settle
+                // once enough time has passed, while greatly reducing their impact on the system.
+                await _visibilityTracker.DelayWhileNonVisibleAsync(
+                    _threadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
+
                 using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
                 {
-                    var items = await itemService.GetItemsAsync(document, forceFrozenPartialSemanticsForCrossProcessOperations, textSnapshot.Version, cancellationToken).ConfigureAwait(false);
+                    var items = await itemService.GetItemsAsync(
+                        document,
+                        workspace.CanApplyChange(ApplyChangesKind.ChangeDocument),
+                        forceFrozenPartialSemanticsForCrossProcessOperations,
+                        textSnapshot.Version,
+                        cancellationToken).ConfigureAwait(false);
                     return new NavigationBarModel(itemService, items);
                 }
             }
@@ -76,7 +94,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         {
             // Switch to the UI so we can determine where the user is and determine the state the last time we updated
             // the UI.
-            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await SelectItemWorkerAsync(cancellationToken).ConfigureAwait(true);
+
+            // Once we've computed and selected the latest navbar items, pause ourselves if we're no longer visible.
+            // That way we don't consume any machine resources that the user won't even notice.
+            if (_visibilityTracker?.IsVisible(_subjectBuffer) is false)
+                Pause();
+        }
+
+        private async ValueTask SelectItemWorkerAsync(CancellationToken cancellationToken)
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
 
             var currentView = _presenter.TryGetCurrentView();
             var caretPosition = currentView?.GetCaretPoint(_subjectBuffer);
@@ -105,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             }
 
             // Finally, switch back to the UI to update our state and UI.
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             _presenter.PresentItems(
                 projectItems,

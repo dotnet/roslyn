@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             return property.ExpressionBody == null
-                && property.AccessorList.Accessors.Any(e => e.Body == null);
+                && property.AccessorList.Accessors.Any(e => e.Body == null && e.ExpressionBody == null);
         }
 
         /// <summary>
@@ -287,35 +287,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// </summary>
         /// <returns>
         /// <see cref="AwaitExpressionSyntax"/> for await expressions,
-        /// <see cref="YieldStatementSyntax"/> for yield break and yield return statements,
+        /// <see cref="YieldStatementSyntax"/> for yield return statements,
         /// <see cref="CommonForEachStatementSyntax"/> for await foreach statements,
         /// <see cref="VariableDeclaratorSyntax"/> for await using declarators.
+        /// <see cref="UsingStatementSyntax"/> for await using statements.
         /// </returns>
         public static IEnumerable<SyntaxNode> GetSuspensionPoints(SyntaxNode body)
-            => body.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda).Where(IsSuspensionPoint);
+            => body.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda).Where(SyntaxBindingUtilities.BindsToResumableStateMachineState);
 
-        public static bool IsSuspensionPoint(SyntaxNode node)
-        {
-            if (node.IsKind(SyntaxKind.AwaitExpression) || node.IsKind(SyntaxKind.YieldBreakStatement) || node.IsKind(SyntaxKind.YieldReturnStatement))
-            {
-                return true;
-            }
-
-            // await foreach statement translates to two suspension points: await MoveNextAsync and await DisposeAsync
-            if (node is CommonForEachStatementSyntax foreachStatement && foreachStatement.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
-            {
-                return true;
-            }
-
-            // each declarator in the declaration translates to a suspension point: await DisposeAsync
-            if (node.IsKind(SyntaxKind.VariableDeclarator) &&
-                node.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement, out LocalDeclarationStatementSyntax localDecl) &&
-                localDecl.AwaitKeyword.IsKind(SyntaxKind.AwaitKeyword))
-            {
-                return true;
-            }
-
-            return false;
-        }
+        // Presence of yield break or yield return indicates state machine, but yield break does not bind to a resumable state. 
+        public static bool IsIterator(SyntaxNode body)
+            => body.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda).Any(n => n is YieldStatementSyntax);
     }
 }

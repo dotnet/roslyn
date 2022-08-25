@@ -10,7 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                     if (seenTypeDeclaringInterface)
                     {
-                        var result = currentType.FindImplementations(constructedInterfaceMember, solution.Workspace);
+                        var result = currentType.FindImplementations(constructedInterfaceMember, solution.Services);
 
                         if (result != null)
                         {
@@ -128,19 +129,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return builder.ToImmutable();
         }
 
-        public static ISymbol? FindImplementations(this ITypeSymbol typeSymbol, ISymbol constructedInterfaceMember, Workspace workspace)
+        public static ISymbol? FindImplementations(this ITypeSymbol typeSymbol, ISymbol constructedInterfaceMember, SolutionServices services)
             => constructedInterfaceMember switch
             {
-                IEventSymbol eventSymbol => typeSymbol.FindImplementations(eventSymbol, workspace),
-                IMethodSymbol methodSymbol => typeSymbol.FindImplementations(methodSymbol, workspace),
-                IPropertySymbol propertySymbol => typeSymbol.FindImplementations(propertySymbol, workspace),
+                IEventSymbol eventSymbol => typeSymbol.FindImplementations(eventSymbol, services),
+                IMethodSymbol methodSymbol => typeSymbol.FindImplementations(methodSymbol, services),
+                IPropertySymbol propertySymbol => typeSymbol.FindImplementations(propertySymbol, services),
                 _ => null,
             };
 
         private static ISymbol? FindImplementations<TSymbol>(
             this ITypeSymbol typeSymbol,
             TSymbol constructedInterfaceMember,
-            Workspace workspace) where TSymbol : class, ISymbol
+            SolutionServices services) where TSymbol : class, ISymbol
         {
             // Check the current type for explicit interface matches.  Otherwise, check
             // the current type and base types for implicit matches.
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 where SymbolEquivalenceComparer.Instance.Equals(explicitInterfaceMethod, constructedInterfaceMember)
                 select member;
 
-            var provider = workspace.Services.GetLanguageServices(typeSymbol.Language);
+            var provider = services.GetLanguageServices(typeSymbol.Language);
             var semanticFacts = provider.GetRequiredService<ISemanticFactsService>();
 
             // Even if a language only supports explicit interface implementation, we
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // the XmlReader.Dispose() method will not be an explicit implementation of
             // IDisposable.Dispose()
             if ((!semanticFacts.SupportsImplicitInterfaceImplementation &&
-                typeSymbol.Locations.Any(location => location.IsInSource)) ||
+                typeSymbol.Locations.Any(static location => location.IsInSource)) ||
                 typeSymbol.TypeKind == TypeKind.Interface)
             {
                 return explicitMatches.FirstOrDefault();

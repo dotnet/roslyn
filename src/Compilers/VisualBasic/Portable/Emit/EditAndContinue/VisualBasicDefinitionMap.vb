@@ -124,11 +124,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
         End Function
 
-        Protected Overrides Function TryGetStateMachineType(methodHandle As EntityHandle) As ITypeSymbolInternal
+        Protected Overrides Function TryGetStateMachineType(methodHandle As MethodDefinitionHandle) As ITypeSymbolInternal
             Dim typeName As String = Nothing
-            If _metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, typeName) OrElse
-               _metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, typeName) Then
-
+            If _metadataDecoder.Module.HasStateMachineAttribute(methodHandle, typeName) Then
                 Return _metadataDecoder.GetTypeSymbolForSerializedType(typeName)
             End If
 

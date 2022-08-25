@@ -830,5 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => throw ExceptionUtilities.Unreachable;
         internal override IEnumerable<SecurityAttribute> GetSecurityInformation() => throw ExceptionUtilities.Unreachable;
         internal sealed override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
+        internal sealed override bool HasUnscopedRefAttribute => false;
     }
 }

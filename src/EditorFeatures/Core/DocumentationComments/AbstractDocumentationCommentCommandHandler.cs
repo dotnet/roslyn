@@ -30,11 +30,13 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
 
         protected AbstractDocumentationCommentCommandHandler(
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            EditorOptionsService editorOptionsService)
         {
             Contract.ThrowIfNull(uiThreadOperationExecutor);
             Contract.ThrowIfNull(undoHistoryRegistry);
@@ -43,6 +45,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _editorOptionsService = editorOptionsService;
         }
 
         protected abstract string ExteriorTriviaText { get; }
@@ -70,7 +73,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             textView.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(replaceSpan.Start + snippet.CaretOffset));
         }
 
-        private static bool CompleteComment(
+        private bool CompleteComment(
             ITextBuffer subjectBuffer,
             ITextView textView,
             Func<IDocumentationCommentSnippetService, SyntaxTree, SourceText, int, DocumentationCommentOptions, CancellationToken, DocumentationCommentSnippet?> getSnippetAction,
@@ -89,17 +92,15 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
-            var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
-            var text = syntaxTree.GetText(cancellationToken);
-            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var options = DocumentationCommentOptions.From(documentOptions);
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
+            var options = subjectBuffer.GetDocumentationCommentOptions(_editorOptionsService, document.Project.Services);
 
             // Apply snippet in reverse order so that the first applied snippet doesn't affect span of next snippets.
             var snapshots = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer).OrderByDescending(s => s.Span.Start);
             var returnValue = false;
             foreach (var snapshot in snapshots)
             {
-                var snippet = getSnippetAction(service, syntaxTree, text, snapshot.Span.Start, options, cancellationToken);
+                var snippet = getSnippetAction(service, parsedDocument.SyntaxTree, parsedDocument.Text, snapshot.Span.Start, options, cancellationToken);
                 if (snippet != null)
                 {
                     ApplySnippet(snippet, subjectBuffer, textView);
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return false;
             }
 
-            if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, originalPosition))
+            if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, originalPosition, context.OperationContext.UserCancellationToken))
             {
                 return false;
             }
@@ -244,7 +245,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return;
             }
 
-            if (!CurrentLineStartsWithExteriorTrivia(subjectBuffer, caretPosition))
+            if (!CurrentLineStartsWithExteriorTrivia(subjectBuffer, caretPosition, context.OperationContext.UserCancellationToken))
             {
                 nextHandler();
                 return;
@@ -261,7 +262,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
 
-            InsertExteriorTriviaIfNeeded(service, args.TextView, subjectBuffer);
+            InsertExteriorTriviaIfNeeded(service, args.TextView, subjectBuffer, context.OperationContext.UserCancellationToken);
         }
 
         public CommandState GetCommandState(OpenLineBelowCommandArgs args, Func<CommandState> nextHandler)
@@ -280,7 +281,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return;
             }
 
-            if (!CurrentLineStartsWithExteriorTrivia(subjectBuffer, caretPosition))
+            if (!CurrentLineStartsWithExteriorTrivia(subjectBuffer, caretPosition, context.OperationContext.UserCancellationToken))
             {
                 nextHandler();
                 return;
@@ -297,10 +298,10 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             // Allow nextHandler() to run and the insert exterior trivia if necessary.
             nextHandler();
 
-            InsertExteriorTriviaIfNeeded(service, args.TextView, subjectBuffer);
+            InsertExteriorTriviaIfNeeded(service, args.TextView, subjectBuffer, context.OperationContext.UserCancellationToken);
         }
 
-        private void InsertExteriorTriviaIfNeeded(IDocumentationCommentSnippetService service, ITextView textView, ITextBuffer subjectBuffer)
+        private void InsertExteriorTriviaIfNeeded(IDocumentationCommentSnippetService service, ITextView textView, ITextBuffer subjectBuffer, CancellationToken cancellationToken)
         {
             var caretPosition = textView.GetCaretPoint(subjectBuffer) ?? -1;
             if (caretPosition < 0)
@@ -314,28 +315,25 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return;
             }
 
-            var text = document
-                .GetTextAsync(CancellationToken.None)
-                .WaitAndGetResult(CancellationToken.None);
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
 
             // We only insert exterior trivia if the current line does not start with exterior trivia
             // and the previous line does.
 
-            var currentLine = text.Lines.GetLineFromPosition(caretPosition);
+            var currentLine = parsedDocument.Text.Lines.GetLineFromPosition(caretPosition);
             if (currentLine.LineNumber <= 0)
             {
                 return;
             }
 
-            var previousLine = text.Lines[currentLine.LineNumber - 1];
+            var previousLine = parsedDocument.Text.Lines[currentLine.LineNumber - 1];
 
             if (LineStartsWithExteriorTrivia(currentLine) || !LineStartsWithExteriorTrivia(previousLine))
             {
                 return;
             }
 
-            var documentOptions = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            var options = DocumentationCommentOptions.From(documentOptions);
+            var options = subjectBuffer.GetDocumentationCommentOptions(_editorOptionsService, document.Project.Services);
 
             var snippet = service.GetDocumentationCommentSnippetFromPreviousLine(options, currentLine, previousLine);
             if (snippet != null)
@@ -344,7 +342,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
         }
 
-        private bool CurrentLineStartsWithExteriorTrivia(ITextBuffer subjectBuffer, int position)
+        private bool CurrentLineStartsWithExteriorTrivia(ITextBuffer subjectBuffer, int position, CancellationToken cancellationToken)
         {
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
@@ -352,11 +350,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return false;
             }
 
-            var text = document
-                .GetTextAsync(CancellationToken.None)
-                .WaitAndGetResult(CancellationToken.None);
-
-            var currentLine = text.Lines.GetLineFromPosition(position);
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
+            var currentLine = parsedDocument.Text.Lines.GetLineFromPosition(position);
 
             return LineStartsWithExteriorTrivia(currentLine);
         }

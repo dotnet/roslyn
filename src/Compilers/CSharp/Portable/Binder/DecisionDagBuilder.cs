@@ -454,7 +454,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol inputType = input.Type.StrippedType(); // since a null check has already been done
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
-                Conversion conversion = _conversions.ClassifyBuiltInConversion(inputType, type, ref useSiteInfo);
+                Conversion conversion = _conversions.ClassifyBuiltInConversion(inputType, type, isChecked: false, ref useSiteInfo);
+                Debug.Assert(!conversion.IsUserDefined);
+
                 _diagnostics.Add(syntax, useSiteInfo);
                 if (input.Type.IsDynamic() ? type.SpecialType == SpecialType.System_Object : conversion.IsImplicit)
                 {
@@ -483,6 +485,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 output = input;
                 return new Tests.One(new BoundDagExplicitNullTest(constant.Syntax, input));
+            }
+            else if (constant.ConstantValue.IsString && input.Type.IsSpanOrReadOnlySpanChar())
+            {
+                output = input;
+                return new Tests.One(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, input));
             }
             else
             {

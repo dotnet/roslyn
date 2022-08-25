@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             diagnosticService.Reanalyze(_workspace, documentIds: documentsToReanalyze);
 
             // clear emit/apply diagnostics reported previously:
-            diagnosticUpdateSource.ClearDiagnostics();
+            diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: false);
         }
 
         public async ValueTask EndDebuggingSessionAsync(Solution compileTimeSolution, EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource, IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)
@@ -88,30 +88,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             diagnosticService.Reanalyze(_workspace, documentIds: designTimeDocumentsToReanalyze);
 
             // clear emit/apply diagnostics reported previously:
-            diagnosticUpdateSource.ClearDiagnostics();
+            diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: true);
 
             Dispose();
         }
 
-        public async ValueTask<bool> HasChangesAsync(Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
-        {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                return await GetLocalService().HasChangesAsync(_sessionId, solution, activeStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
-            }
-
-            var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, bool>(
-                solution,
-                (service, solutionInfo, callbackId, cancellationToken) => service.HasChangesAsync(solutionInfo, callbackId, _sessionId, sourceFilePath, cancellationToken),
-                callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
-                cancellationToken).ConfigureAwait(false);
-
-            return result.HasValue ? result.Value : true;
-        }
-
         public async ValueTask<(
-                ManagedModuleUpdates updates,
+                ModuleUpdates updates,
                 ImmutableArray<DiagnosticData> diagnostics,
                 ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits,
                 DiagnosticData? syntaxError)> EmitSolutionUpdateAsync(
@@ -121,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
             CancellationToken cancellationToken)
         {
-            ManagedModuleUpdates moduleUpdates;
+            ModuleUpdates moduleUpdates;
             ImmutableArray<DiagnosticData> diagnosticData;
             ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits;
             DiagnosticData? syntaxError;
@@ -154,7 +137,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                     else
                     {
-                        moduleUpdates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.RestartRequired, ImmutableArray<ManagedModuleUpdate>.Empty);
+                        moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ModuleUpdate>.Empty);
                         diagnosticData = ImmutableArray<DiagnosticData>.Empty;
                         rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
                         syntaxError = null;
@@ -172,12 +155,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 diagnosticData = ImmutableArray.Create(DiagnosticData.Create(diagnostic, project: null));
                 rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
-                moduleUpdates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.RestartRequired, ImmutableArray<ManagedModuleUpdate>.Empty);
+                moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, ImmutableArray<ModuleUpdate>.Empty);
                 syntaxError = null;
             }
 
             // clear emit/apply diagnostics reported previously:
-            diagnosticUpdateSource.ClearDiagnostics();
+            diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: false);
 
             // clear all reported rude edits:
             diagnosticService.Reanalyze(_workspace, documentIds: rudeEdits.Select(d => d.DocumentId));
@@ -226,7 +209,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 return await GetLocalService().GetCurrentActiveStatementPositionAsync(_sessionId, solution, activeStatementSpanProvider, instructionId, cancellationToken).ConfigureAwait(false);
@@ -243,7 +226,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 return await GetLocalService().IsActiveStatementInExceptionRegionAsync(_sessionId, solution, instructionId, cancellationToken).ConfigureAwait(false);

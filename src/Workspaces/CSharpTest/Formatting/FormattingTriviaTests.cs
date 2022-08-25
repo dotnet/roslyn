@@ -11,6 +11,8 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Threading.Tasks;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
@@ -1751,12 +1753,12 @@ class Program
             // replace all EOL trivia with elastic markers to force the formatter to add EOL back
             tree = tree.ReplaceTrivia(tree.DescendantTrivia().Where(tr => tr.IsKind(SyntaxKind.EndOfLineTrivia)), (o, r) => SyntaxFactory.ElasticMarker);
 
-            var options = SyntaxFormattingOptions.Create(
-                workspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.CSharp, "\n"),
-                workspace.Services,
-                tree.Language);
+            var options = new CSharpSyntaxFormattingOptions()
+            {
+                Common = new SyntaxFormattingOptions.CommonOptions { LineFormatting = new LineFormattingOptions { NewLine = "\n" } }
+            };
 
-            var formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None);
+            var formatted = Formatter.Format(tree, workspace.Services.SolutionServices, options, CancellationToken.None);
 
             var actual = formatted.ToFullString();
             var expected = "class C\n{\n}";
@@ -1789,22 +1791,24 @@ class F
 	string s;
 }";
             var tree = SyntaxFactory.ParseCompilationUnit(code);
-
-            var newLineText = SyntaxFactory.ElasticEndOfLine(DefaultWorkspace.Options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp));
+            var newLine = Environment.NewLine;
 
             tree = tree.ReplaceTokens(tree.DescendantTokens(descendIntoTrivia: true)
-                                          .Where(tr => tr.IsKind(SyntaxKind.EndOfDirectiveToken)), (o, r) => o.WithTrailingTrivia(o.LeadingTrivia.Add(newLineText))
+                                          .Where(tr => tr.IsKind(SyntaxKind.EndOfDirectiveToken)), (o, r) => o.WithTrailingTrivia(o.LeadingTrivia.Add(SyntaxFactory.ElasticEndOfLine(newLine)))
                                                                                                               .WithLeadingTrivia(SyntaxFactory.TriviaList())
                                                                                                               .WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation));
 
             using var workspace = new AdhocWorkspace();
 
-            var options = SyntaxFormattingOptions.Create(
-                workspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, true),
-                workspace.Services,
-                tree.Language);
+            var options = new CSharpSyntaxFormattingOptions()
+            {
+                Common = new SyntaxFormattingOptions.CommonOptions
+                {
+                    LineFormatting = new LineFormattingOptions { UseTabs = true, NewLine = newLine }
+                }
+            };
 
-            var formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None);
+            var formatted = Formatter.Format(tree, workspace.Services.SolutionServices, options, CancellationToken.None);
 
             var actual = formatted.ToFullString();
             Assert.Equal(expected, actual);

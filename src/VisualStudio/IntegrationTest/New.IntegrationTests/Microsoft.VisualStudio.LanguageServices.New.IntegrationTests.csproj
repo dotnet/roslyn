@@ -5,14 +5,14 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.NewIntegrationTests</RootNamespace>
     <TargetFramework>net472</TargetFramework>
+    
+    <!-- this project is also used as a test input for Go To Definition tests in it, so needs some test data embedded -->
+    <DebugType>embedded</DebugType>
+    <EmbedAllSources>true</EmbedAllSources>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\EditorFeatures\TestUtilities\DirectoryExtensions.cs" Link="DirectoryExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\CoreTestUtilities\ObjectExtensions.cs" Link="ObjectExtensions.cs" />
-    <Compile Include="..\TestUtilities\Input\AbstractSendKeys.cs" Link="AbstractSendKeys.cs" />
-    <Compile Include="..\TestUtilities\Input\KeyPress.cs" Link="KeyPress.cs" />
-    <Compile Include="..\TestUtilities\Input\ShiftState.cs" Link="ShiftState.cs" />
-    <Compile Include="..\TestUtilities\Input\VirtualKey.cs" Link="VirtualKey.cs" />
     <Compile Include="..\TestUtilities\IntegrationHelper.cs" Link="IntegrationHelper.cs" />
     <Compile Include="..\TestUtilities\Interop\NativeMethods.cs" Link="NativeMethods.cs" />
     <Compile Include="..\TestUtilities\TestUtilities.cs" Link="TestUtilities.cs" />
@@ -48,6 +48,7 @@
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="InputSimulatorPlus" Version="$(InputSimulatorPlusVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator" Version="$(MicrosoftVisualStudioExtensibilityTestingSourceGeneratorVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" Version="$(MicrosoftVisualStudioExtensibilityTestingXunitVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" />

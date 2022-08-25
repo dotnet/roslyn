@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (VariableDeclaratorSyntax declarator in declarationSyntax.Variables)
                 {
-                    locals.Add(MakeLocal(declarationSyntax, declarator, LocalDeclarationKind.UsingVariable));
+                    locals.Add(MakeLocal(declarationSyntax, declarator, LocalDeclarationKind.UsingVariable, hasScopedModifier: false)); // https://github.com/dotnet/roslyn/issues/62039: Allow 'scoped' modifier.
 
                     // also gather expression-declared variables from the bracketed argument lists and the initializers
                     ExpressionVariableFinder.FindExpressionVariables(this, locals, declarator);

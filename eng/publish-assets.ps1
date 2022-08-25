@@ -49,6 +49,18 @@ function Publish-Nuget($publishData, [string]$packageDir) {
       continue
     }
 
+    # Let packageFeeds default to the default set of feeds
+    $packageFeeds = "default"
+    if ($publishData.PSobject.Properties.Name -contains "packageFeeds") {
+      $packageFeeds = $publishData.packageFeeds
+    }
+
+    # If the configured packageFeeds is arcade, then skip publishing here.  Arcade will handle publishing packages to their feeds.
+    if ($packageFeeds.equals("arcade")) {
+      Write-Host "    Skipping publishing for all packages as they will be published by arcade"
+      continue
+    }
+
     # Each branch stores the name of the package to feed map it should use.
     # Retrieve the correct map for this particular branch.
     $packagesData = GetPackagesPublishData $packageFeeds

@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -759,11 +760,12 @@ class A
         {
             var textUndoHistoryRegistry = exportProvider.GetExportedValue<ITextUndoHistoryRegistry>();
             var editorOperationsFactory = exportProvider.GetExportedValue<IEditorOperationsFactoryService>();
-            var commandHandler = new CommentUncommentSelectionCommandHandler(textUndoHistoryRegistry, editorOperationsFactory);
+            var editorOptionsService = exportProvider.GetExportedValue<EditorOptionsService>();
+            var commandHandler = new CommentUncommentSelectionCommandHandler(textUndoHistoryRegistry, editorOperationsFactory, editorOptionsService);
             var service = new MockCommentSelectionService(supportBlockComments);
 
-            var edits = commandHandler.CollectEditsAsync(
-                null, service, textView.TextBuffer, textView.Selection.GetSnapshotSpansOnBuffer(textView.TextBuffer), operation, CancellationToken.None).GetAwaiter().GetResult();
+            var edits = commandHandler.CollectEdits(
+                null, service, textView.TextBuffer, textView.Selection.GetSnapshotSpansOnBuffer(textView.TextBuffer), operation, CancellationToken.None);
 
             AssertEx.SetEqual(expectedChanges, edits.TextChanges);
 

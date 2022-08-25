@@ -6,9 +6,11 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolDisplay;
 using Roslyn.Utilities;
 
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!this.isFirstSymbolVisited)
                 {
-                    AddCustomModifiersIfRequired(arrayType.CustomModifiers, leadingSpace: true);
+                    AddCustomModifiersIfNeeded(arrayType.CustomModifiers, leadingSpace: true);
                 }
 
                 AddArrayRank(arrayType);
@@ -145,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!this.isFirstSymbolVisited)
             {
-                AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace: true);
+                AddCustomModifiersIfNeeded(symbol.CustomModifiers, leadingSpace: true);
             }
             AddPunctuation(SyntaxKind.AsteriskToken);
         }
@@ -159,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.isFirstSymbolVisited)
             {
-                AddTypeParameterVarianceIfRequired(symbol);
+                AddTypeParameterVarianceIfNeeded(symbol);
             }
 
             //variance and constraints are handled by methods and named types
@@ -179,6 +181,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitNamedTypeWithoutNullability(symbol);
             AddNullableAnnotations(symbol);
+
+            if ((format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes) != 0
+                && symbol is Symbols.PublicModel.Symbol { UnderlyingSymbol: NamedTypeSymbol { AssociatedSyntaxTree: SyntaxTree tree } internalSymbol })
+            {
+                var fileDescription = getDisplayFileName(tree) is { Length: not 0 } path
+                    ? path
+                    : $"<tree {internalSymbol.DeclaringCompilation.SyntaxTrees.IndexOf(tree)}>";
+
+                builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, symbol, "@"));
+                builder.Add(CreatePart(SymbolDisplayPartKind.ModuleName, symbol, fileDescription));
+            }
+
+            static string getDisplayFileName(SyntaxTree tree)
+            {
+                if (tree.FilePath.Length == 0)
+                {
+                    return "";
+                }
+
+                var pooledBuilder = PooledStringBuilder.GetInstance();
+                var sb = pooledBuilder.Builder;
+                GeneratedNames.AppendFileName(tree.FilePath, sb);
+                return pooledBuilder.ToStringAndFree();
+            }
         }
 
         private void VisitNamedTypeWithoutNullability(INamedTypeSymbol symbol)
@@ -208,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (typeArg.TypeKind != TypeKind.Pointer)
                     {
                         typeArg.Accept(this.NotFirstVisitor);
-                        AddCustomModifiersIfRequired(symbol.GetTypeArgumentCustomModifiers(0), leadingSpace: true, trailingSpace: false);
+                        AddCustomModifiersIfNeeded(symbol.GetTypeArgumentCustomModifiers(0), leadingSpace: true, trailingSpace: false);
 
                         AddPunctuation(SyntaxKind.QuestionToken);
 
@@ -233,11 +259,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var invokeMethod = symbol.DelegateInvokeMethod;
                     if (invokeMethod.ReturnsByRef)
                     {
-                        AddRefIfRequired();
+                        AddRefIfNeeded();
                     }
                     else if (invokeMethod.ReturnsByRefReadonly)
                     {
-                        AddRefReadonlyIfRequired();
+                        AddRefReadonlyIfNeeded();
                     }
 
                     if (invokeMethod.ReturnsVoid)
@@ -274,7 +300,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (IncludeNamedType(symbol.ContainingType))
                 {
                     symbol.ContainingType.Accept(this.NotFirstVisitor);
-                    AddPunctuation(SyntaxKind.DotToken);
+
+                    if (format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes))
+                    {
+                        AddPunctuation(SyntaxKind.PlusToken);
+                    }
+                    else
+                    {
+                        AddPunctuation(SyntaxKind.DotToken);
+                    }
                 }
             }
 
@@ -426,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var method = symbol.DelegateInvokeMethod;
                     AddPunctuation(SyntaxKind.OpenParenToken);
-                    AddParametersIfRequired(hasThisParameter: false, isVarargs: method.IsVararg, parameters: method.Parameters);
+                    AddParametersIfNeeded(hasThisParameter: false, isVarargs: method.IsVararg, parameters: method.Parameters);
                     AddPunctuation(SyntaxKind.CloseParenToken);
                 }
             }
@@ -493,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                return modifiers.Any(m => !m.IsEmpty);
+                return modifiers.Any(static m => !m.IsEmpty);
             }
         }
 
@@ -504,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool HasNonDefaultTupleElements(INamedTypeSymbol tupleSymbol)
         {
-            return tupleSymbol.TupleElements.Any(e => !e.IsDefaultTupleElement());
+            return tupleSymbol.TupleElements.Any(static e => !e.IsDefaultTupleElement());
         }
 
         private void AddTupleTypeName(INamedTypeSymbol symbol)
@@ -731,7 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddTypeParameterVarianceIfRequired(ITypeParameterSymbol symbol)
+        private void AddTypeParameterVarianceIfNeeded(ITypeParameterSymbol symbol)
         {
             if (format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeVariance))
             {
@@ -785,7 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var typeParam = (ITypeParameterSymbol)typeArg;
 
-                        AddTypeParameterVarianceIfRequired(typeParam);
+                        AddTypeParameterVarianceIfNeeded(typeParam);
 
                         visitor = this.NotFirstVisitor;
                     }
@@ -798,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!modifiers.IsDefault)
                     {
-                        AddCustomModifiersIfRequired(modifiers[i], leadingSpace: true, trailingSpace: false);
+                        AddCustomModifiersIfNeeded(modifiers[i], leadingSpace: true, trailingSpace: false);
                     }
                 }
 

@@ -64,9 +64,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 MarkupTestFile.GetSpan(wordMarkup, word, wordMatchSpan)
 
                 Dim item = CompletionItem.Create(word)
-                Assert.True(helper.MatchesPattern(item.FilterText, pattern, culture), $"Expected item {word} does not match {pattern}")
+                Assert.True(helper.MatchesPattern(item, pattern, culture), $"Expected item {word} does not match {pattern}")
 
-                Dim highlightedSpans = helper.GetHighlightedSpans(item.FilterText, pattern, culture)
+                Dim highlightedSpans = helper.GetHighlightedSpans(item, pattern, culture)
                 Assert.NotEmpty(highlightedSpans)
                 Assert.Equal(1, highlightedSpans.Length)
                 Assert.Equal(wordMatchSpan, highlightedSpans(0))
@@ -79,9 +79,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim helper = New CompletionHelper(isCaseSensitive:=True)
             For Each word In wordsToNotMatch
                 Dim item = CompletionItem.Create(word)
-                Assert.False(helper.MatchesPattern(item.FilterText, pattern, culture), $"Unexpected item {word} matches {pattern}")
+                Assert.False(helper.MatchesPattern(item, pattern, culture), $"Unexpected item {word} matches {pattern}")
 
-                Dim highlightedSpans = helper.GetHighlightedSpans(item.FilterText, pattern, culture)
+                Dim highlightedSpans = helper.GetHighlightedSpans(item, pattern, culture)
                 Assert.Empty(highlightedSpans)
             Next
         End Sub

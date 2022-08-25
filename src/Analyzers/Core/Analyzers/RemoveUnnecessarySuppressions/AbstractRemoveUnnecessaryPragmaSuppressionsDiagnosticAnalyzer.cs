@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         protected AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer()
             : base(ImmutableArray.Create(s_removeUnnecessarySuppressionDescriptor), GeneratedCodeAnalysisFlags.None)
         {
-            _lazySupportedCompilerErrorCodes = new Lazy<ImmutableHashSet<int>>(() => GetSupportedCompilerErrorCodes());
+            _lazySupportedCompilerErrorCodes = new Lazy<ImmutableHashSet<int>>(GetSupportedCompilerErrorCodes);
         }
 
         protected abstract string CompilerErrorCodePrefix { get; }
@@ -109,8 +109,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             }
 
             // Bail out if analyzer has been turned off through options.
-            var option = compilationWithAnalyzers.AnalysisOptions.Options?.GetOption(
-                CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions, tree, cancellationToken).Trim();
+            var option = compilationWithAnalyzers.AnalysisOptions.Options?.GetAnalyzerOptions(tree).RemoveUnnecessarySuppressionExclusions.Trim();
             var (userIdExclusions, userCategoryExclusions, analyzerDisabled) = ParseUserExclusions(option);
             if (analyzerDisabled)
             {

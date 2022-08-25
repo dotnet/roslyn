@@ -38,10 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             s_localizableTitle, s_localizableInsideMessage);
 
         public MisplacedUsingDirectivesDiagnosticAnalyzer()
-           : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
+           : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
                     .Add(s_outsideDiagnosticDescriptor, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement)
-                    .Add(s_insideDiagnosticDescriptor, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement),
-                 LanguageNames.CSharp)
+                    .Add(s_insideDiagnosticDescriptor, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement))
         {
         }
 
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, context.Node.SyntaxTree, context.CancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().UsingDirectivePlacement;
             if (option.Value != AddImportPlacement.OutsideNamespace)
                 return;
 
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         private static void AnalyzeCompilationUnitNode(SyntaxNodeAnalysisContext context)
         {
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, context.Node.SyntaxTree, context.CancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().UsingDirectivePlacement;
             var compilationUnit = (CompilationUnitSyntax)context.Node;
 
             if (option.Value != AddImportPlacement.InsideNamespace

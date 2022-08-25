@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Options
 Imports Xunit.Abstractions
 
@@ -14,9 +15,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
             MyBase.New(output)
         End Sub
 
-        Private Shared Function SeparateImportDirectiveGroups() As Dictionary(Of OptionKey, Object)
-            Return New Dictionary(Of OptionKey, Object) From {
-                {New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic), True}
+        Private Shared Function SeparateImportDirectiveGroups() As OptionsCollection
+            Return New OptionsCollection(LanguageNames.VisualBasic) From {
+                {GenerationOptions.SeparateImportDirectiveGroups, True}
             }
         End Function
 

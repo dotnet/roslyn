@@ -2,6 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.CSharp.Simplification
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 
@@ -23,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                 Dim annotatedDocument = document.WithSyntaxRoot(
                     (Await document.GetSyntaxRootAsync()).WithAdditionalAnnotations(Simplifier.Annotation))
 
-                Dim simplifiedDocument = Await Simplifier.ReduceAsync(annotatedDocument)
+                Dim simplifiedDocument = Await Simplifier.ReduceAsync(annotatedDocument, CSharpSimplifierOptions.Default, CancellationToken.None)
 
                 Assert.Equal(expected, (Await simplifiedDocument.GetTextAsync()).ToString())
             End Using

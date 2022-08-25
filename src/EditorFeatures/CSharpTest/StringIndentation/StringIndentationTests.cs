@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.StringIndentation;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringIndentation
@@ -64,226 +66,256 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringIndentation
         public async Task TestEmptyFile()
             => await TestAsync(string.Empty);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
-        public async Task TestLiteralError1()
+        [Theory, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        [InlineData("")]
+        [InlineData("u8")]
+        public async Task TestLiteralError1(string suffix)
         {
-            await TestAsync(@"class C
-{
+            await TestAsync($@"class C
+{{
     void M()
-    {
+    {{
         // not enough lines in literal
         var v = """"""
-                """""";
-    }
-}");
+                """"""{suffix};
+    }}
+}}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
-        public async Task TestLiteralError2()
+        [Theory, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        [InlineData("")]
+        [InlineData("u8")]
+        public async Task TestLiteralError2(string suffix)
         {
-            await TestAsync(@"class C
-{
+            await TestAsync($@"class C
+{{
     void M()
-    {
+    {{
         // invalid literal
         var v = """"""
             text too early
-                """""";
-    }
-}");
+                """"""{suffix};
+    }}
+}}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
-        public async Task TestZeroColumn1()
+        [Theory, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        [InlineData("")]
+        [InlineData("u8")]
+        public async Task TestZeroColumn1(string suffix)
         {
-            await TestAsync(@"class C
-{
+            await TestAsync($@"class C
+{{
     void M()
-    {
+    {{
         var v = """"""
 goo
-"""""";
-    }
-}");
+""""""{suffix};
+    }}
+}}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
-        public async Task TestZeroColumn2()
+        [Theory, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        [InlineData("")]
+        [InlineData("u8")]
+        public async Task TestZeroColumn2(string suffix)
         {
-            await TestAsync(@"class C
-{
+            await TestAsync($@"class C
+{{
     void M()
-    {
+    {{
         var v = """"""
     goo
-"""""";
-    }
-}");
+""""""{suffix};
+    }}
+}}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
-        public async Task TestOneColumn1()
+        [Theory, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        [InlineData("")]
+        [InlineData("u8")]
+        public async Task TestOneColumn1(string suffix)
         {
-            await TestAsync(@"class C
-{
+            await TestAsync($@"class C
+{{
     void M()
-    {
+    {{
         var v = """"""
 |goo
- """""";
-    }
-}");
+ """"""{suffix};
+    }}
+}}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
-        public async Task TestOneColumn2()
+        [Theory, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        [InlineData("")]
+        [InlineData("u8")]
+        public async Task TestOneColumn2(string suffix)
         {
-            await TestAsync(@"class C
-{
+            await TestAsync($@"class C
+{{
     void M()
-    {
+    {{
         var v = """"""
 |   goo
- """""";
-    }
-}");
+ """"""{suffix};
+    }}
+}}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
-        public async Task TestCase1()
+        [Theory, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        [InlineData("")]
+        [InlineData("u8")]
+        public async Task TestCase1(string suffix)
         {
-            await TestAsync(@"class C
-{
+            await TestAsync($@"class C
+{{
     void M()
-    {
+    {{
         var v = """"""
                |goo
-                """""";
-    }
-}");
+                """"""{suffix};
+    }}
+}}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
-        public async Task TestCase2()
+        [Theory, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        [InlineData("")]
+        [InlineData("u8")]
+        public async Task TestCase2(string suffix)
         {
-            await TestAsync(@"class C
-{
+            await TestAsync($@"class C
+{{
     void M()
-    {
+    {{
         var v = """"""
                |goo
                |bar
-                """""";
-    }
-}");
+                """"""{suffix};
+    }}
+}}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
-        public async Task TestCase3()
+        [Theory, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        [InlineData("")]
+        [InlineData("u8")]
+        public async Task TestCase3(string suffix)
         {
-            await TestAsync(@"class C
-{
+            await TestAsync($@"class C
+{{
     void M()
-    {
+    {{
         var v = """"""
                |goo
                |bar
                |baz
-                """""";
-    }
-}");
+                """"""{suffix};
+    }}
+}}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
-        public async Task TestCase4()
+        [Theory, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        [InlineData("")]
+        [InlineData("u8")]
+        public async Task TestCase4(string suffix)
         {
-            await TestAsync(@"class C
-{
+            await TestAsync($@"class C
+{{
     void M()
-    {
+    {{
         var v = """"""
                |goo
                |
                |baz
-                """""";
-    }
-}");
+                """"""{suffix};
+    }}
+}}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
-        public async Task TestCase5()
+        [Theory, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        [InlineData("")]
+        [InlineData("u8")]
+        public async Task TestCase5(string suffix)
         {
-            await TestAsync(@"class C
-{
+            await TestAsync($@"class C
+{{
     void M()
-    {
+    {{
         var v = """"""
            |    goo
            |
            |    baz
-            """""";
-    }
-}");
+            """"""{suffix};
+    }}
+}}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
-        public async Task TestCase6()
+        [Theory, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        [InlineData("")]
+        [InlineData("u8")]
+        public async Task TestCase6(string suffix)
         {
-            await TestAsync(@"class C
-{
+            await TestAsync($@"class C
+{{
     void M()
-    {
+    {{
         var v =
             $""""""
            |goo
-            """""";
-    }
-}");
+            """"""{suffix};
+    }}
+}}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
-        public async Task TestCase7()
+        [Theory, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        [InlineData("")]
+        [InlineData("u8")]
+        public async Task TestCase7(string suffix)
         {
-            await TestAsync(@"class C
-{
+            await TestAsync($@"class C
+{{
     void M()
-    {
+    {{
         var v =
             $""""""
             |goo
-             """""";
-    }
-}");
+             """"""{suffix};
+    }}
+}}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
-        public async Task TestCase8()
+        [Theory, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        [InlineData("")]
+        [InlineData("u8")]
+        public async Task TestCase8(string suffix)
         {
-            await TestAsync(@"class C
-{
+            await TestAsync($@"class C
+{{
     void M()
-    {
+    {{
         var v =
             $""""""""
             |goo
-             """""""";
-    }
-}");
+             """"""""{suffix};
+    }}
+}}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
-        public async Task TestCase9()
+        [Theory, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        [InlineData("")]
+        [InlineData("u8")]
+        public async Task TestCase9(string suffix)
         {
-            await TestAsync(@"class C
-{
+            await TestAsync($@"class C
+{{
     void M()
-    {
+    {{
         var v =
              """"""""
             |goo
-             """""""";
-    }
-}");
+             """"""""{suffix};
+    }}
+}}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
@@ -655,6 +687,37 @@ goo
              """""";
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.StringIndentation)]
+        [WorkItem(1542623, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1542623")]
+        public async Task TestWithManyConcatenatedStrings()
+        {
+            var input = new StringBuilder(
+                """
+                class C
+                {
+                    void M()
+                    {
+                        _ =
+                """);
+
+            for (var i = 0; i < 2000; i++)
+            {
+                input.AppendLine(
+                    """
+                            @"" + "" + @"" + "" + @"" + "" + @"" + "" + @"" + "" + @"" + "" + @"" +
+                    """);
+            }
+
+            input.AppendLine(
+                """
+                        @"" + "" + @"" + "" + @"" + "" + @"" + "" + @"" + "" + @"" + "" + @"";
+                    }
+                }
+                """);
+
+            await TestAsync(input.ToString());
         }
     }
 }

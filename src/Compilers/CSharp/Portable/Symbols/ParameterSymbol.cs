@@ -167,11 +167,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool IsMetadataOptional { get; }
 
         /// <summary>
-        /// True if the compiler will synthesize a null check for this parameter (the parameter is declared in source with a '!' following the parameter name). 
-        /// </summary>
-        public abstract bool IsNullChecked { get; }
-
-        /// <summary>
         /// True if In flag is set in metadata.
         /// </summary>
         internal abstract bool IsMetadataIn { get; }
@@ -420,21 +415,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasInterpolatedStringHandlerArgumentError { get; }
 
-        protected sealed override int HighestPriorityUseSiteError
-        {
-            get
-            {
-                return (int)ErrorCode.ERR_BogusType;
-            }
-        }
+        /// <summary>
+        /// The declared scope. From source, this is from the <c>scope</c> keyword only.
+        /// </summary>
+        internal abstract DeclarationScope DeclaredScope { get; }
 
-        public sealed override bool HasUnsupportedMetadata
+        /// <summary>
+        /// The effective scope. This is from the declared scope, implicit scope and any
+        /// <c>UnscopedRefAttribute</c>.
+        /// </summary>
+        internal abstract DeclarationScope EffectiveScope { get; }
+
+        protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code) => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
+
+        public override bool HasUnsupportedMetadata
         {
             get
             {
                 UseSiteInfo<AssemblySymbol> info = default;
                 DeriveUseSiteInfoFromParameter(ref info, this);
-                return info.DiagnosticInfo?.Code == (int)ErrorCode.ERR_BogusType;
+                return info.DiagnosticInfo?.Code is (int)ErrorCode.ERR_BogusType or (int)ErrorCode.ERR_UnsupportedCompilerFeature;
             }
         }
 

@@ -4,13 +4,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    internal interface ICodeStyleOption : IObjectWritable
+    internal interface ICodeStyleOption
     {
         XElement ToXElement();
         object? Value { get; }
@@ -37,26 +38,30 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// hosts that expect the value to be a boolean.  Specifically, if the enum value is 0 or 1
     /// then those values will write back as false/true.
     /// </summary>
+    [DataContract]
     internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>?>
     {
-        static CodeStyleOption2()
-        {
-            ObjectBinder.RegisterTypeReader(typeof(CodeStyleOption2<T>), ReadFrom);
-        }
-
-        public static CodeStyleOption2<T> Default => new(default!, NotificationOption2.Silent);
+        public static readonly CodeStyleOption2<T> Default = new(default!, NotificationOption2.Silent);
 
         private const int SerializationVersion = 1;
 
-        private readonly NotificationOption2 _notification;
+        private const string XmlElement_CodeStyleOption = "CodeStyleOption";
+        private const string XmlAttribute_SerializationVersion = "SerializationVersion";
+        private const string XmlAttribute_Type = "Type";
+        private const string XmlAttribute_Value = "Value";
+        private const string XmlAttribute_DiagnosticSeverity = "DiagnosticSeverity";
+
+        [DataMember(Order = 0)]
+        public T Value { get; }
+
+        [DataMember(Order = 1)]
+        public NotificationOption2 Notification { get; }
 
         public CodeStyleOption2(T value, NotificationOption2 notification)
         {
             Value = value;
-            _notification = notification ?? throw new ArgumentNullException(nameof(notification));
+            Notification = notification;
         }
-
-        public T Value { get; }
 
         object? ICodeStyleOption.Value => this.Value;
         ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption2<T>((T)value, Notification);
@@ -72,17 +77,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private int EnumValueAsInt32 => (int)(object)Value!;
 
-        public NotificationOption2 Notification
-        {
-            get => _notification;
-        }
-
         public XElement ToXElement() =>
-            new("CodeStyleOption", // Ensure that we use "CodeStyleOption" as the name for back compat.
-                new XAttribute(nameof(SerializationVersion), SerializationVersion),
-                new XAttribute("Type", GetTypeNameForSerialization()),
-                new XAttribute(nameof(Value), GetValueForSerialization()),
-                new XAttribute(nameof(DiagnosticSeverity), Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
+            new(XmlElement_CodeStyleOption, // Ensure that we use "CodeStyleOption" as the name for back compat.
+                new XAttribute(XmlAttribute_SerializationVersion, SerializationVersion),
+                new XAttribute(XmlAttribute_Type, GetTypeNameForSerialization()),
+                new XAttribute(XmlAttribute_Value, GetValueForSerialization()),
+                new XAttribute(XmlAttribute_DiagnosticSeverity, Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
 
         private object GetValueForSerialization()
         {
@@ -129,10 +129,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public static CodeStyleOption2<T> FromXElement(XElement element)
         {
-            var typeAttribute = element.Attribute("Type");
-            var valueAttribute = element.Attribute(nameof(Value));
-            var severityAttribute = element.Attribute(nameof(DiagnosticSeverity));
-            var version = (int?)element.Attribute(nameof(SerializationVersion));
+            var typeAttribute = element.Attribute(XmlAttribute_Type);
+            var valueAttribute = element.Attribute(XmlAttribute_Value);
+            var severityAttribute = element.Attribute(XmlAttribute_DiagnosticSeverity);
+            var version = (int?)element.Attribute(XmlAttribute_SerializationVersion);
 
             if (typeAttribute == null || valueAttribute == null || severityAttribute == null)
             {
@@ -157,28 +157,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 DiagnosticSeverity.Error => NotificationOption2.Error,
                 _ => throw new ArgumentException(nameof(element)),
             });
-        }
-
-        public bool ShouldReuseInSerialization => false;
-
-        public void WriteTo(ObjectWriter writer)
-        {
-            writer.WriteValue(GetValueForSerialization());
-            writer.WriteInt32((int)(Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
-        }
-
-        public static CodeStyleOption2<object> ReadFrom(ObjectReader reader)
-        {
-            return new CodeStyleOption2<object>(
-                reader.ReadValue(),
-                (DiagnosticSeverity)reader.ReadInt32() switch
-                {
-                    DiagnosticSeverity.Hidden => NotificationOption2.Silent,
-                    DiagnosticSeverity.Info => NotificationOption2.Suggestion,
-                    DiagnosticSeverity.Warning => NotificationOption2.Warning,
-                    DiagnosticSeverity.Error => NotificationOption2.Error,
-                    var v => throw ExceptionUtilities.UnexpectedValue(v),
-                });
         }
 
         private static Func<string, T> GetParser(string type)

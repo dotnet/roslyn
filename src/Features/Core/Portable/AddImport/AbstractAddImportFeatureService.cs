@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Options;
@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeCleanup;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 {
                     if (!cancellationToken.IsCancellationRequested)
                     {
-                        if (CanAddImport(node, options.Placement.AllowInHiddenRegions, cancellationToken))
+                        if (CanAddImport(node, options.CleanupOptions.AddImportOptions.AllowInHiddenRegions, cancellationToken))
                         {
                             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                             var allSymbolReferences = await FindResultsAsync(
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                             {
                                 cancellationToken.ThrowIfCancellationRequested();
 
-                                var fixData = await reference.TryGetFixDataAsync(document, node, options.Placement, cancellationToken).ConfigureAwait(false);
+                                var fixData = await reference.TryGetFixDataAsync(document, node, options.CleanupOptions, cancellationToken).ConfigureAwait(false);
                                 result.AddIfNotNull(fixData);
                             }
                         }
@@ -153,11 +154,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         private static bool IsHostOrRemoteWorkspace(Project project)
-        {
-            return project.Solution.Workspace.Kind is WorkspaceKind.Host or
-                   WorkspaceKind.RemoteWorkspace or
-                   WorkspaceKind.RemoteTemporaryWorkspace;
-        }
+            => project.Solution.WorkspaceKind is WorkspaceKind.Host or WorkspaceKind.RemoteWorkspace;
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(
             ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
@@ -398,7 +395,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private static Compilation CreateCompilation(Project project, PortableExecutableReference reference)
         {
-            var compilationService = project.LanguageServices.GetRequiredService<ICompilationFactoryService>();
+            var compilationService = project.Services.GetRequiredService<ICompilationFactoryService>();
             var compilation = compilationService.CreateCompilation("TempAssembly", compilationService.GetDefaultCompilationOptions());
             return compilation.WithReferences(reference);
         }
@@ -435,8 +432,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             var dependencyGraph = solution.GetProjectDependencyGraph();
             var projectsThatTransitivelyDependOnThisProject = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(project.Id);
 
-            viableProjects.RemoveAll(projectsThatTransitivelyDependOnThisProject.Select(id =>
-                solution.GetRequiredProject(id)));
+            viableProjects.RemoveAll(projectsThatTransitivelyDependOnThisProject.Select(solution.GetRequiredProject));
 
             // We also aren't interested in any projects we're already directly referencing.
             viableProjects.RemoveAll(project.ProjectReferences.Select(r => solution.GetRequiredProject(r.ProjectId)));
@@ -599,7 +595,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 AddImportFixKind.ProjectSymbol => new ProjectSymbolReferenceCodeAction(document, fixData),
                 AddImportFixKind.MetadataSymbol => new MetadataSymbolReferenceCodeAction(document, fixData),
                 AddImportFixKind.ReferenceAssemblySymbol => new AssemblyReferenceCodeAction(document, fixData),
-                AddImportFixKind.PackageSymbol => installerService?.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName) == false
+                AddImportFixKind.PackageSymbol => installerService?.IsInstalled(document.Project.Id, fixData.PackageName) == false
                     ? new ParentInstallPackageCodeAction(document, fixData, installerService)
                     : null,
                 _ => throw ExceptionUtilities.Unreachable,

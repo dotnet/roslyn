@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -196,6 +196,13 @@ var q = s || [|Goo()|];", "global::System.Boolean", mode);
         {
             await TestInMethodAsync(
 @"var q = x >> [|Goo()|];", "global::System.Int32", mode);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestBinaryOperator3(TestMode mode)
+        {
+            await TestInMethodAsync(
+@"var q = x >>> [|Goo()|];", "global::System.Int32", mode);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// Base type for all SuggestedActions that have 'flavors'.  'Flavors' are child actions that
     /// are presented as simple links, not as menu-items, in the light-bulb.  Examples of 'flavors'
     /// include 'preview changes' (for refactorings and fixes) and 'fix all in document, project, solution'
-    /// (for fixes).
+    /// (for refactorings and fixes).
     /// 
     /// Because all derivations support 'preview changes', we bake that logic into this base type.
     /// </summary>
@@ -38,11 +38,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public SuggestedActionWithNestedFlavors(
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
-            Workspace workspace, ITextBuffer subjectBuffer,
-            object provider, CodeAction codeAction,
-            SuggestedActionSet additionalFlavors = null)
-            : base(threadingContext, sourceProvider, workspace, subjectBuffer,
-                   provider, codeAction)
+            Workspace workspace,
+            Solution originalSolution,
+            ITextBuffer subjectBuffer,
+            object provider,
+            CodeAction codeAction,
+            SuggestedActionSet additionalFlavors)
+            : base(threadingContext,
+                   sourceProvider,
+                   workspace,
+                   originalSolution,
+                   subjectBuffer,
+                   provider,
+                   codeAction)
         {
             _additionalFlavors = additionalFlavors;
         }

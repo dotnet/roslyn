@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // exported types are not emitted in EnC deltas (hence generation 0):
                 string fullEmittedName = MetadataHelpers.BuildQualifiedName(
                     ((Cci.INamespaceTypeReference)type.GetCciAdapter()).NamespaceName,
-                    Cci.MetadataWriter.GetMangledName(type.GetCciAdapter(), generation: 0));
+                    Cci.MetadataWriter.GetMetadataName(type.GetCciAdapter(), generation: 0));
 
                 // First check against types declared in the primary module
                 if (ContainsTopLevelType(fullEmittedName))
@@ -1667,7 +1667,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal SynthesizedAttributeData SynthesizeNativeIntegerAttribute(Symbol symbol, TypeSymbol type)
         {
             Debug.Assert((object)type != null);
-            Debug.Assert(type.ContainsNativeInteger());
+            Debug.Assert(type.ContainsNativeIntegerWrapperType());
+            Debug.Assert(Compilation.ShouldEmitNativeIntegerAttributes());
 
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
             {
@@ -1702,9 +1703,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal virtual SynthesizedAttributeData SynthesizeNativeIntegerAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
         {
+            Debug.Assert(Compilation.ShouldEmitNativeIntegerAttributes());
+
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
             return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
+        }
+
+        internal SynthesizedAttributeData SynthesizeScopedRefAttribute(ParameterSymbol symbol, DeclarationScope scope)
+        {
+            Debug.Assert(scope != DeclarationScope.Unscoped);
+            Debug.Assert(!ParameterHelpers.IsRefScopedByDefault(symbol) || scope == DeclarationScope.ValueScoped);
+            Debug.Assert(!symbol.IsThis);
+
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return SynthesizeScopedRefAttribute(WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor);
+        }
+
+        internal virtual SynthesizedAttributeData SynthesizeScopedRefAttribute(WellKnownMember member)
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
+            return Compilation.TrySynthesizeAttribute(member, isOptionalUse: true);
         }
 
         internal bool ShouldEmitNullablePublicOnlyAttribute()
@@ -1776,7 +1801,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal void EnsureNativeIntegerAttributeExists()
         {
+            Debug.Assert(Compilation.ShouldEmitNativeIntegerAttributes());
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NativeIntegerAttribute);
+        }
+
+        internal void EnsureScopedRefAttributeExists()
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.ScopedRefAttribute);
         }
 
 #nullable enable

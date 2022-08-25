@@ -7,6 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -15,6 +16,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
+Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Roslyn.Test.Utilities
 
@@ -308,22 +310,24 @@ using G=   H.I;
 
             Using workspace = TestWorkspace.Create(workspaceXml, openDocuments:=False)
                 Dim document = workspace.Documents.Single()
+                Dim textBuffer = document.GetTextBuffer()
+                Dim editorOptionsService = workspace.GetService(Of EditorOptionsService)()
+                Dim editorOptions = editorOptionsService.Factory.GetOptions(textBuffer)
 
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(FormattingOptions.UseTabs, document.Project.Language, True) _
-                    .WithChangedOption(FormattingOptions.TabSize, document.Project.Language, tabSize) _
-                    .WithChangedOption(FormattingOptions.IndentationSize, document.Project.Language, tabSize)))
+                editorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, False)
+                editorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, tabSize)
+                editorOptions.SetOptionValue(DefaultOptions.IndentSizeOptionId, tabSize)
 
                 Dim snippetExpansionClient = New SnippetExpansionClient(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Guids.CSharpLanguageServiceId,
                     document.GetTextView(),
-                    document.GetTextBuffer(),
+                    textBuffer,
                     signatureHelpControllerProvider:=Nothing,
                     editorCommandHandlerServiceFactory:=Nothing,
                     editorAdaptersFactoryService:=Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    workspace.GetService(Of IGlobalOptionService))
+                    editorOptionsService)
 
                 SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
             End Using
@@ -347,7 +351,7 @@ using G=   H.I;
                     editorCommandHandlerServiceFactory:=Nothing,
                     editorAdaptersFactoryService:=Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    workspace.GetService(Of IGlobalOptionService))
+                    workspace.GetService(Of EditorOptionsService)())
 
                 SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, surfaceBufferDocument, expectedSurfaceBuffer)
             End Using
@@ -390,17 +394,20 @@ using G=   H.I;
                     editorCommandHandlerServiceFactory:=Nothing,
                     editorAdaptersFactoryService:=Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    workspace.GetService(Of IGlobalOptionService))
+                    workspace.GetService(Of EditorOptionsService)())
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
-                Dim options = New AddImportPlacementOptions(
-                    PlaceSystemNamespaceFirst:=placeSystemNamespaceFirst,
-                    PlaceImportsInsideNamespaces:=False,
-                    AllowInHiddenRegions:=False)
+                Dim addImportOptions = New AddImportPlacementOptions() With
+                {
+                    .PlaceSystemNamespaceFirst = placeSystemNamespaceFirst
+                }
+
+                Dim formattingOptions = CSharpSyntaxFormattingOptions.Default
 
                 Dim updatedDocument = expansionClient.AddImports(
                     document,
-                    options,
+                    addImportOptions,
+                    formattingOptions,
                     If(position, 0),
                     snippetNode,
                     CancellationToken.None)

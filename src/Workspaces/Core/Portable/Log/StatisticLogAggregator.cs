@@ -4,20 +4,27 @@
 
 #nullable disable
 
+using System;
+
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
-    internal sealed class StatisticLogAggregator : AbstractLogAggregator<StatisticLogAggregator.StatisticCounter>
+    internal sealed class StatisticLogAggregator<TKey> : AbstractLogAggregator<TKey, StatisticLogAggregator<TKey>.StatisticCounter>
     {
         protected override StatisticCounter CreateCounter()
             => new();
 
-        public void AddDataPoint(object key, int value)
+        public void AddDataPoint(TKey key, int value)
         {
             var counter = GetCounter(key);
             counter.AddDataPoint(value);
         }
 
-        public StatisticResult GetStaticticResult(object key)
+        public void AddDataPoint(TKey key, TimeSpan timeSpan)
+        {
+            AddDataPoint(key, (int)timeSpan.TotalMilliseconds);
+        }
+
+        public StatisticResult GetStatisticResult(TKey key)
         {
             if (TryGetCounter(key, out var counter))
             {
@@ -63,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 }
                 else
                 {
-                    return new StatisticResult(_maximum, _mininum, median: null, mean: _total / _count, range: _maximum - _mininum, mode: null, count: _count);
+                    return new StatisticResult(_maximum, _mininum, mean: (double)_total / _count, range: _maximum - _mininum, mode: null, count: _count);
                 }
             }
         }

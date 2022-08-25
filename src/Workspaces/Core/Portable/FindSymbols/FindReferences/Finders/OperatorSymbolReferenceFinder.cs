@@ -4,10 +4,12 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -30,21 +32,36 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return documentsWithOp.Concat(documentsWithGlobalAttributes);
         }
 
+        private static Task<ImmutableArray<Document>> FindDocumentsAsync(
+            Project project,
+            IImmutableSet<Document>? documents,
+            PredefinedOperator op,
+            CancellationToken cancellationToken)
+        {
+            if (op == PredefinedOperator.None)
+                return SpecializedTasks.EmptyImmutableArray<Document>();
+
+            return FindDocumentsWithPredicateAsync(
+                project, documents, static (index, op) => index.ContainsPredefinedOperator(op), op, cancellationToken);
+        }
+
         protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
-            HashSet<string>? globalAliases,
-            Document document,
-            SemanticModel semanticModel,
+            FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var op = symbol.GetPredefinedOperator();
+            var tokens = state.Root
+                .DescendantTokens(descendIntoTrivia: true)
+                .WhereAsArray(
+                    static (token, tuple) => IsPotentialReference(tuple.state.SyntaxFacts, tuple.op, token),
+                    (state, op));
 
-            var opReferences = await FindReferencesInDocumentAsync(symbol, document, semanticModel, t =>
-                IsPotentialReference(syntaxFacts, op, t),
-                cancellationToken).ConfigureAwait(false);
-            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
+            var opReferences = await FindReferencesInTokensAsync(
+                symbol, state, tokens, cancellationToken).ConfigureAwait(false);
+            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
+                symbol, state, cancellationToken).ConfigureAwait(false);
 
             return opReferences.Concat(suppressionReferences);
         }

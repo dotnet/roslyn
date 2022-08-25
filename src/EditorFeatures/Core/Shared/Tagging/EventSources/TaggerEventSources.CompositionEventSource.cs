@@ -27,6 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             public void Disconnect()
                 => _providers.Do(p => p.Disconnect());
 
+            public void Pause()
+                => _providers.Do(p => p.Pause());
+
+            public void Resume()
+                => _providers.Do(p => p.Resume());
+
             public event EventHandler<TaggerEventArgs> Changed
             {
                 add => _providers.Do(p => p.Changed += value);

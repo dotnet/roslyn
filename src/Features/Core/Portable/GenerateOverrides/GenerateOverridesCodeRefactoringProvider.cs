@@ -6,9 +6,10 @@ using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 
             context.RegisterRefactoring(
                 new GenerateOverridesWithDialogCodeAction(
-                    this, document, textSpan, containingType, overridableMembers),
+                    this, document, textSpan, containingType, overridableMembers, context.Options),
                 typeDeclaration.Span);
         }
     }

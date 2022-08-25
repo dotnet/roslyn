@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
-        <source>A shared abstract interface member cannot be accessed.</source>
-        <target state="translated">Nejde získat přístup ke členu sdíleného abstraktního rozhraní.</target>
+        <source>A shared abstract or virtual interface member cannot be accessed.</source>
+        <target state="translated">Nelze získat přístup ke sdílenému abstraktnímu nebo virtuálnímu členu rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -25,6 +25,11 @@
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">Typ {0} nemůže být vložený, protože má neabstraktní člen. Zvažte nastavení vlastnosti Vložit typy spolupráce na hodnotu false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoNotUseCompilerFeatureRequired">
+        <source>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">Atribut System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute je vyhrazen pouze pro použití kompilátorem.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -63,13 +68,18 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
-        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
-        <target state="translated">{0} {1} nemůže implementovat rozhraní {3}, protože obsahuje sdílené abstraktní {2}.</target>
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
+        <target state="translated">{0} {1} nemůže implementovat rozhraní {3}, protože obsahuje sdílené abstraktní nebo virtuální {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
         <target state="translated">Atribut UnmanagedCallersOnly se nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedCompilerFeature">
+        <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
+        <target state="translated">{0} vyžaduje funkci kompilátoru {1}, což tato verze kompilátoru Visual Basic nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -249,7 +259,7 @@
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emit compiler output in UTF8 character
+-utf8output[+|-]                  Emit compiler output in UTF-8 character
                                   encoding.
 @&lt;file&gt;                           Insert command-line settings from a text file
 -vbruntime[+|-|*]                 Compile with/without the default Visual Basic
@@ -257,169 +267,169 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Parametry kompilátoru Visual Basic
+        <target state="translated">                  Možnosti kompilátoru Visual Basic
 
                                   - VÝSTUPNÍ SOUBOR -
--out:&lt;soubor&gt;                     Určuje název výstupního souboru.
+-out:&lt;soubor&gt;                       Určuje název výstupního souboru.
 -target:exe                       Vytvoří konzolovou aplikaci (výchozí).
                                   (Krátký tvar: -t)
--target:winexe                    Vytvoří aplikaci Windows.
+-target:winexe                    Vytvoří aplikaci pro Windows.
 -target:library                   Vytvoří sestavení knihovny.
--target:module                    Vytvoří modul, který jde přidat
-                                  do sestavení.
--target:appcontainerexe           Vytvoří aplikaci Windows, která bude běžet
-                                  v kontejneru AppContainer.
--target:winmdobj                  Vytvoří pomocný soubor metadat Windows.
--doc[+|-]                         Generuje soubor dokumentace XML.
--doc:&lt;soubor&gt;                     Generuje soubor dokumentace XML s určeným názvem.
--refout:&lt;file&gt;                    Výstup referenčního sestavení, který se bude generovat
+-target:module                    Vytvoří modul, který lze přidat do
+                                  sestavení.
+-target:appcontainerexe           Vytvoří aplikaci pro Windows, která běží v kontejneru
+                                  AppContainer.
+-target:winmdobj                  Vytvoří zprostředkující soubor metadat Windows.
+-doc[+|-]                         Vygeneruje soubor dokumentace XML.
+-doc:&lt;soubor&gt;                       Vygeneruje soubor dokumentace XML pro &lt;soubor&gt;.
+-refout:&lt;soubor&gt;                    Odkazuje na výstup sestavení k vygenerování.
 
                                   - VSTUPNÍ SOUBORY -
--addmodule:&lt;seznam_souborů&gt;       Odkazuje na metadata ze zadaných modulů.
--link:&lt;seznam_souborů&gt;            Vloží metadata ze zadaného definičního
+-addmodule:&lt;seznam_souborů&gt;            Odkazuje na metadata ze zadaných modulů.
+-link:&lt;seznam_souborů&gt;                 Vloží metadata ze zadaného definičního
                                   sestavení. (Krátký tvar: -l)
--recurse:&lt;zástupný_znak&gt;          Zahrne všechny soubory v aktuálním adresáři
-                                  a podadresářích podle zadaného
-                                  zástupného znaku.
--reference:&lt;seznam_souborů&gt;       Odkazuje na metadata ze zadaného
+-recurse:&lt;zástupný_symbol&gt;               Zahrne všechny soubory v aktuálním adresáři
+                                  a podadresářích podle specifikací
+                                  zástupných znaků.
+-reference:&lt;seznam_souborů&gt;            Odkazuje ze zadaného 
                                   sestavení. (Krátký tvar: -r)
--analyzer:&lt;seznam_souborů&gt;        Spustí analyzátory z tohoto sestavení.
+-analyzer:&lt;seznam_souborů&gt;             Spouští analyzátory z tohoto sestavení.
                                   (Krátký tvar: -a)
--additionalfile:&lt;seznam_souborů&gt;  Další soubory, které přímo neovlivňují generování
-                                  kódu, ale analyzátory můžou jejich pomocí
-                                  produkovat chyby nebo upozornění.
+-additionalfile:&lt;seznam_souborů&gt;       Další soubory, které nemají přímý vliv na generování
+                                  kódu, ale analyzátory je můžou použít pro
+                                  chyby a varování.
 
-                                  - PROSTŘEDKY -
--linkresource:&lt;prostředek&gt;        Připojí zadaný soubor jako externí prostředek
-                                  sestavení.
-                                  prostředek: &lt;soubor&gt;[,&lt;název&gt;[,public|private]]
+                                  - ZDROJE -
+-linkresource:&lt;údaj_o_zdroji&gt;           Propojí zadaný soubor jako zdroj
+                                  externího sestavení.
+                                  resinfo:&lt;soubor&gt;[,&lt;název&gt;[,public|private]]
                                   (Krátký tvar: -linkres)
--nowin32manifest                  Výchozí manifest by se neměl vkládat
-                                  do oddílu manifestu výstupního PE.
--resource:&lt;prostředek&gt;            Přidá zadaný soubor jako vložený prostředek
-                                  sestavení.
-                                  prostředek: &lt;soubor&gt;[,&lt;název&gt;[,public|private]]
+-nowin32manifest                  Výchozí manifest by neměl být vložen
+                                  do oddílu manifestu výstupních dat PE.
+-resource:&lt;údaj_o_zdroji&gt;               Přidá zadaný soubor jako zdroj
+                                  vloženého sestavení.
+                                  resinfo:&lt;soubor&gt;[,&lt;název&gt;[,public|private]]
                                   (Krátký tvar: -res)
--win32icon:&lt;soubor&gt;               Určuje soubor ikony Win32 (.ico) pro
-                                  výchozí prostředky Win32.
--win32manifest:&lt;soubor&gt;           Zadaný soubor se vloží do oddílu
-                                  manifestu výstupního PE.
--win32resource:&lt;soubor&gt;           Určuje soubor prostředků Win32 (.res).
+-win32icon:&lt;soubor&gt;                 Určuje soubor ikony Win32 (.ico) pro
+                                  výchozí zdroje Win32.
+-win32manifest:&lt;soubor&gt;             Zadaný soubor se vloží do oddílu manifestu
+                                  výstupních dat PE.
+-win32resource:&lt;soubor&gt;             Určuje soubor zdroje Win32 (.res).
 
                                   - GENEROVÁNÍ KÓDU -
 -optimize[+|-]                    Povolí optimalizace.
--removeintchecks[+|-]             Odebere kontroly celých čísel. Standardně vypnuté.
--debug[+|-]                       Generuje ladicí informace.
--debug:full                       Generuje úplné ladicí informace (výchozí).
--debug:pdbonly                    Generuje úplné ladicí informace.
--debug:portable                   Generuje ladicí informace napříč platformami.
--debug:embedded                   Generuje ladicí informace napříč platformami
-                                  do cílového souboru .dll nebo .exe.
+-removeintchecks[+|-]             Odebere celočíselné kontroly. Ve výchozím nastavení je vypnuto.
+-debug[+|-]                       Vydá ladicí informace.
+-debug:full                       Vydá plné ladicí informace (výchozí).
+-debug:pdbonly                    Vydá jen ladicí informace pro PDB.
+-debug:portable                   Vydá ladicí informace pro všechny platformy.
+-debug:embedded                   Vydá ladicí informace pro všechny platformy do
+                                  cílového souboru .dll nebo .exe.
 -deterministic                    Vytvoří deterministické sestavení
                                   (včetně GUID verze modulu a časového razítka).
--refonly                          Vytvoří referenční sestavení na místě hlavního výstupu.
--instrument:TestCoverage          Vytvoří sestavení instrumentované pro shromažďování informací
-                                  o pokrytí.
--sourcelink:&lt;soubor&gt;              Informace o zdrojovém odkazu vkládané do přenosného PDB.
+-refonly                          Vytvoří referenční sestavení místo hlavního výstupu.
+-instrument:TestCoverage          Vytvoří sestavení instrumentované pro shromažďování
+                                  informací o pokrytí.
+-sourcelink:&lt;soubor&gt;                Určuje zdroj informací o propojení pro vložení do PDB.
 
-                                  - CHYBY A UPOZORNĚNÍ -
--nowarn                           Zakáže všechna upozornění.
--nowarn:&lt;seznam_čísel&gt;            Zakáže upozornění ze seznamu.
--warnaserror[+|-]                 Zpracuje všechna upozornění jako chyby.
--warnaserror[+|-]:&lt;seznam_čísel&gt;  Zpracuje zadaná upozornění jako chyby.
--ruleset:&lt;soubor&gt;                 Určuje soubor sady pravidel, která zakazuje
-                                  specifickou diagnostiku.
+                                  - CHYBY A VAROVÁNÍ -
+-nowarn                           Zakáže všechna varování.
+-nowarn:&lt;číselný_seznam&gt;             Zakáže varování uvedená v seznamu.
+-warnaserror[+|-]                 Považuje všechna varování za chyby.
+-warnaserror[+|-]:&lt;číselný_seznam&gt;   Považuje varování v seznamu za chyby.
+-ruleset:&lt;soubor&gt;                   Určuje soubor sady pravidel, který zakáže konkrétní
+                                  diagnostiku.
 -errorlog:&lt;soubor&gt;[,version=&lt;verze_sarif&gt;]         
-                                  Určuje soubor pro protokolování veškeré diagnostiky
-                                  kompilátoru a analyzátoru ve formátu SARIF.
-                                  verze_sarif:{1|2|2.1} Výchozí jsou 1. 2 a 2.1.
-                                  Obě hodnoty znamenají SARIF verze 2.1.0.
--reportanalyzer                   Oznamuje další informace analyzátoru, jako třeba
-                                  dobu zpracování.
--skipanalyzers[+|-]               Přeskočí spouštění diagnostických analyzátorů.
+                                  Určuje soubor pro protokolování veškeré diagnostiky kompilátorů
+                                  a analyzátorů ve formátu SARIF.
+                                  sarif_version:{1|2|2.1} Výchozí je 1. Hodnoty 2 i 2.1
+                                  označují verzi SARIF 2.1.0.
+-reportanalyzer                   Ohlásí další informace analyzátoru, jako je
+                                  doba provádění.
+-skipanalyzers[+|-]               Přeskočí provádění diagnostických analyzátorů.
 
                                   - JAZYK -
--define:&lt;seznam_symbolů&gt;          Deklaruje globální symboly podmíněné
-                                  kompilace. seznam_symbolů: název=hodnota,...
+-define:&lt;seznam_symbolů&gt;             Deklaruje globální symboly podmíněné
+                                  kompilace. seznam_symbolů:název=hodnota,...
                                   (Krátký tvar: -d)
--imports:&lt;seznam_importů&gt;         Deklaruje globální importy pro obory názvů
+-imports:&lt;seznam_importů&gt;            Deklarujte globální importy pro obory názvů
                                   v odkazovaných souborech metadat.
-                                  seznam_importů: obor_názvů,...
--langversion:?                    Zobrazí povolené hodnoty jazykové verze.
--langversion:&lt;číslo&gt;              Určuje jazykovou verzi, například
+                                  seznam_importů:obor_názvů,...
+-langversion:?                    Zobrazí povolené hodnoty pro jazykovou verzi.
+-langversion:&lt;řetězec&gt;             Určuje jazykovou verzi, a to jako hodnotu
                                   default (nejnovější hlavní verze) nebo
-                                  latest (nejnovější verze včetně podverzí) nebo
-                                  konkrétní verze, například 14 nebo 15.3.
--optionexplicit[+|-]              Vyžaduje explicitní deklarování proměnných.
--optioninfer[+|-]                 Povoluje odvození typu proměnných.
--rootnamespace:&lt;řetězec&gt;          Určuje kořenový obor názvů pro všechny
-                                  deklarace typů.
--optionstrict[+|-]                Vynucuje striktní sémantiku jazyka.
--optionstrict:custom              Upozorňuje na nedodržování striktní
-                                  sémantiky jazyka.
--optioncompare:binary             Určuje binární styl porovnávání řetězců.
-                                  Jde o výchozí možnost.
--optioncompare:text               Určuje textový styl porovnávání řetězců.
+                                  latest (nejnovější verze včetně podverzí)
+                                  nebo konkrétní verze, jako je 14 nebo 15.3.
+-optionexplicit[+|-]              Vyžaduje explicitní deklaraci proměnných.
+-optioninfer[+|-]                 Povolí odvozování typů proměnných.
+-rootnamespace:&lt;řetězec&gt;           Určuje kořenový obor názvů pro všechny deklarace
+                                  typů.
+-optionstrict[+|-]                Vynutí striktní sémantiku jazyka
+-optionstrict:custom              Upozorní, pokud není
+                                  respektována striktní sémantika jazyka.
+-optioncompare:binary             Určuje porovnání řetězců v binárním stylu.
+                                  Toto je výchozí nastavení.
+-optioncompare:text               Určuje porovnání řetězců ve stylu textu.
 
                                   - RŮZNÉ -
 -help                             Zobrazí tuto zprávu o použití. (Krátký tvar: -?)
--noconfig                         Nezahrnuje automaticky soubor VBC.RSP.
--nologo                           Nezobrazí zprávu o autorských právech kompilátoru.
--quiet                            Určuje tichý výstupní režim.
+-noconfig                         Nezahrne automaticky soubor VBC.RSP.
+-nologo                           Nezobrazuje nápis o autorských právech kompilátoru
+-quiet                            Tichý režim výstupu
 -verbose                          Zobrazí podrobné zprávy.
 -parallel[+|-]                    Souběžné sestavení
 -version                          Zobrazí číslo verze kompilátoru a ukončí se.
 
-                                  - POKROČILÉ -
--baseaddress:&lt;číslo&gt;              Určuje základní adresu pro knihovnu nebo
-                                  modul (hex).
--checksumalgorithm:&lt;alg&gt;          Určuje algoritmus pro výpočet kontrolního součtu
-                                  zdrojového souboru uloženého v PDB. Podporované
-                                  hodnoty jsou SHA1 nebo SHA256 (výchozí).
--codepage:&lt;číslo&gt;                 Určuje znakovou stránku, která se má použít
-                                  při otevírání zdrojových souborů.
--delaysign[+|-]                   Vytvoří zpožděný podpis sestavení s využitím
-                                  veřejné části klíče silného názvu.
--publicsign[+|-]                  Vytvoří veřejný podpis sestavení s využitím jenom veřejné
+                                  - POKROČILÉ MOŽNOSTI -
+-baseaddress:&lt;číslo&gt;             Základní adresa knihovny nebo modulu
+                                  (hex.).
+-checksumalgorithm:&lt;alg&gt;         Zadá algoritmus pro výpočet kontrolního
+                                  součtu zdrojového souboru uloženého v PDB. Podporované hodnoty:
+                                  SHA1 nebo SHA256 (výchozí).
+-codepage:&lt;číslo&gt;                Určuje znakovou stránku, která se má použít při otevírání
+                                  zdrojových souborů.
+-delaysign[+|-]                   Zpozdí podepsání sestavení jen pomocí veřejné
                                   části klíče silného názvu.
--errorreport:&lt;řetězec&gt;            Určuje způsob zpracování interních chyb
-                                  kompilátoru: prompt, send, none nebo queue
-                                  (výchozí).
--filealign:&lt;číslo&gt;                Určuje zarovnání použité pro oddíly výstupního
+-publicsign[+|-]                  Veřejně podepíše sestavení jen pomocí veřejné
+                                  části klíče silného názvu.
+-errorreport:&lt;řetězec&gt;             Určuje, jak zpracovávat vnitřní chyby
+                                  kompilátoru. Musí mít hodnotu prompt, send, none nebo
+                                  queue (výchozí).
+-filealign:&lt;číslo&gt;               Určuje zarovnání pro oddíly výstupního
                                   souboru.
--highentropyva[+|-]               Povoluje ASLR s vysokou entropií.
--keycontainer:&lt;řetězec&gt;           Určuje kontejner klíče se silným názvem.
--keyfile:&lt;soubor&gt;                 Určuje soubor klíče se silným názvem.
--libpath:&lt;seznam_cest&gt;            Seznam adresářů, kde se mají hledat odkazy
-                                  na metadata (oddělený středníky)
--main:&lt;třída&gt;                     Určuje třídu nebo modul obsahující
-                                  Sub Main. Může to být taky třída, která
-                                  dědí od System.Windows.Forms.Form.
+-highentropyva[+|-]               Povolí ASLR s vysokou entropií.
+-keycontainer:&lt;řetězec&gt;            Určuje kontejner klíče se silným názvem.
+-keyfile:&lt;soubor&gt;                   Určuje soubor klíče se silným názvem.
+-libpath:&lt;seznam_cestt&gt;              Seznam adresářů pro hledání odkazů na
+                                  metadata (Odděleno středníky.)
+-main:&lt;třída&gt;                     Určuje třídu nebo modul, který obsahuje
+                                  Sub Main. Může to být také třída, která
+                                  dědí z System.Windows.Forms.Form.
                                   (Krátký tvar: -m)
--moduleassemblyname:&lt;řetězec&gt;     Určuje název sestavení, jehož součástí bude
-                                  tento modul.
+-moduleassemblyname:&lt;řetězec&gt;      Název sestavení, jehož součástí bude tento
+                                  modul.
 -netcf                            Cílí na .NET Compact Framework.
--nostdlib                         Neodkazuje na standardní knihovny
-                                  (system.dll a VBC.RSP).
+-nostdlib                         Neodkazujte na standardní knihovny
+                                  (soubor system.dll a VBC.RSP).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  Určuje mapování pro výstup zdrojových názvů cest
-                                  kompilátorem.
--platform:&lt;řetězec&gt;               Omezuje platformy, na kterých se dá tento kód
-                                  spustit: x86, x64, Itanium, arm, arm64,
+                                  Určuje mapování pro výstup s názvy zdrojových cest
+                                  z kompilátoru.
+-platform:&lt;řetězec&gt;                Omezí platformy, na kterých může tento kód běžet;
+                                  musí mít hodnotu x86, x64, Itanium, arm, arm64
                                   AnyCPU32BitPreferred nebo anycpu (výchozí).
--preferreduilang                  Určuje název upřednostňovaného výstupního jazyka.
--nosdkpath                        Zakáže hledání cesty k výchozí sadě SDK pro sestavení standardních knihoven.
--sdkpath:&lt;cesta&gt;                  Umístění adresáře s .NET Framework SDK
+-preferreduilang                  Určuje upřednostňovaný název výstupního jazyka.
+-nosdkpath                        Zakáže vyhledávání výchozí cesty sady SDK pro standardní sestavení knihovny.
+-sdkpath:&lt;cesta&gt;                   Umístění adresáře sady .NET Framework SDK
                                   (mscorlib.dll).
--subsystemversion:&lt;verze&gt;         Určuje verzi subsystému výstupního PE.
-                                  verze: &lt;číslo&gt;[.&lt;číslo&gt;]
--utf8output[+|-]                  Generuje výstup kompilátoru v kódování
-                                  UTF-8.
-@&lt;soubor&gt;                         Vloží nastavení příkazového řádku ze souboru.
--vbruntime[+|-|*]                 Kompiluje s výchozím modulem runtime nebo bez něj
-                                  Visual Basicu.
--vbruntime:&lt;soubor&gt;               Kompiluje s alternativním modulem runtime
-                                  Visual Basicu určeným parametrem &lt;soubor&gt;.
+-subsystemversion:&lt;verze&gt;       Určuje verzi podsystému výstupních dat PE.
+                                  version:&lt;číslo&gt;[.&lt;číslo&gt;]
+-utf8output[+|-]                  Vydá výstup kompilátoru v kódování
+                                  znaků utf-8.
+@&lt;soubor&gt;                           Vloží nastavení příkazového řádku z textového souboru.
+-vbruntime[+|-|*]                 Zkompiluje pomocí výchozího modulu runtime Visual Basic
+                                  nebo bez něho.
+-vbruntime:&lt;soubor&gt;                 Zkompiluje pomocí alternativního modulu runtime Visual Basic
+                                  v souboru &lt;soubor&gt;.
 </target>
         <note />
       </trans-unit>
@@ -516,6 +526,16 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">Načtené sestavení se odkazuje na architekturu .NET Framework, což se nepodporuje</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="new">The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
+        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
+        <target state="new">The analyzer assembly references a newer version of the compiler than the currently running version.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">

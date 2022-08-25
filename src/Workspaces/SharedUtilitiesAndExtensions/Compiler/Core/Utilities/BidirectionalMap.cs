@@ -115,5 +115,31 @@ namespace Roslyn.Utilities
 
             return default;
         }
+
+        public TValue this[TKey key]
+        {
+            get
+            {
+                if (TryGetValue(key, out var result))
+                {
+                    return result;
+                }
+
+                throw new KeyNotFoundException();
+            }
+        }
+
+        public TKey this[TValue value]
+        {
+            get
+            {
+                if (TryGetKey(value, out var result))
+                {
+                    return result;
+                }
+
+                throw new KeyNotFoundException();
+            }
+        }
     }
 }

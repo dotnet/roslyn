@@ -10,9 +10,9 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly CSharpSemanticFactsService Instance = new();
 
         public override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+        public override IBlockFacts BlockFacts => CSharpBlockFacts.Instance;
+
         protected override ISemanticFacts SemanticFacts => CSharpSemanticFacts.Instance;
 
         private CSharpSemanticFactsService()

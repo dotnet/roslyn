@@ -423,6 +423,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsNullableAnalysisEnabled() => false;
 
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
+
+        internal sealed override bool HasUnscopedRefAttribute => false;
+
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if (obj == (object)this)
@@ -469,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbol type,
                 int ordinal,
                 string name
-            ) : base(container, TypeWithAnnotations.Create(type), ordinal, RefKind.None, name, isNullChecked: false)
+            ) : base(container, TypeWithAnnotations.Create(type), ordinal, RefKind.None, DeclarationScope.Unscoped, name)
             {
             }
 

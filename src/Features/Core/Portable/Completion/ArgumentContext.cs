@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         public ArgumentContext(
             ArgumentProvider provider,
-            OptionSet options,
             SemanticModel semanticModel,
             int position,
             IParameterSymbol parameter,
@@ -23,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Completion
             CancellationToken cancellationToken)
         {
             Provider = provider ?? throw new ArgumentNullException(nameof(provider));
-            Options = options ?? throw new ArgumentNullException(nameof(options));
             SemanticModel = semanticModel ?? throw new ArgumentNullException(nameof(semanticModel));
             Position = position;
             Parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
@@ -32,11 +30,6 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         internal ArgumentProvider Provider { get; }
-
-        /// <summary>
-        /// Gets the effective options where argument completion is requested.
-        /// </summary>
-        public OptionSet Options { get; }
 
         /// <summary>
         /// Gets the semantic model where argument completion is requested.

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         var symbol = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateInOpt, document.Project.Solution, cancellationToken).ConfigureAwait(false);
                         if (symbol == null ||
                             !symbol.IsKind(SymbolKind.NamedType) ||
-                            !symbol.Locations.Any(loc => loc.IsInSource))
+                            !symbol.Locations.Any(static loc => loc.IsInSource))
                         {
                             TypeToGenerateInOpt = null;
                             return;
@@ -301,8 +301,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         // If the 2 documents are in different project then we must have Public Accessibility.
                         // If we are generating in a website project, we also want to type to be public so the 
                         // designer files can access the type.
-                        if (documentToBeGeneratedIn.Project != document.Project ||
-                            GeneratedTypesMustBePublic(documentToBeGeneratedIn.Project))
+                        if (documentToBeGeneratedIn.Project != document.Project)
                         {
                             IsPublicAccessibilityForTypeGeneration = true;
                         }

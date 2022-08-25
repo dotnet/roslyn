@@ -27,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _exitPoints As ImmutableArray(Of SyntaxNode)
         Private _regionStartPointIsReachable As Object
         Private _regionEndPointIsReachable As Object
-        Private _returnStatements As ImmutableArray(Of SyntaxNode)
         Private _succeeded As Boolean?
 
         Friend Sub New(_context As RegionAnalysisContext)

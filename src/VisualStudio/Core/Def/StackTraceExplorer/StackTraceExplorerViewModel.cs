@@ -50,6 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         }
 
         public string InstructionText => ServicesVSResources.Paste_valid_stack_trace;
+        public string StackTrace => ServicesVSResources.Stack_Trace;
 
         public StackTraceExplorerViewModel(IThreadingContext threadingContext, Workspace workspace, ClassificationTypeMap classificationTypeMap, IClassificationFormatMap formatMap)
         {

@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         ValueTask<ImmutableArray<AddImportFixData>> GetFixesAsync(
-            PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DocumentId documentId, TextSpan span, string diagnosticId, int maxResults,
+            Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DocumentId documentId, TextSpan span, string diagnosticId, int maxResults,
             AddImportOptions options, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
 
         ValueTask<ImmutableArray<AddImportFixData>> GetUniqueFixesAsync(
-            PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DocumentId id, TextSpan span, ImmutableArray<string> diagnosticIds,
+            Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DocumentId id, TextSpan span, ImmutableArray<string> diagnosticIds,
             AddImportOptions options, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
     }
 }

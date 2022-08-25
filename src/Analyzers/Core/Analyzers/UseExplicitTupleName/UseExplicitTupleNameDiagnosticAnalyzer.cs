@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
             // We only create a diagnostic if the option's value is set to true.
-            var option = context.GetOption(CodeStyleOptions2.PreferExplicitTupleNames, context.Compilation.Language);
+            var option = context.GetAnalyzerOptions().PreferExplicitTupleNames;
             if (!option.Value)
             {
                 return;

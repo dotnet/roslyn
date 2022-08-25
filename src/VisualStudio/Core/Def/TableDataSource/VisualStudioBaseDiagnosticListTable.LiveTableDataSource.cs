@@ -57,10 +57,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             /// </summary>
             private bool _isBuildRunning;
 
-            public LiveTableDataSource(Workspace workspace, IThreadingContext threadingContext, IDiagnosticService diagnosticService, string identifier, ExternalErrorDiagnosticUpdateSource? buildUpdateSource = null)
+            public LiveTableDataSource(
+                Workspace workspace,
+                IGlobalOptionService globalOptions,
+                IThreadingContext threadingContext,
+                IDiagnosticService diagnosticService,
+                string identifier,
+                ExternalErrorDiagnosticUpdateSource? buildUpdateSource = null)
                 : base(workspace, threadingContext)
             {
                 _workspace = workspace;
+                GlobalOptions = globalOptions;
                 _identifier = identifier;
 
                 _tracker = new OpenDocumentTracker<DiagnosticTableItem>(_workspace);
@@ -71,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 ConnectToBuildUpdateSource(buildUpdateSource);
             }
 
-            public IGlobalOptionService GlobalOptions => _diagnosticService.GlobalOptions;
+            public IGlobalOptionService GlobalOptions { get; }
             public override string DisplayName => ServicesVSResources.CSharp_VB_Diagnostics_Table_Data_Source;
             public override string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
             public override string Identifier => _identifier;
@@ -187,7 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, a => GetDiagnosticUpdatedMessage(GlobalOptions, a), e, CancellationToken.None))
+                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, static arg => GetDiagnosticUpdatedMessage(arg.globalOptions, arg.e), (globalOptions: GlobalOptions, e), CancellationToken.None))
                 {
                     if (_workspace != e.Workspace)
                     {
@@ -539,10 +546,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private static FrameworkElement GetOrCreateTextBlock(
                     [NotNull] ref FrameworkElement[]? caches, int count, int index, DiagnosticData item, Func<DiagnosticData, FrameworkElement> elementCreator)
                 {
-                    if (caches == null)
-                    {
-                        caches = new FrameworkElement[count];
-                    }
+                    caches ??= new FrameworkElement[count];
 
                     if (caches[index] == null)
                     {

@@ -16,24 +16,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class SourceTextExtensions
     {
-        /// <summary>
-        /// Returns the leading whitespace of the line located at the specified position in the given snapshot.
-        /// </summary>
-        public static string GetLeadingWhitespaceOfLineAtPosition(this SourceText text, int position)
-        {
-            Contract.ThrowIfNull(text);
-
-            var line = text.Lines.GetLineFromPosition(position);
-            var linePosition = line.GetFirstNonWhitespacePosition();
-            if (!linePosition.HasValue)
-            {
-                return line.ToString();
-            }
-
-            var lineText = line.ToString();
-            return lineText.Substring(0, linePosition.Value - line.Start);
-        }
-
         public static void GetLineAndOffset(this SourceText text, int position, out int lineNumber, out int offset)
         {
             var line = text.Lines.GetLineFromPosition(position);

@@ -191,10 +191,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (allValidTypeArguments(typeDescr))
             {
                 var fields = typeDescr.Fields;
+                Debug.Assert(fields.All(f => hasDefaultScope(f)));
+
                 bool returnsVoid = fields.Last().Type.IsVoidType();
                 int nTypeArguments = fields.Length - (returnsVoid ? 1 : 0);
                 var refKinds = default(RefKindVector);
-                if (fields.Any(f => f.RefKind != RefKind.None))
+                if (fields.Any(static f => f.RefKind != RefKind.None))
                 {
                     refKinds = RefKindVector.Create(nTypeArguments);
                     for (int i = 0; i < nTypeArguments; i++)
@@ -202,11 +204,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         refKinds[i] = fields[i].RefKind;
                     }
                 }
+
                 var typeArgumentsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(nTypeArguments);
                 for (int i = 0; i < nTypeArguments; i++)
                 {
                     typeArgumentsBuilder.Add(fields[i].TypeWithAnnotations);
                 }
+
                 var typeArguments = typeArgumentsBuilder.ToImmutableAndFree();
                 var template = SynthesizeDelegate(parameterCount: fields.Length - 1, refKinds, returnsVoid, generation);
 
@@ -254,9 +258,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return returnParameter.Type.IsVoidType() || isValidTypeArgument(returnParameter);
             }
 
+            static bool hasDefaultScope(AnonymousTypeField field)
+            {
+                return (field.Scope, ParameterHelpers.IsRefScopedByDefault(field.RefKind, field.TypeWithAnnotations)) switch
+                {
+                    (DeclarationScope.Unscoped, false) => true,
+                    (DeclarationScope.RefScoped, true) => true,
+                    _ => false
+                };
+            }
+
             static bool isValidTypeArgument(AnonymousTypeField field)
             {
-                return field.Type is { } type &&
+                return hasDefaultScope(field) &&
+                    field.Type is { } type &&
                     !type.IsPointerOrFunctionPointer() &&
                     !type.IsRestrictedType();
             }
@@ -385,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private AnonymousTypeTemplateSymbol CreatePlaceholderTemplate(Microsoft.CodeAnalysis.Emit.AnonymousTypeKey key)
         {
-            var fields = key.Fields.SelectAsArray(f => new AnonymousTypeField(f.Name, Location.None, typeWithAnnotations: default, refKind: RefKind.None));
+            var fields = key.Fields.SelectAsArray(f => new AnonymousTypeField(f.Name, Location.None, typeWithAnnotations: default, refKind: RefKind.None, DeclarationScope.Unscoped));
             var typeDescr = new AnonymousTypeDescriptor(fields, Location.None);
             return new AnonymousTypeTemplateSymbol(this, typeDescr);
         }

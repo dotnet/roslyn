@@ -6,7 +6,8 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -44,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 
         public void OnNamespaceUpdated()
         {
-            var isNewNamespace = !AvailableNamespaces.Any(i => i.Namespace == NamespaceName);
+            var isNewNamespace = !AvailableNamespaces.Any(static (i, self) => i.Namespace == self.NamespaceName, this);
             var isValidName = !isNewNamespace || IsValidNamespace(NamespaceName);
 
             if (isNewNamespace && isValidName)

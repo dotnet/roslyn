@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -50,49 +51,41 @@ namespace Microsoft.CodeAnalysis.Formatting
         private void ExecuteCommandWorker(PasteCommandArgs args, SnapshotPoint? caretPosition, CancellationToken cancellationToken)
         {
             if (!caretPosition.HasValue)
+                return;
+
+            var subjectBuffer = args.SubjectBuffer;
+            if (!subjectBuffer.TryGetWorkspace(out var workspace) ||
+                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
                 return;
             }
 
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
-            {
                 return;
-            }
 
             if (!_globalOptions.GetOption(FormattingOptionsMetadata.FormatOnPaste, document.Project.Language))
-            {
                 return;
-            }
 
             var solution = document.Project.Solution;
-            if (!solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-            {
+            var services = solution.Services;
+            var formattingRuleService = services.GetService<IHostDependentFormattingRuleFactoryService>();
+            if (formattingRuleService != null && formattingRuleService.ShouldNotFormatOrCommitOnPaste(document.Id))
                 return;
-            }
-
-            var formattingRuleService = solution.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-            if (formattingRuleService != null && formattingRuleService.ShouldNotFormatOrCommitOnPaste(document))
-            {
-                return;
-            }
 
             var formattingService = document.GetLanguageService<IFormattingInteractionService>();
             if (formattingService == null || !formattingService.SupportsFormatOnPaste)
-            {
                 return;
-            }
 
             var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
-            var span = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot).Span.ToTextSpan();
-            var changes = formattingService.GetFormattingChangesOnPasteAsync(
-                document, span, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
-            if (changes.IsEmpty)
-            {
-                return;
-            }
+            var span = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot).Span.ToTextSpan();
 
-            solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
+            // Note: C# always completes synchronously, TypeScript is async
+            var changes = formattingService.GetFormattingChangesOnPasteAsync(document, subjectBuffer, span, cancellationToken).WaitAndGetResult(cancellationToken);
+            if (changes.IsEmpty)
+                return;
+
+            subjectBuffer.ApplyChanges(changes);
         }
     }
 }

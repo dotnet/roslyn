@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
-  <Import Project="VisualStudio.targets"/>
+  <Import Project="VisualStudio.targets" Condition="'$(UsingToolVSSDK)' == 'true'"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
 
   <!--
@@ -358,4 +358,15 @@
            AlwaysCreate="true"
            Condition="'@(ReferencesCopiedInThisBuild)' != ''"/>
   </Target>
+
+  <!-- Workaround for https://github.com/dotnet/roslyn/issues/63189 -->
+  <Target Name="DisableJsonGenerator"
+           AfterTargets="ResolvePackageAssets">
+    <ItemGroup>
+      <ResolvedAnalyzers Remove="@(ResolvedAnalyzers)" Condition="'%(NuGetPackageId)' == 'System.Text.Json'" />
+    </ItemGroup>
+  </Target>
+  
+  <Import Project="DoNotDeployToSymStore_Workaround.targets" Condition="'$(UsingToolPdbConverter)' == 'false'" />
+  <Import Project="DoNotGenerateSatelliteAssemblies_Workaround.targets" Condition="'$(GenerateSatelliteAssemblies)' == 'false'" />
 </Project>

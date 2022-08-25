@@ -332,6 +332,91 @@ class Program3
             await TestInRegularAndScriptAsync(input, expected);
         }
 
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task TestFixAllInContainingMember_NotApplicable()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+{|FixAllInContainingMember:using System;
+using System.Collections.Generic;|}
+
+class Program
+{
+    public Int32 x;
+}
+        </Document>
+        <Document>
+using System;
+using System.Collections.Generic;
+
+class Program2
+{
+    public Int32 x;
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+using System;
+using System.Collections.Generic;
+
+class Program3
+{
+    public Int32 x;
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            await TestMissingInRegularAndScriptAsync(input);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task TestFixAllInContainingType_NotApplicable()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+{|FixAllInContainingType:using System;
+using System.Collections.Generic;|}
+
+class Program
+{
+    public Int32 x;
+}
+        </Document>
+        <Document>
+using System;
+using System.Collections.Generic;
+
+class Program2
+{
+    public Int32 x;
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+using System;
+using System.Collections.Generic;
+
+class Program3
+{
+    public Int32 x;
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            await TestMissingInRegularAndScriptAsync(input);
+        }
         #endregion
     }
 }

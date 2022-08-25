@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (newExpression == null)
                 return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
 
-            var typeInferenceService = context.GetLanguageService<ITypeInferenceService>();
+            var typeInferenceService = context.GetRequiredLanguageService<ITypeInferenceService>();
             var type = typeInferenceService.InferType(
                 context.SemanticModel, position, objectAsDefault: false, cancellationToken: cancellationToken);
 

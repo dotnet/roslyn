@@ -656,5 +656,69 @@ enum E
             results = await SymbolFinder.FindDerivedClassesArrayAsync(firstType, solution, transitive: true, ImmutableHashSet.Create(otherProject), CancellationToken.None);
             Assert.Empty(results);
         }
+
+        [Theory, CombinatorialData, WorkItem(1555496, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1555496")]
+        public async Task TestDerivedTypesWithIntermediaryType1(TestHost host)
+        {
+            using var workspace = CreateWorkspace(host);
+            var solution = workspace.CurrentSolution;
+
+            // create portable assembly with an interface
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject1", LanguageNames.CSharp, @"
+namespace N_Main
+{
+    // All these types should find T_DependProject_Class as a derived class,
+    // even if only searching the second project.
+
+    abstract public class T_BaseProject_BaseClass
+    {
+    }
+    public abstract class T_BaseProject_DerivedClass1 : T_BaseProject_BaseClass
+    {
+    }
+    public abstract class T_BaseProject_DerivedClass2 : T_BaseProject_DerivedClass1
+    {
+    }
+}
+", MscorlibRef);
+
+            var normalProject1 = solution.Projects.Single();
+
+            // create a normal assembly with a type implementing that interface
+            solution = AddProjectWithMetadataReferences(solution, "NormalProject2", LanguageNames.CSharp, @"
+namespace N_Main
+{
+    public class T_DependProject_Class : T_BaseProject_DerivedClass2
+    {
+    }
+}
+", MscorlibRef, normalProject1.Id);
+
+            normalProject1 = solution.GetProject(normalProject1.Id);
+            var normalProject2 = solution.Projects.Single(p => p != normalProject1);
+
+            var compilation = await normalProject1.GetCompilationAsync();
+
+            {
+                var baseClass = compilation.GetTypeByMetadataName("N_Main.T_BaseProject_BaseClass");
+                var typesThatDerive = await SymbolFinder.FindDerivedClassesArrayAsync(
+                    baseClass, solution, transitive: true, ImmutableHashSet.Create(normalProject2));
+                Assert.True(typesThatDerive.Any(t => t.Name == "T_DependProject_Class"));
+            }
+
+            {
+                var baseClass = compilation.GetTypeByMetadataName("N_Main.T_BaseProject_DerivedClass1");
+                var typesThatDerive = await SymbolFinder.FindDerivedClassesArrayAsync(
+                    baseClass, solution, transitive: true, ImmutableHashSet.Create(normalProject2));
+                Assert.True(typesThatDerive.Any(t => t.Name == "T_DependProject_Class"));
+            }
+
+            {
+                var baseClass = compilation.GetTypeByMetadataName("N_Main.T_BaseProject_DerivedClass2");
+                var typesThatDerive = await SymbolFinder.FindDerivedClassesArrayAsync(
+                    baseClass, solution, transitive: true, ImmutableHashSet.Create(normalProject2));
+                Assert.True(typesThatDerive.Any(t => t.Name == "T_DependProject_Class"));
+            }
+        }
     }
 }

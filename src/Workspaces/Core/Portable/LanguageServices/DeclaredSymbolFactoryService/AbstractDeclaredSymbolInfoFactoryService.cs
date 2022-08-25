@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal abstract class AbstractDeclaredSymbolInfoFactoryService<
         TCompilationUnitSyntax,
@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         TNamespaceDeclarationSyntax,
         TTypeDeclarationSyntax,
         TEnumDeclarationSyntax,
+        TMethodDeclarationSyntax,
         TMemberDeclarationSyntax,
         TNameSyntax,
         TQualifiedNameSyntax,
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         where TNamespaceDeclarationSyntax : TMemberDeclarationSyntax
         where TTypeDeclarationSyntax : TMemberDeclarationSyntax
         where TEnumDeclarationSyntax : TMemberDeclarationSyntax
+        where TMethodDeclarationSyntax : TMemberDeclarationSyntax
         where TMemberDeclarationSyntax : SyntaxNode
         where TNameSyntax : SyntaxNode
         where TQualifiedNameSyntax : TNameSyntax
@@ -62,8 +64,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected abstract string GetContainerDisplayName(TMemberDeclarationSyntax namespaceDeclaration);
         protected abstract string GetFullyQualifiedContainerName(TMemberDeclarationSyntax memberDeclaration, string rootNamespace);
 
-        protected abstract void AddDeclaredSymbolInfosWorker(
-            SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string?> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
+        protected abstract DeclaredSymbolInfo? GetTypeDeclarationInfo(
+            SyntaxNode container, TTypeDeclarationSyntax typeDeclaration, StringTable stringTable, string containerDisplayName, string fullyQualifiedContainerName);
+        protected abstract DeclaredSymbolInfo GetEnumDeclarationInfo(
+            SyntaxNode container, TEnumDeclarationSyntax enumDeclaration, StringTable stringTable, string containerDisplayName, string fullyQualifiedContainerName);
+        protected abstract void AddMemberDeclarationInfos(
+            SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName);
+        protected abstract void AddLocalFunctionInfos(
+            TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
         protected abstract void AddSynthesizedDeclaredSymbolInfos(
             SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
 
@@ -73,7 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// `DeclaredSymbolInfo` of kind `ExtensionMethod`. If the return value is null, then it means this is a
         /// "complex" method (as described at <see cref="TopLevelSyntaxTreeIndex.ExtensionMethodInfo"/>).
         /// </summary>
-        protected abstract string GetReceiverTypeName(TMemberDeclarationSyntax node);
+        protected abstract string GetReceiverTypeName(TMethodDeclarationSyntax node);
         protected abstract bool TryGetAliasesFromUsingDirective(TUsingDirectiveSyntax node, out ImmutableArray<(string aliasName, string name)> aliases);
         protected abstract string GetRootNamespace(CompilationOptions compilationOptions);
 
@@ -183,7 +191,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 AddNamespaceDeclaredSymbolInfos(GetName(namespaceDeclaration), fullyQualifiedContainerName);
 
                 var innerContainerDisplayName = GetContainerDisplayName(memberDeclaration);
-                var innerFullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
 
                 foreach (var usingAlias in GetUsingAliases(namespaceDeclaration))
                 {
@@ -191,6 +198,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         AddAliases(aliases, current);
                 }
 
+                var innerFullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
                 foreach (var child in GetChildren(namespaceDeclaration))
                 {
                     AddDeclaredSymbolInfos(
@@ -198,17 +206,20 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
                 }
             }
-            else if (memberDeclaration is TTypeDeclarationSyntax baseTypeDeclaration)
+            else if (memberDeclaration is TTypeDeclarationSyntax typeDeclaration)
             {
                 var innerContainerDisplayName = GetContainerDisplayName(memberDeclaration);
-                var innerFullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
-                foreach (var child in GetChildren(baseTypeDeclaration))
-                {
-                    AddDeclaredSymbolInfos(
-                        memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo,
-                        innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
-                }
 
+                // Add the item for the type itself:
+                declaredSymbolInfos.AddIfNotNull(GetTypeDeclarationInfo(
+                    container,
+                    typeDeclaration,
+                    stringTable,
+                    containerDisplayName,
+                    fullyQualifiedContainerName));
+
+                // Then any synthesized members in that type (for example, synthesized properties in a record):
+                var innerFullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
                 AddSynthesizedDeclaredSymbolInfos(
                     container,
                     memberDeclaration,
@@ -217,10 +228,28 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     innerContainerDisplayName,
                     innerFullyQualifiedContainerName,
                     cancellationToken);
+
+                // Then recurse into the children and add those.
+                foreach (var child in GetChildren(typeDeclaration))
+                {
+                    AddDeclaredSymbolInfos(
+                        memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo,
+                        innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
+                }
             }
             else if (memberDeclaration is TEnumDeclarationSyntax enumDeclaration)
             {
                 var innerContainerDisplayName = GetContainerDisplayName(memberDeclaration);
+
+                // Add the item for the type itself:
+                declaredSymbolInfos.Add(GetEnumDeclarationInfo(
+                    container,
+                    enumDeclaration,
+                    stringTable,
+                    containerDisplayName,
+                    fullyQualifiedContainerName));
+
+                // Then recurse into the children and add those.
                 var innerFullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
                 foreach (var child in GetChildren(enumDeclaration))
                 {
@@ -229,17 +258,35 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
                 }
             }
+            else
+            {
+                // For anything that isn't a namespace/type/enum (generally a member), try to add the information about that
+                var count = declaredSymbolInfos.Count;
+                AddMemberDeclarationInfos(
+                    container,
+                    memberDeclaration,
+                    stringTable,
+                    declaredSymbolInfos,
+                    containerDisplayName,
+                    fullyQualifiedContainerName);
 
-            AddDeclaredSymbolInfosWorker(
-                container,
-                memberDeclaration,
-                stringTable,
-                declaredSymbolInfos,
-                aliases,
-                extensionMethodInfo,
-                containerDisplayName,
-                fullyQualifiedContainerName,
-                cancellationToken);
+                // If the AddSingle call added an item, and that item was an extension method, then go and add the
+                // information about this extension method to our 
+                if (declaredSymbolInfos.Count != count &&
+                    declaredSymbolInfos.Last().Kind == DeclaredSymbolInfoKind.ExtensionMethod &&
+                    memberDeclaration is TMethodDeclarationSyntax methodDeclaration)
+                {
+                    AddExtensionMethodInfo(methodDeclaration);
+                }
+
+                AddLocalFunctionInfos(
+                    memberDeclaration,
+                    stringTable,
+                    declaredSymbolInfos,
+                    containerDisplayName,
+                    fullyQualifiedContainerName,
+                    cancellationToken);
+            }
 
             return;
 
@@ -278,39 +325,37 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     return fullyQualifiedContainerName;
                 }
             }
-        }
 
-        protected void AddExtensionMethodInfo(
-            TMemberDeclarationSyntax node,
-            Dictionary<string, string> aliases,
-            int declaredSymbolInfoIndex,
-            Dictionary<string, ArrayBuilder<int>> extensionMethodsInfoBuilder)
-        {
-            var receiverTypeName = this.GetReceiverTypeName(node);
-
-            // Target type is an alias
-            if (aliases.TryGetValue(receiverTypeName, out var originalName))
+            void AddExtensionMethodInfo(TMethodDeclarationSyntax methodDeclaration)
             {
-                // it is an alias of multiple with identical name,
-                // simply treat it as a complex method.
-                if (originalName == null)
-                {
-                    receiverTypeName = FindSymbols.Extensions.ComplexReceiverTypeName;
-                }
-                else
-                {
-                    // replace the alias with its original name.
-                    receiverTypeName = originalName;
-                }
-            }
+                var declaredSymbolInfoIndex = declaredSymbolInfos.Count - 1;
 
-            if (!extensionMethodsInfoBuilder.TryGetValue(receiverTypeName, out var arrayBuilder))
-            {
-                arrayBuilder = ArrayBuilder<int>.GetInstance();
-                extensionMethodsInfoBuilder[receiverTypeName] = arrayBuilder;
-            }
+                var receiverTypeName = this.GetReceiverTypeName(methodDeclaration);
 
-            arrayBuilder.Add(declaredSymbolInfoIndex);
+                // Target type is an alias
+                if (aliases.TryGetValue(receiverTypeName, out var originalName))
+                {
+                    // it is an alias of multiple with identical name,
+                    // simply treat it as a complex method.
+                    if (originalName == null)
+                    {
+                        receiverTypeName = FindSymbols.Extensions.ComplexReceiverTypeName;
+                    }
+                    else
+                    {
+                        // replace the alias with its original name.
+                        receiverTypeName = originalName;
+                    }
+                }
+
+                if (!extensionMethodInfo.TryGetValue(receiverTypeName, out var arrayBuilder))
+                {
+                    arrayBuilder = ArrayBuilder<int>.GetInstance();
+                    extensionMethodInfo[receiverTypeName] = arrayBuilder;
+                }
+
+                arrayBuilder.Add(declaredSymbolInfoIndex);
+            }
         }
 
         private static void AddAliases(Dictionary<string, string?> allAliases, ImmutableArray<(string aliasName, string name)> aliases)

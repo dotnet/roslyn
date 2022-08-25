@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editing
     public class SyntaxEditor
     {
         private readonly SyntaxGenerator _generator;
-        private readonly List<Change> _changes;
+        private readonly List<Change> _changes = new();
         private bool _allowEditsOnLazilyCreatedTrackedNewNodes;
         private HashSet<SyntaxNode>? _lazyTrackedNewNodesOpt;
 
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         [Obsolete("Use SyntaxEditor(SyntaxNode, HostWorkspaceServices)")]
         public SyntaxEditor(SyntaxNode root, Workspace workspace)
-            : this(root, (workspace ?? throw new ArgumentNullException(nameof(workspace))).Services)
+            : this(root, (workspace ?? throw new ArgumentNullException(nameof(workspace))).Services.SolutionServices)
         {
         }
 
@@ -34,6 +34,14 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a new <see cref="SyntaxEditor"/> instance.
         /// </summary>
         public SyntaxEditor(SyntaxNode root, HostWorkspaceServices services)
+            : this(root, (services ?? throw new ArgumentNullException(nameof(services))).SolutionServices)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="SyntaxEditor"/> instance.
+        /// </summary>
+        public SyntaxEditor(SyntaxNode root, SolutionServices services)
             : this(root ?? throw new ArgumentNullException(nameof(root)),
                    SyntaxGenerator.GetGenerator(services ?? throw new ArgumentNullException(nameof(services)), root.Language))
         {
@@ -43,7 +51,6 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             OriginalRoot = root;
             _generator = generator;
-            _changes = new List<Change>();
         }
 
         [return: NotNullIfNotNull("node")]

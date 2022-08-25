@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -181,7 +181,7 @@ class B : A
 
             var selectedItem = CodeAnalysis.Completion.CompletionItem.Create(displayText: "M");
             var textEdit = await CompletionResolveHandler.GenerateTextEditAsync(
-                document, new TestCaretOutOfScopeCompletionService(), selectedItem, snippetsSupported: true, CancellationToken.None).ConfigureAwait(false);
+                document, new TestCaretOutOfScopeCompletionService(testLspServer.TestWorkspace.Services.SolutionServices), selectedItem, snippetsSupported: true, CancellationToken.None).ConfigureAwait(false);
 
             Assert.Equal(@"public override void M()
     {
@@ -431,16 +431,19 @@ link text";
 
         private class TestCaretOutOfScopeCompletionService : CompletionService
         {
+            public TestCaretOutOfScopeCompletionService(SolutionServices services) : base(services)
+            {
+            }
+
             public override string Language => LanguageNames.CSharp;
 
-            public override Task<CodeAnalysis.Completion.CompletionList> GetCompletionsAsync(
-                Document document,
+            internal override Task<CodeAnalysis.Completion.CompletionList> GetCompletionsAsync(Document document,
                 int caretPosition,
+                CodeAnalysis.Completion.CompletionOptions options,
+                OptionSet passThroughOptions,
                 CompletionTrigger trigger = default,
                 ImmutableHashSet<string> roles = null,
-                OptionSet options = null,
-                CancellationToken cancellationToken = default)
-                => Task.FromResult(CodeAnalysis.Completion.CompletionList.Empty);
+                CancellationToken cancellationToken = default) => Task.FromResult(CodeAnalysis.Completion.CompletionList.Empty);
 
             public override Task<CompletionChange> GetChangeAsync(
                 Document document,
@@ -456,7 +459,7 @@ link text";
                 return Task.FromResult(CompletionChange.Create(textChange, newPosition: 0));
             }
 
-            internal override bool ShouldTriggerCompletion(Project project, HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CodeAnalysis.Completion.CompletionOptions options, OptionSet passthroughOptions, ImmutableHashSet<string> roles = null)
+            internal override bool ShouldTriggerCompletion(Project project, LanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CodeAnalysis.Completion.CompletionOptions options, OptionSet passthroughOptions, ImmutableHashSet<string> roles = null)
                 => false;
 
             internal override CompletionRules GetRules(CodeAnalysis.Completion.CompletionOptions options)

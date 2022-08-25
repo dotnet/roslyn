@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
@@ -14,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     [System.ComponentModel.DesignerCategory("code")] // this must be fully qualified
     internal abstract class AbstractOptionPage : UIElementDialogPage
     {
-        private static IOptionService s_optionService;
+        private static ILegacyWorkspaceOptionService s_optionService;
         private static OptionStore s_optionStore;
         private static bool s_needsToUpdateOptionStore = true;
 
@@ -30,17 +31,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 var componentModel = (IComponentModel)this.Site.GetService(typeof(SComponentModel));
                 var workspace = componentModel.GetService<VisualStudioWorkspace>();
-                s_optionService = workspace.Services.GetService<IOptionService>();
-                s_optionStore = new OptionStore(s_optionService.GetOptions(), s_optionService.GetRegisteredOptions());
+                s_optionService = workspace.Services.GetService<ILegacyWorkspaceOptionService>();
+                s_optionStore = new OptionStore(new SolutionOptionSet(s_optionService), Enumerable.Empty<IOption>());
             }
 
-            if (pageControl == null)
-            {
-                // Use a single option store for all option pages so that changes are accumulated
-                // together and, in the case of the same option appearing on two pages, the changes
-                // are kept in sync.
-                pageControl = CreateOptionPage(this.Site, s_optionStore);
-            }
+            // Use a single option store for all option pages so that changes are accumulated
+            // together and, in the case of the same option appearing on two pages, the changes
+            // are kept in sync.
+            pageControl ??= CreateOptionPage(this.Site, s_optionStore);
         }
 
         protected override System.Windows.UIElement Child
@@ -59,8 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             if (s_needsToUpdateOptionStore)
             {
                 // Reset the option store to the current state of the options.
-                s_optionStore.SetOptions(s_optionService.GetOptions());
-                s_optionStore.SetRegisteredOptions(s_optionService.GetRegisteredOptions());
+                s_optionStore.SetOptions(new SolutionOptionSet(s_optionService));
 
                 s_needsToUpdateOptionStore = false;
             }
@@ -111,13 +108,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             pageControl.OnSave();
 
             // Save the changes that were accumulated in the option store.
-            var oldOptions = s_optionService.GetOptions();
-            var newOptions = s_optionStore.GetOptions();
+            var oldOptions = new SolutionOptionSet(s_optionService);
+            var newOptions = (SolutionOptionSet)s_optionStore.GetOptions();
 
             // Must log the option change before setting the new option values via s_optionService,
             // otherwise oldOptions and newOptions would be identical and nothing will be logged.
             OptionLogger.Log(oldOptions, newOptions);
-            s_optionService.SetOptions(newOptions);
+            s_optionService.SetOptions(newOptions, newOptions.GetChangedOptions());
 
             // Make sure we load the next time a page is activated, in case that options changed
             // programmatically between now and the next time the page is activated
@@ -128,12 +125,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _needsLoadOnNextActivate = true;
         }
 
+        protected override void SearchStringChanged(string searchString)
+        {
+            pageControl.OnSearch(searchString);
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
 
             if (pageControl != null)
             {
+                // Clear the search because we don't recreate controls
+                pageControl.OnSearch(string.Empty);
                 pageControl.Close();
             }
         }

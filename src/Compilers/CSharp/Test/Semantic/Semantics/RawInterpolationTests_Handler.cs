@@ -589,9 +589,9 @@ Console.WriteLine($""""""{span}"""""");";
 
         var comp = CreateCompilation(new[] { source, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: true, useDefaultParameters: false, useBoolReturns: false) }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
         comp.VerifyDiagnostics(
-            // (4,19): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (4,19): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
             // Console.WriteLine($"""{span}""");
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""{span}""""""").WithArguments("raw string literals").WithLocation(4, 19),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""{span}""""""").WithArguments("raw string literals", "11.0").WithLocation(4, 19),
             // (4,24): error CS8773: Feature 'interpolated string handlers' is not available in C# 9.0. Please use language version 10.0 or greater.
             // Console.WriteLine($"""{span}""");
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "span").WithArguments("interpolated string handlers", "10.0").WithLocation(4, 24));
@@ -2120,18 +2120,18 @@ value:");
         if (expression.Contains('+'))
         {
             comp.VerifyDiagnostics(
-            // (1,26): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,26): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
             // System.Console.WriteLine($"""{(null, default)}""" + $"""{new()}""");
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""{(null, default)}""""""").WithArguments("raw string literals").WithLocation(1, 26),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""{(null, default)}""""""").WithArguments("raw string literals", "11.0").WithLocation(1, 26),
             // (1,31): error CS1503: Argument 1: cannot convert from '(<null>, default)' to 'object'
             // System.Console.WriteLine($"""{(null, default)}""" + $"""{new()}""");
             Diagnostic(ErrorCode.ERR_BadArgType, "(null, default)").WithArguments("1", "(<null>, default)", "object").WithLocation(1, 31),
             // (1,31): error CS8773: Feature 'interpolated string handlers' is not available in C# 9.0. Please use language version 10.0 or greater.
             // System.Console.WriteLine($"""{(null, default)}""" + $"""{new()}""");
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(null, default)").WithArguments("interpolated string handlers", "10.0").WithLocation(1, 31),
-            // (1,53): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,53): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
             // System.Console.WriteLine($"""{(null, default)}""" + $"""{new()}""");
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""{new()}""""""").WithArguments("raw string literals").WithLocation(1, 53),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""{new()}""""""").WithArguments("raw string literals", "11.0").WithLocation(1, 53),
             // (1,58): error CS1729: 'string' does not contain a constructor that takes 0 arguments
             // System.Console.WriteLine($"""{(null, default)}""" + $"""{new()}""");
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("string", "0").WithLocation(1, 58));
@@ -2139,9 +2139,9 @@ value:");
         else
         {
             comp.VerifyDiagnostics(
-            // (1,26): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,26): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
             // System.Console.WriteLine($"""{(null, default)}{new()}""");
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""{(null, default)}{new()}""""""").WithArguments("raw string literals").WithLocation(1, 26),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""{(null, default)}{new()}""""""").WithArguments("raw string literals", "11.0").WithLocation(1, 26),
             // (1,31): error CS1503: Argument 1: cannot convert from '(<null>, default)' to 'object'
             // System.Console.WriteLine($"""{(null, default)}{new()}""");
             Diagnostic(ErrorCode.ERR_BadArgType, "(null, default)").WithArguments("1", "(<null>, default)", "object").WithLocation(1, 31),
@@ -3774,27 +3774,27 @@ namespace System.Runtime.CompilerServices
         if (expression.Contains('+'))
         {
             comp.VerifyDiagnostics(
-                // (3,11): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,11): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
                 // C.M(() => $"""{new S { Field = """Field""" }}""" + $"""
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""{new S { Field = """"""Field"""""" }}""""""").WithArguments("raw string literals").WithLocation(3, 11),
-                // (3,32): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""{new S { Field = """"""Field"""""" }}""""""").WithArguments("raw string literals", "11.0").WithLocation(3, 11),
+                // (3,32): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
                 // C.M(() => $"""{new S { Field = """Field""" }}""" + $"""
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""Field""""""").WithArguments("raw string literals").WithLocation(3, 32),
-                // (3,52): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"""""""Field""""""").WithArguments("raw string literals", "11.0").WithLocation(3, 32),
+                // (3,52): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
                 // C.M(() => $"""{new S { Field = """Field""" }}""" + $"""
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""
 
-""""""").WithArguments("raw string literals").WithLocation(3, 52));
+""""""").WithArguments("raw string literals", "11.0").WithLocation(3, 52));
         }
         else
         {
             comp.VerifyDiagnostics(
-            // (3,11): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,11): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
             // C.M(() => $"""{new S { Field = """Field""" }}""");
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""{new S { Field = """"""Field"""""" }}""""""").WithArguments("raw string literals").WithLocation(3, 11),
-            // (3,32): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""{new S { Field = """"""Field"""""" }}""""""").WithArguments("raw string literals", "11.0").WithLocation(3, 11),
+            // (3,32): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
             // C.M(() => $"""{new S { Field = """Field""" }}""");
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""Field""""""").WithArguments("raw string literals").WithLocation(3, 32));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"""""""Field""""""").WithArguments("raw string literals", "11.0").WithLocation(3, 32));
         }
 
         comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
@@ -4077,19 +4077,19 @@ static class C
         if (expression.Contains('+'))
         {
             comp.VerifyEmitDiagnostics(
-                // (5,17): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,17): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
                 //         param = $"""{1}""" + $"""{2}""";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""{1}""""""").WithArguments("raw string literals").WithLocation(5, 17),
-                // (5,30): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""{1}""""""").WithArguments("raw string literals", "11.0").WithLocation(5, 17),
+                // (5,30): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
                 //         param = $"""{1}""" + $"""{2}""";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""{2}""""""").WithArguments("raw string literals").WithLocation(5, 30));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""{2}""""""").WithArguments("raw string literals", "11.0").WithLocation(5, 30));
         }
         else
         {
             comp.VerifyEmitDiagnostics(
-            // (5,17): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (5,17): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
             //         param = $"""{1}""";
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""{1}""""""").WithArguments("raw string literals").WithLocation(5, 17));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""{1}""""""").WithArguments("raw string literals", "11.0").WithLocation(5, 17));
         }
 
         comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
@@ -10983,9 +10983,9 @@ public ref struct CustomHandler
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.NetCoreApp);
         comp.VerifyDiagnostics(
-            // (17,19): error CS8352: Cannot use local 's' in this context because it may expose referenced variables outside of their declaration scope
+            // (17,19): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
             //         return $"{s}";
-            Diagnostic(ErrorCode.ERR_EscapeLocal, "s").WithArguments("s").WithLocation(17, 21));
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 21));
     }
 
     [Theory]
@@ -11096,11 +11096,11 @@ public ref struct S1
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
         comp.VerifyDiagnostics(
             // (17,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, ref CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
-            //         M2(ref s1, $"{s}");
+            //         M2(ref s1, $"""{s}""" + $"""
             Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, " + expression + @")").WithArguments("CustomHandler.M2(ref S1, ref CustomHandler)", "handler").WithLocation(17, 9),
-            // (17,23): error CS8352: Cannot use local 's' in this context because it may expose referenced variables outside of their declaration scope
-            //         M2(ref s1, $"{s}");
-            Diagnostic(ErrorCode.ERR_EscapeLocal, "s").WithArguments("s").WithLocation(17, 25));
+            // (17,25): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+            //         M2(ref s1, $"""{s}""" + $"""
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 25));
     }
 
     [Theory]
@@ -11240,9 +11240,12 @@ public ref struct CustomHandler
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
         comp.VerifyDiagnostics(
-            // (16,16): error CS8352: Cannot use local 'c' in this context because it may expose referenced variables outside of their declaration scope
+            // (18,16): error CS8352: Cannot use variable 'c' in this context because it may expose referenced variables outside of their declaration scope
             //         return c;
-            Diagnostic(ErrorCode.ERR_EscapeLocal, "c").WithArguments("c").WithLocation(18, 16));
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("c").WithLocation(18, 16),
+            // (23,20): error CS8166: Cannot return a parameter by reference 'handler' because it is not a ref parameter
+            //         return ref handler;
+            Diagnostic(ErrorCode.ERR_RefReturnParameter, "handler").WithArguments("handler").WithLocation(23, 20));
     }
 
     [Fact]
@@ -11279,11 +11282,40 @@ public ref struct S1
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
         comp.VerifyDiagnostics(
             // (15,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
-            //         M2(ref s1, $"{s2}");
+            //         M2(ref s1, $"""{s2}""");
             Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, $""""""{s2}"""""")").WithArguments("CustomHandler.M2(ref S1, CustomHandler)", "handler").WithLocation(15, 9),
-            // (15,23): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
-            //         M2(ref s1, $"{s2}");
-            Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(15, 25));
+            // (15,25): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+            //         M2(ref s1, $"""{s2}""");
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(15, 25));
+    }
+
+    [Fact]
+    public void RefEscape_10()
+    {
+        var code =
+@"using System.Runtime.CompilerServices;
+[InterpolatedStringHandler]
+ref struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, ref S s) : this() { s.Handler = this; }
+    public void AppendFormatted(int i) { } 
+}
+ref struct S
+{
+    public CustomHandler Handler;
+}
+class Program
+{
+    static void Main()
+    {
+        S s = default;
+        M(ref s, $""""""{1}"""""");
+    }
+    static void M(ref S s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler handler) { }
+}";
+
+        var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
+        comp.VerifyDiagnostics();
     }
 
     [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]

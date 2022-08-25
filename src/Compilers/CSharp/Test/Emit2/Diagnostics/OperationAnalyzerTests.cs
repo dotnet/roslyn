@@ -1328,7 +1328,7 @@ class Test
     public static long Calculate1(long[] f)
     {
         long x;
-" + $"        x = { buildSequenceOfBinaryExpressions(8192) };" + @"
+" + $"        x = {buildSequenceOfBinaryExpressions(8192)};" + @"
         return x;
     }
 }";
@@ -1336,8 +1336,8 @@ class Test
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AssignmentOperationSyntaxTestAnalyzer() }, null, null,
-                Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentOperationDescriptor.Id, $"x = { buildSequenceOfBinaryExpressions(8192) }").WithLocation(7, 9),
-                Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentSyntaxDescriptor.Id, $"x = { buildSequenceOfBinaryExpressions(8192) }").WithLocation(7, 9));
+                Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentOperationDescriptor.Id, $"x = {buildSequenceOfBinaryExpressions(8192)}").WithLocation(7, 9),
+                Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentSyntaxDescriptor.Id, $"x = {buildSequenceOfBinaryExpressions(8192)}").WithLocation(7, 9));
         }
 
         [WorkItem(9020, "https://github.com/dotnet/roslyn/issues/9020")]
@@ -1670,7 +1670,7 @@ class X
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "string.Empty").WithArguments("string", "int").WithLocation(10, 17),
                 // (12,25): error CS0400: The type or namespace name 'MyType' could not be found in the global namespace (are you missing an assembly reference?)
                 //         int i = global::MyType();
-                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "MyType").WithArguments("MyType", "<global namespace>").WithLocation(12, 25))
+                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "MyType").WithArguments("MyType").WithLocation(12, 25))
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ConversionExpressionCSharpTestAnalyzer() }, null, null,
                 Diagnostic(ConversionExpressionCSharpTestAnalyzer.InvalidConversionExpressionDescriptor.Id, "null.Length").WithLocation(8, 17),
                 Diagnostic(ConversionExpressionCSharpTestAnalyzer.InvalidConversionExpressionDescriptor.Id, "string.Empty").WithLocation(10, 17),

@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -19,20 +19,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ProbablyContainsStringValue(string value) => _literalInfo.ProbablyContainsStringValue(value);
         public bool ProbablyContainsInt64Value(long value) => _literalInfo.ProbablyContainsInt64Value(value);
 
-        public bool ContainsForEachStatement => _contextInfo.ContainsForEachStatement;
-        public bool ContainsDeconstruction => _contextInfo.ContainsDeconstruction;
         public bool ContainsAwait => _contextInfo.ContainsAwait;
+        public bool ContainsBaseConstructorInitializer => _contextInfo.ContainsBaseConstructorInitializer;
+        public bool ContainsConversion => _contextInfo.ContainsConversion;
+        public bool ContainsDeconstruction => _contextInfo.ContainsDeconstruction;
+        public bool ContainsElementAccessExpression => _contextInfo.ContainsElementAccessExpression;
+        public bool ContainsForEachStatement => _contextInfo.ContainsForEachStatement;
+        public bool ContainsGlobalKeyword => _contextInfo.ContainsGlobalKeyword;
+        public bool ContainsGlobalSuppressMessageAttribute => _contextInfo.ContainsGlobalSuppressMessageAttribute;
         public bool ContainsImplicitObjectCreation => _contextInfo.ContainsImplicitObjectCreation;
+        public bool ContainsIndexerMemberCref => _contextInfo.ContainsIndexerMemberCref;
         public bool ContainsLockStatement => _contextInfo.ContainsLockStatement;
-        public bool ContainsUsingStatement => _contextInfo.ContainsUsingStatement;
         public bool ContainsQueryExpression => _contextInfo.ContainsQueryExpression;
         public bool ContainsThisConstructorInitializer => _contextInfo.ContainsThisConstructorInitializer;
-        public bool ContainsBaseConstructorInitializer => _contextInfo.ContainsBaseConstructorInitializer;
-        public bool ContainsElementAccessExpression => _contextInfo.ContainsElementAccessExpression;
-        public bool ContainsIndexerMemberCref => _contextInfo.ContainsIndexerMemberCref;
         public bool ContainsTupleExpressionOrTupleType => _contextInfo.ContainsTupleExpressionOrTupleType;
-        public bool ContainsGlobalSuppressMessageAttribute => _contextInfo.ContainsGlobalSuppressMessageAttribute;
-        public bool ContainsConversion => _contextInfo.ContainsConversion;
+        public bool ContainsUsingStatement => _contextInfo.ContainsUsingStatement;
 
         /// <summary>
         /// Gets the set of global aliases that point to something with the provided name and arity.

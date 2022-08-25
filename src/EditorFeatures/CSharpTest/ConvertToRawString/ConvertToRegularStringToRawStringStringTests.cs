@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp11,
                 CodeActionIndex = index,
                 TestState =
                 {
@@ -247,26 +248,6 @@ var v = """"""a"""""";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
-        public async Task TestNoIndentStringWithQuoteAtStart()
-        {
-            await VerifyRefactoringAsync(@"public class C
-{
-    void M()
-    {
-        var v = [||]""\""goobar"";
-    }
-}", @"public class C
-{
-    void M()
-    {
-        var v = """"""
-""goobar
-"""""";
-    }
-}", index: 1);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
         public async Task TestVerbatimStringWithQuoteAtStart()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -284,26 +265,6 @@ var v = """"""a"""""";
             """""";
     }
 }");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
-        public async Task TestNoIndentVerbatimStringWithQuoteAtStart()
-        {
-            await VerifyRefactoringAsync(@"public class C
-{
-    void M()
-    {
-        var v = [||]@""""""goobar"";
-    }
-}", @"public class C
-{
-    void M()
-    {
-        var v = """"""
-""goobar
-"""""";
-    }
-}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
@@ -327,26 +288,6 @@ var v = """"""a"""""";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
-        public async Task TestNoIndentStringWithQuoteAtEnd()
-        {
-            await VerifyRefactoringAsync(@"public class C
-{
-    void M()
-    {
-        var v = [||]""goobar\"""";
-    }
-}", @"public class C
-{
-    void M()
-    {
-        var v = """"""
-goobar""
-"""""";
-    }
-}", index: 1);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
         public async Task TestVerbatimStringWithQuoteAtEnd()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -364,26 +305,6 @@ goobar""
             """""";
     }
 }");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
-        public async Task TestNoIndentVerbatimStringWithQuoteAtEnd()
-        {
-            await VerifyRefactoringAsync(@"public class C
-{
-    void M()
-    {
-        var v = [||]@""goobar"""""";
-    }
-}", @"public class C
-{
-    void M()
-    {
-        var v = """"""
-goobar""
-"""""";
-    }
-}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
@@ -405,27 +326,6 @@ goobar""
             """""";
     }
 }");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
-        public async Task TestNoIndentStringWithNewLine()
-        {
-            await VerifyRefactoringAsync(@"public class C
-{
-    void M()
-    {
-        var v = [||]""goo\r\nbar"";
-    }
-}", @"public class C
-{
-    void M()
-    {
-        var v = """"""
-goo
-bar
-"""""";
-    }
-}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
@@ -451,28 +351,6 @@ bar"";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
-        public async Task TestNoIndentVerbatimStringWithNewLine()
-        {
-            await VerifyRefactoringAsync(@"public class C
-{
-    void M()
-    {
-        var v = [||]@""goo
-bar"";
-    }
-}", @"public class C
-{
-    void M()
-    {
-        var v = """"""
-goo
-bar
-"""""";
-    }
-}", index: 1);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
         public async Task TestStringWithNewLineAtStartAndEnd()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -492,28 +370,6 @@ bar
             """""";
     }
 }");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
-        public async Task TestNoIndentStringWithNewLineAtStartAndEnd()
-        {
-            await VerifyRefactoringAsync(@"public class C
-{
-    void M()
-    {
-        var v = [||]""\r\ngoobar\r\n"";
-    }
-}", @"public class C
-{
-    void M()
-    {
-        var v = """"""
-
-goobar
-
-"""""";
-    }
-}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
@@ -556,10 +412,8 @@ goobar
     void M()
     {
         var v = """"""
-
-goobar
-
-"""""";
+            goobar
+            """""";
     }
 }", index: 1);
         }
@@ -586,22 +440,26 @@ goobar
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
-        public async Task TestNoIndentedString()
+        public async Task TestWithoutLeadingWhitespace1()
         {
             await VerifyRefactoringAsync(@"public class C
 {
     void M()
     {
-        var v = [||]""goo\r\nbar"";
+        var v = [||]@""
+from x in y
+where x > 0
+select x"";
     }
 }", @"public class C
 {
     void M()
     {
         var v = """"""
-goo
-bar
-"""""";
+            from x in y
+            where x > 0
+            select x
+            """""";
     }
 }", index: 1);
         }
@@ -620,15 +478,19 @@ var v = """"""
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
-        public async Task TestNoIndentedStringTopLevel()
+        public async Task TestWithoutLeadingWhitespaceTopLevel()
         {
             await VerifyRefactoringAsync(@"
-var v = [||]""goo\r\nbar"";
+var v = [||]@""
+from x in y
+where x > 0
+select x"";
 ", @"
 var v = """"""
-goo
-bar
-"""""";
+    from x in y
+    where x > 0
+    select x
+    """""";
 ", index: 1, outputKind: OutputKind.ConsoleApplication);
         }
 
@@ -655,28 +517,6 @@ bar"";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
-        public async Task TestNoIndentVerbatimIndentedString()
-        {
-            await VerifyRefactoringAsync(@"public class C
-{
-    void M()
-    {
-        var v = [||]@""goo
-bar"";
-    }
-}", @"public class C
-{
-    void M()
-    {
-        var v = """"""
-goo
-bar
-"""""";
-    }
-}", index: 1);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
         public async Task TestIndentedStringOnOwnLine()
         {
             await VerifyRefactoringAsync(@"public class C
@@ -697,29 +537,6 @@ bar
                 """""";
     }
 }");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
-        public async Task TestNoIndentedStringOnOwnLine()
-        {
-            await VerifyRefactoringAsync(@"public class C
-{
-    void M()
-    {
-        var v =
-                [||]""goo\r\nbar"";
-    }
-}", @"public class C
-{
-    void M()
-    {
-        var v =
-                """"""
-goo
-bar
-"""""";
-    }
-}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
@@ -747,25 +564,134 @@ bar"";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
-        public async Task TestNoIndentVerbatimIndentedStringOnOwnLine()
+        public async Task TestWithoutLeadingWhitespace2()
         {
             await VerifyRefactoringAsync(@"public class C
 {
     void M()
     {
-        var v =
-                [||]@""goo
-bar"";
+        var v = [||]@""
+            from x in y
+            where x > 0
+            select x"";
     }
 }", @"public class C
 {
     void M()
     {
-        var v =
-                """"""
-goo
-bar
-"""""";
+        var v = """"""
+            from x in y
+            where x > 0
+            select x
+            """""";
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestWithoutLeadingWhitespace3()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]@""
+            from x in y
+            where x > 0
+            select x
+            "";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
+            from x in y
+            where x > 0
+            select x
+            """""";
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestWithoutLeadingWhitespace4()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]@""
+            from x in y
+                where x > 0
+                select x
+            "";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
+            from x in y
+                where x > 0
+                select x
+            """""";
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestWithoutLeadingWhitespace5()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]@""
+                from x in y
+            where x > 0
+            select x
+            "";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
+                from x in y
+            where x > 0
+            select x
+            """""";
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestWithoutLeadingWhitespace6()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]@""
+            from x in y
+
+            where x > 0
+
+            select x
+            "";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
+            from x in y
+
+            where x > 0
+
+            select x
+            """""";
     }
 }", index: 1);
         }

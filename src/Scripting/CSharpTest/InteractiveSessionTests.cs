@@ -1175,6 +1175,30 @@ static T G<T>(T t, Func<T, Task<T>> f)
             Assert.Equal(true, state.ReturnValue);
         }
 
+        [Fact, WorkItem(63144, "https://github.com/dotnet/roslyn/issues/63144")]
+        public void InteractiveSession_ImportScopes()
+        {
+            var script = CSharpScript.Create(@"
+1 + 1", ScriptOptions.Default.WithImports("System"));
+
+            var compilation = script.GetCompilation();
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var scopes = semanticModel.GetImportScopes(0);
+            Assert.Single(scopes);
+
+            var scope = scopes.Single();
+            Assert.Empty(scope.Aliases);
+            Assert.Empty(scope.ExternAliases);
+            Assert.Empty(scope.XmlNamespaces);
+
+            Assert.Single(scope.Imports);
+            var import = scope.Imports.Single();
+
+            Assert.True(import.NamespaceOrType is INamespaceSymbol { Name: "System", ContainingNamespace.IsGlobalNamespace: true });
+            Assert.Null(import.DeclaringSyntaxReference);
+        }
+
         #endregion
 
         #region References
@@ -1501,7 +1525,9 @@ new List<ArgumentException>()
 
         public class M<T>
         {
+#pragma warning disable IDE0051 // Remove unused private members
             private int F() => 3;
+#pragma warning restore IDE0051 // Remove unused private members
             public T G() => default(T);
         }
 

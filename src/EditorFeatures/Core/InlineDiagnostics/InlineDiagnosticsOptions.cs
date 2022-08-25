@@ -11,19 +11,8 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
-    [ExportGlobalOptionProvider, Shared]
-    internal sealed class InlineDiagnosticsOptions : IOptionProvider
+    internal sealed class InlineDiagnosticsOptions
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineDiagnosticsOptions()
-        {
-        }
-
-        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
-            EnableInlineDiagnostics,
-            Location);
-
         public static readonly PerLanguageOption2<bool> EnableInlineDiagnostics =
             new("InlineDiagnosticsOptions",
                 "EnableInlineDiagnostics",

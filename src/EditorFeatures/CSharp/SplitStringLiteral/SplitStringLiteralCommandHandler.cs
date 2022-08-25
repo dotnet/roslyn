@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -13,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -34,19 +33,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
     internal partial class SplitStringLiteralCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IGlobalOptionService _globalOptions;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SplitStringLiteralCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IGlobalOptionService globalOptions,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            EditorOptionsService editorOptionsService)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
-            _globalOptions = globalOptions;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _editorOptionsService = editorOptionsService;
         }
 
         public string DisplayName => CSharpEditorResources.Split_string;
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
         public bool ExecuteCommandWorker(ReturnKeyCommandArgs args)
         {
-            if (!_globalOptions.GetOption(SplitStringLiteralOptions.Enabled, LanguageNames.CSharp))
+            if (!_editorOptionsService.GlobalOptions.GetOption(SplitStringLiteralOptions.Enabled, LanguageNames.CSharp))
             {
                 return false;
             }
@@ -93,8 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 }
             }
 
-            var useTabs = !textView.Options.IsConvertTabsToSpacesEnabled();
-            var tabSize = textView.Options.GetTabSize();
+            IndentationOptions? lazyOptions = null;
 
             // We now go through the verified string literals and split each of them.
             // The list of spans is traversed in reverse order so we do not have to
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             // from splitting at earlier caret positions.
             foreach (var span in spans.Reverse())
             {
-                if (!SplitString(textView, subjectBuffer, span.Start.Position, useTabs, tabSize, CancellationToken.None))
+                if (!SplitString(textView, subjectBuffer, span.Start.Position, ref lazyOptions, CancellationToken.None))
                 {
                     return false;
                 }
@@ -111,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             return true;
         }
 
-        private bool SplitString(ITextView textView, ITextBuffer subjectBuffer, int position, bool useTabs, int tabSize, CancellationToken cancellationToken)
+        private bool SplitString(ITextView textView, ITextBuffer subjectBuffer, int position, ref IndentationOptions? lazyOptions, CancellationToken cancellationToken)
         {
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
@@ -119,19 +117,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 return false;
             }
 
-            // TODO: read option from textView.Options (https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1412138)
-            var indentStyle = document.Project.Solution.Options.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp);
+            lazyOptions ??= subjectBuffer.GetIndentationOptions(_editorOptionsService, document.Project.Services, explicitFormat: false);
 
             using var transaction = CaretPreservingEditTransaction.TryCreate(
                 CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
-            var splitter = StringSplitter.TryCreate(document, position, useTabs, tabSize, indentStyle, cancellationToken);
-            if (splitter?.TrySplit(out var newDocument, out var newPosition) != true)
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, CancellationToken.None);
+            var splitter = StringSplitter.TryCreate(parsedDocument, position, lazyOptions.Value, cancellationToken);
+            if (splitter?.TrySplit(out var newRoot, out var newPosition) != true)
             {
                 return false;
             }
 
             // apply the change:
+            var newDocument = document.WithSyntaxRoot(newRoot!);
             var workspace = newDocument.Project.Solution.Workspace;
             workspace.TryApplyChanges(newDocument.Project.Solution);
 
@@ -147,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 textView.Caret.MoveTo(newCaretPoint.Value);
             }
 
-            transaction.Complete();
+            transaction?.Complete();
             return true;
         }
 

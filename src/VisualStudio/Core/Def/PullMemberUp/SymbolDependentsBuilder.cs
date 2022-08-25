@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             private readonly ImmutableHashSet<ISymbol> _membersInType;
             private readonly Project _project;
             private readonly ISymbolDeclarationService _declarationService;
-            private readonly HashSet<ISymbol> _dependents;
+            private readonly HashSet<ISymbol> _dependents = new();
             private readonly ISymbol _member;
             private readonly CancellationToken _cancellationToken;
 
@@ -47,9 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 CancellationToken cancellationToken)
             {
                 _project = project;
-                _declarationService = project.LanguageServices.GetRequiredService<ISymbolDeclarationService>();
+                _declarationService = project.Services.GetRequiredService<ISymbolDeclarationService>();
                 _membersInType = membersInType.ToImmutableHashSet();
-                _dependents = new HashSet<ISymbol>();
                 _member = member;
                 _cancellationToken = cancellationToken;
             }

@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var service = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ISyntaxFormattingService>();
             var rules = service.GetDefaultFormattingRules();
 
-            Assert.NotNull(rules);
             Assert.NotEmpty(rules);
         }
 
@@ -65,7 +64,6 @@ End Class
             var service = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService<ISyntaxFormattingService>();
             var rules = service.GetDefaultFormattingRules();
 
-            Assert.NotNull(rules);
             Assert.NotEmpty(rules);
         }
 
@@ -85,7 +83,7 @@ End Class
         {
             using var workspace = new AdhocWorkspace();
 
-            var formattedRoot = Formatter.Format(tree.GetRoot(), workspace.Services, options, CancellationToken.None);
+            var formattedRoot = Formatter.Format(tree.GetRoot(), workspace.Services.SolutionServices, options, CancellationToken.None);
             var actualFormattedText = formattedRoot.ToFullString();
 
             Assert.Equal(expected, actualFormattedText);

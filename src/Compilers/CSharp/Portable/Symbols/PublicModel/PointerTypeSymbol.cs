@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -13,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
     internal sealed class PointerTypeSymbol : TypeSymbol, IPointerTypeSymbol
     {
         private readonly Symbols.PointerTypeSymbol _underlying;
-        private ITypeSymbol _lazyPointedAtType;
+        private ITypeSymbol? _lazyPointedAtType;
 
         public PointerTypeSymbol(Symbols.PointerTypeSymbol underlying, CodeAnalysis.NullableAnnotation nullableAnnotation)
             : base(nullableAnnotation)
@@ -58,9 +56,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             visitor.VisitPointerType(this);
         }
 
-        protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+        protected override TResult? Accept<TResult>(SymbolVisitor<TResult> visitor)
+            where TResult : default
         {
             return visitor.VisitPointerType(this);
+        }
+
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitPointerType(this, argument);
         }
 
         #endregion

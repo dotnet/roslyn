@@ -57,6 +57,11 @@
         <target state="translated">C# 格式规则</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_usings_on_file_open">
+        <source>Collapse usings on file open</source>
+        <target state="translated">打开文件时折叠 using</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Completion">
         <source>Completion</source>
         <target state="translated">完成</target>
@@ -142,11 +147,6 @@
         <target state="translated">与类型检查相比，首选 Null 检查</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_parameter_null_checking">
-        <source>Prefer parameter null checking</source>
-        <target state="translated">偏好参数 null 检查</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>
         <target state="translated">首选模式匹配</target>
@@ -180,6 +180,11 @@
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
         <target state="translated">显示 unimported 命名空间中的项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_new_snippet_experience_experimental">
+        <source>Show new snippet experience (experimental)</source>
+        <target state="new">Show new snippet experience (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

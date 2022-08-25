@@ -177,18 +177,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var availability = await remoteDebuggeeModuleMetadataProvider!.GetAvailabilityAsync(moduleId1, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.NotAllowedForModule, "can't do enc"), availability);
 
-            // HasChanges
-
-            mockEncService.HasChangesImpl = (solution, activeStatementSpanProvider, sourceFilePath) =>
-            {
-                Assert.Equal("proj", solution.Projects.Single().Name);
-                Assert.Equal("test.cs", sourceFilePath);
-                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, "test.cs", CancellationToken.None).AsTask().Result);
-                return true;
-            };
-
-            Assert.True(await sessionProxy.HasChangesAsync(localWorkspace.CurrentSolution, activeStatementSpanProvider, "test.cs", CancellationToken.None).ConfigureAwait(false));
-
             // EmitSolutionUpdate
 
             var diagnosticDescriptor1 = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
@@ -199,17 +187,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 Assert.Equal("proj", project.Name);
                 AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, "test.cs", CancellationToken.None).AsTask().Result);
 
-                var deltas = ImmutableArray.Create(new ManagedModuleUpdate(
-                    module: moduleId1,
-                    ilDelta: ImmutableArray.Create<byte>(1, 2),
-                    metadataDelta: ImmutableArray.Create<byte>(3, 4),
-                    pdbDelta: ImmutableArray.Create<byte>(5, 6),
-                    updatedMethods: ImmutableArray.Create(0x06000001),
-                    updatedTypes: ImmutableArray.Create(0x02000001),
-                    sequencePoints: ImmutableArray.Create(new SequencePointUpdates("file.cs", ImmutableArray.Create(new SourceLineUpdate(1, 2)))),
-                    activeStatements: ImmutableArray.Create(new ManagedActiveStatementUpdate(instructionId1.Method.Method, instructionId1.ILOffset, span1.ToSourceSpan())),
-                    exceptionRegions: ImmutableArray.Create(exceptionRegionUpdate1),
-                    requiredCapabilities: EditAndContinueCapabilities.Baseline));
+                var deltas = ImmutableArray.Create(new ModuleUpdate(
+                    Module: moduleId1,
+                    ILDelta: ImmutableArray.Create<byte>(1, 2),
+                    MetadataDelta: ImmutableArray.Create<byte>(3, 4),
+                    PdbDelta: ImmutableArray.Create<byte>(5, 6),
+                    UpdatedMethods: ImmutableArray.Create(0x06000001),
+                    UpdatedTypes: ImmutableArray.Create(0x02000001),
+                    SequencePoints: ImmutableArray.Create(new SequencePointUpdates("file.cs", ImmutableArray.Create(new SourceLineUpdate(1, 2)))),
+                    ActiveStatements: ImmutableArray.Create(new ManagedActiveStatementUpdate(instructionId1.Method.Method, instructionId1.ILOffset, span1.ToSourceSpan())),
+                    ExceptionRegions: ImmutableArray.Create(exceptionRegionUpdate1),
+                    RequiredCapabilities: EditAndContinueCapabilities.Baseline));
 
                 var syntaxTree = project.Documents.Single().GetSyntaxTreeSynchronously(CancellationToken.None)!;
 
@@ -217,7 +205,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 var projectDiagnostic = Diagnostic.Create(diagnosticDescriptor1, Location.None, new[] { "proj", "some error" });
                 var syntaxError = Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), new[] { "doc", "syntax error" });
 
-                var updates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Ready, deltas);
+                var updates = new ModuleUpdates(ModuleUpdateStatus.Ready, deltas);
                 var diagnostics = ImmutableArray.Create((project.Id, ImmutableArray.Create(documentDiagnostic, projectDiagnostic)));
                 var documentsWithRudeEdits = ImmutableArray.Create((document1.Id, ImmutableArray<RudeEditDiagnostic>.Empty));
 
@@ -229,7 +217,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             VerifyReanalyzeInvocation(ImmutableArray.Create(document1.Id));
 
-            Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
+            Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
 
             Assert.Equal(1, emitDiagnosticsClearedCount);
             emitDiagnosticsClearedCount = 0;

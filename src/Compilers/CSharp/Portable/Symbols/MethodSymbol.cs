@@ -580,6 +580,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Returns true if this is a constructor attributed with HasSetsRequiredMembers
+        /// </summary>
+        internal bool HasSetsRequiredMembers => MethodKind == MethodKind.Constructor && HasSetsRequiredMembersImpl;
+
+        protected abstract bool HasSetsRequiredMembersImpl { get; }
+
+        internal abstract bool HasUnscopedRefAttribute { get; }
+
+        /// <summary>
         /// Some method kinds do not participate in overriding/hiding (e.g. constructors).
         /// </summary>
         internal static bool CanOverrideOrHide(MethodKind kind)
@@ -1016,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((location == null) == (diagnostics == null));
 
-            if (!IsStatic || IsAbstract || MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction))
+            if (!IsStatic || IsAbstract || IsVirtual || MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction))
             {
                 // `UnmanagedCallersOnly` can only be applied to ordinary static methods or local functions.
                 diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, location!);
@@ -1049,22 +1058,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable disable
 
         /// <summary>
-        /// Return error code that has highest priority while calculating use site error for this symbol.
+        /// Returns true if the error code is highest priority while calculating use site error for this symbol.
         /// </summary>
-        protected override int HighestPriorityUseSiteError
-        {
-            get
-            {
-                return (int)ErrorCode.ERR_BindToBogus;
-            }
-        }
+        protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code) => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BindToBogus;
 
         public sealed override bool HasUnsupportedMetadata
         {
             get
             {
                 DiagnosticInfo info = GetUseSiteInfo().DiagnosticInfo;
-                return (object)info != null && info.Code == (int)ErrorCode.ERR_BindToBogus;
+                return (object)info != null && info.Code is (int)ErrorCode.ERR_BindToBogus or (int)ErrorCode.ERR_UnsupportedCompilerFeature;
             }
         }
 
@@ -1149,7 +1152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
             }
 
-            if (type.Type.ContainsNativeInteger())
+            if (compilation.ShouldEmitNativeIntegerAttributes(type.Type))
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type.Type));
             }
@@ -1208,6 +1211,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
         {
             return base.GetHashCode();
+        }
+
+#nullable enable
+        protected static void AddRequiredMembersMarkerAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes, MethodSymbol methodToAttribute)
+        {
+            if (methodToAttribute.ShouldCheckRequiredMembers() && methodToAttribute.ContainingType.HasAnyRequiredMembers)
+            {
+                var obsoleteData = methodToAttribute.ObsoleteAttributeData;
+                Debug.Assert(obsoleteData != ObsoleteAttributeData.Uninitialized, "getting synthesized attributes before attributes are decoded");
+
+                CSharpCompilation declaringCompilation = methodToAttribute.DeclaringCompilation;
+                if (obsoleteData == null)
+                {
+                    AddSynthesizedAttribute(ref attributes, declaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,
+                        ImmutableArray.Create(
+                            new TypedConstant(declaringCompilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, PEModule.RequiredMembersMarker), // message
+                            new TypedConstant(declaringCompilation.GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, true)) // error
+                        ));
+                }
+
+                AddSynthesizedAttribute(ref attributes, declaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+                    ImmutableArray.Create(new TypedConstant(declaringCompilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, nameof(CompilerFeatureRequiredFeatures.RequiredMembers)))
+                    ));
+            }
         }
     }
 }

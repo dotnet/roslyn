@@ -5,6 +5,7 @@
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -41,12 +42,12 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
             if (document.Project.IsSubmission)
                 return;
 
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
                 return;
 
             var service = document.GetRequiredLanguageService<IGenerateDefaultConstructorsService>();
             var actions = await service.GenerateDefaultConstructorsAsync(
-                document, textSpan, forRefactoring: true, cancellationToken).ConfigureAwait(false);
+                document, textSpan, context.Options, forRefactoring: true, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
     }

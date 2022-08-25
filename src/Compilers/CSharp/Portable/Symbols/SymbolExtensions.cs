@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             switch (parameter)
             {
-                case SourceComplexParameterSymbol source:
+                case SourceComplexParameterSymbolBase source:
                     return source.HasEnumeratorCancellationAttribute;
                 case SynthesizedComplexParameterSymbol synthesized:
                     return synthesized.HasEnumeratorCancellationAttribute;
@@ -839,5 +839,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builderArgument = null;
             return false;
         }
+
+        internal static bool IsRequired(this Symbol symbol) => symbol is FieldSymbol { IsRequired: true } or PropertySymbol { IsRequired: true };
+
+        internal static bool ShouldCheckRequiredMembers(this MethodSymbol method)
+            => method is { MethodKind: MethodKind.Constructor, HasSetsRequiredMembers: false };
     }
 }

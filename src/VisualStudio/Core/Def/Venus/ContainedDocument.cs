@@ -17,7 +17,8 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -37,7 +38,7 @@ using IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IVsT
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
 #pragma warning disable CS0618 // Type or member is obsolete
-    internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument
+    internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument, IContainedDocument
 #pragma warning restore CS0618 // Type or member is obsolete
     {
         private const string ReturnReplacementString = @"{|r|}";
@@ -81,8 +82,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private readonly IComponentModel _componentModel;
         private readonly Workspace _workspace;
+        private readonly EditorOptionsService _editorOptionsService;
         private readonly ITextDifferencingSelectorService _differenceSelectorService;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly HostType _hostType;
         private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
         private readonly AbstractFormattingRule _vbHelperFormattingRule;
@@ -118,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             BufferCoordinator = bufferCoordinator;
 
             _differenceSelectorService = componentModel.GetService<ITextDifferencingSelectorService>();
-            _editorOptionsFactoryService = _componentModel.GetService<IEditorOptionsFactoryService>();
+            _editorOptionsService = componentModel.GetService<EditorOptionsService>();
             _snapshotTracker = new ReiteratedVersionSnapshotTracker(SubjectBuffer);
             _vbHelperFormattingRule = vbHelperFormattingRule;
 
@@ -213,11 +214,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public void UpdateText(SourceText newText)
         {
-            var subjectBuffer = (IProjectionBuffer)this.SubjectBuffer;
-            var originalSnapshot = subjectBuffer.CurrentSnapshot;
-            var originalText = originalSnapshot.AsText();
+            var originalText = SubjectBuffer.CurrentSnapshot.AsText();
+            ApplyChanges(originalText, newText.GetTextChanges(originalText));
+        }
 
-            var changes = newText.GetTextChanges(originalText);
+        public ITextSnapshot ApplyChanges(IEnumerable<TextChange> changes)
+            => ApplyChanges(SubjectBuffer.CurrentSnapshot.AsText(), changes);
+
+        private ITextSnapshot ApplyChanges(SourceText originalText, IEnumerable<TextChange> changes)
+        {
+            var subjectBuffer = (IProjectionBuffer)SubjectBuffer;
 
             IEnumerable<int> affectedVisibleSpanIndices = null;
             var editorVisibleSpansInOriginal = SharedPools.Default<List<TextSpan>>().AllocateAndClear();
@@ -228,14 +234,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
                 editorVisibleSpansInOriginal.AddRange(GetEditorVisibleSpans());
                 var newChanges = FilterTextChanges(originalText, editorVisibleSpansInOriginal, changes).ToList();
-                if (newChanges.Count == 0)
+                if (newChanges.Count > 0)
                 {
-                    // no change to apply
-                    return;
+                    ApplyChanges(subjectBuffer, newChanges, editorVisibleSpansInOriginal, out affectedVisibleSpanIndices);
+                    AdjustIndentation(subjectBuffer, affectedVisibleSpanIndices);
                 }
 
-                ApplyChanges(subjectBuffer, newChanges, editorVisibleSpansInOriginal, out affectedVisibleSpanIndices);
-                AdjustIndentation(subjectBuffer, affectedVisibleSpanIndices);
+                return subjectBuffer.CurrentSnapshot;
             }
             finally
             {
@@ -244,10 +249,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
         }
 
-        private IEnumerable<TextChange> FilterTextChanges(SourceText originalText, List<TextSpan> editorVisibleSpansInOriginal, IReadOnlyList<TextChange> changes)
+        private IEnumerable<TextChange> FilterTextChanges(SourceText originalText, List<TextSpan> editorVisibleSpansInOriginal, IEnumerable<TextChange> changes)
         {
             // no visible spans or changes
-            if (editorVisibleSpansInOriginal.Count == 0 || changes.Count == 0)
+            if (editorVisibleSpansInOriginal.Count == 0 || !changes.Any())
             {
                 // return empty one
                 yield break;
@@ -746,28 +751,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return;
             }
 
-            var snapshot = subjectBuffer.CurrentSnapshot;
             var document = _workspace.CurrentSolution.GetDocument(this.Id);
             if (!document.SupportsSyntaxTree)
             {
                 return;
             }
 
-            var originalText = document.GetTextSynchronously(CancellationToken.None);
-            Debug.Assert(object.ReferenceEquals(originalText, snapshot.AsText()));
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, CancellationToken.None);
+            Debug.Assert(ReferenceEquals(parsedDocument.Text, subjectBuffer.CurrentSnapshot.AsText()));
 
-            var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
-
-            var editorOptionsFactory = _componentModel.GetService<IEditorOptionsFactoryService>();
-            var editorOptions = editorOptionsFactory.GetOptions(DataBuffer);
-            var options = SyntaxFormattingOptions.Create(
-                _workspace.Options
-                    .WithChangedOption(FormattingOptions.NewLine, root.Language, editorOptions.GetNewLineCharacter())
-                    .WithChangedOption(FormattingOptions.UseTabs, root.Language, !editorOptions.IsConvertTabsToSpacesEnabled())
-                    .WithChangedOption(FormattingOptions.TabSize, root.Language, editorOptions.GetTabSize())
-                    .WithChangedOption(FormattingOptions.IndentationSize, root.Language, editorOptions.GetIndentSize()),
-                _workspace.Services,
-                document.Project.Language);
+            var editorOptionsService = _componentModel.GetService<EditorOptionsService>();
+            var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.Services, explicitFormat: false);
 
             using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
 
@@ -778,10 +772,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             foreach (var spanIndex in visibleSpanIndex)
             {
-                var rule = GetBaseIndentationRule(root, originalText, spans, spanIndex);
+                var rule = GetBaseIndentationRule(parsedDocument.Root, parsedDocument.Text, spans, spanIndex);
 
                 var visibleSpan = spans[spanIndex];
-                AdjustIndentationForSpan(document, edit, visibleSpan, rule, options);
+                AdjustIndentationForSpan(document, edit, visibleSpan, rule, formattingOptions);
             }
 
             edit.Apply();
@@ -803,7 +797,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var formattingRules = venusFormattingRules.Concat(Formatter.GetDefaultFormattingRules(document));
 
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
             var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
             var changes = formatter.GetFormattingResult(
                 root, new TextSpan[] { CommonFormattingHelpers.GetFormattingSpan(root, visibleSpan) },
@@ -880,10 +874,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private int GetBaseIndentation(SyntaxNode root, SourceText text, TextSpan span)
         {
-            // Is this right?  We should probably get this from the IVsContainedLanguageHost instead.
-            var editorOptions = _editorOptionsFactoryService.GetOptions(DataBuffer);
-
-            var additionalIndentation = GetAdditionalIndentation(root, text, span);
+            var editorOptions = _editorOptionsService.Factory.GetOptions(DataBuffer);
+            var additionalIndentation = GetAdditionalIndentation(root, text, span, hostIndentationSize: editorOptions.GetIndentSize());
 
             // Skip over the first line, since it's in "Venus space" anyway.
             var startingLine = text.Lines.GetLineFromPosition(span.Start);
@@ -945,11 +937,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return (start <= end) ? TextSpan.FromBounds(start, end + 1) : default;
         }
 
-        private int GetAdditionalIndentation(SyntaxNode root, SourceText text, TextSpan span)
+        private int GetAdditionalIndentation(SyntaxNode root, SourceText text, TextSpan span, int hostIndentationSize)
         {
             if (_hostType == HostType.HTML)
             {
-                return _workspace.Options.GetOption(FormattingOptions.IndentationSize, _project.Language);
+                return hostIndentationSize;
             }
 
             if (_hostType == HostType.Razor)
@@ -970,10 +962,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         if (end >= 0 && text[end] == '}')
                         {
                             var token = root.FindToken(end);
-                            var syntaxFact = _workspace.Services.GetLanguageServices(_project.Language).GetService<ISyntaxFactsService>();
-                            if (token.Span.Start == end && syntaxFact != null)
+                            var service = _workspace.Services.GetLanguageServices(_project.Language).GetService<IVenusBraceMatchingService>();
+                            if (token.Span.Start == end && service != null)
                             {
-                                if (syntaxFact.TryGetCorrespondingOpenBrace(token, out var openBrace) && !textSpan.Contains(openBrace.Span))
+                                if (service.TryGetCorrespondingOpenBrace(token, out var openBrace) && !textSpan.Contains(openBrace.Span))
                                 {
                                     return 0;
                                 }
@@ -1006,7 +998,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         }
                     }
 
-                    return _workspace.Options.GetOption(FormattingOptions.IndentationSize, _project.Language);
+                    return hostIndentationSize;
                 }
             }
 

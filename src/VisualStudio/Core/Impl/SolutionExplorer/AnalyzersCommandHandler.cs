@@ -141,13 +141,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             get
             {
-                if (_analyzerFolderContextMenuController == null)
-                {
-                    _analyzerFolderContextMenuController = new ContextMenuController(
+                _analyzerFolderContextMenuController ??= new ContextMenuController(
                         ID.RoslynCommands.AnalyzerFolderContextMenu,
                         ShouldShowAnalyzerFolderContextMenu,
                         UpdateAnalyzerFolderContextMenu);
-                }
 
                 return _analyzerFolderContextMenuController;
             }
@@ -171,13 +168,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             get
             {
-                if (_analyzerContextMenuController == null)
-                {
-                    _analyzerContextMenuController = new ContextMenuController(
+                _analyzerContextMenuController ??= new ContextMenuController(
                         ID.RoslynCommands.AnalyzerContextMenu,
                         ShouldShowAnalyzerContextMenu,
                         UpdateAnalyzerContextMenu);
-                }
 
                 return _analyzerContextMenuController;
             }
@@ -200,13 +194,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             get
             {
-                if (_diagnosticContextMenuController == null)
-                {
-                    _diagnosticContextMenuController = new ContextMenuController(
+                _diagnosticContextMenuController ??= new ContextMenuController(
                         ID.RoslynCommands.DiagnosticContextMenu,
                         ShouldShowDiagnosticContextMenu,
                         UpdateDiagnosticContextMenu);
-                }
 
                 return _diagnosticContextMenuController;
             }
@@ -296,7 +287,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 foreach (var diagnosticItem in group)
                 {
-                    var severity = diagnosticItem.Descriptor.GetEffectiveSeverity(project.CompilationOptions, analyzerConfigOptions);
+                    var severity = diagnosticItem.Descriptor.GetEffectiveSeverity(project.CompilationOptions, analyzerConfigOptions?.AnalyzerOptions, analyzerConfigOptions?.TreeOptions);
                     selectedItemSeverities.Add(severity);
                 }
             }
@@ -333,7 +324,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void UpdateSeverityMenuItemsEnabled()
         {
-            var configurable = !_tracker.SelectedDiagnosticItems.Any(item => item.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.NotConfigurable));
+            var configurable = !_tracker.SelectedDiagnosticItems.Any(static item => item.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.NotConfigurable));
 
             _setSeverityDefaultMenuItem.Enabled = configurable;
             _setSeverityErrorMenuItem.Enabled = configurable;
@@ -356,10 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// </summary>
         internal void AddAnalyzerHandler(object sender, EventArgs args)
         {
-            if (_analyzerReferenceManager != null)
-            {
-                _analyzerReferenceManager.ShowDialog();
-            }
+            _analyzerReferenceManager?.ShowDialog();
         }
 
         /// <summary>
@@ -443,6 +431,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 allowCancellation: true,
                 showProgress: true);
 
+            var originalSolution = workspace.CurrentSolution;
             var selectedAction = MapSelectedItemToReportDiagnostic(selectedItem);
             if (!selectedAction.HasValue)
                 return;
@@ -477,6 +466,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                             var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
                             await editHandlerService.ApplyAsync(
                                 _workspace,
+                                originalSolution,
                                 fromDocument: null,
                                 operations: operations,
                                 title: ServicesVSResources.Updating_severity,

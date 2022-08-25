@@ -678,7 +678,7 @@ delegate";
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ""),
                 // (3,9): error CS1003: Syntax error, '(' expected
                 // delegate
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", ""),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("("),
                 // (3,9): error CS1026: ) expected
                 // delegate
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ""),
@@ -2040,9 +2040,9 @@ class Program
                 //         bool c = true;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(6, 14));
         }
-        [Fact, WorkItem(543426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543426")]
 
-        private void NestedInterfaceImplementationWithOuterGenericType()
+        [Fact, WorkItem(543426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543426")]
+        public void NestedInterfaceImplementationWithOuterGenericType()
         {
             CompileAndVerify(@"
 namespace System.ServiceModel
@@ -2152,13 +2152,13 @@ namespace System.ServiceModel
             var source =
 @"class C<T> { }
 class C<T> : System.Attribute { }";
-            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (2,7): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
                 // class C<T> : System.Attribute { }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>").WithLocation(2, 7),
-                // (2,14): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,14): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // class C<T> : System.Attribute { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(2, 14)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "System.Attribute").WithArguments("generic attributes", "11.0").WithLocation(2, 14)
                 );
 
             CreateCompilation(source).VerifyDiagnostics(

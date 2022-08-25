@@ -55,6 +55,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             where TResult : default
             => visitor.VisitEvent(this);
 
+        public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+            => visitor.VisitEvent(this, argument);
+
         public new IEventSymbol OriginalDefinition => this;
 
         public bool IsWindowsRuntimeEvent => false;

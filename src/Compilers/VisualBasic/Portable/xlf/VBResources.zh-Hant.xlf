@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
-        <source>A shared abstract interface member cannot be accessed.</source>
-        <target state="translated">無法存取共用摘要介面成員。</target>
+        <source>A shared abstract or virtual interface member cannot be accessed.</source>
+        <target state="translated">無法存取共用摘要或虛擬介面成員。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -25,6 +25,11 @@
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">因為類型 '{0}' 有非抽象成員，所以無法內嵌。請考慮將 [內嵌 Interop 類型] 屬性設為 false。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoNotUseCompilerFeatureRequired">
+        <source>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' 僅保留給編譯器使用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -63,13 +68,18 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
-        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
-        <target state="translated">{0} '{1}' 無法實作介面 '{3}' 因為其包含共用摘要 '{2}'。</target>
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
+        <target state="translated">{0} '{1}' 無法實作介面 '{3}' 因為其包含共用摘要或虛擬效果 '{2}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
         <target state="translated">不支援 'UnmanagedCallersOnly' 屬性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedCompilerFeature">
+        <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
+        <target state="translated">'{0}' 需要編譯器功能 '{1}'，此版本的 Visual Basic 編譯器不支援此功能。</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -249,7 +259,7 @@
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emit compiler output in UTF8 character
+-utf8output[+|-]                  Emit compiler output in UTF-8 character
                                   encoding.
 @&lt;file&gt;                           Insert command-line settings from a text file
 -vbruntime[+|-|*]                 Compile with/without the default Visual Basic
@@ -259,166 +269,166 @@
 </source>
         <target state="translated">                  Visual Basic 編譯器選項
 
-                                  - 輸出檔案 -
--out:&lt;file&gt;                       指定輸出檔名稱。
--target:exe                       建立主控台應用程式 (預設)。
-                                  (簡短形式: -t)
+                                  - OUTPUT FILE -
+-out:&lt;file&gt;                       指定輸出檔案名稱。
+-target:exe                       建立主控台應用程式 (預設值)。
+                                (簡短格式: -t)
 -target:winexe                    建立 Windows 應用程式。
 -target:library                   建立程式庫組件。
--target:module                    建立可以新增至組件的
+-target:module                    建立可新增至組件的
                                   模組。
--target:appcontainerexe           建立可在 AppContainer 中執行的
+-target:appcontainerexe           建立在 AppContainer 中執行的
                                   Windows 應用程式。
--target:winmdobj                  建立 Windows Metadata 中繼檔案
+-target:winmdobj                  建立 Windows 中繼資料中繼檔案
 -doc[+|-]                         產生 XML 文件檔。
 -doc:&lt;file&gt;                       產生 XML 文件檔至 &lt;file&gt;。
--refout:&lt;file&gt;                    要產生的參考組件輸出
+-refout:&lt;file&gt;                    參考要產生的組件輸出
 
-                                  - 輸入檔 -
--addmodule:&lt;file_list&gt;            從指定的模組來參考中繼資料
--link:&lt;file_list&gt;                 從指定的 Interop 組件內嵌
-                                  中繼資料。(簡短形式: -l)
--recurse:&lt;wildcard&gt;               根據萬用字元規格
-                                  來加入目前目錄和子目錄中的
-                                  所有檔案。
--reference:&lt;file_list&gt;            從指定的組件參考
-                                  中繼資料。(簡短形式: -r)
+                                  - INPUT FILES -
+-addmodule:&lt;file_list&gt;            參考來自指定模組的中繼資料
+-link:&lt;file_list&gt;                 內嵌來自指定 Interop 組件的
+                                  中繼資料。(簡短格式: -l)
+-recurse:&lt;wildcard&gt;               根據萬用字元規格，包含
+                                  目前目錄和子目錄中的
+                                   所有檔案。
+-reference:&lt;file_list&gt;            參考來自指定組件的
+                                  中繼資料。(簡短格式: -r)
 -analyzer:&lt;file_list&gt;             從此組件執行分析器
-                                  (簡短形式: -a)
--additionalfile:&lt;file list&gt;       不直接影響程式碼產生，
-                                  但分析器可能用於產生錯誤或警告的
-                                  其他檔案。
+                                  (簡短格式: -a)
+-additionalfile:&lt;file list&gt;       不直接影響程式碼產生
+                                  但可能會被分析器用來產生錯誤或警告的
+                                  的其他檔案。
 
-                                  - 資源 -
--linkresource:&lt;resinfo&gt;           連結指定的檔案作為外部
+                                  - RESOURCES -
+-linkresource:&lt;resinfo&gt;           將指定的檔案連結為外部
                                   組件資源。
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                  (簡短形式: -linkres)
--nowin32manifest                  預設資訊清單不應內嵌於
-                                   輸出 PE 的資訊清單區段中。
+                                  (簡短格式: -linkres)
+-nowin32manifest                  預設的資訊清單不應內嵌在
+                                  輸出 PE 的資訊清單區段。
 -resource:&lt;resinfo&gt;               將指定的檔案新增為內嵌的
                                   組件資源。
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                  (簡短形式: -res)
--win32icon:&lt;file&gt;                 指定某一個 Win32 圖示檔 (.ico) 給
-                                  預設的 Win32 資源。
--win32manifest:&lt;file&gt;             提供的檔案內嵌於輸出 PE 的
-                                  資訊清單區段中。
--win32resource:&lt;file&gt;             指定 Win32 資源檔 (.res)。
+                                  (簡短格式: -res)
+-win32icon:&lt;file&gt;                 指定預設 Win32 資源的 Win32 圖示
+                                  檔案 (.ico)。
+-win32manifest:&lt;file&gt;             提供的檔案內嵌在輸出 PE 的
+                                  資訊清單區段。
+-win32resource:&lt;file&gt;             指定 Win32 資源檔案 (.res)。
 
-                                  - 程式碼產生 -
+                                  - CODE GENERATION -
 -optimize[+|-]                    啟用最佳化。
--removeintchecks[+|-]             不檢查整數。預設為關閉。
--debug[+|-]                       發出偵錯資訊。
+-removeintchecks[+|-]             移除整數檢查。預設關閉。
+-debug[+|-]                       發出完整偵錯資訊。
 -debug:full                       發出完整偵錯資訊 (預設)。
 -debug:pdbonly                    發出完整偵錯資訊。
--debug:portable                   發出跨平台的偵錯資訊。
--debug:embedded                   對目標 .dll 或 .exe 發出
-                                  跨平台偵錯資訊。
+-debug:portable                   發出跨平台偵錯資訊。
+-debug:embedded                   發出跨平台偵錯資訊到
+                                  目標 .dll 或 .exe。
 -deterministic                    產生確定性組件
-                                  (含模組版本 GUID 與時間戳記)
--refonly                          產生取代主要輸出的參考組件
--instrument:TestCoverage          產生經檢測的組件，以收集
+                                  (包括模組版本 GUID 和時間戳記)
+-refonly                          產生參考組件取代主要輸出
+-instrument:TestCoverage          產生檢測的組件以收集
                                   涵蓋範圍資訊
--sourcelink:&lt;file&gt;                要內嵌至 PDB 的來源連結資訊。
+-sourcelink:&lt;file&gt;                要內嵌到 PDB 的來源連結資訊。
 
-                                  - 錯誤與警告 -
+                                  - ERRORS AND WARNINGS -
 -nowarn                           停用所有警告。
--nowarn:&lt;number_list&gt;             停用個別警告清單。
+-nowarn:&lt;number_list&gt;             停用個別警告的清單。
 -warnaserror[+|-]                 將所有警告視為錯誤。
 -warnaserror[+|-]:&lt;number_list&gt;   將警告清單視為錯誤。
--ruleset:&lt;file&gt;                   指定規則集檔案，以停用特定的
-                                  診斷。
+-ruleset:&lt;file&gt;                   指定停用特定診斷的規則集
+                                  檔案。
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
-                                  指定檔案，以 SARIF 的格式記錄所有編譯器
-                                  與分析器診斷。
-                                  sarif_version:{1|2|2.1} 預設為 1、2 與 2.1
-                                  兩者皆表示 SARIF 2.1.0 版。
--reportanalyzer                   回報其他分析器資訊，例如
+                                  指定要以 SARIF 格式記錄所有編譯器和
+                                  分析器診斷的檔案。
+                                  sarif_version:{1|2|2.1} 預設值為 1。2 和 2.1
+                                  兩者都表示 SARIF 版本 2.1.0。
+-reportanalyzer                   報告其他分析器資訊，例如
                                   執行時間。
--skipanalyzers[+|-]               略過診斷分析器的執行。
+-skipanalyzers[+|-]               略過執行診斷分析器。
 
-                                  - 語言 -
--define:&lt;symbol_list&gt;             宣告全域條件式編譯的
+                                  - LANGUAGE -
+-define:&lt;symbol_list&gt;             宣告全域條件式編譯
                                   符號。symbol_list:name=value,...
-                                  (簡短形式: -d)
+                                (簡短格式: -d)
 -imports:&lt;import_list&gt;            在參考的中繼資料檔案中宣告命名空間的
                                   全域匯入。
                                   import_list:namespace,...
--langversion:?                    顯示允許的語言版本值
+-langversion:?                  顯示允許的語言版本值
 -langversion:&lt;string&gt;             指定語言版本，例如
-                                  `default` (最新的主要版本) 或
-                                  `latest` (最新版本，包括次要版本)
-                                  或特定的版本，例如 `14` 或 `15.3`
--optionexplicit[+|-]              變數必須明確宣告。
--optioninfer[+|-]                 允許變數的類型推斷。
--rootnamespace:&lt;string&gt;           指定所有類型宣告的
-                                  根命名空間。
--optionstrict[+|-]                強制採用嚴格的語意。
--optionstrict:custom              未遵守嚴格的語意時
-                                  發出警告。
--optioncompare:binary             採用二進位樣式來比較字串。
-                                  這是預設值。
--optioncompare:text               採用文字樣式來比較字串。
+                                  `default` (最新主要版本)，或
+                                  `latest` (最新版本，包括次要版本)，
+                                  或特定版本，例如 `14` 或 `15.3`
+-optionexplicit[+|-]              需要明確宣告變數。
+-optioninfer[+|-]              允許型別推斷變數。
+-rootnamespace:&lt;string&gt;           指定所有型別宣告的根
+                                  命名空間。
+-optionstrict[+|-]                強制執行嚴格的語言語意學。
+-optionstrict:custom              在未遵守嚴格的語言語意學時
+                                  警告。
+-optioncompare:binary             指定二進位樣式字串比較。
+                                這是預設值。
+-optioncompare:text               指定文字樣式字串比較。
 
-                                  - 其他 -
--help                             顯示此使用方式訊息。(簡短形式: -?)
+                                  - MISCELLANEOUS -
+-help                             顯示此使用方式訊息。(簡短格式: -?)
 -noconfig                         不要自動納入 VBC.RSP 檔。
--nologo                           不要顯示編譯器著作權橫幅。
--quiet                            無對話輸出模式。
--verbose                          顯示詳細訊息。
--parallel[+|-]                    並行組建。
--version                          顯示編譯器版本編號然後結束。
+-nologo                         不要顯示編譯器著作權橫幅。
+-quiet                         無對話輸出模式。
+-verbose                         顯示詳細訊息。
+-parallel[+|-]                         同時組建。
+-version                         顯示編譯器版本號碼並結束。
 
-                                  - 進階 -
--baseaddress:&lt;number&gt;             程式庫或模組的基底位置
+                                  - ADVANCED -
+- baseaddress:&lt;number&gt;             程式庫或模組的基底位址 (Base Address)
                                   (十六進位)。
--checksumalgorithm:&lt;alg&gt;          指定演算法，以計算儲存於 PDB 的
-                                  來源檔案總和檢查碼。支援的值有:
-                                  SHA1 或 SHA256 (預設)。
--codepage:&lt;number&gt;                指定開啟原始程式檔時所要使用的
+-checksumalgorithm:&lt;alg&gt;          指定計算儲存在 PDB 中原始程式檔
+                                  檢查碼的演算法。支援的值為:
+                                SHA1 或 SHA256 (預設值)。
+-codepage:&lt;number&gt;                指定開啟原始程式檔時使用的
                                   字碼頁。
--delaysign[+|-]                   僅使用強式名稱金鑰的公開
+-delayign[+|-]                 只使用強式名稱金鑰的公用
                                   部分延遲簽署組件。
--publicsign[+|-]                  僅使用強式名稱金鑰的公開
+-publicsign[+|-]                 只使用強式名稱金鑰的公用
                                   部分公開簽署組件。
 -errorreport:&lt;string&gt;             指定如何處理內部編譯器
-                                  錯誤;必須是 prompt、send、none 或 queue
-                                  (預設)。
--filealign:&lt;number&gt;               指定用於輸出檔案區段的對齊
+                                  錯誤; 必須是 prompt、send、none 或 queue
+                                  (預設值)。
+-filealign:&lt;number&gt;             指定用於輸出檔案區段的對齊
                                   方式。
--highentropyva[+|-]               啟用高熵 ASLR。
--keycontainer:&lt;string&gt;            指定強式名稱金鑰容器。
--keyfile:&lt;file&gt;                   指定強式名稱金鑰檔。
--libpath:&lt;path_list&gt;              搜尋中繼資料參考的
-                                  目錄清單 (以分號分隔)。
+-highentropyva[+|-]             啟用高熵 ASLR。
+-keycontainer:&lt;string&gt;             指定強式名稱金鑰容器。
+-keyfile:&lt;file&gt;             指定強式名稱金鑰檔案。
+-libpath:&lt;path_list&gt;             要搜尋中繼資料參考的目錄
+                                  清單。(以分號分隔。)
 -main:&lt;class&gt;                     指定包含 Sub Main 的
-                                   Class 或 Module。也可以是繼承自
+                                  Class 或 Module。它也可以是繼承自
                                   System.Windows.Forms.Form 的 Class。
-                                  (簡短形式: -m)
--moduleassemblyname:&lt;string&gt;      這個模組將成為其一部分的
-                                  組件名稱。
+                                (簡短格式: -m)
+-moduleassemblyname:&lt;string&gt;      此模組將成為其中一部分的
+                                  組件的名稱。
 -netcf                            以 .NET Compact Framework 為目標。
--nostdlib                         不要參考標準程式庫
-                                  (system.dll 與 VBC.RSP 檔)。
+-nostdlib                            不要參考標準程式庫
+                                  (system.dll 和 VBC.RSP 檔)。
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  指定由編譯器輸出的來源路徑名稱對應
+                                由編譯器指定來源路徑名稱輸出的
                                   對應。
--platform:&lt;string&gt;                限制這個程式碼可以在哪些平台執行;
+-platform:&lt;string&gt;                限制此程式碼可在哪些平台上執行;
                                   必須是 x86、x64、Itanium、arm、arm64
-                                  AnyCPU32BitPreferred 或 anycpu (預設)。
--preferreduilang                  指定慣用的輸出語言名稱。
--nosdkpath                        禁止搜尋預設 SDK 路徑的標準程式庫組件。
--sdkpath:&lt;path&gt;                   .NET Framework SDK 目錄
-                                  (mscorlib.dll) 的位置。
--subsystemversion:&lt;version&gt;       指定輸出 PE 的子系統版本。
-                                  版本:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  以 UTF8 字元編碼發出編譯器
-                                  輸出。
-@&lt;file&gt;                           從文字檔插入命令列設定
--vbruntime[+|-|*]                 使用 (或不使用) 預設 Visual Basic
+                                  AnyCPU32BitPreferred 或 anycpu (預設值)。
+-preferreduilang                  指定喜好的輸出語言名稱。
+-nosdkpath                  停用搜尋標準程式庫組件的預設 SDK 路徑。
+-sdkpath:&lt;path&gt;                  .NET Framework SDK 目錄位置
+                                  (mscorlib.dll)。
+-subsystemversion:&lt;version&gt;                  指定輸出 PE 版本的子系統版本。
+                                  version:&lt;number&gt;[.&lt;number&gt;]
+-utf8output[+|-]                  以 UTF-8 字元編碼
+                                  發出編譯器輸出。
+@&lt;file&gt;                  從文字檔插入命令列設定
+-vbruntime[+|-|*]                  使用/不使用預設的 Visual Basic
                                   執行階段編譯。
--vbruntime:&lt;file&gt;                 使用 &lt;file&gt; 中的其他 Visual Basic
+-vbruntime:&lt;file&gt;                  在 &lt;file&gt; 中以替代的 Visual Basic
                                   執行階段編譯。
 </target>
         <note />
@@ -516,6 +526,16 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">載入的組件參考了 .NET Framework，此情形不受支援。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="new">The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
+        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
+        <target state="new">The analyzer assembly references a newer version of the compiler than the currently running version.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">

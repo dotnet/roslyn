@@ -2793,7 +2793,7 @@ OuterBreak:
             static bool hasExpressionTypeConstraint(TypeParameterSymbol typeParameter)
             {
                 var constraintTypes = typeParameter.ConstraintTypesNoUseSiteDiagnostics;
-                return constraintTypes.Any(t => isExpressionType(t.Type));
+                return constraintTypes.Any(static t => isExpressionType(t.Type));
             }
 
             static bool isExpressionType(TypeSymbol? type)

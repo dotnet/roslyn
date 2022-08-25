@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         public override async Task<DefinitionItem?> GetThirdPartyDefinitionItemAsync(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
-            var symbolNavigationService = solution.Workspace.Services.GetRequiredService<ISymbolNavigationService>();
+            var symbolNavigationService = solution.Services.GetRequiredService<ISymbolNavigationService>();
             var result = await symbolNavigationService.GetExternalNavigationSymbolLocationAsync(definitionItem, cancellationToken).ConfigureAwait(false);
             if (result is not var (filePath, linePosition))
                 return null;
@@ -114,13 +114,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 _linePosition = linePosition;
             }
 
-            public override Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
-                => SpecializedTasks.True;
-
-            public override async Task<bool> TryNavigateToAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken)
+            public override Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
             {
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                return TryOpenFile() && TryNavigateToPosition();
+                return Task.FromResult<INavigableLocation?>(new NavigableLocation(async (options, cancellationToken) =>
+                {
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    return TryOpenFile() && TryNavigateToPosition();
+                }));
             }
 
             private bool TryOpenFile()

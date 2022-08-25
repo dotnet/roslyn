@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
@@ -60,17 +58,27 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         public int CompareTo(PatternMatch other)
             => CompareTo(other, ignoreCase: false);
 
-        public int CompareTo(PatternMatch other, bool ignoreCase)
-            => ComparerWithState.CompareTo(this, other, ignoreCase, s_comparers);
+        public int CompareTo(PatternMatch? other, bool ignoreCase)
+            => other.HasValue ? CompareTo(other.Value, ignoreCase) : -1;
 
-        private static readonly ImmutableArray<Func<PatternMatch, bool, IComparable>> s_comparers =
-            ImmutableArray.Create<Func<PatternMatch, bool, IComparable>>(
-                // Compare types
-                (p, b) => p.Kind,
-                // Compare cases
-                (p, b) => !b && !p.IsCaseSensitive,
-                // Consider a match to be better if it was successful without stripping punctuation
-                // versus a match that had to strip punctuation to succeed.
-                (p, b) => p._punctuationStripped);
+        public int CompareTo(PatternMatch other, bool ignoreCase)
+        {
+            // Compare types
+            var comparison = this.Kind - other.Kind;
+            if (comparison != 0)
+                return comparison;
+
+            // Compare cases
+            if (!ignoreCase)
+            {
+                comparison = (!this.IsCaseSensitive).CompareTo(!other.IsCaseSensitive);
+                if (comparison != 0)
+                    return comparison;
+            }
+
+            // Consider a match to be better if it was successful without stripping punctuation
+            // versus a match that had to strip punctuation to succeed.
+            return this._punctuationStripped.CompareTo(other._punctuationStripped);
+        }
     }
 }

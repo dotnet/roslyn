@@ -13,7 +13,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -23,7 +27,7 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly ProjectInfo _projectInfo;
         private readonly HostLanguageServices _languageServices;
-        private readonly SolutionServices _solutionServices;
+        private readonly HostWorkspaceServices _solutionServices;
 
         /// <summary>
         /// The documents in this project. They are sorted by <see cref="DocumentId.Id"/> to provide a stable sort for
@@ -64,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         private ProjectState(
             ProjectInfo projectInfo,
             HostLanguageServices languageServices,
-            SolutionServices solutionServices,
+            HostWorkspaceServices solutionServices,
             TextDocumentStates<DocumentState> documentStates,
             TextDocumentStates<AdditionalDocumentState> additionalDocumentStates,
             TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates,
@@ -89,7 +93,7 @@ namespace Microsoft.CodeAnalysis
             _lazyChecksums = new AsyncLazy<ProjectStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
-        public ProjectState(ProjectInfo projectInfo, HostLanguageServices languageServices, SolutionServices solutionServices)
+        public ProjectState(ProjectInfo projectInfo, HostLanguageServices languageServices, HostWorkspaceServices solutionServices)
         {
             Contract.ThrowIfNull(projectInfo);
             Contract.ThrowIfNull(languageServices);
@@ -248,68 +252,256 @@ namespace Microsoft.CodeAnalysis
                 additionalFiles: AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText),
                 optionsProvider: new ProjectAnalyzerConfigOptionsProvider(this));
 
-        public async Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsForPathAsync(
-            string path,
-            CancellationToken cancellationToken)
+        public async Task<AnalyzerConfigData> GetAnalyzerOptionsForPathAsync(string path, CancellationToken cancellationToken)
         {
-            var configSet = await _lazyAnalyzerConfigOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return configSet.GetOptionsForSourcePath(path).AnalyzerOptions;
+            var cache = await _lazyAnalyzerConfigOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            return cache.GetOptionsForSourcePath(path);
         }
 
-        public AnalyzerConfigOptionsResult? GetAnalyzerConfigOptions()
-        {
-            // We need to find the analyzer config options at the root of the project.
-            // Currently, there is no compiler API to query analyzer config options for a directory in a language agnostic fashion.
-            // So, we use a dummy language-specific file name appended to the project directory to query analyzer config options.
+        public AnalyzerConfigData GetAnalyzerOptionsForPath(string path, CancellationToken cancellationToken)
+            => _lazyAnalyzerConfigOptions.GetValue(cancellationToken).GetOptionsForSourcePath(path);
 
-            var projectDirectory = PathUtilities.GetDirectoryName(_projectInfo.FilePath);
-            if (!PathUtilities.IsAbsolute(projectDirectory))
+        public AnalyzerConfigData? GetAnalyzerConfigOptions()
+        {
+            var extension = _projectInfo.Language switch
+            {
+                LanguageNames.CSharp => ".cs",
+                LanguageNames.VisualBasic => ".vb",
+                _ => null
+            };
+
+            if (extension == null)
             {
                 return null;
             }
 
-            var fileName = Guid.NewGuid().ToString();
-            string sourceFilePath;
-            switch (_projectInfo.Language)
+            if (!PathUtilities.IsAbsolute(_projectInfo.FilePath))
             {
-                case LanguageNames.CSharp:
-                    // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
-                    sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, $"{fileName}.cs")!;
-                    break;
-
-                case LanguageNames.VisualBasic:
-                    // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
-                    sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, $"{fileName}.vb")!;
-                    break;
-
-                default:
-                    return null;
+                return null;
             }
 
-            return _lazyAnalyzerConfigOptions.GetValue(CancellationToken.None).GetOptionsForSourcePath(sourceFilePath);
+            // We need to find the analyzer config options at the root of the project.
+            // Currently, there is no compiler API to query analyzer config options for a directory in a language agnostic fashion.
+            // So, we use a dummy language-specific file name appended to the project directory to query analyzer config options.
+            // NIL character is invalid in paths so it will never match any pattern in editorconfig, but editorconfig parsing allows it.
+            // TODO: https://github.com/dotnet/roslyn/issues/61217
+
+            var projectDirectory = PathUtilities.GetDirectoryName(_projectInfo.FilePath);
+            Contract.ThrowIfNull(projectDirectory);
+
+            var sourceFilePath = PathUtilities.CombinePathsUnchecked(projectDirectory, "\0" + extension);
+
+            return GetAnalyzerOptionsForPath(sourceFilePath, CancellationToken.None);
         }
 
         internal sealed class ProjectAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
         {
             private readonly ProjectState _projectState;
+            private RazorDesignTimeAnalyzerConfigOptions? _lazyRazorDesignTimeOptions = null;
 
             public ProjectAnalyzerConfigOptionsProvider(ProjectState projectState)
                 => _projectState = projectState;
 
+            private AnalyzerConfigOptionsCache GetCache()
+                => _projectState._lazyAnalyzerConfigOptions.GetValue(CancellationToken.None);
+
             public override AnalyzerConfigOptions GlobalOptions
-                => GetOptionsForSourcePath(string.Empty);
+                => GetCache().GlobalConfigOptions.ConfigOptions;
 
             public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
-                => GetOptionsForSourcePath(tree.FilePath);
+            {
+                var documentId = DocumentState.GetDocumentIdForTree(tree);
+                var cache = GetCache();
+                if (documentId != null && _projectState.DocumentStates.TryGetState(documentId, out var documentState))
+                {
+                    return GetOptions(cache, documentState);
+                }
+
+                return GetOptionsForSourcePath(cache, tree.FilePath);
+            }
+
+            internal async ValueTask<StructuredAnalyzerConfigOptions> GetOptionsAsync(DocumentState documentState, CancellationToken cancellationToken)
+            {
+                var cache = await _projectState._lazyAnalyzerConfigOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                return GetOptions(cache, documentState);
+            }
+
+            private StructuredAnalyzerConfigOptions GetOptions(in AnalyzerConfigOptionsCache cache, DocumentState documentState)
+            {
+                if (documentState.IsRazorDocument())
+                {
+                    return _lazyRazorDesignTimeOptions ??= new RazorDesignTimeAnalyzerConfigOptions(_projectState.LanguageServices.LanguageServices.SolutionServices);
+                }
+
+                var filePath = GetEffectiveFilePath(documentState);
+                if (filePath == null)
+                {
+                    return StructuredAnalyzerConfigOptions.Empty;
+                }
+
+                var workspace = _projectState._solutionServices.Workspace;
+
+                var legacyDocumentOptionsProvider = workspace.Services.GetService<ILegacyDocumentOptionsProvider>();
+                if (legacyDocumentOptionsProvider != null)
+                {
+                    return StructuredAnalyzerConfigOptions.Create(legacyDocumentOptionsProvider.GetOptions(_projectState.Id, filePath));
+                }
+
+                var options = GetOptionsForSourcePath(cache, filePath);
+                var legacyIndentationService = workspace.Services.GetService<ILegacyIndentationManagerWorkspaceService>();
+                if (legacyIndentationService == null)
+                {
+                    return options;
+                }
+
+                return new AnalyzerConfigWithInferredIndentationOptions(options, workspace, legacyIndentationService, documentState.Id);
+            }
 
             public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
             {
                 // TODO: correctly find the file path, since it looks like we give this the document's .Name under the covers if we don't have one
-                return GetOptionsForSourcePath(textFile.Path);
+                return GetOptionsForSourcePath(GetCache(), textFile.Path);
             }
 
-            public AnalyzerConfigOptions GetOptionsForSourcePath(string path)
-                => new DictionaryAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigOptions.GetValue(CancellationToken.None).GetOptionsForSourcePath(path).AnalyzerOptions);
+            private static StructuredAnalyzerConfigOptions GetOptionsForSourcePath(in AnalyzerConfigOptionsCache cache, string path)
+                => cache.GetOptionsForSourcePath(path).ConfigOptions;
+
+            private string? GetEffectiveFilePath(DocumentState documentState)
+            {
+                if (!string.IsNullOrEmpty(documentState.FilePath))
+                {
+                    return documentState.FilePath;
+                }
+
+                // We need to work out path to this document. Documents may not have a "real" file path if they're something created
+                // as a part of a code action, but haven't been written to disk yet.
+
+                var projectFilePath = _projectState.FilePath;
+
+                if (documentState.Name != null && projectFilePath != null)
+                {
+                    var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
+
+                    if (!RoslynString.IsNullOrEmpty(projectPath) &&
+                        PathUtilities.GetDirectoryName(projectFilePath) is string directory)
+                    {
+                        return PathUtilities.CombinePathsUnchecked(directory, documentState.Name);
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Provides editorconfig options for Razor design-time documents.
+        /// Razor does not support editorconfig options but has custom settings for a few formatting options whose values
+        /// are only available in-proc and the same for all Razor design-time documents.
+        /// This type emulates these options as analyzer config options.
+        /// </summary>
+        private sealed class RazorDesignTimeAnalyzerConfigOptions : StructuredAnalyzerConfigOptions
+        {
+            private readonly ILegacyGlobalOptionsWorkspaceService? _globalOptions;
+
+            public RazorDesignTimeAnalyzerConfigOptions(SolutionServices services)
+            {
+                // not available OOP:
+                _globalOptions = services.GetService<ILegacyGlobalOptionsWorkspaceService>();
+            }
+
+            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
+            {
+                if (_globalOptions != null)
+                {
+                    if (key == "indent_style")
+                    {
+                        value = _globalOptions.RazorUseTabs ? "tab" : "space";
+                        return true;
+                    }
+
+                    if (key == "tab_width" || key == "indent_size")
+                    {
+                        value = _globalOptions.RazorTabSize.ToString();
+                        return true;
+                    }
+                }
+
+                value = null;
+                return false;
+            }
+
+            public override IEnumerable<string> Keys
+            {
+                get
+                {
+                    if (_globalOptions != null)
+                    {
+                        yield return "indent_style";
+                        yield return "tab_width";
+                        yield return "indent_size";
+                    }
+                }
+            }
+
+            public override NamingStylePreferences GetNamingStylePreferences()
+                => NamingStylePreferences.Empty;
+        }
+
+        /// <summary>
+        /// Provides analyzer config options with indentation options overridden by editor indentation inference for open documents.
+        /// TODO: Remove once https://github.com/dotnet/roslyn/issues/61109 is addressed.
+        /// </summary>
+        private sealed class AnalyzerConfigWithInferredIndentationOptions : StructuredAnalyzerConfigOptions
+        {
+            private readonly Workspace _workspace;
+            private readonly ILegacyIndentationManagerWorkspaceService _service;
+            private readonly DocumentId _documentId;
+            private readonly StructuredAnalyzerConfigOptions _options;
+
+            public AnalyzerConfigWithInferredIndentationOptions(StructuredAnalyzerConfigOptions options, Workspace workspace, ILegacyIndentationManagerWorkspaceService service, DocumentId documentId)
+            {
+                _workspace = workspace;
+                _service = service;
+                _documentId = documentId;
+                _options = options;
+            }
+
+            public override NamingStylePreferences GetNamingStylePreferences()
+                => _options.GetNamingStylePreferences();
+
+            public override IEnumerable<string> Keys
+                => _options.Keys;
+
+            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
+            {
+                // For open documents override indentation option values with values inferred by the editor:
+                if (key is "indent_style" or "tab_width" or "indent_size" &&
+                    _workspace.IsDocumentOpen(_documentId))
+                {
+                    var currentDocument = _workspace.CurrentSolution.GetDocument(_documentId);
+                    if (currentDocument != null && currentDocument.TryGetText(out var text))
+                    {
+                        try
+                        {
+                            value = key switch
+                            {
+                                "indent_style" => _service.UseSpacesForWhitespace(text) ? "space" : "tab",
+                                "tab_width" => _service.GetTabSize(text).ToString(),
+                                "indent_size" => _service.GetIndentSize(text).ToString(),
+                                _ => throw ExceptionUtilities.UnexpectedValue(key)
+                            };
+
+                            return true;
+                        }
+                        catch (Exception e) when (FatalError.ReportAndCatch(e))
+                        {
+                            // fall through
+                        }
+                    }
+                }
+
+                return _options.TryGetValue(key, out value);
+            }
         }
 
         private sealed class ProjectSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
@@ -371,20 +563,20 @@ namespace Microsoft.CodeAnalysis
 
         private readonly struct AnalyzerConfigOptionsCache
         {
-            private readonly ConcurrentDictionary<string, AnalyzerConfigOptionsResult> _sourcePathToResult = new();
-            private readonly Func<string, AnalyzerConfigOptionsResult> _computeFunction;
-            private readonly AnalyzerConfigSet _configSet;
+            private readonly ConcurrentDictionary<string, AnalyzerConfigData> _sourcePathToResult = new();
+            private readonly Func<string, AnalyzerConfigData> _computeFunction;
+            private readonly Lazy<AnalyzerConfigData> _global;
 
             public AnalyzerConfigOptionsCache(AnalyzerConfigSet configSet)
             {
-                _configSet = configSet;
-                _computeFunction = _configSet.GetOptionsForSourcePath;
+                _global = new Lazy<AnalyzerConfigData>(() => new AnalyzerConfigData(configSet.GlobalConfigOptions));
+                _computeFunction = path => new AnalyzerConfigData(configSet.GetOptionsForSourcePath(path));
             }
 
-            public AnalyzerConfigOptionsResult GlobalConfigOptions
-                => _configSet.GlobalConfigOptions;
+            public AnalyzerConfigData GlobalConfigOptions
+                => _global.Value;
 
-            public AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath)
+            public AnalyzerConfigData GetOptionsForSourcePath(string sourcePath)
                 => _sourcePathToResult.GetOrAdd(sourcePath, _computeFunction);
         }
 

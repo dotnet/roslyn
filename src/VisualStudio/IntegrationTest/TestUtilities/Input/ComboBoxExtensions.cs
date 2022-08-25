@@ -30,8 +30,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
 
             var peer = new ComboBoxAutomationPeer(comboBox);
 
-            var children = peer.GetChildren().OfType<ListBoxItemAutomationPeer>().ToList();
-            var existingItem = children.Find(x => x.GetName() == itemText);
+            var children = peer.GetChildren()?.OfType<ListBoxItemAutomationPeer>().ToList();
+            var existingItem = children?.Find(x => x.GetName() == itemText);
             if (existingItem is null)
             {
                 if (mustExist)

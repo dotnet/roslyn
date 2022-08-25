@@ -2,16 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Completion.Log
 {
     internal static class CompletionProvidersLogger
     {
-        private static readonly StatisticLogAggregator s_statisticLogAggregator = new();
-        private static readonly LogAggregator s_logAggregator = new();
+        private static readonly StatisticLogAggregator<ActionInfo> s_statisticLogAggregator = new();
+        private static readonly CountLogAggregator<ActionInfo> s_countLogAggregator = new();
 
-        private static readonly HistogramLogAggregator s_histogramLogAggregator = new(bucketSize: 50, maxBucketValue: 1000);
+        private static readonly HistogramLogAggregator<ActionInfo> s_histogramLogAggregator = new(bucketSize: 50, maxBucketValue: 1000);
 
         internal enum ActionInfo
         {
@@ -20,8 +21,6 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             TypeImportCompletionReferenceCount,
             TypeImportCompletionCacheMissCount,
             CommitsOfTypeImportCompletionItem,
-
-            TargetTypeCompletionTicks,
 
             ExtensionMethodCompletionTicks,
             ExtensionMethodCompletionMethodsProvided,
@@ -35,58 +34,52 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             CommitUsingDotToAddParenthesis
         }
 
-        internal static void LogTypeImportCompletionTicksDataPoint(int count)
+        internal static void LogTypeImportCompletionTicksDataPoint(TimeSpan elapsed)
         {
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionTicks, count);
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionTicks, count);
+            s_histogramLogAggregator.LogTime(ActionInfo.TypeImportCompletionTicks, elapsed);
+            s_statisticLogAggregator.AddDataPoint(ActionInfo.TypeImportCompletionTicks, elapsed);
         }
 
         internal static void LogTypeImportCompletionItemCountDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionItemCount, count);
+            s_statisticLogAggregator.AddDataPoint(ActionInfo.TypeImportCompletionItemCount, count);
 
         internal static void LogTypeImportCompletionReferenceCountDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionReferenceCount, count);
+            s_statisticLogAggregator.AddDataPoint(ActionInfo.TypeImportCompletionReferenceCount, count);
 
         internal static void LogTypeImportCompletionCacheMiss() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionCacheMissCount);
+            s_countLogAggregator.IncreaseCount(ActionInfo.TypeImportCompletionCacheMissCount);
 
         internal static void LogCommitOfTypeImportCompletionItem() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.CommitsOfTypeImportCompletionItem);
+            s_countLogAggregator.IncreaseCount(ActionInfo.CommitsOfTypeImportCompletionItem);
 
-        internal static void LogTargetTypeCompletionTicksDataPoint(int count)
+        internal static void LogExtensionMethodCompletionTicksDataPoint(TimeSpan total, TimeSpan getSymbols, TimeSpan createItems, bool isRemote)
         {
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TargetTypeCompletionTicks, count);
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.TargetTypeCompletionTicks, count);
-        }
-
-        internal static void LogExtensionMethodCompletionTicksDataPoint(int total, int getSymbols, int createItems, bool isRemote)
-        {
-            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTicks, total);
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTicks, total);
+            s_histogramLogAggregator.LogTime(ActionInfo.ExtensionMethodCompletionTicks, total);
+            s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionTicks, total);
 
             if (isRemote)
             {
-                s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionRemoteTicks, (total - getSymbols - createItems));
+                s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionRemoteTicks, total - getSymbols - createItems);
             }
 
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionGetSymbolsTicks, getSymbols);
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionCreateItemsTicks, createItems);
+            s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionGetSymbolsTicks, getSymbols);
+            s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionCreateItemsTicks, createItems);
         }
 
         internal static void LogExtensionMethodCompletionMethodsProvidedDataPoint(int count) =>
-            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionMethodsProvided, count);
+            s_statisticLogAggregator.AddDataPoint(ActionInfo.ExtensionMethodCompletionMethodsProvided, count);
 
         internal static void LogCommitOfExtensionMethodImportCompletionItem() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.CommitsOfExtensionMethodImportCompletionItem);
+            s_countLogAggregator.IncreaseCount(ActionInfo.CommitsOfExtensionMethodImportCompletionItem);
 
         internal static void LogExtensionMethodCompletionPartialResultCount() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionPartialResultCount);
+            s_countLogAggregator.IncreaseCount(ActionInfo.ExtensionMethodCompletionPartialResultCount);
 
         internal static void LogCommitUsingSemicolonToAddParenthesis() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.CommitUsingSemicolonToAddParenthesis);
+            s_countLogAggregator.IncreaseCount(ActionInfo.CommitUsingSemicolonToAddParenthesis);
 
         internal static void LogCommitUsingDotToAddParenthesis() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.CommitUsingDotToAddParenthesis);
+            s_countLogAggregator.IncreaseCount(ActionInfo.CommitUsingDotToAddParenthesis);
 
         internal static void LogCustomizedCommitToAddParenthesis(char? commitChar)
         {
@@ -107,33 +100,20 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             {
                 foreach (var kv in s_statisticLogAggregator)
                 {
-                    var info = ((ActionInfo)kv.Key).ToString("f");
                     var statistics = kv.Value.GetStatisticResult();
-
-                    m[CreateProperty(info, nameof(statistics.Maximum))] = statistics.Maximum;
-                    m[CreateProperty(info, nameof(statistics.Minimum))] = statistics.Minimum;
-                    m[CreateProperty(info, nameof(statistics.Mean))] = statistics.Mean;
-                    m[CreateProperty(info, nameof(statistics.Range))] = statistics.Range;
-                    m[CreateProperty(info, nameof(statistics.Count))] = statistics.Count;
+                    statistics.WriteTelemetryPropertiesTo(m, prefix: kv.Key.ToString());
                 }
 
-                foreach (var kv in s_logAggregator)
+                foreach (var kv in s_countLogAggregator)
                 {
-                    var info = ((ActionInfo)kv.Key).ToString("f");
-                    m[info] = kv.Value.GetCount();
+                    m[kv.Key.ToString()] = kv.Value.GetCount();
                 }
 
                 foreach (var kv in s_histogramLogAggregator)
                 {
-                    var info = ((ActionInfo)kv.Key).ToString("f");
-                    m[$"{info}.BucketSize"] = kv.Value.BucketSize;
-                    m[$"{info}.MaxBucketValue"] = kv.Value.MaxBucketValue;
-                    m[$"{info}.Buckets"] = kv.Value.GetBucketsAsString();
+                    kv.Value.WriteTelemetryPropertiesTo(m, prefix: kv.Key.ToString());
                 }
             }));
         }
-
-        private static string CreateProperty(string parent, string child)
-            => parent + "." + child;
     }
 }

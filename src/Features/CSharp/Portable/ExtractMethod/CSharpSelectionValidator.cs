@@ -11,10 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         public CSharpSelectionValidator(
             SemanticDocument document,
             TextSpan textSpan,
-            bool localFunction,
-            ExtractMethodOptions options)
+            ExtractMethodOptions options,
+            bool localFunction)
             : base(document, textSpan, options)
         {
             _localFunction = localFunction;

@@ -35,12 +35,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 makeSeparateBufferForCursor:=True,
                 roles:=s_roles)
 
-            Dim languageServices = Workspace.CurrentSolution.Projects.First().LanguageServices
-            Dim language = languageServices.Language
+            Dim language = Workspace.CurrentSolution.Projects.First().Language
 
             Dim spanDocument = Workspace.Documents.First(Function(x) x.SelectedSpans.Any())
             Dim statementSpan = spanDocument.SelectedSpans.First()
-            Dim span = New Interop.TextSpan() {statementSpan.ToSnapshotSpan(spanDocument.GetTextBuffer().CurrentSnapshot).ToVsTextSpan()}
+            Dim span = New TextManager.Interop.TextSpan() {statementSpan.ToSnapshotSpan(spanDocument.GetTextBuffer().CurrentSnapshot).ToVsTextSpan()}
 
             Dim componentModel = New MockComponentModel(Workspace.ExportProvider)
 

@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Force the previous submission to be analyzed. This is required for anonymous types unification.
-                if (previousScriptCompilation.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                if (previousScriptCompilation.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
                 {
                     throw new InvalidOperationException(CodeAnalysisResources.PreviousSubmissionHasErrors);
                 }
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the syntax trees (parsed from source code) that this compilation was created with.
         /// </summary>
         public IEnumerable<SyntaxTree> SyntaxTrees { get { return CommonSyntaxTrees; } }
-        protected abstract ImmutableArray<SyntaxTree> CommonSyntaxTrees { get; }
+        protected internal abstract ImmutableArray<SyntaxTree> CommonSyntaxTrees { get; }
 
         /// <summary>
         /// Creates a new compilation with additional syntax trees.

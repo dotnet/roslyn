@@ -25,15 +25,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static TypeDeclarationSyntax AddConstructorTo(
             TypeDeclarationSyntax destination,
             IMethodSymbol constructor,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             IList<bool>? availableIndices,
             CancellationToken cancellationToken)
         {
-            var constructorDeclaration = GenerateConstructorDeclaration(constructor, options, cancellationToken);
+            var constructorDeclaration = GenerateConstructorDeclaration(constructor, info, cancellationToken);
 
             // Generate after the last constructor, or after the last field, or at the start of the
             // type.
-            var members = Insert(destination.Members, constructorDeclaration, options,
+            var members = Insert(destination.Members, constructorDeclaration, info,
                 availableIndices, after: LastConstructorOrField, before: FirstMember);
 
             return AddMembersTo(destination, members, cancellationToken);
@@ -41,39 +41,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal static ConstructorDeclarationSyntax GenerateConstructorDeclaration(
             IMethodSymbol constructor,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             CancellationToken cancellationToken)
         {
-            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ConstructorDeclarationSyntax>(constructor, options);
+            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ConstructorDeclarationSyntax>(constructor, info);
             if (reusableSyntax != null)
             {
                 return reusableSyntax;
             }
 
-            var hasNoBody = !options.Context.GenerateMethodBodies;
+            var hasNoBody = !info.Context.GenerateMethodBodies;
 
             var declaration = SyntaxFactory.ConstructorDeclaration(
-                attributeLists: AttributeGenerator.GenerateAttributeLists(constructor.GetAttributes(), options),
-                modifiers: GenerateModifiers(constructor, options),
+                attributeLists: AttributeGenerator.GenerateAttributeLists(constructor.GetAttributes(), info),
+                modifiers: GenerateModifiers(constructor, info),
                 identifier: CodeGenerationConstructorInfo.GetTypeName(constructor).ToIdentifierToken(),
-                parameterList: ParameterGenerator.GenerateParameterList(constructor.Parameters, isExplicit: false, options: options),
+                parameterList: ParameterGenerator.GenerateParameterList(constructor.Parameters, isExplicit: false, info: info),
                 initializer: GenerateConstructorInitializer(constructor),
                 body: hasNoBody ? null : GenerateBlock(constructor),
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
 
-            declaration = UseExpressionBodyIfDesired(options, declaration);
+            declaration = UseExpressionBodyIfDesired(info, declaration);
 
             return AddFormatterAndCodeGeneratorAnnotationsTo(
-                ConditionallyAddDocumentationCommentTo(declaration, constructor, options, cancellationToken));
+                ConditionallyAddDocumentationCommentTo(declaration, constructor, info, cancellationToken));
         }
 
         private static ConstructorDeclarationSyntax UseExpressionBodyIfDesired(
-            CSharpCodeGenerationOptions options, ConstructorDeclarationSyntax declaration)
+            CSharpCodeGenerationContextInfo info, ConstructorDeclarationSyntax declaration)
         {
             if (declaration.ExpressionBody == null)
             {
                 if (declaration.Body?.TryConvertToArrowExpressionBody(
-                    declaration.Kind(), options.Preferences.LanguageVersion, options.Preferences.PreferExpressionBodiedConstructors,
+                    declaration.Kind(), info.LanguageVersion, info.Options.PreferExpressionBodiedConstructors.Value,
                     out var expressionBody, out var semicolonToken) == true)
                 {
                     return declaration.WithBody(null)
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.Block(statements);
         }
 
-        private static SyntaxTokenList GenerateModifiers(IMethodSymbol constructor, CSharpCodeGenerationOptions options)
+        private static SyntaxTokenList GenerateModifiers(IMethodSymbol constructor, CSharpCodeGenerationContextInfo info)
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else
             {
-                AddAccessibilityModifiers(constructor.DeclaredAccessibility, tokens, options, Accessibility.Private);
+                AddAccessibilityModifiers(constructor.DeclaredAccessibility, tokens, info, Accessibility.Private);
             }
 
             if (CodeGenerationConstructorInfo.GetIsUnsafe(constructor))

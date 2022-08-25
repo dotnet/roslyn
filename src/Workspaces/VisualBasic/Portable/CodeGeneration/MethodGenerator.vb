@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Shared Function AddMethodTo(destination As NamespaceBlockSyntax,
                                            method As IMethodSymbol,
-                                           options As CodeGenerationOptions,
+                                           options As CodeGenerationContextInfo,
                                            availableIndices As IList(Of Boolean)) As NamespaceBlockSyntax
 
             Dim declaration = GenerateMethodDeclaration(method, CodeGenerationDestination.Namespace, options)
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Shared Function AddMethodTo(destination As CompilationUnitSyntax,
                                            method As IMethodSymbol,
-                                           options As CodeGenerationOptions,
+                                           options As CodeGenerationContextInfo,
                                            availableIndices As IList(Of Boolean)) As CompilationUnitSyntax
 
             Dim declaration = GenerateMethodDeclaration(method, CodeGenerationDestination.Namespace, options)
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Shared Function AddMethodTo(destination As TypeBlockSyntax,
                                            method As IMethodSymbol,
-                                           options As CodeGenerationOptions,
+                                           options As CodeGenerationContextInfo,
                                            availableIndices As IList(Of Boolean)) As TypeBlockSyntax
 
             Dim methodDeclaration = GenerateMethodDeclaration(method, GetDestination(destination), options)
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Shared Function GenerateMethodDeclaration(method As IMethodSymbol,
                                                          destination As CodeGenerationDestination,
-                                                         options As CodeGenerationOptions) As StatementSyntax
+                                                         options As CodeGenerationContextInfo) As StatementSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of DeclarationStatementSyntax)(method, options)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Shared Function GenerateMethodDeclarationWorker(method As IMethodSymbol,
                                                                 destination As CodeGenerationDestination,
-                                                                options As CodeGenerationOptions) As StatementSyntax
+                                                                options As CodeGenerationContextInfo) As StatementSyntax
             Dim isSub = method.ReturnType.SpecialType = SpecialType.System_Void
             Dim kind = If(isSub, SyntaxKind.SubStatement, SyntaxKind.FunctionStatement)
             Dim keyword = If(isSub, SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword)
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 endSubOrFunctionStatement:=endConstruct)
         End Function
 
-        Private Shared Function GenerateAsClause(method As IMethodSymbol, isSub As Boolean, options As CodeGenerationOptions) As SimpleAsClauseSyntax
+        Private Shared Function GenerateAsClause(method As IMethodSymbol, isSub As Boolean, options As CodeGenerationContextInfo) As SimpleAsClauseSyntax
             If isSub Then
                 Return Nothing
             End If
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Shared Function GenerateModifiers(method As IMethodSymbol,
                                                   destination As CodeGenerationDestination,
-                                                  options As CodeGenerationOptions) As SyntaxTokenList
+                                                  options As CodeGenerationContextInfo) As SyntaxTokenList
             Dim result As ArrayBuilder(Of SyntaxToken) = Nothing
             Using x = ArrayBuilder(Of SyntaxToken).GetInstance(result)
                 If destination <> CodeGenerationDestination.InterfaceType Then

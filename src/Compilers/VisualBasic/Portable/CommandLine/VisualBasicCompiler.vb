@@ -16,8 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Const ResponseFileName As String = "vbc.rsp"
         Friend Const VbcCommandLinePrefix = "vbc : " 'Common prefix String For VB diagnostic output with no location.
-        Private Shared ReadOnly s_responseFileName As String
-        Private ReadOnly _responseFile As String
         Private ReadOnly _diagnosticFormatter As CommandLineDiagnosticFormatter
         Private ReadOnly _tempDirectory As String
         Private _additionalTextFiles As ImmutableArray(Of AdditionalTextFile)

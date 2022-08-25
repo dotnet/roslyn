@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             : base(IDEDiagnosticIds.UseDeconstructionDiagnosticId,
                    EnforceOnBuildValues.UseDeconstruction,
                    CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Deconstruct_variable_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Variable_declaration_can_be_deconstructed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -42,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration, context.Node.SyntaxTree, cancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().PreferDeconstructedVariableDeclaration;
             if (!option.Value)
             {
                 return;

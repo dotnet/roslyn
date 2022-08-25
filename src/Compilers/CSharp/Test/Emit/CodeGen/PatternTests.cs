@@ -558,11 +558,11 @@ class Program
   IL_000e:  unbox.any  ""double""
   IL_0013:  stloc.1
   IL_0014:  ldloc.1
-  IL_0015:  ldc.r8     3.14
-  IL_001e:  beq.s      IL_0055
-  IL_0020:  ldloc.1
-  IL_0021:  call       ""bool double.IsNaN(double)""
-  IL_0026:  brtrue.s   IL_004b
+  IL_0015:  call       ""bool double.IsNaN(double)""
+  IL_001a:  brtrue.s   IL_004b
+  IL_001c:  ldloc.1
+  IL_001d:  ldc.r8     3.14
+  IL_0026:  beq.s      IL_0055
   IL_0028:  br.s       IL_005f
   IL_002a:  ldloc.0
   IL_002b:  isinst     ""float""
@@ -571,11 +571,11 @@ class Program
   IL_0033:  unbox.any  ""float""
   IL_0038:  stloc.2
   IL_0039:  ldloc.2
-  IL_003a:  ldc.r4     3.14
-  IL_003f:  beq.s      IL_005a
+  IL_003a:  call       ""bool float.IsNaN(float)""
+  IL_003f:  brtrue.s   IL_0050
   IL_0041:  ldloc.2
-  IL_0042:  call       ""bool float.IsNaN(float)""
-  IL_0047:  brtrue.s   IL_0050
+  IL_0042:  ldc.r4     3.14
+  IL_0047:  beq.s      IL_005a
   IL_0049:  br.s       IL_005f
   IL_004b:  ldc.i4.1
   IL_004c:  stloc.s    V_4
@@ -6530,5 +6530,304 @@ public class Class1
         }
 
         #endregion Pattern Combinators
+
+        [Fact, WorkItem(62563, "https://github.com/dotnet/roslyn/issues/62563")]
+        public void AssignToStructFieldOnClassTypeThroughCall_01()
+        {
+            var source = @"
+using System;
+
+struct Inner
+{
+    public int Value { get; set; }
+}
+
+class Outer
+{
+    public Inner Inner;
+}
+
+class Program
+{
+    static T Id<T>(T t) => t;
+
+    static void Main()
+    {
+        var outer = new Outer();
+        Console.Write(outer.Inner.Value);
+
+        M1(outer);
+        M2(outer);
+    }
+
+    static void M1(Outer outer)
+    {
+        Id(outer).Inner.Value = 1;
+        Console.Write(outer.Inner.Value);
+    }
+
+    static void M2(Outer outer)
+    {
+        Id(outer).Inner.Value = outer switch
+        {
+            _ => 2
+        };
+        Console.Write(outer.Inner.Value);
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "012");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M1", """
+            {
+              // Code size       37 (0x25)
+              .maxstack  2
+              IL_0000:  nop
+              IL_0001:  ldarg.0
+              IL_0002:  call       "Outer Program.Id<Outer>(Outer)"
+              IL_0007:  ldflda     "Inner Outer.Inner"
+              IL_000c:  ldc.i4.1
+              IL_000d:  call       "void Inner.Value.set"
+              IL_0012:  nop
+              IL_0013:  ldarg.0
+              IL_0014:  ldflda     "Inner Outer.Inner"
+              IL_0019:  call       "readonly int Inner.Value.get"
+              IL_001e:  call       "void System.Console.Write(int)"
+              IL_0023:  nop
+              IL_0024:  ret
+            }
+            """);
+
+            verifier.VerifyIL("Program.M2", """
+            {
+              // Code size       53 (0x35)
+              .maxstack  2
+              .locals init (Outer V_0,
+                            int V_1)
+              IL_0000:  nop
+              IL_0001:  ldarg.0
+              IL_0002:  call       "Outer Program.Id<Outer>(Outer)"
+              IL_0007:  stloc.0
+              IL_0008:  ldc.i4.1
+              IL_0009:  brtrue.s   IL_000c
+              IL_000b:  nop
+              IL_000c:  br.s       IL_000e
+              IL_000e:  ldc.i4.2
+              IL_000f:  stloc.1
+              IL_0010:  br.s       IL_0012
+              IL_0012:  ldc.i4.1
+              IL_0013:  brtrue.s   IL_0016
+              IL_0015:  nop
+              IL_0016:  ldloc.0
+              IL_0017:  ldflda     "Inner Outer.Inner"
+              IL_001c:  ldloc.1
+              IL_001d:  call       "void Inner.Value.set"
+              IL_0022:  nop
+              IL_0023:  ldarg.0
+              IL_0024:  ldflda     "Inner Outer.Inner"
+              IL_0029:  call       "readonly int Inner.Value.get"
+              IL_002e:  call       "void System.Console.Write(int)"
+              IL_0033:  nop
+              IL_0034:  ret
+            }
+            """);
+        }
+
+        [Fact, WorkItem(62563, "https://github.com/dotnet/roslyn/issues/62563")]
+        public void AssignToStructFieldOnClassTypeThroughCall_02()
+        {
+            var source = """
+using System;
+
+
+var val = 0.1;
+var obj = new Obj();
+ThrowWhenNull(obj).Color.Value = val switch
+{
+	0 => "green",
+	_ => "red"
+};
+Console.WriteLine($"{obj.Color.Value ?? "null"} should not be null");
+ThrowWhenNull(obj).Color.Value = "yikes";
+Console.WriteLine(obj.Color.Value); // yikes
+ThrowWhenNull(obj).Color.Value = val == 0 ? "green" : "red";
+Console.WriteLine(obj.Color.Value); // red
+
+static T ThrowWhenNull<T>(T obj) => obj ?? throw new System.InvalidOperationException();
+
+struct Wrapper<T>
+{
+	private T _value;
+	public T Value
+	{
+		get => _value;
+		set => _value = value;
+	}
+}
+
+class Obj
+{
+	public Wrapper<string> Color;
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: """
+                red should not be null
+                yikes
+                red
+                """);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size      186 (0xba)
+                  .maxstack  4
+                  .locals init (double V_0, //val
+                                string V_1)
+                  IL_0000:  ldc.r8     0.1
+                  IL_0009:  stloc.0
+                  IL_000a:  newobj     "Obj..ctor()"
+                  IL_000f:  dup
+                  IL_0010:  call       "Obj Program.<<Main>$>g__ThrowWhenNull|0_0<Obj>(Obj)"
+                  IL_0015:  ldloc.0
+                  IL_0016:  ldc.r8     0
+                  IL_001f:  bne.un.s   IL_0029
+                  IL_0021:  ldstr      "green"
+                  IL_0026:  stloc.1
+                  IL_0027:  br.s       IL_002f
+                  IL_0029:  ldstr      "red"
+                  IL_002e:  stloc.1
+                  IL_002f:  ldflda     "Wrapper<string> Obj.Color"
+                  IL_0034:  ldloc.1
+                  IL_0035:  call       "void Wrapper<string>.Value.set"
+                  IL_003a:  dup
+                  IL_003b:  ldflda     "Wrapper<string> Obj.Color"
+                  IL_0040:  call       "string Wrapper<string>.Value.get"
+                  IL_0045:  dup
+                  IL_0046:  brtrue.s   IL_004e
+                  IL_0048:  pop
+                  IL_0049:  ldstr      "null"
+                  IL_004e:  ldstr      " should not be null"
+                  IL_0053:  call       "string string.Concat(string, string)"
+                  IL_0058:  call       "void System.Console.WriteLine(string)"
+                  IL_005d:  dup
+                  IL_005e:  call       "Obj Program.<<Main>$>g__ThrowWhenNull|0_0<Obj>(Obj)"
+                  IL_0063:  ldflda     "Wrapper<string> Obj.Color"
+                  IL_0068:  ldstr      "yikes"
+                  IL_006d:  call       "void Wrapper<string>.Value.set"
+                  IL_0072:  dup
+                  IL_0073:  ldflda     "Wrapper<string> Obj.Color"
+                  IL_0078:  call       "string Wrapper<string>.Value.get"
+                  IL_007d:  call       "void System.Console.WriteLine(string)"
+                  IL_0082:  dup
+                  IL_0083:  call       "Obj Program.<<Main>$>g__ThrowWhenNull|0_0<Obj>(Obj)"
+                  IL_0088:  ldflda     "Wrapper<string> Obj.Color"
+                  IL_008d:  ldloc.0
+                  IL_008e:  ldc.r8     0
+                  IL_0097:  beq.s      IL_00a0
+                  IL_0099:  ldstr      "red"
+                  IL_009e:  br.s       IL_00a5
+                  IL_00a0:  ldstr      "green"
+                  IL_00a5:  call       "void Wrapper<string>.Value.set"
+                  IL_00aa:  ldflda     "Wrapper<string> Obj.Color"
+                  IL_00af:  call       "string Wrapper<string>.Value.get"
+                  IL_00b4:  call       "void System.Console.WriteLine(string)"
+                  IL_00b9:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem(62563, "https://github.com/dotnet/roslyn/issues/62563")]
+        public void AssignToEventFieldOnClassTypeThroughCall()
+        {
+            var source = @"
+using System;
+
+class Outer
+{
+    static readonly Action A = () => { };
+    static T Id<T>(T t) => t;
+
+    public event Action Inner;
+
+
+    static void Main()
+    {
+        var outer = new Outer();
+        Console.Write(outer.Inner);
+
+        M1(outer);
+
+        outer.Inner = null;
+        M2(outer);
+    }
+
+    static void M1(Outer outer)
+    {
+        Id(outer).Inner = A;
+        Console.Write(outer.Inner);
+    }
+
+    static void M2(Outer outer)
+    {
+        Id(outer).Inner = outer switch
+        {
+            _ => A
+        };
+        Console.Write(outer.Inner);
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "System.ActionSystem.Action");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Outer.M1", """
+            {
+              // Code size       30 (0x1e)
+              .maxstack  2
+              IL_0000:  nop
+              IL_0001:  ldarg.0
+              IL_0002:  call       "Outer Outer.Id<Outer>(Outer)"
+              IL_0007:  ldsfld     "System.Action Outer.A"
+              IL_000c:  stfld      "System.Action Outer.Inner"
+              IL_0011:  ldarg.0
+              IL_0012:  ldfld      "System.Action Outer.Inner"
+              IL_0017:  call       "void System.Console.Write(object)"
+              IL_001c:  nop
+              IL_001d:  ret
+            }
+            """);
+
+            verifier.VerifyIL("Outer.M2", """
+            {
+              // Code size       46 (0x2e)
+              .maxstack  2
+              .locals init (Outer V_0,
+                            System.Action V_1)
+              IL_0000:  nop
+              IL_0001:  ldarg.0
+              IL_0002:  call       "Outer Outer.Id<Outer>(Outer)"
+              IL_0007:  stloc.0
+              IL_0008:  ldc.i4.1
+              IL_0009:  brtrue.s   IL_000c
+              IL_000b:  nop
+              IL_000c:  br.s       IL_000e
+              IL_000e:  ldsfld     "System.Action Outer.A"
+              IL_0013:  stloc.1
+              IL_0014:  br.s       IL_0016
+              IL_0016:  ldc.i4.1
+              IL_0017:  brtrue.s   IL_001a
+              IL_0019:  nop
+              IL_001a:  ldloc.0
+              IL_001b:  ldloc.1
+              IL_001c:  stfld      "System.Action Outer.Inner"
+              IL_0021:  ldarg.0
+              IL_0022:  ldfld      "System.Action Outer.Inner"
+              IL_0027:  call       "void System.Console.Write(object)"
+              IL_002c:  nop
+              IL_002d:  ret
+            }
+            """);
+        }
     }
 }

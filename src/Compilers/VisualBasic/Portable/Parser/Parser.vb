@@ -375,28 +375,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Function
 
-        Private Shared Function MergeTokenText(firstToken As SyntaxToken, secondToken As SyntaxToken, thirdToken As SyntaxToken) As String
-
-            ' grab the part that doesn't contain the preceding and trailing trivia.
-
-            Dim builder = PooledStringBuilder.GetInstance()
-            Dim writer As New IO.StringWriter(builder)
-
-            firstToken.WriteTo(writer)
-            secondToken.WriteTo(writer)
-            thirdToken.WriteTo(writer)
-
-            Dim leadingWidth = firstToken.GetLeadingTriviaWidth()
-            Dim trailingWidth = thirdToken.GetTrailingTriviaWidth()
-            Dim fullWidth = firstToken.FullWidth + secondToken.FullWidth + thirdToken.FullWidth
-
-            Debug.Assert(builder.Length = fullWidth)
-            Debug.Assert(builder.Length >= leadingWidth + trailingWidth)
-
-            Return builder.ToStringAndFree(leadingWidth, fullWidth - leadingWidth - trailingWidth)
-
-        End Function
-
         Private Function GetCurrentSyntaxNodeIfApplicable(<Out()> ByRef curSyntaxNode As VisualBasicSyntaxNode) As BlockContext
             Dim result As BlockContext.LinkResult
             Dim incrementalContext = _context
@@ -1640,29 +1618,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Return typeParameters
 
-        End Function
-
-        ' File:Parser.cpp
-        ' Lines: 4681 - 4681
-        ' .Parser::ReportGenericArgumentsDisallowedError( [ ERRID errid ] [ _Inout_ bool& ErrorInConstruct ] )
-
-        Private Function ReportGenericArgumentsDisallowedError(errid As ERRID) As TypeArgumentListSyntax
-            Dim allowEmptyGenericArguments As Boolean = True
-            Dim AllowNonEmptyGenericArguments As Boolean = True
-
-            Dim genericArguments As TypeArgumentListSyntax = ParseGenericArguments(
-                allowEmptyGenericArguments,
-                AllowNonEmptyGenericArguments)
-
-            If genericArguments.CloseParenToken.IsMissing Then
-                genericArguments = ResyncAt(genericArguments)
-            End If
-
-            Debug.Assert(Not genericArguments.OpenParenToken.IsMissing, "Generic params parsing lost!!!")
-
-            genericArguments = ReportSyntaxError(genericArguments, errid)
-
-            Return genericArguments
         End Function
 
         ' File:Parser.cpp

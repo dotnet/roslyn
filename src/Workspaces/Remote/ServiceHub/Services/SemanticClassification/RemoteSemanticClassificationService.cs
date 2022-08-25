@@ -21,18 +21,16 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<SerializableClassifiedSpans> GetClassificationsAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             DocumentId documentId,
             TextSpan span,
             ClassificationType type,
             ClassificationOptions options,
-            StorageDatabase database,
             bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetDocument(documentId) ?? await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(document);
 
@@ -54,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         _cachedData.Clear();
 
                     // Enqueue this document into our work queue to fully classify and cache.
-                    _workQueue.AddWork((document, type, options, database));
+                    _workQueue.AddWork((document, type, options));
                 }
 
                 return SerializableClassifiedSpans.Dehydrate(temp.ToImmutable());

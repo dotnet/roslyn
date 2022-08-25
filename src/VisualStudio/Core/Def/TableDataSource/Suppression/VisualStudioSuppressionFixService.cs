@@ -13,11 +13,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -190,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                             var text = await tree.GetTextAsync(cancellationToken).ConfigureAwait(false);
                             foreach (var diagnostic in group)
                             {
-                                builder.Add(diagnostic.WithCalculatedSpan(text));
+                                builder.Add(diagnostic.WithSpan(text, tree));
                             }
                         }
                     }
@@ -252,6 +254,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             try
             {
                 using var token = _listener.BeginAsyncOperation(nameof(ApplySuppressionFix));
+
+                var originalSolution = _workspace.CurrentSolution;
                 var title = GetFixTitle(isAddSuppression);
                 var waitDialogMessage = GetWaitDialogMessage(isAddSuppression);
 
@@ -298,17 +302,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                 // We have different suppression fixers for every language.
                 // So we need to group diagnostics by the containing project language and apply fixes separately.
-                var languages = new HashSet<string>(projectDiagnosticsToFixMap.Select(p => p.Key.Language).Concat(documentDiagnosticsToFixMap.Select(kvp => kvp.Key.Project.Language)));
+                var languageServices = projectDiagnosticsToFixMap.Select(p => p.Key.Services).Concat(documentDiagnosticsToFixMap.Select(kvp => kvp.Key.Project.Services)).ToHashSet();
 
-                foreach (var language in languages)
+                foreach (var languageService in languageServices)
                 {
                     // Use the Fix multiple occurrences service to compute a bulk suppression fix for the specified document and project diagnostics,
                     // show a preview changes dialog and then apply the fix to the workspace.
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var options = _globalOptions.GetCodeActionOptions(language);
-                    var optionsProvider = new CodeActionOptionsProvider(_ => options);
+                    var language = languageService.Language;
+                    var options = _globalOptions.GetCodeActionOptions(languageService);
+                    var optionsProvider = options.CreateProvider();
 
                     var documentDiagnosticsPerLanguage = GetDocumentDiagnosticsMappedToNewSolution(documentDiagnosticsToFixMap, newSolution, language);
                     if (!documentDiagnosticsPerLanguage.IsEmpty)
@@ -372,7 +377,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                             newSolution,
                             fixAllPreviewChangesTitle: title,
                             fixAllTopLevelHeader: title,
-                            languageOpt: languages?.Count == 1 ? languages.Single() : null,
+                            fixAllKind: FixAllKind.CodeFix,
+                            languageOpt: languageServices?.Count == 1 ? languageServices.Single().Language : null,
                             workspace: _workspace);
                         if (newSolution == null)
                         {
@@ -385,6 +391,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     using var scope = context.AddScope(allowCancellation: true, description: waitDialogMessage);
                     await _editHandlerService.ApplyAsync(
                         _workspace,
+                        originalSolution,
                         fromDocument: null,
                         operations: operations,
                         title: title,

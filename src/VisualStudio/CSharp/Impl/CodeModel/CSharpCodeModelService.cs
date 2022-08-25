@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders;
@@ -38,11 +39,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
     {
         internal CSharpCodeModelService(
             HostLanguageServices languageServiceProvider,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             IThreadingContext threadingContext)
             : base(languageServiceProvider,
-                   editorOptionsFactoryService,
+                   editorOptionsService,
                    refactorNotifyServices,
                    BlankLineInGeneratedMethodFormattingRule.Instance,
                    EndRegionFormattingRule.Instance,
@@ -3559,17 +3560,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 switch (accessor.Kind())
                 {
                     case SyntaxKind.GetAccessorDeclaration:
-                        if (getAccessor == null)
-                        {
-                            getAccessor = accessor;
-                        }
+                        getAccessor ??= accessor;
 
                         break;
                     case SyntaxKind.SetAccessorDeclaration:
-                        if (setAccessor == null)
-                        {
-                            setAccessor = accessor;
-                        }
+                        setAccessor ??= accessor;
 
                         break;
                 }

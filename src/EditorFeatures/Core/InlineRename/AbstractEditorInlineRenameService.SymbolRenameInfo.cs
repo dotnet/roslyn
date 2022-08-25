@@ -9,8 +9,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -25,11 +26,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// <summary>
         /// Represents information about the ability to rename a particular location.
         /// </summary>
-        private partial class SymbolInlineRenameInfo : IInlineRenameInfoWithFileRename
+        private partial class SymbolInlineRenameInfo : IInlineRenameInfo
         {
             private const string AttributeSuffix = "Attribute";
 
             private readonly Document _document;
+            private readonly CodeCleanupOptionsProvider _fallbackOptions;
             private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
             /// <summary>
@@ -59,15 +61,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 ISymbol renameSymbol,
                 bool forceRenameOverloads,
                 ImmutableArray<DocumentSpan> definitionLocations,
+                CodeCleanupOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 this.CanRename = true;
 
                 _refactorNotifyServices = refactorNotifyServices;
                 _document = document;
+                _fallbackOptions = fallbackOptions;
                 this.RenameSymbol = renameSymbol;
 
-                this.HasOverloads = RenameLocations.GetOverloadedSymbols(this.RenameSymbol).Any();
+                this.HasOverloads = RenameUtilities.GetOverloadedSymbols(this.RenameSymbol).Any();
                 this.MustRenameOverloads = forceRenameOverloads;
 
                 _isRenamingAttributePrefix = CanRenameAttributePrefix(triggerText);
@@ -187,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 var solution = _document.Project.Solution;
                 var locations = await Renamer.FindRenameLocationsAsync(
-                    solution, this.RenameSymbol, options, cancellationToken).ConfigureAwait(false);
+                    solution, this.RenameSymbol, options, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 return new InlineRenameLocationSet(this, locations);
             }
@@ -207,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public InlineRenameFileRenameInfo GetFileRenameInfo()
             {
                 if (RenameSymbol.Kind == SymbolKind.NamedType &&
-                    _document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
+                    _document.Project.Solution.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
                 {
                     if (RenameSymbol.Locations.Length > 1)
                     {

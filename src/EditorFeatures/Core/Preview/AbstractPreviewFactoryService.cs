@@ -30,19 +30,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
-    internal abstract class AbstractPreviewFactoryService<TDifferenceViewer> : ForegroundThreadAffinitizedObject, IPreviewFactoryService
+    internal abstract class AbstractPreviewFactoryService<TDifferenceViewer> : IPreviewFactoryService
         where TDifferenceViewer : IDifferenceViewer
     {
         private const double DefaultZoomLevel = 0.75;
         private readonly ITextViewRoleSet _previewRoleSet;
-
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
         private readonly ITextDifferencingSelectorService _differenceSelectorService;
         private readonly IDifferenceBufferFactoryService _differenceBufferService;
-        private readonly IGlobalOptionService _globalOptions;
+
+        protected readonly IThreadingContext ThreadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -51,24 +51,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             ITextBufferFactoryService textBufferFactoryService,
             IContentTypeRegistryService contentTypeRegistryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             ITextDifferencingSelectorService differenceSelectorService,
             IDifferenceBufferFactoryService differenceBufferService,
-            ITextViewRoleSet previewRoleSet,
-            IGlobalOptionService globalOptions)
-            : base(threadingContext)
+            ITextViewRoleSet previewRoleSet)
         {
-            Contract.ThrowIfFalse(ThreadingContext.HasMainThread);
-
+            ThreadingContext = threadingContext;
             _textBufferFactoryService = textBufferFactoryService;
             _contentTypeRegistryService = contentTypeRegistryService;
             _projectionBufferFactoryService = projectionBufferFactoryService;
-            _editorOptionsFactoryService = editorOptionsFactoryService;
+            _editorOptionsService = editorOptionsService;
             _differenceSelectorService = differenceSelectorService;
             _differenceBufferService = differenceBufferService;
-
             _previewRoleSet = previewRoleSet;
-            _globalOptions = globalOptions;
         }
 
         public SolutionPreviewResult? GetSolutionPreviews(Solution oldSolution, Solution? newSolution, CancellationToken cancellationToken)
@@ -586,7 +581,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             var originalBuffer = _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
                 _contentTypeRegistryService,
-                _editorOptionsFactoryService.GlobalOptions,
+                _editorOptionsService.Factory.GlobalOptions,
                 oldBuffer.CurrentSnapshot,
                 "...",
                 description,
@@ -594,7 +589,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             var changedBuffer = _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
                 _contentTypeRegistryService,
-                _editorOptionsFactoryService.GlobalOptions,
+                _editorOptionsService.Factory.GlobalOptions,
                 newBuffer.CurrentSnapshot,
                 "...",
                 description,
@@ -683,7 +678,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 rightWorkspace = null;
             };
 
-            if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+            if (_editorOptionsService.GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
             {
                 leftWorkspace?.EnableSolutionCrawler();
                 rightWorkspace?.EnableSolutionCrawler();
@@ -762,7 +757,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             // Defer to the editor to figure out what changes the client made.
             var diffService = _differenceSelectorService.GetTextDifferencingService(
-                oldDocument.Project.LanguageServices.GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType());
+                oldDocument.Project.Services.GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType());
 
             diffService ??= _differenceSelectorService.DefaultTextDifferencingService;
             return diffService.DiffStrings(oldText.ToString(), newText.ToString(), new StringDifferenceOptions()

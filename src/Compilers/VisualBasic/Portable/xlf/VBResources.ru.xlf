@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
-        <source>A shared abstract interface member cannot be accessed.</source>
-        <target state="translated">Не удается получить доступ к элементу интерфейса общей аннотации.</target>
+        <source>A shared abstract or virtual interface member cannot be accessed.</source>
+        <target state="translated">Нет доступа к общему абстрактному или виртуальному элементу интерфейса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -25,6 +25,11 @@
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">Не удается внедрить тип "{0}", так как он имеет неабстрактный член. Попробуйте задать для свойства "Внедрить типы взаимодействия" значение false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoNotUseCompilerFeatureRequired">
+        <source>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">"System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute" зарезервирован для использования только компилятором.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -63,13 +68,18 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
-        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
-        <target state="translated">{0} "{1}" не может реализовать интерфейс "{3}", потому что он содержит общую аннотацию "{2}".</target>
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
+        <target state="translated">{0} "{1}" не может реализовать интерфейс "{3}", поскольку он содержит общий абстрактный или виртуальный элемент "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
         <target state="translated">Атрибут "UnmanagedCallersOnly" не поддерживается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedCompilerFeature">
+        <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
+        <target state="translated">Для "{0}" требуется функция компилятора "{1}", которая не поддерживается в этой версии компилятора Visual Basic.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -249,7 +259,7 @@
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emit compiler output in UTF8 character
+-utf8output[+|-]                  Emit compiler output in UTF-8 character
                                   encoding.
 @&lt;file&gt;                           Insert command-line settings from a text file
 -vbruntime[+|-|*]                 Compile with/without the default Visual Basic
@@ -259,167 +269,167 @@
 </source>
         <target state="translated">                  Параметры компилятора Visual Basic
 
-                                  - Выходной файл -
--out:&lt;file&gt;                       Задает имя выходного файла.
+                                  - ВЫХОДНОЙ ФАЙЛ -
+-out:&lt;файл&gt;                       Указывает имя выходного файла.
 -target:exe                       Создать консольное приложение (по умолчанию).
                                   (Краткая форма: -t)
--target:winexe                    Создать Windows-приложение.
--target:library                   Создать библиотечную сборку.
--target:module                    Создать модуль, который может быть добавлен в
-                                  сборку.
--target:appcontainerexe           Создать Windows-приложение, выполняемое в контейнере
+-target:winexe                    Создать приложение Windows.
+-target:library                   Создать сборку библиотеки.
+-target:module                    Создать модуль для добавления
+                                  в сборку.
+-target:appcontainerexe           Создать приложение Windows, которое выполняется в
                                   AppContainer.
 -target:winmdobj                  Создать промежуточный файл метаданных Windows
--doc[+|-]                         Создает XML-файл документации.
--doc:&lt;file&gt;                       Создает XML-файл документации &lt;file&gt;.
--refout:&lt;file&gt;                    Выходные данные создаваемой базовой сборки
+-doc[+|-]                         Создать файл документации XML.
+-doc:&lt;файл&gt;                       Создать файл документации XML в &lt;файле&gt;.
+-refout:&lt;файл&gt;                    Вывод базовой сборки для создания
 
-                                  - Входные файлы -
--addmodule:&lt;file_list&gt;            Ссылка на метаданные из заданных модулей
--link:&lt;file_list&gt;                 Внедрить метаданные из указанной сборки
+                                  - ВХОДНЫЕ ФАЙЛЫ -
+-addmodule:&lt;список_файлов&gt;            Создать ссылки на метаданные из указанных модулей
+-link:&lt;список_файлов&gt;                 Внедрить метаданные из указанной сборки
                                   взаимодействия. (Краткая форма: -l)
--recurse:&lt;wildcard&gt;               Включить все файлы в текущем каталоге
-                                  и подкаталогах в соответствии с
-                                  заданным шаблоном.
--reference:&lt;file_list&gt;            Ссылка на метаданные из заданной
+-recurse:&lt;шаблон&gt;               Включить все файлы в текущем каталоге
+                                  и в подкаталогах в соответствии
+                                  с заданным шаблоном.
+-reference:&lt;список_файлов&gt;            Создать ссылки на метаданные из указанной
                                   сборки. (Краткая форма: -r)
--analyzer:&lt;file_list&gt;             Запускать анализаторы из этой сборки
-                                  (Краткая форма: -a)
--additionalfile:&lt;file list&gt;       Дополнительные файлы, которые не оказывают прямого влияния на создание
+-analyzer:&lt;список_файлов&gt;             Запустить анализаторы из этой сборки
+                                  (краткая форма: -a)
+-additionalfile:&lt;список файлов&gt;       Дополнительные файлы, которые не повлияют на создание
                                   кода, но могут использоваться анализаторами для вывода
                                   ошибок или предупреждений.
 
-                                  - Ресурсы -
--linkresource:&lt;resinfo&gt;           Привязывает указанный файл в качестве внешнего
+                                  - РЕСУРСЫ -
+-linkresource:&lt;resinfo&gt;           Ссылка на указанный файл в качестве внешнего
                                   ресурса сборки.
-                                  Данные о ресурсе:&lt;file&gt;[,&lt;name&gt;[,public|private]]
+                                  resinfo:&lt;файл&gt;[,&lt;имя&gt;[,public|private]]
                                   (Краткая форма: -linkres)
--nowin32manifest                  Манифест по умолчанию не должен внедряться
-                                  в раздел манифеста выходного PE-файла.
--resource:&lt;resinfo&gt;               Добавляет указанный файл в качестве внедренного
+-nowin32manifest                  Не внедрять манифест по умолчанию
+                                  в раздел манифеста выходной PE.
+-resource:&lt;resinfo&gt;               Добавить указанный файл в качестве внедренного
                                   ресурса сборки.
-                                  Данные о ресурсе:&lt;file&gt;[,&lt;name&gt;[,public|private]]
+                                  resinfo:&lt;файл&gt;[,&lt;имя&gt;[,public|private]]
                                   (Краткая форма: -res)
--win32icon:&lt;file&gt;                 Задает файл значка Win32 (ICO-файл) для
+-win32icon:&lt;файл&gt;                 Указывает файл значка Win32 (.ICO) для
                                   ресурсов Win32 по умолчанию.
--win32manifest:&lt;file&gt;             Предоставленный файл внедряется в раздел
-                                  манифеста выходного PE-файла.
--win32resource:&lt;file&gt;             Задает файл ресурсов Win32 (RES-файл).
+-win32manifest:&lt;файл&gt;             Предоставленный файл внедрен в раздел
+                                  манифеста в выходной PE.
+-win32resource:&lt;файл&gt;             Указывает файл ресурса Win32 (.RES).
 
-                                  - Создание кода -
+                                  - СОЗДАНИЕ КОДА -
 -optimize[+|-]                    Включить оптимизацию.
--removeintchecks[+|-]             Удалить целочисленные проверки. По умолчанию отключены.
--debug[+|-]                       Выдать отладочные данные.
--debug:full                       Выдать полные отладочные данные (по умолчанию).
--debug:pdbonly                    Выдать полные отладочные данные.
--debug:portable                   Выдать кроссплатформенные отладочные данные.
--debug:embedded                   Выдать кроссплатформенные отладочные данные в
-                                  целевой DLL-файл или EXE-файл.
+-removeintchecks[+|-]             Удалить целочисленные проверки. По умолчанию: выключено.
+-debug[+|-]                       Выдавать отладочные сведения.
+-debug:full                       Выдавать полные отладочные сведения (по умолчанию).
+-debug:pdbonly                    Выдавать полные отладочные сведения.
+-debug:portable                   Выдавать кроссплатформенные отладочные сведения.
+-debug:embedded                   Выдавать кроссплатформенные отладочные сведения в целевой
+                                  файл .DLL или .EXE.
 -deterministic                    Создать детерминированную сборку
                                   (включая GUID версии модуля и метку времени)
--refonly                          Создавать базовую сборку вместо основных выходных данных
--instrument:TestCoverage          Создавать сборку, инструментированную для сбора
-                                  данных об объеме протестированного кода
--sourcelink:&lt;file&gt;                Данные о ссылке на исходные файлы для внедрения в PDB.
+-refonly                          Создать базовую сборку вместо основного вывода
+-instrument:TestCoverage          Создать сборку, оснащенную для сбора
+                                  сведений о покрытии
+-sourcelink:&lt;файл&gt;                Сведения об исходной ссылке для внедрения в PDB.
 
-                                  - Ошибки и предупреждения -
+                                  - ОШИБКИ И ПРЕДУПРЕЖДЕНИЯ -
 -nowarn                           Отключить все предупреждения.
--nowarn:&lt;number_list&gt;             Отключить отдельные предупреждения по списку.
+-nowarn:&lt;список_чисел&gt;             Отключить отдельные предупреждения, перечисленные в списке.
 -warnaserror[+|-]                 Обрабатывать все предупреждения как ошибки.
--warnaserror[+|-]:&lt;number_list&gt;   Обрабатывать список предупреждений как ошибки.
--ruleset:&lt;file&gt;                   Указать файл набора правил, отключающий определенные
-                                  диагностические операции.
--errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
-                                  Указать файл для записи всех диагностических данных
-                                  компилятора и анализатора в формате SARIF.
-                                  sarif_version:{1|2|2.1} По умолчанию используются значения 1. 2 и 2.1,
-                                  обозначающие версию SARIF 2.1.0.
--reportanalyzer                   Сообщить дополнительные сведения об анализаторе, например
+-warnaserror[+|-]:&lt;список_чисел&gt;   Обрабатывать предупреждения в списке как ошибки.
+-ruleset:&lt;файл&gt;                   Указать файл набора правил, отключающего определенную
+                                  диагностику.
+-errorlog:&lt;файл&gt;[,version=&lt;версия_sarif&gt;]         
+                                  Указать файл для записи всех диагностических данных компилятора и анализатора
+                                  в формате SARIF.
+                                  версия_sarif:{1|2|2.1} По умолчанию: 1. 2 и 2.1
+                                  означают SARIF версии 2.1.0.
+-reportanalyzer                   Передавать дополнительные сведения о анализаторе, например
                                   время выполнения.
--skipanalyzers[+|-]               Пропустить выполнение анализаторов диагностики.
+-skipanalyzers[+|-]               Пропустить выполнение диагностических анализаторов.
 
-                                  - Язык -
--define:&lt;symbol_list&gt;             Объявить глобальные символы условной
-                                  компиляции. symbol_list:имя=значение,...
+                                  - ЯЗЫК -
+-define:&lt;список_символов&gt;             Объявить глобальные символы условной
+                                  компиляции. список_символов:имя=значение,...
                                   (Краткая форма: -d)
--imports:&lt;import_list&gt;            Объявить глобальные импорты для пространств имен в
+-imports:&lt;список_импорта&gt;            Объявить глобальные импорты для пространств имен в
                                   указанных файлах метаданных.
-                                  import_list:пространство_имен,...
--langversion:?                    Отображать допустимые значения версии языка
--langversion:&lt;string&gt;             Указать версию языка, например
-                                  "default" (последний основной номер версии) или
-                                  "latest" (последняя версия, включая дополнительные номера),
-                                  или конкретные версии, например 14 или 15.3
+                                  список_импорта:пространство имен,...
+-langversion:?                    Показать допустимые значения версии языка
+-langversion:&lt;строка&gt;             Указать версию языка, например
+                                  "default" (последняя основная версия) или
+                                  "latest" (последняя версия, включая дополнительные версии),
+                                  также можно указывать определенные версии, например "14" или "15.3"
 -optionexplicit[+|-]              Требовать явное объявление переменных.
--optioninfer[+|-]                 Разрешить вывод для типов переменных.
--rootnamespace:&lt;string&gt;           Задает корневое пространство имен для всех объявлений
+-optioninfer[+|-]                 Разрешить определение типа переменных.
+-rootnamespace:&lt;строка&gt;           Указать корневое пространство имен для всех объявлений
                                   типов.
--optionstrict[+|-]                Требовать строгую семантику языка.
--optionstrict:custom              Предупреждать, когда не соблюдается строгая семантика
+-optionstrict[+|-]                Принудительное применение строгой семантики языка.
+-optionstrict:custom              Предупреждать о несоблюдении строгой семантики
                                   языка.
--optioncompare:binary             Задает сравнение строк как двоичных данных.
-                                  Задано по умолчанию.
--optioncompare:text               Задает сравнение строк как текста.
+-optioncompare:binary             Сравнение строк в двоичном формате.
+                                  Это значение используется по умолчанию.
+-optioncompare:text               Указывает сравнения строк в виде текста.
 
-                                  - Прочее -
--help                             Отображать это сообщение об использовании. (Краткая форма: -?)
--noconfig                         Не включать файл VBC.RSP в состав автоматически.
--nologo                           Не отображать заставку компилятора с информацией об авторских правах.
--quiet                            Режим вывода без сообщений.
--verbose                          Отображать подробные сообщения.
+                                  - ПРОЧЕЕ -
+-help                             Отобразить это сообщение об использовании. (Краткая форма: -?)
+-noconfig                         Не включать файл VBC.RSP автоматически.
+-nologo                           Не показывать баннер со сведениями об авторских правах на компилятор.
+-quiet                            Режим тихого вывода.
+-verbose                          Показать подробные сообщения.
 -parallel[+|-]                    Параллельная сборка.
--version                          Отобразить номер версии компилятора и выйти.
+-version                          Показать номер версии компилятора и выйти.
 
-                                  - Дополнительно -
--baseaddress:&lt;number&gt;             Базовый адрес библиотеки или модуля
+                                  - РАСШИРЕННЫЕ -
+-baseaddress:&lt;число&gt;             Базовый адрес библиотеки или модуля
                                   (шестнадцатеричный).
--checksumalgorithm:&lt;alg&gt;          Задать алгоритм расчета контрольной суммы
-                                  исходного файла, хранимой в PDB. Поддерживаемые значения:
+-checksumalgorithm:&lt;алгоритм&gt;          Указать алгоритм для вычисления контрольной суммы исходного файла,
+                                  хранящейся в PDB. Поддерживаемые значения:
                                   SHA1 или SHA256 (по умолчанию).
--codepage:&lt;number&gt;                Указывает кодовую страницу, используемую при открытии
+-codepage:&lt;число&gt;                Указать кодовую страницу, используемую при открытии
                                   исходных файлов.
--delaysign[+|-]                   Использовать отложенную подпись для сборки, применяя только
-                                  открытую часть ключа строгого имени.
--publicsign[+|-]                  Выполнить общедоступную подпись сборки, используя только открытую
-                                  часть ключа строгого имени.
--errorreport:&lt;string&gt;             Указывает способ обработки внутренних ошибок
-                                  компилятора; принимает prompt, send, none или queue
+-delaysign[+|-]                   Задержка подписания сборки с использованием только открытой
+                                  части ключа строгого имени.
+-publicsign[+|-]                  Открытое подписание сборки с использованием только открытой
+                                  части ключа строгого имени.
+-errorreport:&lt;строка&gt;             Указать порядок обработки внутренних ошибок
+                                  компилятора; должно быть значение prompt, send, none или queue
                                   (по умолчанию).
--filealign:&lt;number&gt;               Задать выравнивание для разделов выходных
-                                  файлов.
+-filealign:&lt;число&gt;               Указать выравнивание для секций
+                                  выходного файла.
 -highentropyva[+|-]               Включить ASLR с высокой энтропией.
--keycontainer:&lt;string&gt;            Задает контейнер ключа строгого имени.
--keyfile:&lt;file&gt;                   Задает файл ключа строгого имени.
--libpath:&lt;path_list&gt;              Список каталогов для поиска ссылок на
-                                  метаданные. (Разделитель — точка с запятой.)
--main:&lt;class&gt;                     Задает класс или модуль, содержащий
-                                  Sub Main. Он может являться производным
-                                  классом от System.Windows.Forms.Form.
+-keycontainer:&lt;строка&gt;            Указывает контейнер ключей строгого имени.
+-keyfile:&lt;файл&gt;                   Указывает файл ключей строгого имени.
+-libpath:&lt;список_путей&gt;              Список каталогов для поиска ссылок на
+                                  метаданные. (Разделители — точки с запятыми.)
+-main:&lt;класс&gt;                     Указать класс или модуль, содержащий
+                                  Sub Main. Также можно указать класс,
+                                  наследующий от System.Windows.Forms.Form.
                                   (Краткая форма: -m)
--moduleassemblyname:&lt;string&gt;      Имя сборки, частью которой будет
-                                  данный модуль.
--netcf                            Целевая версия .NET Compact Framework.
--nostdlib                         Не обращаться к стандартным библиотекам
-                                  (файл system.dll и VBC.RSP).
+-moduleassemblyname:&lt;строка&gt;      Имя сборки, в состав которой войдет этот
+                                  модуль.
+-netcf                            Целевая среда — .NET Compact Framework.
+-nostdlib                         Не ссылаться на стандартные библиотеки
+                                  (system.dll и файл VBC.RSP).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  Указать сопоставление для выходных данных имен исходного пути по
-                                  компилятору.
--platform:&lt;string&gt;                Ограничить платформы, на которых может выполняться этот код:
-                                  x86, x64, Itanium, arm, arm64
+                                  Указать сопоставление для вывода имен исходных путей
+                                  компилятором.
+-platform:&lt;строка&gt;                Ограничить платформы, на которых может выполняться этот код;
+                                  допустимые значения: x86, x64, Itanium, arm, arm64
                                   AnyCPU32BitPreferred или anycpu (по умолчанию).
--preferreduilang                  Указать имя предпочтительного языка вывода.
--nosdkpath                        Отключить поиск пути пакета SDK по умолчанию для сборок стандартных библиотек.
--sdkpath:&lt;path&gt;                   Расположение каталога пакета SDK .NET Framework
+-preferreduilang                  Указать предпочитаемое имя выходного языка.
+-nosdkpath                        Отключить поиск стандартных сборок библиотек в пути SDK по умолчанию.
+-sdkpath:&lt;путь&gt;                   Расположение каталога SDK .NET Framework
                                   (mscorlib.dll).
--subsystemversion:&lt;version&gt;       Указать версию подсистемы выходного PE-файла.
-                                  version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Выдавать выходные данные компилятора в кодировке
-                                  UTF8.
-@&lt;file&gt;                           Вставить параметры командной строки из текстового файла
--vbruntime[+|-|*]                 Скомпилировать с помощью или без использования стандартной среды выполнения
-                                  Visual Basic.
--vbruntime:&lt;file&gt;                 Скомпилировать с помощью альтернативной среды выполнения
-                                  Visual Basic в &lt;file&gt;.
+-subsystemversion:&lt;версия&gt;       Указать версию выходной PE.
+                                  версия:&lt;число&gt;[.&lt;число&gt;]
+-utf8output[+|-]                  Выводить выходные данные компилятора в кодировке
+                                  UTF-8.
+@&lt;файл&gt;                           Вставить параметры командной строки из текстового файла
+-vbruntime[+|-|*]                 Компилировать со средой выполнения Visual Basic по умолчанию
+                                  или без нее.
+-vbruntime:&lt;file&gt;                 Компилировать с альтернативной средой выполнения Visual Basic
+                                  в &lt;файле&gt;.
 </target>
         <note />
       </trans-unit>
@@ -516,6 +526,16 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">Загруженная сборка ссылается на платформу .NET Framework, которая не поддерживается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="new">The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
+        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
+        <target state="new">The analyzer assembly references a newer version of the compiler than the currently running version.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">

@@ -3081,14 +3081,14 @@ End Module"
                 Dim options = VisualBasicSyntaxFormattingOptions.Default
 
                 ' format first time
-                Dim result = Formatter.GetFormattedTextChanges(root, workspace.Services, options, CancellationToken.None)
+                Dim result = Formatter.GetFormattedTextChanges(root, workspace.Services.SolutionServices, options, CancellationToken.None)
                 AssertResult(inputOutput, Await document.GetTextAsync(), result)
 
                 Dim document2 = document.WithText((Await document.GetTextAsync()).WithChanges(result))
                 Dim root2 = Await document2.GetSyntaxRootAsync()
 
                 ' format second time
-                Dim result2 = Formatter.GetFormattedTextChanges(root, workspace.Services, options, CancellationToken.None)
+                Dim result2 = Formatter.GetFormattedTextChanges(root, workspace.Services.SolutionServices, options, CancellationToken.None)
                 AssertResult(inputOutput, Await document2.GetTextAsync(), result2)
             End Using
         End Function
@@ -3906,7 +3906,7 @@ End Class</text>.Value.Replace(vbLf, vbCrLf)
             root = root.ReplaceNode(method, method.NormalizeWhitespace(elasticTrivia:=True).WithAdditionalAnnotations(goo))
 
             Using workspace = New AdhocWorkspace()
-                Dim result = Formatter.Format(root, goo, workspace.Services, VisualBasicSyntaxFormattingOptions.Default, CancellationToken.None).ToString()
+                Dim result = Formatter.Format(root, goo, workspace.Services.SolutionServices, VisualBasicSyntaxFormattingOptions.Default, CancellationToken.None).ToString()
                 Assert.Equal(expected, result)
             End Using
         End Sub
@@ -4338,8 +4338,11 @@ End Module
 End Class</text>.Value)
 
             Dim propertyBlock = (Await document.GetSyntaxRootAsync()).DescendantNodes().OfType(Of PropertyBlockSyntax).Single()
-            document = Await Formatter.FormatAsync(document.WithSyntaxRoot(
-                (Await document.GetSyntaxRootAsync()).ReplaceNode(propertyBlock, propertyBlock.WithAccessors(SyntaxFactory.SingletonList(setter)))))
+
+            Dim newDocument = document.WithSyntaxRoot(
+                (Await document.GetSyntaxRootAsync()).ReplaceNode(propertyBlock, propertyBlock.WithAccessors(SyntaxFactory.SingletonList(setter))))
+
+            document = Await Formatter.FormatAsync(newDocument, VisualBasicSyntaxFormattingOptions.Default, CancellationToken.None)
 
             Dim actual = (Await document.GetTextAsync()).ToString()
             Assert.Equal(actual, actual)
@@ -4730,12 +4733,18 @@ End Class
                 ' replace all EOL trivia with elastic markers to force the formatter to add EOL back
                 tree = tree.ReplaceTrivia(tree.DescendantTrivia().Where(Function(tr) tr.IsKind(SyntaxKind.EndOfLineTrivia)), Function(o, r) SyntaxFactory.ElasticMarker)
 
-                Dim options = SyntaxFormattingOptions.Create(
-                    workspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.VisualBasic, vbLf),
-                    workspace.Services,
-                    tree.Language)
+                Dim options = New VisualBasicSyntaxFormattingOptions() With
+                {
+                    .Common = New SyntaxFormattingOptions.CommonOptions() With
+                    {
+                        .LineFormatting = New LineFormattingOptions() With
+                        {
+                            .NewLine = vbLf
+                        }
+                    }
+                }
 
-                Dim formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None)
+                Dim formatted = Formatter.Format(tree, workspace.Services.SolutionServices, options, CancellationToken.None)
                 Dim actual = formatted.ToFullString()
 
                 Dim expected = "Class C" & vbLf & "End Class"

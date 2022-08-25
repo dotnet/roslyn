@@ -6,6 +6,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public override async Task<AddImportFixData> TryGetFixDataAsync(
-                Document document, SyntaxNode node, AddImportPlacementOptions options, CancellationToken cancellationToken)
+                Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken)
             {
                 var textChanges = await GetTextChangesAsync(document, node, options, cancellationToken).ConfigureAwait(false);
 

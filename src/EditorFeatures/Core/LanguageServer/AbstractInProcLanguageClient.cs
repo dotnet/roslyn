@@ -22,15 +22,14 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
-    internal abstract partial class AbstractInProcLanguageClient : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider
+    internal abstract partial class AbstractInProcLanguageClient : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider, ILanguageClientCustomMessage2
     {
-        private readonly string? _diagnosticsClientName;
         private readonly IThreadingContext _threadingContext;
+        private readonly ILanguageClientMiddleLayer? _middleLayer;
         private readonly ILspLoggerFactory _lspLoggerFactory;
 
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-        private readonly AbstractRequestDispatcherFactory _requestDispatcherFactory;
-        private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
+        private readonly AbstractLspServiceProvider _lspServiceProvider;
 
         protected readonly IGlobalOptionService GlobalOptions;
 
@@ -43,6 +42,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// Gets the name of the language client (displayed to the user).
         /// </summary>
         public string Name => ServerKind.ToUserVisibleString();
+
+        /// <summary>
+        /// Gets the optional middle layer object that can intercept outgoing requests and responses.
+        /// </summary>
+        /// <remarks>
+        /// Currently utilized by Razor to intercept Roslyn's workspace/semanticTokens/refresh requests.
+        /// </remarks>
+        public object? MiddleLayer => _middleLayer;
+
+        /// <summary>
+        /// Unused, implementing <see cref="ILanguageClientCustomMessage2"/>.
+        /// Gets the optional target object for receiving custom messages not covered by the language server protocol.
+        /// </summary>
+        public object? CustomMessageTarget => null;
 
         /// <summary>
         /// An enum representing this server instance.
@@ -68,6 +81,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public object? InitializationOptions { get; }
 
         /// <summary>
+        /// Gets a value indicating whether a notification bubble show be shown when the language server fails to initialize.
+        /// </summary>
+        public abstract bool ShowNotificationOnInitializeFailed { get; }
+
+        /// <summary>
         /// Unused, implementing <see cref="ILanguageClient"/>
         /// Files that we care about are already provided and watched by the workspace.
         /// </summary>
@@ -81,21 +99,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
 
         public AbstractInProcLanguageClient(
-            AbstractRequestDispatcherFactory requestDispatcherFactory,
+            AbstractLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
-            string? diagnosticsClientName)
+            AbstractLanguageClientMiddleLayer? middleLayer = null)
         {
-            _requestDispatcherFactory = requestDispatcherFactory;
+            _lspServiceProvider = lspServiceProvider;
             GlobalOptions = globalOptions;
             _listenerProvider = listenerProvider;
-            _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-            _diagnosticsClientName = diagnosticsClientName;
             _lspLoggerFactory = lspLoggerFactory;
             _threadingContext = threadingContext;
+            _middleLayer = middleLayer;
         }
 
         public async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
@@ -146,7 +162,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 serverStream,
                 serverStream,
                 _lspLoggerFactory,
-                _diagnosticsClientName,
                 cancellationToken).ConfigureAwait(false);
 
             return new Connection(clientStream, clientStream);
@@ -180,7 +195,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             Stream inputStream,
             Stream outputStream,
             ILspLoggerFactory lspLoggerFactory,
-            string? clientName,
             CancellationToken cancellationToken)
         {
             var jsonMessageFormatter = new JsonMessageFormatter();
@@ -193,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             var serverTypeName = languageClient.GetType().Name;
 
-            var logger = await lspLoggerFactory.CreateLoggerAsync(serverTypeName, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
+            var logger = await lspLoggerFactory.CreateLoggerAsync(serverTypeName, jsonRpc, cancellationToken).ConfigureAwait(false);
 
             var server = languageClient.Create(
                 jsonRpc,
@@ -210,16 +224,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             ILspLogger logger)
         {
             return new LanguageServerTarget(
-                _requestDispatcherFactory,
+                _lspServiceProvider,
                 jsonRpc,
                 capabilitiesProvider,
-                _lspWorkspaceRegistrationService,
-                lspMiscellaneousFilesWorkspace: null,
-                GlobalOptions,
                 _listenerProvider,
                 logger,
                 SupportedLanguages,
-                clientName: _diagnosticsClientName,
                 ServerKind);
         }
 
@@ -233,6 +243,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             return Task.FromResult<InitializationFailureContext?>(initializationFailureContext);
         }
 
-        public abstract bool ShowNotificationOnInitializeFailed { get; }
+        /// <summary>
+        /// Unused, implementing <see cref="ILanguageClientCustomMessage2"/>.
+        /// This method is called after the language server has been activated, but connection has not been established.
+        /// </summary>
+        public Task AttachForCustomMessageAsync(JsonRpc rpc) => Task.CompletedTask;
     }
 }

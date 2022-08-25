@@ -54,17 +54,11 @@ namespace Microsoft.CodeAnalysis
         // shortcuts for signature elements supported by our signature comparer:
         private const byte Void = (byte)SignatureTypeCode.Void;
         private const byte Boolean = (byte)SignatureTypeCode.Boolean;
-        private const byte Char = (byte)SignatureTypeCode.Char;
-        private const byte SByte = (byte)SignatureTypeCode.SByte;
         private const byte Byte = (byte)SignatureTypeCode.Byte;
         private const byte Int16 = (byte)SignatureTypeCode.Int16;
-        private const byte UInt16 = (byte)SignatureTypeCode.UInt16;
         private const byte Int32 = (byte)SignatureTypeCode.Int32;
         private const byte UInt32 = (byte)SignatureTypeCode.UInt32;
         private const byte Int64 = (byte)SignatureTypeCode.Int64;
-        private const byte UInt64 = (byte)SignatureTypeCode.UInt64;
-        private const byte Single = (byte)SignatureTypeCode.Single;
-        private const byte Double = (byte)SignatureTypeCode.Double;
         private const byte String = (byte)SignatureTypeCode.String;
         private const byte Object = (byte)SignatureTypeCode.Object;
         private const byte SzArray = (byte)SignatureTypeCode.SZArray;
@@ -435,6 +429,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription AsyncMethodBuilderAttribute = new AttributeDescription("System.Runtime.CompilerServices", "AsyncMethodBuilderAttribute", s_signatures_HasThis_Void_Type_Only);
         internal static readonly AttributeDescription AsyncStateMachineAttribute = new AttributeDescription("System.Runtime.CompilerServices", "AsyncStateMachineAttribute", s_signatures_HasThis_Void_Type_Only);
         internal static readonly AttributeDescription IteratorStateMachineAttribute = new AttributeDescription("System.Runtime.CompilerServices", "IteratorStateMachineAttribute", s_signatures_HasThis_Void_Type_Only);
+        internal static readonly AttributeDescription AsyncIteratorStateMachineAttribute = new AttributeDescription("System.Runtime.CompilerServices", "AsyncIteratorStateMachineAttribute", s_signatures_HasThis_Void_Type_Only);
         internal static readonly AttributeDescription CompilationRelaxationsAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CompilationRelaxationsAttribute", s_signaturesOfCompilationRelaxationsAttribute);
         internal static readonly AttributeDescription ReferenceAssemblyAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ReferenceAssemblyAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription RuntimeCompatibilityAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RuntimeCompatibilityAttribute", s_signatures_HasThis_Void_Only);
@@ -474,9 +469,14 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription EnumeratorCancellationAttribute = new AttributeDescription("System.Runtime.CompilerServices", "EnumeratorCancellationAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription SkipLocalsInitAttribute = new AttributeDescription("System.Runtime.CompilerServices", "SkipLocalsInitAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription NativeIntegerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NativeIntegerAttribute", s_signaturesOfNativeIntegerAttribute);
+        internal static readonly AttributeDescription ScopedRefAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ScopedRefAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription ModuleInitializerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ModuleInitializerAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription UnmanagedCallersOnlyAttribute = new AttributeDescription("System.Runtime.InteropServices", "UnmanagedCallersOnlyAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription InterpolatedStringHandlerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "InterpolatedStringHandlerAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription InterpolatedStringHandlerArgumentAttribute = new AttributeDescription("System.Runtime.CompilerServices", "InterpolatedStringHandlerArgumentAttribute", s_signaturesOfInterpolatedStringArgumentAttribute);
+        internal static readonly AttributeDescription RequiredMemberAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RequiredMemberAttribute", s_signatures_HasThis_Void_Only);
+        internal static readonly AttributeDescription SetsRequiredMembersAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "SetsRequiredMembersAttribute", s_signatures_HasThis_Void_Only);
+        internal static readonly AttributeDescription CompilerFeatureRequiredAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CompilerFeatureRequiredAttribute", s_signatures_HasThis_Void_String_Only);
+        internal static readonly AttributeDescription UnscopedRefAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "UnscopedRefAttribute", s_signatures_HasThis_Void_Only);
     }
 }

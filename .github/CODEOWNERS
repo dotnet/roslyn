@@ -30,10 +30,19 @@ src/Interactive/ @dotnet/roslyn-interactive
 src/NuGet/ @dotnet/roslyn-infrastructure
 src/Scripting/ @dotnet/roslyn-interactive
 src/Setup/ @dotnet/roslyn-infrastructure
-src/Tools/ @dotnet/roslyn-infrastructure
+src/Tools/AnalyzerRunner @dotnet/roslyn-ide
+src/Tools/BuildActionTelemetryTable @dotnet/roslyn-infrastructure
+src/Tools/BuildBoss @dotnet/roslyn-infrastructure
+src/Tools/BuildValidator @dotnet/roslyn-infrastructure
+src/Tools/dotnet-format @dotnet/roslyn-infrastructure
+src/Tools/ExternalAccess @dotnet/roslyn-ide
+src/Tools/IdeBenchmarks @dotnet/roslyn-ide
+src/Tools/IdeCoreBenchmarks @dotnet/roslyn-ide
+src/Tools/ManifestGenerator @dotnet/roslyn-infrastructure
+src/Tools/PrepareTests @dotnet/roslyn-infrastructure
 src/Tools/Source/CompilerGeneratorTools/ @dotnet/roslyn-compiler
+src/Tools/Source/RunTests @dotnet/roslyn-infrastructure
 src/VisualStudio/ @dotnet/roslyn-ide
-src/VisualStudio/LiveShare @dotnet/roslyn-ide @daytonellwanger @srivatsn @aletsdelarosa
 src/Workspaces/ @dotnet/roslyn-ide
 
 src/Compilers/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners

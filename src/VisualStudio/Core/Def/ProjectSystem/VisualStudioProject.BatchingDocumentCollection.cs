@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -377,7 +378,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            public async ValueTask ProcessRegularFileChangesAsync(ImmutableArray<string> filePaths)
+            public async ValueTask ProcessRegularFileChangesAsync(ImmutableSegmentedList<string> filePaths)
             {
                 using (await _project._gate.DisposableWaitAsync().ConfigureAwait(false))
                 {
@@ -387,7 +388,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         return;
                     }
 
-                    var documentsToChange = ArrayBuilder<(DocumentId, TextLoader)>.GetInstance(filePaths.Length);
+                    var documentsToChange = ArrayBuilder<(DocumentId, TextLoader)>.GetInstance(filePaths.Count);
 
                     foreach (var filePath in filePaths)
                     {

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<string> KeyFileSearchPaths { get; internal set; }
 
         /// <summary>
-        /// If true, use UTF8 for output.
+        /// If true, use UTF-8 for output.
         /// </summary>
         public bool Utf8Output { get; internal set; }
 
@@ -492,6 +492,9 @@ namespace Microsoft.CodeAnalysis
                         break;
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework:
                         diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_AnalyzerReferencesFramework, analyzerReference.FullPath, e.TypeName!);
+                        break;
+                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesNewerCompiler:
+                        diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_AnalyzerReferencesNewerCompiler, analyzerReference.FullPath, e.ReferencedCompilerVersion!.ToString(), typeof(AnalyzerFileReference).Assembly.GetName().Version!.ToString());
                         break;
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.None:
                     default:

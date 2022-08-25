@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
     internal interface IRemoteUnusedReferenceAnalysisService
     {
         ValueTask<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             string projectFilePath,
             string projectAssetsFilePath,
             ImmutableArray<ReferenceInfo> projectReferences,

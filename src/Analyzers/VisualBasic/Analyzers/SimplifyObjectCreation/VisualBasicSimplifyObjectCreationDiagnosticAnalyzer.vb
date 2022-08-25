@@ -17,7 +17,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
                 diagnosticId:=IDEDiagnosticIds.SimplifyObjectCreationDiagnosticId,
                 enforceOnBuild:=EnforceOnBuildValues.SimplifyObjectCreation,
                 [option]:=VisualBasicCodeStyleOptions.PreferSimplifiedObjectCreation,
-                language:=LanguageNames.VisualBasic,
                 title:=New LocalizableResourceString(NameOf(VisualBasicAnalyzersResources.Object_creation_can_be_simplified), VisualBasicAnalyzersResources.ResourceManager, GetType(VisualBasicAnalyzersResources)))
         End Sub
 
@@ -35,15 +34,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
             ' which can be simplified to
             ' Dim x As New SomeType()
 
-            Dim node = context.Node
-            Dim tree = node.SyntaxTree
-            Dim cancellationToken = context.CancellationToken
-
-            Dim styleOption = context.Options.GetOption(VisualBasicCodeStyleOptions.PreferSimplifiedObjectCreation, tree, cancellationToken)
+            Dim styleOption = context.GetVisualBasicAnalyzerOptions().PreferSimplifiedObjectCreation
             If Not styleOption.Value Then
                 Return
             End If
 
+            Dim node = context.Node
             Dim variableDeclarator = DirectCast(node, VariableDeclaratorSyntax)
             Dim asClauseType = variableDeclarator.AsClause?.Type()
             If asClauseType Is Nothing Then
@@ -55,6 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
                 Return
             End If
 
+            Dim cancellationToken = context.CancellationToken
             Dim symbolInfo = context.SemanticModel.GetTypeInfo(objectCreation, cancellationToken)
             If symbolInfo.Type IsNot Nothing AndAlso symbolInfo.Type.Equals(symbolInfo.ConvertedType, SymbolEqualityComparer.Default) Then
                 context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor, variableDeclarator.GetLocation(), styleOption.Notification.Severity,

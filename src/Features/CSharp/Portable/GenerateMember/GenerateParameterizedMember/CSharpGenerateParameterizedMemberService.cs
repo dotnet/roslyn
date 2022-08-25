@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 {
                     var typeParameter = GetUniqueTypeParameter(
                         genericName.TypeArgumentList.Arguments.First(),
-                        s => !State.TypeToGenerateIn.GetAllTypeParameters().Any(t => t.Name == s),
+                        s => !State.TypeToGenerateIn.GetAllTypeParameters().Any(static (t, s) => t.Name == s, s),
                         cancellationToken);
 
                     return ImmutableArray.Create(typeParameter);
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                     {
                         var typeParameter = GetUniqueTypeParameter(
                             type,
-                            s => !usedIdentifiers.Contains(s) && !State.TypeToGenerateIn.GetAllTypeParameters().Any(t => t.Name == s),
+                            s => !usedIdentifiers.Contains(s) && !State.TypeToGenerateIn.GetAllTypeParameters().Any(static (t, s) => t.Name == s, s),
                             cancellationToken);
 
                         usedIdentifiers.Add(typeParameter.Name);

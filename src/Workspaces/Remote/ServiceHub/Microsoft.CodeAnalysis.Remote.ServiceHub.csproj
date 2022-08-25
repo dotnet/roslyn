@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
     <ProjectReference Include="..\..\..\Tools\ExternalAccess\Razor\Microsoft.CodeAnalysis.ExternalAccess.Razor.csproj" />
+    <ProjectReference Include="..\..\..\Tools\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" />
     <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -33,11 +34,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\VisualStudio\Core\Def\UnusedReferences\ProjectAssets\ProjectAssetsFileReader.cs" Link="Services\UnusedReferences\ProjectAssets\ProjectAssetsFileReader.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Watson\WatsonExtensions.cs" Link="Services\ProcessTelemetry\WatsonExtensions.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Watson\FaultReporter.cs" Link="Services\ProcessTelemetry\FaultReporter.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\AbstractCloudCachePersistentStorageService.cs" Link="Host\Storage\AbstractCloudCachePersistentStorageService.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\CloudCachePersistentStorage.cs" Link="Host\Storage\CloudCachePersistentStorage.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\ProjectContainerKeyCache.cs" Link="Host\Storage\ProjectContainerKeyCache.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\FileDownloader.cs" Link="Host\Storage\FileDownloader.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\TelemetryLogger.cs" Link="Services\ProcessTelemetry\TelemetryLogger.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\AbstractWorkspaceTelemetryService.cs" Link="Services\ProcessTelemetry\AbstractWorkspaceTelemetryService.cs" />
   </ItemGroup>

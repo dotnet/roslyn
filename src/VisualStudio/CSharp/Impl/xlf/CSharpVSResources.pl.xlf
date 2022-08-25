@@ -57,6 +57,11 @@
         <target state="translated">Reguły formatowania kodu C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_usings_on_file_open">
+        <source>Collapse usings on file open</source>
+        <target state="translated">Zwiń użycia przy otwieraniu pliku</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Completion">
         <source>Completion</source>
         <target state="translated">Uzupełnianie</target>
@@ -142,11 +147,6 @@
         <target state="translated">Ustaw preferencje na sprawdzanie wartości „null” zamiast sprawdzania typu</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_parameter_null_checking">
-        <source>Prefer parameter null checking</source>
-        <target state="translated">Preferuj sprawdzanie wartości null parametru</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>
         <target state="translated">Preferuj dopasowywanie do wzorca</target>
@@ -180,6 +180,11 @@
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
         <target state="translated">Pokaż elementy z nieimportowanych przestrzeni nazw</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_new_snippet_experience_experimental">
+        <source>Show new snippet experience (experimental)</source>
+        <target state="new">Show new snippet experience (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

@@ -104,6 +104,10 @@ namespace Microsoft.CodeAnalysis.Host
                 Start();
             }
 
+            protected override void OnPaused()
+            {
+            }
+
             protected override Task ExecuteAsync()
             {
                 _owner.ClearExpiredImplicitCache(DateTime.UtcNow - BackOffTimeSpan);

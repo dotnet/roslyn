@@ -14,13 +14,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceSimpleParameterSymbol : SourceParameterSymbol
     {
         public SourceSimpleParameterSymbol(
-           Symbol owner,
-           TypeWithAnnotations parameterType,
-           int ordinal,
-           RefKind refKind,
-           string name,
-           ImmutableArray<Location> locations)
-           : base(owner, parameterType, ordinal, refKind, name, locations)
+            Symbol owner,
+            TypeWithAnnotations parameterType,
+            int ordinal,
+            RefKind refKind,
+            DeclarationScope scope,
+            string name,
+            ImmutableArray<Location> locations)
+            : base(owner, parameterType, ordinal, refKind, scope, name, locations)
         {
         }
 
@@ -29,19 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ConstantValue? ExplicitDefaultConstantValue
         {
             get { return null; }
-        }
-
-        public override bool IsNullChecked
-        {
-            get
-            {
-                var node = this.GetNonNullSyntaxNode();
-                if (node is ParameterSyntax param)
-                {
-                    return param.ExclamationExclamationToken.Kind() == SyntaxKind.ExclamationExclamationToken;
-                }
-                return false;
-            }
         }
 
         internal override bool IsMetadataOptional
@@ -140,5 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return ConstantValue.NotAvailable; }
         }
+
+        internal override DeclarationScope EffectiveScope => ParameterHelpers.CalculateEffectiveScopeIgnoringAttributes(this);
     }
 }

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -87,8 +88,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
             if (document == null)
                 return false;
 
-            var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
-            var token = root.FindToken(position);
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
+
+            var token = parsedDocument.Root.FindToken(position);
             if (token.Kind() is not (SyntaxKind.SingleLineRawStringLiteralToken or
                                      SyntaxKind.MultiLineRawStringLiteralToken or
                                      SyntaxKind.InterpolatedSingleLineRawStringStartToken or
@@ -97,20 +99,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
                 return false;
             }
 
-            var indentation = token.GetPreferredIndentation(document, cancellationToken);
+            var indentationOptions = subjectBuffer.GetIndentationOptions(_editorOptionsService, document.Project.Services, explicitFormat: false);
+            var indentation = token.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
 
-            var newLine = document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
+            var newLine = indentationOptions.FormattingOptions.NewLine;
 
             using var transaction = CaretPreservingEditTransaction.TryCreate(
                 CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
             var edit = subjectBuffer.CreateEdit();
 
-            var sourceText = document.GetTextSynchronously(cancellationToken);
-            var textToInsert = $"{newLine}{newLine}{indentation}";
-
             // apply the change:
-            edit.Insert(position, textToInsert);
+            edit.Insert(position, newLine + newLine + indentation);
             var snapshot = edit.Apply();
 
             // move caret:

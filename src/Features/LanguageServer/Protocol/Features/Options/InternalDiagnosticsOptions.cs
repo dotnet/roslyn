@@ -4,11 +4,10 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal static class InternalDiagnosticsOptions
 {
-    internal static class InternalDiagnosticsOptions
-    {
-        public static readonly Option2<DiagnosticMode> NormalDiagnosticMode = new("InternalDiagnosticsOptions", "NormalDiagnosticMode", defaultValue: DiagnosticMode.Default,
-            storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Diagnostics\NormalDiagnosticMode"));
-    }
+    public static readonly Option2<DiagnosticMode> NormalDiagnosticMode = new("InternalDiagnosticsOptions", "NormalDiagnosticMode", defaultValue: DiagnosticMode.Default,
+        storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Diagnostics\NormalDiagnosticMode"));
 }

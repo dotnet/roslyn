@@ -5173,7 +5173,7 @@ class Test
 
     public static long Calculate1(long[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_01() };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_01()};" + @"
     }
 
     public static long Calculate2(long[] f)
@@ -5233,7 +5233,7 @@ class Test
 
     public static double Calculate(long[] f)
     {
-" + $"        return checked({ BuildSequenceOfBinaryExpressions_01() });" + @"
+" + $"        return checked({BuildSequenceOfBinaryExpressions_01()});" + @"
     }
 }
 ";
@@ -5264,7 +5264,7 @@ class Test
 
     public static bool Calculate(bool[] a, bool[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_03(count) };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_03(count)};" + @"
     }
 }
 ";
@@ -5323,7 +5323,7 @@ class Test
 
     public static double? Calculate(float?[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_01() };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_01()};" + @"
     }
 }
 ";
@@ -5364,7 +5364,7 @@ class Test
 
     public static double? Calculate(double?[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_01(count) };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_01(count)};" + @"
     }
 
     static void Test2()
@@ -5380,7 +5380,7 @@ class Test
 
     public static double Calculate(double[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_01(count) };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_01(count)};" + @"
     }
 }
 ";
@@ -5403,7 +5403,7 @@ class Test
 
     public static bool Calculate(S1[] a, S1[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_03() };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_03()};" + @"
     }
 }
 
@@ -6190,7 +6190,7 @@ namespace BadImageFormatExceptionRepro
 
             var comp = CreateCompilation(code, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net60);
             comp.VerifyDiagnostics(
-                // (16,71): error CS8927: An expression tree may not contain an access of static abstract interface member
+                // (16,71): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
                 //             Func<Expression<Func<T, T, bool>>> func = () => (x, y) => x == y;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "x == y").WithLocation(16, 71),
                 // (29,11): warning CS0660: 'C' defines operator == or operator != but does not override Object.Equals(object o)
@@ -6240,7 +6240,7 @@ namespace BadImageFormatExceptionRepro
 
             var comp = CreateCompilation(code, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net60);
             comp.VerifyDiagnostics(
-                // (16,62): error CS8927: An expression tree may not contain an access of static abstract interface member
+                // (16,62): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
                 //             Func<Expression<Func<T, T>>> func = () => (x) => +x;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "+x").WithLocation(16, 62)
             );
@@ -6598,7 +6598,7 @@ namespace BadImageFormatExceptionRepro
 
             var comp = CreateCompilation(code, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net60);
             comp.VerifyDiagnostics(
-                // (16,68): error CS8927: An expression tree may not contain an access of static abstract interface member
+                // (16,68): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
                 //             Func<Expression<Func<T, T, T>>> func = () => (x, y) => x && y;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "x && y").WithLocation(16, 68)
             );
@@ -6654,7 +6654,7 @@ namespace BadImageFormatExceptionRepro
 
             var comp = CreateCompilation(code, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net60);
             comp.VerifyDiagnostics(
-                // (16,68): error CS8927: An expression tree may not contain an access of static abstract interface member
+                // (16,68): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
                 //             Func<Expression<Func<T, T, T>>> func = () => (x, y) => x || y;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "x || y").WithLocation(16, 68)
             );

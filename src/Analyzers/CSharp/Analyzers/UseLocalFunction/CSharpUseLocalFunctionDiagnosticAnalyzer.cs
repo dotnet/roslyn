@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             : base(IDEDiagnosticIds.UseLocalFunctionDiagnosticId,
                    EnforceOnBuildValues.UseLocalFunction,
                    CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Use_local_function), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -70,11 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext, INamedTypeSymbol? expressionType)
         {
-            var options = syntaxContext.Options;
-            var syntaxTree = syntaxContext.Node.SyntaxTree;
-            var cancellationToken = syntaxContext.CancellationToken;
-
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction, syntaxTree, cancellationToken);
+            var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferLocalOverAnonymousFunction;
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
@@ -108,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
+            var cancellationToken = syntaxContext.CancellationToken;
             var local = semanticModel.GetDeclaredSymbol(localDeclaration.Declaration.Variables[0], cancellationToken);
             if (local == null)
             {
@@ -378,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 var typeParams = localEnclosingSymbol.GetTypeParameters();
                 if (typeParams.Any())
                 {
-                    if (typeParams.Any(p => delegateTypeParamNames.Contains(p.Name)))
+                    if (typeParams.Any(static (p, delegateTypeParamNames) => delegateTypeParamNames.Contains(p.Name), delegateTypeParamNames))
                     {
                         return false;
                     }

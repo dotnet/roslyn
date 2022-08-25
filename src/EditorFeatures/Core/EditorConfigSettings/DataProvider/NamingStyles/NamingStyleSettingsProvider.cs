@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
@@ -35,15 +36,16 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Naming
                 return;
             }
 
-            var options = project.State.AnalyzerOptions;
             var document = project.Documents.FirstOrDefault();
             if (document is null)
             {
                 return;
             }
 
-            var sourceTree = document.GetRequiredSyntaxTreeSynchronously(default(CancellationToken));
-            if (options.TryGetEditorConfigOption(NamingStyleOptions.NamingPreferences, sourceTree, out NamingStylePreferences? namingPreferences) &&
+            var sourceTree = document.GetRequiredSyntaxTreeSynchronously(CancellationToken.None);
+            var configOptions = project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(sourceTree);
+
+            if (configOptions.TryGetEditorConfigOption(NamingStyleOptions.NamingPreferences, out NamingStylePreferences? namingPreferences) &&
                 namingPreferences is not null)
             {
                 AddNamingStylePreferences(namingPreferences, isInEditorConfig: true);

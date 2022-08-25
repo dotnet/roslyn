@@ -21,6 +21,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _inProc = CreateInProcComponent<SolutionExplorer_InProc>(visualStudioInstance);
         }
 
+        public string DirectoryName
+            => _inProc.DirectoryName;
+
         public void CloseSolution(bool saveFirst = false)
             => _inProc.CloseSolution(saveFirst);
 
@@ -121,7 +124,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.RestoreNuGetPackages(project.Name);
 
         public void SaveAll()
-            => _inProc.SaveAll();
+        {
+            _inProc.SaveAll();
+
+            // Wait for async save operations to complete before proceeding
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
 
         /// <summary>
         /// Selects an item named by the <paramref name="itemName"/> parameter.

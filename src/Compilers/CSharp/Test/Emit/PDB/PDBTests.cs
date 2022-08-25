@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -20,6 +21,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
@@ -75,6 +77,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
     <file id=""2"" name="""" language=""C#"" />
     <file id=""3"" name=""Bar.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""" + BitConverter.ToString(hash3) + @""" />
     <file id=""4"" name=""Baz.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""" + BitConverter.ToString(hash4) + @""" />
+  </files>
+</symbols>", options: PdbValidationOptions.ExcludeMethods);
+        }
+
+        [Fact]
+        public void SourceGeneratedFiles()
+        {
+            Compilation compilation = CreateCompilation("class C { }", options: TestOptions.DebugDll, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var testGenerator = new TestSourceGenerator()
+            {
+                ExecuteImpl = context =>
+                {
+                    context.AddSource("hint1", "class G1 { void F() {} }");
+                    context.AddSource("hint2", SourceText.From("class G2 { void F() {} }", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256));
+
+                    Assert.Throws<ArgumentException>(() => context.AddSource("hint3", SourceText.From("class G3 { void F() {} }", encoding: null, checksumAlgorithm: SourceHashAlgorithm.Sha256)));
+                }
+            };
+
+            var driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: TestOptions.Regular);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
+
+            var result = outputCompilation.Emit(new MemoryStream(), pdbStream: new MemoryStream());
+            result.Diagnostics.Verify();
+            Assert.True(result.Success);
+
+            var path1 = Path.Combine("Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint1.cs");
+            var path2 = Path.Combine("Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint2.cs");
+
+            outputCompilation.VerifyPdb($@"
+<symbols>
+  <files>
+    <file id=""1"" name=""{path1}"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""D8-87-89-A3-FE-EA-FD-AB-49-31-5A-25-B0-05-6B-6F-00-00-C2-DD"" />
+    <file id=""2"" name=""{path2}"" language=""C#"" checksumAlgorithm=""SHA256"" checksum=""64-A9-4B-81-04-84-18-CD-73-F7-F8-3B-06-32-4B-9C-F9-36-D4-7A-7B-D0-2F-34-ED-8C-B7-AA-48-43-55-35"" />
   </files>
 </symbols>", options: PdbValidationOptions.ExcludeMethods);
         }
@@ -7751,6 +7791,9 @@ class C
           <slot kind=""0"" offset=""64"" />
           <slot kind=""0"" offset=""158"" />
         </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""1"" offset=""222"" />
+        </encStateMachineStateMap>
       </customDebugInfo>
     </method>
     <method containingType=""C+&lt;F&gt;d__1"" name=""MoveNext"">

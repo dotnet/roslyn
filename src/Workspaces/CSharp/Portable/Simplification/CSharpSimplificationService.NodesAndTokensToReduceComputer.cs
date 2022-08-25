@@ -14,11 +14,11 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
-    internal partial class CSharpSimplificationService : AbstractSimplificationService<ExpressionSyntax, StatementSyntax, CrefSyntax>
+    internal partial class CSharpSimplificationService
     {
         private class NodesAndTokensToReduceComputer : CSharpSyntaxRewriter
         {
-            private readonly List<NodeOrTokenToReduce> _nodesAndTokensToReduce;
+            private readonly List<NodeOrTokenToReduce> _nodesAndTokensToReduce = new();
             private readonly Func<SyntaxNodeOrToken, bool> _isNodeOrTokenOutsideSimplifySpans;
 
             private bool _simplifyAllDescendants;
@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             private NodesAndTokensToReduceComputer(Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans)
                 : base(visitIntoStructuredTrivia: true)
             {
-                _nodesAndTokensToReduce = new List<NodeOrTokenToReduce>();
                 _isNodeOrTokenOutsideSimplifySpans = isNodeOrTokenOutsideSimplifySpans;
                 _simplifyAllDescendants = false;
                 _insideSpeculatedNode = false;

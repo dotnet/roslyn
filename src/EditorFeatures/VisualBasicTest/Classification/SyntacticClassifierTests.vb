@@ -5182,6 +5182,44 @@ end interface"
         End Function
 
         <Theory, CombinatorialData>
+        Public Async Function TestConflictMarkers2(testHost As TestHost) As Task
+            Dim code =
+"interface I
+<<<<<<< Start
+    sub Goo()
+||||||| Baseline
+    sub Removed()
+=======
+    sub Bar()
+>>>>>>> End
+end interface"
+
+            Await TestAsync(
+                code,
+                testHost,
+                Keyword("interface"),
+                [Interface]("I"),
+                Comment("<<<<<<< Start"),
+                Keyword("sub"),
+                Method("Goo"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Comment("||||||| Baseline"),
+                Keyword("sub"),
+                Identifier("Removed"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Comment("======="),
+                Keyword("sub"),
+                Identifier("Bar"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Comment(">>>>>>> End"),
+                Keyword("end"),
+                Keyword("interface"))
+        End Function
+
+        <Theory, CombinatorialData>
         Public Async Function TestConstField(testHost As TestHost) As Task
             Dim code = "Const Number = 42"
 
@@ -5459,6 +5497,18 @@ End Try"
                 Identifier("Exception"),
                 ControlKeyword("End"),
                 ControlKeyword("Try"))
+        End Function
+
+        <Theory, CombinatorialData, WorkItem(61687, "https://github.com/dotnet/roslyn/issues/61687")>
+        Public Async Function TestThrow(testHost As TestHost) As Task
+            Dim code = "Throw New System.NotImplementedException"
+            Await TestInMethodAsync(code,
+                testHost,
+                ControlKeyword("Throw"),
+                Keyword("New"),
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("NotImplementedException"))
         End Function
     End Class
 End Namespace

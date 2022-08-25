@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
@@ -87,11 +87,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             // If the variable is itself referenced in its own initializer then don't offer anything here.  This
             // practically does not occur (though the language allows it), and it only serves to add a huge amount
             // of complexity to this feature.
-            if (references.Any(r => variableDeclarator.Initializer.Span.Contains(r.Span)))
+            if (references.Any(static (r, variableDeclarator) => variableDeclarator.Initializer.Span.Contains(r.Span), variableDeclarator))
                 return;
 
             context.RegisterRefactoring(
-                new MyCodeAction(c => InlineTemporaryAsync(document, variableDeclarator, c)),
+                CodeAction.Create(
+                    CSharpFeaturesResources.Inline_temporary_variable,
+                    c => InlineTemporaryAsync(document, variableDeclarator, c),
+                    nameof(CSharpFeaturesResources.Inline_temporary_variable)),
                 variableDeclarator.Span);
         }
 
@@ -133,8 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private static async Task<Document> InlineTemporaryAsync(Document document, VariableDeclaratorSyntax declarator, CancellationToken cancellationToken)
         {
-            var workspace = document.Project.Solution.Workspace;
-
             // Create the expression that we're actually going to inline.
             var expressionToInline = await CreateExpressionToInlineAsync(document, declarator, cancellationToken).ConfigureAwait(false);
             expressionToInline = expressionToInline.Parenthesize().WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation, ExpressionAnnotation);
@@ -441,14 +442,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             }
 
             return false;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Inline_temporary_variable, createChangedDocument, nameof(CSharpFeaturesResources.Inline_temporary_variable))
-            {
-            }
         }
     }
 }

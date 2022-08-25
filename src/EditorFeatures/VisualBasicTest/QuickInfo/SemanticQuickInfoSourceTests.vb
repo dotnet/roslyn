@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifi
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.QuickInfo
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
@@ -2716,6 +2716,7 @@ End Class
                 MainDescription($"Sub C.M(a As Integer, ParamArray b As Integer()) (+ 1 {FeaturesResources.overload})"))
         End Function
 
+        <WorkItem(61320, "https://github.com/dotnet/roslyn/issues/61320")>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestSingleTupleType() As Task
             Await TestInClassAsync(
@@ -2726,7 +2727,8 @@ End Class
     $$M(nothing)
  end sub",
                 MainDescription("Sub C.M(t As (x As Integer, y As String))"),
-                NoTypeParameterMap)
+                NoTypeParameterMap,
+                AnonymousTypes(String.Empty))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>

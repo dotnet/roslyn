@@ -702,5 +702,35 @@ interface I { void $$M(); }
 
             Await TestAsync(workspace, host)
         End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestUnsignedRightShiftImplementation_01(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C : I&lt;C&gt; { public static C operator [|>>>|](C x, int y) { return x; } }
+interface I&lt;T&gt; { static abstract T operator $$>>>(T x, int y); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestUnsignedRightShiftImplementation_02(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C : I&lt;C&gt; { static C I&lt;C&gt;.operator [|>>>|](C x, int y) { return x; } }
+interface I&lt;T&gt; { static abstract T operator $$>>>(T x, int y); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
     End Class
 End Namespace

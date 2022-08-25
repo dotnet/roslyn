@@ -64,8 +64,6 @@ namespace Microsoft.CodeAnalysis.Classification
                 return;
             }
 
-            var database = document.Project.Solution.Options.GetPersistentStorageDatabase();
-
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
@@ -74,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 // service.GetSemanticClassificationsAsync below) as we want to try to read in the cached
                 // classifications without doing any syncing to the OOP process.
                 var isFullyLoaded = IsFullyLoaded(document, cancellationToken);
-                if (await TryGetCachedClassificationsAsync(document, textSpan, type, client, database, isFullyLoaded, result, cancellationToken).ConfigureAwait(false))
+                if (await TryGetCachedClassificationsAsync(document, textSpan, type, client, isFullyLoaded, result, cancellationToken).ConfigureAwait(false))
                     return;
 
                 // Call the project overload.  Semantic classification only needs the current project's information
@@ -82,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 var classifiedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationService, SerializableClassifiedSpans>(
                    document.Project,
                    (service, solutionInfo, cancellationToken) => service.GetClassificationsAsync(
-                       solutionInfo, document.Id, textSpan, type, options, database, isFullyLoaded, cancellationToken),
+                       solutionInfo, document.Id, textSpan, type, options, isFullyLoaded, cancellationToken),
                    cancellationToken).ConfigureAwait(false);
 
                 // if the remote call fails do nothing (error has already been reported)
@@ -98,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
         private static bool IsFullyLoaded(Document document, CancellationToken cancellationToken)
         {
-            var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+            var workspaceStatusService = document.Project.Solution.Services.GetRequiredService<IWorkspaceStatusService>();
 
             // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
             // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
@@ -115,7 +113,6 @@ namespace Microsoft.CodeAnalysis.Classification
             TextSpan textSpan,
             ClassificationType type,
             RemoteHostClient client,
-            StorageDatabase database,
             bool isFullyLoaded,
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
@@ -130,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Classification
             var cachedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationService, SerializableClassifiedSpans?>(
                document.Project,
                (service, solutionInfo, cancellationToken) => service.GetCachedClassificationsAsync(
-                   documentKey, textSpan, type, checksum, database, cancellationToken),
+                   documentKey, textSpan, type, checksum, cancellationToken),
                cancellationToken).ConfigureAwait(false);
 
             // if the remote call fails do nothing (error has already been reported)
@@ -154,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 var classificationService = document.GetRequiredLanguageService<ISyntaxClassificationService>();
                 var reassignedVariableService = document.GetRequiredLanguageService<IReassignedVariableService>();
 
-                var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+                var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
                 var classifiers = classificationService.GetDefaultSyntaxClassifiers();
 
                 var getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes);
@@ -188,16 +185,16 @@ namespace Microsoft.CodeAnalysis.Classification
         public async Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            AddSyntacticClassifications(document.Project.Solution.Workspace, root, textSpan, result, cancellationToken);
+            AddSyntacticClassifications(document.Project.Solution.Services, root, textSpan, result, cancellationToken);
         }
 
         public void AddSyntacticClassifications(
-            Workspace workspace, SyntaxNode? root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            SolutionServices services, SyntaxNode? root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (root == null)
                 return;
 
-            var classificationService = workspace.Services.GetLanguageServices(root.Language).GetService<ISyntaxClassificationService>();
+            var classificationService = services.GetLanguageServices(root.Language).GetService<ISyntaxClassificationService>();
             if (classificationService == null)
                 return;
 
@@ -219,9 +216,9 @@ namespace Microsoft.CodeAnalysis.Classification
         public ValueTask<TextChangeRange?> ComputeSyntacticChangeRangeAsync(Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken)
             => default;
 
-        public TextChangeRange? ComputeSyntacticChangeRange(Workspace workspace, SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken)
+        public TextChangeRange? ComputeSyntacticChangeRange(SolutionServices services, SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            var classificationService = workspace.Services.GetLanguageServices(oldRoot.Language).GetService<ISyntaxClassificationService>();
+            var classificationService = services.GetLanguageServices(oldRoot.Language).GetService<ISyntaxClassificationService>();
             return classificationService?.ComputeSyntacticChangeRange(oldRoot, newRoot, timeout, cancellationToken);
         }
     }

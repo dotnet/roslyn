@@ -908,10 +908,7 @@ partial class Outer
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                onAfterWorkspaceCreated: w =>
-                {
-                    w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(FormattingOptions2.InsertFinalNewLine, true)));
-                });
+                options: Option(FormattingOptions2.InsertFinalNewLine, true));
         }
 
         [WorkItem(17171, "https://github.com/dotnet/roslyn/issues/17171")]
@@ -949,10 +946,7 @@ partial class Outer
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                onAfterWorkspaceCreated: w =>
-                {
-                    w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(FormattingOptions2.InsertFinalNewLine, false)));
-                });
+                options: Option(FormattingOptions2.InsertFinalNewLine, false));
         }
 
         [WorkItem(16282, "https://github.com/dotnet/roslyn/issues/16282")]
@@ -1659,6 +1653,37 @@ class A
 }
 ";
 
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WorkItem(63114, "https://github.com/dotnet/roslyn/issues/63114")]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("interface")]
+        [InlineData("enum")]
+        [InlineData("record")]
+        public async Task MoveNestedTypeFromInterface(string memberType)
+        {
+            var code = $@"
+interface I
+{{
+    {memberType} [||]Member
+    {{
+    }}
+}}";
+            var codeAfterMove = @"
+partial interface I
+{
+}";
+            var expectedDocumentName = "Member.cs";
+            var destinationDocumentText = $@"
+partial interface I
+{{
+    {memberType} Member
+    {{
+    }}
+}}";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
     }

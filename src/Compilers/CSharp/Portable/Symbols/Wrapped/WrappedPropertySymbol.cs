@@ -161,6 +161,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override bool IsRequired => _underlyingProperty.IsRequired;
+
+        internal sealed override bool HasUnscopedRefAttribute => _underlyingProperty.HasUnscopedRefAttribute;
+
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
             get

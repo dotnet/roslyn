@@ -384,6 +384,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
                     diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation, this, baseType);
                 }
+
+                if (baseType.HasFileLocalTypes() && !this.HasFileLocalTypes())
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeBase, baseTypeLocation, baseType, this);
+                }
             }
 
             var baseInterfacesRO = baseInterfaces.ToImmutableAndFree();
@@ -395,6 +400,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // Inconsistent accessibility: base interface '{1}' is less accessible than interface '{0}'
                         diagnostics.Add(ErrorCode.ERR_BadVisBaseInterface, interfaceLocations[i], this, i);
+                    }
+
+                    if (i.HasFileLocalTypes() && !this.HasFileLocalTypes())
+                    {
+                        diagnostics.Add(ErrorCode.ERR_FileTypeBase, interfaceLocations[i], i, this);
                     }
                 }
             }
@@ -547,13 +557,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (this.IsStatic)
                         {
                             // '{0}': static classes cannot implement interfaces
-                            diagnostics.Add(ErrorCode.ERR_StaticClassInterfaceImpl, location, this, baseType);
+                            diagnostics.Add(ErrorCode.ERR_StaticClassInterfaceImpl, location, this);
                         }
 
                         if (this.IsRefLikeType)
                         {
                             // '{0}': ref structs cannot implement interfaces
-                            diagnostics.Add(ErrorCode.ERR_RefStructInterfaceImpl, location, this, baseType);
+                            diagnostics.Add(ErrorCode.ERR_RefStructInterfaceImpl, location, this);
                         }
 
                         if (baseType.ContainsDynamic())

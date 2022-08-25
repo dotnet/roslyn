@@ -59,6 +59,12 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
+    <ProjectReference Include="..\..\Tools\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj">
+      <Name>Microsoft.CodeAnalysis.ExternalAccess.AspNetCore</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <PkgDefEntry>BindingRedirect</PkgDefEntry>
+    </ProjectReference>
     <ProjectReference Include="..\..\Tools\ExternalAccess\FSharp\Microsoft.CodeAnalysis.ExternalAccess.FSharp.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.FSharp</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -310,10 +316,6 @@
     <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.provider.e_sqlite3.net45" PkgDefEntry="CodeBase" />
     <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.provider.dynamic_cdecl" PkgDefEntry="CodeBase" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.Elfie" PkgDefEntry="BindingRedirect" />
-    <!-- Visual Studio ships with some, but not all, of the assemblies in System.Composition, but we need them all -->
-    <NuGetPackageToIncludeInVsix Include="System.Composition.TypedParts" PkgDefEntry="CodeBase" />
-    <NuGetPackageToIncludeInVsix Include="System.Composition.Convention" PkgDefEntry="CodeBase" />
-    <NuGetPackageToIncludeInVsix Include="System.Composition.Hosting" PkgDefEntry="CodeBase" />
     <NuGetPackageToIncludeInVsix Include="ICSharpCode.Decompiler" PkgDefEntry="CodeBase" />
     <!-- Code base is provided by the LSP client for released VS versions in order to ensure only 1 version of these assemblies are loaded. -->
     <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol" />

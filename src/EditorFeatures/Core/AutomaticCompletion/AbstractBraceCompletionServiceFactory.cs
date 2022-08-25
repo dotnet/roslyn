@@ -7,27 +7,24 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.AutomaticCompletion
 {
-    internal abstract class AbstractBraceCompletionServiceFactory : ForegroundThreadAffinitizedObject, IBraceCompletionServiceFactory
+    internal abstract class AbstractBraceCompletionServiceFactory : IBraceCompletionServiceFactory
     {
         private readonly ImmutableArray<IBraceCompletionService> _braceCompletionServices;
 
         protected AbstractBraceCompletionServiceFactory(
-            IEnumerable<IBraceCompletionService> braceCompletionServices,
-            IThreadingContext threadingContext)
-            : base(threadingContext)
+            IEnumerable<IBraceCompletionService> braceCompletionServices)
         {
             _braceCompletionServices = braceCompletionServices.ToImmutableArray();
         }
 
-        public async Task<IBraceCompletionService?> TryGetServiceAsync(Document document, int openingPosition, char openingBrace, CancellationToken cancellationToken)
+        public IBraceCompletionService? TryGetService(ParsedDocument document, int openingPosition, char openingBrace, CancellationToken cancellationToken)
         {
             foreach (var service in _braceCompletionServices)
             {
-                if (await service.CanProvideBraceCompletionAsync(openingBrace, openingPosition, document, cancellationToken).ConfigureAwait(false))
+                if (service.CanProvideBraceCompletion(openingBrace, openingPosition, document, cancellationToken))
                 {
                     return service;
                 }

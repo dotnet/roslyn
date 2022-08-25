@@ -39,14 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         internal static SourceWithMarkedNodes MarkedSource(string markedSource, string fileName = "", CSharpParseOptions options = null, bool removeTags = false)
-        {
-            return new SourceWithMarkedNodes(markedSource, s => Parse(s, fileName, options), s => (int)(SyntaxKind)typeof(SyntaxKind).GetField(s).GetValue(null), removeTags);
-        }
+            => new SourceWithMarkedNodes(
+                WithWindowsLineBreaks(markedSource),
+                parser: s => Parse(s, fileName, options),
+                getSyntaxKind: s => (int)(SyntaxKind)typeof(SyntaxKind).GetField(s).GetValue(null),
+                removeTags);
 
         internal static Func<SyntaxNode, SyntaxNode> GetSyntaxMapFromMarkers(SourceWithMarkedNodes source0, SourceWithMarkedNodes source1)
-        {
-            return SourceWithMarkedNodes.GetSyntaxMap(source0, source1);
-        }
+            => SourceWithMarkedNodes.GetSyntaxMap(source0, source1);
 
         internal static ImmutableArray<SyntaxNode> GetAllLocals(MethodSymbol method)
         {
@@ -129,8 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return null;
         }
 
-        internal static SemanticEditDescription Edit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider)
-            => new(kind, symbolProvider);
+        internal static SemanticEditDescription Edit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, Func<Compilation, ISymbol> newSymbolProvider = null)
+            => new(kind, symbolProvider, newSymbolProvider);
 
         internal static EditAndContinueLogEntry Row(int rowNumber, TableIndex table, EditAndContinueOperation operation)
         {
@@ -145,27 +145,48 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         internal static bool IsDefinition(HandleKind kind)
             => kind is not (HandleKind.AssemblyReference or HandleKind.ModuleReference or HandleKind.TypeReference or HandleKind.MemberReference or HandleKind.TypeSpecification or HandleKind.MethodSpecification);
 
+        /// <summary>
+        /// Checks that the EncLog contains specified rows.
+        /// Any default values in the expected <paramref name="rows"/> are ignored to facilitate conditional code.
+        /// </summary>
         internal static void CheckEncLog(MetadataReader reader, params EditAndContinueLogEntry[] rows)
         {
-            AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries(), itemInspector: EncLogRowToString);
+            AssertEx.Equal(
+                rows.Where(r => r.Handle != default),
+                reader.GetEditAndContinueLogEntries(), itemInspector: EncLogRowToString);
         }
 
         /// <summary>
         /// Checks that the EncLog contains specified definition rows. References are ignored as they are usually not interesting to validate. They are emitted as needed.
+        /// Any default values in the expected <paramref name="rows"/> are ignored to facilitate conditional code.
         /// </summary>
         internal static void CheckEncLogDefinitions(MetadataReader reader, params EditAndContinueLogEntry[] rows)
         {
-            AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries().Where(e => IsDefinition(e.Handle.Kind)), itemInspector: EncLogRowToString);
+            AssertEx.Equal(
+                rows.Where(r => r.Handle != default),
+                reader.GetEditAndContinueLogEntries().Where(e => IsDefinition(e.Handle.Kind)), itemInspector: EncLogRowToString);
         }
 
+        /// <summary>
+        /// Checks that the EncMap contains specified handles.
+        /// Any default values in the expected <paramref name="handles"/> are ignored to facilitate conditional code.
+        /// </summary>
         internal static void CheckEncMap(MetadataReader reader, params EntityHandle[] handles)
         {
-            AssertEx.Equal(handles, reader.GetEditAndContinueMapEntries(), itemInspector: EncMapRowToString);
+            AssertEx.Equal(
+                handles.Where(h => h != default),
+                reader.GetEditAndContinueMapEntries(), itemInspector: EncMapRowToString);
         }
 
+        /// <summary>
+        /// Checks that the EncMap contains specified definition handles. References are ignored as they are usually not interesting to validate. They are emitted as needed.
+        /// Any default values in the expected <paramref name="handles"/> are ignored to facilitate conditional code.
+        /// </summary>
         internal static void CheckEncMapDefinitions(MetadataReader reader, params EntityHandle[] handles)
         {
-            AssertEx.Equal(handles, reader.GetEditAndContinueMapEntries().Where(e => IsDefinition(e.Kind)), itemInspector: EncMapRowToString);
+            AssertEx.Equal(
+                handles.Where(h => h != default),
+                reader.GetEditAndContinueMapEntries().Where(e => IsDefinition(e.Kind)), itemInspector: EncMapRowToString);
         }
 
         internal static void CheckAttributes(MetadataReader reader, params CustomAttributeRow[] rows)
@@ -203,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             Func<THandle, Handle> toHandle,
             string[] expectedNames)
         {
-            var aggregator = new MetadataAggregator(readers[0], readers.Skip(1).ToArray());
+            var aggregator = GetAggregator(readers);
 
             AssertEx.Equal(expectedNames, entityHandles.Select(handle =>
             {
@@ -214,6 +235,27 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 return readers[nameGeneration].GetString(genNameHandle);
             }));
         }
+
+        public static void CheckBlobValue(IList<MetadataReader> readers, BlobHandle valueHandle, byte[] expectedValue)
+        {
+            var aggregator = GetAggregator(readers);
+
+            var genHandle = (BlobHandle)aggregator.GetGenerationHandle(valueHandle, out int blobGeneration);
+            var attributeData = readers[blobGeneration].GetBlobBytes(genHandle);
+            AssertEx.Equal(expectedValue, attributeData);
+        }
+
+        public static void CheckStringValue(IList<MetadataReader> readers, StringHandle valueHandle, string expectedValue)
+        {
+            var aggregator = GetAggregator(readers);
+
+            var genHandle = (StringHandle)aggregator.GetGenerationHandle(valueHandle, out int blobGeneration);
+            var attributeData = readers[blobGeneration].GetString(genHandle);
+            AssertEx.Equal(expectedValue, attributeData);
+        }
+
+        public static MetadataAggregator GetAggregator(IList<MetadataReader> readers)
+            => new MetadataAggregator(readers[0], readers.Skip(1).ToArray());
 
         internal static string EncLogRowToString(EditAndContinueLogEntry row)
         {
@@ -283,6 +325,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         internal static CSharpCompilation WithSource(this CSharpCompilation compilation, SyntaxTree newTree)
         {
             return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(newTree);
+        }
+
+        internal static CSharpCompilation WithSource(this CSharpCompilation compilation, SyntaxTree[] newTrees)
+        {
+            return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(newTrees);
         }
     }
 }

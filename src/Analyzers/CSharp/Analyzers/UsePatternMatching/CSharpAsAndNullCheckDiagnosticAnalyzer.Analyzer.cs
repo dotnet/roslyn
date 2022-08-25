@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
@@ -33,10 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 SyntaxNode enclosingBlock,
                 CancellationToken cancellationToken)
             {
-                Debug.Assert(semanticModel != null);
-                Debug.Assert(localSymbol != null);
-                Debug.Assert(comparison != null);
-                Debug.Assert(operand != null);
+                Contract.ThrowIfNull(semanticModel);
+                Contract.ThrowIfNull(localSymbol);
+                Contract.ThrowIfNull(comparison);
+                Contract.ThrowIfNull(operand);
                 Debug.Assert(localStatement.IsKind(SyntaxKind.LocalDeclarationStatement));
                 Debug.Assert(enclosingBlock.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection));
 
@@ -148,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
                         case SyntaxKind.ForStatement:
                             var forStatement = (ForStatementSyntax)current;
-                            if (!forStatement.Condition.Span.Contains(_comparison.Span))
+                            if (forStatement.Condition is null || !forStatement.Condition.Span.Contains(_comparison.Span))
                             {
                                 // In a for-statement, only the condition expression
                                 // can make this definitely assigned in the loop body.
@@ -169,11 +168,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
                             if (oppositeStatement != null)
                             {
-                                var dataFlow = _semanticModel.AnalyzeDataFlow(oppositeStatement);
+                                var dataFlow = _semanticModel.AnalyzeRequiredDataFlow(oppositeStatement);
                                 if (dataFlow.DataFlowsIn.Contains(_localSymbol))
                                 {
                                     // Access before assignment is not safe in the opposite branch
-                                    // as the variable is not definitely assgined at this point.
+                                    // as the variable is not definitely assigned at this point.
                                     // For example:
                                     //
                                     //    if (o is string x) { }
@@ -196,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                             }
 
                             if (!defAssignedWhenTrue &&
-                                !_semanticModel.AnalyzeControlFlow(ifStatement.Statement).EndPointIsReachable)
+                                !_semanticModel.AnalyzeRequiredControlFlow(ifStatement.Statement).EndPointIsReachable)
                             {
                                 // Access before assignment here is only valid if we have a negative
                                 // pattern-matching in an if-statement with an unreachable endpoint.
@@ -281,12 +280,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             private bool CheckStatement(StatementSyntax statement)
             {
-                Debug.Assert(statement != null);
+                Contract.ThrowIfNull(statement);
 
                 // This is either an embedded statement or parented by a block.
                 // If we're parented by a block, then that block will be the scope
                 // of the new variable. Otherwise the scope is the statement itself.
-                if (statement.Parent.IsKind(SyntaxKind.Block, out BlockSyntax block))
+                if (statement.Parent.IsKind(SyntaxKind.Block, out BlockSyntax? block))
                 {
                     // Check if the local is accessed before assignment 
                     // in the subsequent statements. If so, this can't
@@ -307,14 +306,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             private bool IsAccessedOutOfScope(SyntaxNode scope)
             {
-                Debug.Assert(scope != null);
+                Contract.ThrowIfNull(scope);
 
                 var localStatementStart = _localStatement.SpanStart;
                 var comparisonSpanStart = _comparison.SpanStart;
                 var variableName = _localSymbol.Name;
                 var scopeSpan = scope.Span;
 
-                // Iterate over all descendent nodes to find possible out-of-scope references.
+                // Iterate over all descendant nodes to find possible out-of-scope references.
                 foreach (var descendentNode in _enclosingBlock.DescendantNodes())
                 {
                     var descendentNodeSpanStart = descendentNode.SpanStart;
@@ -332,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         continue;
                     }
 
-                    if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName) &&
+                    if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax? identifierName) &&
                         identifierName.Identifier.ValueText == variableName &&
                         _localSymbol.Equals(_semanticModel.GetSymbolInfo(identifierName, _cancellationToken).Symbol))
                     {
@@ -362,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return _semanticModel.AnalyzeDataFlow(statementOrExpression).DataFlowsIn.Contains(_localSymbol);
             }
 
-            private bool LocalFlowsIn(StatementSyntax firstStatement, StatementSyntax lastStatement)
+            private bool LocalFlowsIn(StatementSyntax? firstStatement, StatementSyntax? lastStatement)
             {
                 if (firstStatement == null || lastStatement == null)
                 {
@@ -374,7 +373,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     return false;
                 }
 
-                return _semanticModel.AnalyzeDataFlow(firstStatement, lastStatement).DataFlowsIn.Contains(_localSymbol);
+                var dataFlow = _semanticModel.AnalyzeDataFlow(firstStatement, lastStatement);
+                Contract.ThrowIfNull(dataFlow);
+                return dataFlow.DataFlowsIn.Contains(_localSymbol);
             }
         }
     }

@@ -5,12 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Xunit;
-using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Test.Utilities;
-using System.Linq;
+using Roslyn.Test.Utilities.TestGenerators;
+using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
@@ -89,9 +90,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             var expected = ImmutableArray.Create((10, EntryState.Added, 0), (11, EntryState.Added, 1), (2, EntryState.Cached, 0), (3, EntryState.Cached, 1), (20, EntryState.Modified, 0), (21, EntryState.Modified, 1), (22, EntryState.Modified, 2), (6, EntryState.Removed, 0));
             AssertTableEntries(newTable, expected);
-            Assert.Equal(new[] { 2, 3 }, cachedEntries);
-            Assert.Equal(6, Assert.Single(removedEntries));
+            Assert.Equal(new[] { 2, 3 }, YieldItems(cachedEntries.Items));
+            Assert.Equal(1, removedEntries.Count);
+            Assert.Equal(6, removedEntries[0]);
             Assert.True(didRemoveEntries);
+        }
+
+        private static IEnumerable<int> YieldItems(OneOrMany<int> items)
+        {
+            foreach (var value in items)
+                yield return value;
         }
 
         [Fact]
@@ -915,6 +923,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             var transformNodeStep = filterNodeStep.Inputs[0].Source;
 
             Assert.Equal(thirdValue, (int)transformNodeStep.Outputs[2].Value);
+        }
+
+        [Fact]
+        public void Modified_Entry_Removing_Outputs_Records_Removed_Step_State()
+        {
+            ImmutableArray<int> values = ImmutableArray.Create(1, 2, 3);
+            var inputNode = new InputNode<ImmutableArray<int>>(_ => ImmutableArray.Create(values)).WithTrackingName("Input");
+            var transformNode = new TransformNode<ImmutableArray<int>, int>(inputNode, (arr, ct) => arr, name: "SelectMany");
+
+            DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty, trackIncrementalGeneratorSteps: true);
+
+            _ = dstBuilder.GetLatestStateTableForNode(transformNode);
+
+            values = ImmutableArray<int>.Empty;
+
+            // second time we'll see that the "Input" step is modified, but the outputs of the "SelectMany" step are removed.
+            dstBuilder = GetBuilder(dstBuilder.ToImmutable(), trackIncrementalGeneratorSteps: true);
+            var table = dstBuilder.GetLatestStateTableForNode(transformNode);
+
+            var step = Assert.Single(table.Steps);
+
+            var input = Assert.Single(step.Inputs);
+
+            Assert.Equal(IncrementalStepRunReason.Modified, input.Source.Outputs[input.OutputIndex].Reason);
+
+            Assert.All(step.Outputs, output =>
+            {
+                Assert.Equal(IncrementalStepRunReason.Removed, output.Reason);
+            });
+        }
+
+        [Fact]
+        public void Modified_Entry_Adding_Outputs_Records_Added_Step_State()
+        {
+            ImmutableArray<int> values = ImmutableArray<int>.Empty;
+            var inputNode = new InputNode<ImmutableArray<int>>(_ => ImmutableArray.Create(values)).WithTrackingName("Input");
+            var transformNode = new TransformNode<ImmutableArray<int>, int>(inputNode, (arr, ct) => arr, name: "SelectMany");
+
+            DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty, trackIncrementalGeneratorSteps: true);
+
+            _ = dstBuilder.GetLatestStateTableForNode(transformNode);
+
+            values = ImmutableArray.Create(1, 2, 3);
+
+            // second time we'll see that the "Input" step is modified, but the outputs of the "SelectMany" step are modified.
+            dstBuilder = GetBuilder(dstBuilder.ToImmutable(), trackIncrementalGeneratorSteps: true);
+            var table = dstBuilder.GetLatestStateTableForNode(transformNode);
+
+            var step = Assert.Single(table.Steps);
+
+            var input = Assert.Single(step.Inputs);
+
+            Assert.Equal(IncrementalStepRunReason.Modified, input.Source.Outputs[input.OutputIndex].Reason);
+
+            Assert.All(step.Outputs, output =>
+            {
+                Assert.Equal(IncrementalStepRunReason.Modified, output.Reason);
+            });
         }
 
         private void AssertTableEntries<T>(NodeStateTable<T> table, IList<(T Item, EntryState State, int OutputIndex)> expected)

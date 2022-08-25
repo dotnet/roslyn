@@ -5,13 +5,11 @@
 using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -22,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpInlineTypeHintsService(IGlobalOptionService globalOptions)
-            : base(globalOptions)
+        public CSharpInlineTypeHintsService()
         {
         }
 
@@ -38,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
         {
             if (forImplicitVariableTypes || displayAllOverride)
             {
-                if (node is VariableDeclarationSyntax { Type: { IsVar: true } } variableDeclaration &&
+                if (node is VariableDeclarationSyntax { Type.IsVar: true } variableDeclaration &&
                     variableDeclaration.Variables.Count == 1 &&
                     !variableDeclaration.Variables[0].Identifier.IsMissing)
                 {
@@ -47,7 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                         return CreateTypeHint(type, displayAllOverride, forImplicitVariableTypes, variableDeclaration.Type, variableDeclaration.Variables[0].Identifier);
                 }
 
-                if (node is DeclarationExpressionSyntax { Type: { IsVar: true } } declarationExpression)
+                // We handle individual variables of ParenthesizedVariableDesignationSyntax separately.
+                // For example, in `var (x, y) = (0, "")`, we should `int` for `x` and `string` for `y`.
+                // It's redundant to show `(int, string)` for `var`
+                if (node is DeclarationExpressionSyntax { Type.IsVar: true, Designation: not ParenthesizedVariableDesignationSyntax } declarationExpression)
                 {
                     var type = semanticModel.GetTypeInfo(declarationExpression.Type, cancellationToken).Type;
                     if (IsValidType(type))
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                             : new(type, new TextSpan(variableDesignation.Identifier.SpanStart, 0), textChange: null, trailingSpace: true);
                     }
                 }
-                else if (node is ForEachStatementSyntax { Type: { IsVar: true } } forEachStatement)
+                else if (node is ForEachStatementSyntax { Type.IsVar: true } forEachStatement)
                 {
                     var info = semanticModel.GetForEachStatementInfo(forEachStatement);
                     var type = info.ElementType;

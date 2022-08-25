@@ -4151,6 +4151,29 @@ class D
             VerifyNoSpecialSemicolonHandling(code);
         }
 
+        [WorkItem(54709, "https://github.com/dotnet/roslyn/issues/54709")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void YieldReturn()
+        {
+            var code = @"
+class D
+{
+    private static IEnumerable<int> M()
+    {
+        yield return GetNumber($$)
+    }
+}";
+            var expected = @"
+class D
+{
+    private static IEnumerable<int> M()
+    {
+        yield return GetNumber();$$
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
         [WorkItem(917499, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/917499")]
         [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         [InlineData("/$$* comments */")]
@@ -4222,6 +4245,60 @@ public class ClassC
                     globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon), false);
                 });
         }
+
+        [WpfFact]
+        public void TestSwitchExpression()
+        {
+            var code = @"
+public class Bar
+{
+    public void Test(string myString)
+    {
+        var a = myString switch
+        {
+            ""Hello"" => 1,
+            ""World"" => 2,
+            _ => 3$$
+        }
+    }
+}";
+
+            var expected = @"
+public class Bar
+{
+    public void Test(string myString)
+    {
+        var a = myString switch
+        {
+            ""Hello"" => 1,
+            ""World"" => 2,
+            _ => 3
+        };$$
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact]
+        public void TestNotInBracesSwitchExpression()
+        {
+            var code = @"
+public class Bar
+{
+    public void Test(string myString)
+    {
+        var a = myString switch
+        $${
+            ""Hello"" => 1,
+            ""World"" => 2,
+            _ => 3
+        }
+    }
+}";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
         protected override TestWorkspace CreateTestWorkspace(string code)
             => TestWorkspace.CreateCSharp(code);
     }

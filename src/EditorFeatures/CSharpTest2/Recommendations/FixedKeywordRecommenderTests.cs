@@ -6,6 +6,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -147,6 +148,40 @@ $$");
             await VerifyAbsenceAsync(
 @"unsafe struct S {
     static $$");
+        }
+
+        [WorkItem(52296, "https://github.com/dotnet/roslyn/issues/52296")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInUnsafeLocalFunction()
+        {
+            await VerifyKeywordAsync(
+@"public class C
+{
+    public void M()
+    {
+        unsafe void Local()
+        {
+            $$
+        }
+    }
+}");
+        }
+
+        [WorkItem(52296, "https://github.com/dotnet/roslyn/issues/52296")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInOrdinaryLocalFunction()
+        {
+            await VerifyAbsenceAsync(
+@"public class C
+{
+    public void M()
+    {
+        void Local()
+        {
+            $$
+        }
+    }
+}");
         }
     }
 }

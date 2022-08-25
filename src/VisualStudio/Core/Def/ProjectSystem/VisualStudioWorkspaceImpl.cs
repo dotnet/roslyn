@@ -129,8 +129,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal FileWatchedPortableExecutableReferenceFactory FileWatchedReferenceFactory { get; }
 
         private readonly Lazy<IProjectCodeModelFactory> _projectCodeModelFactory;
-        private readonly IEnumerable<Lazy<IDocumentOptionsProviderFactory, OrderableMetadata>> _documentOptionsProviderFactories;
-        private bool _documentOptionsProvidersInitialized = false;
 
         private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
         private readonly IAsynchronousOperationListener _workspaceListener;
@@ -145,7 +143,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
             _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
-            _documentOptionsProviderFactories = exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>();
 
             // We fetch this lazily because VisualStudioProjectFactory depends on VisualStudioWorkspaceImpl -- we have a circularity. Since this
             // exists right now as a compat shim, we'll just do this.
@@ -250,8 +247,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Switch to a background thread to avoid loading option providers on UI thread (telemetry is reading options).
             await TaskScheduler.Default;
 
+            var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
             var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
-            telemetryService.InitializeTelemetrySession(telemetrySession);
+            telemetryService.InitializeTelemetrySession(telemetrySession, logDelta);
 
             Logger.Log(FunctionId.Run_Environment,
                 KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
@@ -293,10 +291,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         internal VisualStudioProjectTracker GetProjectTrackerAndInitializeIfNecessary()
         {
-            if (_projectTracker == null)
-            {
-                _projectTracker = new VisualStudioProjectTracker(this, _projectFactory.Value, _threadingContext);
-            }
+            _projectTracker ??= new VisualStudioProjectTracker(this, _projectFactory.Value, _threadingContext);
 
             return _projectTracker;
         }
@@ -308,13 +303,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 return GetProjectTrackerAndInitializeIfNecessary();
             }
-        }
-
-        internal ContainedDocument? TryGetContainedDocument(DocumentId documentId)
-        {
-            // TODO: move everybody off of this instance method and replace them with calls to
-            // ContainedDocument.TryGetContainedDocument
-            return ContainedDocument.TryGetContainedDocument(documentId);
         }
 
         internal VisualStudioProject? GetProjectWithHierarchyAndName(IVsHierarchy hierarchy, string projectName)
@@ -474,13 +462,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         protected override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, CodeAnalysis.Project project)
-            => project.LanguageServices.GetRequiredService<ICompilationOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
+            => project.Services.GetRequiredService<ICompilationOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
 
         public override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
         {
             _projectToMaxSupportedLangVersionMap.TryGetValue(project.Id, out var maxSupportLangVersion);
 
-            return project.LanguageServices.GetRequiredService<IParseOptionsChangingService>().CanApplyChange(oldOptions, newOptions, maxSupportLangVersion);
+            return project.Services.GetRequiredService<IParseOptionsChangingService>().CanApplyChange(oldOptions, newOptions, maxSupportLangVersion);
         }
 
         private void AddTextBufferCloneServiceToBuffer(object sender, TextBufferCreatedEventArgs e)
@@ -573,7 +561,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             var originalProject = CurrentSolution.GetRequiredProject(projectId);
-            var compilationOptionsService = originalProject.LanguageServices.GetRequiredService<ICompilationOptionsChangingService>();
+            var compilationOptionsService = originalProject.Services.GetRequiredService<ICompilationOptionsChangingService>();
             var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
             compilationOptionsService.Apply(originalProject.CompilationOptions!, options, storage);
         }
@@ -590,7 +578,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var parseOptionsService = CurrentSolution.GetRequiredProject(projectId).LanguageServices.GetRequiredService<IParseOptionsChangingService>();
+            var parseOptionsService = CurrentSolution.GetRequiredProject(projectId).Services.GetRequiredService<IParseOptionsChangingService>();
             var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
             parseOptionsService.Apply(options, storage);
         }
@@ -1210,7 +1198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void ApplyTextDocumentChange(DocumentId documentId, SourceText newText)
         {
-            var containedDocument = TryGetContainedDocument(documentId);
+            var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
 
             if (containedDocument != null)
             {
@@ -1672,7 +1660,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return _projectReferenceInfoMap.GetOrAdd(projectId, _ => new ProjectReferenceInformation());
         }
 
-        protected internal override void OnProjectRemoved(ProjectId projectId)
+        /// <summary>
+        /// Removes the project from the various maps this type maintains; it's still up to the caller to actually remove
+        /// the project in one way or another.
+        /// </summary>
+        internal void RemoveProjectFromTrackingMaps_NoLock(ProjectId projectId)
         {
             string? languageName;
 
@@ -1716,14 +1708,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            base.OnProjectRemoved(projectId);
-
             // Try to update the UI context info.  But cancel that work if we're shutting down.
             _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
             {
                 using var asyncToken = _workspaceListener.BeginAsyncOperation(nameof(RefreshProjectExistsUIContextForLanguageAsync));
                 await RefreshProjectExistsUIContextForLanguageAsync(languageName, cancellationToken).ConfigureAwait(false);
             });
+        }
+
+        internal void RemoveSolution_NoLock()
+        {
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+
+            // At this point, we should have had RemoveProjectFromTrackingMaps_NoLock called for everything else, so it's just the solution itself
+            // to clean up
+            Contract.ThrowIfFalse(_projectReferenceInfoMap.Count == 0);
+            Contract.ThrowIfFalse(_projectToHierarchyMap.Count == 0);
+            Contract.ThrowIfFalse(_projectToGuidMap.Count == 0);
+            Contract.ThrowIfFalse(_projectToMaxSupportedLangVersionMap.Count == 0);
+            Contract.ThrowIfFalse(_projectToDependencyNodeTargetIdentifier.Count == 0);
+            Contract.ThrowIfFalse(_projectToRuleSetFilePath.Count == 0);
+            Contract.ThrowIfFalse(_projectSystemNameToProjectsMap.Count == 0);
+
+            // Create a new empty solution and set this; we will reuse the same SolutionId and path since components still may have persistence information they still need
+            // to look up by that location; we also keep the existing analyzer references around since those are host-level analyzers that were loaded asynchronously.
+            ClearOpenDocuments();
+
+            SetCurrentSolution(
+                solution => CreateSolution(
+                    SolutionInfo.Create(
+                        SolutionId.CreateNewId(),
+                        VersionStamp.Create(),
+                        analyzerReferences: solution.AnalyzerReferences)),
+                WorkspaceChangeKind.SolutionRemoved);
         }
 
         private sealed class ProjectReferenceInformation
@@ -2037,23 +2054,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                 }).ConfigureAwait(false);
             });
-        }
-
-        internal async Task EnsureDocumentOptionProvidersInitializedAsync(CancellationToken cancellationToken)
-        {
-            // HACK: switch to the UI thread, ensure we initialize our options provider which depends on a
-            // UI-affinitized experimentation service
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            _foregroundObject.AssertIsForeground();
-
-            if (_documentOptionsProvidersInitialized)
-            {
-                return;
-            }
-
-            _documentOptionsProvidersInitialized = true;
-            RegisterDocumentOptionProviders(_documentOptionsProviderFactories);
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/54137", AllowLocks = false)]

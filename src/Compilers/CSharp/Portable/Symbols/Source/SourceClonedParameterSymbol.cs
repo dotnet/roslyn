@@ -58,6 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override DeclarationScope DeclaredScope => _originalParam.DeclaredScope;
+        internal sealed override DeclarationScope EffectiveScope => _originalParam.EffectiveScope;
+
         internal override ConstantValue ExplicitDefaultConstantValue
         {
             get
@@ -71,8 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return _originalParam.DefaultValueFromAttributes; }
         }
-
-        public override bool IsNullChecked => _originalParam.IsNullChecked;
 
         #region Forwarded
 

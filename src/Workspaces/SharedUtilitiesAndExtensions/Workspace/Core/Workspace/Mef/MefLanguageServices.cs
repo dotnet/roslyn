@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
 #endif
             // workspace specific kind is best
-            if (TryGetServiceByLayer(_workspaceServices.Workspace.Kind, services, out service))
+            if (TryGetServiceByLayer(_workspaceServices.WorkspaceKind, services, out service))
             {
                 return service;
             }

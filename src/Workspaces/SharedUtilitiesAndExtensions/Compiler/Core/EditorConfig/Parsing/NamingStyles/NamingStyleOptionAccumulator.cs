@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.EditorConfigNamingStyleParser;
@@ -20,11 +22,9 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles
             return editorConfigNamingStyles;
         }
 
-        public void ProcessSection(
-            Section section,
-            ImmutableDictionary<string, (string value, TextLine? line)> properties)
+        public void ProcessSection(Section section, IReadOnlyDictionary<string, (string value, TextLine? line)> properties)
         {
-            foreach (var ruleTitle in GetRuleTitles(TrimDictionary(properties)))
+            foreach (var ruleTitle in GetRuleTitles(properties))
             {
                 if (TryGetSymbolSpec(section, ruleTitle, properties, out var applicableSymbolInfo) &&
                     TryGetNamingStyleData(section, ruleTitle, properties, out var namingScheme) &&

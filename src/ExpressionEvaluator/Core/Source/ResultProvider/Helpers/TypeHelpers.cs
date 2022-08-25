@@ -557,10 +557,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     continue;
                 }
-                if (result == null)
-                {
-                    result = new Dictionary<string, DkmClrDebuggerBrowsableAttributeState>();
-                }
+                result ??= new Dictionary<string, DkmClrDebuggerBrowsableAttributeState>();
 
                 // There can be multiple same attributes for derived classes.
                 // Debugger provides attributes starting from derived classes and then up to base ones.
@@ -783,11 +780,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             while (type != null);
 
             return false;
-        }
-
-        private static bool IsMscorlib(this Assembly assembly)
-        {
-            return assembly.GetReferencedAssemblies().Length == 0;
         }
 
         private static bool IsMscorlibType(this Type type, string @namespace, string name)

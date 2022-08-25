@@ -5,12 +5,13 @@
 #nullable disable
 
 using System;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 {
-    internal class Session<TController, TModel, TPresenterSession> : ForegroundThreadAffinitizedObject, ISession<TModel>
+    internal class Session<TController, TModel, TPresenterSession> : ISession<TModel>
         where TPresenterSession : IIntelliSensePresenterSession
         where TController : IController<TModel>
         where TModel : class
@@ -25,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         public TPresenterSession PresenterSession { get; }
 
         public Session(TController controller, ModelComputation<TModel> computation, TPresenterSession presenterSession)
-            : base(computation.ThreadingContext)
         {
             this.Controller = controller;
             this.Computation = computation;
@@ -40,14 +40,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
         private void OnPresenterSessionDismissed(object sender, EventArgs e)
         {
-            AssertIsForeground();
+            Computation.ThreadingContext.ThrowIfNotOnUIThread();
             Contract.ThrowIfFalse(ReferenceEquals(this.PresenterSession, sender));
             Controller.StopModelComputation();
         }
 
         public virtual void Stop()
         {
-            AssertIsForeground();
+            Computation.ThreadingContext.ThrowIfNotOnUIThread();
             this.Computation.Stop();
             this.PresenterSession.Dismissed -= OnPresenterSessionDismissed;
             this.PresenterSession.Dismiss();
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
         public TModel WaitForController()
         {
-            AssertIsForeground();
+            Computation.ThreadingContext.ThrowIfNotOnUIThread();
             return Computation.WaitForController();
         }
     }

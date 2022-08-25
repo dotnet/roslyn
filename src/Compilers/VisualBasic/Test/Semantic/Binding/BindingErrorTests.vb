@@ -5584,7 +5584,7 @@ BC30375: 'New' cannot be used on an interface.
         End Class
     </file>
 </compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_NewOnAbstractClass, "New C1"),
-    Diagnostic(ERRID.ERR_CantThrowNonException, "Throw (New C1)").WithArguments("C1"))
+    Diagnostic(ERRID.ERR_CantThrowNonException, "Throw (New C1)"))
 
         End Sub
 
