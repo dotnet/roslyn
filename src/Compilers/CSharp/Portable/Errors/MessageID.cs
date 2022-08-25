@@ -370,8 +370,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // C# preview features.
                 //return LanguageVersion.Preview;
-                case MessageID.IDS_Missing:
-                    return LanguageVersion.Preview;
 
                 // C# 11.0 features.
                 case MessageID.IDS_FeatureRawStringLiterals:
