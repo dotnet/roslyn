@@ -835,6 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKind,
                 returnType);
 
+        // PROTOTYPE: If possible, re-use the default values from this temporary field if they are already bound
         private LambdaSymbol? _lambdaForParameterDefaultValues = null;
 
 
