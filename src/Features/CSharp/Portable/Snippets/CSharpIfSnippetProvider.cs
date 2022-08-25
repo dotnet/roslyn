@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
             var triviaSpan = blockStatement.CloseBraceToken.LeadingTrivia.Span;
             var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
-            // Getting the midpoint location of the trivia's span to get the midway position between the set of curly braces.
-            cursorPosition = x.Span.End;
+            // Getting the location at the end of the line before the newline.
+            cursorPosition = line.Span.End;
         }
 
         protected override void GetIfStatementCondition(SyntaxNode node, out SyntaxNode condition)
