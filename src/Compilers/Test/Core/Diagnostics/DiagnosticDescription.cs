@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly bool _ignoreArgumentsWhenComparing;
         private readonly DiagnosticSeverity? _defaultSeverityOpt;
         private readonly DiagnosticSeverity? _effectiveSeverityOpt;
-        private readonly ImmutableArray<string> _originalFormatSpecifiers = default;
+        private readonly ImmutableArray<string> _originalFormatSpecifiers = ImmutableArray<string>.Empty;
 
         // fields for DiagnosticDescriptions constructed via factories
         private readonly Func<SyntaxNode, bool> _syntaxPredicate;
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         return embedded.GetMessage(EnsureEnglishUICulture.PreferredOrNull);
                     }
 
-                    return !_originalFormatSpecifiers.IsDefault && i < _originalFormatSpecifiers.Length ?
+                    return i < _originalFormatSpecifiers.Length ?
                         string.Format(_originalFormatSpecifiers[i], o) :
                         string.Format(EnsureEnglishUICulture.PreferredOrNull, "{0}", o);
                 });
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static ImmutableArray<string> GetFormatSpecifiers(string messageFormat)
         {
-            ImmutableArray<string> specifiers = default;
+            var specifiers = ImmutableArray<string>.Empty;
             if (Regex.Matches(messageFormat, @"\{\d+(:\d+)?\}") is { Count: > 0 } matches)
             {
                 var builder = ArrayBuilder<string>.GetInstance();
