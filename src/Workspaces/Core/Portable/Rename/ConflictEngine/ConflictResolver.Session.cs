@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -97,7 +96,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 _symbolToReplacementTextValid = symbolToReplacementTextValid;
                 _symbolToDeclarationDocumentAndLocation = symbolToDeclarationDocumentAndLocation;
 
-                using var _ = PooledHashSet<ConflictLocationInfo>.GetInstance(out var overlapConflictsBuilder);
                 _overlapRenameLocations = overlapRenameLocations;
             }
 
@@ -139,8 +137,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         _baseSolution,
                         renamedSpansTracker,
                         _symbolToReplacementText,
-                        _symbolToReplacementTextValid,
-                        _overlapRenameLocations);
+                        _symbolToReplacementTextValid);
 
                     var intermediateSolution = conflictResolution.OldSolution;
                     foreach (var documentsByProject in documentsGroupedByTopologicallySortedProjectId)
@@ -274,6 +271,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             conflictResolution.RelatedLocations[i] = relatedLocation.WithType(RelatedLocationType.UnresolvedConflict);
                     }
 
+                    foreach (var overlapRenameLocation in _overlapRenameLocations)
+                    {
+                        conflictResolution.AddRelatedLocation(overlapRenameLocation);
+                    }
 #if DEBUG
                     await DebugVerifyNoErrorsAsync(conflictResolution, _documentsIdsToBeCheckedForConflict).ConfigureAwait(false);
 #endif

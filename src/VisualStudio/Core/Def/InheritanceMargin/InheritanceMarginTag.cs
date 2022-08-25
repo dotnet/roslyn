@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
+using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
