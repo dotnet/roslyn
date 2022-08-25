@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     {
         protected static ConditionalWeakTable<CodeGenerationSymbol, SyntaxAnnotation[]> annotationsTable = new();
 
-        private readonly ImmutableArray<AttributeData> _attributes;
+        private ImmutableArray<AttributeData> _attributes;
         protected readonly string _documentationCommentXml;
 
         public Accessibility DeclaredAccessibility { get; }
@@ -86,15 +86,45 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsDefinition => true;
 
-        public bool IsStatic => this.Modifiers.IsStatic;
+        public bool IsStatic
+        {
+            get
+            {
+                return this.Modifiers.IsStatic;
+            }
+        }
 
-        public bool IsVirtual => this.Modifiers.IsVirtual;
+        public bool IsVirtual
+        {
+            get
+            {
+                return this.Modifiers.IsVirtual;
+            }
+        }
 
-        public bool IsOverride => this.Modifiers.IsOverride;
+        public bool IsOverride
+        {
+            get
+            {
+                return this.Modifiers.IsOverride;
+            }
+        }
 
-        public bool IsAbstract => this.Modifiers.IsAbstract;
+        public bool IsAbstract
+        {
+            get
+            {
+                return this.Modifiers.IsAbstract;
+            }
+        }
 
-        public bool IsSealed => this.Modifiers.IsSealed;
+        public bool IsSealed
+        {
+            get
+            {
+                return this.Modifiers.IsSealed;
+            }
+        }
 
         public bool IsExtern => false;
 
@@ -102,11 +132,29 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool CanBeReferencedByName => true;
 
-        public ImmutableArray<Location> Locations => ImmutableArray.Create<Location>();
+        public ImmutableArray<Location> Locations
+        {
+            get
+            {
+                return ImmutableArray.Create<Location>();
+            }
+        }
 
-        public static ImmutableArray<SyntaxNode> DeclaringSyntaxNodes => ImmutableArray.Create<SyntaxNode>();
+        public static ImmutableArray<SyntaxNode> DeclaringSyntaxNodes
+        {
+            get
+            {
+                return ImmutableArray.Create<SyntaxNode>();
+            }
+        }
 
-        public ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray.Create<SyntaxReference>();
+        public ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        {
+            get
+            {
+                return ImmutableArray.Create<SyntaxReference>();
+            }
+        }
 
         public ImmutableArray<AttributeData> GetAttributes()
             => _attributes;
@@ -117,7 +165,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public ImmutableArray<AttributeData> GetAttributes(IMethodSymbol attributeConstructor)
             => GetAttributes().WhereAsArray(a => a.AttributeConstructor.Equals(attributeConstructor));
 
-        public ISymbol OriginalDefinition => this;
+        public ISymbol OriginalDefinition
+        {
+            get
+            {
+                return this;
+            }
+        }
 
         public abstract void Accept(SymbolVisitor visitor);
 
@@ -148,7 +202,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
             => throw new NotImplementedException();
 
-        public virtual string MetadataName => this.Name;
+        public virtual string MetadataName
+        {
+            get
+            {
+                return this.Name;
+            }
+        }
 
         public int MetadataToken => 0;
 
