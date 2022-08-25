@@ -133,6 +133,7 @@ namespace N
             await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
         }
 
+        #region positional
         [Fact]
         public async Task TestSetProperty()
         {
@@ -218,6 +219,77 @@ namespace N
 namespace N
 {
     public record C(int P);
+}
+";
+            await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMoveTooManyProperties_NoAction()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P1 { get; init; }
+        public int P2 { get; init; }
+        public int P3 { get; init; }
+        public int P4 { get; init; }
+        public int P5 { get; init; }
+        public int P6 { get; init; }
+        public int P7 { get; init; }
+        public int P8 { get; init; }
+        public int P9 { get; init; }
+        public int P10 { get; init; }
+        public int P11 { get; init; }
+    }
+}
+";
+            await TestPositionalRefactoringAsync(initialMarkup, initialMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestMoveTooManyPropertiesWithLargeConstructor()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P1 { get; init; }
+        public int P2 { get; init; }
+        public int P3 { get; init; }
+        public int P4 { get; init; }
+        public int P5 { get; init; }
+        public int P6 { get; init; }
+        public int P7 { get; init; }
+        public int P8 { get; init; }
+        public int P9 { get; init; }
+        public int P10 { get; init; }
+        public int P11 { get; init; }
+
+        public C(int p1, int p2, int p3, int p4, int p5, int p6, int p7, int p8, int p9, int p10, int p11)
+        {
+            P1 = p1;
+            P2 = p2;
+            P3 = p3;
+            P4 = p4;
+            P5 = p5;
+            P6 = p6;
+            P7 = p7;
+            P8 = p8;
+            P9 = p9;
+            P10 = p10;
+            P11 = p11;
+        }
+    }
+}
+";
+            var changedMarkup = @"
+namespace N
+{
+    public record C(int P1, int P2, int P3, int P4, int P5, int P6, int P7, int P8, int P9, int P10, int P11);
 }
 ";
             await TestPositionalRefactoringAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
@@ -4043,6 +4115,266 @@ namespace N2
                 CodeActionEquivalenceKey = nameof(CSharpFeaturesResources.Convert_to_positional_record),
             }.RunAsync().ConfigureAwait(false);
         }
+        #endregion
+
+        #region propertied
+        [Fact]
+        public async Task TestSetPropertyToInit()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; set; }
+    }
+}
+";
+            var fixedMarkup = @"
+namespace N
+{
+    public record C
+    {
+        public int P { get; init; }
+    }
+}
+";
+            await TestPropertiedRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestReadonlyPropertyToInit()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class [|C|]
+    {
+        public int P { get; }
+    }
+}
+";
+            var fixedMarkup = @"
+namespace N
+{
+    public record C
+    {
+        public int P { get; init; }
+    }
+}
+";
+            await TestPropertiedRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestInitPropertyOnStruct_NonPositional()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public struct [|C|]
+    {
+        public int P { get; set; }
+    }
+}
+";
+            var fixedMarkup = @"
+namespace N
+{
+    public record struct C
+    {
+        public int P { get; set; }
+    }
+}
+";
+            await TestPropertiedRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestInheritanceFromNormalClass()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public class B
+    {
+        public int Foo { get; init; }
+    }
+
+    public class [|C|] : B
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+    }
+}
+";
+            var fixedMarkup = @"
+namespace N
+{
+    public class B
+    {
+        public int Foo { get; init; }
+    }
+
+    public record {|CS8867:{|CS0115:{|CS0115:{|CS0115:C|}|}|}|} : {|CS8864:B|}
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+    }
+}
+";
+            await TestPropertiedRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestInheritanceFromNonPositionalRecord()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public record B
+    {
+        public int Foo { get; init; }
+    }
+
+    public class [|C|] : {|CS8865:B|}
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+    }
+}
+";
+            var fixedMarkup = @"
+namespace N
+{
+    public record B
+    {
+        public int Foo { get; init; }
+    }
+
+    public record C : B
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+    }
+}
+";
+            await TestPropertiedRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestInheritanceFromNonPositionalRecordWithCopyConstructor()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public record B
+    {
+        public int Foo { get; init; }
+    }
+
+    public class [|C|] : {|CS8865:B|}
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(C other)
+        {
+            Foo = other.Foo;
+            P = other.P;
+            B = other.B;
+        }
+    }
+}
+";
+            var fixedMarkup = @"
+namespace N
+{
+    public record B
+    {
+        public int Foo { get; init; }
+    }
+
+    public record C : B
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(C other) : base(other)
+        {
+            Foo = other.Foo;
+            P = other.P;
+            B = other.B;
+        }
+    }
+}
+";
+            await TestPropertiedRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestInheritanceFromPositionalRecordWithoutConstructors_NoAction()
+        {
+            // if there are no constructors, we don't know what values to use.
+            // we can still convert to a positional parameter record
+            var initialMarkup = @"
+namespace N
+{
+    public record B(int Foo);
+
+    public class [|{|CS1729:C|}|] : {|CS8865:B|}
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+    }
+}
+";
+            await TestPropertiedRefactoringAsync(initialMarkup, initialMarkup).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TestInheritanceFromPositionalRecordWithAdditionalConstructor()
+        {
+            var initialMarkup = @"
+namespace N
+{
+    public record B(int Foo);
+
+    public class [|C|] : {|CS8865:B|}
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public {|CS1729:C|}(int foo, int p, bool b)
+        {
+            Foo = foo;
+            P = p;
+            B = b;
+        }
+    }
+}
+";
+            var fixedMarkup = @"
+namespace N
+{
+    public record B(int Foo);
+
+    public record C : B
+    {
+        public int P { get; init; }
+        public bool B { get; init; }
+
+        public C(int foo, int p, bool b) : base(foo)
+        {
+            P = p;
+            B = b;
+        }
+    }
+}
+";
+            await TestPropertiedRefactoringAsync(initialMarkup, fixedMarkup).ConfigureAwait(false);
+        }
+        #endregion
 
         #region selection
 
@@ -4198,6 +4530,10 @@ namespace N
         private static async Task TestPositionalRefactoringAsync(string initialMarkup, string changedMarkup)
             => await TestRefactoringAsync(initialMarkup, changedMarkup,
                 equivalenceKey: nameof(CSharpFeaturesResources.Convert_to_positional_record)).ConfigureAwait(false);
+
+        private static async Task TestPropertiedRefactoringAsync(string initialMarkup, string changedMarkup)
+            => await TestRefactoringAsync(initialMarkup, changedMarkup,
+                equivalenceKey: nameof(CSharpFeaturesResources.Convert_to_property_record)).ConfigureAwait(false);
 
         private static async Task TestRefactoringAsync(
             string initialMarkup,

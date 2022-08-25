@@ -316,8 +316,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     positionalParams, argumentBuilder, removalBuilder);
 
                 return (argumentBuilder.ToImmutable(),
-                    removalBuilder.SelectAsArray(node =>
-                        node.GetAncestor<AssignmentExpressionSyntax>()).WhereAsArray(node => node != null));
+                    removalBuilder
+                        .SelectAsArray(node => node.GetAncestor<AssignmentExpressionSyntax>())
+                        .WhereNotNull()
+                        .AsImmutable());
             }
 
             // no initializer, no need to make a change

@@ -100,9 +100,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     cancellationToken),
                 nameof(CSharpFeaturesResources.Convert_to_property_record));
 
-            var offeredActions = ImmutableArray.Create(nonPositional);
+            var offeredActions = ImmutableArray<CodeAction>.Empty;
+            var constructors = typeDeclaration.Members.OfType<ConstructorDeclarationSyntax>();
+            // If the current class has no explicit constructors and base class is a positional parameter record,
+            // we can't offer a non-positional record because we don't know how to fill in the base constructor
+            if (constructors.Any() || positionalParameterInfos.All(info => !info.IsInherited))
+            {
+                offeredActions = offeredActions.Add(nonPositional);
+            }
+
             // make sure a primary constructor wouldn't break style rules the user may have about constructor param
-            // length. 8 or under is fine, and if the user already has constructors that go over its also fine.
+            // length. 8 or under is fine, and if the user already has constructors that go over it's also fine.
             if (positionalParameterInfos.Length <= 8 ||
                 typeDeclaration.Members
                 .OfType<ConstructorDeclarationSyntax>()
@@ -268,6 +276,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             var baseList = GetModifiedBaseList(
                 semanticModel, type, typeDeclaration, positionalParameterInfos, cancellationToken);
 
+            if (positionalParameterInfos.Any(info => info.IsInherited))
+            {
+                // replace first element (base record) with one that uses primary constructor params
+                // Move trailing trivia to end of arg list
+                var typeList = baseList.Types;
+                var baseRecord = typeList.First();
+                var baseTrailingTrivia = baseRecord.Type.GetTrailingTrivia();
+                // get the positional parameters in the order they are declared from the base record
+                var inheritedPositionalParams = PositionalParameterInfo
+                    .GetInheritedPositionalParams(type, cancellationToken)
+                    .SelectAsArray(prop =>
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName(prop.Name)));
+
+                typeList = typeList.Replace(baseRecord,
+                    SyntaxFactory.PrimaryConstructorBaseType(baseRecord.Type.WithoutTrailingTrivia(),
+                        SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(inheritedPositionalParams))
+                        .WithTrailingTrivia(baseTrailingTrivia)));
+                baseList = baseList.WithTypes(typeList);
+            }
+
             var changedTypeDeclaration = SyntaxFactory.RecordDeclaration(
                     type.TypeKind == TypeKind.Class
                         ? SyntaxKind.RecordDeclaration
@@ -426,24 +454,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                     return null;
                 }
 
-                if (positionalParameterInfos.Any(info => info.IsInherited))
-                {
-                    // replace first element (base record) with one that uses primary constructor params
-                    // Move trailing trivia to end of arg list
-                    var baseRecord = typeList.First();
-                    var baseTrailingTrivia = baseRecord.Type.GetTrailingTrivia();
-                    // get the positional parameters in the order they are declared from the base record
-                    var inheritedPositionalParams = PositionalParameterInfo
-                        .GetInheritedPositionalParams(type, cancellationToken)
-                        .SelectAsArray(prop =>
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(prop.Name)));
-
-                    typeList = typeList.Replace(baseRecord,
-                        SyntaxFactory.PrimaryConstructorBaseType(baseRecord.Type.WithoutTrailingTrivia(),
-                            SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(inheritedPositionalParams))
-                            .WithTrailingTrivia(baseTrailingTrivia)));
-                }
-
                 return baseList.WithTypes(SyntaxFactory.SeparatedList(typeList));
             }
         }
@@ -470,17 +480,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
                 AccessorDeclarationSyntax setOrInit;
                 if (type.IsStructType() && !type.IsReadOnly)
                 {
-                    setOrInit = SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration);
+                    setOrInit = GetAccessorDeclarationWithSemicolon(SyntaxKind.SetAccessorDeclaration);
                 }
                 else
                 {
-                    setOrInit = SyntaxFactory.AccessorDeclaration(SyntaxKind.InitAccessorDeclaration);
+                    setOrInit = GetAccessorDeclarationWithSemicolon(SyntaxKind.InitAccessorDeclaration);
                 }
 
                 var syntax = info.Declaration!;
                 modifiedMembers[modifiedMembers.IndexOf(syntax)] =
-                    syntax.WithAccessorList(syntax.AccessorList.WithAccessors(SyntaxFactory.List(ImmutableArray.Create(
-                        SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration), setOrInit))));
+                    syntax.WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.List(ImmutableArray.Create(
+                        GetAccessorDeclarationWithSemicolon(SyntaxKind.GetAccessorDeclaration), setOrInit))));
             }
 
             // generated hashcode and equals methods compare all instance fields
@@ -498,27 +508,49 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
             var baseInitializerSymbols = positionalParameterInfos.SelectAsArray(
                 info => info.IsInherited,
                 info => info.Symbol);
-            if (baseInitializerSymbols.Any())
+            foreach (var constructor in typeDeclaration.Members.OfType<ConstructorDeclarationSyntax>())
             {
+                var constructorSymbol = (IMethodSymbol)
+                    semanticModel.GetRequiredDeclaredSymbol(constructor, cancellationToken);
+                var constructorOperation = (IConstructorBodyOperation)
+                    semanticModel.GetRequiredOperation(constructor, cancellationToken);
+                if (constructorSymbol.Parameters.Length == 1 &&
+                    constructorSymbol.Parameters[0].Type.Equals(type))
+                {
+                    if (ConvertToRecordHelpers.IsSimpleCopyConstructor(
+                        constructorOperation, expectedFields, constructorSymbol.Parameters[0]))
+                    {
+                        modifiedMembers.Remove(constructor);
+                    }
+                    else
+                    {
+                        // need to call copy constructor of base as initializer
+                        // regardless of what user currently has. Just use the parameter name passed in
+                        modifiedMembers[modifiedMembers.IndexOf(constructor)] = constructor.WithInitializer(
+                            SyntaxFactory.ConstructorInitializer(SyntaxKind.BaseConstructorInitializer,
+                                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(ImmutableArray.Create(
+                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName(
+                                        constructor.ParameterList.Parameters.Single().Identifier)))))));
+                    }
+
+                }
                 // The base class uses positional parameters but this one doesn't.
                 // We should add a base initializer for all declared constructors
                 // so that the base initializer calls the primary constructor.
-                foreach (var constructor in typeDeclaration.Members.OfType<ConstructorDeclarationSyntax>())
+                else if (constructor.Initializer == null && baseInitializerSymbols.Any())
                 {
-                    if (constructor.Initializer == null)
-                    {
-                        // We should only do this move if there was no base initializer to begin with,
-                        // because if the user already invoked a non-primary constructor, then their initializer is valid
-                        // because their constructor was explicitly declared.
-                        var constructorOperation = (IConstructorBodyOperation)
-                        semanticModel.GetRequiredOperation(constructor, cancellationToken);
-                        var (baseArgs, removalStatements) = ConvertToRecordHelpers.GetInitializerValuesForNonPrimaryConstructor(
-                            constructorOperation, baseInitializerSymbols);
-                        var modifiedConstructor = constructor.RemoveNodes(removalStatements, RemovalOptions)
+                    // We should only do this move if there was no base initializer to begin with,
+                    // because if the user already invoked a non-primary constructor, then their initializer is valid
+                    // because their constructor was explicitly declared.
+                    var (baseArgs, removalNodes) = ConvertToRecordHelpers
+                        .GetInitializerValuesForNonPrimaryConstructor(constructorOperation, baseInitializerSymbols);
+                    var removalAssignments = removalNodes
+                        .SelectAsArray(node => node.GetAncestor<ExpressionStatementSyntax>());
+
+                    modifiedMembers[modifiedMembers.IndexOf(constructor)] =
+                        constructor.RemoveNodes(removalAssignments, RemovalOptions)
                             .WithInitializer(SyntaxFactory.ConstructorInitializer(SyntaxKind.BaseConstructorInitializer,
                                 SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(baseArgs))));
-                        modifiedMembers[modifiedMembers.IndexOf(constructor)] = modifiedConstructor;
-                    }
                 }
             }
 
@@ -556,6 +588,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToRecord
 
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(syntaxRoot.ReplaceNode(typeDeclaration, newTypeDeclaration)).Project.Solution;
+        }
+
+        private static AccessorDeclarationSyntax GetAccessorDeclarationWithSemicolon(SyntaxKind syntaxKind)
+        {
+            var keywordKind = syntaxKind switch
+            {
+                SyntaxKind.SetAccessorDeclaration => SyntaxKind.SetKeyword,
+                SyntaxKind.GetAccessorDeclaration => SyntaxKind.GetKeyword,
+                SyntaxKind.InitAccessorDeclaration => SyntaxKind.InitKeyword,
+                _ => throw ExceptionUtilities.Unreachable
+            };
+            return SyntaxFactory.AccessorDeclaration(syntaxKind, attributeLists: default, modifiers: default,
+                SyntaxFactory.Token(keywordKind), body: null, expressionBody: null,
+                SyntaxFactory.Token(SyntaxKind.SemicolonToken));
         }
 
         private static SyntaxList<AttributeListSyntax> GetModifiedAttributeListsForProperty(PositionalParameterInfo result)
