@@ -32,7 +32,7 @@ namespace RunTests
         ///   
         /// we need to actually build partitions that run in under 5 minutes, hence our limit here of 2m30s.
         /// </summary>
-        private static readonly TimeSpan s_maxExecutionTime = TimeSpan.FromSeconds(150);
+        private static readonly TimeSpan s_maxExecutionTime = TimeSpan.FromSeconds(300);
 
         /// <summary>
         /// If we were unable to find the test execution history, we fall back to partitioning by just method count.
