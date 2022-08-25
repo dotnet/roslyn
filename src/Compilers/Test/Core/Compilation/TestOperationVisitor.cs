@@ -736,7 +736,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertConstrainedToType(operatorMethod, operation.ConstrainedToType);
             Assert.Same(operation.Operand, operation.ChildOperations.Single());
 
-            // Directly get the symbol for this binary operator from the semantic model.  This allows us to exercise
+            // Directly get the symbol for this operator from the semantic model.  This allows us to exercise
             // potentially creating synthesized intrinsic operators.
             if (operation.SemanticModel != null)
                 operation.SemanticModel.GetSymbolInfo(operation.Syntax);
