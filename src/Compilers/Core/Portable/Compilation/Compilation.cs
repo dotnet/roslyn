@@ -1603,9 +1603,9 @@ namespace Microsoft.CodeAnalysis
 
             static void checkSupportedUnaryOperatorType(ITypeSymbol type, string paramName)
             {
-                // Delegates have operators automatically synthesized for them.
-                // Pointers have operators automatically synthesized for them.
+                // Operators on dynamic are always allowed.
                 // Unary operators are supported on enums.
+                // Pointers have operators automatically synthesized for them.
                 //
                 // For error types, we don't bother checking.  The type was already in error, so fine to create an error
                 // builtin wrapping it.
