@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Method for each snippet to locate the inserted SyntaxNode to reformat
         /// </summary>
         protected abstract Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document, SyntaxAnnotation reformatAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken);
-        protected abstract int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget);
+        protected abstract int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText);
 
         /// <summary>
         /// Every SnippetProvider will need a method to retrieve the "main" snippet syntax once it has been inserted as a TextChange.
@@ -108,9 +109,11 @@ namespace Microsoft.CodeAnalysis.Snippets
             var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).FirstOrDefault();
             var mainChangeNode = reformattedRoot.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
 
+            var annotatedReformattedDocument = documentWithIndentation.WithSyntaxRoot(reformattedRoot);
+
             // All the TextChanges from the original document. Will include any imports (if necessary) and all snippet associated
             // changes after having been formatted.
-            var changes = await documentWithIndentation.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+            var changes = await annotatedReformattedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
 
             // Gets a listing of the identifiers that need to be found in the snippet TextChange
             // and their associated TextSpan so they can later be converted into an LSP snippet format.
@@ -119,9 +122,11 @@ namespace Microsoft.CodeAnalysis.Snippets
             // All the changes from the original document to the most updated. Will later be
             // collpased into one collapsed TextChange.
             var changesArray = changes.ToImmutableArray();
+            Contract.ThrowIfFalse(annotatedReformattedDocument.TryGetText(out var sourceText));
+
             return new SnippetChange(
                 textChanges: changesArray,
-                cursorPosition: GetTargetCaretPosition(syntaxFacts, caretTarget),
+                cursorPosition: GetTargetCaretPosition(syntaxFacts, caretTarget, sourceText),
                 placeholders: placeholders);
         }
 

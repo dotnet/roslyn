@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
@@ -27,16 +28,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
         }
 
-        protected override void GetIfStatementConditionAndCursorPosition(SyntaxNode node, out SyntaxNode condition, out int cursorPosition)
+        protected override void GetIfStatementCursorPosition(SourceText sourceText, SyntaxNode node, out int cursorPosition)
         {
             var ifStatement = (IfStatementSyntax)node;
-            condition = ifStatement.Condition;
             var blockStatement = (BlockSyntax)ifStatement.Statement;
 
             var triviaSpan = blockStatement.CloseBraceToken.LeadingTrivia.Span;
-
+            var x = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
             // Getting the midpoint location of the trivia's span to get the midway position between the set of curly braces.
             cursorPosition = ((triviaSpan.Start + triviaSpan.End) / 2) + 1;
+        }
+
+        protected override void GetIfStatementCondition(SyntaxNode node, out SyntaxNode condition)
+        {
+            var ifStatement = (IfStatementSyntax)node;
+            condition = ifStatement.Condition;
         }
 
         private static string GetIndentation(Document document, SyntaxNode node, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
