@@ -1586,7 +1586,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="name">The unary operator name.  Should be one of the names from <see cref="WellKnownMemberNames"/>.</param>
         /// <param name="returnType">The return type of the unary operator.</param>
         /// <param name="valueType">The type the operator applies to.</param>
-        /// <param name="isChecked">Whether or not this is a checked unary operator.</param>
+        /// <param name="isChecked">Whether or not this is a checked unary operator.  For example <c>Shared Operator
+        /// -(value As Integer) As Integer</c> can be checked.</param>
         /// <returns></returns>
         public IMethodSymbol CreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol valueType, bool isChecked)
         {
